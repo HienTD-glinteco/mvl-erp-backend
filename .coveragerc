@@ -1,0 +1,19 @@
+[run]
+source = .
+concurrency = multiprocessing
+parallel = true
+omit =
+    static*
+    logs*
+    *migrations*
+    tests*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __unicode__
+    def __repr__
+    if __name__ == .__main__.:
+
+[html]
+title = Coverage Report
