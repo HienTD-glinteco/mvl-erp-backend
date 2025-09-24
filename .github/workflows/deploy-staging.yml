@@ -1,0 +1,35 @@
+name: Deploy to Staging Environment
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ staging ]
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging' && github.event.pull_request.head.ref == 'master'
+
+    steps:
+    - name: Deploy to Staging Server
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd /home/ubuntu/maivietland/backend
+          git checkout staging
+          git pull origin staging
+          source .venv/bin/activate
+          poetry install --no-interaction --no-root
+          python manage.py migrate
+          sudo supervisorctl restart maivietland-api
+
+    - name: Health Check
+      run: |
+        # Add health check commands for your staging environment
+        echo "Add health check for staging environment here"
+        # curl -f http://your-staging-domain.com/health/ || exit 1

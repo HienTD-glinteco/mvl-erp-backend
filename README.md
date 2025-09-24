@@ -112,3 +112,27 @@ ENVIRONMENT=local celery -A celery_tasks flower
 ```
 
 Then navigate to http://localhost:5555/
+
+## CI/CD Pipeline
+
+This project includes a complete CI/CD pipeline using GitHub Actions. The pipeline supports three environments:
+
+- **Test**: Automatically deployed when code is merged to `master`
+- **Staging**: Deployed when PR from `master` to `staging` is merged
+- **Production**: Deployed when PR from `master` to `release` is merged
+
+### Quick Start for CI/CD
+
+1. **Set up GitHub Secrets**: Configure environment secrets in repository settings
+2. **Create branches**: Ensure `staging` and `release` branches exist
+3. **Test the pipeline**: Create a PR to `master` to trigger CI
+
+For detailed CI/CD documentation, see [docs/CICD.md](docs/CICD.md)
+
+### Workflow
+
+1. Create feature branch from `master`
+2. Make changes and create PR to `master` (triggers CI)
+3. Merge PR to deploy to test environment
+4. Create PR from `master` to `staging` for staging deployment
+5. Create PR from `master` to `release` for production deployment
