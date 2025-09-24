@@ -19,17 +19,41 @@ jobs:
         host: ${{ secrets.STAGING_HOST }}
         username: ${{ secrets.STAGING_USERNAME }}
         key: ${{ secrets.STAGING_SSH_KEY }}
+        script_stop: true
+        command_timeout: 30m
         script: |
+          set -Eeuo pipefail
+          trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
+          
           cd /home/ubuntu/maivietland/backend
           git checkout staging
           git pull origin staging
-          source .venv/bin/activate
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
-          python manage.py migrate
-          sudo supervisorctl restart maivietland-api
+          poetry run python manage.py migrate --noinput
+          sudo supervisorctl restart maivietland-api maivietland-worker
 
-    - name: Health Check
+    - name: Health Check (with retry)
       run: |
-        # Add health check commands for your staging environment
-        echo "Add health check for staging environment here"
-        # curl -f http://your-staging-domain.com/health/ || exit 1
+        set -Eeuo pipefail
+        url="${{ vars.STAGING_APP_URL }}/health/"
+        for i in {1..10}; do
+          status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
+          if [ "$status" = "200" ]; then
+            echo "✅ Deploy thành công: 200 OK (attempt $i)"
+            exit 0
+          fi
+          echo "⏳ Chưa sẵn sàng (HTTP $status) — thử lại ($i/10)"; sleep 5
+        done
+        echo "❌ Deploy thất bại: không nhận được 200 OK sau 10 lần thử"
+        exit 1
+
+    - name: Notify Deployment
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        text: "STAGING deployment completed with status: ${{ job.status }}"
+      env:
+        SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}

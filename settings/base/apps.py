@@ -21,7 +21,7 @@ EXTERNAL_APPS = [
     "health_check",  # required
     "health_check.db",  # stock Django health checkers
     "health_check.cache",
-    "health_check.storage",
+    "health_check.contrib.s3boto3_storage",
     "health_check.contrib.migrations",
     "health_check.contrib.celery",  # requires celery
     "health_check.contrib.celery_ping",  # requires celery

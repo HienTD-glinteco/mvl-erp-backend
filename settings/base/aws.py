@@ -7,6 +7,6 @@ AWS_S3_REGION_NAME = config("AWS_REGION_NAME", default="")
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 AWS_LOCATION = "media"
-AWS_S3_OBJECT_PARAMETERS = {
-    "ACL": "public-read",
-}
+# AWS_S3_OBJECT_PARAMETERS = {
+#     "ACL": "public-read",
+# }

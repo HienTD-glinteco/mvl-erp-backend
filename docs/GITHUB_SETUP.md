@@ -42,8 +42,8 @@ TEST_APP_URL=http://test.yourdomain.com
 
 ### Staging Environment Secrets
 
-**Note**: Environment variables are now managed directly on the server, not through GitHub secrets. Only SSH access secrets are needed in GitHub:
-
+**Note**: Environment variables are now managed directly on the server, not through GitHub secrets. Only SSH access secrets are needed in GitHub.
+You just need to cat /path/to/
 ```
 STAGING_HOST=your-ec2-ip-or-domain
 STAGING_USERNAME=ubuntu

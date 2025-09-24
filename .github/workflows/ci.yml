@@ -68,10 +68,13 @@ jobs:
 
     - name: Create environment file
       run: |
-        cp .env.tpl .env
-        sed -i 's/YOUR_SECRET_KEY/test-secret-key-for-ci/' .env
-        sed -i 's|postgres://backend:password@localhost:5432/backend|postgres://backend:password@localhost:5432/backend|' .env
-        sed -i 's|redis://localhost:6379/0|redis://localhost:6379/0|' .env
+          cat > .env <<'EOF'
+      DEBUG=false
+      SECRET_KEY=test-secret-key-for-ci
+      DATABASE_URL=postgres://backend:password@localhost:5432/backend
+      REDIS_URL=redis://localhost:6379/0
+      ALLOWED_HOSTS=localhost,127.0.0.1
+      EOF
 
     - name: Run code quality checks
       run: |

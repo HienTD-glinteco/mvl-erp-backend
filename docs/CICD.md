@@ -88,10 +88,6 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 ## Required GitHub Secrets
 
 ### Test Environment
-- `TEST_SECRET_KEY`: Django secret key for test environment
-- `TEST_DATABASE_URL`: Database connection string
-- `TEST_ALLOWED_HOSTS`: Allowed hosts configuration
-- `TEST_CACHE_URL`: Redis cache URL
 - `TEST_CELERY_BROKER_URL`: Celery broker URL
 - `TEST_SENTRY_DSN`: Sentry DSN for error tracking
 
@@ -111,7 +107,7 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 - `PRODUCTION_CELERY_BROKER_URL`: Celery broker URL
 - `PRODUCTION_SENTRY_DSN`: Sentry DSN for error tracking
 
-### Optional Deployment Secrets (depending on deployment method)
+### Deployment Secrets
 - `TEST_HOST`, `STAGING_HOST`, `PRODUCTION_HOST`: Server hostnames for SSH deployment
 - `TEST_USERNAME`, `STAGING_USERNAME`, `PRODUCTION_USERNAME`: SSH usernames
 - `TEST_SSH_KEY`, `STAGING_SSH_KEY`, `PRODUCTION_SSH_KEY`: SSH private keys

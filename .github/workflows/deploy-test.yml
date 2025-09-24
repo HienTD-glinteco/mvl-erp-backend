@@ -18,37 +18,53 @@ jobs:
         username: ${{ secrets.TEST_USERNAME }}
         key: ${{ secrets.TEST_SSH_KEY }}
         script: |
+          set -Eeuo pipefail
+          trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
+
+
           # Navigate to application directory
           cd /home/ubuntu/maivietland/backend
           
           # Pull latest changes from master
+          git fetch --all --prune
           git pull origin master
           
           # Activate virtual environment and install dependencies
-          source .venv/bin/activate
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
           
-          # Use existing .env file configured on server
-          # (No environment variable replacement - managed on server)
-          
           # Run database migrations
-          python manage.py migrate
+          poetry run python manage.py migrate --noinput
           
           # Update supervisor configuration and restart gunicorn workers
           sudo supervisorctl reread
           sudo supervisorctl update
-          sudo supervisorctl restart maivietland-api
+          sudo supervisorctl restart maivietland-api maivietland-worker
           
           # Reload nginx configuration
           sudo nginx -t && sudo nginx -s reload
 
-    - name: Health Check
+    - name: Health Check (with retry)
       run: |
-        # Health check for EC2 test environment
-        echo "Performing health check on test environment..."
-        sleep 10  # Wait for services to start
-        
-        # Check if the application is responding
-        curl -f ${{ secrets.TEST_APP_URL }}/health/ || echo "Health check endpoint not available"
-        
-        echo "Health check completed"
+        set -Eeuo pipefail
+        url="${{ vars.TEST_APP_URL }}/health/"
+        for i in {1..10}; do
+          status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
+          if [ "$status" = "200" ]; then
+            echo "✅ Deploy thành công: 200 OK (attempt $i)"
+            exit 0
+          fi
+          echo "⏳ Chưa sẵn sàng (HTTP $status) — thử lại ($i/10)"; sleep 5
+        done
+        echo "❌ Deploy thất bại: không nhận được 200 OK sau 10 lần thử"
+        exit 1
+
+    - name: Notify Deployment
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ job.status }}
+        text: "TEST deployment completed with status: ${{ job.status }}"
+      env:
+        SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
