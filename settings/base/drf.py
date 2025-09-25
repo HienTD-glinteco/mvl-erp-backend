@@ -3,18 +3,38 @@ from datetime import timedelta
 from .base import config
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": "rest_framework_simplejwt.authentication.JWTAuthentication",
+    "DEFAULT_RENDERER_CLASSES": [
+        "apps.core.renderers.EnvelopeJSONRenderer",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "100/minute", "user": "1000/minute"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/minute", 
+        "user": "1000/minute",
+        "login": "5/minute",  # Login specific throttling
+    },
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
+}
+
+# drf-spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "MaiVietLand Backend API",
+    "DESCRIPTION": "API documentation for MaiVietLand backend system",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SORT_OPERATIONS": False,
+    "SCHEMA_PATH_PREFIX": "/api/",
 }
 
 SIMPLE_JWT = {

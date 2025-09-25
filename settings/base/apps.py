@@ -2,6 +2,7 @@ DJANGO_APPs = [
     # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.sessions",
     "django.contrib.humanize",
 ]
 
@@ -15,7 +16,7 @@ EXTERNAL_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "drf_standardized_errors",
-    "drf_yasg",
+    "drf_spectacular",
     "django_celery_beat",
     "django_celery_results",
     "health_check",  # required
@@ -27,6 +28,9 @@ EXTERNAL_APPS = [
     "health_check.contrib.celery_ping",  # requires celery
 ]
 
-INTERNAL_APPS = []
+INTERNAL_APPS = [
+    "apps.core",
+    "apps.hrm",
+]
 
 INSTALLED_APPS = DJANGO_APPs + EXTERNAL_APPS + INTERNAL_APPS

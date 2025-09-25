@@ -17,10 +17,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework.permissions import AllowAny
-
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path("health/", include("health_check.urls")),
@@ -31,19 +28,8 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 if settings.DEBUG:
-    schema_view = get_schema_view(
-        openapi.Info(
-            title="API Docs",
-            default_version="v1",
-        ),
-        public=True,
-        permission_classes=[AllowAny],
-    )
-
     urlpatterns += [
-        path(
-            "api_docs/",
-            schema_view.with_ui("swagger", cache_timeout=0),
-            name="api_docs",
-        ),
+        # API schema and documentation
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     ]

@@ -26,3 +26,6 @@ LOG_LEVEL = config("LOG_LEVEL", default="ERROR")
 WSGI_APPLICATION = "wsgi.application"
 ROOT_URLCONF = "urls"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Custom user model
+AUTH_USER_MODEL = "core.User"
