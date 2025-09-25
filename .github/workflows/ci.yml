@@ -68,13 +68,13 @@ jobs:
 
     - name: Create environment file
       run: |
-          cat > .env <<'EOF'
-      DEBUG=false
-      SECRET_KEY=test-secret-key-for-ci
-      DATABASE_URL=postgres://backend:password@localhost:5432/backend
-      REDIS_URL=redis://localhost:6379/0
-      ALLOWED_HOSTS=localhost,127.0.0.1
-      EOF
+        {
+          echo "DEBUG=false";
+          echo "SECRET_KEY=test-secret-key-for-ci";
+          echo "DATABASE_URL=postgres://backend:password@localhost:5432/backend";
+          echo "REDIS_URL=redis://localhost:6379/0";
+          echo "ALLOWED_HOSTS=localhost,127.0.0.1";
+        } > .env
 
     - name: Run code quality checks
       run: |
