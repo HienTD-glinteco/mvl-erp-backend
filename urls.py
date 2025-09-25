@@ -19,17 +19,20 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-urlpatterns = [
+urlpatterns = []
+urlpatterns += [
     path("health/", include("health_check.urls")),
-    path("api/", include("apps.core.urls")),
-    path("api/", include("apps.hrm.urls")),
+    path("api/core/", include("apps.core.urls")),
+    path("api/hrm/", include("apps.hrm.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-if settings.DEBUG:
+if settings.ENVIRONMENT in ["local", "develop"]:
     urlpatterns += [
-        # API schema and documentation
         path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-        path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        path(
+            "api/docs/",
+            SpectacularSwaggerView.as_view(url_name="schema"),
+            name="swagger-ui",
+        ),
     ]

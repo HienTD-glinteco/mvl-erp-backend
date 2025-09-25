@@ -9,7 +9,7 @@ def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
     # Entrypoint for share task
-    from celery_tasks import celery_app
+    from celery_tasks import celery_app  # NOQA
 
     try:
         from django.core.management import execute_from_command_line

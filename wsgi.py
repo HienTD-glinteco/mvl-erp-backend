@@ -14,6 +14,6 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
 # Entrypoint for share task
-from celery_tasks import celery_app
+from celery_tasks import celery_app  # NOQA
 
 application = get_wsgi_application()

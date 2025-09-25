@@ -16,3 +16,4 @@ from .password import *
 from .sentry import *
 from .storage import *
 from .templates import *
+from .static import *
