@@ -8,14 +8,14 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 
 1. **Feature Development**: Developers create feature branches from `master`
 2. **Pull Request CI**: When PRs are created to `master`, CI runs code quality checks and tests
-3. **Test Deployment**: When PRs are merged to `master`, automatic deployment to test environment
+3. **Test Deployment**: When PRs are merged to `master` **AND CI tests pass**, automatic deployment to test environment
 4. **Staging Deployment**: PRs from `master` to `staging` trigger deployment to staging environment
-5. **Production Deployment**: PRs from `master` to `release` trigger deployment to production environment
+5. **Production Deployment**: PRs from `master` to `release` trigger deployment to production environment (workflow not yet implemented)
 
 ## Environments
 
 ### Test Environment
-- **Trigger**: Automatic deployment when code is merged to `master` branch
+- **Trigger**: Automatic deployment when code is merged to `master` branch **AND CI tests pass**
 - **Purpose**: Continuous testing of new features
 - **Branch**: `master`
 - **Infrastructure**: EC2 server with nginx + supervisor + gunicorn setup
@@ -33,9 +33,12 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 
 ## Workflows
 
-### 1. CI Pipeline (`ci.yml`)
-**Trigger**: Pull requests to `master` branch
+### 1. CI/CD Pipeline (`ci-cd.yml`)
+**Trigger**: Pull requests to `master` branch, Push to `master` branch
 
+**Jobs**:
+
+#### CI Job - Code Quality and Tests
 **Steps**:
 - Code checkout
 - Python and Poetry setup
@@ -47,19 +50,19 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 - Unit tests with coverage
 - Coverage reporting
 
-### 2. Test Environment Deployment (`deploy-test.yml`)
-**Trigger**: Push to `master` branch (after PR merge)
+#### Test Deployment Job - Deploy to Test Environment
+**Trigger**: Only runs on push to `master` branch (not on pull requests) **AND** only after CI tests pass successfully
+**Depends on**: CI job must complete successfully
 
 **Steps**:
-- Code checkout
-- Environment setup
-- Application build
+- Deploy to EC2 test server via SSH
 - Database migrations
-- Deployment (configurable)
+- Application restart (supervisor)
+- Web server reload (nginx)
 - Health checks
 - Notifications
 
-### 3. Staging Environment Deployment (`deploy-staging.yml`)
+### 2. Staging Environment Deployment (`deploy-staging.yml`)
 **Trigger**: PR from `master` to `staging` branch (when merged)
 
 **Steps**:
@@ -71,19 +74,10 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 - Health checks
 - Notifications
 
-### 4. Production Environment Deployment (`deploy-production.yml`)
-**Trigger**: PR from `master` to `release` branch (when merged)
+### 3. Production Environment Deployment (`deploy-production.yml`)
+**Note**: This workflow file is not currently implemented. Create it based on the staging workflow template when needed.
 
-**Steps**:
-- Code checkout from `release` branch
-- Final tests
-- Environment setup
-- Application build
-- Database migrations
-- Deployment (configurable)
-- Health checks
-- Release tagging
-- Notifications
+**Planned Trigger**: PR from `master` to `release` branch (when merged)
 
 ## Required GitHub Secrets
 

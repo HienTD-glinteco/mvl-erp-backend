@@ -43,6 +43,7 @@ sentry-sdk = "^2.24.1"
 djangorestframework = "^3.15.2"
 drf-standardized-errors = "^0.14.1"
 djangorestframework-simplejwt = "^5.5.0"
+drf-spectacular = "^0.28.0"
 drf-yasg = "^1.21.10"
 django-cors-headers = "^4.7.0"
 

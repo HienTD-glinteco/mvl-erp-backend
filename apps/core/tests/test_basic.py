@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
+
+from apps.core.models import User
 
 
 class HealthCheckTestCase(TestCase):
@@ -25,10 +26,14 @@ class HealthCheckTestCase(TestCase):
     def test_user_model(self):
         """Test basic user model functionality."""
         user = User.objects.create_user(
-            username='testuser',
+            employee_code='EMP001',
             email='test@example.com',
-            password='testpass123'
+            password='testpass123',
+            first_name='John',
+            last_name='Doe'
         )
-        self.assertEqual(user.username, 'testuser')
+        self.assertEqual(user.employee_code, 'EMP001')
         self.assertEqual(user.email, 'test@example.com')
         self.assertTrue(user.check_password('testpass123'))
+        self.assertEqual(user.get_full_name(), 'Doe John')
+        self.assertEqual(user.get_short_name(), 'John')
