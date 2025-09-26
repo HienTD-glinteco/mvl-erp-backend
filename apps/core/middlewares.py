@@ -25,7 +25,7 @@ class ApiResponseWrapperMiddleware(MiddlewareMixin):
             # Do not wrap non-JSON responses
             return response
 
-        is_error = response.exception
+        is_error = getattr(response, 'exception', False) or status >= 400
         envelope = {
             "success": not is_error,
             "data": None if is_error else data,

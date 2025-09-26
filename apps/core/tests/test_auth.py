@@ -31,10 +31,12 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("message", response.data)
-        self.assertIn("OTP đã được gửi", response.data["message"])
-        self.assertEqual(response.data["username"], "testuser001")
-        self.assertIn("email_hint", response.data)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertIn("message", response_data["data"])
+        self.assertIn("OTP đã được gửi", response_data["data"]["message"])
+        self.assertEqual(response_data["data"]["username"], "testuser001")
+        self.assertIn("email_hint", response_data["data"])
         # Verify OTP email task was called
         mock_email_task.assert_called_once()
 
@@ -44,8 +46,10 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
-        self.assertIn("Mật khẩu không đúng", str(response.data["non_field_errors"][0]))
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("non_field_errors", response_data["error"])
+        self.assertIn("Mật khẩu không đúng", str(response_data["error"]["non_field_errors"][0]))
 
     def test_login_with_nonexistent_user(self):
         """Test login with non-existent username"""
@@ -53,9 +57,11 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("non_field_errors", response_data["error"])
         self.assertIn(
-            "Tên đăng nhập không tồn tại", str(response.data["non_field_errors"][0])
+            "Tên đăng nhập không tồn tại", str(response_data["error"]["non_field_errors"][0])
         )
 
     def test_account_lockout_after_failed_attempts(self):
@@ -70,7 +76,9 @@ class AuthenticationTestCase(TestCase):
         # 6th attempt should show account locked message
         response = self.client.post(self.login_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("khóa", str(response.data["non_field_errors"][0]))
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("khóa", str(response_data["error"]["non_field_errors"][0]))
 
     def test_otp_verification_success(self):
         """Test successful OTP verification"""
@@ -81,11 +89,13 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.otp_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("message", response.data)
-        self.assertIn("tokens", response.data)
-        self.assertIn("user", response.data)
-        self.assertIn("access", response.data["tokens"])
-        self.assertIn("refresh", response.data["tokens"])
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertIn("message", response_data["data"])
+        self.assertIn("tokens", response_data["data"])
+        self.assertIn("user", response_data["data"])
+        self.assertIn("access", response_data["data"]["tokens"])
+        self.assertIn("refresh", response_data["data"]["tokens"])
 
     def test_otp_verification_wrong_code(self):
         """Test OTP verification with wrong code"""
@@ -99,7 +109,14 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.otp_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        # Check for the actual error structure - it could be either format
+        error_data = response_data["error"]
+        self.assertTrue(
+            "non_field_errors" in error_data or 
+            ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
+        )
 
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_email(self, mock_email_task):
@@ -110,8 +127,10 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.forgot_password_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("message", response.data)
-        self.assertIn("đặt lại mật khẩu", response.data["message"])
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertIn("message", response_data["data"])
+        self.assertIn("đặt lại mật khẩu", response_data["data"]["message"])
 
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_phone(self, mock_email_task):
@@ -126,8 +145,10 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.forgot_password_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("message", response.data)
-        self.assertIn("đặt lại mật khẩu", response.data["message"])
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertIn("message", response_data["data"])
+        self.assertIn("đặt lại mật khẩu", response_data["data"]["message"])
         # Verify email task was called (password reset uses email even for phone lookup)
         mock_email_task.assert_called_once()
 
@@ -137,7 +158,9 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.forgot_password_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("non_field_errors", response_data["error"])
 
     def test_user_model_methods(self):
         """Test User model methods"""
@@ -174,8 +197,10 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
-        self.assertIn("vô hiệu hóa", str(response.data["non_field_errors"][0]))
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("non_field_errors", response_data["error"])
+        self.assertIn("vô hiệu hóa", str(response_data["error"]["non_field_errors"][0]))
 
     def test_empty_credentials(self):
         """Test login with empty credentials"""
@@ -183,9 +208,11 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
         # Should have validation errors for both fields
         self.assertTrue(
-            "username" in response.data or "non_field_errors" in response.data
+            "username" in response_data["error"] or "non_field_errors" in response_data["error"]
         )
 
     def test_otp_expiration(self):
@@ -199,4 +226,11 @@ class AuthenticationTestCase(TestCase):
         response = self.client.post(self.otp_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("non_field_errors", response.data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        # Check for the actual error structure - it could be either format
+        error_data = response_data["error"]
+        self.assertTrue(
+            "non_field_errors" in error_data or 
+            ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
+        )
