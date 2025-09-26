@@ -18,26 +18,26 @@
         <h1>MaiVietLand</h1>
         <p>Mã OTP đăng nhập</p>
     </div>
-    
+
     <div class="content">
-        <p>Xin chào <strong>{{ user.get_full_name|default:user.employee_code }}</strong>,</p>
-        
+        <p>Xin chào <strong>{{ user.get_full_name|default:user.username }}</strong>,</p>
+
         <p>Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản MaiVietLand của bạn.</p>
-        
+
         <p>Mã OTP để hoàn tất đăng nhập của bạn là:</p>
-        
+
         <div class="otp-code">{{ otp_code }}</div>
-        
+
         <div class="warning">
             <strong>Lưu ý:</strong> Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần.
         </div>
-        
+
         <p>Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này và liên hệ với quản trị viên nếu cần thiết.</p>
-        
+
         <p>Trân trọng,<br>
         <strong>Đội ngũ MaiVietLand</strong></p>
     </div>
-    
+
     <div class="footer">
         <p>Email này được gửi tự động, vui lòng không trả lời.</p>
         <p>&copy; {{ current_year }} MaiVietLand. Tất cả quyền được bảo lưu.</p>

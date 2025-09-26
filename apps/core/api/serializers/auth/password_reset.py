@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 
 class PasswordResetSerializer(serializers.Serializer):
     identifier = serializers.CharField(
-        max_length=255, 
+        max_length=255,
         help_text="Email hoặc số điện thoại",
         error_messages={
-            'required': 'Vui lòng nhập email hoặc số điện thoại.',
-            'blank': 'Email hoặc số điện thoại không được để trống.'
-        }
+            "required": "Vui lòng nhập email hoặc số điện thoại.",
+            "blank": "Email hoặc số điện thoại không được để trống.",
+        },
     )
 
     def validate_identifier(self, value):
@@ -30,14 +30,16 @@ class PasswordResetSerializer(serializers.Serializer):
         # Search by email or phone number
         user = None
         try:
-            if '@' in identifier:
+            if "@" in identifier:
                 # Assume it's an email
                 user = User.objects.get(email=identifier)
             else:
                 # Assume it's a phone number
                 user = User.objects.get(phone_number=identifier)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Không tìm thấy tài khoản với thông tin này.")
+            raise serializers.ValidationError(
+                "Không tìm thấy tài khoản với thông tin này."
+            )
 
         if not user.is_active:
             raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
@@ -53,14 +55,16 @@ class PasswordResetSerializer(serializers.Serializer):
                 user_id=str(user.id),
                 user_email=user.email,
                 user_full_name=user.get_full_name(),
-                employee_code=user.employee_code,
-                phone_number=user.phone_number
+                username=user.username,
+                phone_number=user.phone_number,
             )
-            
-            logger.info(f"Password reset email task queued for user {user.employee_code}")
+
+            logger.info(f"Password reset email task queued for user {user.username}")
             return True
-            
+
         except Exception as e:
-            logger.error(f"Failed to queue password reset email task for user {user.employee_code}: {str(e)}")
+            logger.error(
+                f"Failed to queue password reset email task for user {user.username}: {str(e)}"
+            )
             sentry_sdk.capture_exception(e)
             return False

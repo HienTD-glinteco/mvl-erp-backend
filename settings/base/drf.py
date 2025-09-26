@@ -3,9 +3,9 @@ from datetime import timedelta
 from .base import config
 
 REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": [
-        "apps.core.renderers.EnvelopeJSONRenderer",
-    ],
+    # "DEFAULT_RENDERER_CLASSES": [
+    #     "libs.renderers.EnvelopeJSONRenderer",
+    # ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
@@ -14,7 +14,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/minute", 
+        "anon": "100/minute",
         "user": "1000/minute",
         "login": "5/minute",  # Login specific throttling
     },
@@ -38,6 +38,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
     "ACCESS_TOKEN_LIFETIME": timedelta(
         seconds=config(
             "ACCESS_TOKEN_LIFETIME",

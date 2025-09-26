@@ -22,16 +22,16 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = []
 urlpatterns += [
     path("health/", include("health_check.urls")),
-    path("api/core/", include("apps.core.urls")),
+    path("api/", include("apps.core.urls")),
     path("api/hrm/", include("apps.hrm.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.ENVIRONMENT in ["local", "develop"]:
     urlpatterns += [
-        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        path("schema/", SpectacularAPIView.as_view(), name="schema"),
         path(
-            "api/docs/",
+            "docs/",
             SpectacularSwaggerView.as_view(url_name="schema"),
             name="swagger-ui",
         ),

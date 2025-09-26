@@ -12,7 +12,7 @@ class AuthenticationTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            employee_code="EMP001",
+            username="testuser001",
             email="test@example.com",
             password="testpass123",
             first_name="John",
@@ -22,61 +22,51 @@ class AuthenticationTestCase(TestCase):
         self.otp_url = reverse("core:verify_otp")
         self.forgot_password_url = reverse("core:forgot_password")
 
-    @patch('apps.core.tasks.send_otp_email_task.delay')
+    @patch("apps.core.tasks.send_otp_email_task.delay")
     def test_successful_login(self, mock_email_task):
         """Test successful login with correct credentials"""
         mock_email_task.return_value = MagicMock()
-        
-        data = {
-            "employee_code": "EMP001",
-            "password": "testpass123"
-        }
+
+        data = {"username": "testuser001", "password": "testpass123"}
         response = self.client.post(self.login_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.data)
         self.assertIn("OTP đã được gửi", response.data["message"])
-        self.assertEqual(response.data["employee_code"], "EMP001")
+        self.assertEqual(response.data["username"], "testuser001")
         self.assertIn("email_hint", response.data)
         # Verify OTP email task was called
         mock_email_task.assert_called_once()
 
     def test_login_with_wrong_credentials(self):
         """Test login with wrong credentials"""
-        data = {
-            "employee_code": "EMP001",
-            "password": "wrongpassword"
-        }
+        data = {"username": "testuser001", "password": "wrongpassword"}
         response = self.client.post(self.login_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
         self.assertIn("Mật khẩu không đúng", str(response.data["non_field_errors"][0]))
 
     def test_login_with_nonexistent_user(self):
-        """Test login with non-existent employee code"""
-        data = {
-            "employee_code": "NONEXISTENT",
-            "password": "testpass123"
-        }
+        """Test login with non-existent username"""
+        data = {"username": "NONEXISTENT", "password": "testpass123"}
         response = self.client.post(self.login_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
-        self.assertIn("Mã nhân viên không tồn tại", str(response.data["non_field_errors"][0]))
+        self.assertIn(
+            "Tên đăng nhập không tồn tại", str(response.data["non_field_errors"][0])
+        )
 
     def test_account_lockout_after_failed_attempts(self):
         """Test account lockout after 5 failed login attempts"""
-        data = {
-            "employee_code": "EMP001",
-            "password": "wrongpassword"
-        }
-        
+        data = {"username": "testuser001", "password": "wrongpassword"}
+
         # Make 5 failed attempts
         for i in range(5):
             response = self.client.post(self.login_url, data, format="json")
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
+
         # 6th attempt should show account locked message
         response = self.client.post(self.login_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -86,13 +76,10 @@ class AuthenticationTestCase(TestCase):
         """Test successful OTP verification"""
         # First generate OTP for the user
         otp_code = self.user.generate_otp()
-        
-        data = {
-            "employee_code": "EMP001",
-            "otp_code": otp_code
-        }
+
+        data = {"username": "testuser001", "otp_code": otp_code}
         response = self.client.post(self.otp_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.data)
         self.assertIn("tokens", response.data)
@@ -104,44 +91,40 @@ class AuthenticationTestCase(TestCase):
         """Test OTP verification with wrong code"""
         # First generate OTP for the user
         self.user.generate_otp()
-        
+
         data = {
-            "employee_code": "EMP001",
-            "otp_code": "000000"  # Wrong OTP
+            "username": "testuser001",
+            "otp_code": "000000",  # Wrong OTP
         }
         response = self.client.post(self.otp_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
 
-    @patch('apps.core.tasks.send_password_reset_email_task.delay')
+    @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_email(self, mock_email_task):
         """Test password reset request with email"""
         mock_email_task.return_value = MagicMock()
-        
-        data = {
-            "identifier": "test@example.com"
-        }
+
+        data = {"identifier": "test@example.com"}
         response = self.client.post(self.forgot_password_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.data)
         self.assertIn("đặt lại mật khẩu", response.data["message"])
 
-    @patch('apps.core.tasks.send_password_reset_email_task.delay')
+    @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_phone(self, mock_email_task):
         """Test password reset request with phone number"""
         mock_email_task.return_value = MagicMock()
-        
+
         # Add phone number to user
         self.user.phone_number = "0123456789"
         self.user.save()
-        
-        data = {
-            "identifier": "0123456789"
-        }
+
+        data = {"identifier": "0123456789"}
         response = self.client.post(self.forgot_password_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("message", response.data)
         self.assertIn("đặt lại mật khẩu", response.data["message"])
@@ -150,11 +133,9 @@ class AuthenticationTestCase(TestCase):
 
     def test_password_reset_wrong_identifier(self):
         """Test password reset with wrong identifier"""
-        data = {
-            "identifier": "wrong@example.com"
-        }
+        data = {"identifier": "wrong@example.com"}
         response = self.client.post(self.forgot_password_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
 
@@ -164,22 +145,22 @@ class AuthenticationTestCase(TestCase):
         self.assertFalse(self.user.is_locked)
         self.user.lock_account()
         self.assertTrue(self.user.is_locked)
-        
+
         # Test account unlocking
         self.user.unlock_account()
         self.assertFalse(self.user.is_locked)
         self.assertEqual(self.user.failed_login_attempts, 0)
-        
+
         # Test OTP generation
         otp = self.user.generate_otp()
         self.assertEqual(len(otp), 6)
         self.assertTrue(otp.isdigit())
         self.assertIsNotNone(self.user.otp_expires_at)
-        
+
         # Test OTP verification
         self.assertTrue(self.user.verify_otp(otp))
         self.assertFalse(self.user.verify_otp("000000"))
-        
+
         # Test full name
         self.assertEqual(self.user.get_full_name(), "Doe John")
         self.assertEqual(self.user.get_short_name(), "John")
@@ -188,29 +169,23 @@ class AuthenticationTestCase(TestCase):
         """Test login attempt with inactive user"""
         self.user.is_active = False
         self.user.save()
-        
-        data = {
-            "employee_code": "EMP001",
-            "password": "testpass123"
-        }
+
+        data = {"username": "testuser001", "password": "testpass123"}
         response = self.client.post(self.login_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
         self.assertIn("vô hiệu hóa", str(response.data["non_field_errors"][0]))
 
     def test_empty_credentials(self):
         """Test login with empty credentials"""
-        data = {
-            "employee_code": "",
-            "password": ""
-        }
+        data = {"username": "", "password": ""}
         response = self.client.post(self.login_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # Should have validation errors for both fields
         self.assertTrue(
-            "employee_code" in response.data or "non_field_errors" in response.data
+            "username" in response.data or "non_field_errors" in response.data
         )
 
     def test_otp_expiration(self):
@@ -219,12 +194,9 @@ class AuthenticationTestCase(TestCase):
         otp_code = self.user.generate_otp()
         self.user.otp_expires_at = timezone.now() - timezone.timedelta(minutes=10)
         self.user.save()
-        
-        data = {
-            "employee_code": "EMP001",
-            "otp_code": otp_code
-        }
+
+        data = {"username": "testuser001", "otp_code": otp_code}
         response = self.client.post(self.otp_url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)

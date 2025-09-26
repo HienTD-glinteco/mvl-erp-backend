@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.urls import reverse
 
 from apps.core.models import User
 
@@ -10,7 +9,7 @@ class HealthCheckTestCase(TestCase):
     def test_health_check_endpoint(self):
         """Test that health check endpoint is accessible."""
         try:
-            response = self.client.get('/health/')
+            response = self.client.get("/health/")
             # Health check should be accessible
             self.assertIn(response.status_code, [200, 301, 302, 500])
         except Exception:
@@ -26,14 +25,14 @@ class HealthCheckTestCase(TestCase):
     def test_user_model(self):
         """Test basic user model functionality."""
         user = User.objects.create_user(
-            employee_code='EMP001',
-            email='test@example.com',
-            password='testpass123',
-            first_name='John',
-            last_name='Doe'
+            username="testuser001",
+            email="test@example.com",
+            password="testpass123",
+            first_name="John",
+            last_name="Doe",
         )
-        self.assertEqual(user.employee_code, 'EMP001')
-        self.assertEqual(user.email, 'test@example.com')
-        self.assertTrue(user.check_password('testpass123'))
-        self.assertEqual(user.get_full_name(), 'Doe John')
-        self.assertEqual(user.get_short_name(), 'John')
+        self.assertEqual(user.username, "testuser001")
+        self.assertEqual(user.email, "test@example.com")
+        self.assertTrue(user.check_password("testpass123"))
+        self.assertEqual(user.get_full_name(), "Doe John")
+        self.assertEqual(user.get_short_name(), "John")
