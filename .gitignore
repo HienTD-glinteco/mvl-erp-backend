@@ -60,6 +60,7 @@ target/
 
 # Database
 db.sqlite3
+backend.db
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

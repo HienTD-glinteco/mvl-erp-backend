@@ -17,6 +17,7 @@ REST_FRAMEWORK = {
         "anon": "100/minute",
         "user": "1000/minute",
         "login": "5/minute",  # Login specific throttling
+        "password_change": "3/hour",  # Password change throttling
     },
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -53,4 +54,7 @@ SIMPLE_JWT = {
             cast=int,
         )
     ),
+    # Ensure a single valid refresh token chain by rotating and blacklisting old ones
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }

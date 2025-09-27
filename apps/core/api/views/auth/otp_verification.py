@@ -1,5 +1,4 @@
 import logging
-from django.contrib.sessions.models import Session
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -8,6 +7,7 @@ from rest_framework.throttling import AnonRateThrottle
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from apps.core.api.serializers.auth import OTPVerificationSerializer
+from apps.core.utils.jwt import revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -43,25 +43,15 @@ class OTPVerificationView(APIView):
         if serializer.is_valid(raise_exception=True):
             user = serializer.validated_data["user"]
 
-            # Implement single session per user
-            if user.active_session_key:
-                try:
-                    # Delete existing session
-                    existing_session = Session.objects.get(
-                        session_key=user.active_session_key
-                    )
-                    existing_session.delete()
-                    logger.info(f"Deleted previous session for user {user.username}")
-                except Session.DoesNotExist:
-                    pass
+            # Enforce single session per user using SimpleJWT blacklist
+            revoked = revoke_user_outstanding_tokens(user)
+            if revoked:
+                logger.info(
+                    f"Revoked {revoked} previous refresh token(s) for user {user.username}"
+                )
 
             # Generate new tokens
             tokens = serializer.get_tokens(user)
-            # Store new session key (we'll use the refresh token as session identifier)
-            user.active_session_key = tokens["refresh"][
-                :40
-            ]  # Use first 40 chars as session key
-            user.save(update_fields=["active_session_key"])
 
             logger.info(f"User {user.username} completed login successfully")
             response_data = {

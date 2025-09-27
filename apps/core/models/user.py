@@ -99,6 +99,12 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         self.save(update_fields=["otp_code", "otp_expires_at", "otp_verified"])
         return self.otp_code
 
+    def invalidate_all_sessions(self):
+        """Invalidate all user sessions after password change"""
+        # Clear the active session key to force logout
+        self.active_session_key = ""
+        self.save(update_fields=["active_session_key"])
+
     def verify_otp(self, otp_code):
         """Verify OTP code"""
         if not self.otp_code or not self.otp_expires_at:
