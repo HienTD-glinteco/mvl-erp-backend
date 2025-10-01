@@ -25,6 +25,18 @@ ENVIRONMENT = "test"
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 addopts = ["--tb=short", "-v", "--reuse-db"]
 
+[tool.bandit]
+exclude_dirs = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/migrations/**",
+    ".venv",
+    "venv",
+    "env",
+    ".env",
+    "**/migrations/**",
+]
+
 [tool.poetry]
 package-mode = false
 
@@ -67,3 +79,4 @@ pre-commit = "^4.2.0"
 factory-boy = "^3.3.3"
 mypy = "^1.15.0"
 django-stubs = {extras = ["compatible-mypy"], version = "^5.1.3"}
+bandit = "^1.8.6"
