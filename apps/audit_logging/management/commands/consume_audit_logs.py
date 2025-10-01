@@ -49,6 +49,7 @@ class Command(BaseCommand):
     async def _run_consumer(self, batch_size: int, consumer_name: str):
         """Runs the RabbitMQ stream consumer continuously."""
         log_batch = []
+        last_flush_time = time.time()
         opensearch_client = get_opensearch_client()
 
         consumer = Consumer(
@@ -60,7 +61,7 @@ class Command(BaseCommand):
         )
 
         async def message_handler(message, context):
-            nonlocal log_batch
+            nonlocal log_batch, last_flush_time
             try:
                 log_data = json.loads(message)
 
@@ -104,12 +105,16 @@ class Command(BaseCommand):
                 )
                 return
 
-            # Upload to S3 when batch is full
-            if len(log_batch) >= batch_size:
+            # Upload to S3 when batch is full or flush interval has elapsed
+            current_time = time.time()
+            time_since_last_flush = current_time - last_flush_time
+            
+            if len(log_batch) >= batch_size or (log_batch and time_since_last_flush >= settings.AUDIT_LOG_FLUSH_INTERVAL):
                 logger.info(f"Uploading batch of {len(log_batch)} logs to S3.")
                 try:
                     process_and_upload_batch(list(log_batch))
                     log_batch.clear()
+                    last_flush_time = current_time
                 except Exception as e:
                     logger.error(f"Failed to upload batch to S3: {e}", exc_info=True)
                     # Keep logs in batch for retry on next batch
