@@ -1,5 +1,4 @@
-import random
-import string
+import secrets
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
@@ -80,7 +79,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
 
     def generate_otp(self):
         """Generate a new OTP code valid for 5 minutes"""
-        self.otp_code = "".join(random.choices(string.digits, k=6))
+        self.otp_code = f"{secrets.randbelow(1000000):06d}"
         self.otp_expires_at = timezone.now() + timedelta(minutes=5)
         self.otp_verified = False
         self.save(update_fields=["otp_code", "otp_expires_at", "otp_verified"])
