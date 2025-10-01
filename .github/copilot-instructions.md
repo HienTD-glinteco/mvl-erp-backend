@@ -49,6 +49,14 @@ This project is a Django application with a modular architecture.
 
 ## 6. Version Control (Git)
 * **Branching:** All work must be done on a feature or fix branch created from `master`. Never commit directly to `main` or `master`.
+* **Branch Naming Convention:** Branch names should be descriptive and follow these rules:
+    * Use the related issue's title as the basis for the branch name, not random strings.
+    * Convert the issue title to lowercase.
+    * Strip special characters (keep only alphanumeric characters and hyphens).
+    * Remove leading and trailing spaces.
+    * Replace spaces with hyphens (`-`).
+    * Keep the branch name concise and not too long (ideally under 50 characters).
+    * **Example:** Issue title "Update Copilot Instructions" → branch name `update-copilot-instructions`
 * **Commit Messages:** Follow the Conventional Commits specification.
     * **Format:** `type(scope): short description` (e.g., `feat(hrm): add employee performance review model`).
     * **Description:** The body of the commit message should explain **why** the change was made, not just **what** was changed.
