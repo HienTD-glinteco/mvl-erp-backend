@@ -48,7 +48,7 @@ This project is a Django application with a modular architecture.
     * If a string's meaning is ambiguous, investigate its context. Add a context comment in the code (e.g., `_("...") # CONTEXT: ...`) and the `.po` file to clarify its meaning for translators. If still unclear, ask the project lead.
 
 ## 6. Version Control (Git)
-* **Branching:** All work must be done on a feature or fix branch created from `master`. Never commit directly to `main` or `master`.
+* **Branching:** All work must be done on a feature or fix branch created from `master`. Never commit directly to `master`.
 * **Branch Naming Convention:** Branch names should be descriptive and follow these rules:
     * Use the related issue's title as the basis for the branch name, not random strings.
     * Convert the issue title to lowercase.
