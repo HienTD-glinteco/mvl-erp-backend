@@ -115,11 +115,18 @@ Then navigate to http://localhost:5555/
 
 ## CI/CD Pipeline
 
-This project includes a complete CI/CD pipeline using GitHub Actions. The pipeline supports three environments:
+This project includes an **optimized CI/CD pipeline** using GitHub Actions with parallel job execution and intelligent caching.
 
+### Environments
 - **Test**: Automatically deployed when code is merged to `master`
 - **Staging**: Deployed when PR from `master` to `staging` is merged
 - **Production**: Deployed when PR from `master` to `release` is merged
+
+### CI Performance
+- ⚡ **Fast feedback**: ~3-4 minutes (with cache)
+- 🔄 **Parallel execution**: Linting, Django checks, and tests run simultaneously
+- 💾 **Smart caching**: Dependencies cached for faster subsequent runs
+- ✅ **Reliable**: Fixed cache issues for consistent performance
 
 ### Quick Start for CI/CD
 
@@ -127,12 +134,17 @@ This project includes a complete CI/CD pipeline using GitHub Actions. The pipeli
 2. **Create branches**: Ensure `staging` and `release` branches exist
 3. **Test the pipeline**: Create a PR to `master` to trigger CI
 
-For detailed CI/CD documentation, see [docs/CICD.md](docs/CICD.md)
+### Documentation
+
+- 📖 [CICD.md](docs/CICD.md) - Complete CI/CD documentation
+- 🚀 [CI Quick Reference](docs/CI_QUICK_REFERENCE.md) - Quick troubleshooting guide
+- 📊 [CI Optimization Summary](docs/CI_OPTIMIZATION_SUMMARY.md) - Performance improvements
+- 📈 [Workflow Comparison](docs/CI_WORKFLOW_COMPARISON.md) - Before/after visualization
 
 ### Workflow
 
 1. Create feature branch from `master`
-2. Make changes and create PR to `master` (triggers CI)
+2. Make changes and create PR to `master` (triggers CI - runs in ~3-4 min)
 3. Merge PR to deploy to test environment
 4. Create PR from `master` to `staging` for staging deployment
 5. Create PR from `master` to `release` for production deployment
