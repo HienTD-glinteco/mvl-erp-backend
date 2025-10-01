@@ -122,3 +122,20 @@ class AuditLogSearchResponseSerializer(serializers.Serializer):
     from_offset = serializers.IntegerField()
     next_offset = serializers.IntegerField(required=False, allow_null=True)
     has_next = serializers.BooleanField()
+
+
+class SuccessResponseSerializer(serializers.Serializer):
+    """Wrapper serializer for successful API responses (middleware format)."""
+
+    success = serializers.BooleanField(default=True)
+    data = serializers.JSONField()
+    error = serializers.JSONField(allow_null=True, default=None)
+
+
+class ErrorResponseSerializer(serializers.Serializer):
+    """Wrapper serializer for error API responses (middleware format)."""
+
+    success = serializers.BooleanField(default=False)
+    data = serializers.JSONField(allow_null=True, default=None)
+    error = serializers.JSONField()
+

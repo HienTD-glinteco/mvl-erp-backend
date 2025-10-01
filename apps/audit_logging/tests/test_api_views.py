@@ -48,7 +48,9 @@ class TestAuditLogViewSet(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        data = response_data["data"]
         self.assertEqual(len(data["logs"]), 1)
         self.assertEqual(data["total"], 1)
 
@@ -104,8 +106,9 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(url, {"sort_order": "invalid"})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        data = response.json()
-        self.assertIn("error", data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIsNotNone(response_data["error"])
 
     def test_search_audit_logs_invalid_page_size(self):
         """Test search with invalid page size."""
@@ -125,8 +128,9 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        data = response.json()
-        self.assertIn("Failed to search audit logs", data["error"])
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("Failed to search audit logs", str(response_data["error"]))
 
     def test_search_audit_logs_unauthenticated(self):
         """Test that unauthenticated requests are rejected."""
@@ -143,8 +147,9 @@ class TestAuditLogViewSet(TestCase):
 
         # Should return 400 because serializer validates max_value=100
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        data = response.json()
-        self.assertIn("error", data)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIsNotNone(response_data["error"])
 
     @patch("apps.audit_logging.views.get_opensearch_client")
     def test_detail_audit_log_success(self, mock_get_client):
@@ -171,7 +176,9 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        data = response_data["data"]
         self.assertEqual(data["log_id"], "test-123")
         self.assertEqual(data["action"], "CREATE")
         self.assertIn("change_message", data)
@@ -195,8 +202,9 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        data = response.json()
-        self.assertIn("not found", data["error"])
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("not found", str(response_data["error"]))
 
     @patch("apps.audit_logging.views.get_opensearch_client")
     def test_detail_audit_log_opensearch_exception(self, mock_get_client):
@@ -209,8 +217,9 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        data = response.json()
-        self.assertIn("Failed to retrieve audit log", data["error"])
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+        self.assertIn("Failed to retrieve audit log", str(response_data["error"]))
 
     def test_detail_audit_log_unauthenticated(self):
         """Test that unauthenticated detail requests are rejected."""
