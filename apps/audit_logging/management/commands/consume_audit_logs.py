@@ -51,6 +51,7 @@ class Command(BaseCommand):
         log_batch = []
         last_flush_time = time.time()
         opensearch_client = get_opensearch_client()
+        flush_lock = asyncio.Lock()
 
         consumer = Consumer(
             host=settings.RABBITMQ_STREAM_HOST,
@@ -60,13 +61,48 @@ class Command(BaseCommand):
             vhost=settings.RABBITMQ_STREAM_VHOST,
         )
 
-        async def message_handler(message, context):
+        async def flush_batch_if_needed(force=False):
+            """Helper function to flush batch to S3."""
             nonlocal log_batch, last_flush_time
+            
+            async with flush_lock:
+                current_time = time.time()
+                time_since_last_flush = current_time - last_flush_time
+                
+                should_flush = force or len(log_batch) >= batch_size or (
+                    log_batch and time_since_last_flush >= settings.AUDIT_LOG_FLUSH_INTERVAL
+                )
+                
+                if should_flush and log_batch:
+                    logger.info(f"Uploading batch of {len(log_batch)} logs to S3.")
+                    try:
+                        process_and_upload_batch(list(log_batch))
+                        log_batch.clear()
+                        last_flush_time = current_time
+                    except Exception as e:
+                        logger.error(f"Failed to upload batch to S3: {e}", exc_info=True)
+                        # Keep logs in batch for retry on next flush
+
+        async def periodic_flush():
+            """Periodically flush logs to S3 based on time interval."""
+            while True:
+                try:
+                    await asyncio.sleep(settings.AUDIT_LOG_FLUSH_INTERVAL)
+                    await flush_batch_if_needed()
+                except asyncio.CancelledError:
+                    logger.info("Periodic flush task cancelled")
+                    break
+                except Exception as e:
+                    logger.error(f"Error in periodic flush: {e}", exc_info=True)
+
+        async def message_handler(message, context):
+            nonlocal log_batch
             try:
                 log_data = json.loads(message)
 
                 # Add to batch for S3 upload first (before OpenSearch indexing)
-                log_batch.append(log_data)
+                async with flush_lock:
+                    log_batch.append(log_data)
 
                 # Index to OpenSearch for real-time search with retry logic
                 # This happens after adding to batch so S3 archival continues even if indexing fails
@@ -85,7 +121,7 @@ class Command(BaseCommand):
                                 f"Failed to index log to OpenSearch (attempt {attempt + 1}/{max_retries}): {e}. "
                                 f"Retrying in {retry_delay} seconds..."
                             )
-                            time.sleep(retry_delay)
+                            await asyncio.sleep(retry_delay)
                             retry_delay *= 2  # Exponential backoff
                         else:
                             logger.error(
@@ -105,20 +141,11 @@ class Command(BaseCommand):
                 )
                 return
 
-            # Upload to S3 when batch is full or flush interval has elapsed
-            current_time = time.time()
-            time_since_last_flush = current_time - last_flush_time
-            
-            if len(log_batch) >= batch_size or (log_batch and time_since_last_flush >= settings.AUDIT_LOG_FLUSH_INTERVAL):
-                logger.info(f"Uploading batch of {len(log_batch)} logs to S3.")
-                try:
-                    process_and_upload_batch(list(log_batch))
-                    log_batch.clear()
-                    last_flush_time = current_time
-                except Exception as e:
-                    logger.error(f"Failed to upload batch to S3: {e}", exc_info=True)
-                    # Keep logs in batch for retry on next batch
-                    # In production, you might want more sophisticated retry logic
+            # Check if batch should be flushed (based on size)
+            await flush_batch_if_needed()
+
+        # Start periodic flush task
+        flush_task = asyncio.create_task(periodic_flush())
 
         try:
             await consumer.start()
@@ -145,16 +172,24 @@ class Command(BaseCommand):
             logger.info("Shutting down consumer gracefully...")
             self.stdout.write(self.style.WARNING("Interrupted. Shutting down..."))
 
+            # Cancel periodic flush task
+            flush_task.cancel()
+            try:
+                await flush_task
+            except asyncio.CancelledError:
+                pass
+
             # Upload any remaining logs in the batch before shutting down
-            if log_batch:
-                logger.info(f"Uploading final batch of {len(log_batch)} logs to S3.")
-                try:
-                    process_and_upload_batch(list(log_batch))
-                except Exception as e:
-                    logger.error(
-                        f"Failed to upload final batch to S3: {e}", exc_info=True
-                    )
+            await flush_batch_if_needed(force=True)
 
         finally:
+            # Cancel periodic flush task if still running
+            if not flush_task.done():
+                flush_task.cancel()
+                try:
+                    await flush_task
+                except asyncio.CancelledError:
+                    pass
+            
             await consumer.close()
             self.stdout.write(self.style.SUCCESS("Consumer stopped."))
