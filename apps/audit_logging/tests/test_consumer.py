@@ -1,6 +1,5 @@
 # audit_logging/tests/test_consumer.py
-from unittest.mock import AsyncMock, MagicMock, patch
-import asyncio
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
 
@@ -152,10 +151,11 @@ class TestAuditLogConsumer(TestCase):
 
         # Mock the opensearch client to fail twice then succeed
         consumer.opensearch_client = MagicMock()
+        # Construct ConnectionError with (status_code, error, info) to match opensearch TransportError args
         consumer.opensearch_client.index_log = MagicMock(
             side_effect=[
-                ConnectionError("Connection failed"),
-                ConnectionError("Connection failed"),
+                ConnectionError("N/A", "Connection failed", Exception("underlying")),
+                ConnectionError("N/A", "Connection failed", Exception("underlying")),
                 None,  # Success on third attempt
             ]
         )

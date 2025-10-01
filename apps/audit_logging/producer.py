@@ -29,16 +29,12 @@ class AuditStreamProducer:
                 vhost=settings.RABBITMQ_STREAM_VHOST,
             ) as producer:
                 try:
-                    await producer.create_stream(
-                        settings.RABBITMQ_STREAM_NAME, exists_ok=True
-                    )
+                    await producer.create_stream(settings.RABBITMQ_STREAM_NAME, exists_ok=True)
                 except exceptions.PreconditionFailed:
                     # Stream already exists, which is fine
                     logging.debug("Stream already exists, proceeding.")
 
-                await producer.send(
-                    settings.RABBITMQ_STREAM_NAME, message_body.encode("utf-8")
-                )
+                await producer.send(settings.RABBITMQ_STREAM_NAME, message_body.encode("utf-8"))
         except Exception:
             logging.error("Failed to send audit log to RabbitMQ Stream:", exc_info=True)
             raise
@@ -56,11 +52,7 @@ class AuditStreamProducer:
         file_audit_logger.info(log_json_string)
 
         # Step 2: Push to RabbitMQ Stream.
-        try:
-            asyncio.run(self._send_message_async(log_json_string))
-        except Exception:
-            # The error is already logged in _send_message_async.
-            pass
+        asyncio.run(self._send_message_async(log_json_string))
 
 
 # Singleton instance of the producer

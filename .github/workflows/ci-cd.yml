@@ -185,7 +185,7 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
 
-    - name: Run migrations and tests
+    - name: Run tests
       run: |
         source .venv/bin/activate
         ENVIRONMENT=test python -m pytest apps/ -v --tb=short --cov=apps --cov-report=xml -n auto
