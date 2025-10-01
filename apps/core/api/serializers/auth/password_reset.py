@@ -1,6 +1,7 @@
 import logging
-from rest_framework import serializers
+
 import sentry_sdk
+from rest_framework import serializers
 
 from apps.core.models import User
 from apps.core.tasks import send_password_reset_email_task
@@ -37,9 +38,7 @@ class PasswordResetSerializer(serializers.Serializer):
                 # Assume it's a phone number
                 user = User.objects.get(phone_number=identifier)
         except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "Không tìm thấy tài khoản với thông tin này."
-            )
+            raise serializers.ValidationError("Không tìm thấy tài khoản với thông tin này.")
 
         if not user.is_active:
             raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
@@ -63,8 +62,6 @@ class PasswordResetSerializer(serializers.Serializer):
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to queue password reset email task for user {user.username}: {str(e)}"
-            )
+            logger.error(f"Failed to queue password reset email task for user {user.username}: {str(e)}")
             sentry_sdk.capture_exception(e)
             return False

@@ -1,13 +1,13 @@
-from datetime import date
 import json
+from datetime import date
 
+from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Branch, Block, Department, Position, OrganizationChart
+from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 User = get_user_model()
 
@@ -36,9 +36,7 @@ class FixedBranchAPITest(TransactionTestCase, APITestMixin):
 
         # Clear existing users but keep one for authentication
         User.objects.all().delete()
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -108,9 +106,7 @@ class FixedBlockAPITest(TransactionTestCase, APITestMixin):
         Block.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -213,9 +209,7 @@ class FixedPositionAPITest(TransactionTestCase, APITestMixin):
         Position.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -235,15 +229,9 @@ class FixedPositionAPITest(TransactionTestCase, APITestMixin):
 
     def test_position_ordering(self):
         """Test position ordering in API response"""
-        Position.objects.create(
-            name="Nhân viên", code="NV", level=Position.PositionLevel.STAFF
-        )
-        Position.objects.create(
-            name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO
-        )
-        Position.objects.create(
-            name="Giám đốc", code="GD", level=Position.PositionLevel.DIRECTOR
-        )
+        Position.objects.create(name="Nhân viên", code="NV", level=Position.PositionLevel.STAFF)
+        Position.objects.create(name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO)
+        Position.objects.create(name="Giám đốc", code="GD", level=Position.PositionLevel.DIRECTOR)
 
         url = reverse("hrm:position-list")
         response = self.client.get(url)
@@ -266,9 +254,7 @@ class FixedDepartmentAPITest(TransactionTestCase, APITestMixin):
         Department.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -332,9 +318,7 @@ class FixedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
         OrganizationChart.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -352,12 +336,8 @@ class FixedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
             block_type=Block.BlockType.SUPPORT,
             branch=self.branch,
         )
-        self.department = Department.objects.create(
-            name="Phòng Nhân sự", code="NS", block=self.block
-        )
-        self.position = Position.objects.create(
-            name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER
-        )
+        self.department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        self.position = Position.objects.create(name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER)
 
     def test_create_organization_chart(self):
         """Test creating an organization chart entry via API"""
@@ -407,9 +387,7 @@ class FixedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(
-            response_data[0]["employee"]["username"], self.employee.username
-        )
+        self.assertEqual(response_data[0]["employee"]["username"], self.employee.username)
 
     def test_by_department_endpoint_missing_param(self):
         """Test by department endpoint without required parameter"""

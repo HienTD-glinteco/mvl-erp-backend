@@ -1,26 +1,26 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.filters import SearchFilter, OrderingFilter
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 
-from apps.hrm.models import Branch, Block, Department, Position, OrganizationChart
-from apps.hrm.api.serializers import (
-    BranchSerializer,
-    BlockSerializer,
-    DepartmentSerializer,
-    PositionSerializer,
-    OrganizationChartSerializer,
-    OrganizationChartDetailSerializer,
-)
 from apps.hrm.api.filtersets import (
-    BranchFilterSet,
     BlockFilterSet,
+    BranchFilterSet,
     DepartmentFilterSet,
-    PositionFilterSet,
     OrganizationChartFilterSet,
+    PositionFilterSet,
 )
+from apps.hrm.api.serializers import (
+    BlockSerializer,
+    BranchSerializer,
+    DepartmentSerializer,
+    OrganizationChartDetailSerializer,
+    OrganizationChartSerializer,
+    PositionSerializer,
+)
+from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 
 @extend_schema_view(
@@ -146,9 +146,7 @@ class BlockViewSet(viewsets.ModelViewSet):
 class DepartmentViewSet(viewsets.ModelViewSet):
     """ViewSet for Department model"""
 
-    queryset = Department.objects.select_related(
-        "block__branch", "parent_department", "management_department"
-    ).all()
+    queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
     serializer_class = DepartmentSerializer
     filterset_class = DepartmentFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -212,9 +210,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return Response(
             {
                 "block_type": block_type,
-                "functions": [
-                    {"value": choice[0], "label": choice[1]} for choice in choices
-                ],
+                "functions": [{"value": choice[0], "label": choice[1]} for choice in choices],
             }
         )
 
@@ -235,9 +231,9 @@ class DepartmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        departments = Department.objects.filter(
-            block_id=block_id, function=function, is_active=True
-        ).select_related("block__branch")
+        departments = Department.objects.filter(block_id=block_id, function=function, is_active=True).select_related(
+            "block__branch"
+        )
 
         choices = [
             {
@@ -331,9 +327,7 @@ class PositionViewSet(viewsets.ModelViewSet):
 class OrganizationChartViewSet(viewsets.ModelViewSet):
     """ViewSet for OrganizationChart model"""
 
-    queryset = OrganizationChart.objects.select_related(
-        "employee", "position", "department__block__branch"
-    ).all()
+    queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()
     serializer_class = OrganizationChartSerializer
     filterset_class = OrganizationChartFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -384,9 +378,7 @@ class OrganizationChartViewSet(viewsets.ModelViewSet):
                     "positions": [],
                 }
 
-            hierarchy[dept_key]["positions"].append(
-                OrganizationChartDetailSerializer(org_chart).data
-            )
+            hierarchy[dept_key]["positions"].append(OrganizationChartDetailSerializer(org_chart).data)
 
         # Sort positions by level within each department
         for dept_data in hierarchy.values():
@@ -409,9 +401,7 @@ class OrganizationChartViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = self.get_queryset().filter(
-            department_id=department_id, is_active=True, end_date__isnull=True
-        )
+        queryset = self.get_queryset().filter(department_id=department_id, is_active=True, end_date__isnull=True)
 
         serializer = OrganizationChartDetailSerializer(queryset, many=True)
         return Response(serializer.data)

@@ -1,11 +1,12 @@
 import json
 import logging
+from urllib import request as urlrequest
+from urllib.error import HTTPError, URLError
+
+import sentry_sdk
 from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
-import sentry_sdk
-from urllib import request as urlrequest
-from urllib.error import URLError, HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +25,14 @@ def send_otp_sms_task(self, phone_number: str, otp_code: str):
         "timestamp": timezone.now().isoformat(),
     }
     data = json.dumps(payload).encode("utf-8")
-    req = urlrequest.Request(
-        api_url, data=data, headers={"Content-Type": "application/json"}, method="POST"
-    )
+    req = urlrequest.Request(api_url, data=data, headers={"Content-Type": "application/json"}, method="POST")
 
     try:
         with urlrequest.urlopen(req, timeout=10) as resp:
             status = getattr(resp, "status", 200)
             body = resp.read().decode("utf-8") if resp else ""
             if 200 <= status < 300:
-                logger.info(
-                    f"SMS OTP sent successfully to {phone_number}; status={status}"
-                )
+                logger.info(f"SMS OTP sent successfully to {phone_number}; status={status}")
                 return True
             logger.error(f"SMS provider returned non-2xx status={status}, body={body}")
             raise Exception(f"SMS provider error: status={status}")

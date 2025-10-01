@@ -4,7 +4,6 @@ to allow running unittests.
 """
 
 from .base import *  # noqa
-from .base import config
 
 import warnings
 
@@ -30,7 +29,7 @@ REST_FRAMEWORK = {
     **REST_FRAMEWORK,  # noqa: F405
     "DEFAULT_THROTTLE_RATES": {
         "anon": "10000/minute",
-        "user": "10000/minute", 
+        "user": "10000/minute",
         "login": "10000/minute",
     },
 }

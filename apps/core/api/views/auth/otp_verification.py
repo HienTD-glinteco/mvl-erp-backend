@@ -1,10 +1,11 @@
 import logging
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import OTPVerificationSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
@@ -46,9 +47,7 @@ class OTPVerificationView(APIView):
             # Enforce single session per user using SimpleJWT blacklist
             revoked = revoke_user_outstanding_tokens(user)
             if revoked:
-                logger.info(
-                    f"Revoked {revoked} previous refresh token(s) for user {user.username}"
-                )
+                logger.info(f"Revoked {revoked} previous refresh token(s) for user {user.username}")
 
             # Generate new tokens
             tokens = serializer.get_tokens(user)

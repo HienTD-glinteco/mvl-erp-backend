@@ -1,9 +1,9 @@
 from .organization import (
-    BranchViewSet,
     BlockViewSet,
+    BranchViewSet,
     DepartmentViewSet,
-    PositionViewSet,
     OrganizationChartViewSet,
+    PositionViewSet,
 )
 
 __all__ = [

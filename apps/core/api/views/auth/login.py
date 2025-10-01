@@ -1,10 +1,11 @@
 import logging
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import LoginSerializer
 
@@ -45,9 +46,7 @@ class LoginView(APIView):
 
             # Send OTP email
             if serializer.send_otp_email(user):
-                logger.info(
-                    f"Login attempt successful for user {user.username}, OTP sent"
-                )
+                logger.info(f"Login attempt successful for user {user.username}, OTP sent")
                 response_data = {
                     "message": "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP để hoàn tất đăng nhập.",
                     "username": user.username,

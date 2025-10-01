@@ -1,9 +1,9 @@
 from .organization import (
-    Branch,
     Block,
+    Branch,
     Department,
-    Position,
     OrganizationChart,
+    Position,
 )
 
 __all__ = [

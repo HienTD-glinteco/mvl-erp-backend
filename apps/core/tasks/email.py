@@ -1,10 +1,11 @@
 import logging
+
+import sentry_sdk
 from celery import shared_task
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
-import sentry_sdk
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +27,7 @@ def send_otp_email_task(self, user_id, user_email, user_full_name, username, otp
             html_message = render_to_string("emails/otp_email.html", context)
         except Exception as e:
             sentry_sdk.capture_exception(e)
-            logger.error(
-                f"Failed to render OTP email template for user {username}: {str(e)}"
-            )
+            logger.error(f"Failed to render OTP email template for user {username}: {str(e)}")
             raise
 
         plain_message = f"""
@@ -63,9 +62,7 @@ Trân trọng,
 
 
 @shared_task(bind=True, max_retries=3)
-def send_password_reset_email_task(
-    self, user_id, user_email, user_full_name, username, phone_number=None
-):
+def send_password_reset_email_task(self, user_id, user_email, user_full_name, username, phone_number=None):
     """Send password reset email via Celery task"""
     try:
         context = {
@@ -82,9 +79,7 @@ def send_password_reset_email_task(
             html_message = render_to_string("emails/password_reset_email.html", context)
         except Exception as e:
             sentry_sdk.capture_exception(e)
-            logger.error(
-                f"Failed to render password reset email template for user {username}: {str(e)}"
-            )
+            logger.error(f"Failed to render password reset email template for user {username}: {str(e)}")
             raise
 
         plain_message = f"""
@@ -118,8 +113,6 @@ Trân trọng,
         return True
 
     except Exception as e:
-        logger.error(
-            f"Failed to send password reset email to user {username}: {str(e)}"
-        )
+        logger.error(f"Failed to send password reset email to user {username}: {str(e)}")
         sentry_sdk.capture_exception(e)
         raise self.retry(countdown=60, exc=e)

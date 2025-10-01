@@ -1,13 +1,11 @@
-import uuid
 import hashlib
+import uuid
 from datetime import timedelta
+
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from apps.core.querysets.password_reset import PasswordResetOTPManager
-
-User = get_user_model()
 
 
 class PasswordResetOTP(models.Model):
@@ -23,25 +21,13 @@ class PasswordResetOTP(models.Model):
         SMS = "sms", "SMS"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="password_reset_requests"
-    )
-    reset_token = models.CharField(
-        max_length=64, unique=True, db_index=True, verbose_name="Reset Token"
-    )
-    otp_hash = models.CharField(
-        max_length=128, verbose_name="OTP Hash"
-    )  # Hashed OTP, not plain text
-    channel = models.CharField(
-        max_length=10, choices=Channel.choices, default=Channel.EMAIL
-    )
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="password_reset_requests")
+    reset_token = models.CharField(max_length=64, unique=True, db_index=True, verbose_name="Reset Token")
+    otp_hash = models.CharField(max_length=128, verbose_name="OTP Hash")  # Hashed OTP, not plain text
+    channel = models.CharField(max_length=10, choices=Channel.choices, default=Channel.EMAIL)
     expires_at = models.DateTimeField(verbose_name="Expires At")
-    attempts = models.PositiveSmallIntegerField(
-        default=0, verbose_name="Verification Attempts"
-    )
-    max_attempts = models.PositiveSmallIntegerField(
-        default=5, verbose_name="Max Attempts"
-    )
+    attempts = models.PositiveSmallIntegerField(default=0, verbose_name="Verification Attempts")
+    max_attempts = models.PositiveSmallIntegerField(default=5, verbose_name="Max Attempts")
     is_used = models.BooleanField(default=False, verbose_name="Is Used")
     is_verified = models.BooleanField(default=False, verbose_name="Is Verified")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
@@ -103,9 +89,7 @@ class PasswordResetOTP(models.Model):
             tuple: (can_request: bool, remaining_seconds: int)
         """
         # Check if there's a recent request within the last 3 minutes
-        recent_request = cls.objects.filter(
-            user=user, created_at__gte=timezone.now() - timedelta(minutes=3)
-        ).first()
+        recent_request = cls.objects.filter(user=user, created_at__gte=timezone.now() - timedelta(minutes=3)).first()
 
         if recent_request:
             time_passed = (timezone.now() - recent_request.created_at).total_seconds()

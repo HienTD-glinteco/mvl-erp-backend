@@ -1,12 +1,13 @@
+from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from unittest.mock import patch, MagicMock
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.core.models import User, PasswordResetOTP
+from apps.core.models import PasswordResetOTP, User
 
 
 class AuthenticationTestCase(TestCase):
@@ -50,9 +51,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertFalse(response_data["success"])
         self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn(
-            "Mật khẩu không đúng", str(response_data["error"]["non_field_errors"][0])
-        )
+        self.assertIn("Mật khẩu không đúng", str(response_data["error"]["non_field_errors"][0]))
 
     def test_login_with_nonexistent_user(self):
         """Test login with non-existent username"""
@@ -119,13 +118,7 @@ class AuthenticationTestCase(TestCase):
         error_data = response_data["error"]
         self.assertTrue(
             "non_field_errors" in error_data
-            or (
-                "errors" in error_data
-                and any(
-                    err.get("attr") == "non_field_errors"
-                    for err in error_data["errors"]
-                )
-            )
+            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
         )
 
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
@@ -162,9 +155,7 @@ class AuthenticationTestCase(TestCase):
         self.assertIn("qua SMS", response_data["data"]["message"])  # contains SMS
         # Should include phone hint, not email hint
         self.assertIn("phone_hint", response_data["data"])  # masked phone
-        self.assertNotIn(
-            "email_hint", response_data["data"]
-        )  # no email hint in SMS path
+        self.assertNotIn("email_hint", response_data["data"])  # no email hint in SMS path
         # Verify SMS task was called
         mock_sms_task.assert_called_once()
 
@@ -227,10 +218,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertFalse(response_data["success"])
         # Should have validation errors for both fields
-        self.assertTrue(
-            "username" in response_data["error"]
-            or "non_field_errors" in response_data["error"]
-        )
+        self.assertTrue("username" in response_data["error"] or "non_field_errors" in response_data["error"])
 
     def test_otp_expiration(self):
         """Test OTP verification with expired code"""
@@ -249,13 +237,7 @@ class AuthenticationTestCase(TestCase):
         error_data = response_data["error"]
         self.assertTrue(
             "non_field_errors" in error_data
-            or (
-                "errors" in error_data
-                and any(
-                    err.get("attr") == "non_field_errors"
-                    for err in error_data["errors"]
-                )
-            )
+            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
         )
 
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
@@ -279,9 +261,7 @@ class AuthenticationTestCase(TestCase):
 
     def test_password_reset_step2_verify_otp_returns_jwt(self):
         # Create a fresh reset request to get the plain OTP code
-        reset_request, otp_code = PasswordResetOTP.objects.create_request(
-            self.user, channel="email"
-        )
+        reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
         url = reverse("core:forgot_password_verify_otp")
         payload = {"reset_token": reset_request.reset_token, "otp_code": otp_code}
         response = self.client.post(url, payload, format="json")
@@ -296,9 +276,7 @@ class AuthenticationTestCase(TestCase):
 
     def test_password_reset_step3_change_password_authenticated(self):
         # Step 2: verify OTP to get JWT first
-        reset_request, otp_code = PasswordResetOTP.objects.create_request(
-            self.user, channel="email"
-        )
+        reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
 
         url_verify = reverse("core:forgot_password_verify_otp")
         resp2 = self.client.post(
@@ -324,11 +302,7 @@ class AuthenticationTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password(new_password))
         # Ensure reset request is cleaned up
-        self.assertFalse(
-            PasswordResetOTP.objects.filter(
-                user=self.user, is_verified=True, is_used=False
-            ).exists()
-        )
+        self.assertFalse(PasswordResetOTP.objects.filter(user=self.user, is_verified=True, is_used=False).exists())
 
     def test_password_reset_step3_requires_authentication(self):
         new_password = "NewSecure123!"

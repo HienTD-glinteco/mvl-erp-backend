@@ -1,6 +1,5 @@
 from .base import BASE_DIR, LOG_LEVEL
 
-
 LOG_DIRECTORY = BASE_DIR
 
 LOGGING = {

@@ -1,7 +1,8 @@
 import logging
+
+import sentry_sdk
 from django.utils import timezone
 from rest_framework import serializers
-import sentry_sdk
 
 from apps.core.models import User
 from apps.core.tasks import send_otp_email_task
@@ -52,9 +53,7 @@ class LoginSerializer(serializers.Serializer):
         # Check if account is locked
         if user.is_locked:
             remaining_time = (user.locked_until - timezone.now()).seconds // 60
-            raise serializers.ValidationError(
-                f"Tài khoản đã bị khóa. Vui lòng thử lại sau {remaining_time} phút."
-            )
+            raise serializers.ValidationError(f"Tài khoản đã bị khóa. Vui lòng thử lại sau {remaining_time} phút.")
 
         # Check if user is active
         if not user.is_active:
@@ -64,9 +63,7 @@ class LoginSerializer(serializers.Serializer):
         if not user.check_password(password):
             user.increment_failed_login()
             if user.is_locked:
-                logger.warning(
-                    f"Account locked for user {username} after failed login attempts"
-                )
+                logger.warning(f"Account locked for user {username} after failed login attempts")
                 raise serializers.ValidationError(
                     "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
                 )
@@ -94,8 +91,6 @@ class LoginSerializer(serializers.Serializer):
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to queue OTP email task for user {user.username}: {str(e)}"
-            )
+            logger.error(f"Failed to queue OTP email task for user {user.username}: {str(e)}")
             sentry_sdk.capture_exception(e)
             return False

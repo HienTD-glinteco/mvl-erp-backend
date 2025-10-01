@@ -1,10 +1,10 @@
 from .organization import (
-    BranchSerializer,
     BlockSerializer,
+    BranchSerializer,
     DepartmentSerializer,
-    PositionSerializer,
-    OrganizationChartSerializer,
     OrganizationChartDetailSerializer,
+    OrganizationChartSerializer,
+    PositionSerializer,
 )
 
 __all__ = [
