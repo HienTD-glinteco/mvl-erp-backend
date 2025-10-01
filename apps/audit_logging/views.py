@@ -25,81 +25,14 @@ class AuditLogViewSet(viewsets.GenericViewSet):
     # TODO: Add proper permission check to verify user has access to audit logs
 
     @extend_schema(
-        summary="Tìm kiếm audit logs",
-        description="Tìm kiếm audit logs với các bộ lọc. Trả về danh sách các log với các trường tóm tắt.",
-        parameters=[
-            OpenApiParameter(
-                name="start_time",
-                type=str,
-                description="Lọc log sau thời gian này (ISO 8601 format)",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="end_time",
-                type=str,
-                description="Lọc log trước thời gian này (ISO 8601 format)",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="user_id",
-                type=str,
-                description="Lọc theo ID người dùng",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="username",
-                type=str,
-                description="Lọc theo tên đăng nhập",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="action",
-                type=str,
-                description="Lọc theo loại hành động",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="object_type",
-                type=str,
-                description="Lọc theo loại đối tượng",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="object_id",
-                type=str,
-                description="Lọc theo ID đối tượng",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="search_term",
-                type=str,
-                description="Tìm kiếm văn bản tự do trong object_repr và change_message",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="page_size",
-                type=int,
-                description="Số lượng kết quả trên mỗi trang (1-100, mặc định: 50)",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="from_offset",
-                type=int,
-                description="Vị trí bắt đầu cho phân trang (mặc định: 0)",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="sort_order",
-                type=str,
-                description="Thứ tự sắp xếp theo thời gian (asc hoặc desc, mặc định: desc)",
-                required=False,
-            ),
-        ],
+        summary="Search audit logs",
+        description="Search audit logs with filters. Returns a list of logs with summary fields.",
+        request=AuditLogSearchSerializer,
         responses={
             200: AuditLogSearchResponseSerializer,
-            400: OpenApiResponse(description="Tham số không hợp lệ"),
-            401: OpenApiResponse(description="Chưa xác thực"),
-            500: OpenApiResponse(description="Lỗi tìm kiếm audit logs"),
+            400: OpenApiResponse(description="Invalid parameters"),
+            401: OpenApiResponse(description="Not authenticated"),
+            500: OpenApiResponse(description="Failed to search audit logs"),
         },
     )
     @action(detail=False, methods=["get"], url_path="search")
@@ -138,23 +71,23 @@ class AuditLogViewSet(viewsets.GenericViewSet):
             )
 
     @extend_schema(
-        summary="Lấy chi tiết audit log",
-        description="Lấy thông tin chi tiết đầy đủ của một audit log theo log_id",
+        summary="Get audit log details",
+        description="Get full details of an audit log by log_id",
         parameters=[
             OpenApiParameter(
                 name="log_id",
                 type=str,
                 location=OpenApiParameter.PATH,
-                description="ID duy nhất của audit log",
+                description="Unique identifier of the audit log",
                 required=True,
             ),
         ],
         responses={
             200: AuditLogSerializer,
-            400: OpenApiResponse(description="log_id không hợp lệ"),
-            401: OpenApiResponse(description="Chưa xác thực"),
-            404: OpenApiResponse(description="Không tìm thấy log"),
-            500: OpenApiResponse(description="Lỗi lấy chi tiết audit log"),
+            400: OpenApiResponse(description="Invalid log_id"),
+            401: OpenApiResponse(description="Not authenticated"),
+            404: OpenApiResponse(description="Log not found"),
+            500: OpenApiResponse(description="Failed to retrieve audit log"),
         },
     )
     @action(detail=False, methods=["get"], url_path="detail/(?P<log_id>[^/.]+)")

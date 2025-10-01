@@ -64,7 +64,11 @@ class Command(BaseCommand):
             try:
                 log_data = json.loads(message)
 
-                # Index to OpenSearch immediately for real-time search with retry logic
+                # Add to batch for S3 upload first (before OpenSearch indexing)
+                log_batch.append(log_data)
+
+                # Index to OpenSearch for real-time search with retry logic
+                # This happens after adding to batch so S3 archival continues even if indexing fails
                 max_retries = 3
                 retry_delay = 1  # Start with 1 second delay
                 
@@ -93,10 +97,6 @@ class Command(BaseCommand):
                             f"Failed to index log to OpenSearch: {e}", exc_info=True
                         )
                         break
-                # Continue processing - OpenSearch indexing failure shouldn't stop S3 archival
-
-                # Add to batch for S3 upload
-                log_batch.append(log_data)
 
             except json.JSONDecodeError:
                 logger.warning(
