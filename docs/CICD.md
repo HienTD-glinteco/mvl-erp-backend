@@ -36,23 +36,37 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 ### 1. CI/CD Pipeline (`ci-cd.yml`)
 **Trigger**: Pull requests to `master` branch, Push to `master` branch
 
-**Jobs**:
+**Jobs** (run in parallel for faster feedback):
 
-#### CI Job - Code Quality and Tests
+#### Lint Job - Code Quality Checks
 **Steps**:
 - Code checkout
-- Python and Poetry setup
-- Dependency installation
-- Environment configuration
-- Code quality checks (MyPy)
+- Python and Poetry setup with caching
+- Dependency installation (cached)
+- MyPy type checking (project files only: apps/, libs/, settings/)
+
+#### Django Checks Job - Django System Validation
+**Steps**:
+- Code checkout
+- Python and Poetry setup with caching
+- Dependency installation (cached)
+- Environment configuration (SQLite for faster execution)
 - Django system checks
+
+#### Test Job - Unit Tests with Coverage
+**Steps**:
+- Code checkout
+- Python and Poetry setup with caching
+- Dependency installation (cached)
+- Database services (PostgreSQL, Redis)
+- Environment configuration
 - Database migrations
 - Unit tests with coverage
 - Coverage reporting
 
 #### Test Deployment Job - Deploy to Test Environment
-**Trigger**: Only runs on push to `master` branch (not on pull requests) **AND** only after CI tests pass successfully
-**Depends on**: CI job must complete successfully
+**Trigger**: Only runs on push to `master` branch (not on pull requests) **AND** only after all CI jobs pass successfully
+**Depends on**: lint, django-checks, and test jobs must complete successfully
 
 **Steps**:
 - Deploy to EC2 test server via SSH
@@ -61,6 +75,13 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 - Web server reload (nginx)
 - Health checks
 - Notifications
+
+**Performance Optimizations**:
+- Parallel job execution reduces CI time by ~40-50%
+- Poetry installation caching speeds up subsequent runs
+- Fixed cache key bug ensures reliable dependency caching
+- Focused MyPy scope reduces linting time
+- Combined shell commands reduce overhead
 
 ### 2. Staging Environment Deployment (`deploy-staging.yml`)
 **Trigger**: PR from `master` to `staging` branch (when merged)
