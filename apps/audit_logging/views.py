@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .exceptions import AuditLogException
+from .opensearch_client import get_opensearch_client
 from .serializers import AuditLogSearchSerializer
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,10 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         """
         Search audit logs using OpenSearch.
 
-        Query parameters are validated using AuditLogSearchSerializer.
+        Returns summary fields only (log_id, timestamp, user_id, username, action,
+        object_type, object_id, object_repr).
 
-        TODO: Add comprehensive API documentation here (request/response examples, filters, etc.)
+        Query parameters are validated using AuditLogSearchSerializer.
         """
         # Validate input
         serializer = AuditLogSearchSerializer(data=request.query_params)
@@ -47,6 +49,49 @@ class AuditLogViewSet(viewsets.GenericViewSet):
             )
         except Exception as e:
             logger.error(f"Unexpected error in audit log search: {e}", exc_info=True)
+            return Response(
+                {"error": "Internal server error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["get"], url_path="detail/(?P<log_id>[^/.]+)")
+    def detail(self, request, log_id=None):
+        """
+        Retrieve a specific audit log by its log_id.
+
+        Returns all fields for the requested log.
+
+        Args:
+            log_id: The unique identifier of the audit log
+
+        Returns:
+            Full audit log data with all fields
+        """
+        if not log_id:
+            return Response(
+                {"error": "log_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            opensearch_client = get_opensearch_client()
+            log_data = opensearch_client.get_log_by_id(log_id)
+            return Response(log_data)
+
+        except AuditLogException as e:
+            if "not found" in str(e).lower():
+                return Response(
+                    {"error": f"Log with id {log_id} not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            logger.error(f"Failed to retrieve audit log {log_id}: {e}")
+            return Response(
+                {"error": "Failed to retrieve audit log"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        except Exception as e:
+            logger.error(
+                f"Unexpected error retrieving audit log {log_id}: {e}", exc_info=True
+            )
             return Response(
                 {"error": "Internal server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

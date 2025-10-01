@@ -161,6 +161,40 @@ class OpenSearchClient:
         # This ensures we always search the last 12 months of data
         return f"{self.index_prefix}-*"
 
+    def get_log_by_id(self, log_id: str) -> Dict[str, Any]:
+        """
+        Retrieve a single audit log by its log_id.
+
+        Args:
+            log_id: The unique identifier of the log
+
+        Returns:
+            dict: Full log data with all fields
+
+        Raises:
+            AuditLogException: If log is not found or retrieval fails
+        """
+        # Search across all indices for the log_id
+        index_pattern = self._get_last_12_months_indices()
+
+        search_body = {
+            "query": {"term": {"log_id": log_id}},
+            "size": 1,
+        }
+
+        try:
+            response = self.client.search(index=index_pattern, body=search_body)
+
+            hits = response["hits"]["hits"]
+            if not hits:
+                raise AuditLogException(f"Log with id {log_id} not found")
+
+            return hits[0]["_source"]
+
+        except OpenSearchException as e:
+            logger.error(f"Failed to retrieve log {log_id}: {e}")
+            raise AuditLogException(f"Failed to retrieve log: {e}") from e
+
     def search_logs(
         self,
         *,
@@ -168,11 +202,21 @@ class OpenSearchClient:
         page_size: int = 50,
         from_offset: int = 0,
         sort_order: str = "desc",
+        summary_fields_only: bool = False,
     ) -> Dict[str, Any]:
         """
         Search audit logs with filters.
 
-        Searches across all monthly indices to ensure last 12 months are covered.
+        Args:
+            filters: Dictionary of filter criteria
+            page_size: Number of results per page
+            from_offset: Offset for pagination
+            sort_order: Sort order ('asc' or 'desc')
+            summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id, 
+                                 username, action, object_type, object_id, object_repr)
+
+        Returns:
+            dict: Search results with logs, total, pagination info
         """
         query = self._build_search_query(filters)
 
@@ -185,6 +229,19 @@ class OpenSearchClient:
             "size": page_size,
             "from": from_offset,
         }
+
+        # If summary fields only, use _source filtering
+        if summary_fields_only:
+            search_body["_source"] = [
+                "log_id",
+                "timestamp",
+                "user_id",
+                "username",
+                "action",
+                "object_type",
+                "object_id",
+                "object_repr",
+            ]
 
         try:
             response = self.client.search(index=index_pattern, body=search_body)

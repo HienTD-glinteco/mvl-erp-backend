@@ -35,7 +35,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
         Execute search using validated data.
 
         Returns:
-            dict: Search results with logs, total, pagination info
+            dict: Search results with summary logs, total, pagination info
         """
         # Extract filters
         filters = {}
@@ -62,13 +62,14 @@ class AuditLogSearchSerializer(serializers.Serializer):
         from_offset = self.validated_data.get("from_offset", 0)
         sort_order = self.validated_data.get("sort_order", "desc")
 
-        # Search logs using OpenSearch
+        # Search logs using OpenSearch with summary fields only
         opensearch_client = get_opensearch_client()
         result = opensearch_client.search_logs(
             filters=filters,
             page_size=page_size,
             from_offset=from_offset,
             sort_order=sort_order,
+            summary_fields_only=True,  # Return only summary fields
         )
 
         # Format response
@@ -82,8 +83,21 @@ class AuditLogSearchSerializer(serializers.Serializer):
         }
 
 
+class AuditLogSummarySerializer(serializers.Serializer):
+    """Serializer for audit log summary (search results)."""
+
+    log_id = serializers.CharField()
+    timestamp = serializers.DateTimeField()
+    user_id = serializers.CharField(required=False, allow_null=True)
+    username = serializers.CharField(required=False, allow_null=True)
+    action = serializers.CharField(required=False, allow_null=True)
+    object_type = serializers.CharField(required=False, allow_null=True)
+    object_id = serializers.CharField(required=False, allow_null=True)
+    object_repr = serializers.CharField(required=False, allow_null=True)
+
+
 class AuditLogSerializer(serializers.Serializer):
-    """Serializer for audit log output."""
+    """Serializer for full audit log detail."""
 
     log_id = serializers.CharField()
     timestamp = serializers.DateTimeField()
@@ -102,7 +116,7 @@ class AuditLogSerializer(serializers.Serializer):
 class AuditLogSearchResponseSerializer(serializers.Serializer):
     """Serializer for audit log search response."""
 
-    logs = AuditLogSerializer(many=True)
+    logs = AuditLogSummarySerializer(many=True)
     total = serializers.IntegerField()
     page_size = serializers.IntegerField()
     from_offset = serializers.IntegerField()

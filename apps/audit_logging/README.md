@@ -157,7 +157,15 @@ log_audit_event(
 
 ### Querying Logs via API
 
-Search audit logs using the REST API:
+The API provides two endpoints:
+
+1. **Search endpoint** (`/api/audit-logs/search/`) - Returns summary fields for listing
+2. **Detail endpoint** (`/api/audit-logs/detail/<log_id>/`) - Returns full log data
+
+#### Search Logs (Summary)
+
+The search endpoint returns a subset of fields suitable for list views:
+- `log_id`, `timestamp`, `user_id`, `username`, `action`, `object_type`, `object_id`, `object_repr`
 
 ```bash
 # Get recent logs
@@ -180,6 +188,24 @@ curl -X GET "http://localhost:8000/api/audit-logs/search/?search_term=customer" 
 curl -X GET "http://localhost:8000/api/audit-logs/search/?page_size=20&from_offset=40" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
+
+#### Get Log Detail
+
+The detail endpoint returns all fields for a specific log:
+
+```bash
+# Get full details of a specific log
+curl -X GET "http://localhost:8000/api/audit-logs/detail/<log_id>/" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Example with a specific log_id
+curl -X GET "http://localhost:8000/api/audit-logs/detail/550e8400-e29b-41d4-a716-446655440000/" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The detail endpoint returns all fields including:
+- `log_id`, `timestamp`, `user_id`, `username`, `action`, `object_type`, `object_id`
+- `object_repr`, `change_message`, `ip_address`, `user_agent`, `session_key`
 
 ## Data Lifecycle
 

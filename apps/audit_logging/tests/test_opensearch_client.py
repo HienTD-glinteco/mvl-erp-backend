@@ -121,6 +121,75 @@ class TestOpenSearchClient(TestCase):
         multi_match_clauses = [c for c in must_clauses if "multi_match" in c]
         self.assertEqual(len(multi_match_clauses), 1)  # search_term
 
+    def test_get_log_by_id_success(self):
+        """Test successful retrieval of a single log by ID."""
+        self.mock_opensearch.search.return_value = {
+            "hits": {
+                "hits": [
+                    {
+                        "_source": {
+                            "log_id": "test-123",
+                            "timestamp": "2023-12-15T10:30:00Z",
+                            "action": "test_action",
+                            "user_id": "1",
+                            "object_type": "test_object",
+                            "change_message": "Test change",
+                            "ip_address": "192.168.1.1",
+                        }
+                    }
+                ]
+            }
+        }
+
+        result = self.client.get_log_by_id("test-123")
+
+        self.mock_opensearch.search.assert_called_once()
+        self.assertEqual(result["log_id"], "test-123")
+        self.assertIn("change_message", result)
+        self.assertIn("ip_address", result)
+
+    def test_get_log_by_id_not_found(self):
+        """Test retrieval of non-existent log."""
+        from ..exceptions import AuditLogException
+
+        self.mock_opensearch.search.return_value = {"hits": {"hits": []}}
+
+        with self.assertRaises(AuditLogException) as context:
+            self.client.get_log_by_id("nonexistent-id")
+
+        self.assertIn("not found", str(context.exception))
+
+    def test_search_logs_with_summary_fields(self):
+        """Test search with summary fields only."""
+        self.mock_opensearch.search.return_value = {
+            "hits": {
+                "total": {"value": 1},
+                "hits": [
+                    {
+                        "_source": {
+                            "log_id": "test-123",
+                            "timestamp": "2023-12-15T10:30:00Z",
+                            "action": "test_action",
+                        }
+                    }
+                ],
+            }
+        }
+
+        filters = {"action": "test_action"}
+        result = self.client.search_logs(filters=filters, summary_fields_only=True)
+
+        self.mock_opensearch.search.assert_called_once()
+        # Verify that _source was included in the search body
+        call_args = self.mock_opensearch.search.call_args
+        search_body = call_args.kwargs["body"]
+        self.assertIn("_source", search_body)
+        self.assertEqual(len(search_body["_source"]), 8)  # 8 summary fields
+        self.assertIn("log_id", search_body["_source"])
+        self.assertIn("timestamp", search_body["_source"])
+        self.assertIn("object_repr", search_body["_source"])
+
+
 
 @override_settings(
     OPENSEARCH_HOST="localhost",

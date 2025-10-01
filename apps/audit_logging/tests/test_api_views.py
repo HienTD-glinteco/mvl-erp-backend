@@ -52,12 +52,13 @@ class TestAuditLogViewSet(TestCase):
         self.assertEqual(len(data["logs"]), 1)
         self.assertEqual(data["total"], 1)
 
-        # Verify OpenSearch client was called with correct parameters
+        # Verify OpenSearch client was called with correct parameters including summary_fields_only
         mock_client.search_logs.assert_called_once_with(
             filters={"action": "test_action"},
             page_size=10,
             from_offset=0,
             sort_order="desc",
+            summary_fields_only=True,
         )
 
     @patch("apps.audit_logging.serializers.get_opensearch_client")
@@ -93,6 +94,7 @@ class TestAuditLogViewSet(TestCase):
         call_kwargs = mock_client.search_logs.call_args.kwargs
         self.assertEqual(call_kwargs["page_size"], 25)
         self.assertEqual(call_kwargs["sort_order"], "asc")
+        self.assertTrue(call_kwargs["summary_fields_only"])
         self.assertIn("user_id", call_kwargs["filters"])
         self.assertIn("search_term", call_kwargs["filters"])
 
@@ -143,3 +145,77 @@ class TestAuditLogViewSet(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.json()
         self.assertIn("error", data)
+
+    @patch("apps.audit_logging.views.get_opensearch_client")
+    def test_detail_audit_log_success(self, mock_get_client):
+        """Test successful retrieval of a specific audit log."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.get_log_by_id.return_value = {
+            "log_id": "test-123",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "user_id": "1",
+            "username": "testuser",
+            "action": "CREATE",
+            "object_type": "Customer",
+            "object_id": "456",
+            "object_repr": "John Smith",
+            "change_message": "Created new customer",
+            "ip_address": "192.168.1.1",
+            "user_agent": "Mozilla/5.0...",
+            "session_key": "session_key_here",
+        }
+
+        url = "/api/audit-logs/detail/test-123/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["log_id"], "test-123")
+        self.assertEqual(data["action"], "CREATE")
+        self.assertIn("change_message", data)
+        self.assertIn("ip_address", data)
+        self.assertIn("user_agent", data)
+        self.assertIn("session_key", data)
+
+        # Verify OpenSearch client was called with correct log_id
+        mock_client.get_log_by_id.assert_called_once_with("test-123")
+
+    @patch("apps.audit_logging.views.get_opensearch_client")
+    def test_detail_audit_log_not_found(self, mock_get_client):
+        """Test retrieval of non-existent audit log."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.get_log_by_id.side_effect = AuditLogException(
+            "Log with id test-999 not found"
+        )
+
+        url = "/api/audit-logs/detail/test-999/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.json()
+        self.assertIn("not found", data["error"])
+
+    @patch("apps.audit_logging.views.get_opensearch_client")
+    def test_detail_audit_log_opensearch_exception(self, mock_get_client):
+        """Test detail when OpenSearch raises an exception."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.get_log_by_id.side_effect = AuditLogException("OpenSearch error")
+
+        url = "/api/audit-logs/detail/test-123/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        data = response.json()
+        self.assertIn("Failed to retrieve audit log", data["error"])
+
+    def test_detail_audit_log_unauthenticated(self):
+        """Test that unauthenticated detail requests are rejected."""
+        unauthenticated_client = APIClient()
+        url = "/api/audit-logs/detail/test-123/"
+        response = unauthenticated_client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
