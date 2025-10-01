@@ -48,9 +48,7 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         # Validate input
         serializer = AuditLogSearchSerializer(data=request.query_params)
         if not serializer.is_valid():
-            return Response(
-                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             # Execute search using serializer
@@ -91,7 +89,7 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         },
     )
     @action(detail=False, methods=["get"], url_path="detail/(?P<log_id>[^/.]+)")
-    def detail(self, request, log_id=None):
+    def get_detail(self, request, log_id=None):
         """
         Retrieve a specific audit log by its log_id.
 
@@ -104,9 +102,7 @@ class AuditLogViewSet(viewsets.GenericViewSet):
             Full audit log data with all fields
         """
         if not log_id:
-            return Response(
-                {"error": "log_id is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "log_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             opensearch_client = get_opensearch_client()
@@ -125,9 +121,7 @@ class AuditLogViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except Exception as e:
-            logger.error(
-                f"Unexpected error retrieving audit log {log_id}: {e}", exc_info=True
-            )
+            logger.error(f"Unexpected error retrieving audit log {log_id}: {e}", exc_info=True)
             return Response(
                 {"error": "Internal server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
