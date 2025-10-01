@@ -87,6 +87,7 @@ django-celery-results = "^2.5.1"
 django-health-check = "^3.20.0"
 django-waffle = "^5.0.0"
 gunicorn = "^23.0.0"
+requests = "^2.32.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"
