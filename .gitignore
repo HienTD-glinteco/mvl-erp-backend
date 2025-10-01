@@ -61,6 +61,7 @@ target/
 # Database
 db.sqlite3
 backend.db
+test.db
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
@@ -89,6 +90,7 @@ media/
 venv
 *.env
 .commands
+.envrc
 
 # mac osx
 .DS_Store
@@ -96,5 +98,5 @@ venv
 # Webpack
 webpack-stats.json
 
-.envrc
-test.db
+# IDE Stuffs
+.vscode
