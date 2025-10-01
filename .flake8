@@ -1,6 +1,0 @@
-[flake8]
-ignore = E,W503
-exclude =
-  ./settings/__init__.py,
-  .coverage*,
-  .svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg

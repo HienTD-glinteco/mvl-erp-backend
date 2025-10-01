@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from apps.hrm.models import Branch, Block, Department, Position, OrganizationChart
+
+from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 
 class BranchSerializer(serializers.ModelSerializer):
@@ -25,9 +26,7 @@ class BlockSerializer(serializers.ModelSerializer):
     """Serializer for Block model"""
 
     branch_name = serializers.CharField(source="branch.name", read_only=True)
-    block_type_display = serializers.CharField(
-        source="get_block_type_display", read_only=True
-    )
+    block_type_display = serializers.CharField(source="get_block_type_display", read_only=True)
 
     class Meta:
         model = Block
@@ -58,15 +57,9 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
     block_name = serializers.CharField(source="block.name", read_only=True)
     block_type = serializers.CharField(source="block.block_type", read_only=True)
-    parent_department_name = serializers.CharField(
-        source="parent_department.name", read_only=True
-    )
-    management_department_name = serializers.CharField(
-        source="management_department.name", read_only=True
-    )
-    function_display = serializers.CharField(
-        source="get_function_display", read_only=True
-    )
+    parent_department_name = serializers.CharField(source="parent_department.name", read_only=True)
+    management_department_name = serializers.CharField(source="management_department.name", read_only=True)
+    function_display = serializers.CharField(source="get_function_display", read_only=True)
     full_hierarchy = serializers.CharField(read_only=True)
     available_function_choices = serializers.SerializerMethodField()
     available_management_departments = serializers.SerializerMethodField()
@@ -119,9 +112,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
         """Get available management departments with same function"""
         if obj.function and obj.block:
             departments = (
-                Department.objects.filter(
-                    block=obj.block, function=obj.function, is_active=True
-                )
+                Department.objects.filter(block=obj.block, function=obj.function, is_active=True)
                 .exclude(id=obj.id)
                 .select_related("block__branch")
             )
@@ -141,17 +132,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
         """Validate parent department is in the same block"""
         if value and self.instance:
             if value.block != self.instance.block:
-                raise serializers.ValidationError(
-                    "Phòng ban cha phải thuộc cùng khối với phòng ban con."
-                )
+                raise serializers.ValidationError("Phòng ban cha phải thuộc cùng khối với phòng ban con.")
         elif value and "block" in self.initial_data:
             # For creation
             try:
                 block = Block.objects.get(id=self.initial_data["block"])
                 if value.block != block:
-                    raise serializers.ValidationError(
-                        "Phòng ban cha phải thuộc cùng khối với phòng ban con."
-                    )
+                    raise serializers.ValidationError("Phòng ban cha phải thuộc cùng khối với phòng ban con.")
             except Block.DoesNotExist:
                 pass
         return value
@@ -159,33 +146,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
     def validate_management_department(self, value):
         """Validate management department constraints"""
         if value:
-            block_id = (
-                self.initial_data.get("block")
-                if not self.instance
-                else self.instance.block.id
-            )
-            function = (
-                self.initial_data.get("function")
-                if not self.instance
-                else self.instance.function
-            )
+            block_id = self.initial_data.get("block") if not self.instance else self.instance.block.id
+            function = self.initial_data.get("function") if not self.instance else self.instance.function
 
             # Check for self-reference
             if self.instance and value.id == self.instance.id:
-                raise serializers.ValidationError(
-                    "Phòng ban không thể quản lý chính nó."
-                )
+                raise serializers.ValidationError("Phòng ban không thể quản lý chính nó.")
 
             try:
                 block = Block.objects.get(id=block_id)
                 if value.block != block:
-                    raise serializers.ValidationError(
-                        "Phòng ban quản lý phải thuộc cùng khối."
-                    )
+                    raise serializers.ValidationError("Phòng ban quản lý phải thuộc cùng khối.")
                 if function and value.function != function:
-                    raise serializers.ValidationError(
-                        "Phòng ban quản lý phải có cùng chức năng."
-                    )
+                    raise serializers.ValidationError("Phòng ban quản lý phải có cùng chức năng.")
             except Block.DoesNotExist:
                 pass
         return value
@@ -199,23 +172,16 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
             if block.block_type == Block.BlockType.BUSINESS:
                 # If function provided and not BUSINESS -> error; else default to BUSINESS
-                if (
-                    provided_function is not None
-                    and provided_function != Department.DepartmentFunction.BUSINESS
-                ):
+                if provided_function is not None and provided_function != Department.DepartmentFunction.BUSINESS:
                     raise serializers.ValidationError(
-                        {
-                            "function": "Khối kinh doanh chỉ được phép chức năng kinh doanh."
-                        }
+                        {"function": "Khối kinh doanh chỉ được phép chức năng kinh doanh."}
                     )
                 if provided_function is None:
                     attrs["function"] = Department.DepartmentFunction.BUSINESS
             elif block.block_type == Block.BlockType.SUPPORT:
                 # If provided BUSINESS for support -> error; else default to HR_ADMIN if missing
                 if provided_function == Department.DepartmentFunction.BUSINESS:
-                    raise serializers.ValidationError(
-                        {"function": "Khối hỗ trợ không thể có chức năng kinh doanh."}
-                    )
+                    raise serializers.ValidationError({"function": "Khối hỗ trợ không thể có chức năng kinh doanh."})
                 if provided_function is None:
                     attrs["function"] = Department.DepartmentFunction.HR_ADMIN
 
@@ -223,17 +189,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
         if "block" in attrs and "function" in attrs:
             block = attrs["block"]
             function = attrs["function"]
-            allowed = [
-                c[0]
-                for c in Department.get_function_choices_for_block_type(
-                    block.block_type
-                )
-            ]
+            allowed = [c[0] for c in Department.get_function_choices_for_block_type(block.block_type)]
             if function not in allowed:
                 raise serializers.ValidationError(
-                    {
-                        "function": f"Chức năng này không phù hợp với loại khối {block.get_block_type_display()}."
-                    }
+                    {"function": f"Chức năng này không phù hợp với loại khối {block.get_block_type_display()}."}
                 )
 
         return attrs
@@ -263,17 +222,11 @@ class PositionSerializer(serializers.ModelSerializer):
 class OrganizationChartSerializer(serializers.ModelSerializer):
     """Serializer for OrganizationChart model"""
 
-    employee_name = serializers.CharField(
-        source="employee.get_full_name", read_only=True
-    )
-    employee_username = serializers.CharField(
-        source="employee.username", read_only=True
-    )
+    employee_name = serializers.CharField(source="employee.get_full_name", read_only=True)
+    employee_username = serializers.CharField(source="employee.username", read_only=True)
     position_name = serializers.CharField(source="position.name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
-    department_hierarchy = serializers.CharField(
-        source="department.full_hierarchy", read_only=True
-    )
+    department_hierarchy = serializers.CharField(source="department.full_hierarchy", read_only=True)
 
     class Meta:
         model = OrganizationChart
@@ -310,9 +263,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
         # Ensure end_date is after start_date
         if attrs.get("end_date") and attrs.get("start_date"):
             if attrs["end_date"] <= attrs["start_date"]:
-                raise serializers.ValidationError(
-                    "Ngày kết thúc phải sau ngày bắt đầu."
-                )
+                raise serializers.ValidationError("Ngày kết thúc phải sau ngày bắt đầu.")
 
         return attrs
 

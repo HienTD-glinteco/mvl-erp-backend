@@ -1,10 +1,11 @@
 import logging
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth.password_change import PasswordChangeSerializer
 
@@ -33,30 +34,22 @@ class PasswordChangeView(APIView):
         description="Đổi mật khẩu khi người dùng đã đăng nhập và biết mật khẩu hiện tại",
         responses={
             200: OpenApiResponse(description="Mật khẩu đã được thay đổi thành công"),
-            400: OpenApiResponse(
-                description="Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"
-            ),
+            400: OpenApiResponse(description="Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"),
             401: OpenApiResponse(description="Chưa đăng nhập"),
             429: OpenApiResponse(description="Quá nhiều yêu cầu thay đổi mật khẩu"),
         },
     )
     def post(self, request):
-        serializer = PasswordChangeSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = PasswordChangeSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
             user = serializer.save()
 
             logger.info(f"Password successfully changed for user {user}")
             return Response(
-                {
-                    "message": "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng xuất."
-                },
+                {"message": "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng xuất."},
                 status=status.HTTP_200_OK,
             )
 
-        logger.warning(
-            f"Invalid password change attempt for user {request.user}: {serializer.errors}"
-        )
+        logger.warning(f"Invalid password change attempt for user {request.user}: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

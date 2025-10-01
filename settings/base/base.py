@@ -12,7 +12,6 @@ import os
 
 from decouple import config
 
-
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

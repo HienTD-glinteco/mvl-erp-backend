@@ -1,8 +1,8 @@
 import logging
+
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
-
 
 logger = logging.getLogger(__name__)
 
@@ -67,15 +67,11 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         # Check if passwords match
         if new_password != confirm_password:
-            raise serializers.ValidationError(
-                "Mật khẩu mới và xác nhận mật khẩu không khớp."
-            )
+            raise serializers.ValidationError("Mật khẩu mới và xác nhận mật khẩu không khớp.")
 
         # Check if new password is different from old password
         if old_password == new_password:
-            raise serializers.ValidationError(
-                "Mật khẩu mới phải khác với mật khẩu hiện tại."
-            )
+            raise serializers.ValidationError("Mật khẩu mới phải khác với mật khẩu hiện tại.")
 
         # Get user from request context (must be authenticated)
         request = self.context.get("request")

@@ -1,10 +1,11 @@
 import logging
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.api.serializers.auth.password_reset_otp_verification import (
@@ -50,17 +51,13 @@ class PasswordResetOTPVerificationView(APIView):
             # Single-session: revoke previous outstanding refresh tokens
             revoked = revoke_user_outstanding_tokens(user)
             if revoked:
-                logger.info(
-                    f"Revoked {revoked} previous refresh token(s) for user {user.username}"
-                )
+                logger.info(f"Revoked {revoked} previous refresh token(s) for user {user.username}")
 
             # Issue new tokens
             refresh = RefreshToken.for_user(user)
             tokens = {"access": str(refresh.access_token), "refresh": str(refresh)}
 
-            logger.info(
-                f"Password reset OTP verified for user {user.username}; issued JWT tokens"
-            )
+            logger.info(f"Password reset OTP verified for user {user.username}; issued JWT tokens")
             return Response(
                 {
                     "message": "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu.",
@@ -69,7 +66,5 @@ class PasswordResetOTPVerificationView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        logger.warning(
-            f"Invalid password reset OTP verification attempt: {serializer.errors}"
-        )
+        logger.warning(f"Invalid password reset OTP verification attempt: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

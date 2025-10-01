@@ -1,4 +1,5 @@
 import logging
+
 from rest_framework import serializers
 
 from apps.core.models import PasswordResetOTP
@@ -61,9 +62,7 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
         # Find password reset request by token using manager
         reset_request = PasswordResetOTP.objects.get_by_token(reset_token)
         if not reset_request:
-            raise serializers.ValidationError(
-                "Reset token không hợp lệ hoặc đã hết hạn."
-            )
+            raise serializers.ValidationError("Reset token không hợp lệ hoặc đã hết hạn.")
 
         # Check if user is active
         if not reset_request.user.is_active:
@@ -74,9 +73,7 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
             if reset_request.is_expired():
                 raise serializers.ValidationError("Mã OTP đã hết hạn.")
             elif reset_request.attempts >= reset_request.max_attempts:
-                raise serializers.ValidationError(
-                    "Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới."
-                )
+                raise serializers.ValidationError("Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới.")
             else:
                 raise serializers.ValidationError("Mã OTP không đúng.")
 

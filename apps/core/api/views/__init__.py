@@ -1,10 +1,10 @@
 from .auth import (
     LoginView,
     OTPVerificationView,
-    PasswordResetView,
-    PasswordResetOTPVerificationView,
-    PasswordResetChangePasswordView,
     PasswordChangeView,
+    PasswordResetChangePasswordView,
+    PasswordResetOTPVerificationView,
+    PasswordResetView,
 )
 
 __all__ = [

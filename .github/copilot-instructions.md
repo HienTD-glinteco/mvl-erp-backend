@@ -24,7 +24,7 @@ This project is a Django application with a modular architecture.
 
 ## 3. Coding Style & Linting
 - The codebase must strictly adhere to our linting and formatting rules.
-- **Tools:** We use `ruff` for style, `isort` for import sorting, and `mypy` for static type checking.
+- **Tools:** We use `ruff` for both linting and code formatting (replaces flake8, isort, and black), and `mypy` for static type checking.
 - **Pre-commit:** You MUST run the `pre-commit` hooks to format and lint your code before pushing any changes.
 
 ## 4. Testing

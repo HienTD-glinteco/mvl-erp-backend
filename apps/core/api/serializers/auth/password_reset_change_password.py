@@ -1,7 +1,8 @@
 import logging
+
 from django.contrib.auth.password_validation import validate_password
-from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework import serializers
 
 from apps.core.models import PasswordResetOTP
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
@@ -49,20 +50,14 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
-        if (
-            not request
-            or not getattr(request, "user", None)
-            or not request.user.is_authenticated
-        ):
+        if not request or not getattr(request, "user", None) or not request.user.is_authenticated:
             raise serializers.ValidationError("Yêu cầu xác thực không hợp lệ.")
 
         new_password = attrs.get("new_password")
         confirm_password = attrs.get("confirm_password")
         # Check if passwords match
         if new_password != confirm_password:
-            raise serializers.ValidationError(
-                "Mật khẩu mới và xác nhận mật khẩu không khớp."
-            )
+            raise serializers.ValidationError("Mật khẩu mới và xác nhận mật khẩu không khớp.")
 
         # Ensure there is a verified, unused reset request for this user
         reset_request = (
@@ -75,9 +70,7 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
             .first()
         )
         if not reset_request:
-            raise serializers.ValidationError(
-                "Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực."
-            )
+            raise serializers.ValidationError("Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực.")
 
         # Check if user is active
         if not reset_request.user.is_active:

@@ -1,4 +1,5 @@
 from django.db import models
+
 from libs.base_model_mixin import BaseModel
 
 
@@ -30,9 +31,7 @@ class Block(BaseModel):
 
     name = models.CharField(max_length=200, verbose_name="Tên khối")
     code = models.CharField(max_length=50, unique=True, verbose_name="Mã khối")
-    block_type = models.CharField(
-        max_length=20, choices=BlockType.choices, verbose_name="Loại khối"
-    )
+    block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name="Loại khối")
     branch = models.ForeignKey(
         Branch,
         on_delete=models.CASCADE,
@@ -71,9 +70,7 @@ class Department(BaseModel):
 
     name = models.CharField(max_length=200, verbose_name="Tên phòng ban")
     code = models.CharField(max_length=50, verbose_name="Mã phòng ban")
-    block = models.ForeignKey(
-        Block, on_delete=models.CASCADE, related_name="departments", verbose_name="Khối"
-    )
+    block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name="Khối")
     parent_department = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -89,9 +86,7 @@ class Department(BaseModel):
         default=DepartmentFunction.BUSINESS,  # Default to business function
         verbose_name="Chức năng phòng ban",
     )
-    is_main_department = models.BooleanField(
-        default=False, verbose_name="Phòng ban đầu mối"
-    )
+    is_main_department = models.BooleanField(default=False, verbose_name="Phòng ban đầu mối")
     management_department = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
@@ -126,19 +121,11 @@ class Department(BaseModel):
         # Validate management department is in same block and function
         if self.management_department:
             if self.management_department.id == self.id:
-                raise ValidationError(
-                    {"management_department": "Phòng ban không thể quản lý chính nó."}
-                )
+                raise ValidationError({"management_department": "Phòng ban không thể quản lý chính nó."})
             if self.management_department.block != self.block:
-                raise ValidationError(
-                    {"management_department": "Phòng ban quản lý phải thuộc cùng khối."}
-                )
+                raise ValidationError({"management_department": "Phòng ban quản lý phải thuộc cùng khối."})
             if self.management_department.function != self.function:
-                raise ValidationError(
-                    {
-                        "management_department": "Phòng ban quản lý phải có cùng chức năng."
-                    }
-                )
+                raise ValidationError({"management_department": "Phòng ban quản lý phải có cùng chức năng."})
 
         # Validate only one main department per function
         if self.is_main_department:
@@ -148,9 +135,7 @@ class Department(BaseModel):
 
             if existing_main.exists():
                 raise ValidationError(
-                    {
-                        "is_main_department": f"Đã có phòng ban đầu mối cho chức năng {self.get_function_display()}."
-                    }
+                    {"is_main_department": f"Đã có phòng ban đầu mối cho chức năng {self.get_function_display()}."}
                 )
 
     def save(self, *args, **kwargs):

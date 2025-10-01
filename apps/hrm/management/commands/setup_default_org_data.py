@@ -1,14 +1,13 @@
 from django.core.management.base import BaseCommand
-from apps.hrm.models import Branch, Block, Department, Position
+
+from apps.hrm.models import Block, Branch, Department, Position
 
 
 class Command(BaseCommand):
     help = "Setup default organizational data"
 
     def handle(self, *args, **options):
-        self.stdout.write(
-            self.style.SUCCESS("Setting up default organizational data...")
-        )
+        self.stdout.write(self.style.SUCCESS("Setting up default organizational data..."))
 
         # Create default positions
         positions_data = [
@@ -192,6 +191,4 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(f"Department already exists: {department.name}")
 
-        self.stdout.write(
-            self.style.SUCCESS("Successfully set up default organizational data!")
-        )
+        self.stdout.write(self.style.SUCCESS("Successfully set up default organizational data!"))

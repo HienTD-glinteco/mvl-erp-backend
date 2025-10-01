@@ -19,6 +19,7 @@ Modes:
 from __future__ import annotations
 
 import os
+
 import pytest
 
 
@@ -41,16 +42,16 @@ def pytest_configure(config: pytest.Config) -> None:
     # Normalize pytest-django options based on requested mode
     if mode == "recreate":
         # Force a fresh database: disable reuse, enable create
-        setattr(config.option, "reuse_db", False)
-        setattr(config.option, "create_db", True)
+        config.option.reuse_db = False
+        config.option.create_db = True
     elif mode == "reuse":
         # Ensure reuse is on (fast path)
-        setattr(config.option, "reuse_db", True)
-        setattr(config.option, "create_db", False)
+        config.option.reuse_db = True
+        config.option.create_db = False
     elif mode == "flush":
         # Reuse schema for speed; data cleared by fixture below
-        setattr(config.option, "reuse_db", True)
-        setattr(config.option, "create_db", False)
+        config.option.reuse_db = True
+        config.option.create_db = False
 
 
 @pytest.fixture(scope="session", autouse=True)

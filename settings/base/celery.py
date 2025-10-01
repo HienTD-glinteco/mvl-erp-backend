@@ -16,9 +16,7 @@ CELERY_ACCEPT_CONTENT = ["pickle"]
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 60 * 6  # default to 6 hours.
 CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
-CELERY_TASK_EAGER_PROPAGATES = config(
-    "CELERY_TASK_EAGER_PROPAGATES", default=False, cast=bool
-)
+CELERY_TASK_EAGER_PROPAGATES = config("CELERY_TASK_EAGER_PROPAGATES", default=False, cast=bool)
 
 """ Example
 CELERY_BEAT_SCHEDULE = {

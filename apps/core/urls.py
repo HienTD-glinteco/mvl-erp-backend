@@ -7,10 +7,10 @@ from rest_framework_simplejwt.views import (
 from .api.views import (
     LoginView,
     OTPVerificationView,
-    PasswordResetView,
-    PasswordResetOTPVerificationView,
-    PasswordResetChangePasswordView,
     PasswordChangeView,
+    PasswordResetChangePasswordView,
+    PasswordResetOTPVerificationView,
+    PasswordResetView,
 )
 
 app_name = "core"

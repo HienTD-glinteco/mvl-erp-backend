@@ -1,10 +1,11 @@
 import logging
+
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import PasswordResetSerializer
 from apps.core.models import PasswordResetOTP
@@ -57,14 +58,10 @@ class PasswordResetView(APIView):
                 # Keep existing email behavior (no OTP content change here)
                 sent = serializer.send_reset_email(user)
                 if not sent:
-                    logger.error(
-                        f"Failed to send password reset email for user {user.username}"
-                    )
+                    logger.error(f"Failed to send password reset email for user {user.username}")
                 message = "Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn. Mã có hiệu lực trong 3 phút."
                 email_hint = (
-                    f"{user.email[:3]}***@{user.email.split('@')[1]}"
-                    if user.email and "@" in user.email
-                    else None
+                    f"{user.email[:3]}***@{user.email.split('@')[1]}" if user.email and "@" in user.email else None
                 )
                 response_payload = {
                     "message": message,
@@ -77,13 +74,9 @@ class PasswordResetView(APIView):
                 phone = user.phone_number or identifier
                 try:
                     send_otp_sms_task.delay(phone, otp_code)
-                    logger.info(
-                        f"Password reset OTP SMS queued for user {user.username} phone {phone}"
-                    )
+                    logger.info(f"Password reset OTP SMS queued for user {user.username} phone {phone}")
                 except Exception as e:
-                    logger.error(
-                        f"Failed to queue SMS OTP for user {user.username}: {e}"
-                    )
+                    logger.error(f"Failed to queue SMS OTP for user {user.username}: {e}")
                 masked = None
                 if phone:
                     # Basic masking: show last 2-3 digits

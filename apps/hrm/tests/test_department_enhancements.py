@@ -1,11 +1,11 @@
-from django.test import TestCase
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
-from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient, APITestCase
 
-from apps.hrm.models import Branch, Block, Department
+from apps.hrm.models import Block, Branch, Department
 
 User = get_user_model()
 
@@ -30,17 +30,13 @@ class DepartmentEnhancementsModelTest(TestCase):
 
     def test_department_function_auto_set_for_business_block(self):
         """Test function auto-set to 'business' for business blocks"""
-        dept = Department.objects.create(
-            name="Phòng Kinh doanh 1", code="KD01", block=self.business_block
-        )
+        dept = Department.objects.create(name="Phòng Kinh doanh 1", code="KD01", block=self.business_block)
         # Function should be auto-set to business
         self.assertEqual(dept.function, Department.DepartmentFunction.BUSINESS)
 
     def test_department_function_choices_for_support_block(self):
         """Test available function choices for support blocks"""
-        choices = Department.get_function_choices_for_block_type(
-            Block.BlockType.SUPPORT
-        )
+        choices = Department.get_function_choices_for_block_type(Block.BlockType.SUPPORT)
         expected_functions = [
             "hr_admin",
             "recruit_training",
@@ -58,9 +54,7 @@ class DepartmentEnhancementsModelTest(TestCase):
 
     def test_department_function_choices_for_business_block(self):
         """Test available function choices for business blocks"""
-        choices = Department.get_function_choices_for_block_type(
-            Block.BlockType.BUSINESS
-        )
+        choices = Department.get_function_choices_for_block_type(Block.BlockType.BUSINESS)
         self.assertEqual(len(choices), 1)
         self.assertEqual(choices[0][0], Department.DepartmentFunction.BUSINESS)
 
@@ -169,9 +163,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
         Branch.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -259,9 +251,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
         )
 
         url = reverse("hrm:department-management-choices")
-        response = self.client.get(
-            url, {"block_id": str(self.support_block.id), "function": "hr_admin"}
-        )
+        response = self.client.get(url, {"block_id": str(self.support_block.id), "function": "hr_admin"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)

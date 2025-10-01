@@ -9,15 +9,34 @@ authors = [
 version = "0.1.0"
 dynamic = ["dependencies"]
 
-[tool.black]
+[tool.ruff]
 line-length = 119
-target-version = ['py312']
+target-version = "py312"
 
-[tool.isort]
-profile = "black"
-combine-as = true
-line-length = 119
-src-paths = ["."]
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by formatter
+    "B904",  # Within an except clause, raise exceptions with raise ... from err
+    "B007",  # Loop control variable not used within loop body
+    "B017",  # assertRaises(Exception) should be considered evil
+    "F841",  # Local variable is assigned to but never used
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["apps", "libs", "settings"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "settings"
@@ -80,3 +99,4 @@ factory-boy = "^3.3.3"
 mypy = "^1.15.0"
 django-stubs = {extras = ["compatible-mypy"], version = "^5.1.3"}
 bandit = "^1.8.6"
+ruff = "^0.13.2"
