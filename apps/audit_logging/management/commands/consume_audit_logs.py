@@ -2,9 +2,11 @@
 import asyncio
 import json
 import logging
+import time
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from opensearchpy.exceptions import ConnectionError, TransportError
 from rstream import Consumer
 from rstream.constants import ConsumerOffsetSpecification, OffsetType
 
@@ -62,15 +64,36 @@ class Command(BaseCommand):
             try:
                 log_data = json.loads(message)
 
-                # Index to OpenSearch immediately for real-time search
-                try:
-                    opensearch_client.index_log(log_data)
-                    logger.debug(f"Indexed log {log_data['log_id']} to OpenSearch")
-                except Exception as e:
-                    logger.error(
-                        f"Failed to index log to OpenSearch: {e}", exc_info=True
-                    )
-                    # Continue processing - OpenSearch indexing failure shouldn't stop S3 archival
+                # Index to OpenSearch immediately for real-time search with retry logic
+                max_retries = 3
+                retry_delay = 1  # Start with 1 second delay
+                
+                for attempt in range(max_retries):
+                    try:
+                        opensearch_client.index_log(log_data)
+                        logger.debug(f"Indexed log {log_data['log_id']} to OpenSearch")
+                        break  # Success, exit retry loop
+                    except (ConnectionError, TransportError) as e:
+                        # Network/connection issues - retry
+                        if attempt < max_retries - 1:
+                            logger.warning(
+                                f"Failed to index log to OpenSearch (attempt {attempt + 1}/{max_retries}): {e}. "
+                                f"Retrying in {retry_delay} seconds..."
+                            )
+                            time.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                        else:
+                            logger.error(
+                                f"Failed to index log to OpenSearch after {max_retries} attempts: {e}",
+                                exc_info=True
+                            )
+                    except Exception as e:
+                        # Other errors - log and continue without retry
+                        logger.error(
+                            f"Failed to index log to OpenSearch: {e}", exc_info=True
+                        )
+                        break
+                # Continue processing - OpenSearch indexing failure shouldn't stop S3 archival
 
                 # Add to batch for S3 upload
                 log_batch.append(log_data)

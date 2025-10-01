@@ -283,10 +283,3 @@ curl -X GET "http://localhost:9200/_cat/indices/audit-logs-*?v"
 1. Verify AWS credentials are correct
 2. Check IAM permissions for S3 bucket
 3. Verify bucket exists and is accessible
-
-## Notes
-
-- No Athena/Glue integration - using OpenSearch for queries instead
-- RabbitMQ Stream provides server-side offset tracking, so no database model for offsets is needed
-- OpenSearch automatically handles index creation with proper mappings
-- S3 files are stored in Parquet format partitioned by object_type, year, month, day
