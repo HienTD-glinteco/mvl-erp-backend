@@ -36,7 +36,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertTrue(response_data["success"])
         self.assertIn("message", response_data["data"])
-        self.assertIn("OTP đã được gửi", response_data["data"]["message"])
+        self.assertIn("OTP code has been sent", response_data["data"]["message"])
         self.assertEqual(response_data["data"]["username"], "testuser001")
         self.assertIn("email_hint", response_data["data"])
         # Verify OTP email task was called
@@ -51,7 +51,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertFalse(response_data["success"])
         self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn("Mật khẩu không đúng", str(response_data["error"]["non_field_errors"][0]))
+        self.assertIn("Incorrect password", str(response_data["error"]["non_field_errors"][0]))
 
     def test_login_with_nonexistent_user(self):
         """Test login with non-existent username"""
@@ -63,7 +63,7 @@ class AuthenticationTestCase(TestCase):
         self.assertFalse(response_data["success"])
         self.assertIn("non_field_errors", response_data["error"])
         self.assertIn(
-            "Tên đăng nhập không tồn tại",
+            "Username does not exist",
             str(response_data["error"]["non_field_errors"][0]),
         )
 
@@ -81,7 +81,7 @@ class AuthenticationTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertFalse(response_data["success"])
-        self.assertIn("khóa", str(response_data["error"]["non_field_errors"][0]))
+        self.assertIn("locked", str(response_data["error"]["non_field_errors"][0]))
 
     def test_otp_verification_success(self):
         """Test successful OTP verification"""
@@ -133,7 +133,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertTrue(response_data["success"])
         self.assertIn("message", response_data["data"])
-        self.assertIn("đặt lại mật khẩu", response_data["data"]["message"])
+        self.assertIn("Password reset", response_data["data"]["message"])
 
     @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
     def test_password_reset_request_phone(self, mock_sms_task):
@@ -152,7 +152,7 @@ class AuthenticationTestCase(TestCase):
         self.assertTrue(response_data["success"])
         self.assertIn("message", response_data["data"])
         # Message should indicate SMS was used
-        self.assertIn("qua SMS", response_data["data"]["message"])  # contains SMS
+        self.assertIn("via SMS", response_data["data"]["message"])  # contains SMS
         # Should include phone hint, not email hint
         self.assertIn("phone_hint", response_data["data"])  # masked phone
         self.assertNotIn("email_hint", response_data["data"])  # no email hint in SMS path
@@ -207,7 +207,7 @@ class AuthenticationTestCase(TestCase):
         response_data = response.json()
         self.assertFalse(response_data["success"])
         self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn("vô hiệu hóa", str(response_data["error"]["non_field_errors"][0]))
+        self.assertIn("deactivated", str(response_data["error"]["non_field_errors"][0]))
 
     def test_empty_credentials(self):
         """Test login with empty credentials"""

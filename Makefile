@@ -23,4 +23,4 @@ celery_audit_worker:
 	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q audit_logs_queue
 
 test:
-	ENVIRONMENT=testing pytest -s
+	ENVIRONMENT=testing pytest $(ARGS)
