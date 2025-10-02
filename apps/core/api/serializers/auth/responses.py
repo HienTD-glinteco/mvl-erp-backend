@@ -26,52 +26,52 @@ class UserBasicInfoSerializer(serializers.Serializer):
 class LoginResponseSerializer(serializers.Serializer):
     """Login endpoint response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
-    username = serializers.CharField(help_text="Tên đăng nhập")
-    email_hint = serializers.CharField(help_text="Email đã được che (ví dụ: tes***@example.com)")
+    message = serializers.CharField(help_text="Result message")
+    username = serializers.CharField(help_text="Username")
+    email_hint = serializers.CharField(help_text="Masked email address (e.g., tes***@example.com)")
 
 
 class OTPVerificationResponseSerializer(serializers.Serializer):
     """OTP verification response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
-    user = UserBasicInfoSerializer(help_text="Thông tin người dùng")
+    message = serializers.CharField(help_text="Result message")
+    user = UserBasicInfoSerializer(help_text="User information")
     tokens = TokensSerializer(help_text="JWT tokens")
 
 
 class PasswordResetResponseSerializer(serializers.Serializer):
     """Password reset request response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
-    reset_token = serializers.CharField(help_text="Reset token UUID để sử dụng trong các bước tiếp theo")
-    email_hint = serializers.CharField(required=False, allow_null=True, help_text="Email đã được che (nếu dùng email)")
+    message = serializers.CharField(help_text="Result message")
+    reset_token = serializers.CharField(help_text="Reset token UUID to use in subsequent steps")
+    email_hint = serializers.CharField(required=False, allow_null=True, help_text="Masked email address (if using email)")
     phone_hint = serializers.CharField(
-        required=False, allow_null=True, help_text="Số điện thoại đã được che (nếu dùng SMS)"
+        required=False, allow_null=True, help_text="Masked phone number (if using SMS)"
     )
-    expires_at = serializers.DateTimeField(help_text="Thời gian hết hạn của reset token")
+    expires_at = serializers.DateTimeField(help_text="Reset token expiration time")
 
 
 class PasswordResetOTPVerificationResponseSerializer(serializers.Serializer):
     """Password reset OTP verification response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
-    tokens = TokensSerializer(help_text="JWT tokens để sử dụng cho bước đổi mật khẩu")
+    message = serializers.CharField(help_text="Result message")
+    tokens = TokensSerializer(help_text="JWT tokens to use for password change step")
 
 
 class PasswordResetChangePasswordResponseSerializer(serializers.Serializer):
     """Password reset change password response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
+    message = serializers.CharField(help_text="Result message")
 
 
 class PasswordChangeResponseSerializer(serializers.Serializer):
     """Password change response."""
 
-    message = serializers.CharField(help_text="Thông báo kết quả")
+    message = serializers.CharField(help_text="Result message")
 
 
 class TokenRefreshResponseSerializer(serializers.Serializer):
     """Token refresh response."""
 
-    access = serializers.CharField(help_text="JWT access token mới")
-    refresh = serializers.CharField(help_text="JWT refresh token mới (nếu rotation được bật)")
+    access = serializers.CharField(help_text="New JWT access token")
+    refresh = serializers.CharField(help_text="New JWT refresh token (if rotation is enabled)")
