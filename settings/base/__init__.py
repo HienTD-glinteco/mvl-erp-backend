@@ -14,6 +14,7 @@ from .logging import *
 from .middleware import *
 from .password import *
 from .sentry import *
+from .sms import *
 from .storage import *
 from .templates import *
 from .static import *
