@@ -9,6 +9,7 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth.password_change import PasswordChangeSerializer
+from apps.core.api.serializers.auth.responses import PasswordChangeResponseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class PasswordChangeView(APIView):
         summary=_("Change password (when current password is known)"),
         description=_("Change password when user is logged in and knows their current password"),
         responses={
-            200: OpenApiResponse(description=_("Password changed successfully")),
+            200: PasswordChangeResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information or incorrect current password")),
             401: OpenApiResponse(description=_("Not logged in")),
             429: OpenApiResponse(description=_("Too many password change requests")),
@@ -48,7 +49,11 @@ class PasswordChangeView(APIView):
 
             logger.info(f"Password successfully changed for user {user}")
             return Response(
-                {"message": _("Password has been changed successfully. All other login sessions have been logged out.")},
+                {
+                    "message": _(
+                        "Password has been changed successfully. All other login sessions have been logged out."
+                    )
+                },
                 status=status.HTTP_200_OK,
             )
 

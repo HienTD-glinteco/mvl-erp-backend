@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from apps.core.api.serializers.auth.password_reset_change_password import (
     PasswordResetChangePasswordSerializer,
 )
+from apps.core.api.serializers.auth.responses import PasswordResetChangePasswordResponseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class PasswordResetChangePasswordView(APIView):
         summary=_("Set new password (Step 3: Change password)"),
         description=_("Set new password after successful OTP verification (Step 2). Uses reset_token (from step 2)."),
         responses={
-            200: OpenApiResponse(description=_("Password changed successfully")),
+            200: PasswordResetChangePasswordResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information or reset_token has expired/not verified")),
             429: OpenApiResponse(description=_("Too many requests")),
         },

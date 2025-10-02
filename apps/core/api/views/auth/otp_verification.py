@@ -9,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import OTPVerificationSerializer
+from apps.core.api.serializers.auth.responses import OTPVerificationResponseSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class OTPVerificationView(APIView):
         summary=_("Verify OTP code"),
         description=_("Verify OTP code and return JWT tokens to complete login"),
         responses={
-            200: OpenApiResponse(description=_("Login successful, returns tokens")),
+            200: OTPVerificationResponseSerializer,
             400: OpenApiResponse(description=_("Invalid or expired OTP code")),
             429: OpenApiResponse(description=_("Too many verification requests")),
         },

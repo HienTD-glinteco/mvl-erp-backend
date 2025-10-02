@@ -9,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import PasswordResetSerializer
+from apps.core.api.serializers.auth.responses import PasswordResetResponseSerializer
 from apps.core.models import PasswordResetOTP
 from apps.core.tasks.sms import send_otp_sms_task
 
@@ -35,7 +36,7 @@ class PasswordResetView(APIView):
         summary=_("Request password reset"),
         description=_("Send password reset instructions via email or SMS based on email or phone number"),
         responses={
-            200: OpenApiResponse(description=_("OTP sent")),
+            200: PasswordResetResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information")),
             429: OpenApiResponse(description=_("Too many password reset requests")),
             500: OpenApiResponse(description=_("System error while sending OTP")),

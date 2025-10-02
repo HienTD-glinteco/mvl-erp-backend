@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.core.api.serializers.auth.password_reset_otp_verification import (
     PasswordResetOTPVerificationSerializer,
 )
+from apps.core.api.serializers.auth.responses import PasswordResetOTPVerificationResponseSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ class PasswordResetOTPVerificationView(APIView):
         summary=_("Verify OTP (Step 2) and return JWT"),
         description=_("Verify reset_token + OTP, then return access/refresh token for password change step."),
         responses={
-            200: OpenApiResponse(description=_("Valid OTP, returns JWT tokens")),
+            200: PasswordResetOTPVerificationResponseSerializer,
             400: OpenApiResponse(description=_("Invalid reset token or OTP code")),
             429: OpenApiResponse(description=_("Too many verification requests")),
         },
