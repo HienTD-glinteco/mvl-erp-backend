@@ -17,7 +17,6 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.BigAutoField(
-                        editable=False,
                         primary_key=True,
                         serialize=False,
                     ),
