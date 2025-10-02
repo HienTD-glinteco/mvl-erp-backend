@@ -11,20 +11,20 @@ from apps.core.api.serializers.auth.responses import TokenRefreshResponseSeriali
 
 class TokenRefreshView(SimpleJWTTokenRefreshView):
     """
-    Làm mới JWT access token bằng refresh token.
+    Refresh JWT access token using refresh token.
 
-    Endpoint này sử dụng refresh token để tạo access token mới.
-    Nếu rotation được bật, refresh token mới cũng sẽ được trả về.
+    This endpoint uses a refresh token to generate a new access token.
+    If rotation is enabled, a new refresh token will also be returned.
     """
 
     @extend_schema(
-        summary="Làm mới access token",
-        description="Sử dụng refresh token để tạo access token mới. "
-        "Nếu ROTATE_REFRESH_TOKENS được bật, refresh token cũ sẽ bị thu hồi "
-        "và refresh token mới sẽ được trả về.",
+        summary="Refresh access token",
+        description="Use refresh token to generate new access token. "
+        "If ROTATE_REFRESH_TOKENS is enabled, the old refresh token will be revoked "
+        "and a new refresh token will be returned.",
         responses={
             200: TokenRefreshResponseSerializer,
-            401: OpenApiResponse(description="Refresh token không hợp lệ hoặc đã hết hạn"),
+            401: OpenApiResponse(description="Invalid or expired refresh token"),
         },
         tags=["Token Management"],
     )
@@ -34,18 +34,18 @@ class TokenRefreshView(SimpleJWTTokenRefreshView):
 
 class TokenVerifyView(SimpleJWTTokenVerifyView):
     """
-    Xác thực tính hợp lệ của một JWT token.
+    Verify the validity of a JWT token.
 
-    Endpoint này kiểm tra xem token có hợp lệ và chưa hết hạn hay không.
+    This endpoint checks whether a token is valid and has not expired.
     """
 
     @extend_schema(
-        summary="Xác thực token",
-        description="Kiểm tra tính hợp lệ của JWT token (access hoặc refresh). "
-        "Trả về 200 nếu token hợp lệ, 401 nếu không hợp lệ.",
+        summary="Verify token",
+        description="Check the validity of a JWT token (access or refresh). "
+        "Returns 200 if token is valid, 401 if invalid.",
         responses={
-            200: OpenApiResponse(description="Token hợp lệ"),
-            401: OpenApiResponse(description="Token không hợp lệ hoặc đã hết hạn"),
+            200: OpenApiResponse(description="Token is valid"),
+            401: OpenApiResponse(description="Invalid or expired token"),
         },
         tags=["Token Management"],
     )
