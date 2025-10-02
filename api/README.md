@@ -10,18 +10,15 @@ The `wrap_with_envelope` hook automatically wraps all `application/json` respons
 
 ### Envelope Structure
 
-All successful API responses (2xx status codes) are wrapped in the following structure:
+All API responses are wrapped in the following structure (matching `ApiResponseWrapperMiddleware`):
+
+For successful responses:
 
 ```json
 {
   "success": true,
-  "message": "Optional human-readable message",
   "data": "<original response data>",
-  "meta": {
-    "page": 1,
-    "page_size": 20,
-    "total": 100
-  }
+  "error": null
 }
 ```
 
@@ -57,7 +54,6 @@ The hook:
 - ✅ Skips non-JSON responses (e.g., file downloads, PDFs)
 - ✅ Skips error responses (4xx, 5xx status codes)
 - ✅ Prevents double-wrapping if a schema is already wrapped
-- ✅ Adds pagination metadata structure in the `meta` field
 
 ### Testing
 
@@ -66,7 +62,6 @@ Unit tests are located in `api/tests/test_schema_hooks.py` and cover:
 - Array/list response handling
 - Error response skipping
 - Non-JSON response skipping
-- Meta properties
 - Double-wrap prevention
 
 Run tests with:
@@ -109,23 +104,13 @@ responses:
           properties:
             success:
               type: boolean
-            message:
-              type: string
-              nullable: true
             data:
               type: array
               items:
                 $ref: '#/components/schemas/Branch'
-            meta:
+            error:
               type: object
               nullable: true
-              properties:
-                page:
-                  type: integer
-                page_size:
-                  type: integer
-                total:
-                  type: integer
           required:
             - success
 ```

@@ -10,16 +10,11 @@ def wrap_with_envelope(result, generator, request, public):
     Post-processing hook that wraps all application/json response schemas
     in a consistent envelope format.
 
-    The envelope format follows the pattern:
+    The envelope format matches the ApiResponseWrapperMiddleware:
     {
         "success": true/false,
-        "message": "string",
         "data": <original_schema>,
-        "meta": {
-            "page": int,
-            "page_size": int,
-            "total": int
-        }
+        "error": <error_data>
     }
 
     Args:
@@ -64,32 +59,16 @@ def wrap_with_envelope(result, generator, request, public):
                         if "success" in props and "data" in props:
                             continue
 
-                    # Create the envelope schema
+                    # Create the envelope schema matching ApiResponseWrapperMiddleware
                     envelope_schema = {
                         "type": "object",
                         "properties": {
                             "success": {"type": "boolean", "description": "Indicates if the request was successful"},
-                            "message": {
-                                "type": "string",
-                                "description": "Human-readable message about the response",
-                                "nullable": True,
-                            },
                             "data": original_schema if original_schema else {"type": "object", "nullable": True},
                             "error": {
                                 "type": "object",
                                 "nullable": True,
                                 "description": "Error details (only present when success is false)",
-                            },
-                            "meta": {
-                                "type": "object",
-                                "description": "Metadata about the response (e.g., pagination info)",
-                                "nullable": True,
-                                "properties": {
-                                    "page": {"type": "integer", "description": "Current page number"},
-                                    "page_size": {"type": "integer", "description": "Number of items per page"},
-                                    "total": {"type": "integer", "description": "Total number of items"},
-                                },
-                                "additionalProperties": True,
                             },
                         },
                         "required": ["success"],

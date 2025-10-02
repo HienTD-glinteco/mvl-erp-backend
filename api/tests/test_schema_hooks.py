@@ -51,8 +51,6 @@ class SchemaHookTest(unittest.TestCase):
         assert "properties" in response_schema
         assert "success" in response_schema["properties"]
         assert "data" in response_schema["properties"]
-        assert "message" in response_schema["properties"]
-        assert "meta" in response_schema["properties"]
         assert "error" in response_schema["properties"]
 
         # Check success is boolean
@@ -169,35 +167,6 @@ class SchemaHookTest(unittest.TestCase):
         assert response_schema["type"] == "string"
         assert response_schema["format"] == "binary"
         assert "properties" not in response_schema
-
-    def test_wrap_with_envelope_includes_meta_properties(self):
-        """Test that meta object includes pagination properties"""
-        # Arrange
-        result = {
-            "paths": {
-                "/api/test/": {
-                    "get": {"responses": {"200": {"content": {"application/json": {"schema": {"type": "object"}}}}}}
-                }
-            }
-        }
-
-        # Act
-        wrapped_result = wrap_with_envelope(result, None, None, True)
-
-        # Assert
-        response_schema = wrapped_result["paths"]["/api/test/"]["get"]["responses"]["200"]["content"][
-            "application/json"
-        ]["schema"]
-        meta_schema = response_schema["properties"]["meta"]
-
-        assert "properties" in meta_schema
-        assert "page" in meta_schema["properties"]
-        assert "page_size" in meta_schema["properties"]
-        assert "total" in meta_schema["properties"]
-        assert meta_schema["properties"]["page"]["type"] == "integer"
-        assert meta_schema["properties"]["page_size"]["type"] == "integer"
-        assert meta_schema["properties"]["total"]["type"] == "integer"
-        assert meta_schema.get("additionalProperties") is True
 
     def test_wrap_with_envelope_doesnt_double_wrap(self):
         """Test that already wrapped schemas are not wrapped again"""
