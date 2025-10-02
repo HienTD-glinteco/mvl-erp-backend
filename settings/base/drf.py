@@ -36,6 +36,9 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "SORT_OPERATIONS": False,
     "SCHEMA_PATH_PREFIX": "/api/",
+    "POSTPROCESSING_HOOKS": [
+        "api.schema_hooks.wrap_with_envelope",
+    ],
 }
 
 SIMPLE_JWT = {
