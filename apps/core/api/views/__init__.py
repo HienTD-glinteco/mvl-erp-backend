@@ -6,6 +6,7 @@ from .auth import (
     PasswordResetOTPVerificationView,
     PasswordResetView,
 )
+from .role import RoleViewSet
 
 __all__ = [
     "LoginView",
@@ -14,4 +15,5 @@ __all__ = [
     "PasswordResetOTPVerificationView",
     "PasswordResetChangePasswordView",
     "PasswordChangeView",
+    "RoleViewSet",
 ]

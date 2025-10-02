@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
@@ -11,9 +12,13 @@ from .api.views import (
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
     PasswordResetView,
+    RoleViewSet,
 )
 
 app_name = "core"
+
+router = DefaultRouter()
+router.register(r"roles", RoleViewSet, basename="role")
 
 urlpatterns = [
     # Authentication endpoints
@@ -36,4 +41,6 @@ urlpatterns = [
     # JWT token endpoints
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # Role management
+    path("", include(router.urls)),
 ]
