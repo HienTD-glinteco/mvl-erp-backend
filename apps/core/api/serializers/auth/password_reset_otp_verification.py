@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import PasswordResetOTP
@@ -17,41 +18,41 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
 
     reset_token = serializers.CharField(
         max_length=64,
-        help_text="Reset token UUID nhận được từ bước 1",
+        help_text=_("Reset token UUID received from step 1"),
         error_messages={
-            "required": "Vui lòng nhập reset token.",
-            "blank": "Reset token không được để trống.",
+            "required": _("Please enter the reset token."),
+            "blank": _("Reset token cannot be blank."),
         },
     )
     otp_code = serializers.CharField(
         max_length=6,
         min_length=6,
-        help_text="Mã OTP 6 chữ số",
+        help_text=_("6-digit OTP code"),
         error_messages={
-            "required": "Vui lòng nhập mã OTP.",
-            "blank": "Mã OTP không được để trống.",
-            "min_length": "Mã OTP phải có 6 chữ số.",
-            "max_length": "Mã OTP phải có 6 chữ số.",
+            "required": _("Please enter the OTP code."),
+            "blank": _("OTP code cannot be blank."),
+            "min_length": _("OTP code must be 6 digits."),
+            "max_length": _("OTP code must be 6 digits."),
         },
     )
 
     def validate_reset_token(self, value):
         """Validate reset token"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Vui lòng nhập reset token.")
+            raise serializers.ValidationError(_("Please enter the reset token."))
         return value.strip()
 
     def validate_otp_code(self, value):
         """Validate OTP code format"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Vui lòng nhập mã OTP.")
+            raise serializers.ValidationError(_("Please enter the OTP code."))
 
         value = value.strip()
         if not value.isdigit():
-            raise serializers.ValidationError("Mã OTP chỉ được chứa chữ số.")
+            raise serializers.ValidationError(_("OTP code can only contain digits."))
 
         if len(value) != 6:
-            raise serializers.ValidationError("Mã OTP phải có 6 chữ số.")
+            raise serializers.ValidationError(_("OTP code must be 6 digits."))
 
         return value
 
@@ -62,20 +63,20 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
         # Find password reset request by token using manager
         reset_request = PasswordResetOTP.objects.get_by_token(reset_token)
         if not reset_request:
-            raise serializers.ValidationError("Reset token không hợp lệ hoặc đã hết hạn.")
+            raise serializers.ValidationError(_("Reset token is invalid or has expired."))
 
         # Check if user is active
         if not reset_request.user.is_active:
-            raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
+            raise serializers.ValidationError(_("Account has been deactivated."))
 
         # Verify OTP
         if not reset_request.verify_otp(otp_code):
             if reset_request.is_expired():
-                raise serializers.ValidationError("Mã OTP đã hết hạn.")
+                raise serializers.ValidationError(_("OTP code has expired."))
             elif reset_request.attempts >= reset_request.max_attempts:
-                raise serializers.ValidationError("Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới.")
+                raise serializers.ValidationError(_("Maximum attempts exceeded. Please request a new OTP."))
             else:
-                raise serializers.ValidationError("Mã OTP không đúng.")
+                raise serializers.ValidationError(_("OTP code is incorrect."))
 
         attrs["reset_request"] = reset_request
         return attrs

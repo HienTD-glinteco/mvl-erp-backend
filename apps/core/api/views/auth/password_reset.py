@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -31,13 +32,13 @@ class PasswordResetView(APIView):
     serializer_class = PasswordResetSerializer
 
     @extend_schema(
-        summary="Yêu cầu đặt lại mật khẩu",
-        description="Gửi hướng dẫn đặt lại mật khẩu qua email hoặc SMS dựa trên email hoặc số điện thoại",
+        summary=_("Request password reset"),
+        description=_("Send password reset instructions via email or SMS based on email or phone number"),
         responses={
-            200: OpenApiResponse(description="OTP đã được gửi"),
-            400: OpenApiResponse(description="Thông tin không hợp lệ"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu đặt lại mật khẩu"),
-            500: OpenApiResponse(description="Lỗi hệ thống khi gửi OTP"),
+            200: OpenApiResponse(description=_("OTP sent")),
+            400: OpenApiResponse(description=_("Invalid information")),
+            429: OpenApiResponse(description=_("Too many password reset requests")),
+            500: OpenApiResponse(description=_("System error while sending OTP")),
         },
     )
     def post(self, request):
@@ -59,7 +60,7 @@ class PasswordResetView(APIView):
                 sent = serializer.send_reset_email(user)
                 if not sent:
                     logger.error(f"Failed to send password reset email for user {user.username}")
-                message = "Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn. Mã có hiệu lực trong 3 phút."
+                message = _("Password reset OTP code has been sent to your email. The code is valid for 3 minutes.")
                 email_hint = (
                     f"{user.email[:3]}***@{user.email.split('@')[1]}" if user.email and "@" in user.email else None
                 )
@@ -82,7 +83,7 @@ class PasswordResetView(APIView):
                     # Basic masking: show last 2-3 digits
                     last = phone[-2:]
                     masked = f"***{last}"
-                message = "Mã OTP đặt lại mật khẩu đã được gửi qua SMS. Mã có hiệu lực trong 3 phút."
+                message = _("Password reset OTP code has been sent via SMS. The code is valid for 3 minutes.")
                 response_payload = {
                     "message": message,
                     "reset_token": reset_request.reset_token,

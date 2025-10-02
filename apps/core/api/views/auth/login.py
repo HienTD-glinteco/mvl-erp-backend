@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -29,13 +30,13 @@ class LoginView(APIView):
     serializer_class = LoginSerializer
 
     @extend_schema(
-        summary="Đăng nhập với tên đăng nhập và mật khẩu",
-        description="Xác thực thông tin đăng nhập và gửi mã OTP qua email",
+        summary=_("Login with username and password"),
+        description=_("Authenticate login credentials and send OTP code via email"),
         responses={
-            200: OpenApiResponse(description="OTP đã được gửi thành công"),
-            400: OpenApiResponse(description="Thông tin đăng nhập không hợp lệ"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu đăng nhập"),
-            500: OpenApiResponse(description="Lỗi hệ thống khi gửi OTP"),
+            200: OpenApiResponse(description=_("OTP sent successfully")),
+            400: OpenApiResponse(description=_("Invalid login credentials")),
+            429: OpenApiResponse(description=_("Too many login requests")),
+            500: OpenApiResponse(description=_("System error while sending OTP")),
         },
     )
     def post(self, request):
@@ -48,7 +49,7 @@ class LoginView(APIView):
             if serializer.send_otp_email(user):
                 logger.info(f"Login attempt successful for user {user.username}, OTP sent")
                 response_data = {
-                    "message": "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP để hoàn tất đăng nhập.",
+                    "message": _("OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."),
                     "username": user.username,
                     "email_hint": f"{user.email[:3]}***@{user.email.split('@')[1]}",
                 }
@@ -56,7 +57,7 @@ class LoginView(APIView):
             else:
                 logger.error(f"Failed to send OTP email for user {user.username}")
                 return Response(
-                    {"message": "Không thể gửi mã OTP. Vui lòng thử lại sau."},
+                    {"message": _("Unable to send OTP code. Please try again later.")},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 

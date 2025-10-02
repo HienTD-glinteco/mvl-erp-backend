@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -31,12 +32,12 @@ class PasswordResetChangePasswordView(APIView):
     serializer_class = PasswordResetChangePasswordSerializer
 
     @extend_schema(
-        summary="Đặt lại mật khẩu mới (Bước 3: Thay đổi mật khẩu)",
-        description="Đặt lại mật khẩu mới sau khi xác thực OTP thành công (Bước 2). Sử dụng reset_token (đã dùng ở bước 2).",
+        summary=_("Set new password (Step 3: Change password)"),
+        description=_("Set new password after successful OTP verification (Step 2). Uses reset_token (from step 2)."),
         responses={
-            200: OpenApiResponse(description="Mật khẩu đã được thay đổi thành công"),
-            400: OpenApiResponse(description="Thông tin không hợp lệ hoặc reset_token đã hết hạn/chưa được xác thực"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu"),
+            200: OpenApiResponse(description=_("Password changed successfully")),
+            400: OpenApiResponse(description=_("Invalid information or reset_token has expired/not verified")),
+            429: OpenApiResponse(description=_("Too many requests")),
         },
     )
     def post(self, request):
@@ -47,7 +48,7 @@ class PasswordResetChangePasswordView(APIView):
 
             logger.info(f"Password successfully reset for user {user} via forgot password flow")
             return Response(
-                {"message": "Mật khẩu đã được đặt lại thành công. Tất cả phiên đăng nhập cũ đã bị đăng xuất."},
+                {"message": _("Password has been reset successfully. All old login sessions have been logged out.")},
                 status=status.HTTP_200_OK,
             )
 

@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
@@ -132,13 +133,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
         """Validate parent department is in the same block"""
         if value and self.instance:
             if value.block != self.instance.block:
-                raise serializers.ValidationError("Phòng ban cha phải thuộc cùng khối với phòng ban con.")
+                raise serializers.ValidationError(_("Parent department must be in the same block as the child department."))
         elif value and "block" in self.initial_data:
             # For creation
             try:
                 block = Block.objects.get(id=self.initial_data["block"])
                 if value.block != block:
-                    raise serializers.ValidationError("Phòng ban cha phải thuộc cùng khối với phòng ban con.")
+                    raise serializers.ValidationError(_("Parent department must be in the same block as the child department."))
             except Block.DoesNotExist:
                 pass
         return value
@@ -151,14 +152,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
             # Check for self-reference
             if self.instance and value.id == self.instance.id:
-                raise serializers.ValidationError("Phòng ban không thể quản lý chính nó.")
+                raise serializers.ValidationError(_("Department cannot manage itself."))
 
             try:
                 block = Block.objects.get(id=block_id)
                 if value.block != block:
-                    raise serializers.ValidationError("Phòng ban quản lý phải thuộc cùng khối.")
+                    raise serializers.ValidationError(_("Management department must be in the same block."))
                 if function and value.function != function:
-                    raise serializers.ValidationError("Phòng ban quản lý phải có cùng chức năng.")
+                    raise serializers.ValidationError(_("Management department must have the same function."))
             except Block.DoesNotExist:
                 pass
         return value
@@ -174,14 +175,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
                 # If function provided and not BUSINESS -> error; else default to BUSINESS
                 if provided_function is not None and provided_function != Department.DepartmentFunction.BUSINESS:
                     raise serializers.ValidationError(
-                        {"function": "Khối kinh doanh chỉ được phép chức năng kinh doanh."}
+                        {"function": _("Business block can only have business function.")}
                     )
                 if provided_function is None:
                     attrs["function"] = Department.DepartmentFunction.BUSINESS
             elif block.block_type == Block.BlockType.SUPPORT:
                 # If provided BUSINESS for support -> error; else default to HR_ADMIN if missing
                 if provided_function == Department.DepartmentFunction.BUSINESS:
-                    raise serializers.ValidationError({"function": "Khối hỗ trợ không thể có chức năng kinh doanh."})
+                    raise serializers.ValidationError({"function": _("Support block cannot have business function.")})
                 if provided_function is None:
                     attrs["function"] = Department.DepartmentFunction.HR_ADMIN
 
@@ -192,7 +193,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             allowed = [c[0] for c in Department.get_function_choices_for_block_type(block.block_type)]
             if function not in allowed:
                 raise serializers.ValidationError(
-                    {"function": f"Chức năng này không phù hợp với loại khối {block.get_block_type_display()}."}
+                    {"function": _("This function is not compatible with block type %(block_type)s.") % {"block_type": block.get_block_type_display()}}
                 )
 
         return attrs
@@ -263,7 +264,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
         # Ensure end_date is after start_date
         if attrs.get("end_date") and attrs.get("start_date"):
             if attrs["end_date"] <= attrs["start_date"]:
-                raise serializers.ValidationError("Ngày kết thúc phải sau ngày bắt đầu.")
+                raise serializers.ValidationError(_("End date must be after start date."))
 
         return attrs
 
