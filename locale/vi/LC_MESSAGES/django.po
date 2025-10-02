@@ -1,0 +1,586 @@
+# Vietnamese translations for MaiVietLand Backend
+# Copyright (C) 2025 MaiVietLand
+# This file is distributed under the same license as the MaiVietLand Backend package.
+msgid ""
+msgstr ""
+"Project-Id-Version: MaiVietLand Backend\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-21 00:00+0000\n"
+"PO-Revision-Date: 2025-01-21 00:00+0000\n"
+"Last-Translator: Glinteco Developers\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# User model
+msgid "Username"
+msgstr "Tên đăng nhập"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Phone number"
+msgstr "Số điện thoại"
+
+msgid "First name"
+msgstr "Tên"
+
+msgid "Last name"
+msgstr "Họ"
+
+msgid "Active"
+msgstr "Hoạt động"
+
+msgid "Staff"
+msgstr "Nhân viên"
+
+msgid "Date joined"
+msgstr "Ngày tham gia"
+
+msgid "Failed login attempts"
+msgstr "Số lần đăng nhập thất bại"
+
+msgid "Locked until"
+msgstr "Khóa tài khoản đến"
+
+msgid "OTP code"
+msgstr "Mã OTP"
+
+msgid "OTP expires at"
+msgstr "OTP hết hạn lúc"
+
+msgid "OTP verified"
+msgstr "OTP đã xác thực"
+
+msgid "Active session"
+msgstr "Phiên hoạt động"
+
+msgid "User"
+msgstr "Người dùng"
+
+msgid "Users"
+msgstr "Người dùng"
+
+# Password validators
+msgid "Password must contain at least one uppercase letter."
+msgstr "Mật khẩu phải chứa ít nhất một chữ cái viết hoa."
+
+msgid "Password must contain at least one lowercase letter."
+msgstr "Mật khẩu phải chứa ít nhất một chữ cái viết thường."
+
+msgid "Password must contain at least one digit."
+msgstr "Mật khẩu phải chứa ít nhất một chữ số."
+
+msgid "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
+msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."
+
+msgid "Password must be at least 8 characters long and include uppercase, lowercase, digits and special characters."
+msgstr "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+
+# Login serializer
+msgid "Password"
+msgstr "Mật khẩu"
+
+msgid "Please enter your username."
+msgstr "Vui lòng nhập tên đăng nhập."
+
+msgid "Username cannot be blank."
+msgstr "Tên đăng nhập không được để trống."
+
+msgid "Please enter your password."
+msgstr "Vui lòng nhập mật khẩu."
+
+msgid "Password cannot be blank."
+msgstr "Mật khẩu không được để trống."
+
+msgid "Username does not exist."
+msgstr "Tên đăng nhập không tồn tại."
+
+msgid "Account is locked. Please try again in %(minutes)d minutes."
+msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
+
+msgid "Account has been deactivated."
+msgstr "Tài khoản đã bị vô hiệu hóa."
+
+msgid "Account has been locked due to 5 failed login attempts. Please try again in 5 minutes."
+msgstr "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
+
+msgid "Incorrect password."
+msgstr "Mật khẩu không đúng."
+
+# Password change serializer
+msgid "Current password"
+msgstr "Mật khẩu hiện tại"
+
+msgid "Please enter your current password."
+msgstr "Vui lòng nhập mật khẩu hiện tại."
+
+msgid "Current password cannot be blank."
+msgstr "Mật khẩu hiện tại không được để trống."
+
+msgid "New password"
+msgstr "Mật khẩu mới"
+
+msgid "Please enter your new password."
+msgstr "Vui lòng nhập mật khẩu mới."
+
+msgid "New password cannot be blank."
+msgstr "Mật khẩu mới không được để trống."
+
+msgid "Confirm new password"
+msgstr "Xác nhận mật khẩu mới"
+
+msgid "Please confirm your new password."
+msgstr "Vui lòng xác nhận mật khẩu mới."
+
+msgid "Password confirmation cannot be blank."
+msgstr "Xác nhận mật khẩu không được để trống."
+
+msgid "New password and confirmation password do not match."
+msgstr "Mật khẩu mới và xác nhận mật khẩu không khớp."
+
+msgid "New password must be different from current password."
+msgstr "Mật khẩu mới phải khác với mật khẩu hiện tại."
+
+msgid "You need to be logged in to change your password."
+msgstr "Bạn cần đăng nhập để thay đổi mật khẩu."
+
+msgid "Current password is incorrect."
+msgstr "Mật khẩu hiện tại không đúng."
+
+# Password reset
+msgid "Email or phone number"
+msgstr "Email hoặc số điện thoại"
+
+msgid "Please enter your email or phone number."
+msgstr "Vui lòng nhập email hoặc số điện thoại."
+
+msgid "Email or phone number cannot be blank."
+msgstr "Email hoặc số điện thoại không được để trống."
+
+msgid "No account found with this information."
+msgstr "Không tìm thấy tài khoản với thông tin này."
+
+# OTP verification
+msgid "OTP code can only contain digits."
+msgstr "Mã OTP chỉ được chứa số."
+
+msgid "OTP code is incorrect or has expired."
+msgstr "Mã OTP không đúng hoặc đã hết hạn."
+
+msgid "OTP code must be 6 digits."
+msgstr "Mã OTP phải có 6 chữ số."
+
+msgid "Please enter the OTP code."
+msgstr "Vui lòng nhập mã OTP."
+
+msgid "Device ID of client app (browser can skip)"
+msgstr "Device ID của client app (browser bỏ qua)"
+
+# Views
+msgid "Login with username and password"
+msgstr "Đăng nhập với tên đăng nhập và mật khẩu"
+
+msgid "OTP sent successfully"
+msgstr "OTP đã được gửi thành công"
+
+msgid "Invalid login credentials"
+msgstr "Thông tin đăng nhập không hợp lệ"
+
+msgid "Too many login requests"
+msgstr "Quá nhiều yêu cầu đăng nhập"
+
+msgid "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."
+msgstr "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP để hoàn tất đăng nhập."
+
+msgid "Unable to send OTP code. Please try again later."
+msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
+
+msgid "Password changed successfully"
+msgstr "Mật khẩu đã được thay đổi thành công"
+
+msgid "Password has been changed successfully. All other login sessions have been logged out."
+msgstr "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng xuất."
+
+msgid "Password reset OTP code has been sent to your email. The code is valid for 3 minutes."
+msgstr "Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn. Mã có hiệu lực trong 3 phút."
+
+msgid "Password reset OTP code has been sent via SMS. The code is valid for 3 minutes."
+msgstr "Mã OTP đặt lại mật khẩu đã được gửi qua SMS. Mã có hiệu lực trong 3 phút."
+
+msgid "Password has been reset successfully. All old login sessions have been logged out."
+msgstr "Mật khẩu đã được đặt lại thành công. Tất cả phiên đăng nhập cũ đã bị đăng xuất."
+
+# Email templates
+msgid "Login OTP Code"
+msgstr "Mã OTP đăng nhập"
+
+msgid "Hello <strong>%(name)s</strong>,"
+msgstr "Xin chào <strong>%(name)s</strong>,"
+
+msgid "We have received a login request for your MaiVietLand account."
+msgstr "Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản MaiVietLand của bạn."
+
+msgid "Your OTP code to complete the login is:"
+msgstr "Mã OTP để hoàn tất đăng nhập của bạn là:"
+
+msgid "Note:"
+msgstr "Lưu ý:"
+
+msgid "This code is valid for 5 minutes and can only be used once."
+msgstr "Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần."
+
+msgid "If you did not initiate this login, please ignore this email and contact the administrator if necessary."
+msgstr "Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này và liên hệ với quản trị viên nếu cần thiết."
+
+msgid "Best regards,"
+msgstr "Trân trọng,"
+
+msgid "MaiVietLand Team"
+msgstr "Đội ngũ MaiVietLand"
+
+msgid "This email is sent automatically, please do not reply."
+msgstr "Email này được gửi tự động, vui lòng không trả lời."
+
+msgid "All rights reserved."
+msgstr "Tất cả quyền được bảo lưu."
+
+msgid "Password Reset Request"
+msgstr "Yêu cầu đặt lại mật khẩu"
+
+msgid "Account information:"
+msgstr "Thông tin tài khoản:"
+
+msgid "Phone:"
+msgstr "Điện thoại:"
+
+msgid "Working hours:"
+msgstr "Thời gian làm việc:"
+
+msgid "Monday - Friday"
+msgstr "Thứ 2 - Thứ 6"
+
+msgid "If you did not make this request, please ignore this email."
+msgstr "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này."
+
+# HRM models
+msgid "Branch"
+msgstr "Chi nhánh"
+
+msgid "Branches"
+msgstr "Chi nhánh"
+
+msgid "Branch name"
+msgstr "Tên chi nhánh"
+
+msgid "Branch code"
+msgstr "Mã chi nhánh"
+
+msgid "Address"
+msgstr "Địa chỉ"
+
+msgid "Block"
+msgstr "Khối"
+
+msgid "Blocks"
+msgstr "Khối"
+
+msgid "Block name"
+msgstr "Tên khối"
+
+msgid "Block code"
+msgstr "Mã khối"
+
+msgid "Block type"
+msgstr "Loại khối"
+
+msgid "Support Block"
+msgstr "Khối hỗ trợ"
+
+msgid "Business Block"
+msgstr "Khối kinh doanh"
+
+msgid "Description"
+msgstr "Mô tả"
+
+msgid "Department"
+msgstr "Phòng ban"
+
+msgid "Departments"
+msgstr "Phòng ban"
+
+msgid "Department name"
+msgstr "Tên phòng ban"
+
+msgid "Department code"
+msgstr "Mã phòng ban"
+
+msgid "Parent department"
+msgstr "Phòng ban cha"
+
+msgid "Department function"
+msgstr "Chức năng phòng ban"
+
+msgid "Business"
+msgstr "Kinh doanh"
+
+msgid "HR Administration"
+msgstr "Hành chính Nhân sự"
+
+msgid "Recruitment & Training"
+msgstr "Tuyển dụng - Đào tạo"
+
+msgid "Marketing"
+msgstr "Marketing"
+
+msgid "Business Secretary"
+msgstr "Thư ký Kinh doanh"
+
+msgid "Accounting"
+msgstr "Kế toán"
+
+msgid "Trading Floor"
+msgstr "Sàn liên kết"
+
+msgid "Project Promotion"
+msgstr "Xúc tiến Dự án"
+
+msgid "Project Development"
+msgstr "Phát triển Dự án"
+
+msgid "Is main department"
+msgstr "Phòng ban đầu mối"
+
+msgid "Management department"
+msgstr "Phòng ban quản lý"
+
+msgid "Department cannot manage itself."
+msgstr "Phòng ban không thể quản lý chính nó."
+
+msgid "Management department must be in the same block."
+msgstr "Phòng ban quản lý phải thuộc cùng khối."
+
+msgid "Management department must have the same function."
+msgstr "Phòng ban quản lý phải có cùng chức năng."
+
+msgid "A main department already exists for function %(function)s."
+msgstr "Đã có phòng ban đầu mối cho chức năng %(function)s."
+
+msgid "Position"
+msgstr "Chức vụ"
+
+msgid "Positions"
+msgstr "Chức vụ"
+
+msgid "Position name"
+msgstr "Tên chức vụ"
+
+msgid "Position code"
+msgstr "Mã chức vụ"
+
+msgid "Level"
+msgstr "Cấp bậc"
+
+msgid "Chief Executive Officer (CEO)"
+msgstr "Tổng Giám đốc (TGD)"
+
+msgid "Block Director"
+msgstr "Giám đốc khối"
+
+msgid "Deputy Block Director"
+msgstr "Phó Giám đốc khối"
+
+msgid "Department Manager"
+msgstr "Trưởng phòng"
+
+msgid "Deputy Department Manager"
+msgstr "Phó Trưởng phòng"
+
+msgid "Supervisor"
+msgstr "Giám sát"
+
+msgid "Intern"
+msgstr "Thực tập sinh"
+
+msgid "Organization Chart"
+msgstr "Sơ đồ tổ chức"
+
+msgid "Organization Charts"
+msgstr "Sơ đồ tổ chức"
+
+msgid "Employee"
+msgstr "Nhân viên"
+
+msgid "Start date"
+msgstr "Ngày bắt đầu"
+
+msgid "End date"
+msgstr "Ngày kết thúc"
+
+msgid "Is primary position"
+msgstr "Chức vụ chính"
+
+msgid "Employee can only have one primary position in a department at a time."
+msgstr "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời điểm."
+
+msgid "End date must be after start date."
+msgstr "Ngày kết thúc phải sau ngày bắt đầu."
+
+# Management command
+msgid "Setup default organizational data"
+msgstr "Thiết lập dữ liệu tổ chức mặc định"
+
+msgid "Setting up default organizational data..."
+msgstr "Đang thiết lập dữ liệu tổ chức mặc định..."
+
+msgid "Chief Executive Officer"
+msgstr "Tổng Giám đốc"
+
+msgid "Business Block Director"
+msgstr "Giám đốc Khối Kinh doanh"
+
+msgid "Support Block Director"
+msgstr "Giám đốc Khối Hỗ trợ"
+
+msgid "Deputy Business Block Director"
+msgstr "Phó Giám đốc Khối Kinh doanh"
+
+msgid "Deputy Support Block Director"
+msgstr "Phó Giám đốc Khối Hỗ trợ"
+
+msgid "Created position: %s"
+msgstr "Đã tạo chức vụ: %s"
+
+msgid "Position already exists: %s"
+msgstr "Chức vụ đã tồn tại: %s"
+
+msgid "MaiVietLand Headquarters"
+msgstr "Trụ sở chính MaiVietLand"
+
+msgid "Hanoi, Vietnam"
+msgstr "Hà Nội, Việt Nam"
+
+msgid "Created branch: %s"
+msgstr "Đã tạo chi nhánh: %s"
+
+msgid "Branch already exists: %s"
+msgstr "Chi nhánh đã tồn tại: %s"
+
+msgid "Created block: %s"
+msgstr "Đã tạo khối: %s"
+
+msgid "Block already exists: %s"
+msgstr "Khối đã tồn tại: %s"
+
+msgid "Business Department 1"
+msgstr "Phòng Kinh doanh 1"
+
+msgid "Business Department 2"
+msgstr "Phòng Kinh doanh 2"
+
+msgid "Marketing Department"
+msgstr "Phòng Marketing"
+
+msgid "HR Administration Department"
+msgstr "Phòng Hành chính Nhân sự"
+
+msgid "Accounting Department"
+msgstr "Phòng Kế toán"
+
+msgid "IT Department"
+msgstr "Phòng Công nghệ thông tin"
+
+msgid "Legal Department"
+msgstr "Phòng Pháp lý"
+
+msgid "Created department: %s"
+msgstr "Đã tạo phòng ban: %s"
+
+msgid "Department already exists: %s"
+msgstr "Phòng ban đã tồn tại: %s"
+
+msgid "Successfully set up default organizational data!"
+msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
+
+# Serializers
+msgid "Parent department must be in the same block as the child department."
+msgstr "Phòng ban cha phải thuộc cùng khối với phòng ban con."
+
+msgid "Business block can only have business function."
+msgstr "Khối kinh doanh chỉ được phép chức năng kinh doanh."
+
+msgid "Support block cannot have business function."
+msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
+
+msgid "This function is not compatible with block type %(block_type)s."
+msgstr "Chức năng này không phù hợp với loại khối %(block_type)s."
+
+# Password Reset OTP
+msgid "Reset Token"
+msgstr "Token đặt lại"
+
+msgid "OTP Hash"
+msgstr "OTP Hash"
+
+msgid "SMS"
+msgstr "SMS"
+
+msgid "Expires At"
+msgstr "Hết hạn lúc"
+
+msgid "Verification Attempts"
+msgstr "Số lần thử xác thực"
+
+msgid "Max Attempts"
+msgstr "Số lần thử tối đa"
+
+msgid "Is Used"
+msgstr "Đã sử dụng"
+
+msgid "Is Verified"
+msgstr "Đã xác thực"
+
+msgid "Created At"
+msgstr "Tạo lúc"
+
+msgid "Password Reset OTP"
+msgstr "OTP đặt lại mật khẩu"
+
+msgid "Password Reset OTPs"
+msgstr "OTP đặt lại mật khẩu"
+
+msgid "Reset token UUID received from step 1"
+msgstr "Reset token UUID nhận được từ bước 1"
+
+msgid "Please enter the reset token."
+msgstr "Vui lòng nhập reset token."
+
+msgid "Reset token cannot be blank."
+msgstr "Reset token không được để trống."
+
+msgid "6-digit OTP code"
+msgstr "Mã OTP 6 chữ số"
+
+msgid "Reset token is invalid or has expired."
+msgstr "Reset token không hợp lệ hoặc đã hết hạn."
+
+msgid "OTP code has expired."
+msgstr "Mã OTP đã hết hạn."
+
+msgid "Maximum attempts exceeded. Please request a new OTP."
+msgstr "Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới."
+
+msgid "OTP code is incorrect."
+msgstr "Mã OTP không đúng."
+
+msgid "Authentication request is invalid."
+msgstr "Yêu cầu xác thực không hợp lệ."
+
+msgid "No verified password reset request found."
+msgstr "Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực."
+
+msgid "Password reset request has expired."
+msgstr "Yêu cầu đặt lại mật khẩu đã hết hạn."
