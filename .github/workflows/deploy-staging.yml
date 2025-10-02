@@ -28,6 +28,15 @@ jobs:
           cd /home/ubuntu/maivietland/backend
           git checkout staging
           git pull origin staging
+          
+          # Update API documentation version in .env file
+          API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+            sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+          else
+            echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+          fi
+          
           export PATH="$HOME/.local/bin:$PATH"
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
