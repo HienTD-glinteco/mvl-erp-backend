@@ -584,3 +584,154 @@ msgstr "Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực
 
 msgid "Password reset request has expired."
 msgstr "Yêu cầu đặt lại mật khẩu đã hết hạn."
+
+# OTP Verification View
+msgid "Verify OTP code"
+msgstr "Xác thực mã OTP"
+
+msgid "Verify OTP code and return JWT tokens to complete login"
+msgstr "Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập"
+
+msgid "Login successful, returns tokens"
+msgstr "Đăng nhập thành công, trả về tokens"
+
+msgid "Invalid or expired OTP code"
+msgstr "Mã OTP không hợp lệ hoặc đã hết hạn"
+
+msgid "Too many verification requests"
+msgstr "Quá nhiều yêu cầu xác thực"
+
+msgid "Login successful."
+msgstr "Đăng nhập thành công."
+
+# Password Reset OTP Verification View
+msgid "Verify OTP (Step 2) and return JWT"
+msgstr "Xác thực OTP (Bước 2) và trả về JWT"
+
+msgid "Verify reset_token + OTP, then return access/refresh token for password change step."
+msgstr "Xác thực reset_token + OTP, sau đó trả về access/refresh token để gọi bước đổi mật khẩu."
+
+msgid "Valid OTP, returns JWT tokens"
+msgstr "OTP hợp lệ, trả về JWT tokens"
+
+msgid "Invalid reset token or OTP code"
+msgstr "Reset token hoặc mã OTP không hợp lệ"
+
+msgid "Valid OTP code. JWT issued for password change."
+msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
+
+# Email Tasks
+msgid "Login OTP Code - MaiVietLand"
+msgstr "Mã OTP đăng nhập - MaiVietLand"
+
+msgid "Password Reset Request - MaiVietLand"
+msgstr "Yêu cầu đặt lại mật khẩu - MaiVietLand"
+
+msgid """
+Hello %(name)s,
+
+Your OTP code to complete login is: %(otp_code)s
+
+This code is valid for 5 minutes.
+
+If you did not initiate this login, please ignore this email.
+
+Best regards,
+MaiVietLand Team
+        """
+msgstr """
+Xin chào %(name)s,
+
+Mã OTP để hoàn tất đăng nhập của bạn là: %(otp_code)s
+
+Mã này có hiệu lực trong 5 phút.
+
+Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này.
+
+Trân trọng,
+Đội ngũ MaiVietLand
+        """
+
+msgid """
+Hello %(name)s,
+
+We have received a password reset request for account %(username)s.
+
+For security reasons, please contact the system administrator directly for password reset assistance.
+
+Support contact:
+- Email: support@maivietland.com
+- Phone: (028) 1234 5678
+- Working hours: 8:00 - 17:00 (Monday - Friday)
+
+If you did not make this request, please ignore this email.
+
+Best regards,
+MaiVietLand Team
+        """
+msgstr """
+Xin chào %(name)s,
+
+Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản %(username)s.
+
+Để đảm bảo an toàn, vui lòng liên hệ trực tiếp với quản trị viên hệ thống để được hỗ trợ đặt lại mật khẩu.
+
+Liên hệ hỗ trợ:
+- Email: support@maivietland.com
+- Điện thoại: (028) 1234 5678
+- Thời gian làm việc: 8:00 - 17:00 (Thứ 2 - Thứ 6)
+
+Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+
+Trân trọng,
+Đội ngũ MaiVietLand
+        """
+
+# Additional API docs
+msgid "Authenticate login credentials and send OTP code via email"
+msgstr "Xác thực thông tin đăng nhập và gửi mã OTP qua email"
+
+msgid "System error while sending OTP"
+msgstr "Lỗi hệ thống khi gửi OTP"
+
+msgid "Change password (when current password is known)"
+msgstr "Đổi mật khẩu (khi biết mật khẩu hiện tại)"
+
+msgid "Change password when user is logged in and knows their current password"
+msgstr "Đổi mật khẩu khi người dùng đã đăng nhập và biết mật khẩu hiện tại"
+
+msgid "Invalid information or incorrect current password"
+msgstr "Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"
+
+msgid "Not logged in"
+msgstr "Chưa đăng nhập"
+
+msgid "Too many password change requests"
+msgstr "Quá nhiều yêu cầu thay đổi mật khẩu"
+
+msgid "Request password reset"
+msgstr "Yêu cầu đặt lại mật khẩu"
+
+msgid "Send password reset instructions via email or SMS based on email or phone number"
+msgstr "Gửi hướng dẫn đặt lại mật khẩu qua email hoặc SMS dựa trên email hoặc số điện thoại"
+
+msgid "OTP sent"
+msgstr "OTP đã được gửi"
+
+msgid "Invalid information"
+msgstr "Thông tin không hợp lệ"
+
+msgid "Too many password reset requests"
+msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
+
+msgid "Set new password (Step 3: Change password)"
+msgstr "Đặt lại mật khẩu mới (Bước 3: Thay đổi mật khẩu)"
+
+msgid "Set new password after successful OTP verification (Step 2). Uses reset_token (from step 2)."
+msgstr "Đặt lại mật khẩu mới sau khi xác thực OTP thành công (Bước 2). Sử dụng reset_token (đã dùng ở bước 2)."
+
+msgid "Invalid information or reset_token has expired/not verified"
+msgstr "Thông tin không hợp lệ hoặc reset_token đã hết hạn/chưa được xác thực"
+
+msgid "Too many requests"
+msgstr "Quá nhiều yêu cầu"
