@@ -1,8 +1,4 @@
 from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 from .api.views import (
     LoginView,
@@ -12,6 +8,7 @@ from .api.views import (
     PasswordResetOTPVerificationView,
     PasswordResetView,
 )
+from .api.views.token import TokenRefreshView, TokenVerifyView
 
 app_name = "core"
 

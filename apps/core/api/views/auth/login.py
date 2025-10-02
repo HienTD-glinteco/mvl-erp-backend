@@ -9,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import LoginSerializer
+from apps.core.api.serializers.auth.responses import LoginResponseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class LoginView(APIView):
         summary=_("Login with username and password"),
         description=_("Authenticate login credentials and send OTP code via email"),
         responses={
-            200: OpenApiResponse(description=_("OTP sent successfully")),
+            200: LoginResponseSerializer,
             400: OpenApiResponse(description=_("Invalid login credentials")),
             429: OpenApiResponse(description=_("Too many login requests")),
             500: OpenApiResponse(description=_("System error while sending OTP")),
@@ -49,7 +50,9 @@ class LoginView(APIView):
             if serializer.send_otp_email(user):
                 logger.info(f"Login attempt successful for user {user.username}, OTP sent")
                 response_data = {
-                    "message": _("OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."),
+                    "message": _(
+                        "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."
+                    ),
                     "username": user.username,
                     "email_hint": f"{user.email[:3]}***@{user.email.split('@')[1]}",
                 }
