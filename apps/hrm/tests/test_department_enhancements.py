@@ -148,7 +148,7 @@ class DepartmentEnhancementsModelTest(TestCase):
 
         self.assertIn("management_department", context.exception.message_dict)
         self.assertIn(
-            "không thể quản lý chính nó",
+            "cannot manage itself",
             str(context.exception.message_dict["management_department"][0]),
         )
 
@@ -318,7 +318,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
 
         # Check values
         self.assertEqual(data["function"], "hr_admin")
-        self.assertEqual(data["function_display"], "Hành chính Nhân sự")
+        self.assertEqual(data["function_display"], "HR Administration")
         self.assertTrue(data["is_main_department"])
 
     def test_support_block_gets_default_function_api(self):
