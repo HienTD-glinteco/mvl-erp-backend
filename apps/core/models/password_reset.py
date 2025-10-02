@@ -1,5 +1,4 @@
 import hashlib
-import uuid
 from datetime import timedelta
 
 from django.db import models
@@ -20,7 +19,7 @@ class PasswordResetOTP(models.Model):
         EMAIL = "email", "Email"
         SMS = "sms", "SMS"
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="password_reset_requests")
     reset_token = models.CharField(max_length=64, unique=True, db_index=True, verbose_name="Reset Token")
     otp_hash = models.CharField(max_length=128, verbose_name="OTP Hash")  # Hashed OTP, not plain text
