@@ -33,13 +33,13 @@ repos:
     hooks:
     -   id: django-makemigrations
         name: Django makemigrations check
-        entry: python manage.py makemigrations --check --dry-run
+        entry: python manage.py makemigrations --check
         language: system
         pass_filenames: false
         stages: [pre-commit]
     -   id: django-makemessages
         name: Django makemessages update
-        entry: python manage.py makemessages --all --no-obsolete --no-location
+        entry: python manage.py makemessages --all --no-obsolete --exclude=venv
         language: system
         pass_filenames: false
         stages: [pre-commit]
