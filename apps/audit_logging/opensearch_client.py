@@ -29,9 +29,7 @@ class OpenSearchClient:
             auth = (settings.OPENSEARCH_USERNAME, settings.OPENSEARCH_PASSWORD)
 
         return OpenSearch(
-            hosts=[
-                {"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}
-            ],
+            hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
             http_auth=auth,
             use_ssl=settings.OPENSEARCH_USE_SSL,
             verify_certs=settings.OPENSEARCH_VERIFY_CERTS,
@@ -41,9 +39,7 @@ class OpenSearchClient:
     def _get_index_name(self, timestamp: str) -> str:
         """Generate index name based on timestamp."""
         dt = datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-        return INDEX_NAME_TEMPLATE.format(
-            prefix=self.index_prefix, year=dt.year, month=dt.month
-        )
+        return INDEX_NAME_TEMPLATE.format(prefix=self.index_prefix, year=dt.year, month=dt.month)
 
     def _ensure_index_exists(self, index_name: str):
         """Create index if it doesn't exist with proper mapping."""
@@ -87,9 +83,7 @@ class OpenSearchClient:
                 logger.debug(f"Index {index_name} already exists")
             else:
                 logger.error(f"Failed to create index {index_name}: {e}")
-                raise AuditLogException(
-                    f"Failed to create OpenSearch index: {e}"
-                ) from e
+                raise AuditLogException(f"Failed to create OpenSearch index: {e}") from e
 
     def index_log(self, log_data: Dict[str, Any]):
         """Index a single log entry in OpenSearch."""
@@ -97,15 +91,11 @@ class OpenSearchClient:
         self._ensure_index_exists(index_name)
 
         try:
-            response = self.client.index(
-                index=index_name, id=log_data["log_id"], body=log_data
-            )
+            response = self.client.index(index=index_name, id=log_data["log_id"], body=log_data)
             logger.debug(f"Indexed log {log_data['log_id']} to {index_name}")
             return response
         except OpenSearchException as e:
-            logger.error(
-                f"Failed to index log {log_data.get('log_id', 'unknown')}: {e}"
-            )
+            logger.error(f"Failed to index log {log_data.get('log_id', 'unknown')}: {e}")
             raise AuditLogException(f"Failed to index log: {e}") from e
 
     def bulk_index_logs(self, logs: List[Dict[str, Any]]):
@@ -129,17 +119,13 @@ class OpenSearchClient:
         bulk_body = []
         for index_name, index_logs in grouped_logs.items():
             for log in index_logs:
-                bulk_body.append(
-                    {"index": {"_index": index_name, "_id": log["log_id"]}}
-                )
+                bulk_body.append({"index": {"_index": index_name, "_id": log["log_id"]}})
                 bulk_body.append(log)
 
         try:
             response = self.client.bulk(body=bulk_body)
             if response.get("errors"):
-                error_count = sum(
-                    1 for item in response["items"] if "error" in item.get("index", {})
-                )
+                error_count = sum(1 for item in response["items"] if "error" in item.get("index", {}))
                 logger.warning(f"Bulk indexing completed with {error_count} errors")
             else:
                 logger.info(f"Successfully indexed {len(logs)} logs to OpenSearch")
@@ -212,7 +198,7 @@ class OpenSearchClient:
             page_size: Number of results per page
             from_offset: Offset for pagination
             sort_order: Sort order ('asc' or 'desc')
-            summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id, 
+            summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id,
                                  username, action, object_type, object_id, object_repr)
 
         Returns:
@@ -248,11 +234,7 @@ class OpenSearchClient:
 
             hits = response["hits"]
             logs = [hit["_source"] for hit in hits["hits"]]
-            total = (
-                hits["total"]["value"]
-                if isinstance(hits["total"], dict)
-                else hits["total"]
-            )
+            total = hits["total"]["value"] if isinstance(hits["total"], dict) else hits["total"]
 
             has_next = from_offset + page_size < total
             next_offset = from_offset + page_size if has_next else None

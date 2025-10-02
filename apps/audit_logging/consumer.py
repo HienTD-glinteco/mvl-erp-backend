@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AuditLogConsumer:
     """
     Consumer for audit logs from RabbitMQ Stream.
-    
+
     Handles:
     - Reading messages from RabbitMQ Stream
     - Indexing logs to OpenSearch for real-time search
@@ -64,9 +64,7 @@ class AuditLogConsumer:
                     )
             except Exception as e:
                 # Other errors - log and continue without retry
-                logger.error(
-                    f"Failed to index log to OpenSearch: {e}", exc_info=True
-                )
+                logger.error(f"Failed to index log to OpenSearch: {e}", exc_info=True)
                 break
 
     async def _message_handler(self, message, context):
@@ -84,9 +82,7 @@ class AuditLogConsumer:
             await self._index_to_opensearch(log_data)
 
         except json.JSONDecodeError:
-            logger.warning(
-                f"Skipping message with offset {context.offset} due to JSON decode error."
-            )
+            logger.warning(f"Skipping message with offset {context.offset} due to JSON decode error.")
             return
 
     async def start(self):
@@ -107,10 +103,8 @@ class AuditLogConsumer:
             await self.rabbitmq_consumer.subscribe(
                 stream=settings.RABBITMQ_STREAM_NAME,
                 callback=self._message_handler,
-                offset_specification=ConsumerOffsetSpecification(
-                    OffsetType.FIRST, None
-                ),
-                consumer_name=self.consumer_name,
+                offset_specification=ConsumerOffsetSpecification(OffsetType.FIRST, None),
+                subscriber_name=self.consumer_name,
             )
 
             logger.info(f"Consumer {self.consumer_name} started successfully")

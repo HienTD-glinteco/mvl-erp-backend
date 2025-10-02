@@ -19,8 +19,8 @@ shell:
 celery_worker:
 	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q default
 
-celery_audit_worker:
-	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q audit_logs_queue
+run_audit_logs_consumer:
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(ARGS)
 
 test:
 	ENVIRONMENT=testing pytest $(ARGS)
