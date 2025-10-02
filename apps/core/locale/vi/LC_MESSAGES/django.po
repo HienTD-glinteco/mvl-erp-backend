@@ -1,0 +1,572 @@
+# Vietnamese translations for MaiVietLand Backend - Core App
+# Copyright (C) 2025 MaiVietLand
+# This file is distributed under the same license as the MaiVietLand Backend package.
+msgid ""
+msgstr ""
+"Project-Id-Version: MaiVietLand Backend Core\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-21 00:00+0000\n"
+"PO-Revision-Date: 2025-01-21 00:00+0000\n"
+"Last-Translator: Glinteco Developers\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# models/user.py:13
+msgid "Username"
+msgstr "Tên đăng nhập"
+
+# models/user.py:14
+msgid "Email"
+msgstr "Email"
+
+# models/user.py:15
+msgid "Phone number"
+msgstr "Số điện thoại"
+
+# models/user.py:16
+msgid "First name"
+msgstr "Tên"
+
+# models/user.py:17
+msgid "Last name"
+msgstr "Họ"
+
+# models/user.py:19
+msgid "Active"
+msgstr "Hoạt động"
+
+# models/user.py:20
+msgid "Staff"
+msgstr "Nhân viên"
+
+# models/user.py:21
+msgid "Date joined"
+msgstr "Ngày tham gia"
+
+# models/user.py:24
+msgid "Failed login attempts"
+msgstr "Số lần đăng nhập thất bại"
+
+# models/user.py:25
+msgid "Locked until"
+msgstr "Khóa tài khoản đến"
+
+# models/user.py:28
+msgid "OTP code"
+msgstr "Mã OTP"
+
+# models/user.py:29
+msgid "OTP expires at"
+msgstr "OTP hết hạn lúc"
+
+# models/user.py:30
+msgid "OTP verified"
+msgstr "OTP đã xác thực"
+
+# models/user.py:33
+msgid "Active session"
+msgstr "Phiên hoạt động"
+
+# models/user.py:41
+msgid "User"
+msgstr "Người dùng"
+
+# models/user.py:42
+msgid "Users"
+msgstr "Người dùng"
+
+# models/password_reset.py:19
+msgid "SMS"
+msgstr "SMS"
+
+# models/password_reset.py:24
+msgid "Reset Token"
+msgstr "Token đặt lại"
+
+# models/password_reset.py:25
+msgid "OTP Hash"
+msgstr "OTP Hash"
+
+# models/password_reset.py:27
+msgid "Expires At"
+msgstr "Hết hạn lúc"
+
+# models/password_reset.py:28
+msgid "Verification Attempts"
+msgstr "Số lần thử xác thực"
+
+# models/password_reset.py:29
+msgid "Max Attempts"
+msgstr "Số lần thử tối đa"
+
+# models/password_reset.py:30
+msgid "Is Used"
+msgstr "Đã sử dụng"
+
+# models/password_reset.py:31
+msgid "Is Verified"
+msgstr "Đã xác thực"
+
+# models/password_reset.py:32
+msgid "Created At"
+msgstr "Tạo lúc"
+
+# models/password_reset.py:37
+msgid "Password Reset OTP"
+msgstr "OTP đặt lại mật khẩu"
+
+# models/password_reset.py:38
+msgid "Password Reset OTPs"
+msgstr "OTP đặt lại mật khẩu"
+
+# validators.py:19
+msgid "Password must contain at least one uppercase letter."
+msgstr "Mật khẩu phải chứa ít nhất một chữ cái viết hoa."
+
+# validators.py:24
+msgid "Password must contain at least one lowercase letter."
+msgstr "Mật khẩu phải chứa ít nhất một chữ cái viết thường."
+
+# validators.py:29
+msgid "Password must contain at least one digit."
+msgstr "Mật khẩu phải chứa ít nhất một chữ số."
+
+# validators.py:34
+msgid "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
+msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."
+
+# validators.py:39
+msgid "Password must be at least 8 characters long and include uppercase, lowercase, digits and special characters."
+msgstr "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+
+# api/serializers/auth/login.py:17
+msgid "Password"
+msgstr "Mật khẩu"
+
+# api/serializers/auth/login.py:19
+msgid "Please enter your username."
+msgstr "Vui lòng nhập tên đăng nhập."
+
+# api/serializers/auth/login.py:20
+msgid "Username cannot be blank."
+msgstr "Tên đăng nhập không được để trống."
+
+# api/serializers/auth/login.py:27
+msgid "Please enter your password."
+msgstr "Vui lòng nhập mật khẩu."
+
+# api/serializers/auth/login.py:28
+msgid "Password cannot be blank."
+msgstr "Mật khẩu không được để trống."
+
+# api/serializers/auth/login.py:37
+msgid "Username does not exist."
+msgstr "Tên đăng nhập không tồn tại."
+
+# api/serializers/auth/login.py:42
+msgid "Account is locked. Please try again in %(minutes)d minutes."
+msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
+
+# api/serializers/auth/login.py:46
+msgid "Account has been deactivated."
+msgstr "Tài khoản đã bị vô hiệu hóa."
+
+# api/serializers/auth/login.py:53
+msgid "Account has been locked due to 5 failed login attempts. Please try again in 5 minutes."
+msgstr "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
+
+# api/serializers/auth/login.py:56
+msgid "Incorrect password."
+msgstr "Mật khẩu không đúng."
+
+# api/serializers/auth/password_change.py:21
+msgid "Current password"
+msgstr "Mật khẩu hiện tại"
+
+# api/serializers/auth/password_change.py:23
+msgid "Please enter your current password."
+msgstr "Vui lòng nhập mật khẩu hiện tại."
+
+# api/serializers/auth/password_change.py:24
+msgid "Current password cannot be blank."
+msgstr "Mật khẩu hiện tại không được để trống."
+
+# api/serializers/auth/password_change.py:29
+msgid "New password"
+msgstr "Mật khẩu mới"
+
+# api/serializers/auth/password_change.py:31
+msgid "Please enter your new password."
+msgstr "Vui lòng nhập mật khẩu mới."
+
+# api/serializers/auth/password_change.py:32
+msgid "New password cannot be blank."
+msgstr "Mật khẩu mới không được để trống."
+
+# api/serializers/auth/password_change.py:37
+msgid "Confirm new password"
+msgstr "Xác nhận mật khẩu mới"
+
+# api/serializers/auth/password_change.py:39
+msgid "Please confirm your new password."
+msgstr "Vui lòng xác nhận mật khẩu mới."
+
+# api/serializers/auth/password_change.py:40
+msgid "Password confirmation cannot be blank."
+msgstr "Xác nhận mật khẩu không được để trống."
+
+# api/serializers/auth/password_change.py:71
+msgid "New password and confirmation password do not match."
+msgstr "Mật khẩu mới và xác nhận mật khẩu không khớp."
+
+# api/serializers/auth/password_change.py:75
+msgid "New password must be different from current password."
+msgstr "Mật khẩu mới phải khác với mật khẩu hiện tại."
+
+# api/serializers/auth/password_change.py:80
+msgid "You need to be logged in to change your password."
+msgstr "Bạn cần đăng nhập để thay đổi mật khẩu."
+
+# api/serializers/auth/password_change.py:86
+msgid "Current password is incorrect."
+msgstr "Mật khẩu hiện tại không đúng."
+
+# api/serializers/auth/password_reset.py:16
+msgid "Email or phone number"
+msgstr "Email hoặc số điện thoại"
+
+# api/serializers/auth/password_reset.py:18
+msgid "Please enter your email or phone number."
+msgstr "Vui lòng nhập email hoặc số điện thoại."
+
+# api/serializers/auth/password_reset.py:19
+msgid "Email or phone number cannot be blank."
+msgstr "Email hoặc số điện thoại không được để trống."
+
+# api/serializers/auth/password_reset.py:42
+msgid "No account found with this information."
+msgstr "Không tìm thấy tài khoản với thông tin này."
+
+# api/serializers/auth/otp_verification.py:18
+msgid "OTP code"
+msgstr "Mã OTP"
+
+# api/serializers/auth/otp_verification.py:20
+msgid "Please enter the OTP code."
+msgstr "Vui lòng nhập mã OTP."
+
+# api/serializers/auth/otp_verification.py:21
+msgid "OTP code cannot be blank."
+msgstr "Mã OTP không được để trống."
+
+# api/serializers/auth/otp_verification.py:22
+msgid "OTP code must be 6 digits."
+msgstr "Mã OTP phải có 6 chữ số."
+
+# api/serializers/auth/otp_verification.py:32
+msgid "Device ID of client app (browser can skip)"
+msgstr "Device ID của client app (browser bỏ qua)"
+
+# api/serializers/auth/otp_verification.py:42
+msgid "OTP code can only contain digits."
+msgstr "Mã OTP chỉ được chứa số."
+
+# api/serializers/auth/otp_verification.py:54
+msgid "OTP code is incorrect or has expired."
+msgstr "Mã OTP không đúng hoặc đã hết hạn."
+
+# api/serializers/auth/password_reset_otp_verification.py:20
+msgid "Reset token UUID received from step 1"
+msgstr "Reset token UUID nhận được từ bước 1"
+
+# api/serializers/auth/password_reset_otp_verification.py:22
+msgid "Please enter the reset token."
+msgstr "Vui lòng nhập reset token."
+
+# api/serializers/auth/password_reset_otp_verification.py:23
+msgid "Reset token cannot be blank."
+msgstr "Reset token không được để trống."
+
+# api/serializers/auth/password_reset_otp_verification.py:29
+msgid "6-digit OTP code"
+msgstr "Mã OTP 6 chữ số"
+
+# api/serializers/auth/password_reset_otp_verification.py:54
+msgid "Reset token is invalid or has expired."
+msgstr "Reset token không hợp lệ hoặc đã hết hạn."
+
+# api/serializers/auth/password_reset_otp_verification.py:62
+msgid "OTP code has expired."
+msgstr "Mã OTP đã hết hạn."
+
+# api/serializers/auth/password_reset_otp_verification.py:64
+msgid "Maximum attempts exceeded. Please request a new OTP."
+msgstr "Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới."
+
+# api/serializers/auth/password_reset_otp_verification.py:66
+msgid "OTP code is incorrect."
+msgstr "Mã OTP không đúng."
+
+# api/serializers/auth/password_reset_change_password.py:43
+msgid "Authentication request is invalid."
+msgstr "Yêu cầu xác thực không hợp lệ."
+
+# api/serializers/auth/password_reset_change_password.py:59
+msgid "No verified password reset request found."
+msgstr "Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực."
+
+# api/serializers/auth/password_reset_change_password.py:66
+msgid "Password reset request has expired."
+msgstr "Yêu cầu đặt lại mật khẩu đã hết hạn."
+
+# api/views/auth/login.py:33
+msgid "Login with username and password"
+msgstr "Đăng nhập với tên đăng nhập và mật khẩu"
+
+# api/views/auth/login.py:34
+msgid "Authenticate login credentials and send OTP code via email"
+msgstr "Xác thực thông tin đăng nhập và gửi mã OTP qua email"
+
+# api/views/auth/login.py:36
+msgid "OTP sent successfully"
+msgstr "OTP đã được gửi thành công"
+
+# api/views/auth/login.py:37
+msgid "Invalid login credentials"
+msgstr "Thông tin đăng nhập không hợp lệ"
+
+# api/views/auth/login.py:38
+msgid "Too many login requests"
+msgstr "Quá nhiều yêu cầu đăng nhập"
+
+# api/views/auth/login.py:39
+msgid "System error while sending OTP"
+msgstr "Lỗi hệ thống khi gửi OTP"
+
+# api/views/auth/login.py:52
+msgid "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."
+msgstr "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP để hoàn tất đăng nhập."
+
+# api/views/auth/login.py:60
+msgid "Unable to send OTP code. Please try again later."
+msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
+
+# api/views/auth/password_change.py:33
+msgid "Change password (when current password is known)"
+msgstr "Đổi mật khẩu (khi biết mật khẩu hiện tại)"
+
+# api/views/auth/password_change.py:34
+msgid "Change password when user is logged in and knows their current password"
+msgstr "Đổi mật khẩu khi người dùng đã đăng nhập và biết mật khẩu hiện tại"
+
+# api/views/auth/password_change.py:36
+msgid "Password changed successfully"
+msgstr "Mật khẩu đã được thay đổi thành công"
+
+# api/views/auth/password_change.py:37
+msgid "Invalid information or incorrect current password"
+msgstr "Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"
+
+# api/views/auth/password_change.py:38
+msgid "Not logged in"
+msgstr "Chưa đăng nhập"
+
+# api/views/auth/password_change.py:39
+msgid "Too many password change requests"
+msgstr "Quá nhiều yêu cầu thay đổi mật khẩu"
+
+# api/views/auth/password_change.py:50
+msgid "Password has been changed successfully. All other login sessions have been logged out."
+msgstr "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng xuất."
+
+# api/views/auth/password_reset.py:34
+msgid "Request password reset"
+msgstr "Yêu cầu đặt lại mật khẩu"
+
+# api/views/auth/password_reset.py:35
+msgid "Send password reset instructions via email or SMS based on email or phone number"
+msgstr "Gửi hướng dẫn đặt lại mật khẩu qua email hoặc SMS dựa trên email hoặc số điện thoại"
+
+# api/views/auth/password_reset.py:37
+msgid "OTP sent"
+msgstr "OTP đã được gửi"
+
+# api/views/auth/password_reset.py:38
+msgid "Invalid information"
+msgstr "Thông tin không hợp lệ"
+
+# api/views/auth/password_reset.py:39
+msgid "Too many password reset requests"
+msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
+
+# api/views/auth/password_reset.py:63
+msgid "Password reset OTP code has been sent to your email. The code is valid for 3 minutes."
+msgstr "Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn. Mã có hiệu lực trong 3 phút."
+
+# api/views/auth/password_reset.py:86
+msgid "Password reset OTP code has been sent via SMS. The code is valid for 3 minutes."
+msgstr "Mã OTP đặt lại mật khẩu đã được gửi qua SMS. Mã có hiệu lực trong 3 phút."
+
+# api/views/auth/password_reset_change_password.py:35
+msgid "Set new password (Step 3: Change password)"
+msgstr "Đặt lại mật khẩu mới (Bước 3: Thay đổi mật khẩu)"
+
+# api/views/auth/password_reset_change_password.py:36
+msgid "Set new password after successful OTP verification (Step 2). Uses reset_token (from step 2)."
+msgstr "Đặt lại mật khẩu mới sau khi xác thực OTP thành công (Bước 2). Sử dụng reset_token (đã dùng ở bước 2)."
+
+# api/views/auth/password_reset_change_password.py:38
+msgid "Invalid information or reset_token has expired/not verified"
+msgstr "Thông tin không hợp lệ hoặc reset_token đã hết hạn/chưa được xác thực"
+
+# api/views/auth/password_reset_change_password.py:39
+msgid "Too many requests"
+msgstr "Quá nhiều yêu cầu"
+
+# api/views/auth/password_reset_change_password.py:51
+msgid "Password has been reset successfully. All old login sessions have been logged out."
+msgstr "Mật khẩu đã được đặt lại thành công. Tất cả phiên đăng nhập cũ đã bị đăng xuất."
+
+# api/views/auth/otp_verification.py:33
+msgid "Verify OTP code"
+msgstr "Xác thực mã OTP"
+
+# api/views/auth/otp_verification.py:34
+msgid "Verify OTP code and return JWT tokens to complete login"
+msgstr "Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập"
+
+# api/views/auth/otp_verification.py:36
+msgid "Login successful, returns tokens"
+msgstr "Đăng nhập thành công, trả về tokens"
+
+# api/views/auth/otp_verification.py:37
+msgid "Invalid or expired OTP code"
+msgstr "Mã OTP không hợp lệ hoặc đã hết hạn"
+
+# api/views/auth/otp_verification.py:38
+msgid "Too many verification requests"
+msgstr "Quá nhiều yêu cầu xác thực"
+
+# api/views/auth/otp_verification.py:58
+msgid "Login successful."
+msgstr "Đăng nhập thành công."
+
+# api/views/auth/password_reset_otp_verification.py:36
+msgid "Verify OTP (Step 2) and return JWT"
+msgstr "Xác thực OTP (Bước 2) và trả về JWT"
+
+# api/views/auth/password_reset_otp_verification.py:37
+msgid "Verify reset_token + OTP, then return access/refresh token for password change step."
+msgstr "Xác thực reset_token + OTP, sau đó trả về access/refresh token để gọi bước đổi mật khẩu."
+
+# api/views/auth/password_reset_otp_verification.py:39
+msgid "Valid OTP, returns JWT tokens"
+msgstr "OTP hợp lệ, trả về JWT tokens"
+
+# api/views/auth/password_reset_otp_verification.py:40
+msgid "Invalid reset token or OTP code"
+msgstr "Reset token hoặc mã OTP không hợp lệ"
+
+# api/views/auth/password_reset_otp_verification.py:63
+msgid "Valid OTP code. JWT issued for password change."
+msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
+
+# tasks/email.py:47
+msgid "Login OTP Code - MaiVietLand"
+msgstr "Mã OTP đăng nhập - MaiVietLand"
+
+# tasks/email.py:105
+msgid "Password Reset Request - MaiVietLand"
+msgstr "Yêu cầu đặt lại mật khẩu - MaiVietLand"
+
+# templates/emails/otp_email.html:6
+msgid "Login OTP Code"
+msgstr "Mã OTP đăng nhập"
+
+# templates/emails/otp_email.html:23
+msgid "Hello <strong>%(name)s</strong>,"
+msgstr "Xin chào <strong>%(name)s</strong>,"
+
+# templates/emails/otp_email.html:25
+msgid "We have received a login request for your MaiVietLand account."
+msgstr "Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản MaiVietLand của bạn."
+
+# templates/emails/otp_email.html:27
+msgid "Your OTP code to complete the login is:"
+msgstr "Mã OTP để hoàn tất đăng nhập của bạn là:"
+
+# templates/emails/otp_email.html:32
+msgid "Note:"
+msgstr "Lưu ý:"
+
+# templates/emails/otp_email.html:32
+msgid "This code is valid for 5 minutes and can only be used once."
+msgstr "Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần."
+
+# templates/emails/otp_email.html:35
+msgid "If you did not initiate this login, please ignore this email and contact the administrator if necessary."
+msgstr "Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này và liên hệ với quản trị viên nếu cần thiết."
+
+# templates/emails/otp_email.html:37
+msgid "Best regards,"
+msgstr "Trân trọng,"
+
+# templates/emails/otp_email.html:38
+msgid "MaiVietLand Team"
+msgstr "Đội ngũ MaiVietLand"
+
+# templates/emails/otp_email.html:42
+msgid "This email is sent automatically, please do not reply."
+msgstr "Email này được gửi tự động, vui lòng không trả lời."
+
+# templates/emails/otp_email.html:43
+msgid "All rights reserved."
+msgstr "Tất cả quyền được bảo lưu."
+
+# templates/emails/password_reset_email.html:6
+msgid "Password Reset Request"
+msgstr "Yêu cầu đặt lại mật khẩu"
+
+# templates/emails/password_reset_email.html:27
+msgid "Account information:"
+msgstr "Thông tin tài khoản:"
+
+# templates/emails/password_reset_email.html:28
+msgid "Username:"
+msgstr "Tên đăng nhập:"
+
+# templates/emails/password_reset_email.html:29
+msgid "Email:"
+msgstr "Email:"
+
+# templates/emails/password_reset_email.html:31
+msgid "Phone number:"
+msgstr "Số điện thoại:"
+
+# templates/emails/password_reset_email.html:35
+msgid "For security reasons, please contact the system administrator directly for password reset assistance."
+msgstr "Để đảm bảo an toàn, vui lòng liên hệ trực tiếp với quản trị viên hệ thống để được hỗ trợ đặt lại mật khẩu."
+
+# templates/emails/password_reset_email.html:37
+msgid "Support contact:"
+msgstr "Liên hệ hỗ trợ:"
+
+# templates/emails/password_reset_email.html:39
+msgid "Phone:"
+msgstr "Điện thoại:"
+
+# templates/emails/password_reset_email.html:41
+msgid "Working hours:"
+msgstr "Thời gian làm việc:"
+
+# templates/emails/password_reset_email.html:41
+msgid "Monday - Friday"
+msgstr "Thứ 2 - Thứ 6"
+
+# templates/emails/password_reset_email.html:44
+msgid "If you did not make this request, please ignore this email."
+msgstr "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này."
