@@ -43,6 +43,7 @@ class OTPVerificationView(APIView):
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.validated_data["user"]
+            device_id = serializer.validated_data["device_id"]
 
             # Enforce single session per user using SimpleJWT blacklist
             revoked = revoke_user_outstanding_tokens(user)
@@ -50,7 +51,7 @@ class OTPVerificationView(APIView):
                 logger.info(f"Revoked {revoked} previous refresh token(s) for user {user.username}")
 
             # Generate new tokens
-            tokens = serializer.get_tokens(user)
+            tokens = serializer.get_tokens(user, device_id)
 
             logger.info(f"User {user.username} completed login successfully")
             response_data = {
