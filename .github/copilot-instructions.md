@@ -39,7 +39,7 @@ This project is a Django application with a modular architecture.
 
 ## 5. Documentation & Internationalization (i18n)
 * **Docstrings & Comments:** Document all public modules, classes, and functions with clear docstrings. Use comments to explain complex or non-obvious logic.
-* **API Documentation:** You must use `drf-yasg` to add decorators and docstrings to API Views and ViewSets. This ensures that our API documentation is automatically generated and up-to-date.
+* **API Documentation:** You must use `drf-spectacular` to add decorators and docstrings to API Views and ViewSets. This ensures that our API documentation is automatically generated and up-to-date.
 * **Diagrams:** For any new feature or refactor that significantly impacts a workflow, you must generate a diagram (e.g., sequence, flowchart) using Mermaid format and save it in the project's shared documentation folder.
 * **Translation Files (PO):** Before committing, update the `.po` translation files.
     * Rerun `makemessages` to update all `msgid` entries and metadata.
