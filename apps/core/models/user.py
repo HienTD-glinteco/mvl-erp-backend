@@ -4,33 +4,34 @@ from datetime import timedelta
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.querysets import UserManager
 from libs.base_model_mixin import BaseModel
 
 
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=100, unique=True, verbose_name="Tên đăng nhập")
-    email = models.EmailField(unique=True, verbose_name="Email")
-    phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name="Số điện thoại")
-    first_name = models.CharField(max_length=30, blank=True, verbose_name="Tên")
-    last_name = models.CharField(max_length=30, blank=True, verbose_name="Họ")
+    username = models.CharField(max_length=100, unique=True, verbose_name=_("Username"))
+    email = models.EmailField(unique=True, verbose_name=_("Email"))
+    phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name=_("Phone number"))
+    first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First name"))
+    last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last name"))
 
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
-    is_staff = models.BooleanField(default=False, verbose_name="Nhân viên")
-    date_joined = models.DateTimeField(default=timezone.now, verbose_name="Ngày tham gia")
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    is_staff = models.BooleanField(default=False, verbose_name=_("Staff"))
+    date_joined = models.DateTimeField(default=timezone.now, verbose_name=_("Date joined"))
 
     # Login attempt tracking
-    failed_login_attempts = models.IntegerField(default=0, verbose_name="Số lần đăng nhập thất bại")
-    locked_until = models.DateTimeField(null=True, blank=True, verbose_name="Khóa tài khoản đến")
+    failed_login_attempts = models.IntegerField(default=0, verbose_name=_("Failed login attempts"))
+    locked_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Locked until"))
 
     # OTP fields
-    otp_code = models.CharField(max_length=6, blank=True, verbose_name="Mã OTP")
-    otp_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="OTP hết hạn lúc")
-    otp_verified = models.BooleanField(default=False, verbose_name="OTP đã xác thực")
+    otp_code = models.CharField(max_length=6, blank=True, verbose_name=_("OTP code"))
+    otp_expires_at = models.DateTimeField(null=True, blank=True, verbose_name=_("OTP expires at"))
+    otp_verified = models.BooleanField(default=False, verbose_name=_("OTP verified"))
 
     # Session management
-    active_session_key = models.CharField(max_length=255, blank=True, verbose_name="Phiên hoạt động")
+    active_session_key = models.CharField(max_length=255, blank=True, verbose_name=_("Active session"))
 
     objects = UserManager()
 
@@ -38,8 +39,8 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["email"]
 
     class Meta:
-        verbose_name = "Người dùng"
-        verbose_name_plural = "Người dùng"
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
         db_table = "core_user"
 
     def __str__(self):

@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -11,21 +12,21 @@ logger = logging.getLogger(__name__)
 class OTPVerificationSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=100,
-        help_text="Tên đăng nhập",
+        help_text=_("Username"),
         error_messages={
-            "required": "Vui lòng nhập tên đăng nhập.",
-            "blank": "Tên đăng nhập không được để trống.",
+            "required": _("Please enter your username."),
+            "blank": _("Username cannot be blank."),
         },
     )
     otp_code = serializers.CharField(
         max_length=6,
         min_length=6,
-        help_text="Mã OTP",
+        help_text=_("OTP code"),
         error_messages={
-            "required": "Vui lòng nhập mã OTP.",
-            "blank": "Mã OTP không được để trống.",
-            "min_length": "Mã OTP phải có 6 chữ số.",
-            "max_length": "Mã OTP phải có 6 chữ số.",
+            "required": _("Please enter the OTP code."),
+            "blank": _("OTP code cannot be blank."),
+            "min_length": _("OTP code must be 6 digits."),
+            "max_length": _("OTP code must be 6 digits."),
         },
     )
     device_id = serializers.CharField(
@@ -33,15 +34,15 @@ class OTPVerificationSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         allow_blank=True,
-        help_text="Device ID của client app (browser bỏ qua)",
+        help_text=_("Device ID of client app (browser can skip)"),
     )
 
     def validate_otp_code(self, value):
         """Validate OTP code format"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Mã OTP không được để trống.")
+            raise serializers.ValidationError(_("OTP code cannot be blank."))
         if not value.isdigit():
-            raise serializers.ValidationError("Mã OTP chỉ được chứa số.")
+            raise serializers.ValidationError(_("OTP code can only contain digits."))
         return value.strip()
 
     def validate(self, attrs):
@@ -50,11 +51,11 @@ class OTPVerificationSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Tên đăng nhập không tồn tại.")
+            raise serializers.ValidationError(_("Username does not exist."))
 
         if not user.verify_otp(otp_code):
             logger.warning(f"Invalid OTP attempt for user {username}")
-            raise serializers.ValidationError("Mã OTP không đúng hoặc đã hết hạn.")
+            raise serializers.ValidationError(_("OTP code is incorrect or has expired."))
 
         attrs["user"] = user
         attrs["device_id"] = attrs.get("device_id", None)
@@ -65,7 +66,7 @@ class OTPVerificationSerializer(serializers.Serializer):
         if device_id:
             if not hasattr(user, "device") or user.device is None:
                 UserDevice.objects.create(user=user, device_id=device_id)
-                logger.info(f"Assigned new device_id={device_id} cho user={user.username}")
+                logger.info(f"Assigned new device_id={device_id} for user={user.username}")
             else:
                 device_id = user.device.device_id
         else:

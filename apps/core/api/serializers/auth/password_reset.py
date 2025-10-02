@@ -1,6 +1,7 @@
 import logging
 
 import sentry_sdk
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import User
@@ -12,17 +13,17 @@ logger = logging.getLogger(__name__)
 class PasswordResetSerializer(serializers.Serializer):
     identifier = serializers.CharField(
         max_length=255,
-        help_text="Email hoặc số điện thoại",
+        help_text=_("Email or phone number"),
         error_messages={
-            "required": "Vui lòng nhập email hoặc số điện thoại.",
-            "blank": "Email hoặc số điện thoại không được để trống.",
+            "required": _("Please enter your email or phone number."),
+            "blank": _("Email or phone number cannot be blank."),
         },
     )
 
     def validate_identifier(self, value):
         """Validate identifier (email or phone number)"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Vui lòng nhập email hoặc số điện thoại.")
+            raise serializers.ValidationError(_("Please enter your email or phone number."))
         return value.strip()
 
     def validate(self, attrs):
@@ -38,10 +39,10 @@ class PasswordResetSerializer(serializers.Serializer):
                 # Assume it's a phone number
                 user = User.objects.get(phone_number=identifier)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Không tìm thấy tài khoản với thông tin này.")
+            raise serializers.ValidationError(_("No account found with this information."))
 
         if not user.is_active:
-            raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
+            raise serializers.ValidationError(_("Account has been deactivated."))
 
         attrs["user"] = user
         return attrs

@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -30,13 +31,13 @@ class PasswordChangeView(APIView):
     serializer_class = PasswordChangeSerializer
 
     @extend_schema(
-        summary="Đổi mật khẩu (khi biết mật khẩu hiện tại)",
-        description="Đổi mật khẩu khi người dùng đã đăng nhập và biết mật khẩu hiện tại",
+        summary=_("Change password (when current password is known)"),
+        description=_("Change password when user is logged in and knows their current password"),
         responses={
-            200: OpenApiResponse(description="Mật khẩu đã được thay đổi thành công"),
-            400: OpenApiResponse(description="Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"),
-            401: OpenApiResponse(description="Chưa đăng nhập"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu thay đổi mật khẩu"),
+            200: OpenApiResponse(description=_("Password changed successfully")),
+            400: OpenApiResponse(description=_("Invalid information or incorrect current password")),
+            401: OpenApiResponse(description=_("Not logged in")),
+            429: OpenApiResponse(description=_("Too many password change requests")),
         },
     )
     def post(self, request):
@@ -47,7 +48,7 @@ class PasswordChangeView(APIView):
 
             logger.info(f"Password successfully changed for user {user}")
             return Response(
-                {"message": "Mật khẩu đã được thay đổi thành công. Tất cả phiên đăng nhập khác đã bị đăng xuất."},
+                {"message": _("Password has been changed successfully. All other login sessions have been logged out.")},
                 status=status.HTTP_200_OK,
             )
 
