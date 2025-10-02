@@ -17,7 +17,10 @@ def revoke_user_outstanding_tokens(user, exclude_jti: Optional[str] = None) -> i
     - If exclude_jti is provided, skip that token (e.g., the one just issued).
     - Returns number of tokens blacklisted.
     """
-    if not user or not OutstandingToken or not BlacklistedToken:
+    if OutstandingToken is None or BlacklistedToken is None:
+        return 0
+
+    if not user:
         return 0
 
     count = 0
