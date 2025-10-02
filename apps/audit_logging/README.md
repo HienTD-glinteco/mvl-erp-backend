@@ -1,15 +1,15 @@
 # Audit Logging System
 
-This module provides a comprehensive audit logging solution using RabbitMQ Stream for message queuing, AWS S3 for long-term storage, and OpenSearch for real-time querying and filtering.
+This module provides a comprehensive audit logging solution using RabbitMQ Stream for message queuing and OpenSearch for real-time querying and filtering.
 
 ## Architecture
 
 - **Producer**: Logs audit events to RabbitMQ Stream
-- **Consumer**: Reads from RabbitMQ Stream, indexes to OpenSearch, and archives to S3
-- **Storage**: 
-  - S3: Long-term persistent storage in Parquet format
-  - OpenSearch: Real-time indexing for fast querying and filtering
+- **Consumer**: Reads from RabbitMQ Stream and indexes to OpenSearch
+- **Storage**: OpenSearch for real-time indexing, fast querying and filtering
 - **API**: REST endpoints for searching and filtering audit logs
+
+**Note**: S3 archival is handled by a separate, dedicated service.
 
 ## Setup
 
@@ -66,11 +66,6 @@ OPENSEARCH_USE_SSL=false  # true for AWS OpenSearch
 OPENSEARCH_VERIFY_CERTS=false  # true for production AWS OpenSearch
 OPENSEARCH_INDEX_PREFIX=audit-logs
 
-# Audit Logging
-AUDIT_LOG_AWS_S3_BUCKET=backend-audit-logs
-AUDIT_LOG_BATCH_SIZE=1000
-AUDIT_LOG_FLUSH_INTERVAL=60
-
 # RabbitMQ Stream settings
 RABBITMQ_STREAM_HOST=localhost
 RABBITMQ_STREAM_PORT=5552
@@ -78,34 +73,9 @@ RABBITMQ_STREAM_USER=guest
 RABBITMQ_STREAM_PASSWORD=guest
 RABBITMQ_STREAM_VHOST=/
 RABBITMQ_STREAM_NAME=audit_logs_stream
-
-# AWS credentials (for S3 storage)
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_REGION_NAME=us-east-1
 ```
 
-### 4. AWS S3 Setup
-
-Ensure your S3 bucket exists and the server has the correct IAM permissions:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject"
-      ],
-      "Resource": "arn:aws:s3:::backend-audit-logs/*"
-    }
-  ]
-}
-```
-
-### 5. Run Migrations
+### 4. Run Migrations
 
 ```bash
 python manage.py migrate
@@ -121,9 +91,6 @@ Run the audit log consumer as a Django management command:
 # Default settings
 python manage.py consume_audit_logs
 
-# Custom batch size
-python manage.py consume_audit_logs --batch-size 500
-
 # Custom consumer name (for multiple consumers)
 python manage.py consume_audit_logs --consumer-name worker-01
 ```
@@ -131,8 +98,7 @@ python manage.py consume_audit_logs --consumer-name worker-01
 The consumer will:
 1. Read messages from RabbitMQ Stream
 2. Index each log to OpenSearch immediately for real-time search
-3. Batch logs and upload to S3 for long-term storage
-4. Use RabbitMQ's server-side offset tracking (no database model needed)
+3. Use RabbitMQ's server-side offset tracking (no database model needed)
 
 ### Logging Events
 
