@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -33,12 +34,12 @@ class PasswordResetOTPVerificationView(APIView):
     serializer_class = PasswordResetOTPVerificationSerializer
 
     @extend_schema(
-        summary="Xác thực OTP (Bước 2) và trả về JWT",
-        description="Xác thực reset_token + OTP, sau đó trả về access/refresh token để gọi bước đổi mật khẩu.",
+        summary=_("Verify OTP (Step 2) and return JWT"),
+        description=_("Verify reset_token + OTP, then return access/refresh token for password change step."),
         responses={
-            200: OpenApiResponse(description="OTP hợp lệ, trả về JWT tokens"),
-            400: OpenApiResponse(description="Reset token hoặc mã OTP không hợp lệ"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu xác thực"),
+            200: OpenApiResponse(description=_("Valid OTP, returns JWT tokens")),
+            400: OpenApiResponse(description=_("Invalid reset token or OTP code")),
+            429: OpenApiResponse(description=_("Too many verification requests")),
         },
     )
     def post(self, request):
@@ -60,7 +61,7 @@ class PasswordResetOTPVerificationView(APIView):
             logger.info(f"Password reset OTP verified for user {user.username}; issued JWT tokens")
             return Response(
                 {
-                    "message": "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu.",
+                    "message": _("Valid OTP code. JWT issued for password change."),
                     "tokens": tokens,
                 },
                 status=status.HTTP_200_OK,
