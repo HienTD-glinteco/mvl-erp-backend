@@ -20,8 +20,6 @@ class AuditLogConsumer:
     Handles:
     - Reading messages from RabbitMQ Stream
     - Indexing logs to OpenSearch for real-time search
-    
-    Note: S3 archival is handled by a separate service.
     """
 
     def __init__(self, consumer_name: str):

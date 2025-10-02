@@ -176,9 +176,7 @@ The detail endpoint returns all fields including:
 ## Data Lifecycle
 
 1. **Real-time**: Logs are indexed to OpenSearch immediately for fast querying
-2. **Batch Archive**: Logs are batched and uploaded to S3 in Parquet format
-3. **Long-term**: S3 serves as the source of truth for historical data
-4. **Search**: OpenSearch provides the last 12 months of data for querying
+2. **Search**: OpenSearch provides queryable audit log data with filtering and search capabilities
 
 ## Production Deployment
 
@@ -244,8 +242,4 @@ curl -X GET "http://localhost:9200/_cat/indices/audit-logs-*?v"
 2. Check OpenSearch logs
 3. Verify index mapping matches log structure
 
-### S3 upload failures
 
-1. Verify AWS credentials are correct
-2. Check IAM permissions for S3 bucket
-3. Verify bucket exists and is accessible
