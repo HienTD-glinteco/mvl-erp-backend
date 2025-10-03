@@ -163,7 +163,7 @@ class OpenSearchClient:
         # Search across all indices for the log_id
         index_pattern = self._get_last_12_months_indices()
 
-        search_body = {
+        search_body: Dict[str, Any] = {
             "query": {"term": {"log_id": log_id}},
             "size": 1,
         }
@@ -202,14 +202,14 @@ class OpenSearchClient:
                                  username, action, object_type, object_id, object_repr)
 
         Returns:
-            dict: Search results with logs, total, pagination info
+            dict: Search results with items, total, pagination info
         """
         query = self._build_search_query(filters)
 
         # Use index pattern to search across last 12 months of indices
         index_pattern = self._get_last_12_months_indices()
 
-        search_body = {
+        search_body: Dict[str, Any] = {
             "query": query,
             "sort": [{"timestamp": {"order": sort_order}}],
             "size": page_size,
@@ -240,7 +240,7 @@ class OpenSearchClient:
             next_offset = from_offset + page_size if has_next else None
 
             return {
-                "logs": logs,
+                "items": logs,
                 "total": total,
                 "next_offset": next_offset,
                 "has_next": has_next,
@@ -251,7 +251,7 @@ class OpenSearchClient:
 
     def _build_search_query(self, filters: Dict[str, Any]) -> Dict[str, Any]:
         """Build OpenSearch query from filters."""
-        must_clauses = []
+        must_clauses: List[Dict[str, Any]] = []
 
         for key, value in filters.items():
             if not value:

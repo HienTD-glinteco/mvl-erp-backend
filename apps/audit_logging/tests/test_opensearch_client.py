@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
 
-from ..opensearch_client import OpenSearchClient, get_opensearch_client
+from ..opensearch_client import OpenSearchClient
 
 
 @override_settings(
@@ -91,7 +91,7 @@ class TestOpenSearchClient(TestCase):
         result = self.client.search_logs(filters=filters)
 
         self.mock_opensearch.search.assert_called_once()
-        self.assertEqual(len(result["logs"]), 1)
+        self.assertEqual(len(result["items"]), 1)
         self.assertEqual(result["total"], 1)
 
     def test_build_search_query_with_filters(self):
@@ -188,7 +188,6 @@ class TestOpenSearchClient(TestCase):
         self.assertIn("log_id", search_body["_source"])
         self.assertIn("timestamp", search_body["_source"])
         self.assertIn("object_repr", search_body["_source"])
-
 
 
 @override_settings(

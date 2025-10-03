@@ -6,23 +6,15 @@ from .opensearch_client import get_opensearch_client
 class AuditLogSearchSerializer(serializers.Serializer):
     """Serializer for audit log search query parameters."""
 
-    start_time = serializers.DateTimeField(
-        required=False, help_text="Filter logs after this time"
-    )
-    end_time = serializers.DateTimeField(
-        required=False, help_text="Filter logs before this time"
-    )
+    start_time = serializers.DateTimeField(required=False, help_text="Filter logs after this time")
+    end_time = serializers.DateTimeField(required=False, help_text="Filter logs before this time")
     user_id = serializers.CharField(required=False, help_text="Filter by user ID")
     username = serializers.CharField(required=False, help_text="Filter by username")
     action = serializers.CharField(required=False, help_text="Filter by action type")
-    object_type = serializers.CharField(
-        required=False, help_text="Filter by object type"
-    )
+    object_type = serializers.CharField(required=False, help_text="Filter by object type")
     object_id = serializers.CharField(required=False, help_text="Filter by object ID")
     search_term = serializers.CharField(required=False, help_text="Free text search")
-    page_size = serializers.IntegerField(
-        required=False, default=50, min_value=1, max_value=100
-    )
+    page_size = serializers.IntegerField(required=False, default=50, min_value=1, max_value=100)
     from_offset = serializers.IntegerField(required=False, default=0, min_value=0)
     sort_order = serializers.ChoiceField(
         choices=[("asc", "Ascending"), ("desc", "Descending")],
@@ -74,7 +66,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
 
         # Format response
         return {
-            "logs": result["logs"],
+            "items": result["items"],
             "total": result["total"],
             "page_size": page_size,
             "from_offset": from_offset,
@@ -116,26 +108,9 @@ class AuditLogSerializer(serializers.Serializer):
 class AuditLogSearchResponseSerializer(serializers.Serializer):
     """Serializer for audit log search response."""
 
-    logs = AuditLogSummarySerializer(many=True)
+    items = AuditLogSummarySerializer(many=True)
     total = serializers.IntegerField()
     page_size = serializers.IntegerField()
     from_offset = serializers.IntegerField()
     next_offset = serializers.IntegerField(required=False, allow_null=True)
     has_next = serializers.BooleanField()
-
-
-class SuccessResponseSerializer(serializers.Serializer):
-    """Wrapper serializer for successful API responses (middleware format)."""
-
-    success = serializers.BooleanField(default=True)
-    data = serializers.JSONField()
-    error = serializers.JSONField(allow_null=True, default=None)
-
-
-class ErrorResponseSerializer(serializers.Serializer):
-    """Wrapper serializer for error API responses (middleware format)."""
-
-    success = serializers.BooleanField(default=False)
-    data = serializers.JSONField(allow_null=True, default=None)
-    error = serializers.JSONField()
-

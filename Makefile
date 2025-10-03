@@ -10,6 +10,9 @@ migrations:
 migrate:
 	python manage.py migrate
 
+messages:
+	python manage.py makemessages -l vi -i venv
+
 server:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver
 
@@ -24,3 +27,6 @@ run_audit_logs_consumer:
 
 test:
 	ENVIRONMENT=testing pytest $(ARGS)
+
+test_parallel:
+	ENVIRONMENT=testing pytest -n auto $(ARGS)

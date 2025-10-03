@@ -15,9 +15,7 @@ class TestAuditLogViewSet(TestCase):
     """Test cases for audit log ViewSet."""
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -28,7 +26,7 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "logs": [
+            "items": [
                 {
                     "log_id": "test-123",
                     "timestamp": "2023-12-15T10:30:00Z",
@@ -43,15 +41,13 @@ class TestAuditLogViewSet(TestCase):
         }
 
         url = "/api/audit-logs/search/"
-        response = self.client.get(
-            url, {"action": "test_action", "page_size": "10", "from_offset": "0"}
-        )
+        response = self.client.get(url, {"action": "test_action", "page_size": "10", "from_offset": "0"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
         self.assertTrue(response_data["success"])
         data = response_data["data"]
-        self.assertEqual(len(data["logs"]), 1)
+        self.assertEqual(len(data["items"]), 1)
         self.assertEqual(data["total"], 1)
 
         # Verify OpenSearch client was called with correct parameters including summary_fields_only
@@ -70,7 +66,7 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "logs": [],
+            "items": [],
             "total": 0,
             "next_offset": None,
             "has_next": False,
@@ -194,9 +190,7 @@ class TestAuditLogViewSet(TestCase):
         """Test retrieval of non-existent audit log."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
-        mock_client.get_log_by_id.side_effect = AuditLogException(
-            "Log with id test-999 not found"
-        )
+        mock_client.get_log_by_id.side_effect = AuditLogException("Log with id test-999 not found")
 
         url = "/api/audit-logs/detail/test-999/"
         response = self.client.get(url)

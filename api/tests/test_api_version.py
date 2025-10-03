@@ -5,6 +5,7 @@ Tests for API documentation version configuration.
 import os
 import subprocess
 
+from django.conf import settings
 from django.test import TestCase
 
 
@@ -36,7 +37,7 @@ class APIVersionConfigTest(TestCase):
             env={**os.environ, "API_DOC_VERSION": test_version, "ENVIRONMENT": "test"},
             capture_output=True,
             text=True,
-            cwd="/home/runner/work/backend/backend",
+            cwd=settings.BASE_DIR,
         )
 
         # Assert
@@ -58,7 +59,7 @@ class APIVersionConfigTest(TestCase):
             env={**os.environ, "API_DOC_VERSION": iso_timestamp, "ENVIRONMENT": "test"},
             capture_output=True,
             text=True,
-            cwd="/home/runner/work/backend/backend",
+            cwd=settings.BASE_DIR,
         )
 
         # Assert
