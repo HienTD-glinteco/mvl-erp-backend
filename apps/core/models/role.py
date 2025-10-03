@@ -13,7 +13,7 @@ class Role(BaseModel):
         related_name="roles",
         verbose_name="Quyền",
         blank=True,
-    )
+    )  # type: ignore
 
     class Meta:
         verbose_name = "Vai trò"
