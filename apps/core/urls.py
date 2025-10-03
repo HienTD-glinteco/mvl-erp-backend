@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .api.views import (
+    ConstantsView,
     LoginView,
     OTPVerificationView,
     PasswordChangeView,
@@ -33,4 +34,6 @@ urlpatterns = [
     # JWT token endpoints
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # Constants endpoint
+    path("constants/", ConstantsView.as_view(), name="constants"),
 ]
