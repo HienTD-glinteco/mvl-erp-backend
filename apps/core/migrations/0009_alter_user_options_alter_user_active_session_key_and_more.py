@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("core", "0008_create_system_roles"),
+        ("core", "0007_add_role_code_and_system_flag"),
     ]
 
     operations = [

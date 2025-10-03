@@ -36,4 +36,6 @@ class ComplexPasswordValidator:
             )
 
     def get_help_text(self):
-        return _("Password must be at least 8 characters long and include uppercase, lowercase, digits and special characters.")
+        return _(
+            "Password must be at least 8 characters long and include uppercase, lowercase, digits and special characters."
+        )

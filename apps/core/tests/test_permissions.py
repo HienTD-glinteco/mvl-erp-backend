@@ -47,6 +47,7 @@ class RoleModelTestCase(TestCase):
     def test_create_role(self):
         # Arrange & Act
         role = Role.objects.create(
+            code="VT003",
             name="Manager",
             description="Quản lý",
         )
@@ -59,7 +60,7 @@ class RoleModelTestCase(TestCase):
 
     def test_role_permissions_relationship(self):
         # Arrange
-        role = Role.objects.create(name="Manager")
+        role = Role.objects.create(code="VT004", name="Manager")
         permission1 = Permission.objects.create(code="document.create", description="Tạo tài liệu")
         permission2 = Permission.objects.create(code="document.list", description="Xem danh sách tài liệu")
 
@@ -73,10 +74,10 @@ class RoleModelTestCase(TestCase):
 
     def test_role_string_representation(self):
         # Arrange
-        role = Role.objects.create(name="Admin")
+        role = Role.objects.create(code="VT001", name="Admin")
 
         # Act & Assert
-        self.assertEqual(str(role), "Admin")
+        self.assertEqual(str(role), "VT001 - Admin")
 
 
 class UserPermissionTestCase(TestCase):
@@ -92,7 +93,7 @@ class UserPermissionTestCase(TestCase):
             code="document.create",
             description="Tạo tài liệu",
         )
-        self.role = Role.objects.create(name="Editor")
+        self.role = Role.objects.create(code="VT005", name="Editor")
         self.role.permissions.add(self.permission)
 
     def test_user_has_permission_through_role(self):
@@ -184,7 +185,7 @@ class RoleBasedPermissionTestCase(TestCase):
             code="test.view",
             description="Test View Permission",
         )
-        self.role = Role.objects.create(name="Tester")
+        self.role = Role.objects.create(code="VT006", name="Tester")
         self.role.permissions.add(self.permission)
 
     def test_permission_allowed_for_user_with_role(self):

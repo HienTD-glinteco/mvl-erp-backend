@@ -44,10 +44,10 @@ class PasswordResetResponseSerializer(serializers.Serializer):
 
     message = serializers.CharField(help_text="Result message")
     reset_token = serializers.CharField(help_text="Reset token UUID to use in subsequent steps")
-    email_hint = serializers.CharField(required=False, allow_null=True, help_text="Masked email address (if using email)")
-    phone_hint = serializers.CharField(
-        required=False, allow_null=True, help_text="Masked phone number (if using SMS)"
+    email_hint = serializers.CharField(
+        required=False, allow_null=True, help_text="Masked email address (if using email)"
     )
+    phone_hint = serializers.CharField(required=False, allow_null=True, help_text="Masked phone number (if using SMS)")
     expires_at = serializers.DateTimeField(help_text="Reset token expiration time")
 
 

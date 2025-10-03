@@ -8,6 +8,7 @@ from .api.views import (
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
     PasswordResetView,
+    PermissionViewSet,
     RoleViewSet,
 )
 from .api.views.token import TokenRefreshView, TokenVerifyView
@@ -16,6 +17,7 @@ app_name = "core"
 
 router = DefaultRouter()
 router.register(r"roles", RoleViewSet, basename="role")
+router.register(r"permissions", PermissionViewSet, basename="permission")
 
 urlpatterns = [
     # Authentication endpoints
