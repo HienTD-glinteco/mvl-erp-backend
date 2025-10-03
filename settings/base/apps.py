@@ -1,8 +1,9 @@
 DJANGO_APPs = [
-    # "django.contrib.admin",
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.messages",
     "django.contrib.humanize",
 ]
 
@@ -23,6 +24,7 @@ EXTERNAL_APPS = [
 
 INTERNAL_APPS = [
     "apps.core",
+    "apps.audit_logging",
     "apps.hrm",
 ]
 

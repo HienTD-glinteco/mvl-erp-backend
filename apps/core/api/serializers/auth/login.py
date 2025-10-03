@@ -2,6 +2,7 @@ import logging
 
 import sentry_sdk
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import User
@@ -13,31 +14,31 @@ logger = logging.getLogger(__name__)
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=100,
-        help_text="Tên đăng nhập",
+        help_text=_("Username"),
         error_messages={
-            "required": "Vui lòng nhập tên đăng nhập.",
-            "blank": "Tên đăng nhập không được để trống.",
+            "required": _("Please enter your username."),
+            "blank": _("Username cannot be blank."),
         },
     )
     password = serializers.CharField(
         write_only=True,
-        help_text="Mật khẩu",
+        help_text=_("Password"),
         error_messages={
-            "required": "Vui lòng nhập mật khẩu.",
-            "blank": "Mật khẩu không được để trống.",
+            "required": _("Please enter your password."),
+            "blank": _("Password cannot be blank."),
         },
     )
 
     def validate_username(self, value):
         """Validate username exists"""
         if not value or not value.strip():
-            raise serializers.ValidationError("Tên đăng nhập không được để trống.")
+            raise serializers.ValidationError(_("Username cannot be blank."))
         return value.strip()
 
     def validate_password(self, value):
         """Validate password is not empty"""
         if not value:
-            raise serializers.ValidationError("Mật khẩu không được để trống.")
+            raise serializers.ValidationError(_("Password cannot be blank."))
         return value
 
     def validate(self, attrs):
@@ -48,16 +49,16 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Tên đăng nhập không tồn tại.")
+            raise serializers.ValidationError(_("Username does not exist."))
 
         # Check if account is locked
         if user.is_locked:
             remaining_time = (user.locked_until - timezone.now()).seconds // 60
-            raise serializers.ValidationError(f"Tài khoản đã bị khóa. Vui lòng thử lại sau {remaining_time} phút.")
+            raise serializers.ValidationError(_("Account is locked. Please try again in %(minutes)d minutes.") % {"minutes": remaining_time})
 
         # Check if user is active
         if not user.is_active:
-            raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
+            raise serializers.ValidationError(_("Account has been deactivated."))
 
         # Verify password
         if not user.check_password(password):
@@ -65,10 +66,10 @@ class LoginSerializer(serializers.Serializer):
             if user.is_locked:
                 logger.warning(f"Account locked for user {username} after failed login attempts")
                 raise serializers.ValidationError(
-                    "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
+                    _("Account has been locked due to 5 failed login attempts. Please try again in 5 minutes.")
                 )
             logger.warning(f"Failed login attempt for user {username}")
-            raise serializers.ValidationError("Mật khẩu không đúng.")
+            raise serializers.ValidationError(_("Incorrect password."))
 
         attrs["user"] = user
         return attrs

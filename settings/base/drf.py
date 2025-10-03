@@ -9,6 +9,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -31,11 +34,14 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "MaiVietLand Backend API",
     "DESCRIPTION": "API documentation for MaiVietLand backend system",
-    "VERSION": "1.0.0",
+    "VERSION": config("API_DOC_VERSION", default="1.0.0"),
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SORT_OPERATIONS": False,
     "SCHEMA_PATH_PREFIX": "/api/",
+    "POSTPROCESSING_HOOKS": [
+        "api.schema_hooks.wrap_with_envelope",
+    ],
 }
 
 SIMPLE_JWT = {

@@ -1,21 +1,22 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from libs.base_model_mixin import BaseModel
 
 
 class Branch(BaseModel):
-    """Chi nhánh - Company branch"""
+    """Company branch"""
 
-    name = models.CharField(max_length=200, verbose_name="Tên chi nhánh")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Mã chi nhánh")
-    address = models.TextField(blank=True, verbose_name="Địa chỉ")
-    phone = models.CharField(max_length=15, blank=True, verbose_name="Số điện thoại")
-    email = models.EmailField(blank=True, verbose_name="Email")
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
+    name = models.CharField(max_length=200, verbose_name=_("Branch name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
+    address = models.TextField(blank=True, verbose_name=_("Address"))
+    phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
+    email = models.EmailField(blank=True, verbose_name=_("Email"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        verbose_name = "Chi nhánh"
-        verbose_name_plural = "Chi nhánh"
+        verbose_name = _("Branch")
+        verbose_name_plural = _("Branches")
         db_table = "hrm_branch"
 
     def __str__(self):
@@ -23,27 +24,27 @@ class Branch(BaseModel):
 
 
 class Block(BaseModel):
-    """Khối - Business unit/block"""
+    """Business unit/block"""
 
     class BlockType(models.TextChoices):
-        SUPPORT = "support", "Khối hỗ trợ"
-        BUSINESS = "business", "Khối kinh doanh"
+        SUPPORT = "support", _("Support Block")
+        BUSINESS = "business", _("Business Block")
 
-    name = models.CharField(max_length=200, verbose_name="Tên khối")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Mã khối")
-    block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name="Loại khối")
+    name = models.CharField(max_length=200, verbose_name=_("Block name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Block code"))
+    block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name=_("Block type"))
     branch = models.ForeignKey(
         Branch,
         on_delete=models.CASCADE,
         related_name="blocks",
-        verbose_name="Chi nhánh",
+        verbose_name=_("Branch"),
     )
-    description = models.TextField(blank=True, verbose_name="Mô tả")
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        verbose_name = "Khối"
-        verbose_name_plural = "Khối"
+        verbose_name = _("Block")
+        verbose_name_plural = _("Blocks")
         db_table = "hrm_block"
         unique_together = [["code", "branch"]]
 
@@ -52,55 +53,55 @@ class Block(BaseModel):
 
 
 class Department(BaseModel):
-    """Phòng ban - Department"""
+    """Department"""
 
     class DepartmentFunction(models.TextChoices):
         # Business function
-        BUSINESS = "business", "Kinh doanh"
+        BUSINESS = "business", _("Business")
 
         # Support functions
-        HR_ADMIN = "hr_admin", "Hành chính Nhân sự"
-        RECRUIT_TRAINING = "recruit_training", "Tuyển dụng - Đào tạo"
-        MARKETING = "marketing", "Marketing"
-        BUSINESS_SECRETARY = "business_secretary", "Thư ký Kinh doanh"
-        ACCOUNTING = "accounting", "Kế toán"
-        TRADING_FLOOR = "trading_floor", "Sàn liên kết"
-        PROJECT_PROMOTION = "project_promotion", "Xúc tiến Dự án"
-        PROJECT_DEVELOPMENT = "project_development", "Phát triển Dự án"
+        HR_ADMIN = "hr_admin", _("HR Administration")
+        RECRUIT_TRAINING = "recruit_training", _("Recruitment & Training")
+        MARKETING = "marketing", _("Marketing")
+        BUSINESS_SECRETARY = "business_secretary", _("Business Secretary")
+        ACCOUNTING = "accounting", _("Accounting")
+        TRADING_FLOOR = "trading_floor", _("Trading Floor")
+        PROJECT_PROMOTION = "project_promotion", _("Project Promotion")
+        PROJECT_DEVELOPMENT = "project_development", _("Project Development")
 
-    name = models.CharField(max_length=200, verbose_name="Tên phòng ban")
-    code = models.CharField(max_length=50, verbose_name="Mã phòng ban")
-    block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name="Khối")
+    name = models.CharField(max_length=200, verbose_name=_("Department name"))
+    code = models.CharField(max_length=50, verbose_name=_("Department code"))
+    block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Block"))
     parent_department = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="sub_departments",
-        verbose_name="Phòng ban cha",
+        verbose_name=_("Parent department"),
     )
     # New fields according to SRS 2.3.2
     function = models.CharField(
         max_length=50,
         choices=DepartmentFunction.choices,
         default=DepartmentFunction.BUSINESS,  # Default to business function
-        verbose_name="Chức năng phòng ban",
+        verbose_name=_("Department function"),
     )
-    is_main_department = models.BooleanField(default=False, verbose_name="Phòng ban đầu mối")
+    is_main_department = models.BooleanField(default=False, verbose_name=_("Is main department"))
     management_department = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="managed_departments",
-        verbose_name="Phòng ban quản lý",
+        verbose_name=_("Management department"),
     )
-    description = models.TextField(blank=True, verbose_name="Mô tả")
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        verbose_name = "Phòng ban"
-        verbose_name_plural = "Phòng ban"
+        verbose_name = _("Department")
+        verbose_name_plural = _("Departments")
         db_table = "hrm_department"
         unique_together = [["code", "block"]]
 
@@ -121,11 +122,11 @@ class Department(BaseModel):
         # Validate management department is in same block and function
         if self.management_department:
             if self.management_department.id == self.id:
-                raise ValidationError({"management_department": "Phòng ban không thể quản lý chính nó."})
+                raise ValidationError({"management_department": _("Department cannot manage itself.")})
             if self.management_department.block != self.block:
-                raise ValidationError({"management_department": "Phòng ban quản lý phải thuộc cùng khối."})
+                raise ValidationError({"management_department": _("Management department must be in the same block.")})
             if self.management_department.function != self.function:
-                raise ValidationError({"management_department": "Phòng ban quản lý phải có cùng chức năng."})
+                raise ValidationError({"management_department": _("Management department must have the same function.")})
 
         # Validate only one main department per function
         if self.is_main_department:
@@ -135,7 +136,7 @@ class Department(BaseModel):
 
             if existing_main.exists():
                 raise ValidationError(
-                    {"is_main_department": f"Đã có phòng ban đầu mối cho chức năng {self.get_function_display()}."}
+                    {"is_main_department": _("A main department already exists for function %(function)s.") % {"function": self.get_function_display()}}
                 )
 
     def save(self, *args, **kwargs):
@@ -151,43 +152,43 @@ class Department(BaseModel):
     def get_function_choices_for_block_type(cls, block_type):
         """Get available function choices based on block type"""
         if block_type == Block.BlockType.BUSINESS:
-            return [(cls.DepartmentFunction.BUSINESS, "Kinh doanh")]
+            return [(cls.DepartmentFunction.BUSINESS, _("Business"))]
         elif block_type == Block.BlockType.SUPPORT:
             return [
-                (cls.DepartmentFunction.HR_ADMIN, "Hành chính Nhân sự"),
-                (cls.DepartmentFunction.RECRUIT_TRAINING, "Tuyển dụng - Đào tạo"),
-                (cls.DepartmentFunction.MARKETING, "Marketing"),
-                (cls.DepartmentFunction.BUSINESS_SECRETARY, "Thư ký Kinh doanh"),
-                (cls.DepartmentFunction.ACCOUNTING, "Kế toán"),
-                (cls.DepartmentFunction.TRADING_FLOOR, "Sàn liên kết"),
-                (cls.DepartmentFunction.PROJECT_PROMOTION, "Xúc tiến Dự án"),
-                (cls.DepartmentFunction.PROJECT_DEVELOPMENT, "Phát triển Dự án"),
+                (cls.DepartmentFunction.HR_ADMIN, _("HR Administration")),
+                (cls.DepartmentFunction.RECRUIT_TRAINING, _("Recruitment & Training")),
+                (cls.DepartmentFunction.MARKETING, _("Marketing")),
+                (cls.DepartmentFunction.BUSINESS_SECRETARY, _("Business Secretary")),
+                (cls.DepartmentFunction.ACCOUNTING, _("Accounting")),
+                (cls.DepartmentFunction.TRADING_FLOOR, _("Trading Floor")),
+                (cls.DepartmentFunction.PROJECT_PROMOTION, _("Project Promotion")),
+                (cls.DepartmentFunction.PROJECT_DEVELOPMENT, _("Project Development")),
             ]
         return []
 
 
 class Position(BaseModel):
-    """Chức vụ - Position/Role"""
+    """Position/Role"""
 
     class PositionLevel(models.IntegerChoices):
-        CEO = 1, "Tổng Giám đốc (TGD)"
-        DIRECTOR = 2, "Giám đốc khối"
-        DEPUTY_DIRECTOR = 3, "Phó Giám đốc khối"
-        MANAGER = 4, "Trưởng phòng"
-        DEPUTY_MANAGER = 5, "Phó Trưởng phòng"
-        SUPERVISOR = 6, "Giám sát"
-        STAFF = 7, "Nhân viên"
-        INTERN = 8, "Thực tập sinh"
+        CEO = 1, _("Chief Executive Officer (CEO)")
+        DIRECTOR = 2, _("Block Director")
+        DEPUTY_DIRECTOR = 3, _("Deputy Block Director")
+        MANAGER = 4, _("Department Manager")
+        DEPUTY_MANAGER = 5, _("Deputy Department Manager")
+        SUPERVISOR = 6, _("Supervisor")
+        STAFF = 7, _("Staff")
+        INTERN = 8, _("Intern")
 
-    name = models.CharField(max_length=200, verbose_name="Tên chức vụ")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Mã chức vụ")
-    level = models.IntegerField(choices=PositionLevel.choices, verbose_name="Cấp bậc")
-    description = models.TextField(blank=True, verbose_name="Mô tả")
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
+    name = models.CharField(max_length=200, verbose_name=_("Position name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
+    level = models.IntegerField(choices=PositionLevel.choices, verbose_name=_("Level"))
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        verbose_name = "Chức vụ"
-        verbose_name_plural = "Chức vụ"
+        verbose_name = _("Position")
+        verbose_name_plural = _("Positions")
         db_table = "hrm_position"
         ordering = ["level", "name"]
 
@@ -196,39 +197,39 @@ class Position(BaseModel):
 
 
 class OrganizationChart(BaseModel):
-    """Sơ đồ tổ chức - Organization chart entry"""
+    """Organization chart entry"""
 
     employee = models.ForeignKey(
         "core.User",
         on_delete=models.CASCADE,
         related_name="organization_positions",
-        verbose_name="Nhân viên",
+        verbose_name=_("Employee"),
     )
     position = models.ForeignKey(
         Position,
         on_delete=models.CASCADE,
         related_name="organization_positions",
-        verbose_name="Chức vụ",
+        verbose_name=_("Position"),
     )
     department = models.ForeignKey(
         Department,
         on_delete=models.CASCADE,
         related_name="organization_positions",
-        verbose_name="Phòng ban",
+        verbose_name=_("Department"),
     )
-    start_date = models.DateField(verbose_name="Ngày bắt đầu")
-    end_date = models.DateField(null=True, blank=True, verbose_name="Ngày kết thúc")
-    is_primary = models.BooleanField(default=True, verbose_name="Chức vụ chính")
-    is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
+    start_date = models.DateField(verbose_name=_("Start date"))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("End date"))
+    is_primary = models.BooleanField(default=True, verbose_name=_("Is primary position"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
-        verbose_name = "Sơ đồ tổ chức"
-        verbose_name_plural = "Sơ đồ tổ chức"
+        verbose_name = _("Organization Chart")
+        verbose_name_plural = _("Organization Charts")
         db_table = "hrm_organization_chart"
         unique_together = [["employee", "position", "department", "start_date"]]
 
     def __str__(self):
-        return f"{self.employee.get_full_name()} - {self.position.name} tại {self.department.name}"
+        return f"{self.employee.get_full_name()} - {self.position.name} at {self.department.name}"
 
     def clean(self):
         """Validate organization chart entry"""
@@ -246,5 +247,5 @@ class OrganizationChart(BaseModel):
 
             if existing.exists():
                 raise ValidationError(
-                    "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời điểm."
+                    _("Employee can only have one primary position in a department at a time.")
                 )

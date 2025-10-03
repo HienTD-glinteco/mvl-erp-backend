@@ -10,6 +10,9 @@ migrations:
 migrate:
 	python manage.py migrate
 
+messages:
+	python manage.py makemessages -l vi -i venv
+
 server:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver
 
@@ -19,8 +22,11 @@ shell:
 celery_worker:
 	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q default
 
-celery_audit_worker:
-	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q audit_logs_queue
+run_audit_logs_consumer:
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(ARGS)
 
 test:
-	ENVIRONMENT=testing pytest -s
+	ENVIRONMENT=testing pytest $(ARGS)
+
+test_parallel:
+	ENVIRONMENT=testing pytest -n auto $(ARGS)

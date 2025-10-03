@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -8,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.core.api.serializers.auth import OTPVerificationSerializer
+from apps.core.api.serializers.auth.responses import OTPVerificationResponseSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
 
 logger = logging.getLogger(__name__)
@@ -30,12 +32,12 @@ class OTPVerificationView(APIView):
     serializer_class = OTPVerificationSerializer
 
     @extend_schema(
-        summary="Xác thực mã OTP",
-        description="Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập",
+        summary=_("Verify OTP code"),
+        description=_("Verify OTP code and return JWT tokens to complete login"),
         responses={
-            200: OpenApiResponse(description="Đăng nhập thành công, trả về tokens"),
-            400: OpenApiResponse(description="Mã OTP không hợp lệ hoặc đã hết hạn"),
-            429: OpenApiResponse(description="Quá nhiều yêu cầu xác thực"),
+            200: OTPVerificationResponseSerializer,
+            400: OpenApiResponse(description=_("Invalid or expired OTP code")),
+            429: OpenApiResponse(description=_("Too many verification requests")),
         },
     )
     def post(self, request):
@@ -55,7 +57,7 @@ class OTPVerificationView(APIView):
 
             logger.info(f"User {user.username} completed login successfully")
             response_data = {
-                "message": "Đăng nhập thành công.",
+                "message": _("Login successful."),
                 "user": {
                     "id": str(user.id),
                     "username": user.username,

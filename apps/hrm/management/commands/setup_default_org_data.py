@@ -1,60 +1,61 @@
 from django.core.management.base import BaseCommand
+from django.utils.translation import gettext as _
 
 from apps.hrm.models import Block, Branch, Department, Position
 
 
 class Command(BaseCommand):
-    help = "Setup default organizational data"
+    help = _("Setup default organizational data")
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("Setting up default organizational data..."))
+        self.stdout.write(self.style.SUCCESS(_("Setting up default organizational data...")))
 
         # Create default positions
         positions_data = [
             {
                 "code": "TGD",
-                "name": "Tổng Giám đốc",
+                "name": _("Chief Executive Officer"),
                 "level": Position.PositionLevel.CEO,
             },
             {
                 "code": "GD_KD",
-                "name": "Giám đốc Khối Kinh doanh",
+                "name": _("Business Block Director"),
                 "level": Position.PositionLevel.DIRECTOR,
             },
             {
                 "code": "GD_HT",
-                "name": "Giám đốc Khối Hỗ trợ",
+                "name": _("Support Block Director"),
                 "level": Position.PositionLevel.DIRECTOR,
             },
             {
                 "code": "PGD_KD",
-                "name": "Phó Giám đốc Khối Kinh doanh",
+                "name": _("Deputy Business Block Director"),
                 "level": Position.PositionLevel.DEPUTY_DIRECTOR,
             },
             {
                 "code": "PGD_HT",
-                "name": "Phó Giám đốc Khối Hỗ trợ",
+                "name": _("Deputy Support Block Director"),
                 "level": Position.PositionLevel.DEPUTY_DIRECTOR,
             },
             {
                 "code": "TP",
-                "name": "Trưởng phòng",
+                "name": _("Department Manager"),
                 "level": Position.PositionLevel.MANAGER,
             },
             {
                 "code": "PTP",
-                "name": "Phó Trưởng phòng",
+                "name": _("Deputy Department Manager"),
                 "level": Position.PositionLevel.DEPUTY_MANAGER,
             },
             {
                 "code": "GS",
-                "name": "Giám sát",
+                "name": _("Supervisor"),
                 "level": Position.PositionLevel.SUPERVISOR,
             },
-            {"code": "NV", "name": "Nhân viên", "level": Position.PositionLevel.STAFF},
+            {"code": "NV", "name": _("Staff"), "level": Position.PositionLevel.STAFF},
             {
                 "code": "TTS",
-                "name": "Thực tập sinh",
+                "name": _("Intern"),
                 "level": Position.PositionLevel.INTERN,
             },
         ]
@@ -69,34 +70,34 @@ class Command(BaseCommand):
                 },
             )
             if created:
-                self.stdout.write(f"Created position: {position.name}")
+                self.stdout.write(_("Created position: %s") % position.name)
             else:
-                self.stdout.write(f"Position already exists: {position.name}")
+                self.stdout.write(_("Position already exists: %s") % position.name)
 
         # Create default branch
         branch, created = Branch.objects.get_or_create(
             code="HQ",
             defaults={
-                "name": "Trụ sở chính MaiVietLand",
-                "address": "Hà Nội, Việt Nam",
+                "name": _("MaiVietLand Headquarters"),
+                "address": _("Hanoi, Vietnam"),
                 "is_active": True,
             },
         )
         if created:
-            self.stdout.write(f"Created branch: {branch.name}")
+            self.stdout.write(_("Created branch: %s") % branch.name)
         else:
-            self.stdout.write(f"Branch already exists: {branch.name}")
+            self.stdout.write(_("Branch already exists: %s") % branch.name)
 
         # Create default blocks
         blocks_data = [
             {
                 "code": "BKD",
-                "name": "Khối Kinh doanh",
+                "name": _("Business Block"),
                 "block_type": Block.BlockType.BUSINESS,
             },
             {
                 "code": "BHT",
-                "name": "Khối Hỗ trợ",
+                "name": _("Support Block"),
                 "block_type": Block.BlockType.SUPPORT,
             },
         ]
@@ -114,56 +115,56 @@ class Command(BaseCommand):
             )
             blocks[block_data["code"]] = block
             if created:
-                self.stdout.write(f"Created block: {block.name}")
+                self.stdout.write(_("Created block: %s") % block.name)
             else:
-                self.stdout.write(f"Block already exists: {block.name}")
+                self.stdout.write(_("Block already exists: %s") % block.name)
 
         # Create default departments with new fields
         departments_data = [
             # Business departments - function will be auto-set to 'business'
             {
                 "code": "KD01",
-                "name": "Phòng Kinh doanh 1",
+                "name": _("Business Department 1"),
                 "block": "BKD",
                 "is_main": True,
             },
             {
                 "code": "KD02",
-                "name": "Phòng Kinh doanh 2",
+                "name": _("Business Department 2"),
                 "block": "BKD",
                 "is_main": False,
             },
             {
                 "code": "MKT",
-                "name": "Phòng Marketing",
+                "name": _("Marketing Department"),
                 "block": "BKD",
                 "is_main": False,
             },
             # Support departments with specific functions
             {
                 "code": "HC",
-                "name": "Phòng Hành chính Nhân sự",
+                "name": _("HR Administration Department"),
                 "block": "BHT",
                 "function": "hr_admin",
                 "is_main": True,
             },
             {
                 "code": "KT",
-                "name": "Phòng Kế toán",
+                "name": _("Accounting Department"),
                 "block": "BHT",
                 "function": "accounting",
                 "is_main": True,
             },
             {
                 "code": "IT",
-                "name": "Phòng Công nghệ thông tin",
+                "name": _("IT Department"),
                 "block": "BHT",
                 "function": "project_development",
                 "is_main": True,
             },
             {
                 "code": "PL",
-                "name": "Phòng Pháp lý",
+                "name": _("Legal Department"),
                 "block": "BHT",
                 "function": "project_promotion",
                 "is_main": True,
@@ -187,8 +188,8 @@ class Command(BaseCommand):
                 defaults=defaults,
             )
             if created:
-                self.stdout.write(f"Created department: {department.name}")
+                self.stdout.write(_("Created department: %s") % department.name)
             else:
-                self.stdout.write(f"Department already exists: {department.name}")
+                self.stdout.write(_("Department already exists: %s") % department.name)
 
-        self.stdout.write(self.style.SUCCESS("Successfully set up default organizational data!"))
+        self.stdout.write(self.style.SUCCESS(_("Successfully set up default organizational data!")))

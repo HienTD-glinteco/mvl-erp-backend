@@ -53,7 +53,7 @@ class BlockModelTest(TestCase):
             branch=self.branch,
         )
         self.assertEqual(block.block_type, Block.BlockType.SUPPORT)
-        self.assertEqual(block.get_block_type_display(), "Khối hỗ trợ")
+        self.assertEqual(block.get_block_type_display(), "Support Block")
         self.assertTrue(block.is_active)
 
     def test_create_business_block(self):
@@ -65,7 +65,7 @@ class BlockModelTest(TestCase):
             branch=self.branch,
         )
         self.assertEqual(block.block_type, Block.BlockType.BUSINESS)
-        self.assertEqual(block.get_block_type_display(), "Khối kinh doanh")
+        self.assertEqual(block.get_block_type_display(), "Business Block")
 
     def test_block_unique_together(self):
         """Test block code uniqueness within branch"""
@@ -140,7 +140,7 @@ class PositionModelTest(TestCase):
         self.assertEqual(position.name, "Tổng Giám đốc")
         self.assertEqual(position.code, "TGD")
         self.assertEqual(position.level, Position.PositionLevel.CEO)
-        self.assertEqual(position.get_level_display(), "Tổng Giám đốc (TGD)")
+        self.assertEqual(position.get_level_display(), "Chief Executive Officer (CEO)")
         self.assertTrue(position.is_active)
 
     def test_position_code_unique(self):
@@ -210,7 +210,7 @@ class OrganizationChartModelTest(TestCase):
             start_date=date.today(),
         )
 
-        expected = f"{self.user.get_full_name()} - {self.position.name} tại {self.department.name}"
+        expected = f"{self.user.get_full_name()} - {self.position.name} at {self.department.name}"
         self.assertEqual(str(org_chart), expected)
 
     def test_organization_chart_validation(self):

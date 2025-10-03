@@ -21,6 +21,7 @@ class Role(BaseModel):
         verbose_name = "Vai trò"
         verbose_name_plural = "Vai trò"
         db_table = "core_role"
+
         ordering = ["code"]
 
     def __str__(self):

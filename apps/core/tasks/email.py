@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +31,21 @@ def send_otp_email_task(self, user_id, user_email, user_full_name, username, otp
             logger.error(f"Failed to render OTP email template for user {username}: {str(e)}")
             raise
 
-        plain_message = f"""
-Xin chào {user_full_name or username},
+        plain_message = _("""
+Hello %(name)s,
 
-Mã OTP để hoàn tất đăng nhập của bạn là: {otp_code}
+Your OTP code to complete login is: %(otp_code)s
 
-Mã này có hiệu lực trong 5 phút.
+This code is valid for 5 minutes.
 
-Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này.
+If you did not initiate this login, please ignore this email.
 
-Trân trọng,
-Đội ngũ MaiVietLand
-        """
+Best regards,
+MaiVietLand Team
+        """) % {"name": user_full_name or username, "otp_code": otp_code}
 
         send_mail(
-            subject="Mã OTP đăng nhập - MaiVietLand",
+            subject=_("Login OTP Code - MaiVietLand"),
             message=plain_message,
             html_message=html_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -82,26 +83,26 @@ def send_password_reset_email_task(self, user_id, user_email, user_full_name, us
             logger.error(f"Failed to render password reset email template for user {username}: {str(e)}")
             raise
 
-        plain_message = f"""
-Xin chào {user_full_name or username},
+        plain_message = _("""
+Hello %(name)s,
 
-Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản {username}.
+We have received a password reset request for account %(username)s.
 
-Để đảm bảo an toàn, vui lòng liên hệ trực tiếp với quản trị viên hệ thống để được hỗ trợ đặt lại mật khẩu.
+For security reasons, please contact the system administrator directly for password reset assistance.
 
-Liên hệ hỗ trợ:
+Support contact:
 - Email: support@maivietland.com
-- Điện thoại: (028) 1234 5678
-- Thời gian làm việc: 8:00 - 17:00 (Thứ 2 - Thứ 6)
+- Phone: (028) 1234 5678
+- Working hours: 8:00 - 17:00 (Monday - Friday)
 
-Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+If you did not make this request, please ignore this email.
 
-Trân trọng,
-Đội ngũ MaiVietLand
-        """
+Best regards,
+MaiVietLand Team
+        """) % {"name": user_full_name or username, "username": username}
 
         send_mail(
-            subject="Yêu cầu đặt lại mật khẩu - MaiVietLand",
+            subject=_("Password Reset Request - MaiVietLand"),
             message=plain_message,
             html_message=html_message,
             from_email=settings.DEFAULT_FROM_EMAIL,

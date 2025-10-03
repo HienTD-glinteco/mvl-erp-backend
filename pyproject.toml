@@ -75,7 +75,6 @@ djangorestframework = "^3.15.2"
 drf-standardized-errors = "^0.14.1"
 djangorestframework-simplejwt = "^5.5.0"
 drf-spectacular = "^0.28.0"
-drf-yasg = "^1.21.10"
 django-cors-headers = "^4.7.0"
 
 django-storages = {extras = ["s3"], version = "^1.14.5"}
@@ -88,6 +87,11 @@ django-health-check = "^3.20.0"
 django-waffle = "^5.0.0"
 gunicorn = "^23.0.0"
 requests = "^2.32.5"
+
+# Audit logging dependencies
+pyarrow = "^21.0.0"
+rstream = "^0.31.0"
+opensearch-py = "^2.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

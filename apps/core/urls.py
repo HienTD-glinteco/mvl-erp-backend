@@ -1,9 +1,5 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-    TokenVerifyView,
-)
 
 from .api.views import (
     LoginView,
@@ -14,6 +10,7 @@ from .api.views import (
     PasswordResetView,
     RoleViewSet,
 )
+from .api.views.token import TokenRefreshView, TokenVerifyView
 
 app_name = "core"
 

@@ -70,6 +70,7 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 
 **Steps**:
 - Deploy to EC2 test server via SSH
+- Auto-update API documentation version with ISO timestamp
 - Database migrations
 - Application restart (supervisor)
 - Web server reload (nginx)
@@ -89,6 +90,7 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 **Steps**:
 - Code checkout from `staging` branch
 - Environment setup
+- Auto-update API documentation version with ISO timestamp
 - Application build
 - Database migrations
 - Deployment (configurable)
@@ -99,6 +101,48 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 **Note**: This workflow file is not currently implemented. Create it based on the staging workflow template when needed.
 
 **Planned Trigger**: PR from `master` to `release` branch (when merged)
+
+## API Documentation Versioning
+
+The API documentation version is automatically updated with an ISO timestamp during every deployment. This ensures that the API documentation always reflects the latest deployment time.
+
+### How It Works
+
+1. **Environment Variable**: The API documentation version is read from the `API_DOC_VERSION` environment variable
+2. **Automatic Update**: During deployment, the CI/CD pipeline:
+   - Generates an ISO timestamp (format: `YYYY-MM-DDTHH:MM:SSZ`)
+   - Updates or adds `API_DOC_VERSION` in the server's `.env` file
+   - Restarts the application to load the new version
+3. **Default Value**: If `API_DOC_VERSION` is not set, it defaults to `1.0.0`
+
+### Configuration
+
+**Settings File** (`settings/base/drf.py`):
+```python
+SPECTACULAR_SETTINGS = {
+    "VERSION": config("API_DOC_VERSION", default="1.0.0"),
+    # ... other settings
+}
+```
+
+**CI/CD Deployment Script** (in `ci-cd.yml` and `deploy-staging.yml`):
+```bash
+# Update API documentation version in .env file
+API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+  sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+else
+  echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+fi
+```
+
+### Accessing the Version
+
+The version can be viewed in:
+- **Swagger UI**: Available at `/docs/` (in develop/local environments)
+- **API Schema**: Available at `/schema/` (in develop/local environments)
+
+Example version: `2024-12-20T10:30:00Z`
 
 ## Required GitHub Secrets
 

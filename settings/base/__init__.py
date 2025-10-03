@@ -2,6 +2,7 @@
 
 from .base import *
 from .apps import *
+from .audit_logging import *
 from .aws import *
 from .cache import *
 from .celery import *
@@ -13,6 +14,7 @@ from .internationalization import *
 from .logging import *
 from .middleware import *
 from .password import *
+from .rabbitmq import *
 from .sentry import *
 from .sms import *
 from .storage import *

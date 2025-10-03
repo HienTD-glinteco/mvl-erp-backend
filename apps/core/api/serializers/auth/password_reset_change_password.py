@@ -2,6 +2,7 @@ import logging
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import PasswordResetOTP
@@ -19,25 +20,25 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
 
     new_password = serializers.CharField(
         write_only=True,
-        help_text="Mật khẩu mới",
+        help_text=_("New password"),
         error_messages={
-            "required": "Vui lòng nhập mật khẩu mới.",
-            "blank": "Mật khẩu mới không được để trống.",
+            "required": _("Please enter your new password."),
+            "blank": _("New password cannot be blank."),
         },
     )
     confirm_password = serializers.CharField(
         write_only=True,
-        help_text="Xác nhận mật khẩu mới",
+        help_text=_("Confirm new password"),
         error_messages={
-            "required": "Vui lòng xác nhận mật khẩu mới.",
-            "blank": "Xác nhận mật khẩu không được để trống.",
+            "required": _("Please confirm your new password."),
+            "blank": _("Password confirmation cannot be blank."),
         },
     )
 
     def validate_new_password(self, value):
         """Validate new password against Django's password validators"""
         if not value:
-            raise serializers.ValidationError("Mật khẩu mới không được để trống.")
+            raise serializers.ValidationError(_("New password cannot be blank."))
 
         # Use Django's password validation
         try:
@@ -51,13 +52,13 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         request = self.context.get("request")
         if not request or not getattr(request, "user", None) or not request.user.is_authenticated:
-            raise serializers.ValidationError("Yêu cầu xác thực không hợp lệ.")
+            raise serializers.ValidationError(_("Authentication request is invalid."))
 
         new_password = attrs.get("new_password")
         confirm_password = attrs.get("confirm_password")
         # Check if passwords match
         if new_password != confirm_password:
-            raise serializers.ValidationError("Mật khẩu mới và xác nhận mật khẩu không khớp.")
+            raise serializers.ValidationError(_("New password and confirmation password do not match."))
 
         # Ensure there is a verified, unused reset request for this user
         reset_request = (
@@ -70,15 +71,15 @@ class PasswordResetChangePasswordSerializer(serializers.Serializer):
             .first()
         )
         if not reset_request:
-            raise serializers.ValidationError("Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực.")
+            raise serializers.ValidationError(_("No verified password reset request found."))
 
         # Check if user is active
         if not reset_request.user.is_active:
-            raise serializers.ValidationError("Tài khoản đã bị vô hiệu hóa.")
+            raise serializers.ValidationError(_("Account has been deactivated."))
 
         # Check expiration
         if reset_request.is_expired():
-            raise serializers.ValidationError("Yêu cầu đặt lại mật khẩu đã hết hạn.")
+            raise serializers.ValidationError(_("Password reset request has expired."))
 
         attrs["reset_request"] = reset_request
         attrs["user"] = request.user
