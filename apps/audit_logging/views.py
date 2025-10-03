@@ -36,8 +36,8 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         """
         Search audit logs using OpenSearch.
 
-        Returns summary fields only (log_id, timestamp, user_id, username, action,
-        object_type, object_id, object_repr).
+        Returns summary fields only (log_id, timestamp, user_id, username, full_name,
+        action, object_type, object_id, object_repr).
 
         Query parameters are validated using AuditLogSearchSerializer.
         """

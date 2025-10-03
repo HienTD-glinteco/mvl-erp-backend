@@ -1,3 +1,6 @@
+from datetime import datetime, time
+
+from django.utils import timezone
 from rest_framework import serializers
 
 from .opensearch_client import get_opensearch_client
@@ -6,8 +9,8 @@ from .opensearch_client import get_opensearch_client
 class AuditLogSearchSerializer(serializers.Serializer):
     """Serializer for audit log search query parameters."""
 
-    start_time = serializers.DateTimeField(required=False, help_text="Filter logs after this time")
-    end_time = serializers.DateTimeField(required=False, help_text="Filter logs before this time")
+    from_date = serializers.DateField(required=False, help_text="Filter logs from this date")
+    to_date = serializers.DateField(required=False, help_text="Filter logs to this date")
     user_id = serializers.CharField(required=False, help_text="Filter by user ID")
     username = serializers.CharField(required=False, help_text="Filter by username")
     action = serializers.CharField(required=False, help_text="Filter by action type")
@@ -20,6 +23,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
         choices=[("asc", "Ascending"), ("desc", "Descending")],
         required=False,
         default="desc",
+        help_text="Sort order by timestamp (default: desc - newest first)",
     )
 
     def search(self):
@@ -31,9 +35,22 @@ class AuditLogSearchSerializer(serializers.Serializer):
         """
         # Extract filters
         filters = {}
+
+        # Handle date filtering with from_date/to_date
+        from_date = self.validated_data.get("from_date")
+        to_date = self.validated_data.get("to_date")
+
+        if from_date:
+            # Convert date to start of day in app timezone, then to UTC
+            dt_start = timezone.make_aware(datetime.combine(from_date, time.min))
+            filters["from_date"] = dt_start.astimezone(timezone.utc).isoformat()
+        if to_date:
+            # Convert date to end of day in app timezone, then to UTC
+            dt_end = timezone.make_aware(datetime.combine(to_date, time.max))
+            filters["to_date"] = dt_end.astimezone(timezone.utc).isoformat()
+
+        # Extract other filters
         for field in [
-            "start_time",
-            "end_time",
             "user_id",
             "username",
             "action",
@@ -43,11 +60,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
         ]:
             value = self.validated_data.get(field)
             if value:
-                # Convert datetime objects to ISO format strings for OpenSearch
-                if field in ["start_time", "end_time"]:
-                    filters[field] = value.isoformat()
-                else:
-                    filters[field] = value
+                filters[field] = value
 
         # Pagination parameters
         page_size = self.validated_data.get("page_size", 50)
@@ -82,6 +95,7 @@ class AuditLogSummarySerializer(serializers.Serializer):
     timestamp = serializers.DateTimeField()
     user_id = serializers.CharField(required=False, allow_null=True)
     username = serializers.CharField(required=False, allow_null=True)
+    full_name = serializers.CharField(required=False, allow_null=True)
     action = serializers.CharField(required=False, allow_null=True)
     object_type = serializers.CharField(required=False, allow_null=True)
     object_id = serializers.CharField(required=False, allow_null=True)
@@ -95,6 +109,7 @@ class AuditLogSerializer(serializers.Serializer):
     timestamp = serializers.DateTimeField()
     user_id = serializers.CharField(required=False, allow_null=True)
     username = serializers.CharField(required=False, allow_null=True)
+    full_name = serializers.CharField(required=False, allow_null=True)
     action = serializers.CharField(required=False, allow_null=True)
     object_type = serializers.CharField(required=False, allow_null=True)
     object_id = serializers.CharField(required=False, allow_null=True)

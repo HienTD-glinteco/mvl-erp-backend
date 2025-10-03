@@ -76,8 +76,8 @@ class TestAuditLogViewSet(TestCase):
         response = self.client.get(
             url,
             {
-                "start_time": "2023-12-01T00:00:00Z",
-                "end_time": "2023-12-31T23:59:59Z",
+                "from_date": "2023-12-01",
+                "to_date": "2023-12-31",
                 "user_id": "123",
                 "search_term": "test query",
                 "page_size": "25",
@@ -222,3 +222,86 @@ class TestAuditLogViewSet(TestCase):
         response = unauthenticated_client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    def test_search_with_from_date_to_date(self, mock_get_client):
+        """Test search with from_date and to_date parameters."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "items": [],
+            "total": 0,
+            "next_offset": None,
+            "has_next": False,
+        }
+
+        url = "/api/audit-logs/search/"
+        response = self.client.get(
+            url,
+            {
+                "from_date": "2023-12-01",
+                "to_date": "2023-12-31",
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify filters were passed correctly with from_date/to_date
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("from_date", call_kwargs["filters"])
+        self.assertIn("to_date", call_kwargs["filters"])
+
+    @patch("apps.audit_logging.views.get_opensearch_client")
+    def test_detail_includes_new_fields(self, mock_get_client):
+        """Test that detail endpoint includes full_name and HR fields."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.get_log_by_id.return_value = {
+            "log_id": "test-123",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "user_id": "1",
+            "username": "testuser",
+            "full_name": "Test User",
+            "action": "CREATE",
+            "object_type": "Customer",
+            "object_id": "456",
+            "object_repr": "John Smith",
+            "change_message": "Created new customer",
+            "ip_address": "192.168.1.1",
+            "user_agent": "Mozilla/5.0...",
+            "session_key": "session_key_here",
+        }
+
+        url = "/api/audit-logs/detail/test-123/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        data = response_data["data"]
+        self.assertEqual(data["full_name"], "Test User")
+
+    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    def test_search_default_sort_order_desc(self, mock_get_client):
+        """Test that default sort order is descending (newest first)."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "items": [],
+            "total": 0,
+            "next_offset": None,
+            "has_next": False,
+        }
+
+        url = "/api/audit-logs/search/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify default sort order is desc
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertEqual(call_kwargs["sort_order"], "desc")

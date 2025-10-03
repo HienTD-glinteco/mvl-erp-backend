@@ -61,6 +61,7 @@ class OpenSearchClient:
                     "timestamp": {"type": "date"},
                     "user_id": {"type": "keyword"},
                     "username": {"type": "keyword"},
+                    "full_name": {"type": "text", "analyzer": "standard"},
                     "action": {"type": "keyword"},
                     "object_type": {"type": "keyword"},
                     "object_id": {"type": "keyword"},
@@ -223,6 +224,7 @@ class OpenSearchClient:
                 "timestamp",
                 "user_id",
                 "username",
+                "full_name",
                 "action",
                 "object_type",
                 "object_id",
@@ -257,9 +259,9 @@ class OpenSearchClient:
             if not value:
                 continue
 
-            if key == "start_time":
+            if key == "from_date":
                 must_clauses.append({"range": {"timestamp": {"gte": value}}})
-            elif key == "end_time":
+            elif key == "to_date":
                 must_clauses.append({"range": {"timestamp": {"lte": value}}})
             elif key == "search_term":
                 must_clauses.append(
