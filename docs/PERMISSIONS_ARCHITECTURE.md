@@ -61,23 +61,23 @@
 │  │         │        ┌──────────────┐                       │    │
 │  │         │        │     Role     │                       │    │
 │  │         │        ├──────────────┤                       │    │
-│  │         │        │ name         │ ──────┐               │    │
-│  │         │        │ description  │       │               │    │
-│  │         │        └──────────────┘       │ M2M           │    │
+│  │         │        │ name         │ ◄─────┐               │    │
+│  │         │        │ description  │       │ FK            │    │
+│  │         │        └──────────────┘       │               │    │
 │  │         │               ▲               │               │    │
-│  │         │               │               ▼               │    │
+│  │         │               │               │               │    │
 │  │         │               │        ┌──────────────┐       │    │
 │  │         │               │        │     User     │       │    │
 │  │         │               │        ├──────────────┤       │    │
 │  │         │               │        │ username     │       │    │
 │  │         │               │        │ email        │       │    │
-│  │         │               │        │ roles        │       │    │
+│  │         │               │        │ role         │───────┘    │
 │  │         │               │        │ is_superuser │       │    │
 │  │         │               │        └──────────────┘       │    │
 │  │         │               │               ▲               │    │
 │  │         │ 3. Admin      │ 4. Admin      │               │    │
 │  │         │    creates    │    assigns    │               │    │
-│  │         │    & assigns  │    roles      │               │    │
+│  │         │    & assigns  │    role       │               │    │
 │  │         │               │               │               │    │
 │  └─────────────────────────────────────────────────────────┘    │
 │                                              │                   │
@@ -96,8 +96,10 @@
 │  │  6. Else → DENY                                         │    │
 │  │                                                          │    │
 │  │  user.has_permission(code):                             │    │
-│  │    return user.roles.filter(                            │    │
-│  │        permissions__code=code                           │    │
+│  │    if user.role is None:                                │    │
+│  │        return False                                     │    │
+│  │    return user.role.permissions.filter(                 │    │
+│  │        code=code                                        │    │
 │  │    ).exists()                                           │    │
 │  │                                                          │    │
 │  └────────────────────────────────────────────────────────┘    │
@@ -216,7 +218,7 @@ CREATE TABLE core_role (
     updated_at TIMESTAMP
 );
 
--- Role-Permission junction table
+-- Role-Permission junction table (Many-to-Many)
 CREATE TABLE core_role_permissions (
     id BIGINT PRIMARY KEY,
     role_id BIGINT REFERENCES core_role(id),
@@ -224,21 +226,16 @@ CREATE TABLE core_role_permissions (
     UNIQUE(role_id, permission_id)
 );
 
--- User-Role junction table
-CREATE TABLE core_user_roles (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT REFERENCES core_user(id),
-    role_id BIGINT REFERENCES core_role(id),
-    UNIQUE(user_id, role_id)
-);
+-- User table now has a ForeignKey to Role (each user has ONE role)
+ALTER TABLE core_user ADD COLUMN role_id BIGINT REFERENCES core_role(id) ON DELETE SET NULL;
 
 -- Query to check if user has permission
 SELECT EXISTS(
     SELECT 1
-    FROM core_user_roles ur
-    JOIN core_role_permissions rp ON ur.role_id = rp.role_id
+    FROM core_user u
+    JOIN core_role_permissions rp ON u.role_id = rp.role_id
     JOIN core_permission p ON rp.permission_id = p.id
-    WHERE ur.user_id = ?
+    WHERE u.id = ?
       AND p.code = ?
 );
 ```
@@ -288,7 +285,8 @@ graph TD
 │  Database Layer                                                │
 │  ├─ PostgreSQL/SQLite                                         │
 │  ├─ Tables: Permission, Role, User                            │
-│  └─ Junction tables for M2M relationships                     │
+│  ├─ Junction table for Role-Permission M2M                    │
+│  └─ ForeignKey from User to Role (one-to-many)                │
 │                                                                │
 └───────────────────────────────────────────────────────────────┘
 ```

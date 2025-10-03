@@ -97,7 +97,8 @@ class UserPermissionTestCase(TestCase):
 
     def test_user_has_permission_through_role(self):
         # Arrange
-        self.user.roles.add(self.role)
+        self.user.role = self.role
+        self.user.save()
 
         # Act & Assert
         self.assertTrue(self.user.has_permission("document.create"))
@@ -117,13 +118,14 @@ class UserPermissionTestCase(TestCase):
         self.assertTrue(self.user.has_permission("document.create"))
         self.assertTrue(self.user.has_permission("any.permission"))
 
-    def test_user_with_multiple_roles(self):
+    def test_user_with_role_having_multiple_permissions(self):
         # Arrange
         permission2 = Permission.objects.create(code="document.delete", description="Xóa tài liệu")
-        role2 = Role.objects.create(name="Admin")
-        role2.permissions.add(permission2)
+        # Add both permissions to the same role
+        self.role.permissions.add(permission2)
 
-        self.user.roles.add(self.role, role2)
+        self.user.role = self.role
+        self.user.save()
 
         # Act & Assert
         self.assertTrue(self.user.has_permission("document.create"))
@@ -187,7 +189,8 @@ class RoleBasedPermissionTestCase(TestCase):
 
     def test_permission_allowed_for_user_with_role(self):
         # Arrange
-        self.user.roles.add(self.role)
+        self.user.role = self.role
+        self.user.save()
 
         @api_view(["GET"])
         @permission_classes([RoleBasedPermission])
@@ -263,7 +266,8 @@ class RoleBasedPermissionTestCase(TestCase):
 
     def test_class_based_view_permission(self):
         # Arrange
-        self.user.roles.add(self.role)
+        self.user.role = self.role
+        self.user.save()
 
         class TestView(APIView):
             permission_classes = [RoleBasedPermission]

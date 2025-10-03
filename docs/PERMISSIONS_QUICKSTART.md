@@ -38,7 +38,8 @@ role.permissions.add(perm)
 
 # Assign role to user
 user = User.objects.get(username="john")
-user.roles.add(role)
+user.role = role
+user.save()
 ```
 
 ### 4. Test

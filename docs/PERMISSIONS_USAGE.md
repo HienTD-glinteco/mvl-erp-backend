@@ -45,7 +45,8 @@ user = User.objects.get(username="john")
 role = Role.objects.get(name="Editor")
 
 # Assign role to user
-user.roles.add(role)
+user.role = role
+user.save()
 
 # Check if user has permission
 if user.has_permission("document.create"):
@@ -186,7 +187,8 @@ editor_role.permissions.add(create_perm)
 ```python
 user = User.objects.get(username="john")
 editor_role = Role.objects.get(name="Editor")
-user.roles.add(editor_role)
+user.role = editor_role
+user.save()
 ```
 
 ### 5. User makes API request
@@ -237,7 +239,8 @@ class MyViewPermissionTestCase(TestCase):
         self.role.permissions.add(self.permission)
     
     def test_user_with_permission_can_access(self):
-        self.user.roles.add(self.role)
+        self.user.role = self.role
+        self.user.save()
         # Test your view here
         
     def test_user_without_permission_cannot_access(self):

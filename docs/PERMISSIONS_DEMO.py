@@ -76,8 +76,8 @@ viewer_user = User.objects.get_or_create(
         "last_name": "User",
     },
 )[0]
-viewer_user.roles.clear()
-viewer_user.roles.add(viewer_role)
+viewer_user.role = viewer_role
+viewer_user.save()
 print(f"   ✓ Created: {viewer_user} with role: {viewer_role.name}")
 
 editor_user = User.objects.get_or_create(
@@ -88,8 +88,8 @@ editor_user = User.objects.get_or_create(
         "last_name": "User",
     },
 )[0]
-editor_user.roles.clear()
-editor_user.roles.add(editor_role)
+editor_user.role = editor_role
+editor_user.save()
 print(f"   ✓ Created: {editor_user} with role: {editor_role.name}")
 
 admin_user = User.objects.get_or_create(
@@ -100,8 +100,8 @@ admin_user = User.objects.get_or_create(
         "last_name": "User",
     },
 )[0]
-admin_user.roles.clear()
-admin_user.roles.add(admin_role)
+admin_user.role = admin_role
+admin_user.save()
 print(f"   ✓ Created: {admin_user} with role: {admin_role.name}")
 
 # Step 4: Test permissions

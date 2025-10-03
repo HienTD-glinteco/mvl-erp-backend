@@ -237,7 +237,8 @@ editor_role.permissions.add(view_perm, edit_perm)
 
 # Assign role to user
 user = User.objects.get(username="john")
-user.roles.add(editor_role)
+user.role = editor_role
+user.save()
 
 # Check permissions
 user.has_permission("document.view")  # True
