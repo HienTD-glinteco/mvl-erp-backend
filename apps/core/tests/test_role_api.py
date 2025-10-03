@@ -1,13 +1,12 @@
 import json
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
 from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import Role
+from apps.core.models import Permission, Role
 
 User = get_user_model()
 
@@ -30,6 +29,13 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         # Clear all existing data for clean tests
         Role.objects.all().delete()
         User.objects.all().delete()
+        Permission.objects.all().delete()
+
+        # Create test permissions
+        self.perm1 = Permission.objects.create(code="view_users", description="View users")
+        self.perm2 = Permission.objects.create(code="edit_users", description="Edit users")
+        self.perm3 = Permission.objects.create(code="delete_users", description="Delete users")
+        self.permissions = [self.perm1, self.perm2, self.perm3]
 
         # Create system roles manually for tests
         self.system_role_admin = Role.objects.create(
@@ -48,9 +54,6 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
-        # Get some permissions for testing
-        self.permissions = Permission.objects.filter(content_type__app_label="core")[:3]
 
     def test_list_roles(self):
         """Test listing roles via API"""

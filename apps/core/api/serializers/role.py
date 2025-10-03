@@ -1,7 +1,6 @@
-from django.contrib.auth.models import Permission
 from rest_framework import serializers
 
-from apps.core.models import Role
+from apps.core.models import Permission, Role
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -9,8 +8,8 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Permission
-        fields = ["id", "name", "codename", "content_type"]
-        read_only_fields = ["id", "name", "codename", "content_type"]
+        fields = ["id", "code", "description", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class RoleSerializer(serializers.ModelSerializer):

@@ -1,22 +1,21 @@
-from django.contrib.auth.models import Permission
 from django.db import models
 
 from libs.base_model_mixin import BaseModel
 
 
 class Role(BaseModel):
-    """Vai trò - User Role with permissions"""
+    """Model representing a role that groups permissions"""
 
     code = models.CharField(max_length=50, unique=True, verbose_name="Mã vai trò")
-    name = models.CharField(max_length=200, verbose_name="Tên vai trò")
-    description = models.TextField(blank=True, verbose_name="Mô tả")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Tên vai trò")
+    description = models.CharField(max_length=255, blank=True, verbose_name="Mô tả")
     is_system_role = models.BooleanField(default=False, verbose_name="Vai trò hệ thống")
     permissions = models.ManyToManyField(
-        Permission,
-        blank=True,
+        "Permission",
         related_name="roles",
         verbose_name="Quyền",
-    )
+        blank=True,
+    )  # type: ignore
 
     class Meta:
         verbose_name = "Vai trò"
