@@ -33,6 +33,16 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     # Session management
     active_session_key = models.CharField(max_length=255, blank=True, verbose_name=_("Active session"))
 
+    # Role-based permissions
+    role = models.ForeignKey(
+        "Role",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="users",
+        verbose_name="Vai trò",
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = "username"
@@ -114,3 +124,13 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         self.otp_expires_at = None
         self.otp_verified = False
         self.save(update_fields=["otp_code", "otp_expires_at", "otp_verified"])
+
+    def has_permission(self, permission_code: str) -> bool:
+        """Check if user has a specific permission through their role"""
+        if self.is_superuser:
+            return True
+
+        if self.role is None:
+            return False
+
+        return self.role.permissions.filter(code=permission_code).exists()
