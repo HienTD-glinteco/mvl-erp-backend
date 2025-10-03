@@ -24,6 +24,7 @@ urlpatterns += [
     path("health/", include("health_check.urls")),
     path("api/", include("apps.core.urls")),
     path("api/hrm/", include("apps.hrm.urls")),
+    path("api/audit-logs/", include("apps.audit_logging.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
