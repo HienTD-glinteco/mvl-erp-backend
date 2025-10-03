@@ -225,6 +225,14 @@ jobs:
           git fetch --all --prune
           git pull origin master
 
+          # Update API documentation version in .env file
+          API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+            sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+          else
+            echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+          fi
+
           # Activate virtual environment and install dependencies
           export PATH="$HOME/.local/bin:$PATH"
           poetry config virtualenvs.in-project true

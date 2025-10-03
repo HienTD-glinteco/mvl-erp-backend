@@ -31,7 +31,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "MaiVietLand Backend API",
     "DESCRIPTION": "API documentation for MaiVietLand backend system",
-    "VERSION": "1.0.0",
+    "VERSION": config("API_DOC_VERSION", default="1.0.0"),
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SORT_OPERATIONS": False,
