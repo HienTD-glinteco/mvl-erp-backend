@@ -1,19 +1,24 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+
+User = get_user_model()
 
 
 class ConstantsAPITestCase(TestCase):
     """Test case for Constants API endpoint"""
 
     def setUp(self):
-        """Set up test client"""
+        """Set up test client with authenticated user"""
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
         self.url = reverse("core:constants")
 
     def test_constants_endpoint_accessible(self):
-        """Test that constants endpoint is accessible without authentication"""
+        """Test that constants endpoint is accessible with authentication"""
         # Act
         response = self.client.get(self.url)
 

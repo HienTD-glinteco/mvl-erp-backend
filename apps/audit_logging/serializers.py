@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import UTC, datetime, time
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -43,11 +43,11 @@ class AuditLogSearchSerializer(serializers.Serializer):
         if from_date:
             # Convert date to start of day in app timezone, then to UTC
             dt_start = timezone.make_aware(datetime.combine(from_date, time.min))
-            filters["from_date"] = dt_start.astimezone(timezone.utc).isoformat()
+            filters["from_date"] = dt_start.astimezone(UTC).isoformat()
         if to_date:
             # Convert date to end of day in app timezone, then to UTC
             dt_end = timezone.make_aware(datetime.combine(to_date, time.max))
-            filters["to_date"] = dt_end.astimezone(timezone.utc).isoformat()
+            filters["to_date"] = dt_end.astimezone(UTC).isoformat()
 
         # Extract other filters
         for field in [
