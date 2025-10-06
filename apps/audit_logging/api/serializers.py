@@ -3,7 +3,7 @@ from datetime import UTC, datetime, time
 from django.utils import timezone
 from rest_framework import serializers
 
-from .opensearch_client import get_opensearch_client
+from ..opensearch_client import get_opensearch_client
 
 
 class AuditLogSearchSerializer(serializers.Serializer):

@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
+from apps.audit_logging import AuditLoggingMixin
 from apps.core.models import User
 from apps.hrm.api.filtersets.employee_role import EmployeeRoleFilterSet
 from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
@@ -36,7 +37,7 @@ from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, Emp
         ],
     ),
 )
-class EmployeeRoleViewSet(viewsets.ReadOnlyModelViewSet):
+class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for managing employees by role.
 
@@ -130,6 +131,7 @@ class EmployeeRoleViewSet(viewsets.ReadOnlyModelViewSet):
             # Get employees whose role will actually change
             employees_to_update = User.objects.filter(id__in=employee_ids).exclude(role=new_role)
 
+            # TODO: wrap in batch audit log.
             # Update roles and invalidate sessions in one operation
             updated_count = employees_to_update.update(role=new_role, active_session_key="")
 

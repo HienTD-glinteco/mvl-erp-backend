@@ -6,8 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .exceptions import AuditLogException
-from .opensearch_client import get_opensearch_client
+from ..exceptions import AuditLogException
+from ..opensearch_client import get_opensearch_client
 from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSerializer, AuditLogSerializer
 
 logger = logging.getLogger(__name__)

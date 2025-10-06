@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 14:43+0700\n"
+"POT-Creation-Date: 2025-10-06 15:32+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -58,13 +58,13 @@ msgid "Username does not exist."
 msgstr "Tên đăng nhập không tồn tại."
 
 # api/serializers/auth/login.py:42
-#: apps/core/api/serializers/auth/login.py:57
+#: apps/core/api/serializers/auth/login.py:58
 #, python-format
 msgid "Account is locked. Please try again in %(minutes)d minutes."
 msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
 
 # api/serializers/auth/login.py:46
-#: apps/core/api/serializers/auth/login.py:61
+#: apps/core/api/serializers/auth/login.py:63
 #: apps/core/api/serializers/auth/password_reset.py:45
 #: apps/core/api/serializers/auth/password_reset_change_password.py:78
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:70
@@ -72,7 +72,7 @@ msgid "Account has been deactivated."
 msgstr "Tài khoản đã bị vô hiệu hóa."
 
 # api/serializers/auth/login.py:53
-#: apps/core/api/serializers/auth/login.py:69
+#: apps/core/api/serializers/auth/login.py:71
 msgid ""
 "Account has been locked due to 5 failed login attempts. Please try again in "
 "5 minutes."
@@ -80,13 +80,13 @@ msgstr ""
 "Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
 
 # api/serializers/auth/login.py:56
-#: apps/core/api/serializers/auth/login.py:72
+#: apps/core/api/serializers/auth/login.py:74
 msgid "Incorrect password."
 msgstr "Mật khẩu không đúng."
 
 # models/user.py:28
 #: apps/core/api/serializers/auth/otp_verification.py:24
-#: apps/core/models/user.py:29
+#: apps/core/models/user.py:39
 msgid "OTP code"
 msgstr "Mã OTP"
 
@@ -570,37 +570,37 @@ msgid "Date joined"
 msgstr "Ngày tham gia"
 
 # models/user.py:24
-#: apps/core/models/user.py:25
+#: apps/core/models/user.py:35
 msgid "Failed login attempts"
 msgstr "Số lần đăng nhập thất bại"
 
 # models/user.py:25
-#: apps/core/models/user.py:26
+#: apps/core/models/user.py:36
 msgid "Locked until"
 msgstr "Khóa tài khoản đến"
 
 # models/user.py:29
-#: apps/core/models/user.py:30
+#: apps/core/models/user.py:40
 msgid "OTP expires at"
 msgstr "OTP hết hạn lúc"
 
 # models/user.py:30
-#: apps/core/models/user.py:31
+#: apps/core/models/user.py:41
 msgid "OTP verified"
 msgstr "OTP đã xác thực"
 
 # models/user.py:33
-#: apps/core/models/user.py:34
+#: apps/core/models/user.py:44
 msgid "Active session"
 msgstr "Phiên hoạt động"
 
 # models/user.py:41
-#: apps/core/models/user.py:52
+#: apps/core/models/user.py:62
 msgid "User"
 msgstr "Người dùng"
 
 # models/user.py:42
-#: apps/core/models/user.py:53
+#: apps/core/models/user.py:63
 msgid "Users"
 msgstr "Người dùng"
 
@@ -811,7 +811,7 @@ msgid ""
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."
 
 # validators.py:39
-#: apps/core/validators.py:39
+#: apps/core/validators.py:40
 msgid ""
 "Password must be at least 8 characters long and include uppercase, "
 "lowercase, digits and special characters."

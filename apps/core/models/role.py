@@ -1,8 +1,10 @@
 from django.db import models
 
+from apps.audit_logging.decorators import audit_logging_register
 from libs.base_model_mixin import BaseModel
 
 
+@audit_logging_register
 class Role(BaseModel):
     """Model representing a role that groups permissions"""
 

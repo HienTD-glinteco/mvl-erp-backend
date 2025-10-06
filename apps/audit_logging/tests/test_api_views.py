@@ -19,7 +19,7 @@ class TestAuditLogViewSet(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_audit_logs_success(self, mock_get_client):
         """Test successful audit log search."""
         mock_client = MagicMock()
@@ -59,7 +59,7 @@ class TestAuditLogViewSet(TestCase):
             summary_fields_only=True,
         )
 
-    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_audit_logs_with_filters(self, mock_get_client):
         """Test audit log search with multiple filters."""
         mock_client = MagicMock()
@@ -113,7 +113,7 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_audit_logs_opensearch_exception(self, mock_get_client):
         """Test search when OpenSearch raises an exception."""
         mock_client = MagicMock()
@@ -147,7 +147,7 @@ class TestAuditLogViewSet(TestCase):
         self.assertFalse(response_data["success"])
         self.assertIsNotNone(response_data["error"])
 
-    @patch("apps.audit_logging.views.get_opensearch_client")
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
     def test_detail_audit_log_success(self, mock_get_client):
         """Test successful retrieval of a specific audit log."""
         mock_client = MagicMock()
@@ -185,7 +185,7 @@ class TestAuditLogViewSet(TestCase):
         # Verify OpenSearch client was called with correct log_id
         mock_client.get_log_by_id.assert_called_once_with("test-123")
 
-    @patch("apps.audit_logging.views.get_opensearch_client")
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
     def test_detail_audit_log_not_found(self, mock_get_client):
         """Test retrieval of non-existent audit log."""
         mock_client = MagicMock()
@@ -200,7 +200,7 @@ class TestAuditLogViewSet(TestCase):
         self.assertFalse(response_data["success"])
         self.assertIn("not found", str(response_data["error"]))
 
-    @patch("apps.audit_logging.views.get_opensearch_client")
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
     def test_detail_audit_log_opensearch_exception(self, mock_get_client):
         """Test detail when OpenSearch raises an exception."""
         mock_client = MagicMock()
@@ -223,7 +223,7 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_with_from_date_to_date(self, mock_get_client):
         """Test search with from_date and to_date parameters."""
         mock_client = MagicMock()
@@ -253,7 +253,7 @@ class TestAuditLogViewSet(TestCase):
         self.assertIn("from_date", call_kwargs["filters"])
         self.assertIn("to_date", call_kwargs["filters"])
 
-    @patch("apps.audit_logging.views.get_opensearch_client")
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
     def test_detail_includes_new_fields(self, mock_get_client):
         """Test that detail endpoint includes full_name and HR fields."""
         mock_client = MagicMock()
@@ -284,7 +284,7 @@ class TestAuditLogViewSet(TestCase):
         data = response_data["data"]
         self.assertEqual(data["full_name"], "Test User")
 
-    @patch("apps.audit_logging.serializers.get_opensearch_client")
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_default_sort_order_desc(self, mock_get_client):
         """Test that default sort order is descending (newest first)."""
         mock_client = MagicMock()

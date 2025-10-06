@@ -244,3 +244,477 @@ curl -X GET "http://localhost:9200/_cat/indices/audit-logs-*?v"
 1. Verify OpenSearch is running: `curl http://localhost:9200`
 2. Check OpenSearch logs
 3. Verify index mapping matches log structure
+
+---
+
+## Automatic Audit Logging
+
+### Overview
+
+The audit logging system now includes automatic logging capabilities that capture create, update, and delete operations on Django models with minimal configuration.
+
+### Features
+
+- **Automatic Logging**: Use a simple decorator to enable audit logging on any model
+- **Comprehensive Context**: Captures user, IP address, user agent, and session information
+- **Change Detection**: Automatically detects and logs field-level changes
+- **Flexible Actions**: Supports ADD, CHANGE, DELETE, IMPORT, and EXPORT actions
+- **Non-intrusive**: Uses Django signals, so no changes to your save/delete logic needed
+
+### Quick Start
+
+#### 1. Enable Audit Logging on a Model
+
+Simply apply the `@audit_logging` decorator to any Django model:
+
+```python
+from django.db import models
+from apps.audit_logging import audit_logging
+
+@audit_logging
+class Customer(models.Model):
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+```
+
+#### 2. Enable Audit Context in API ViewSets
+
+For audit logging to work in API endpoints, add the `AuditLoggingMixin` to your ViewSet:
+
+```python
+from rest_framework import viewsets
+from apps.audit_logging import AuditLoggingMixin
+
+class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+```
+
+That's it! All create, update, and delete operations on `Customer` made through this API will now be automatically logged with user context.
+
+**Important**: The mixin must be listed **before** the ViewSet class in the inheritance order.
+
+#### 3. Manual Logging for Custom Actions
+
+For custom actions like IMPORT or EXPORT, use the `log_audit_event` function directly:
+
+```python
+from apps.audit_logging import log_audit_event, LogAction
+
+def import_customers_from_excel(request, excel_file):
+    # ... import logic ...
+
+    for customer in imported_customers:
+        log_audit_event(
+            action=LogAction.IMPORT,
+            modified_object=customer,
+            user=request.user,
+            request=request,
+            import_source=excel_file.name,
+            import_count=len(imported_customers),
+        )
+```
+
+### How Automatic Logging Works
+
+#### Architecture
+
+1. **ViewSet Mixin**: `AuditLoggingMixin` sets up audit context for API requests
+2. **Context Manager**: Stores request in thread-local storage for the duration of the API call
+3. **Decorator**: `@audit_logging` registers Django signal handlers for the model
+4. **Signal Handlers**: Automatically called when models are created, updated, or deleted
+5. **Logging Function**: `log_audit_event` formats and sends the log to RabbitMQ and local files
+
+**Note**: Audit logging only captures changes made through API endpoints where the mixin is applied. This ensures only user actions through the API are logged, not background tasks or admin panel actions.
+
+#### Signal Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client as Client/Browser
+    participant ViewSet as API ViewSet (with Mixin)
+    participant Context as Audit Context
+    participant Model as @audit_logging Model
+    participant Signal as Signal Handler
+    participant Logger as log_audit_event
+    participant Local as Local File Logger
+    participant RabbitMQ as RabbitMQ Stream
+    participant Consumer as Audit Log Consumer
+    participant OpenSearch as OpenSearch
+
+    Client->>ViewSet: API Request
+    ViewSet->>Context: Set audit context (request)
+    Context->>Context: Store request in thread-local
+
+    ViewSet->>Model: save() or delete()
+
+    alt Pre-Save (for updates)
+        Model->>Signal: Trigger pre_save
+        Signal->>Signal: Fetch & store original state
+    end
+
+    Model->>Model: Perform DB operation
+
+    alt Post-Save
+        Model->>Signal: Trigger post_save
+        Signal->>Context: Get request from thread-local
+        Signal->>Logger: Call log_audit_event(action, objects, user, request)
+    else Post-Delete
+        Model->>Signal: Trigger post_delete
+        Signal->>Context: Get request from thread-local
+        Signal->>Logger: Call log_audit_event(action, objects, user, request)
+    end
+
+    Logger->>Logger: Extract metadata (IP, user agent, etc.)
+    Logger->>Logger: Detect field changes
+    Logger->>Logger: Format log data
+
+    par Parallel Logging
+        Logger->>Local: Write to local file
+        Logger->>RabbitMQ: Send to stream (async)
+    end
+
+    RabbitMQ->>Consumer: Stream message
+    Consumer->>OpenSearch: Index log entry
+
+    Model-->>ViewSet: Operation complete
+    ViewSet->>Context: Clear audit context
+    ViewSet-->>Client: API Response
+```
+
+#### Logged Information
+
+Each audit log entry contains:
+
+- **Action**: ADD, CHANGE, DELETE, IMPORT, or EXPORT
+- **Object Information**:
+  - `object_type`: Model name (from AuditLogRegistry)
+  - `object_id`: Primary key of the object
+  - `object_repr`: String representation of the object
+- **User Information**:
+  - `user_id`: User's primary key
+  - `username`: User's username or email
+- **Request Metadata** (when available):
+  - `ip_address`: Client IP (respects X-Forwarded-For)
+  - `user_agent`: Browser/client user agent
+  - `session_key`: Django session key
+- **Change Information**:
+  - `change_message`: Description of what changed
+  - For CHANGE actions: Field-level diff showing old → new values
+- **Timestamps**:
+  - `timestamp`: ISO 8601 formatted UTC timestamp
+  - `log_id`: Unique UUID for the log entry
+
+### API Reference
+
+#### `@audit_logging` Decorator
+
+Enables automatic audit logging on a Django model.
+
+```python
+@audit_logging
+class MyModel(models.Model):
+    ...
+```
+
+**What it logs:**
+- CREATE: When a new instance is saved with `created=True`
+- UPDATE: When an existing instance is saved with `created=False`
+- DELETE: When an instance is deleted
+
+#### `log_audit_event()` Function
+
+Manually log an audit event with standardized parameters.
+
+```python
+def log_audit_event(
+    action: str,
+    original_object=None,
+    modified_object=None,
+    user=None,
+    request: Optional[HttpRequest] = None,
+    **extra_kwargs
+)
+```
+
+**Parameters:**
+- `action` (str): Action type (use `LogAction` enum values)
+- `original_object`: Original object state (for CHANGE/DELETE)
+- `modified_object`: Modified object state (for ADD/CHANGE)
+- `user`: User who performed the action
+- `request`: HTTP request for extracting metadata
+- `**extra_kwargs`: Additional custom fields to log
+
+**Example:**
+```python
+log_audit_event(
+    action=LogAction.EXPORT,
+    modified_object=report,
+    user=request.user,
+    request=request,
+    export_format="xlsx",
+    export_filters={"date_from": "2024-01-01"},
+)
+```
+
+#### `LogAction` Enum
+
+Predefined action types:
+
+```python
+from apps.audit_logging import LogAction
+
+LogAction.ADD      # Object created
+LogAction.CHANGE   # Object updated
+LogAction.DELETE   # Object deleted
+LogAction.IMPORT   # Object imported from external source
+LogAction.EXPORT   # Object exported
+```
+
+#### `AuditLogRegistry` Class
+
+Registry for tracking which models have audit logging enabled.
+
+**Class Methods:**
+
+```python
+from apps.audit_logging import AuditLogRegistry
+
+# Check if a model is registered
+is_registered = AuditLogRegistry.is_registered(MyModel)
+
+# Get all registered models
+all_models = AuditLogRegistry.get_all_models()
+
+# Get information about a specific model
+model_info = AuditLogRegistry.get_model_info(MyModel)
+# Returns: {
+#     'app_label': 'myapp',
+#     'model_name': 'mymodel',
+#     'verbose_name': 'My Model',
+#     'verbose_name_plural': 'My Models'
+# }
+
+# Get information about all registered models
+all_info = AuditLogRegistry.get_all_model_info()
+
+# Get ContentType for a model
+content_type = AuditLogRegistry.get_content_type(MyModel)
+```
+
+**Automatic Registration:**
+Models are automatically registered when decorated with `@audit_logging`:
+
+```python
+@audit_logging
+class Customer(models.Model):
+    name = models.CharField(max_length=200)
+    # Model is now registered in AuditLogRegistry
+```
+
+**Use Cases:**
+- Build admin dashboards showing which models have audit logging
+- Programmatically query registered models for monitoring
+- Generate documentation of audited models
+- Validate audit coverage across your application
+
+#### `batch_audit_context()` Context Manager
+
+For batch operations (import, export, bulk approve, etc.), use `batch_audit_context` to attach batch metadata to individual audit logs. This allows you to:
+- Query all logs for a specific object (including batch operations)
+- Link all logs from the same batch operation via `batch_id`
+- Track errors separately in a summary log
+
+```python
+from apps.audit_logging import batch_audit_context, LogAction
+
+with batch_audit_context(
+    action=LogAction.IMPORT,
+    model_class=Customer,
+    user=request.user,
+    request=request,
+    import_source="customers.xlsx"
+) as batch:
+    for data in customer_data:
+        try:
+            customer = Customer.objects.create(**data)
+            # Individual log is automatically created with batch metadata
+        except Exception as e:
+            # Track errors for summary
+            batch.add_error(f"Row {data['row']}: {str(e)}")
+```
+
+**How it works:**
+- Each object gets its own individual audit log
+- All logs include `batch_id` and `batch_action` fields to link them together
+- Custom fields (e.g., `import_source`) are added to each individual log
+- If there are errors, a summary log is created at the end
+
+**Parameters:**
+- `action`: The batch action type (e.g., LogAction.IMPORT)
+- `model_class`: The model class being operated on
+- `user`: User performing the action
+- `request`: HTTP request object
+- `**extra_fields`: Additional fields (e.g., `import_source`, `export_format`)
+
+**What gets logged for each object:**
+- Individual log with all standard fields (action, user, IP, etc.)
+- `batch_id`: UUID linking all logs in this batch
+- `batch_action`: The batch action type (IMPORT, EXPORT, etc.)
+- All extra_fields (e.g., `import_source`, `export_format`)
+
+**Summary log (created only if there are errors):**
+- `batch_id`: Same UUID as individual logs
+- `batch_summary`: True
+- `total_processed`: Count of objects processed
+- `error_count`: Number of errors
+- `errors`: List of error messages (limited to first 20)
+
+### Advanced Usage
+
+#### Custom Change Messages
+
+Override the automatic change message by providing a custom one:
+
+```python
+log_audit_event(
+    action=LogAction.CHANGE,
+    original_object=old_order,
+    modified_object=new_order,
+    user=request.user,
+    request=request,
+    change_message="Order status changed from PENDING to APPROVED",
+)
+```
+
+#### Logging Without Request Context
+
+If you're logging from a background task or management command:
+
+```python
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+system_user = User.objects.get(username="system")
+
+log_audit_event(
+    action=LogAction.CHANGE,
+    modified_object=obj,
+    user=system_user,
+    request=None,  # No request available
+    automated_task="nightly_data_sync",
+)
+```
+
+### Integration with Existing Code
+
+#### For New Models
+
+Add the decorator to the model:
+
+```python
+from apps.audit_logging import audit_logging
+
+@audit_logging
+class NewModel(models.Model):
+    ...
+```
+
+#### For Existing Models
+
+Add the decorator to existing models:
+
+```python
+# Before
+class ExistingModel(models.Model):
+    ...
+
+# After
+from apps.audit_logging import audit_logging
+
+@audit_logging
+class ExistingModel(models.Model):
+    ...
+```
+
+No database migrations needed! The decorator only registers signal handlers.
+
+#### For ViewSets and Views
+
+Add the `AuditLoggingMixin` to your ViewSet:
+
+```python
+from apps.audit_logging import AuditLoggingMixin
+
+class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+    queryset = Customer.objects.all()  # Customer has @audit_logging
+    serializer_class = CustomerSerializer
+    # Automatic audit logging on create, update, delete!
+```
+
+**Important Notes:**
+- The mixin **must** be the first parent class (before ModelViewSet)
+- Only operations through this API endpoint will be logged
+- Operations from admin panel, management commands, or other code paths won't be logged
+- This ensures audit logs only contain user actions from API endpoints
+
+### Best Practices
+
+1. **Apply to Important Models**: Focus on business-critical models like:
+   - User accounts and profiles
+   - Financial transactions
+   - Customer and order data
+   - Configuration changes
+
+2. **Don't Over-Log**: Avoid logging:
+   - Session data
+   - Cache entries
+   - Temporary computation results
+
+3. **Use Batch Context for Bulk Operations**: Always use `batch_audit_context` for bulk operations to add batch metadata:
+   ```python
+   # Good - Individual logs with batch metadata for linking
+   with batch_audit_context(action=LogAction.IMPORT, model_class=Customer, ...) as batch:
+       for data in customer_data:
+           try:
+               customer = Customer.objects.create(**data)
+               # Individual log created with batch_id for linking
+           except Exception as e:
+               batch.add_error(str(e))
+
+   # Without batch context - Individual logs but no way to link them
+   for data in customer_data:
+       customer = Customer.objects.create(**data)  # Individual log without batch linkage
+   ```
+
+4. **Custom Actions**: Use appropriate LogAction types for different operations:
+   ```python
+   # Good
+   log_audit_event(action=LogAction.IMPORT, ...)
+
+   # Not ideal - creates many individual logs
+   for obj in objects:
+       obj.save()  # Triggers ADD log for each
+   ```
+
+4. **Error Handling**: The logging system silently catches and logs errors to avoid breaking your application. Check logs if audit entries are missing.
+
+### Testing
+
+When testing your own models with audit logging:
+
+```python
+from unittest.mock import patch
+from apps.audit_logging import LogAction
+
+@patch("apps.audit_logging.producer._audit_producer.log_event")
+def test_customer_creation_is_logged(mock_log_event):
+    customer = Customer.objects.create(name="Test", email="test@example.com")
+
+    # Verify audit log was created
+    mock_log_event.assert_called_once()
+    call_args = mock_log_event.call_args[1]
+    assert call_args["action"] == LogAction.ADD
+    assert call_args["object_type"] == "customer"
+```

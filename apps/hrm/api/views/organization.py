@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
+from apps.audit_logging import AuditLoggingMixin
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchFilterSet,
@@ -55,7 +56,7 @@ from apps.hrm.models import Block, Branch, Department, OrganizationChart, Positi
         tags=["Chi nhánh"],
     ),
 )
-class BranchViewSet(viewsets.ModelViewSet):
+class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     """ViewSet for Branch model"""
 
     queryset = Branch.objects.all()
@@ -99,7 +100,7 @@ class BranchViewSet(viewsets.ModelViewSet):
         tags=["Khối"],
     ),
 )
-class BlockViewSet(viewsets.ModelViewSet):
+class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     """ViewSet for Block model"""
 
     queryset = Block.objects.select_related("branch").all()
@@ -143,7 +144,7 @@ class BlockViewSet(viewsets.ModelViewSet):
         tags=["Phòng ban"],
     ),
 )
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     """ViewSet for Department model"""
 
     queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
@@ -280,7 +281,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         tags=["Chức vụ"],
     ),
 )
-class PositionViewSet(viewsets.ModelViewSet):
+class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     """ViewSet for Position model"""
 
     queryset = Position.objects.all()
@@ -324,7 +325,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         tags=["Sơ đồ tổ chức"],
     ),
 )
-class OrganizationChartViewSet(viewsets.ModelViewSet):
+class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     """ViewSet for OrganizationChart model"""
 
     queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()

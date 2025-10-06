@@ -1,9 +1,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.audit_logging.decorators import audit_logging_register
 from libs.base_model_mixin import BaseModel
 
 
+@audit_logging_register
 class Branch(BaseModel):
     """Company branch"""
 
@@ -23,6 +25,7 @@ class Branch(BaseModel):
         return f"{self.code} - {self.name}"
 
 
+@audit_logging_register
 class Block(BaseModel):
     """Business unit/block"""
 
@@ -52,6 +55,7 @@ class Block(BaseModel):
         return f"{self.code} - {self.name} ({self.get_block_type_display()})"
 
 
+@audit_logging_register
 class Department(BaseModel):
     """Department"""
 
@@ -126,7 +130,9 @@ class Department(BaseModel):
             if self.management_department.block != self.block:
                 raise ValidationError({"management_department": _("Management department must be in the same block.")})
             if self.management_department.function != self.function:
-                raise ValidationError({"management_department": _("Management department must have the same function.")})
+                raise ValidationError(
+                    {"management_department": _("Management department must have the same function.")}
+                )
 
         # Validate only one main department per function
         if self.is_main_department:
@@ -136,7 +142,10 @@ class Department(BaseModel):
 
             if existing_main.exists():
                 raise ValidationError(
-                    {"is_main_department": _("A main department already exists for function %(function)s.") % {"function": self.get_function_display()}}
+                    {
+                        "is_main_department": _("A main department already exists for function %(function)s.")
+                        % {"function": self.get_function_display()}
+                    }
                 )
 
     def save(self, *args, **kwargs):
@@ -167,6 +176,7 @@ class Department(BaseModel):
         return []
 
 
+@audit_logging_register
 class Position(BaseModel):
     """Position/Role"""
 
@@ -196,6 +206,7 @@ class Position(BaseModel):
         return f"{self.code} - {self.name}"
 
 
+@audit_logging_register
 class OrganizationChart(BaseModel):
     """Organization chart entry"""
 
@@ -246,6 +257,4 @@ class OrganizationChart(BaseModel):
             ).exclude(id=self.id)
 
             if existing.exists():
-                raise ValidationError(
-                    _("Employee can only have one primary position in a department at a time.")
-                )
+                raise ValidationError(_("Employee can only have one primary position in a department at a time."))
