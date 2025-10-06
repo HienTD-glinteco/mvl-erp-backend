@@ -135,6 +135,9 @@ def log_audit_event(
     This is the public interface for logging. It formats the event, writes it
     to a local log file, and pushes it to a RabbitMQ Stream.
     """
+    if settings.AUDIT_LOG_DISABLED:
+        return
+
     log_data: dict[str, Any] = {"action": action}
 
     # Determine which object to use for extracting metadata
