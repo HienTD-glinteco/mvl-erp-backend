@@ -648,6 +648,41 @@ msgid ""
 "MaiVietLand Team\n"
 "        "
 msgstr ""
+# tasks/email.py:48
+#: apps/core/tasks/email.py:48
+msgid "Password Reset OTP Code - MaiVietLand"
+msgstr "Mã OTP đặt lại mật khẩu - MaiVietLand"
+
+# templates/emails/password_reset_otp_email.html:6
+#: apps/core/templates/emails/password_reset_otp_email.html:6
+#: apps/core/templates/emails/password_reset_otp_email.html:19
+msgid "Password Reset OTP Code"
+msgstr "Mã OTP đặt lại mật khẩu"
+
+# templates/emails/password_reset_otp_email.html:25
+#: apps/core/templates/emails/password_reset_otp_email.html:25
+msgid "We have received a password reset request for your MaiVietLand account."
+msgstr "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản MaiVietLand của bạn."
+
+# templates/emails/password_reset_otp_email.html:27
+#: apps/core/templates/emails/password_reset_otp_email.html:27
+msgid "Your OTP code to reset your password is:"
+msgstr "Mã OTP để đặt lại mật khẩu của bạn là:"
+
+# templates/emails/password_reset_otp_email.html:32
+#: apps/core/templates/emails/password_reset_otp_email.html:32
+msgid "This code is valid for 3 minutes and can only be used once."
+msgstr "Mã này có hiệu lực trong 3 phút và chỉ sử dụng một lần."
+
+# templates/emails/password_reset_otp_email.html:35
+#: apps/core/templates/emails/password_reset_otp_email.html:35
+msgid ""
+"If you did not initiate this password reset request, please ignore this "
+"email and contact the administrator if necessary."
+msgstr ""
+"Nếu bạn không thực hiện yêu cầu đặt lại mật khẩu này, vui lòng bỏ qua email "
+"này và liên hệ với quản trị viên nếu cần thiết."
+
 
 # tasks/email.py:105
 #: apps/core/tasks/email.py:105

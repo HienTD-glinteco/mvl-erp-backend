@@ -47,8 +47,8 @@ class PasswordResetSerializer(serializers.Serializer):
         attrs["user"] = user
         return attrs
 
-    def send_reset_email(self, user):
-        """Send password reset instructions via email using Celery task"""
+    def send_reset_email(self, user, otp_code):
+        """Send password reset OTP via email using Celery task"""
         try:
             # Send email via Celery task
             send_password_reset_email_task.delay(
@@ -56,13 +56,13 @@ class PasswordResetSerializer(serializers.Serializer):
                 user_email=user.email,
                 user_full_name=user.get_full_name(),
                 username=user.username,
-                phone_number=user.phone_number,
+                otp_code=otp_code,
             )
 
-            logger.info(f"Password reset email task queued for user {user.username}")
+            logger.info(f"Password reset OTP email task queued for user {user.username}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to queue password reset email task for user {user.username}: {str(e)}")
+            logger.error(f"Failed to queue password reset OTP email task for user {user.username}: {str(e)}")
             sentry_sdk.capture_exception(e)
             return False

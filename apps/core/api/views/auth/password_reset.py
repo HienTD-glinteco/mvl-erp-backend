@@ -58,8 +58,8 @@ class PasswordResetView(APIView):
 
             # Dispatch OTP via chosen channel
             if is_email:
-                # Keep existing email behavior (no OTP content change here)
-                sent = serializer.send_reset_email(user)
+                # Send OTP via email
+                sent = serializer.send_reset_email(user, otp_code)
                 if not sent:
                     logger.error(f"Failed to send password reset email for user {user.username}")
                 message = _("Password reset OTP code has been sent to your email. The code is valid for 3 minutes.")
