@@ -173,4 +173,16 @@ The agent follows an **incremental validation strategy**:
 2. **Phase 2 (Medium)**: Install deps and run targeted checks only when needed
 3. **Phase 3 (Slow)**: Full validation only before final commit
 
-See [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) for details.
+**Important documentation**:
+- 📋 [Copilot Instructions](.github/copilot-instructions.md) - **MUST READ** before any task
+- ⚡ [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) - Performance guidelines
+
+### Code Quality Standards
+
+**⚠️ Critical Requirements ⚠️**
+- **NO Vietnamese text** in code, comments, or docstrings
+- **English ONLY** for all code and API documentation
+- **User-facing strings** must use Django's `gettext()` for translation
+- **Validation**: Run `pre-commit run --all-files` before committing
+
+See the [Pre-Flight Checklist](.github/copilot-instructions.md#️-pre-flight-checklist---read-before-every-task-️) for complete requirements.
