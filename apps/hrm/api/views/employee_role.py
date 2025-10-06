@@ -130,13 +130,8 @@ class EmployeeRoleViewSet(viewsets.ReadOnlyModelViewSet):
             # Get employees whose role will actually change
             employees_to_update = User.objects.filter(id__in=employee_ids).exclude(role=new_role)
 
-            # Update roles
-            updated_count = employees_to_update.update(role=new_role)
-
-            # Invalidate sessions for users whose roles changed
-            if updated_count > 0:
-                # Clear active session keys to force logout
-                employees_to_update.update(active_session_key="")
+            # Update roles and invalidate sessions in one operation
+            updated_count = employees_to_update.update(role=new_role, active_session_key="")
 
         return Response(
             {

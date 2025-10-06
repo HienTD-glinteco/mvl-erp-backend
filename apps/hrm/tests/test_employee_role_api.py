@@ -218,7 +218,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         """Test QTNV 3.2.4 - Chỉnh sửa Role của nhân viên thành công"""
         url = reverse("hrm:employee-role-bulk-update-roles")
         data = {
-            "employee_ids": [str(self.employee1.id), str(self.employee2.id)],
+            "employee_ids": [self.employee1.id, self.employee2.id],
             "new_role_id": self.role_manager.id,
         }
 
@@ -228,7 +228,8 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         response_data = response.json()
 
         self.assertTrue(response_data["success"])
-        self.assertEqual(response_data["updated_count"], 2)
+        # Data is wrapped in envelope
+        self.assertEqual(response_data["data"]["updated_count"], 2)
 
         # Verify roles were updated
         self.employee1.refresh_from_db()
@@ -246,7 +247,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
 
         url = reverse("hrm:employee-role-bulk-update-roles")
         data = {
-            "employee_ids": [str(self.employee1.id), str(self.employee2.id)],
+            "employee_ids": [self.employee1.id, self.employee2.id],
             "new_role_id": self.role_manager.id,
         }
 
@@ -274,9 +275,9 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         employee_ids = []
         for i in range(26):
             emp = User.objects.create_user(
-                username=f"EMP{i:03d}", email=f"emp{i}@example.com", password="testpass123", role=self.role_staff
+                username=f"EMP{i:03d}", email=f"emp{i:03d}@example.com", password="testpass123", role=self.role_staff
             )
-            employee_ids.append(str(emp.id))
+            employee_ids.append(emp.id)
 
             # Create organization chart entry for each
             OrganizationChart.objects.create(
@@ -298,7 +299,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
     def test_bulk_update_roles_no_role_selected(self):
         """Test QTNV 3.2.4 - Error when no role selected"""
         url = reverse("hrm:employee-role-bulk-update-roles")
-        data = {"employee_ids": [str(self.employee1.id)]}
+        data = {"employee_ids": [self.employee1.id]}
 
         response = self.client.post(url, data, format="json")
 

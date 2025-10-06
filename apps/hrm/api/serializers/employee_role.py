@@ -63,7 +63,7 @@ class BulkUpdateRoleSerializer(serializers.Serializer):
     """Serializer for bulk updating employee roles"""
 
     employee_ids = serializers.ListField(
-        child=serializers.UUIDField(),
+        child=serializers.IntegerField(),
         min_length=1,
         max_length=25,
         help_text=_("List of employee IDs to update (maximum 25)"),
