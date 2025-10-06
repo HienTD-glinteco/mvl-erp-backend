@@ -6,7 +6,7 @@ to deploy the app to staging environment.
 from decouple import Csv
 
 from .base import *  # noqa
-from .base import config
+from .base import DEBUG, config
 
 INSTALLED_APPS += [  # NOQA
     "health_check",  # required
@@ -47,3 +47,11 @@ SESSION_CACHE_ALIAS = "default"
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv())
 CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=Csv())
 CORS_ALLOWED_ORIGIN_REGEXES = config("CORS_ALLOWED_ORIGIN_REGEXES", cast=Csv())
+
+if DEBUG:
+    # Use SMTP:
+    EMAIL_BACKEND = config(  # noqa
+        "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+    )
+    EMAIL_HOST = config("EMAIL_HOST", default="127.0.0.1")  # noqa
+    EMAIL_PORT = config("EMAIL_PORT", default=1025, cast=int)  # noqa
