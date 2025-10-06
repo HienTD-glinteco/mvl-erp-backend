@@ -6,6 +6,7 @@ from .auth import (
     PasswordResetOTPVerificationSerializer,
     PasswordResetSerializer,
 )
+from .role import PermissionSerializer, RoleSerializer
 
 __all__ = [
     "LoginSerializer",
@@ -14,4 +15,6 @@ __all__ = [
     "PasswordResetOTPVerificationSerializer",
     "PasswordResetChangePasswordSerializer",
     "PasswordChangeSerializer",
+    "RoleSerializer",
+    "PermissionSerializer",
 ]

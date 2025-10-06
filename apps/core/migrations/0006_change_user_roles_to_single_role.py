@@ -5,26 +5,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0005_add_permission_and_role_models'),
+        ("core", "0005_add_permission_and_role_models"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='roles',
+            model_name="user",
+            name="roles",
         ),
         migrations.AddField(
-            model_name='user',
-            name='role',
+            model_name="user",
+            name="role",
             field=models.ForeignKey(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                related_name='users',
-                to='core.role',
-                verbose_name='Vai trò'
+                related_name="users",
+                to="core.role",
+                verbose_name="Vai trò",
             ),
         ),
     ]

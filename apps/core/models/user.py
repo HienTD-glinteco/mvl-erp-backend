@@ -21,6 +21,16 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False, verbose_name=_("Staff"))
     date_joined = models.DateTimeField(default=timezone.now, verbose_name=_("Date joined"))
 
+    # Role assignment
+    role = models.ForeignKey(
+        "Role",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="users",
+        verbose_name="Vai trò",
+    )
+
     # Login attempt tracking
     failed_login_attempts = models.IntegerField(default=0, verbose_name=_("Failed login attempts"))
     locked_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Locked until"))

@@ -54,7 +54,9 @@ class LoginSerializer(serializers.Serializer):
         # Check if account is locked
         if user.is_locked:
             remaining_time = (user.locked_until - timezone.now()).seconds // 60
-            raise serializers.ValidationError(_("Account is locked. Please try again in %(minutes)d minutes.") % {"minutes": remaining_time})
+            raise serializers.ValidationError(
+                _("Account is locked. Please try again in %(minutes)d minutes.") % {"minutes": remaining_time}
+            )
 
         # Check if user is active
         if not user.is_active:

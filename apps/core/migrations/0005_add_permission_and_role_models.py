@@ -4,46 +4,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0004_alter_user_id_userdevice'),
+        ("core", "0004_alter_user_id_userdevice"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Permission',
+            name="Permission",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('code', models.CharField(max_length=100, unique=True, verbose_name='Mã quyền')),
-                ('description', models.CharField(blank=True, max_length=255, verbose_name='Mô tả')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("code", models.CharField(max_length=100, unique=True, verbose_name="Mã quyền")),
+                ("description", models.CharField(blank=True, max_length=255, verbose_name="Mô tả")),
             ],
             options={
-                'verbose_name': 'Quyền',
-                'verbose_name_plural': 'Quyền',
-                'db_table': 'core_permission',
+                "verbose_name": "Quyền",
+                "verbose_name_plural": "Quyền",
+                "db_table": "core_permission",
             },
         ),
         migrations.CreateModel(
-            name='Role',
+            name="Role",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Tên vai trò')),
-                ('description', models.CharField(blank=True, max_length=255, verbose_name='Mô tả')),
-                ('permissions', models.ManyToManyField(blank=True, related_name='roles', to='core.permission', verbose_name='Quyền')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=100, unique=True, verbose_name="Tên vai trò")),
+                ("description", models.CharField(blank=True, max_length=255, verbose_name="Mô tả")),
+                (
+                    "permissions",
+                    models.ManyToManyField(
+                        blank=True, related_name="roles", to="core.permission", verbose_name="Quyền"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Vai trò',
-                'verbose_name_plural': 'Vai trò',
-                'db_table': 'core_role',
+                "verbose_name": "Vai trò",
+                "verbose_name_plural": "Vai trò",
+                "db_table": "core_role",
             },
         ),
         migrations.AddField(
-            model_name='user',
-            name='roles',
-            field=models.ManyToManyField(blank=True, related_name='users', to='core.role', verbose_name='Vai trò'),
+            model_name="user",
+            name="roles",
+            field=models.ManyToManyField(blank=True, related_name="users", to="core.role", verbose_name="Vai trò"),
         ),
     ]

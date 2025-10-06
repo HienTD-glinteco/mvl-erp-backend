@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from .api.views import (
     ConstantsView,
@@ -8,10 +9,16 @@ from .api.views import (
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
     PasswordResetView,
+    PermissionViewSet,
+    RoleViewSet,
 )
 from .api.views.token import TokenRefreshView, TokenVerifyView
 
 app_name = "core"
+
+router = DefaultRouter()
+router.register(r"roles", RoleViewSet, basename="role")
+router.register(r"permissions", PermissionViewSet, basename="permission")
 
 urlpatterns = [
     # Authentication endpoints
@@ -34,6 +41,8 @@ urlpatterns = [
     # JWT token endpoints
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # Role management
+    path("", include(router.urls)),
     # Constants endpoint
     path("constants/", ConstantsView.as_view(), name="constants"),
 ]
