@@ -156,8 +156,8 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(role.description, update_data["description"])
         self.assertEqual(role.permissions.count(), len(self.permissions))
 
-    def test_update_system_role_should_fail(self):
-        """Test updating a system role should fail"""
+    def test_update_system_role_other_fields_should_fail(self):
+        """Test updating non-permission fields of system role should fail"""
         # Get VT001 system role
         role = Role.objects.get(code="VT001")
 
@@ -166,6 +166,21 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         response = self.client.patch(url, update_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_system_role_permissions_should_succeed(self):
+        """Test updating permissions of system role should succeed"""
+        # Get VT001 system role
+        role = Role.objects.get(code="VT001")
+        initial_permission_count = role.permissions.count()
+
+        # Update only permissions
+        update_data = {"permission_ids": [p.id for p in self.permissions[:2]]}
+        url = reverse("core:role-detail", kwargs={"pk": role.pk})
+        response = self.client.patch(url, update_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        role.refresh_from_db()
+        self.assertEqual(role.permissions.count(), 2)
 
     def test_delete_role(self):
         """Test deleting a role via API"""

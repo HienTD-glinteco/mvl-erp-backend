@@ -80,8 +80,17 @@ class RoleSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        """Update role - prevent update of system roles"""
+        """Update role - system roles can only update permissions, not other fields"""
         if instance.is_system_role:
-            raise serializers.ValidationError("Không thể chỉnh sửa vai trò hệ thống.")
+            # For system roles, only allow updating permissions
+            allowed_fields = {"permissions"}
+            provided_fields = set(validated_data.keys())
+
+            # Check if any non-permission fields are being updated
+            non_allowed_fields = provided_fields - allowed_fields
+            if non_allowed_fields:
+                raise serializers.ValidationError(
+                    "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác."
+                )
 
         return super().update(instance, validated_data)
