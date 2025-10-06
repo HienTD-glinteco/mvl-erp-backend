@@ -76,22 +76,53 @@ class ConstantsView(APIView):
         Extract constants from a constants.py module.
         Returns constants that are uppercase and not private.
         """
-        constants = {}
+        constants: dict[str, Any] = {}
 
         for name in dir(module):
-            # Skip private/protected members and non-uppercase names
-            if name.startswith("_") or not name.isupper():
+            if name.startswith("_"):
                 continue
 
             value = getattr(module, name)
 
-            # Skip imported modules and callable objects
-            if inspect.ismodule(value) or callable(value):
+            # If it's a class, collect its public non-callable attributes as nested constants
+            if inspect.isclass(value):
+                class_constants = self._extract_public_class_attrs(value)
+                if class_constants:
+                    constants[name] = class_constants
                 continue
 
-            constants[name] = value
+            # Module-level constants: keep existing rule (uppercase, non-callable, non-module)
+            if name.isupper() and not (inspect.ismodule(value) or callable(value)):
+                constants[name] = value
 
         return constants
+
+    def _extract_public_class_attrs(self, cls_obj) -> dict[str, Any]:
+        """Extract public, non-callable, non-module/class attributes from a class.
+
+        If the class implements a lazy population method named `refresh`, it will
+        be invoked once before extracting attributes (best-effort; exceptions are swallowed).
+        """
+        # Attempt lazy population if available
+        refresh = getattr(cls_obj, "refresh", None)
+
+        if callable(refresh):
+            refresh()
+
+        result: dict[str, Any] = {}
+        for attr_name, attr_value in vars(cls_obj).items():
+            if attr_name.startswith("_"):
+                continue
+            if (
+                inspect.isroutine(attr_value)
+                or isinstance(attr_value, (staticmethod, classmethod, property))
+                or inspect.isclass(attr_value)
+                or inspect.ismodule(attr_value)
+            ):
+                continue
+            result[attr_name] = attr_value
+
+        return result
 
     def _extract_model_constants(self, app_config) -> dict[str, Any]:
         """

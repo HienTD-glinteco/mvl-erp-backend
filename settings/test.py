@@ -33,3 +33,5 @@ REST_FRAMEWORK = {
         "login": "10000/minute",
     },
 }
+
+LANGUAGE_CODE = "en"

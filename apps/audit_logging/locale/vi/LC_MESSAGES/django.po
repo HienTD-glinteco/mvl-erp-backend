@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 14:43+0700\n"
+"POT-Creation-Date: 2025-10-06 16:20+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/audit_logging/constants.py:8
+#: apps/audit_logging/constants.py:10
 msgid "Add"
 msgstr ""
 
-#: apps/audit_logging/constants.py:9
+#: apps/audit_logging/constants.py:11
 msgid "Change"
 msgstr ""
 
-#: apps/audit_logging/constants.py:10
+#: apps/audit_logging/constants.py:12
 msgid "Delete"
 msgstr ""
 
-#: apps/audit_logging/constants.py:11
+#: apps/audit_logging/constants.py:13
 msgid "Import"
 msgstr ""
 
-#: apps/audit_logging/constants.py:12
+#: apps/audit_logging/constants.py:14
 msgid "Export"
 msgstr ""

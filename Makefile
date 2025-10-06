@@ -26,7 +26,7 @@ run_audit_logs_consumer:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(ARGS)
 
 test:
-	ENVIRONMENT=testing pytest $(ARGS)
+	ENVIRONMENT=test pytest $(ARGS)
 
 test_parallel:
-	ENVIRONMENT=testing pytest -n auto $(ARGS)
+	ENVIRONMENT=test pytest -n auto $(ARGS)

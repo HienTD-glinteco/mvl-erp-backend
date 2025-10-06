@@ -37,8 +37,8 @@ class AuditLogRegistry:
             cls._registry[model_class] = {
                 "app_label": app_label,
                 "model_name": model_name,
-                "verbose_name": str(model_class._meta.verbose_name),
-                "verbose_name_plural": str(model_class._meta.verbose_name_plural),
+                "verbose_name": model_class._meta.verbose_name,
+                "verbose_name_plural": model_class._meta.verbose_name_plural,
             }
 
     @classmethod
