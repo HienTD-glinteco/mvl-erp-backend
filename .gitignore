@@ -101,3 +101,4 @@ webpack-stats.json
 # IDE Stuffs
 .vscode
 .env
+test_db.sqlite3

@@ -39,7 +39,7 @@ from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, Emp
 class EmployeeRoleViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for managing employees by role.
-    
+
     Provides listing and filtering of employees with their role information.
     Supports bulk updating of employee roles.
     """
@@ -113,7 +113,7 @@ class EmployeeRoleViewSet(viewsets.ReadOnlyModelViewSet):
     def bulk_update_roles(self, request):
         """
         Bulk update roles for multiple employees.
-        
+
         Business rules:
         - Maximum 25 employees per update
         - New role must be selected

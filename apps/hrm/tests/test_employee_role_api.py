@@ -66,15 +66,30 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
 
         # Create test employees
         self.employee1 = User.objects.create_user(
-            username="NV001", email="emp1@example.com", password="testpass123", first_name="Nguyễn", last_name="Văn A", role=self.role_staff
+            username="NV001",
+            email="emp1@example.com",
+            password="testpass123",
+            first_name="Nguyễn",
+            last_name="Văn A",
+            role=self.role_staff,
         )
 
         self.employee2 = User.objects.create_user(
-            username="NV002", email="emp2@example.com", password="testpass123", first_name="Trần", last_name="Thị B", role=self.role_staff
+            username="NV002",
+            email="emp2@example.com",
+            password="testpass123",
+            first_name="Trần",
+            last_name="Thị B",
+            role=self.role_staff,
         )
 
         self.employee3 = User.objects.create_user(
-            username="NV003", email="emp3@example.com", password="testpass123", first_name="Lê", last_name="Văn C", role=self.role_manager
+            username="NV003",
+            email="emp3@example.com",
+            password="testpass123",
+            first_name="Lê",
+            last_name="Văn C",
+            role=self.role_manager,
         )
 
         # Create organization chart entries
