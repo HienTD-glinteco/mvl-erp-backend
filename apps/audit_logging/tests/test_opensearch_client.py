@@ -97,8 +97,8 @@ class TestOpenSearchClient(TestCase):
     def test_build_search_query_with_filters(self):
         """Test search query building with various filters."""
         filters = {
-            "start_time": "2023-12-01T00:00:00Z",
-            "end_time": "2023-12-31T23:59:59Z",
+            "from_date": "2023-12-01",
+            "to_date": "2023-12-31",
             "action": "test_action",
             "search_term": "test query",
         }
@@ -111,7 +111,7 @@ class TestOpenSearchClient(TestCase):
 
         # Check for range queries
         range_clauses = [c for c in must_clauses if "range" in c]
-        self.assertEqual(len(range_clauses), 2)  # start_time and end_time
+        self.assertEqual(len(range_clauses), 2)  # from_date and to_date
 
         # Check for term query
         term_clauses = [c for c in must_clauses if "term" in c]
@@ -184,7 +184,7 @@ class TestOpenSearchClient(TestCase):
         call_args = self.mock_opensearch.search.call_args
         search_body = call_args.kwargs["body"]
         self.assertIn("_source", search_body)
-        self.assertEqual(len(search_body["_source"]), 8)  # 8 summary fields
+        self.assertEqual(len(search_body["_source"]), 9)  # 9 summary fields
         self.assertIn("log_id", search_body["_source"])
         self.assertIn("timestamp", search_body["_source"])
         self.assertIn("object_repr", search_body["_source"])

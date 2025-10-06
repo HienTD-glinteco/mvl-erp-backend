@@ -26,16 +26,26 @@ This project is a Django application with a modular architecture.
 - The codebase must strictly adhere to our linting and formatting rules.
 - **Tools:** We use `ruff` for both linting and code formatting, and `mypy` for static type checking.
 - **Pre-commit:** You MUST run the `pre-commit` hooks to format and lint your code before pushing any changes.
+- **Optimization:** For faster iteration, use an incremental validation approach:
+  * Start with code reading and analysis (no dependencies needed)
+  * Use Python's built-in syntax checking (`python -m py_compile`) for basic validation
+  * Run `poetry run ruff check` for targeted files when modifying code
+  * Run `mypy` only on files you're modifying, not the entire codebase
+  * Defer full pre-commit validation until final changes are ready
 
 ## 4. Testing
-- **TDD Approach:** Always write tests **before** implementing or modifying code. The tests should cover important business logic.
+- **TDD Approach:** Write tests **before** implementing or modifying code when working on business logic. For documentation-only changes, bug fixes with existing tests, or minor refactors, tests may not be needed.
 - **AAA Pattern:** Structure all tests using the Arrange-Act-Assert (AAA) pattern.
     1.  **Arrange:** Set up the test data and initial state using Django ORM objects.
     2.  **Act:** Execute the function or make the API call you are testing.
     3.  **Assert:** Verify the outcome is as expected.
 - **Database:** Do **not** mock the database unless there are explicit human instructions. Create real model instances for testing via the Django ORM.
 - **Fixtures:** Reuse test data by creating Pytest fixtures. For widely used fixtures, define them in a higher-level `conftest.py` file to broaden their scope.
-- **Execution:** Always run relevant tests after making changes to ensure nothing is broken.
+- **Execution:** Run relevant tests after making code changes to ensure nothing is broken. For performance:
+  * Start by understanding the existing test structure without running tests
+  * Run only the specific test files related to your changes (e.g., `pytest apps/hrm/tests/test_models.py`)
+  * Run full test suite only before final commit if making significant changes
+  * For documentation-only changes, skip running tests entirely
 
 ## 5. Documentation & Internationalization (i18n)
 * **Docstrings & Comments:** Document all public modules, classes, and functions with clear docstrings. Use comments to explain complex or non-obvious logic.
@@ -68,3 +78,53 @@ This project is a Django application with a modular architecture.
 
 ## 8. Dependencies
 * Do **not** add any new third-party libraries or packages to the project without prior discussion and approval from the team lead.
+
+## 9. Performance & Optimization for Agent Tasks
+To ensure fast iteration and minimize startup time:
+
+### Initial Assessment (No Dependencies Required)
+When starting a task, perform lightweight exploration first:
+* Read and understand relevant files using the `view` tool
+* Analyze code structure and identify files to modify
+* Review existing tests to understand coverage
+* Check git history if needed for context
+
+### When to Install Dependencies
+Only install Poetry dependencies (`poetry install`) when:
+* You need to run tests
+* You need to execute Django management commands
+* You need to run the actual application code
+* You're validating database migrations
+
+### When to Run Validation
+* **Documentation changes**: No validation needed, just ensure markdown/text is correct
+* **Configuration changes**: Quick syntax check with `ruff check` (no deps needed)
+* **Code changes**: Run targeted tests for affected modules only
+* **Before final commit**: Run full linting (`pre-commit run --all-files`) and relevant test suite
+
+### Optimization Strategies
+1. **Defer Dependency Installation**: Analyze and plan changes first, install only when necessary
+2. **Use Targeted Testing**: Run `pytest path/to/specific/test.py` instead of full suite
+3. **Use Incremental Validation**: Start with basic syntax checks, then progress to linting and testing
+4. **Skip Unnecessary Steps**: Don't run Django checks for documentation changes
+5. **Leverage CI/CD**: Trust that the CI/CD pipeline will catch issues; focus on your specific changes
+6. **Batch Operations**: When multiple files need checking, do it in a single command rather than one-by-one
+
+### Quick Reference Commands
+```bash
+# Lightweight syntax validation (analyze without running code)
+python -m py_compile apps/core/models.py  # Basic syntax check
+
+# Fast linting with ruff (via Poetry)
+poetry run ruff check apps/ libs/ settings/
+poetry run ruff format --check apps/ libs/ settings/
+
+# Run specific test file (requires dependencies)
+poetry run pytest apps/core/tests/test_models.py -v
+
+# Run tests for a specific app (requires dependencies)
+poetry run pytest apps/hrm/ -v
+
+# Type check specific files (requires dependencies)
+poetry run mypy apps/hrm/models.py
+```

@@ -110,6 +110,7 @@ from apps.audit_logging.producer import log_audit_event
 log_audit_event(
     user_id="user_123",
     username="john.doe",
+    full_name="John Doe",
     action="CREATE",
     object_type="Customer",
     object_id="cus_456",
@@ -131,7 +132,7 @@ The API provides two endpoints:
 #### Search Logs (Summary)
 
 The search endpoint returns a subset of fields suitable for list views:
-- `log_id`, `timestamp`, `user_id`, `username`, `action`, `object_type`, `object_id`, `object_repr`
+- `log_id`, `timestamp`, `user_id`, `username`, `full_name`, `action`, `object_type`, `object_id`, `object_repr`
 
 ```bash
 # Get recent logs
@@ -142,8 +143,10 @@ curl -X GET "http://localhost:8000/api/audit-logs/search/" \
 curl -X GET "http://localhost:8000/api/audit-logs/search/?user_id=user_123" \
   -H "Authorization: Bearer YOUR_TOKEN"
 
-# Filter by date range
-curl -X GET "http://localhost:8000/api/audit-logs/search/?start_time=2024-01-01T00:00:00Z&end_time=2024-12-31T23:59:59Z" \
+# Filter by date range (from_date/to_date use date format YYYY-MM-DD)
+# Dates are interpreted in the app timezone (Asia/Ho_Chi_Minh)
+# from_date filters from start of day, to_date filters to end of day
+curl -X GET "http://localhost:8000/api/audit-logs/search/?from_date=2024-01-01&to_date=2024-12-31" \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Free text search
@@ -170,7 +173,7 @@ curl -X GET "http://localhost:8000/api/audit-logs/detail/550e8400-e29b-41d4-a716
 ```
 
 The detail endpoint returns all fields including:
-- `log_id`, `timestamp`, `user_id`, `username`, `action`, `object_type`, `object_id`
+- `log_id`, `timestamp`, `user_id`, `username`, `full_name`, `action`, `object_type`, `object_id`
 - `object_repr`, `change_message`, `ip_address`, `user_agent`, `session_key`
 
 ## Data Lifecycle
@@ -241,5 +244,3 @@ curl -X GET "http://localhost:9200/_cat/indices/audit-logs-*?v"
 1. Verify OpenSearch is running: `curl http://localhost:9200`
 2. Check OpenSearch logs
 3. Verify index mapping matches log structure
-
-

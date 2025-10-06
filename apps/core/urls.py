@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .api.views import (
+    ConstantsView,
     LoginView,
     OTPVerificationView,
     PasswordChangeView,
@@ -42,4 +43,6 @@ urlpatterns = [
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     # Role management
     path("", include(router.urls)),
+    # Constants endpoint
+    path("constants/", ConstantsView.as_view(), name="constants"),
 ]

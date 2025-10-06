@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-03 09:55+0700\n"
+"POT-Creation-Date: 2025-10-03 14:43+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -595,12 +595,12 @@ msgid "Active session"
 msgstr "Phiên hoạt động"
 
 # models/user.py:41
-#: apps/core/models/user.py:42
+#: apps/core/models/user.py:52
 msgid "User"
 msgstr "Người dùng"
 
 # models/user.py:42
-#: apps/core/models/user.py:43
+#: apps/core/models/user.py:53
 msgid "Users"
 msgstr "Người dùng"
 
@@ -818,23 +818,3 @@ msgid ""
 msgstr ""
 "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự "
 "đặc biệt."
-
-# api/views/auth/login.py:36
-#~ msgid "OTP sent successfully"
-#~ msgstr "OTP đã được gửi thành công"
-
-# api/views/auth/password_change.py:36
-#~ msgid "Password changed successfully"
-#~ msgstr "Mật khẩu đã được thay đổi thành công"
-
-# api/views/auth/password_reset.py:37
-#~ msgid "OTP sent"
-#~ msgstr "OTP đã được gửi"
-
-# api/views/auth/otp_verification.py:36
-#~ msgid "Login successful, returns tokens"
-#~ msgstr "Đăng nhập thành công, trả về tokens"
-
-# api/views/auth/password_reset_otp_verification.py:39
-#~ msgid "Valid OTP, returns JWT tokens"
-#~ msgstr "OTP hợp lệ, trả về JWT tokens"
