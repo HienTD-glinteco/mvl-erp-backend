@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth.password_reset_change_password import (
     PasswordResetChangePasswordSerializer,
 )
@@ -48,6 +49,15 @@ class PasswordResetChangePasswordView(APIView):
             user = serializer.save()
 
             logger.info(f"Password successfully reset for user {user} via forgot password flow")
+
+            # Log audit event for password reset completion
+            log_audit_event(
+                action=LogAction.PASSWORD_RESET,
+                user=user,
+                request=request,
+                change_message=f"User {user.username} completed password reset (changed password)",
+            )
+
             return Response(
                 {"message": _("Password has been reset successfully. All old login sessions have been logged out.")},
                 status=status.HTTP_200_OK,

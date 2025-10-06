@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
+from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth.password_change import PasswordChangeSerializer
 from apps.core.api.serializers.auth.responses import PasswordChangeResponseSerializer
 
@@ -48,6 +49,15 @@ class PasswordChangeView(APIView):
             user = serializer.save()
 
             logger.info(f"Password successfully changed for user {user}")
+
+            # Log audit event for password change
+            log_audit_event(
+                action=LogAction.PASSWORD_CHANGE,
+                user=user,
+                request=request,
+                change_message=f"User {user.username} changed their password",
+            )
+
             return Response(
                 {
                     "message": _(

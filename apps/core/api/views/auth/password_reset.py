@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth import PasswordResetSerializer
 from apps.core.api.serializers.auth.responses import PasswordResetResponseSerializer
 from apps.core.models import PasswordResetOTP
@@ -91,6 +92,15 @@ class PasswordResetView(APIView):
                     "phone_hint": masked,
                     "expires_at": reset_request.expires_at.isoformat(),
                 }
+
+            # Log audit event for password reset request
+            log_audit_event(
+                action=LogAction.PASSWORD_RESET,
+                user=user,
+                request=request,
+                change_message=f"User {user.username} requested password reset via {'email' if is_email else 'SMS'}",
+                reset_channel="email" if is_email else "sms",
+            )
 
             return Response(response_payload, status=status.HTTP_200_OK)
 

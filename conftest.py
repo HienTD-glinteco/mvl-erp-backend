@@ -16,11 +16,11 @@ Modes:
 - flush:     reuse schema but flush all data once at session start
 """
 
-from __future__ import annotations
-
 import os
+from unittest.mock import MagicMock
 
 import pytest
+from django.core.management import call_command
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -64,8 +64,21 @@ def _maybe_flush_db(request: pytest.FixtureRequest, django_db_blocker) -> None: 
     if mode != "flush":
         return
 
-    from django.core.management import call_command
-
     with django_db_blocker.unblock():
         # Flush without interactive prompts; keep auth tables, etc., intact.
         call_command("flush", verbosity=0, interactive=False)
+
+
+@pytest.fixture(autouse=True)
+def mock_audit_logging(monkeypatch):
+    """
+    Mock audit logging producer to prevent RabbitMQ connection attempts during tests.
+
+    This fixture is automatically applied to all tests unless a test explicitly
+    needs to test audit logging functionality (in which case it should mock at
+    the specific view level).
+    """
+
+    # Mock the _send_message_async method to avoid RabbitMQ connection
+    mock_producer = MagicMock()
+    monkeypatch.setattr("apps.audit_logging.producer._audit_producer.log_event", MagicMock())

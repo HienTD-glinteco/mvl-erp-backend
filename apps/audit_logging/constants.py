@@ -12,6 +12,9 @@ class LogAction(models.TextChoices):
     DELETE = "DELETE", _("Delete")
     IMPORT = "IMPORT", _("Import")
     EXPORT = "EXPORT", _("Export")
+    LOGIN = "LOGIN", _("Login")
+    PASSWORD_CHANGE = "PASSWORD_CHANGE", _("Password Change")
+    PASSWORD_RESET = "PASSWORD_RESET", _("Password Reset")
 
 
 class _ObjectTypeMeta(type):

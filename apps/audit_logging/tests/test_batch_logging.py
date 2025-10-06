@@ -128,8 +128,7 @@ class TestBatchAuditContext(TestCase):
             # No summary log should be created when there are no errors
             mock_log_event.assert_not_called()
 
-    # @patch("apps.audit_logging.batch._audit_producer.log_event")
-    @patch("apps.audit_logging.producer.AuditStreamProducer.log_event")
+    @patch("apps.audit_logging.batch._audit_producer.log_event")
     def test_batch_context_limits_errors_in_summary(self, mock_log_event):
         """Test that batch context limits the number of errors in summary log."""
         with batch_audit_context(

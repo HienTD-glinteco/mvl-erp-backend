@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth import OTPVerificationSerializer
 from apps.core.api.serializers.auth.responses import OTPVerificationResponseSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
@@ -56,6 +57,15 @@ class OTPVerificationView(APIView):
             tokens = serializer.get_tokens(user, device_id)
 
             logger.info(f"User {user.username} completed login successfully")
+
+            # Log audit event for successful login
+            log_audit_event(
+                action=LogAction.LOGIN,
+                user=user,
+                request=request,
+                change_message=f"User {user.username} logged in successfully",
+            )
+
             response_data = {
                 "message": _("Login successful."),
                 "user": {

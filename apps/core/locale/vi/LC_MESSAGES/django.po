@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 15:32+0700\n"
+"POT-Creation-Date: 2025-10-06 17:29+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -303,7 +303,7 @@ msgstr "Quá nhiều yêu cầu đăng nhập"
 
 # api/views/auth/login.py:39
 #: apps/core/api/views/auth/login.py:40
-#: apps/core/api/views/auth/password_reset.py:42
+#: apps/core/api/views/auth/password_reset.py:43
 msgid "System error while sending OTP"
 msgstr "Lỗi hệ thống khi gửi OTP"
 
@@ -322,58 +322,58 @@ msgid "Unable to send OTP code. Please try again later."
 msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
 
 # api/views/auth/otp_verification.py:33
-#: apps/core/api/views/auth/otp_verification.py:35
+#: apps/core/api/views/auth/otp_verification.py:36
 msgid "Verify OTP code"
 msgstr "Xác thực mã OTP"
 
 # api/views/auth/otp_verification.py:34
-#: apps/core/api/views/auth/otp_verification.py:36
+#: apps/core/api/views/auth/otp_verification.py:37
 msgid "Verify OTP code and return JWT tokens to complete login"
 msgstr "Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập"
 
 # api/views/auth/otp_verification.py:37
-#: apps/core/api/views/auth/otp_verification.py:39
+#: apps/core/api/views/auth/otp_verification.py:40
 msgid "Invalid or expired OTP code"
 msgstr "Mã OTP không hợp lệ hoặc đã hết hạn"
 
 # api/views/auth/otp_verification.py:38
-#: apps/core/api/views/auth/otp_verification.py:40
+#: apps/core/api/views/auth/otp_verification.py:41
 #: apps/core/api/views/auth/password_reset_otp_verification.py:43
 msgid "Too many verification requests"
 msgstr "Quá nhiều yêu cầu xác thực"
 
 # api/views/auth/otp_verification.py:58
-#: apps/core/api/views/auth/otp_verification.py:60
+#: apps/core/api/views/auth/otp_verification.py:70
 msgid "Login successful."
 msgstr "Đăng nhập thành công."
 
 # api/views/auth/password_change.py:33
-#: apps/core/api/views/auth/password_change.py:35
+#: apps/core/api/views/auth/password_change.py:36
 msgid "Change password (when current password is known)"
 msgstr "Đổi mật khẩu (khi biết mật khẩu hiện tại)"
 
 # api/views/auth/password_change.py:34
-#: apps/core/api/views/auth/password_change.py:36
+#: apps/core/api/views/auth/password_change.py:37
 msgid "Change password when user is logged in and knows their current password"
 msgstr "Đổi mật khẩu khi người dùng đã đăng nhập và biết mật khẩu hiện tại"
 
 # api/views/auth/password_change.py:37
-#: apps/core/api/views/auth/password_change.py:39
+#: apps/core/api/views/auth/password_change.py:40
 msgid "Invalid information or incorrect current password"
 msgstr "Thông tin không hợp lệ hoặc mật khẩu hiện tại sai"
 
 # api/views/auth/password_change.py:38
-#: apps/core/api/views/auth/password_change.py:40
+#: apps/core/api/views/auth/password_change.py:41
 msgid "Not logged in"
 msgstr "Chưa đăng nhập"
 
 # api/views/auth/password_change.py:39
-#: apps/core/api/views/auth/password_change.py:41
+#: apps/core/api/views/auth/password_change.py:42
 msgid "Too many password change requests"
 msgstr "Quá nhiều yêu cầu thay đổi mật khẩu"
 
 # api/views/auth/password_change.py:50
-#: apps/core/api/views/auth/password_change.py:54
+#: apps/core/api/views/auth/password_change.py:64
 msgid ""
 "Password has been changed successfully. All other login sessions have been "
 "logged out."
@@ -382,12 +382,12 @@ msgstr ""
 "xuất."
 
 # api/views/auth/password_reset.py:34
-#: apps/core/api/views/auth/password_reset.py:36
+#: apps/core/api/views/auth/password_reset.py:37
 msgid "Request password reset"
 msgstr "Yêu cầu đặt lại mật khẩu"
 
 # api/views/auth/password_reset.py:35
-#: apps/core/api/views/auth/password_reset.py:37
+#: apps/core/api/views/auth/password_reset.py:38
 msgid ""
 "Send password reset instructions via email or SMS based on email or phone "
 "number"
@@ -396,17 +396,17 @@ msgstr ""
 "điện thoại"
 
 # api/views/auth/password_reset.py:38
-#: apps/core/api/views/auth/password_reset.py:40
+#: apps/core/api/views/auth/password_reset.py:41
 msgid "Invalid information"
 msgstr "Thông tin không hợp lệ"
 
 # api/views/auth/password_reset.py:39
-#: apps/core/api/views/auth/password_reset.py:41
+#: apps/core/api/views/auth/password_reset.py:42
 msgid "Too many password reset requests"
 msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
 
 # api/views/auth/password_reset.py:63
-#: apps/core/api/views/auth/password_reset.py:64
+#: apps/core/api/views/auth/password_reset.py:65
 msgid ""
 "Password reset OTP code has been sent to your email. The code is valid for 3 "
 "minutes."
@@ -415,7 +415,7 @@ msgstr ""
 "3 phút."
 
 # api/views/auth/password_reset.py:86
-#: apps/core/api/views/auth/password_reset.py:87
+#: apps/core/api/views/auth/password_reset.py:88
 msgid ""
 "Password reset OTP code has been sent via SMS. The code is valid for 3 "
 "minutes."
@@ -423,12 +423,12 @@ msgstr ""
 "Mã OTP đặt lại mật khẩu đã được gửi qua SMS. Mã có hiệu lực trong 3 phút."
 
 # api/views/auth/password_reset_change_password.py:35
-#: apps/core/api/views/auth/password_reset_change_password.py:36
+#: apps/core/api/views/auth/password_reset_change_password.py:37
 msgid "Set new password (Step 3: Change password)"
 msgstr "Đặt lại mật khẩu mới (Bước 3: Thay đổi mật khẩu)"
 
 # api/views/auth/password_reset_change_password.py:36
-#: apps/core/api/views/auth/password_reset_change_password.py:37
+#: apps/core/api/views/auth/password_reset_change_password.py:38
 msgid ""
 "Set new password after successful OTP verification (Step 2). Uses "
 "reset_token (from step 2)."
@@ -437,17 +437,17 @@ msgstr ""
 "reset_token (đã dùng ở bước 2)."
 
 # api/views/auth/password_reset_change_password.py:38
-#: apps/core/api/views/auth/password_reset_change_password.py:40
+#: apps/core/api/views/auth/password_reset_change_password.py:41
 msgid "Invalid information or reset_token has expired/not verified"
 msgstr "Thông tin không hợp lệ hoặc reset_token đã hết hạn/chưa được xác thực"
 
 # api/views/auth/password_reset_change_password.py:39
-#: apps/core/api/views/auth/password_reset_change_password.py:41
+#: apps/core/api/views/auth/password_reset_change_password.py:42
 msgid "Too many requests"
 msgstr "Quá nhiều yêu cầu"
 
 # api/views/auth/password_reset_change_password.py:51
-#: apps/core/api/views/auth/password_reset_change_password.py:52
+#: apps/core/api/views/auth/password_reset_change_password.py:62
 msgid ""
 "Password has been reset successfully. All old login sessions have been "
 "logged out."

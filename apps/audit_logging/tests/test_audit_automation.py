@@ -350,5 +350,5 @@ class TestLogActionEnum(TestCase):
     def test_log_action_choices(self):
         """Test that LogAction can be used as choices in a model field."""
         choices = LogAction.choices
-        self.assertEqual(len(choices), 5)
+        self.assertEqual(len(choices), 8)
         self.assertIn(("ADD", LogAction.ADD.label), choices)
