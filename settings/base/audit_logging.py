@@ -1,2 +1,4 @@
+from .base import config
+
 # Audit logging settings
-# Note: S3 archival is handled by a separate service
+AUDIT_LOG_DISABLED = config("AUDIT_LOG_DISABLED", cast=bool, default=True)
