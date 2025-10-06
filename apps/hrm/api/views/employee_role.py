@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging import AuditLoggingMixin, LogAction, batch_audit_context
 from apps.core.models import User
 from apps.hrm.api.filtersets.employee_role import EmployeeRoleFilterSet
 from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
@@ -131,9 +131,23 @@ class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
             # Get employees whose role will actually change
             employees_to_update = User.objects.filter(id__in=employee_ids).exclude(role=new_role)
 
-            # TODO: wrap in batch audit log.
-            # Update roles and invalidate sessions in one operation
-            updated_count = employees_to_update.update(role=new_role, active_session_key="")
+            # Wrap in batch audit log to track all role changes together
+            with batch_audit_context(
+                action=LogAction.CHANGE,
+                model_class=User,
+                user=request.user,
+                request=request,
+                bulk_operation="role_update",
+                new_role_id=new_role.id,
+                new_role_name=new_role.name,
+            ) as batch:
+                updated_count = 0
+                for employee in employees_to_update:
+                    employee.role = new_role
+                    employee.active_session_key = ""
+                    employee.save(update_fields=["role", "active_session_key"])
+                    updated_count += 1
+                    batch.increment_count()
 
         return Response(
             {
