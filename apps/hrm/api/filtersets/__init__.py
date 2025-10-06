@@ -1,3 +1,4 @@
+from .employee_role import EmployeeRoleFilterSet
 from .organization import (
     BlockFilterSet,
     BranchFilterSet,
@@ -12,4 +13,5 @@ __all__ = [
     "DepartmentFilterSet",
     "PositionFilterSet",
     "OrganizationChartFilterSet",
+    "EmployeeRoleFilterSet",
 ]

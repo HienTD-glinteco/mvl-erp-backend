@@ -1,3 +1,4 @@
+from .employee_role import EmployeeRoleViewSet
 from .organization import (
     BlockViewSet,
     BranchViewSet,
@@ -12,4 +13,5 @@ __all__ = [
     "DepartmentViewSet",
     "PositionViewSet",
     "OrganizationChartViewSet",
+    "EmployeeRoleViewSet",
 ]
