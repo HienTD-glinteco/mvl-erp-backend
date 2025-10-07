@@ -9,6 +9,7 @@ from .celery import *
 from .database import *
 from .drf import *
 from .email import *
+from .firebase import *
 from .health_check import *
 from .internationalization import *
 from .logging import *

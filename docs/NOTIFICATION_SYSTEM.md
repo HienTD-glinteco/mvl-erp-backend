@@ -155,38 +155,63 @@ poetry run pytest apps/notifications/tests/test_models.py -v
 poetry run pytest apps/notifications/tests/test_utils.py -v
 ```
 
-## Future Enhancements
+## Firebase Cloud Messaging (FCM) Integration
 
-### Firebase Cloud Messaging (FCM) Integration
+The notification system now includes Firebase Cloud Messaging (FCM) support for sending push notifications to mobile devices. This integration uses the `firebase-admin` Python SDK for robust and secure communication with Firebase.
 
-To add push notification support with Firebase:
+### Implementation Status
 
-#### 1. Setup FCM
+✅ **Completed**:
+- FCM service using `firebase-admin` SDK
+- Automatic push notifications via Celery tasks
+- UserDevice model extended with FCM token support
+- Comprehensive test coverage
+- Full documentation
 
-Add to `settings/base/base.py`:
+### Architecture
 
-```python
-# Firebase Cloud Messaging
-FCM_SERVER_KEY = config("FCM_SERVER_KEY", default="")
-FCM_ENABLED = config("FCM_ENABLED", default=False, cast=bool)
+The FCM integration follows a clean architecture:
+
+1. **Configuration** (`settings/base/firebase.py`): Firebase credentials and settings
+2. **Model Extension** (`apps/core/models/device.py`): UserDevice stores FCM tokens
+3. **Service Layer** (`apps/notifications/fcm_service.py`): FCMService handles Firebase communication
+4. **Task Queue** (`apps/notifications/tasks.py`): Celery tasks for asynchronous sending
+5. **Integration** (`apps/notifications/utils.py`): Automatic push notification triggering
+
+### Setup Instructions
+
+#### 1. Firebase Project Setup
+
+1. Create or use an existing Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Add your iOS/Android app to the project
+3. Go to Project Settings > Service Accounts
+4. Click "Generate new private key" to download JSON credentials
+
+#### 2. Environment Configuration
+
+Add these variables to your `.env` file:
+
+```bash
+# Enable Firebase Cloud Messaging
+FCM_ENABLED=true
+
+# Firebase service account credentials (as JSON string)
+FCM_CREDENTIALS_JSON='{"type":"service_account","project_id":"your-project-id",...}'
 ```
 
-#### 2. Extend User Device Model
+**Security Note**: Never commit credentials to source control. Use environment variables or a secrets manager in production.
 
-The `UserDevice` model already exists in `apps.core.models`. Extend it to store FCM tokens:
+#### 3. Database Migration
 
-```python
-class UserDevice(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    device_id = models.CharField(max_length=255, unique=True)
-    fcm_token = models.CharField(max_length=255, blank=True)  # Add this
-    platform = models.CharField(max_length=20)  # 'ios' or 'android'
-    active = models.BooleanField(default=True)
+Run the migration to add FCM support to UserDevice:
+
+```bash
+python manage.py migrate core 0006_userdevice_fcm_support
 ```
 
-#### 3. Create FCM Service
+#### 4. Install Dependencies
 
-Create `apps/notifications/fcm_service.py`:
+The `firebase-admin` package is included in `pyproject.toml`:
 
 ```python
 import logging
@@ -254,47 +279,127 @@ class FCMService:
             return False
 ```
 
-#### 4. Create Celery Task
+### Usage
 
-Create `apps/notifications/tasks.py`:
+#### Registering Devices
 
-```python
-from celery import shared_task
-from .fcm_service import FCMService
-from .models import Notification
-
-
-@shared_task(bind=True, max_retries=3)
-def send_push_notification(self, notification_id: int):
-    """Celery task to send push notification asynchronously."""
-    try:
-        notification = Notification.objects.get(id=notification_id)
-        FCMService.send_notification(notification)
-    except Notification.DoesNotExist:
-        pass
-    except Exception as exc:
-        # Retry with exponential backoff
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
-```
-
-#### 5. Integrate with Utility Functions
-
-Update `apps/notifications/utils.py`:
+When users install your mobile app, register their FCM token:
 
 ```python
-from .tasks import send_push_notification
+from apps.core.models import UserDevice
 
-def create_notification(...) -> Notification:
-    notification = Notification.objects.create(...)
-
-    # Send push notification asynchronously
-    if settings.FCM_ENABLED:
-        send_push_notification.delay(notification.id)
-
-    return notification
+device, created = UserDevice.objects.update_or_create(
+    user=request.user,
+    device_id=device_id,  # Unique device identifier
+    defaults={
+        'fcm_token': fcm_token,  # From Firebase SDK in mobile app
+        'platform': 'android',   # or 'ios', 'web'
+        'active': True,
+    }
+)
 ```
 
-#### 6. Add Device Registration Endpoint
+#### Sending Notifications
+
+Push notifications are sent automatically when using notification utilities:
+
+```python
+from apps.notifications.utils import create_notification
+
+# Automatically sends push notification if FCM is enabled
+notification = create_notification(
+    actor=current_user,
+    recipient=target_user,
+    verb="commented on your post",
+    message="Great work!",
+    delivery_method="firebase",  # or "both" for email + push
+)
+```
+
+#### Manual Push Notifications
+
+Send push notifications directly using FCMService:
+
+```python
+from apps.notifications.fcm_service import FCMService
+
+# Using a Notification object
+FCMService.send_notification(notification)
+
+# Or directly to a token
+FCMService.send_to_token(
+    token="user-fcm-token-here",
+    title="New Message",
+    body="You have a new message from John",
+    data={"type": "message", "message_id": "123"}
+)
+```
+
+### Notification Payload Structure
+
+FCM messages include:
+
+**Notification** (displayed to user):
+- `title`: Actor's full name or custom title
+- `body`: Verb + message or custom body
+
+**Data** (for app-specific handling):
+- `notification_id`: Database notification ID
+- `actor_id`: User who triggered the event
+- `recipient_id`: User receiving the notification
+- `verb`: Action performed
+- `created_at`: ISO timestamp
+- `target_type` & `target_id`: If a target object exists
+- Custom fields from `extra_data`
+
+### Error Handling
+
+The FCM integration includes robust error handling:
+
+- **Unregistered tokens**: Logged but don't block notification creation
+- **Invalid arguments**: Validated and logged
+- **Network errors**: Retried up to 3 times with exponential backoff (60s, 120s, 240s)
+- **Missing device/token**: Gracefully skipped with debug logging
+
+### Testing
+
+Comprehensive tests cover all FCM functionality:
+
+```bash
+# Run all FCM tests
+poetry run pytest apps/notifications/tests/test_fcm_service.py -v
+poetry run pytest apps/notifications/tests/test_tasks.py -v
+
+# Test integration with notification utils
+poetry run pytest apps/notifications/tests/test_utils.py -v
+```
+
+Tests use mocking to avoid requiring real Firebase credentials.
+
+### Monitoring
+
+All FCM operations are logged:
+
+- **Info**: Successful sends
+- **Warning**: Unregistered tokens, inactive devices
+- **Error**: Failed sends, configuration issues
+
+Monitor logs for FCM-related issues:
+
+```bash
+# Filter for FCM logs
+tail -f logs/app.log | grep FCM
+```
+
+### Future Enhancements
+
+Potential improvements:
+
+- **Device Management API**: REST endpoints for device registration
+- **Topic Subscriptions**: Send notifications to groups of users
+- **Notification Templates**: Predefined templates for common events
+- **Analytics**: Track notification delivery and engagement
+- **Rich Notifications**: Images, actions, and custom layouts
 
 Add to `apps/core/api/views/device.py`:
 

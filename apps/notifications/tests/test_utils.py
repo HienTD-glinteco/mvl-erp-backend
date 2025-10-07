@@ -8,6 +8,8 @@ from apps.notifications.utils import create_bulk_notifications, create_notificat
 
 
 @pytest.mark.django_db
+@patch("apps.notifications.signals.send_push_notification_task")
+@patch("apps.notifications.signals.send_notification_email_task")
 class TestNotificationUtils:
     """Test cases for notification utility functions."""
 
@@ -29,7 +31,7 @@ class TestNotificationUtils:
             password="password123",
         )
 
-    def test_create_notification(self, actor, recipient):
+    def test_create_notification(self, mock_email_task, mock_push_task, actor, recipient):
         """Test creating a basic notification using utility function."""
         # Act
         notification = create_notification(
@@ -47,7 +49,7 @@ class TestNotificationUtils:
         assert notification.read is False
         assert Notification.objects.count() == 1
 
-    def test_create_notification_with_target(self, actor, recipient):
+    def test_create_notification_with_target(self, mock_email_task, mock_push_task, actor, recipient):
         """Test creating a notification with a target object."""
         # Arrange - Use User as target for testing
         target_user = User.objects.create_user(
@@ -68,7 +70,7 @@ class TestNotificationUtils:
         assert notification.target == target_user
         assert notification.target_content_type.model == "user"
 
-    def test_create_bulk_notifications(self, actor):
+    def test_create_bulk_notifications(self, mock_email_task, mock_push_task, actor):
         """Test creating multiple notifications at once."""
         # Arrange - Create multiple recipients
         recipient1 = User.objects.create_user(
@@ -105,7 +107,7 @@ class TestNotificationUtils:
             assert notification.message == "Hello everyone!"
             assert notification.read is False
 
-    def test_create_bulk_notifications_with_target(self, actor):
+    def test_create_bulk_notifications_with_target(self, mock_email_task, mock_push_task, actor):
         """Test creating bulk notifications with a target object."""
         # Arrange
         recipient1 = User.objects.create_user(
@@ -138,7 +140,7 @@ class TestNotificationUtils:
         for notification in notifications:
             assert notification.target == target_user
 
-    def test_notify_user_creates_notification(self, actor, recipient):
+    def test_notify_user_creates_notification(self, mock_email_task, mock_push_task, actor, recipient):
         """Test notify_user creates a notification when actor != recipient."""
         # Act
         notification = notify_user(
@@ -153,7 +155,7 @@ class TestNotificationUtils:
         assert notification.recipient == recipient
         assert Notification.objects.count() == 1
 
-    def test_notify_user_returns_none_for_self_notification(self, actor):
+    def test_notify_user_returns_none_for_self_notification(self, mock_email_task, mock_push_task, actor):
         """Test notify_user returns None when actor == recipient (self-notification)."""
         # Act
         notification = notify_user(
@@ -166,7 +168,7 @@ class TestNotificationUtils:
         assert notification is None
         assert Notification.objects.count() == 0
 
-    def test_notify_user_with_target(self, actor, recipient):
+    def test_notify_user_with_target(self, mock_email_task, mock_push_task, actor, recipient):
         """Test notify_user with a target object."""
         # Arrange
         target_user = User.objects.create_user(
@@ -189,8 +191,9 @@ class TestNotificationUtils:
         assert notification.target == target_user
         assert notification.message == "Your comment"
 
-    @patch("apps.notifications.utils.send_notification_email_task")
-    def test_create_notification_sends_email_when_delivery_method_email(self, mock_task, actor, recipient):
+    def test_create_notification_sends_email_when_delivery_method_email(
+        self, mock_email_task, mock_push_task, actor, recipient
+    ):
         """Test that email is sent when delivery method is 'email'."""
         # Act
         notification = create_notification(
@@ -203,13 +206,14 @@ class TestNotificationUtils:
 
         # Assert
         assert notification.delivery_method == Notification.DeliveryMethod.EMAIL
-        mock_task.delay.assert_called_once()
+        mock_email_task.delay.assert_called_once()
         # Check that only notification_id is passed
-        assert mock_task.delay.call_args[0][0] == notification.id
+        assert mock_email_task.delay.call_args[0][0] == notification.id
 
-    @patch("apps.notifications.utils.send_notification_email_task")
-    def test_create_notification_sends_email_when_delivery_method_both(self, mock_task, actor, recipient):
-        """Test that email is sent when delivery method is 'both'."""
+    def test_create_notification_sends_both_when_delivery_method_both(
+        self, mock_email_task, mock_push_task, actor, recipient
+    ):
+        """Test that both email and push are sent when delivery method is 'both'."""
         # Act
         notification = create_notification(
             actor=actor,
@@ -220,13 +224,13 @@ class TestNotificationUtils:
 
         # Assert
         assert notification.delivery_method == Notification.DeliveryMethod.BOTH
-        mock_task.delay.assert_called_once()
+        mock_email_task.delay.assert_called_once()
+        mock_push_task.delay.assert_called_once()
 
-    @patch("apps.notifications.utils.send_notification_email_task")
-    def test_create_notification_does_not_send_email_when_delivery_method_firebase(
-        self, mock_task, actor, recipient
+    def test_create_notification_sends_only_push_when_delivery_method_firebase(
+        self, mock_email_task, mock_push_task, actor, recipient
     ):
-        """Test that email is not sent when delivery method is 'firebase'."""
+        """Test that only push is sent when delivery method is 'firebase'."""
         # Act
         notification = create_notification(
             actor=actor,
@@ -237,10 +241,12 @@ class TestNotificationUtils:
 
         # Assert
         assert notification.delivery_method == Notification.DeliveryMethod.FIREBASE
-        mock_task.delay.assert_not_called()
+        mock_email_task.delay.assert_not_called()
+        mock_push_task.delay.assert_called_once()
 
-    @patch("apps.notifications.utils.send_notification_email_task")
-    def test_create_bulk_notifications_sends_emails_when_delivery_method_email(self, mock_task, actor):
+    def test_create_bulk_notifications_sends_emails_when_delivery_method_email(
+        self, mock_email_task, mock_push_task, actor
+    ):
         """Test that emails are sent for bulk notifications with email delivery method."""
         # Arrange
         recipient1 = User.objects.create_user(
@@ -265,17 +271,21 @@ class TestNotificationUtils:
 
         # Assert
         assert len(notifications) == 2
-        assert mock_task.delay.call_count == 2
+        assert mock_email_task.delay.call_count == 2
 
-    @patch("apps.notifications.utils.send_notification_email_task")
-    def test_create_notification_skips_email_when_recipient_has_no_email(self, mock_task, actor):
-        """Test that email task is called even when recipient has no email (task handles it)."""
+    def test_create_notification_triggers_signal_even_when_recipient_has_no_email(
+        self, mock_email_task, mock_push_task, actor
+    ):
+        """Test that signal is triggered even when recipient has no email (task handles it)."""
         # Arrange
         recipient_no_email = User.objects.create_user(
             username="no_email_user",
-            email="",  # No email
+            email="noemail@example.com",  # Email is required
             password="password123",
         )
+        # Clear the email to test the handler
+        recipient_no_email.email = ""
+        recipient_no_email.save()
 
         # Act
         notification = create_notification(
@@ -287,5 +297,5 @@ class TestNotificationUtils:
 
         # Assert
         assert notification is not None
-        # Task is still called, it will handle the no-email case internally
-        mock_task.delay.assert_called_once()
+        # Task is still called via signal, it will handle the no-email case internally
+        mock_email_task.delay.assert_called_once()

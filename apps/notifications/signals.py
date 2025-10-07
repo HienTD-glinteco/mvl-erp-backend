@@ -1,7 +1,7 @@
 from django.dispatch import Signal, receiver
 
 from .models import Notification
-from .tasks import send_notification_email_task
+from .tasks import send_notification_email_task, send_push_notification_task
 
 notification_signal = Signal()
 
@@ -31,10 +31,12 @@ def handle_send_notification(sender, **kwargs):
 
     # Send notification(s)
     notification_ids = None
+    method = None
     if notification is not None:
         method = notification.delivery_method
         notification_ids = [notification.id]
     elif notifications is not None:
+        method = delivery_method
         notification_ids = [notif.id for notif in notifications]
 
     if not notification_ids:
@@ -42,3 +44,5 @@ def handle_send_notification(sender, **kwargs):
 
     if method in [Notification.DeliveryMethod.EMAIL, Notification.DeliveryMethod.BOTH]:
         [send_notification_email_task.delay(notification_id) for notification_id in notification_ids]
+    if method in [Notification.DeliveryMethod.FIREBASE, Notification.DeliveryMethod.BOTH]:
+        [send_push_notification_task.delay(notification_id) for notification_id in notification_ids]

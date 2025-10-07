@@ -25,8 +25,9 @@ class AuthAuditLoggingTestCase(TestCase):
         self.password_change_url = reverse("core:change_password")
         self.forgot_password_url = reverse("core:forgot_password")
 
+    @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.core.api.views.auth.otp_verification.log_audit_event")
-    def test_login_audit_log(self, mock_log_audit_event):
+    def test_login_audit_log(self, mock_log_audit_event, mock_trigger_send_notification):
         """Test that successful login creates an audit log"""
         # Generate OTP for the user
         otp_code = self.user.generate_otp()

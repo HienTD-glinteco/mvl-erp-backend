@@ -300,15 +300,124 @@ EMAIL_HOST_PASSWORD=your-app-password
 - Email templates support both HTML and plain text formats
 - All email strings are wrapped with Django's translation functions for i18n support
 
+## Firebase Cloud Messaging (FCM) Integration
+
+The app includes Firebase Cloud Messaging support for sending push notifications to mobile devices.
+
+### Setup
+
+1. **Create a Firebase Project**:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or use an existing one
+   - Add your iOS and/or Android app to the project
+
+2. **Get Service Account Credentials**:
+   - In Firebase Console, go to Project Settings > Service Accounts
+   - Click "Generate new private key" to download the JSON credentials file
+
+3. **Configure Environment Variables**:
+   ```bash
+   # Enable FCM
+   FCM_ENABLED=true
+   
+   # Add Firebase credentials as a JSON string
+   FCM_CREDENTIALS_JSON='{"type":"service_account","project_id":"your-project",...}'
+   ```
+   
+   **Important**: Never commit the credentials JSON to source control. Use environment variables or a secrets manager.
+
+4. **Update User Device Information**:
+   - When users register their devices, store the FCM token:
+   ```python
+   from apps.core.models import UserDevice
+   
+   device, created = UserDevice.objects.update_or_create(
+       user=user,
+       device_id=device_id,
+       defaults={
+           'fcm_token': fcm_token,
+           'platform': 'android',  # or 'ios', 'web'
+           'active': True,
+       }
+   )
+   ```
+
+### Usage
+
+Push notifications are sent automatically when you create notifications with `delivery_method="firebase"` or `delivery_method="both"`:
+
+```python
+from apps.notifications.utils import create_notification
+
+# This will automatically send a push notification if FCM is enabled
+notification = create_notification(
+    actor=user1,
+    recipient=user2,
+    verb="commented on your post",
+    message="Great work!",
+    delivery_method="firebase",  # or "both" for email + push
+)
+```
+
+### Manual Push Notification
+
+You can also send push notifications directly using the FCMService:
+
+```python
+from apps.notifications.fcm_service import FCMService
+
+# Send notification using a Notification object
+FCMService.send_notification(notification)
+
+# Or send directly to a token
+FCMService.send_to_token(
+    token="user-fcm-token",
+    title="New Comment",
+    body="John Doe commented on your post",
+    data={"post_id": "123", "type": "comment"}
+)
+```
+
+### Notification Payload
+
+The FCM payload includes:
+- **Notification**: Title and body shown to the user
+- **Data**: Custom data for app-specific handling
+  - `notification_id`: Database ID of the notification
+  - `actor_id`: User who triggered the notification
+  - `recipient_id`: User receiving the notification
+  - `verb`: Action that was performed
+  - `created_at`: Timestamp
+  - `target_type` and `target_id`: If a target object exists
+  - Any extra_data from the notification
+
+### Error Handling
+
+- Invalid or unregistered tokens are logged but don't stop notification creation
+- Failed notifications are retried up to 3 times with exponential backoff
+- All FCM operations are performed asynchronously via Celery tasks
+
+### Testing FCM
+
+Tests are included for FCM functionality:
+
+```bash
+# Run FCM-specific tests
+poetry run pytest apps/notifications/tests/test_fcm_service.py -v
+poetry run pytest apps/notifications/tests/test_tasks.py -v
+```
+
+Mock the Firebase Admin SDK in tests to avoid requiring real credentials.
+
 ## Future Enhancements
 
 Potential features for future implementation:
 
-- **Firebase Cloud Messaging (FCM)**: Push notifications to mobile devices
 - **WebSocket Integration**: Real-time notification delivery
 - **Notification Preferences**: Let users customize which notifications they receive
 - **Notification Templates**: Predefined templates for common notification types
 - **Notification Grouping**: Group similar notifications together
+- **Device Management API**: Endpoints for registering/unregistering devices
 
 ## Translation
 

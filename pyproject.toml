@@ -93,6 +93,9 @@ pyarrow = "^21.0.0"
 rstream = "^0.31.0"
 opensearch-py = "^2.8.0"
 
+# Firebase Cloud Messaging
+firebase-admin = "^6.6.0"
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"
 pytest-django = "^4.10.0"

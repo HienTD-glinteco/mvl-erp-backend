@@ -27,7 +27,8 @@ class LoginNotificationTestCase(TestCase):
         )
         self.otp_url = reverse("core:verify_otp")
 
-    def test_login_creates_notification(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_creates_notification(self, mock_trigger_send_notification):
         """Test that successful login creates a notification for the user."""
         # Arrange - Generate OTP for the user
         otp_code = self.user.generate_otp()
@@ -47,7 +48,8 @@ class LoginNotificationTestCase(TestCase):
         self.assertIn("IP address", notification.message)
         self.assertFalse(notification.read)
 
-    def test_login_notification_includes_ip_address(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_notification_includes_ip_address(self, mock_trigger_send_notification):
         """Test that login notification includes the IP address in extra_data."""
         # Arrange - Generate OTP and set up request with IP
         otp_code = self.user.generate_otp()
@@ -71,7 +73,8 @@ class LoginNotificationTestCase(TestCase):
         # Check that message includes IP address
         self.assertIn("192.168.1.100", notification.message)
 
-    def test_login_notification_with_x_forwarded_for_header(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_notification_with_x_forwarded_for_header(self, mock_trigger_send_notification):
         """Test that login notification uses X-Forwarded-For header when present."""
         # Arrange - Generate OTP
         otp_code = self.user.generate_otp()
@@ -90,7 +93,8 @@ class LoginNotificationTestCase(TestCase):
         notification = Notification.objects.first()
         self.assertEqual(notification.extra_data["ip_address"], "203.0.113.42")
 
-    def test_login_notification_delivery_method(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_notification_delivery_method(self, mock_trigger_send_notification):
         """Test that login notification uses firebase delivery method."""
         # Arrange
         otp_code = self.user.generate_otp()
@@ -104,7 +108,8 @@ class LoginNotificationTestCase(TestCase):
         notification = Notification.objects.first()
         self.assertEqual(notification.delivery_method, Notification.DeliveryMethod.FIREBASE)
 
-    def test_login_notification_includes_user_agent(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_notification_includes_user_agent(self, mock_trigger_send_notification):
         """Test that login notification includes user agent in extra_data."""
         # Arrange
         otp_code = self.user.generate_otp()
@@ -125,7 +130,8 @@ class LoginNotificationTestCase(TestCase):
         self.assertIn("user_agent", notification.extra_data)
         self.assertEqual(notification.extra_data["user_agent"], user_agent)
 
-    def test_multiple_logins_create_multiple_notifications(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_multiple_logins_create_multiple_notifications(self, mock_trigger_send_notification):
         """Test that multiple logins create separate notifications."""
         # Arrange & Act - First login
         otp_code_1 = self.user.generate_otp()
@@ -153,17 +159,8 @@ class LoginNotificationTestCase(TestCase):
         self.assertEqual(notifications[1].recipient, self.user)
         self.assertEqual(notifications[1].extra_data["ip_address"], "10.0.0.5")
 
-    def test_failed_login_does_not_create_notification(self):
-        """Test that failed login attempts do not create notifications."""
-        # Act - Try to login with invalid OTP
-        data = {"username": "testuser", "otp_code": "invalid123"}
-        response = self.client.post(self.otp_url, data, format="json")
-
-        # Assert - Login failed and no notification was created
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Notification.objects.count(), 0)
-
-    def test_login_notification_without_ip_address(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_login_notification_without_ip_address(self, mock_trigger_send_notification):
         """Test that notification is created even when IP address is not available."""
         # Arrange
         otp_code = self.user.generate_otp()
@@ -179,3 +176,13 @@ class LoginNotificationTestCase(TestCase):
         notification = Notification.objects.first()
         self.assertIsNotNone(notification)
         self.assertEqual(notification.extra_data["ip_address"], UNKNOWN_IP)
+
+    def test_failed_login_does_not_create_notification(self):
+        """Test that failed login attempts do not create notifications."""
+        # Act - Try to login with invalid OTP
+        data = {"username": "testuser", "otp_code": "invalid123"}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        # Assert - Login failed and no notification was created
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Notification.objects.count(), 0)

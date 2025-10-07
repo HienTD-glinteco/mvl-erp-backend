@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 16:10+0700\n"
+"POT-Creation-Date: 2025-10-07 17:07+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -513,6 +513,65 @@ msgstr "Reset token hoặc mã OTP không hợp lệ"
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
+# models/user.py:41
+#: apps/core/models/device.py:13 apps/core/models/role.py:36
+#: apps/core/models/user.py:62
+msgid "User"
+msgstr "Người dùng"
+
+#: apps/core/models/device.py:19
+msgid "Device ID"
+msgstr "ID thiết bị"
+
+#: apps/core/models/device.py:20
+msgid "Unique identifier for the device"
+msgstr "Mã định danh duy nhất cho thiết bị"
+
+#: apps/core/models/device.py:26
+msgid "FCM token"
+msgstr "Mã FCM"
+
+#: apps/core/models/device.py:27
+msgid "Firebase Cloud Messaging token"
+msgstr "Mã Firebase Cloud Messaging"
+
+#: apps/core/models/device.py:31
+msgid "iOS"
+msgstr "iOS"
+
+#: apps/core/models/device.py:32
+msgid "Android"
+msgstr "Android"
+
+#: apps/core/models/device.py:33
+msgid "Web"
+msgstr "Web"
+
+#: apps/core/models/device.py:39
+msgid "Platform"
+msgstr "Nền tảng"
+
+#: apps/core/models/device.py:40
+msgid "Device platform (iOS, Android, or Web)"
+msgstr "Nền tảng thiết bị (iOS, Android hoặc Web)"
+
+# models/user.py:19
+#: apps/core/models/device.py:45 apps/core/models/user.py:20
+msgid "Active"
+msgstr "Hoạt động"
+
+#: apps/core/models/device.py:46
+msgid "Whether the device is active for receiving notifications"
+msgstr "Thiết bị có đang hoạt động để nhận thông báo hay không"
+
+#: apps/core/models/device.py:50
+msgid "User device"
+msgstr "Thiết bị người dùng"
+
+#: apps/core/models/device.py:51
+msgid "User devices"
+msgstr "Thiết bị người dùng"
+
 # models/user.py:14
 #: apps/core/models/password_reset.py:20 apps/core/models/user.py:15
 msgid "Email"
@@ -629,11 +688,6 @@ msgstr "Vai trò"
 msgid "System"
 msgstr "Hệ thống"
 
-# models/user.py:41
-#: apps/core/models/role.py:36 apps/core/models/user.py:62
-msgid "User"
-msgstr "Người dùng"
-
 #: apps/core/models/role.py:42
 msgid "Cannot delete system role"
 msgstr "Không thể xóa vai trò hệ thống"
@@ -656,11 +710,6 @@ msgstr "Tên"
 #: apps/core/models/user.py:18
 msgid "Last name"
 msgstr "Họ"
-
-# models/user.py:19
-#: apps/core/models/user.py:20
-msgid "Active"
-msgstr "Hoạt động"
 
 # models/user.py:20
 #: apps/core/models/user.py:21

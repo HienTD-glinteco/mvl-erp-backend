@@ -1,13 +1,13 @@
-"""Tests for notification email tasks."""
+"""Tests for notification tasks."""
 
 from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
 
-from apps.core.models import User
+from apps.core.models import User, UserDevice
 from apps.notifications.models import Notification
-from apps.notifications.tasks import send_notification_email_task
+from apps.notifications.tasks import send_notification_email_task, send_push_notification_task
 
 
 @pytest.mark.django_db
@@ -92,6 +92,8 @@ class TestNotificationEmailTasks:
     def test_send_notification_email_task_with_target_info(self, mock_send_mail, actor, recipient):
         """Test sending notification email with target information."""
         # Arrange
+        from django.contrib.contenttypes.models import ContentType
+        
         # Use another user as target for testing
         target_user = User.objects.create_user(
             username="target",
@@ -103,8 +105,7 @@ class TestNotificationEmailTasks:
             recipient=recipient,
             verb="assigned you to",
             message="Please review this task",
-            target_content_type=User.objects.get(username="target").__class__.__name__,
-            target_object_id=str(target_user.id),
+            target=target_user,
         )
         mock_send_mail.return_value = 1
 
@@ -187,9 +188,13 @@ class TestNotificationEmailTasks:
         # Arrange
         recipient_no_email = User.objects.create_user(
             username="no_email",
-            email="",  # No email
+            email="noemail@example.com",  # Email is required
             password="testpass123",
         )
+        # Clear the email to test the handler
+        recipient_no_email.email = ""
+        recipient_no_email.save()
+        
         notification = Notification.objects.create(
             actor=actor,
             recipient=recipient_no_email,
@@ -202,3 +207,90 @@ class TestNotificationEmailTasks:
         # Assert
         assert result is False
         mock_send_mail.assert_not_called()
+
+
+@pytest.mark.django_db
+class TestPushNotificationTasks:
+    """Test cases for FCM push notification tasks."""
+
+    @pytest.fixture
+    def actor(self):
+        """Create an actor user."""
+        return User.objects.create_user(
+            username="actor",
+            email="actor@example.com",
+            password="testpass123",
+        )
+
+    @pytest.fixture
+    def recipient(self):
+        """Create a recipient user."""
+        recipient = User.objects.create_user(
+            username="recipient",
+            email="recipient@example.com",
+            password="testpass123",
+        )
+        # Create device for recipient
+        UserDevice.objects.create(
+            user=recipient,
+            device_id="test-device-123",
+            fcm_token="test-fcm-token",
+            platform="android",
+            active=True,
+        )
+        return recipient
+
+    @pytest.fixture
+    def notification(self, actor, recipient):
+        """Create a basic notification."""
+        return Notification.objects.create(
+            actor=actor,
+            recipient=recipient,
+            verb="commented on your post",
+            message="This is great!",
+        )
+
+    @patch("apps.notifications.tasks.FCMService.send_notification")
+    def test_send_push_notification_task_success(self, mock_send, notification):
+        """Test successful push notification sending."""
+        # Arrange
+        mock_send.return_value = True
+
+        # Act
+        send_push_notification_task.apply(args=[notification.id]).get()
+
+        # Assert
+        mock_send.assert_called_once_with(notification)
+
+    @patch("apps.notifications.tasks.FCMService.send_notification")
+    def test_send_push_notification_task_failure(self, mock_send, notification):
+        """Test push notification sending failure."""
+        # Arrange
+        mock_send.return_value = False
+
+        # Act
+        send_push_notification_task.apply(args=[notification.id]).get()
+
+        # Assert
+        mock_send.assert_called_once_with(notification)
+
+    def test_send_push_notification_task_nonexistent_notification(self):
+        """Test handling nonexistent notification."""
+        # Act - should not raise an error
+        send_push_notification_task.apply(args=[999999]).get()
+
+        # Assert - no exception raised
+
+    @patch("apps.notifications.tasks.FCMService.send_notification")
+    def test_send_push_notification_task_retry_on_error(self, mock_send, notification):
+        """Test that task retries on error."""
+        # Arrange
+        mock_send.side_effect = Exception("Network error")
+
+        # Act & Assert
+        with pytest.raises(Exception) as exc_info:
+            send_push_notification_task.apply(args=[notification.id]).get()
+
+        assert "Network error" in str(exc_info.value)
+        # Task retries 3 times after initial attempt
+        assert mock_send.call_count == 4

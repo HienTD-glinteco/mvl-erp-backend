@@ -83,7 +83,8 @@ class AuthenticationTestCase(TestCase):
         self.assertFalse(response_data["success"])
         self.assertIn("locked", str(response_data["error"]["non_field_errors"][0]))
 
-    def test_otp_verification_success(self):
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_otp_verification_success(self, mock_trigger_send_notification):
         """Test successful OTP verification"""
         # First generate OTP for the user
         otp_code = self.user.generate_otp()

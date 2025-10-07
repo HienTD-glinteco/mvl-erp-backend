@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from .fcm_service import FCMService
 from .models import Notification
 
 logger = logging.getLogger(__name__)
@@ -104,3 +105,33 @@ def send_notification_email_task(self, notification_id: int):
         logger.error(f"Failed to send notification email for notification {notification_id}: {str(e)}")
         sentry_sdk.capture_exception(e)
         raise self.retry(countdown=60, exc=e)
+
+
+@shared_task(bind=True, max_retries=3)
+def send_push_notification_task(self, notification_id: int):
+    """Celery task to send push notification asynchronously.
+
+    Args:
+        notification_id: ID of the Notification to send
+
+    The task will retry up to 3 times with exponential backoff
+    if an error occurs.
+    """
+    try:
+        notification = Notification.objects.get(id=notification_id)
+        success = FCMService.send_notification(notification)
+
+        if success:
+            logger.info(f"Push notification sent for notification {notification_id}")
+        else:
+            logger.warning(f"Push notification failed for notification {notification_id}")
+
+    except Notification.DoesNotExist:
+        logger.error(f"Notification {notification_id} does not exist")
+        # Don't retry if notification doesn't exist
+        return
+
+    except Exception as exc:
+        logger.error(f"Error sending push notification for {notification_id}: {exc}")
+        # Retry with exponential backoff: 60s, 120s, 240s
+        raise self.retry(exc=exc, countdown=60 * (2**self.request.retries))
