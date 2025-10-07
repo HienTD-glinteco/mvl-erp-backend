@@ -819,3 +819,40 @@ msgstr "Tên vai trò đã tồn tại"
 #: apps/core/api/serializers/role.py:93
 msgid "System roles can only update permissions, not other fields"
 msgstr "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
+
+# models/role.py
+#: apps/core/models/role.py:13
+msgid "Role code"
+msgstr "Mã vai trò"
+
+#: apps/core/models/role.py:14
+msgid "Role name"
+msgstr "Tên vai trò"
+
+#: apps/core/models/role.py:16
+msgid "System role"
+msgstr "Vai trò hệ thống"
+
+#: apps/core/models/role.py:24
+msgid "Role"
+msgstr "Vai trò"
+
+#: apps/core/models/role.py:25
+msgid "Roles"
+msgstr "Vai trò"
+
+#: apps/core/models/role.py:36
+msgid "System"
+msgstr "Hệ thống"
+
+#: apps/core/models/role.py:36
+msgid "User"
+msgstr "Người dùng"
+
+#: apps/core/models/role.py:42
+msgid "Cannot delete system role"
+msgstr "Không thể xóa vai trò hệ thống"
+
+#: apps/core/models/role.py:46
+msgid "Role is currently being used by employees"
+msgstr "Vai trò đang được sử dụng bởi nhân viên"
