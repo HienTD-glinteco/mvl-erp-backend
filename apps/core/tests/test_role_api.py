@@ -256,12 +256,12 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         url = reverse("core:role-detail", kwargs={"pk": system_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], "Hệ thống")
+        self.assertEqual(response_data["created_by"], "System")
 
         url = reverse("core:role-detail", kwargs={"pk": user_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], "Người dùng")
+        self.assertEqual(response_data["created_by"], "User")
 
     def test_code_auto_increment(self):
         """Test that role codes are auto-incremented"""
