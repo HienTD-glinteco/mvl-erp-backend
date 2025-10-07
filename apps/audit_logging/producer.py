@@ -12,7 +12,7 @@ from rstream import Producer, exceptions
 
 from .registry import AuditLogRegistry
 
-file_audit_logger = logging.getLogger("audit_log_producer")
+file_audit_logger = logging.getLogger("audit_logging")
 
 
 class AuditStreamProducer:

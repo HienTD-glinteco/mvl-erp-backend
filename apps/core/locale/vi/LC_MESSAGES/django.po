@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 10:44+0700\n"
+"POT-Creation-Date: 2025-10-07 14:43+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -336,28 +336,39 @@ msgid "Unable to send OTP code. Please try again later."
 msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
 
 # api/views/auth/otp_verification.py:33
-#: apps/core/api/views/auth/otp_verification.py:36
+#: apps/core/api/views/auth/otp_verification.py:39
 msgid "Verify OTP code"
 msgstr "Xác thực mã OTP"
 
 # api/views/auth/otp_verification.py:34
-#: apps/core/api/views/auth/otp_verification.py:37
+#: apps/core/api/views/auth/otp_verification.py:40
 msgid "Verify OTP code and return JWT tokens to complete login"
 msgstr "Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập"
 
 # api/views/auth/otp_verification.py:37
-#: apps/core/api/views/auth/otp_verification.py:40
+#: apps/core/api/views/auth/otp_verification.py:43
 msgid "Invalid or expired OTP code"
 msgstr "Mã OTP không hợp lệ hoặc đã hết hạn"
 
 # api/views/auth/otp_verification.py:38
-#: apps/core/api/views/auth/otp_verification.py:41
+#: apps/core/api/views/auth/otp_verification.py:44
 #: apps/core/api/views/auth/password_reset_otp_verification.py:43
 msgid "Too many verification requests"
 msgstr "Quá nhiều yêu cầu xác thực"
 
+# api/views/auth/otp_verification.py:77
+#: apps/core/api/views/auth/otp_verification.py:77
+#, python-brace-format
+msgid "Your account was logged in from IP address: {ip_address}"
+msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ IP: {ip_address}"
+
+# api/views/auth/otp_verification.py:81
+#: apps/core/api/views/auth/otp_verification.py:82
+msgid "logged in"
+msgstr "đã đăng nhập"
+
 # api/views/auth/otp_verification.py:58
-#: apps/core/api/views/auth/otp_verification.py:70
+#: apps/core/api/views/auth/otp_verification.py:92
 msgid "Login successful."
 msgstr "Đăng nhập thành công."
 
@@ -852,13 +863,3 @@ msgid ""
 msgstr ""
 "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự "
 "đặc biệt."
-
-# api/views/auth/otp_verification.py:81
-#: apps/core/api/views/auth/otp_verification.py:81
-msgid "logged in"
-msgstr "đã đăng nhập"
-
-# api/views/auth/otp_verification.py:77
-#: apps/core/api/views/auth/otp_verification.py:77
-msgid "Your account was logged in from IP address: {ip_address}"
-msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ IP: {ip_address}"
