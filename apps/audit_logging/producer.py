@@ -85,6 +85,158 @@ def _prepare_request_info(log_data: dict, request):
         log_data["session_key"] = request.session.session_key
 
 
+def _collect_related_changes(original_object, modified_object):  # noqa: C901
+    """
+    Collect changes from related objects (ForeignKey, ManyToMany, reverse ForeignKey).
+
+    Args:
+        original_object: The original object state
+        modified_object: The modified object state
+
+    Returns:
+        list: List of dictionaries containing related object changes, each with:
+            - object_type: Type of the related object
+            - object_id: ID of the related object
+            - object_repr: String representation
+            - changes: List of field changes
+    """
+    related_changes = []
+
+    if not (hasattr(original_object, "_meta") and hasattr(modified_object, "_meta")):
+        return related_changes
+
+    try:
+        # Check ManyToMany field changes
+        for field in modified_object._meta.many_to_many:
+            field_name = field.name
+            try:
+                # Get the related managers
+                original_manager = getattr(original_object, field_name, None)
+                modified_manager = getattr(modified_object, field_name, None)
+
+                if original_manager is None or modified_manager is None:
+                    continue
+
+                # Get PKs from both sides
+                original_pks = set(original_manager.values_list("pk", flat=True))
+                modified_pks = set(modified_manager.values_list("pk", flat=True))
+
+                # Detect additions and removals
+                added_pks = modified_pks - original_pks
+                removed_pks = original_pks - modified_pks
+
+                if added_pks or removed_pks:
+                    change_detail = {
+                        "object_type": field.related_model._meta.model_name,
+                        "relation_type": "many_to_many",
+                        "field_name": field_name,
+                        "changes": [],
+                    }
+
+                    if added_pks:
+                        added_objs = field.related_model.objects.filter(pk__in=added_pks)
+                        for obj in added_objs:
+                            change_detail["changes"].append(
+                                {"action": "added", "object_id": str(obj.pk), "object_repr": str(obj)}
+                            )
+
+                    if removed_pks:
+                        removed_objs = field.related_model.objects.filter(pk__in=removed_pks)
+                        for obj in removed_objs:
+                            change_detail["changes"].append(
+                                {"action": "removed", "object_id": str(obj.pk), "object_repr": str(obj)}
+                            )
+
+                    related_changes.append(change_detail)
+            except Exception as e:
+                logging.debug(f"Error processing M2M field {field_name}: {e}")
+                continue
+
+        # Check reverse foreign key relationships (inline objects)
+        for related_object in modified_object._meta.related_objects:
+            try:
+                accessor_name = related_object.get_accessor_name()
+
+                # Get related querysets
+                original_related = getattr(original_object, accessor_name, None)
+                modified_related = getattr(modified_object, accessor_name, None)
+
+                if original_related is None or modified_related is None:
+                    continue
+
+                # Get all related objects
+                original_related_objs = {obj.pk: obj for obj in original_related.all()}
+                modified_related_objs = {obj.pk: obj for obj in modified_related.all()}
+
+                original_pks = set(original_related_objs.keys())
+                modified_pks = set(modified_related_objs.keys())
+
+                # Detect added, removed, and modified
+                added_pks = modified_pks - original_pks
+                removed_pks = original_pks - modified_pks
+                common_pks = original_pks & modified_pks
+
+                changes_for_relation = []
+
+                # Added objects
+                for pk in added_pks:
+                    obj = modified_related_objs[pk]
+                    changes_for_relation.append({"action": "added", "object_id": str(pk), "object_repr": str(obj)})
+
+                # Removed objects
+                for pk in removed_pks:
+                    obj = original_related_objs[pk]
+                    changes_for_relation.append({"action": "removed", "object_id": str(pk), "object_repr": str(obj)})
+
+                # Modified objects
+                for pk in common_pks:
+                    original_rel_obj = original_related_objs[pk]
+                    modified_rel_obj = modified_related_objs[pk]
+
+                    # Check for field changes in related object
+                    field_changes = []
+                    for field in modified_rel_obj._meta.fields:
+                        field_name = field.name
+                        old_value = getattr(original_rel_obj, field_name, None)
+                        new_value = getattr(modified_rel_obj, field_name, None)
+                        if old_value != new_value:
+                            field_changes.append(
+                                {
+                                    "field": field.verbose_name or field_name,
+                                    "old_value": str(old_value) if old_value is not None else None,
+                                    "new_value": str(new_value) if new_value is not None else None,
+                                }
+                            )
+
+                    if field_changes:
+                        changes_for_relation.append(
+                            {
+                                "action": "modified",
+                                "object_id": str(pk),
+                                "object_repr": str(modified_rel_obj),
+                                "field_changes": field_changes,
+                            }
+                        )
+
+                if changes_for_relation:
+                    related_changes.append(
+                        {
+                            "object_type": related_object.related_model._meta.model_name,
+                            "relation_type": "reverse_foreign_key",
+                            "field_name": accessor_name,
+                            "changes": changes_for_relation,
+                        }
+                    )
+            except Exception as e:
+                logging.debug(f"Error processing reverse FK {accessor_name}: {e}")
+                continue
+
+    except Exception as e:
+        logging.warning(f"Error collecting related changes: {e}")
+
+    return related_changes
+
+
 def _prepare_change_messages(
     log_data: dict,
     action: str,
@@ -105,6 +257,11 @@ def _prepare_change_messages(
             log_data["change_message"] = "; ".join(changes)
         else:
             log_data["change_message"] = "Object modified"
+
+        # Collect related object changes
+        related_changes = _collect_related_changes(original_object, modified_object)
+        if related_changes:
+            log_data["related_changes"] = related_changes
     elif action == "ADD":
         log_data["change_message"] = "Created new object"
     elif action == "DELETE":
