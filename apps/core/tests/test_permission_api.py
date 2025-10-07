@@ -188,3 +188,34 @@ class PermissionAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("submodule", response_data)
         self.assertEqual(response_data["module"], "HRM")
         self.assertEqual(response_data["submodule"], "Employee Profile")
+
+    def test_filter_permission_by_name(self):
+        """Test filtering permissions by name"""
+        # Create permissions with names
+        Permission.objects.all().delete()
+        perm_with_name = Permission.objects.create(
+            code="create_document", name="Create Document", description="Create a new document"
+        )
+        perm_without_name = Permission.objects.create(code="view_document", description="View document")
+
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"name": "create"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["code"], "create_document")
+        self.assertEqual(response_data[0]["name"], "Create Document")
+
+    def test_permission_serializer_includes_name_field(self):
+        """Test that permission serializer includes name field"""
+        # Create permission with name
+        perm = Permission.objects.create(code="test_permission", name="Test Permission", description="Test")
+
+        url = reverse("core:permission-detail", kwargs={"pk": perm.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("name", response_data)
+        self.assertEqual(response_data["name"], "Test Permission")
