@@ -7,6 +7,7 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 - [ ] ✅ **NO Vietnamese text** in code, comments, or docstrings
 - [ ] ✅ **ALL API documentation** (`@extend_schema`) must be in English
 - [ ] ✅ **ALL user-facing strings** must be wrapped in `gettext()` or `gettext_lazy()`
+- [ ] ✅ **Use constants for string values** - Define strings in `constants.py` or module-level constants
 - [ ] ✅ **English strings ONLY** - Vietnamese goes in `.po` translation files
 - [ ] ✅ **Import translation functions**: `from django.utils.translation import gettext as _`
 - [ ] ✅ **Run pre-commit** before committing: `pre-commit run --all-files`
@@ -65,6 +66,59 @@ class Role(models.Model):
     name = models.CharField(max_length=100, verbose_name="Tên vai trò")
 ```
 
+### String Constants and DRY Principle
+
+**Use constants for string values throughout the codebase:**
+
+- **API Documentation**: Define summary, description, and tags as constants
+- **Serializer Help Text**: Use constants for help_text values
+- **Log Messages**: Define log messages as constants
+- **Error Messages**: Use constants for internal error messages (user-facing strings use `gettext()`)
+
+**Examples:**
+
+```python
+# ✅ CORRECT - Using constants
+# constants.py
+API_USER_LIST_SUMMARY = "List all users"
+API_USER_LIST_DESCRIPTION = "Retrieve a paginated list of all users in the system"
+ERROR_USER_NOT_FOUND = "User not found"
+HELP_TEXT_EMAIL = "User's email address"
+
+# views.py
+from .constants import API_USER_LIST_SUMMARY, API_USER_LIST_DESCRIPTION
+
+@extend_schema(
+    summary=API_USER_LIST_SUMMARY,
+    description=API_USER_LIST_DESCRIPTION,
+    tags=["Users"],
+)
+def list_users(request):
+    pass
+
+# serializers.py
+from .constants import HELP_TEXT_EMAIL
+
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(help_text=HELP_TEXT_EMAIL)
+```
+
+```python
+# ❌ WRONG - Hardcoded strings
+@extend_schema(
+    summary="List all users",  # Should be a constant
+    description="Retrieve a paginated list of all users",  # Should be a constant
+    tags=["Users"],
+)
+```
+
+**Exceptions (allowed):**
+- Very short strings (≤3 chars): `"id"`, `"pk"`, `"en"`
+- Field names and model names: `"email"`, `"username"`
+- URLs and paths: `"/api/users"`, `"https://example.com"`
+- Format strings: `f"{user.name}"`
+- Strings wrapped in `gettext()`: `_("User not found")` (user-facing)
+
 ### Other Principles
 - **Clarity and Simplicity:** Write clear, maintainable, and self-explanatory code. Follow the DRY (Don't Repeat Yourself) principle.
 
@@ -95,6 +149,37 @@ This project is a Django application with a modular architecture.
   * Run `poetry run ruff check` for targeted files when modifying code
   * Run `mypy` only on files you're modifying, not the entire codebase
   * Defer full pre-commit validation until final changes are ready
+
+### Pre-commit Hooks
+
+The repository includes custom pre-commit hooks to enforce code quality:
+
+**1. Vietnamese Text Check** (`check-no-vietnamese`)
+- **Purpose**: Prevents Vietnamese text in code, comments, and docstrings
+- **Status**: **BLOCKING** - Commits will fail if Vietnamese text is detected
+- **Allows**: Vietnamese in `.po` translation files, migrations (historical data)
+- **Script**: `scripts/check_no_vietnamese.py`
+
+**2. String Constants Check** (`check-string-constants`)
+- **Purpose**: Encourages using constants instead of hardcoded strings
+- **Status**: **WARNING ONLY** - Won't block commits, but will warn developers
+- **Flags**: API documentation, help text, log messages without constants
+- **Allows**: `gettext()` wrapped strings, field names, URLs, short strings (≤3 chars)
+- **Script**: `scripts/check_string_constants.py`
+
+**Running Hooks Manually:**
+```bash
+# Run all pre-commit hooks
+pre-commit run --all-files
+
+# Run specific hooks
+pre-commit run check-no-vietnamese --all-files
+pre-commit run check-string-constants --all-files
+
+# Test the scripts directly
+python scripts/check_no_vietnamese.py apps/core/models.py
+python scripts/check_string_constants.py apps/core/api/views.py
+```
 
 ## 4. Testing
 - **TDD Approach:** Write tests **before** implementing or modifying code when working on business logic. For documentation-only changes, bug fixes with existing tests, or minor refactors, tests may not be needed.

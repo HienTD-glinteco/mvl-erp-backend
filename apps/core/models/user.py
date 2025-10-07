@@ -28,7 +28,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         related_name="users",
-        verbose_name="Vai trò",
+        verbose_name=_("Role"),
     )
 
     # Login attempt tracking
@@ -50,7 +50,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         related_name="users",
-        verbose_name="Vai trò",
+        verbose_name=_("Role"),
     )
 
     objects = UserManager()

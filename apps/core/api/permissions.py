@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
@@ -14,7 +15,7 @@ class RoleBasedPermission(BasePermission):
     Usage:
         @api_view(["GET"])
         @permission_classes([RoleBasedPermission])
-        @register_permission("document.list", "Xem danh sách tài liệu")
+        @register_permission("document.list", _("View document list"))
         def document_list(request):
             return Response({"ok": True})
     """
@@ -39,7 +40,7 @@ class RoleBasedPermission(BasePermission):
 
         # Check if user is authenticated
         if not request.user or not request.user.is_authenticated:
-            raise PermissionDenied("Bạn cần đăng nhập để thực hiện hành động này")
+            raise PermissionDenied(_("You need to login to perform this action"))
 
         # Allow superusers
         if request.user.is_superuser:
@@ -50,4 +51,4 @@ class RoleBasedPermission(BasePermission):
             return True
 
         # Deny access with a clear message
-        raise PermissionDenied("Bạn không có quyền thực hiện hành động này")
+        raise PermissionDenied(_("You do not have permission to perform this action"))

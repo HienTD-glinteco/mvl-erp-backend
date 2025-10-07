@@ -26,34 +26,34 @@ from apps.hrm.models import Block, Branch, Department, OrganizationChart, Positi
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách chi nhánh",
-        description="Lấy danh sách tất cả chi nhánh trong hệ thống",
-        tags=["Chi nhánh"],
+        summary="List all branches",
+        description="Retrieve a list of all branches in the system",
+        tags=["Branch"],
     ),
     create=extend_schema(
-        summary="Tạo chi nhánh mới",
-        description="Tạo một chi nhánh mới trong hệ thống",
-        tags=["Chi nhánh"],
+        summary="Create a new branch",
+        description="Create a new branch in the system",
+        tags=["Branch"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết chi nhánh",
-        description="Lấy thông tin chi tiết của một chi nhánh",
-        tags=["Chi nhánh"],
+        summary="Get branch details",
+        description="Retrieve detailed information about a specific branch",
+        tags=["Branch"],
     ),
     update=extend_schema(
-        summary="Cập nhật chi nhánh",
-        description="Cập nhật thông tin chi nhánh",
-        tags=["Chi nhánh"],
+        summary="Update branch",
+        description="Update branch information",
+        tags=["Branch"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần chi nhánh",
-        description="Cập nhật một phần thông tin chi nhánh",
-        tags=["Chi nhánh"],
+        summary="Partially update branch",
+        description="Partially update branch information",
+        tags=["Branch"],
     ),
     destroy=extend_schema(
-        summary="Xóa chi nhánh",
-        description="Xóa chi nhánh khỏi hệ thống",
-        tags=["Chi nhánh"],
+        summary="Delete branch",
+        description="Remove a branch from the system",
+        tags=["Branch"],
     ),
 )
 class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
@@ -70,34 +70,34 @@ class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách khối",
-        description="Lấy danh sách tất cả khối trong hệ thống",
-        tags=["Khối"],
+        summary="List all blocks",
+        description="Retrieve a list of all blocks in the system",
+        tags=["Block"],
     ),
     create=extend_schema(
-        summary="Tạo khối mới",
-        description="Tạo một khối mới trong hệ thống",
-        tags=["Khối"],
+        summary="Create a new block",
+        description="Create a new block in the system",
+        tags=["Block"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết khối",
-        description="Lấy thông tin chi tiết của một khối",
-        tags=["Khối"],
+        summary="Get block details",
+        description="Retrieve detailed information about a specific block",
+        tags=["Block"],
     ),
     update=extend_schema(
-        summary="Cập nhật khối",
-        description="Cập nhật thông tin khối",
-        tags=["Khối"],
+        summary="Update block",
+        description="Update block information",
+        tags=["Block"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần khối",
-        description="Cập nhật một phần thông tin khối",
-        tags=["Khối"],
+        summary="Partially update block",
+        description="Partially update block information",
+        tags=["Block"],
     ),
     destroy=extend_schema(
-        summary="Xóa khối",
-        description="Xóa khối khỏi hệ thống",
-        tags=["Khối"],
+        summary="Delete block",
+        description="Remove a block from the system",
+        tags=["Block"],
     ),
 )
 class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
@@ -114,34 +114,34 @@ class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách phòng ban",
-        description="Lấy danh sách tất cả phòng ban trong hệ thống",
-        tags=["Phòng ban"],
+        summary="List all departments",
+        description="Retrieve a list of all departments in the system",
+        tags=["Department"],
     ),
     create=extend_schema(
-        summary="Tạo phòng ban mới",
-        description="Tạo một phòng ban mới trong hệ thống",
-        tags=["Phòng ban"],
+        summary="Create a new department",
+        description="Create a new department in the system",
+        tags=["Department"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết phòng ban",
-        description="Lấy thông tin chi tiết của một phòng ban",
-        tags=["Phòng ban"],
+        summary="Get department details",
+        description="Retrieve detailed information about a specific department",
+        tags=["Department"],
     ),
     update=extend_schema(
-        summary="Cập nhật phòng ban",
-        description="Cập nhật thông tin phòng ban",
-        tags=["Phòng ban"],
+        summary="Update department",
+        description="Update department information",
+        tags=["Department"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần phòng ban",
-        description="Cập nhật một phần thông tin phòng ban",
-        tags=["Phòng ban"],
+        summary="Partially update department",
+        description="Partially update department information",
+        tags=["Department"],
     ),
     destroy=extend_schema(
-        summary="Xóa phòng ban",
-        description="Xóa phòng ban khỏi hệ thống",
-        tags=["Phòng ban"],
+        summary="Delete department",
+        description="Remove a department from the system",
+        tags=["Department"],
     ),
 )
 class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
@@ -156,9 +156,9 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     ordering = ["block__code", "code"]
 
     @extend_schema(
-        summary="Cây phòng ban",
-        description="Lấy cấu trúc cây phòng ban theo khối",
-        tags=["Phòng ban"],
+        summary="Department tree structure",
+        description="Retrieve department tree structure by block",
+        tags=["Department"],
     )
     @action(detail=False, methods=["get"])
     def tree(self, request):
@@ -192,9 +192,9 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         return Response(tree)
 
     @extend_schema(
-        summary="Lấy chức năng theo loại khối",
-        description="Lấy danh sách chức năng phòng ban có thể chọn theo loại khối",
-        tags=["Phòng ban"],
+        summary="Get department functions by block type",
+        description="Retrieve available department functions based on block type",
+        tags=["Department"],
     )
     @action(detail=False, methods=["get"])
     def function_choices(self, request):
@@ -216,9 +216,9 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         )
 
     @extend_schema(
-        summary="Lấy phòng ban quản lý có thể chọn",
-        description="Lấy danh sách phòng ban có thể làm phòng ban quản lý",
-        tags=["Phòng ban"],
+        summary="Get available management departments",
+        description="Retrieve departments that can serve as management departments",
+        tags=["Department"],
     )
     @action(detail=False, methods=["get"])
     def management_choices(self, request):
@@ -251,34 +251,34 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách chức vụ",
-        description="Lấy danh sách tất cả chức vụ trong hệ thống",
-        tags=["Chức vụ"],
+        summary="List all positions",
+        description="Retrieve a list of all positions in the system",
+        tags=["Position"],
     ),
     create=extend_schema(
-        summary="Tạo chức vụ mới",
-        description="Tạo một chức vụ mới trong hệ thống",
-        tags=["Chức vụ"],
+        summary="Create a new position",
+        description="Create a new position in the system",
+        tags=["Position"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết chức vụ",
-        description="Lấy thông tin chi tiết của một chức vụ",
-        tags=["Chức vụ"],
+        summary="Get position details",
+        description="Retrieve detailed information about a specific position",
+        tags=["Position"],
     ),
     update=extend_schema(
-        summary="Cập nhật chức vụ",
-        description="Cập nhật thông tin chức vụ",
-        tags=["Chức vụ"],
+        summary="Update position",
+        description="Update position information",
+        tags=["Position"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần chức vụ",
-        description="Cập nhật một phần thông tin chức vụ",
-        tags=["Chức vụ"],
+        summary="Partially update position",
+        description="Partially update position information",
+        tags=["Position"],
     ),
     destroy=extend_schema(
-        summary="Xóa chức vụ",
-        description="Xóa chức vụ khỏi hệ thống",
-        tags=["Chức vụ"],
+        summary="Delete position",
+        description="Remove a position from the system",
+        tags=["Position"],
     ),
 )
 class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
@@ -295,34 +295,34 @@ class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách sơ đồ tổ chức",
-        description="Lấy danh sách tất cả bản ghi sơ đồ tổ chức",
-        tags=["Sơ đồ tổ chức"],
+        summary="List organization charts",
+        description="Retrieve a list of all organization charts",
+        tags=["Organization Chart"],
     ),
     create=extend_schema(
-        summary="Tạo bản ghi sơ đồ tổ chức",
-        description="Tạo một bản ghi sơ đồ tổ chức mới",
-        tags=["Sơ đồ tổ chức"],
+        summary="Create organization chart",
+        description="Create a new organization chart",
+        tags=["Organization Chart"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết sơ đồ tổ chức",
-        description="Lấy thông tin chi tiết của một bản ghi sơ đồ tổ chức",
-        tags=["Sơ đồ tổ chức"],
+        summary="Get organization chart details",
+        description="Retrieve detailed information about a specific organization chart",
+        tags=["Organization Chart"],
     ),
     update=extend_schema(
-        summary="Cập nhật sơ đồ tổ chức",
-        description="Cập nhật thông tin sơ đồ tổ chức",
-        tags=["Sơ đồ tổ chức"],
+        summary="Update organization chart",
+        description="Update organization chart information",
+        tags=["Organization Chart"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần sơ đồ tổ chức",
-        description="Cập nhật một phần thông tin sơ đồ tổ chức",
-        tags=["Sơ đồ tổ chức"],
+        summary="Partially update organization chart",
+        description="Partially update organization chart information",
+        tags=["Organization Chart"],
     ),
     destroy=extend_schema(
-        summary="Xóa bản ghi sơ đồ tổ chức",
-        description="Xóa bản ghi sơ đồ tổ chức khỏi hệ thống",
-        tags=["Sơ đồ tổ chức"],
+        summary="Delete organization chart",
+        description="Remove an organization chart from the system",
+        tags=["Organization Chart"],
     ),
 )
 class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
@@ -349,9 +349,9 @@ class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     @extend_schema(
-        summary="Sơ đồ tổ chức theo cấu trúc",
-        description="Lấy sơ đồ tổ chức theo cấu trúc phân cấp",
-        tags=["Sơ đồ tổ chức"],
+        summary="Organization chart hierarchy",
+        description="Retrieve organization chart in hierarchical structure",
+        tags=["Organization Chart"],
     )
     @action(detail=False, methods=["get"])
     def hierarchy(self, request):
@@ -388,9 +388,9 @@ class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         return Response(list(hierarchy.values()))
 
     @extend_schema(
-        summary="Nhân viên theo phòng ban",
-        description="Lấy danh sách nhân viên theo phòng ban",
-        tags=["Sơ đồ tổ chức"],
+        summary="Employees by department",
+        description="Retrieve list of employees by department",
+        tags=["Organization Chart"],
     )
     @action(detail=False, methods=["get"])
     def by_department(self, request):

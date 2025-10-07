@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 14:43+0700\n"
+"POT-Creation-Date: 2025-10-07 16:10+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,6 +14,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+# api/serializers/auth/password_change.py:80
+#: apps/core/api/permissions.py:43
+msgid "You need to login to perform this action"
+msgstr "Bạn cần đăng nhập để thực hiện hành động này."
+
+#: apps/core/api/permissions.py:54
+msgid "You do not have permission to perform this action"
+msgstr ""
 
 # models/user.py:13
 #: apps/core/api/serializers/auth/login.py:17
@@ -569,23 +578,28 @@ msgstr "OTP đặt lại mật khẩu"
 msgid "Permission code"
 msgstr "Mã quyền"
 
-#: apps/core/models/permission.py:11 apps/core/models/role.py:14
+# models/permission.py
+#: apps/core/models/permission.py:11
+msgid "Permission name"
+msgstr "Tên quyền"
+
+#: apps/core/models/permission.py:12 apps/core/models/role.py:14
 msgid "Description"
 msgstr "Mô tả"
 
-#: apps/core/models/permission.py:12
+#: apps/core/models/permission.py:13
 msgid "Module"
 msgstr "Phân hệ"
 
-#: apps/core/models/permission.py:13
+#: apps/core/models/permission.py:14
 msgid "Submodule"
 msgstr "Phân hệ con"
 
-#: apps/core/models/permission.py:16
+#: apps/core/models/permission.py:17
 msgid "Permission"
 msgstr "Quyền"
 
-#: apps/core/models/permission.py:17 apps/core/models/role.py:19
+#: apps/core/models/permission.py:18 apps/core/models/role.py:19
 msgid "Permissions"
 msgstr "Quyền"
 
@@ -602,7 +616,8 @@ msgstr "Tên vai trò"
 msgid "System role"
 msgstr "Vai trò hệ thống"
 
-#: apps/core/models/role.py:24
+#: apps/core/models/role.py:24 apps/core/models/user.py:31
+#: apps/core/models/user.py:53
 msgid "Role"
 msgstr "Vai trò"
 

@@ -20,11 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         consumer_name = options["consumer_name"]
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Starting audit log consumer: {consumer_name}"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Starting audit log consumer: {consumer_name}"))
 
         # Initialize and run the consumer
         consumer = AuditLogConsumer(consumer_name=consumer_name)
@@ -35,4 +31,3 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Interrupted. Shutting down..."))
         finally:
             self.stdout.write(self.style.SUCCESS("Consumer stopped."))
-

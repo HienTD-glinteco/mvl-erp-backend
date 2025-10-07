@@ -182,7 +182,12 @@ The agent follows an **incremental validation strategy**:
 **⚠️ Critical Requirements ⚠️**
 - **NO Vietnamese text** in code, comments, or docstrings
 - **English ONLY** for all code and API documentation
+- **Use constants** for string values (API docs, help text, log messages)
 - **User-facing strings** must use Django's `gettext()` for translation
 - **Validation**: Run `pre-commit run --all-files` before committing
 
-See the [Pre-Flight Checklist](.github/copilot-instructions.md#️-pre-flight-checklist---read-before-every-task-️) for complete requirements.
+**Automated Checks:**
+- ✅ `check-no-vietnamese`: Blocks commits with Vietnamese text in code
+- ⚠️ `check-string-constants`: Warns about hardcoded strings (encourages using constants)
+
+See the [Pre-Flight Checklist](.github/copilot-instructions.md#️-pre-flight-checklist---read-before-every-task-️) for complete requirements and [Code Style Checks](docs/CODE_STYLE_CHECKS.md) for detailed documentation.

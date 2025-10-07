@@ -15,23 +15,23 @@ from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, Emp
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách nhân viên theo vai trò",
-        description="Lấy danh sách nhân viên với thông tin vai trò và tổ chức. Hỗ trợ tìm kiếm và lọc theo chi nhánh, khối, phòng ban, chức vụ, vai trò.",
-        tags=["Quản lý Nhân viên theo Role"],
+        summary="List employees by role",
+        description="Retrieve list of employees with role and organization information. Supports searching and filtering by branch, block, department, position, and role.",
+        tags=["Employee Role Management"],
         parameters=[
             OpenApiParameter(
                 name="search",
-                description="Tìm kiếm theo tên nhân viên hoặc tên vai trò (không phân biệt chữ hoa/thường)",
+                description="Search by employee name or role name (case-insensitive)",
                 type=str,
             ),
-            OpenApiParameter(name="branch", description="Lọc theo chi nhánh", type=str),
-            OpenApiParameter(name="block", description="Lọc theo khối", type=str),
-            OpenApiParameter(name="department", description="Lọc theo phòng ban", type=str),
-            OpenApiParameter(name="position", description="Lọc theo chức vụ", type=str),
-            OpenApiParameter(name="role", description="Lọc theo vai trò", type=str),
+            OpenApiParameter(name="branch", description="Filter by branch", type=str),
+            OpenApiParameter(name="block", description="Filter by block", type=str),
+            OpenApiParameter(name="department", description="Filter by department", type=str),
+            OpenApiParameter(name="position", description="Filter by position", type=str),
+            OpenApiParameter(name="role", description="Filter by role", type=str),
             OpenApiParameter(
                 name="ordering",
-                description="Sắp xếp theo trường (mặc định: -username). Thêm dấu '-' để sắp xếp giảm dần.",
+                description="Sort by field (default: -username). Add '-' prefix for descending order.",
                 type=str,
             ),
         ],
@@ -69,39 +69,39 @@ class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        summary="Chỉnh sửa vai trò hàng loạt",
-        description="Cập nhật vai trò cho nhiều nhân viên cùng lúc (tối đa 25 nhân viên). "
-        "Khi vai trò của nhân viên thay đổi, hệ thống sẽ đăng xuất tài khoản đó.",
-        tags=["Quản lý Nhân viên theo Role"],
+        summary="Bulk update employee roles",
+        description="Update roles for multiple employees at once (maximum 25 employees). "
+        "When an employee's role changes, the system will log them out.",
+        tags=["Employee Role Management"],
         request=BulkUpdateRoleSerializer,
         responses={
             200: {
-                "description": "Cập nhật thành công",
+                "description": "Update successful",
                 "content": {
                     "application/json": {
                         "example": {
                             "success": True,
-                            "message": "Chỉnh sửa thành công",
+                            "message": _("Update successful"),
                             "updated_count": 5,
                         }
                     }
                 },
             },
             400: {
-                "description": "Lỗi validation",
+                "description": "Validation error",
                 "content": {
                     "application/json": {
                         "examples": {
                             "no_selection": {
-                                "summary": "Chưa chọn nhân viên",
+                                "summary": "No employees selected",
                                 "value": {"employee_ids": ["Please select at least one employee."]},
                             },
                             "too_many": {
-                                "summary": "Quá 25 nhân viên",
+                                "summary": "More than 25 employees",
                                 "value": {"employee_ids": ["Cannot update more than 25 employees at once."]},
                             },
                             "no_role": {
-                                "summary": "Chưa chọn vai trò mới",
+                                "summary": "No new role selected",
                                 "value": {"new_role_id": ["Please select a new role."]},
                             },
                         }
@@ -152,7 +152,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
         return Response(
             {
                 "success": True,
-                "message": _("Chỉnh sửa thành công"),
+                "message": _("Update successful"),
                 "updated_count": updated_count,
             },
             status=status.HTTP_200_OK,

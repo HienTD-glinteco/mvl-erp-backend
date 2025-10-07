@@ -5,6 +5,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory
 from rest_framework.views import APIView
@@ -259,8 +260,6 @@ class RoleBasedPermissionTestCase(TestCase):
 
     def test_permission_denied_for_user_without_role(self):
         # Arrange
-        from rest_framework.exceptions import PermissionDenied
-
         # Create a view function with permission decorator
         def raw_view(request):
             return Response({"ok": True})
@@ -276,7 +275,7 @@ class RoleBasedPermissionTestCase(TestCase):
 
         with self.assertRaises(PermissionDenied) as context:
             permission_checker.has_permission(request, test_view)
-        self.assertIn("không có quyền", str(context.exception))
+        self.assertIn("You do not have permission to perform this action", str(context.exception))
 
     def test_permission_allowed_for_superuser(self):
         # Arrange

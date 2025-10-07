@@ -133,13 +133,17 @@ class DepartmentSerializer(serializers.ModelSerializer):
         """Validate parent department is in the same block"""
         if value and self.instance:
             if value.block != self.instance.block:
-                raise serializers.ValidationError(_("Parent department must be in the same block as the child department."))
+                raise serializers.ValidationError(
+                    _("Parent department must be in the same block as the child department.")
+                )
         elif value and "block" in self.initial_data:
             # For creation
             try:
                 block = Block.objects.get(id=self.initial_data["block"])
                 if value.block != block:
-                    raise serializers.ValidationError(_("Parent department must be in the same block as the child department."))
+                    raise serializers.ValidationError(
+                        _("Parent department must be in the same block as the child department.")
+                    )
             except Block.DoesNotExist:
                 pass
         return value
@@ -193,7 +197,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
             allowed = [c[0] for c in Department.get_function_choices_for_block_type(block.block_type)]
             if function not in allowed:
                 raise serializers.ValidationError(
-                    {"function": _("This function is not compatible with block type %(block_type)s.") % {"block_type": block.get_block_type_display()}}
+                    {
+                        "function": _("This function is not compatible with block type %(block_type)s.")
+                        % {"block_type": block.get_block_type_display()}
+                    }
                 )
 
         return attrs
