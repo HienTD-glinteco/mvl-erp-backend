@@ -1,11 +1,11 @@
 from functools import wraps
 
 
-def register_permission(code: str, description: str, module: str = "", submodule: str = ""):
+def register_permission(code: str, description: str, module: str = "", submodule: str = "", name: str = ""):
     """
     Decorator to register permission metadata on a view function or method.
 
-    This decorator attaches permission code, description, module and submodule to the view,
+    This decorator attaches permission code, name, description, module and submodule to the view,
     which will be collected by the collect_permissions management command
     and checked by the RoleBasedPermission class.
 
@@ -14,6 +14,7 @@ def register_permission(code: str, description: str, module: str = "", submodule
         description: Human-readable description of the permission
         module: Module/system the permission belongs to (e.g., "HRM", "Document Management")
         submodule: Sub-module within the main module (e.g., "Employee Profile", "Payroll")
+        name: Human-readable name of the permission (e.g., "Create Document")
 
     Example:
         @api_view(["POST"])
@@ -21,7 +22,8 @@ def register_permission(code: str, description: str, module: str = "", submodule
             "document.create",
             "Create document",
             module="Document Management",
-            submodule="Documents"
+            submodule="Documents",
+            name="Create Document"
         )
         def document_create(request):
             ...
@@ -32,6 +34,7 @@ def register_permission(code: str, description: str, module: str = "", submodule
         view_func._permission_description = description
         view_func._permission_module = module
         view_func._permission_submodule = submodule
+        view_func._permission_name = name
 
         @wraps(view_func)
         def wrapper(*args, **kwargs):

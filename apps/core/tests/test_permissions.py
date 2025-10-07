@@ -40,6 +40,32 @@ class PermissionModelTestCase(TestCase):
         # Act & Assert
         self.assertEqual(str(permission), "document.list - Xem danh sách tài liệu")
 
+    def test_permission_string_representation_with_name(self):
+        # Arrange
+        permission = Permission.objects.create(
+            code="document.list",
+            name="List Documents",
+            description="Xem danh sách tài liệu",
+        )
+
+        # Act & Assert
+        self.assertEqual(str(permission), "document.list - List Documents")
+
+    def test_create_permission_with_name(self):
+        # Arrange & Act
+        permission = Permission.objects.create(
+            code="document.create",
+            name="Create Document",
+            description="Tạo tài liệu",
+        )
+
+        # Assert
+        self.assertEqual(permission.code, "document.create")
+        self.assertEqual(permission.name, "Create Document")
+        self.assertEqual(permission.description, "Tạo tài liệu")
+        self.assertIsNotNone(permission.created_at)
+        self.assertIsNotNone(permission.updated_at)
+
 
 class RoleModelTestCase(TestCase):
     """Test Role model"""
@@ -162,6 +188,21 @@ class RegisterPermissionDecoratorTestCase(TestCase):
         self.assertEqual(test_view._permission_description, "Test Permission")
         self.assertEqual(test_view._permission_module, "Test Module")
         self.assertEqual(test_view._permission_submodule, "Test Submodule")
+
+    def test_decorator_with_name(self):
+        # Arrange & Act
+        @register_permission(
+            "test.permission",
+            "Test Permission",
+            name="Test Permission Name"
+        )
+        def test_view(request):
+            return Response({"ok": True})
+
+        # Assert
+        self.assertEqual(test_view._permission_code, "test.permission")
+        self.assertEqual(test_view._permission_description, "Test Permission")
+        self.assertEqual(test_view._permission_name, "Test Permission Name")
 
     def test_decorator_on_class_method(self):
         # Arrange & Act
@@ -359,6 +400,33 @@ class CollectPermissionsCommandTestCase(TestCase):
         # Assert
         self.assertTrue(created)
         self.assertEqual(permission.code, code)
+        self.assertEqual(permission.description, description)
+        self.assertEqual(permission.module, module)
+        self.assertEqual(permission.submodule, submodule)
+
+    def test_command_creates_permission_with_name(self):
+        # Arrange - Create a permission with name
+        code = "hrm.create_employee"
+        name = "Create Employee"
+        description = "Create new employee"
+        module = "HRM"
+        submodule = "Employee Profile"
+
+        # Act - Create it directly (simulating what the command would do)
+        permission, created = Permission.objects.update_or_create(
+            code=code,
+            defaults={
+                "name": name,
+                "description": description,
+                "module": module,
+                "submodule": submodule,
+            },
+        )
+
+        # Assert
+        self.assertTrue(created)
+        self.assertEqual(permission.code, code)
+        self.assertEqual(permission.name, name)
         self.assertEqual(permission.description, description)
         self.assertEqual(permission.module, module)
         self.assertEqual(permission.submodule, submodule)

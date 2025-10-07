@@ -23,6 +23,7 @@ class Command(BaseCommand):
 
         for perm_data in found_permissions:
             code = perm_data["code"]
+            name = perm_data.get("name", "")
             description = perm_data.get("description", "")
             module = perm_data.get("module", "")
             submodule = perm_data.get("submodule", "")
@@ -30,6 +31,7 @@ class Command(BaseCommand):
             permission, created = Permission.objects.update_or_create(
                 code=code,
                 defaults={
+                    "name": name,
                     "description": description,
                     "module": module,
                     "submodule": submodule,
@@ -83,13 +85,15 @@ class Command(BaseCommand):
         return permissions
 
     def _get_permission_tuple(self, obj):
-        """Get permission code, description, module and submodule from an object"""
+        """Get permission code, name, description, module and submodule from an object"""
         code = obj._permission_code
+        name = getattr(obj, "_permission_name", "")
         description = getattr(obj, "_permission_description", "")
         module = getattr(obj, "_permission_module", "")
         submodule = getattr(obj, "_permission_submodule", "")
         return {
             "code": code,
+            "name": name,
             "description": description,
             "module": module,
             "submodule": submodule,
