@@ -12,6 +12,9 @@ from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth import OTPVerificationSerializer
 from apps.core.api.serializers.auth.responses import OTPVerificationResponseSerializer
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
+from apps.notifications.models import Notification
+from apps.notifications.utils import create_notification
+from libs.request_utils import UNKNOWN_IP, get_client_ip, get_user_agent
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +67,25 @@ class OTPVerificationView(APIView):
                 user=user,
                 request=request,
                 change_message=f"User {user.username} logged in successfully",
+            )
+
+            # Create login notification with IP address and device info
+            ip_address = get_client_ip(request) or UNKNOWN_IP
+            user_agent = get_user_agent(request)
+
+            # Create a user-friendly message with IP address
+            login_message = _("Your account was logged in from IP address: {ip_address}").format(ip_address=ip_address)
+
+            create_notification(
+                actor=user,
+                recipient=user,
+                verb=_("logged in"),
+                message=login_message,
+                extra_data={
+                    "ip_address": ip_address,
+                    "user_agent": user_agent,
+                },
+                delivery_method=Notification.DeliveryMethod.FIREBASE,
             )
 
             response_data = {

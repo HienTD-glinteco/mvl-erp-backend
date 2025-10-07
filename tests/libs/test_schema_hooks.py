@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from api.schema_hooks import wrap_with_envelope
+from libs.schema_hooks import wrap_with_envelope
 
 
 class SchemaHookTest(unittest.TestCase):

@@ -852,3 +852,13 @@ msgid ""
 msgstr ""
 "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự "
 "đặc biệt."
+
+# api/views/auth/otp_verification.py:81
+#: apps/core/api/views/auth/otp_verification.py:81
+msgid "logged in"
+msgstr "đã đăng nhập"
+
+# api/views/auth/otp_verification.py:77
+#: apps/core/api/views/auth/otp_verification.py:77
+msgid "Your account was logged in from IP address: {ip_address}"
+msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ IP: {ip_address}"

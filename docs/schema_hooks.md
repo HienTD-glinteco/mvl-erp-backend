@@ -40,7 +40,7 @@ The hook is registered in `settings/base/drf.py`:
 SPECTACULAR_SETTINGS = {
     # ... other settings ...
     "POSTPROCESSING_HOOKS": [
-        "api.schema_hooks.wrap_with_envelope",
+        "libs.schema_hooks.wrap_with_envelope",
     ],
 }
 ```
@@ -127,7 +127,7 @@ If the envelope is not appearing in the generated schema:
 ### Maintenance
 
 When adding new response envelope fields:
-1. Update the `wrap_with_envelope` function in `api/schema_hooks.py`
-2. Update the tests in `api/tests/test_schema_hooks.py`
+1. Update the `wrap_with_envelope` function in `libs/schema_hooks.py`
+2. Update the tests in `tests/libs/test_schema_hooks.py`
 3. Regenerate the schema to verify the changes
 4. Update this documentation
