@@ -141,3 +141,7 @@ msgstr ""
 #: apps/notifications/models.py:98
 msgid "Notifications"
 msgstr ""
+
+#: apps/core/models/permission.py:11
+msgid "Permission name"
+msgstr "Tên quyền"
