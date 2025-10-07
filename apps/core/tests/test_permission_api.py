@@ -30,11 +30,19 @@ class PermissionAPITest(TransactionTestCase, APITestMixin):
         Permission.objects.all().delete()
         User.objects.all().delete()
 
-        # Create test permissions
-        self.perm1 = Permission.objects.create(code="view_users", description="View users")
-        self.perm2 = Permission.objects.create(code="edit_users", description="Edit users")
-        self.perm3 = Permission.objects.create(code="delete_users", description="Delete users")
-        self.perm4 = Permission.objects.create(code="view_reports", description="View reports")
+        # Create test permissions with module and submodule
+        self.perm1 = Permission.objects.create(
+            code="view_users", description="View users", module="HRM", submodule="Employee Profile"
+        )
+        self.perm2 = Permission.objects.create(
+            code="edit_users", description="Edit users", module="HRM", submodule="Employee Profile"
+        )
+        self.perm3 = Permission.objects.create(
+            code="delete_users", description="Delete users", module="HRM", submodule="Employee Profile"
+        )
+        self.perm4 = Permission.objects.create(
+            code="view_reports", description="View reports", module="Reports", submodule=""
+        )
 
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass")
         self.client = APIClient()
@@ -119,3 +127,64 @@ class PermissionAPITest(TransactionTestCase, APITestMixin):
         # Try to delete
         delete_response = self.client.delete(update_url)
         self.assertEqual(delete_response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_filter_permission_by_module(self):
+        """Test filtering permissions by module"""
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"module": "HRM"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)  # view_users, edit_users, delete_users
+        for perm in response_data:
+            self.assertEqual(perm["module"], "HRM")
+
+    def test_filter_permission_by_submodule(self):
+        """Test filtering permissions by submodule"""
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"submodule": "Employee Profile"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)  # view_users, edit_users, delete_users
+        for perm in response_data:
+            self.assertEqual(perm["submodule"], "Employee Profile")
+
+    def test_filter_permission_by_module_and_submodule(self):
+        """Test filtering permissions by both module and submodule"""
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"module": "HRM", "submodule": "Employee Profile"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)  # view_users, edit_users, delete_users
+
+    def test_search_permission_by_module(self):
+        """Test searching permissions by module name"""
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"search": "HRM"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)  # All HRM permissions
+
+    def test_search_permission_by_submodule(self):
+        """Test searching permissions by submodule name"""
+        url = reverse("core:permission-list")
+        response = self.client.get(url, {"search": "Employee"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)  # All permissions with "Employee" in submodule
+
+    def test_permission_serializer_includes_module_submodule(self):
+        """Test that permission serializer includes module and submodule fields"""
+        url = reverse("core:permission-detail", kwargs={"pk": self.perm1.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("module", response_data)
+        self.assertIn("submodule", response_data)
+        self.assertEqual(response_data["module"], "HRM")
+        self.assertEqual(response_data["submodule"], "Employee Profile")

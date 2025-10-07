@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import Permission, Role
@@ -8,7 +9,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Permission
-        fields = ["id", "code", "description", "created_at", "updated_at"]
+        fields = ["id", "code", "description", "module", "submodule", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
@@ -44,7 +45,7 @@ class RoleSerializer(serializers.ModelSerializer):
         """Custom validation for Role"""
         # Check if at least one permission is selected
         if "permissions" in attrs and not attrs["permissions"]:
-            raise serializers.ValidationError({"permission_ids": "Cần chọn ít nhất 1 Quyền"})
+            raise serializers.ValidationError({"permission_ids": _("At least one permission must be selected")})
 
         return attrs
 
@@ -54,11 +55,11 @@ class RoleSerializer(serializers.ModelSerializer):
         if instance:
             # Update case: check if name is changed and not duplicate
             if Role.objects.exclude(pk=instance.pk).filter(name=value).exists():
-                raise serializers.ValidationError("Tên vai trò đã tồn tại.")
+                raise serializers.ValidationError(_("Role name already exists"))
         else:
             # Create case: check if name already exists
             if Role.objects.filter(name=value).exists():
-                raise serializers.ValidationError("Tên vai trò đã tồn tại.")
+                raise serializers.ValidationError(_("Role name already exists"))
         return value
 
     def create(self, validated_data):
@@ -89,8 +90,6 @@ class RoleSerializer(serializers.ModelSerializer):
             # Check if any non-permission fields are being updated
             non_allowed_fields = provided_fields - allowed_fields
             if non_allowed_fields:
-                raise serializers.ValidationError(
-                    "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác."
-                )
+                raise serializers.ValidationError(_("System roles can only update permissions, not other fields"))
 
         return super().update(instance, validated_data)

@@ -10,14 +10,14 @@ from apps.core.models import Permission
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách quyền",
-        description="Lấy danh sách tất cả quyền có sẵn trong hệ thống",
-        tags=["Quyền"],
+        summary="List permissions",
+        description="Retrieve a list of all permissions available in the system",
+        tags=["Permissions"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết quyền",
-        description="Lấy thông tin chi tiết của một quyền",
-        tags=["Quyền"],
+        summary="Get permission details",
+        description="Retrieve detailed information about a specific permission",
+        tags=["Permissions"],
     ),
 )
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -27,6 +27,6 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PermissionSerializer
     filterset_class = PermissionFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["code", "description"]
+    search_fields = ["code", "description", "module", "submodule"]
     ordering_fields = ["code", "created_at"]
     ordering = ["code"]

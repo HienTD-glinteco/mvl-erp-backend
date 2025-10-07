@@ -8,7 +8,9 @@ class PermissionFilterSet(django_filters.FilterSet):
 
     code = django_filters.CharFilter(lookup_expr="icontains")
     description = django_filters.CharFilter(lookup_expr="icontains")
+    module = django_filters.CharFilter(lookup_expr="iexact")
+    submodule = django_filters.CharFilter(lookup_expr="iexact")
 
     class Meta:
         model = Permission
-        fields = ["code", "description"]
+        fields = ["code", "description", "module", "submodule"]

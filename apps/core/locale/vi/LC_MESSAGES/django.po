@@ -780,3 +780,42 @@ msgid ""
 msgstr ""
 "Mật khẩu phải có tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự "
 "đặc biệt."
+
+# models/permission.py
+#: apps/core/models/permission.py:10
+msgid "Permission code"
+msgstr "Mã quyền"
+
+#: apps/core/models/permission.py:11
+msgid "Description"
+msgstr "Mô tả"
+
+#: apps/core/models/permission.py:12
+msgid "Module"
+msgstr "Phân hệ"
+
+#: apps/core/models/permission.py:13
+msgid "Submodule"
+msgstr "Phân hệ con"
+
+#: apps/core/models/permission.py:16
+msgid "Permission"
+msgstr "Quyền"
+
+#: apps/core/models/permission.py:17
+msgid "Permissions"
+msgstr "Quyền"
+
+# api/serializers/role.py
+#: apps/core/api/serializers/role.py:47
+msgid "At least one permission must be selected"
+msgstr "Cần chọn ít nhất 1 Quyền"
+
+#: apps/core/api/serializers/role.py:58
+#: apps/core/api/serializers/role.py:61
+msgid "Role name already exists"
+msgstr "Tên vai trò đã tồn tại"
+
+#: apps/core/api/serializers/role.py:93
+msgid "System roles can only update permissions, not other fields"
+msgstr "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
