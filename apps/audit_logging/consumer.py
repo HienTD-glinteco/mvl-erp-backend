@@ -5,7 +5,7 @@ import logging
 
 from django.conf import settings
 from opensearchpy.exceptions import ConnectionError, TransportError
-from rstream import Consumer as RStreamConsumer
+from rstream import Consumer as RStreamConsumer, exceptions
 from rstream.constants import ConsumerOffsetSpecification, OffsetType
 
 from .opensearch_client import get_opensearch_client
@@ -95,6 +95,13 @@ class AuditLogConsumer:
             password=settings.RABBITMQ_STREAM_PASSWORD,
             vhost=settings.RABBITMQ_STREAM_VHOST,
         )
+
+        # Create stream if not exists to ensure consumer can start properly.
+        try:
+            await self.rabbitmq_consumer.create_stream(settings.RABBITMQ_STREAM_NAME, exists_ok=True)
+        except exceptions.PreconditionFailed:
+            # Stream already exists, which is fine
+            logging.debug("Stream already exists, proceeding.")
 
         try:
             await self.rabbitmq_consumer.start()
