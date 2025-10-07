@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0007_update_role_verbose_names'),
+        ("core", "0007_update_role_verbose_names"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='permission',
-            name='name',
-            field=models.CharField(blank=True, max_length=255, verbose_name='Permission name'),
+            model_name="permission",
+            name="name",
+            field=models.CharField(blank=True, max_length=255, verbose_name="Permission name"),
         ),
     ]

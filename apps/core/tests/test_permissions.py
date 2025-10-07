@@ -174,12 +174,7 @@ class RegisterPermissionDecoratorTestCase(TestCase):
 
     def test_decorator_with_module_and_submodule(self):
         # Arrange & Act
-        @register_permission(
-            "test.permission",
-            "Test Permission",
-            module="Test Module",
-            submodule="Test Submodule"
-        )
+        @register_permission("test.permission", "Test Permission", module="Test Module", submodule="Test Submodule")
         def test_view(request):
             return Response({"ok": True})
 
@@ -191,11 +186,7 @@ class RegisterPermissionDecoratorTestCase(TestCase):
 
     def test_decorator_with_name(self):
         # Arrange & Act
-        @register_permission(
-            "test.permission",
-            "Test Permission",
-            name="Test Permission Name"
-        )
+        @register_permission("test.permission", "Test Permission", name="Test Permission Name")
         def test_view(request):
             return Response({"ok": True})
 
@@ -456,12 +447,7 @@ class CollectPermissionsCommandTestCase(TestCase):
         old_module = ""
         old_submodule = ""
 
-        Permission.objects.create(
-            code=code,
-            description=description,
-            module=old_module,
-            submodule=old_submodule
-        )
+        Permission.objects.create(code=code, description=description, module=old_module, submodule=old_submodule)
 
         # Act - Update with module and submodule
         new_module = "Test Module"
