@@ -12,34 +12,34 @@ from apps.core.models import Role
 
 @extend_schema_view(
     list=extend_schema(
-        summary="Danh sách vai trò",
-        description="Lấy danh sách tất cả vai trò trong hệ thống",
-        tags=["Vai trò"],
+        summary="List roles",
+        description="Retrieve a list of all roles in the system",
+        tags=["Roles"],
     ),
     create=extend_schema(
-        summary="Tạo vai trò mới",
-        description="Tạo một vai trò mới trong hệ thống",
-        tags=["Vai trò"],
+        summary="Create a new role",
+        description="Create a new role in the system",
+        tags=["Roles"],
     ),
     retrieve=extend_schema(
-        summary="Chi tiết vai trò",
-        description="Lấy thông tin chi tiết của một vai trò",
-        tags=["Vai trò"],
+        summary="Get role details",
+        description="Retrieve detailed information about a specific role",
+        tags=["Roles"],
     ),
     update=extend_schema(
-        summary="Cập nhật vai trò",
-        description="Cập nhật thông tin vai trò",
-        tags=["Vai trò"],
+        summary="Update role",
+        description="Update role information",
+        tags=["Roles"],
     ),
     partial_update=extend_schema(
-        summary="Cập nhật một phần vai trò",
-        description="Cập nhật một phần thông tin vai trò",
-        tags=["Vai trò"],
+        summary="Partially update role",
+        description="Partially update role information",
+        tags=["Roles"],
     ),
     destroy=extend_schema(
-        summary="Xóa vai trò",
-        description="Xóa vai trò khỏi hệ thống",
-        tags=["Vai trò"],
+        summary="Delete role",
+        description="Delete role from the system",
+        tags=["Roles"],
     ),
 )
 class RoleViewSet(AuditLoggingMixin, viewsets.ModelViewSet):

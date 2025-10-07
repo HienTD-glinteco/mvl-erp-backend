@@ -21,10 +21,19 @@ class Command(BaseCommand):
         created_count = 0
         updated_count = 0
 
-        for code, description in found_permissions:
+        for perm_data in found_permissions:
+            code = perm_data["code"]
+            description = perm_data.get("description", "")
+            module = perm_data.get("module", "")
+            submodule = perm_data.get("submodule", "")
+
             permission, created = Permission.objects.update_or_create(
                 code=code,
-                defaults={"description": description},
+                defaults={
+                    "description": description,
+                    "module": module,
+                    "submodule": submodule,
+                },
             )
             if created:
                 created_count += 1
@@ -74,10 +83,17 @@ class Command(BaseCommand):
         return permissions
 
     def _get_permission_tuple(self, obj):
-        """Get permission code and description from an object"""
+        """Get permission code, description, module and submodule from an object"""
         code = obj._permission_code
         description = getattr(obj, "_permission_description", "")
-        return (code, description)
+        module = getattr(obj, "_permission_module", "")
+        submodule = getattr(obj, "_permission_submodule", "")
+        return {
+            "code": code,
+            "description": description,
+            "module": module,
+            "submodule": submodule,
+        }
 
     def _extract_from_view_class(self, view_class):
         """Extract permissions from a class-based view"""
