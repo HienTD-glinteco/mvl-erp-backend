@@ -146,6 +146,23 @@ class RegisterPermissionDecoratorTestCase(TestCase):
         self.assertEqual(test_view._permission_code, "test.permission")
         self.assertEqual(test_view._permission_description, "Test Permission")
 
+    def test_decorator_with_module_and_submodule(self):
+        # Arrange & Act
+        @register_permission(
+            "test.permission",
+            "Test Permission",
+            module="Test Module",
+            submodule="Test Submodule"
+        )
+        def test_view(request):
+            return Response({"ok": True})
+
+        # Assert
+        self.assertEqual(test_view._permission_code, "test.permission")
+        self.assertEqual(test_view._permission_description, "Test Permission")
+        self.assertEqual(test_view._permission_module, "Test Module")
+        self.assertEqual(test_view._permission_submodule, "Test Submodule")
+
     def test_decorator_on_class_method(self):
         # Arrange & Act
         class TestView(APIView):
@@ -322,6 +339,30 @@ class CollectPermissionsCommandTestCase(TestCase):
         self.assertEqual(permission.code, code)
         self.assertEqual(permission.description, description)
 
+    def test_command_creates_permission_with_module_and_submodule(self):
+        # Arrange - Create a permission with module and submodule
+        code = "hrm.view_employee"
+        description = "View employee list"
+        module = "HRM"
+        submodule = "Employee Profile"
+
+        # Act - Create it directly (simulating what the command would do)
+        permission, created = Permission.objects.update_or_create(
+            code=code,
+            defaults={
+                "description": description,
+                "module": module,
+                "submodule": submodule,
+            },
+        )
+
+        # Assert
+        self.assertTrue(created)
+        self.assertEqual(permission.code, code)
+        self.assertEqual(permission.description, description)
+        self.assertEqual(permission.module, module)
+        self.assertEqual(permission.submodule, submodule)
+
     def test_command_updates_existing_permission(self):
         # Arrange - Create an existing permission with old description
         code = "test.update"
@@ -339,3 +380,34 @@ class CollectPermissionsCommandTestCase(TestCase):
         # Assert
         self.assertFalse(created)
         self.assertEqual(permission.description, new_description)
+
+    def test_command_updates_permission_module_and_submodule(self):
+        # Arrange - Create an existing permission without module/submodule
+        code = "test.update.module"
+        description = "Test Permission"
+        old_module = ""
+        old_submodule = ""
+
+        Permission.objects.create(
+            code=code,
+            description=description,
+            module=old_module,
+            submodule=old_submodule
+        )
+
+        # Act - Update with module and submodule
+        new_module = "Test Module"
+        new_submodule = "Test Submodule"
+        permission, created = Permission.objects.update_or_create(
+            code=code,
+            defaults={
+                "description": description,
+                "module": new_module,
+                "submodule": new_submodule,
+            },
+        )
+
+        # Assert
+        self.assertFalse(created)
+        self.assertEqual(permission.module, new_module)
+        self.assertEqual(permission.submodule, new_submodule)
