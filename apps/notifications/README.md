@@ -1,0 +1,249 @@
+# Notifications App
+
+This app provides a robust notification system for the MaiVietLand backend application.
+
+## Features
+
+- **User Notifications**: Track events that users should be aware of
+- **Flexible Target Objects**: Support for any model via GenericForeignKey
+- **Read/Unread Status**: Track which notifications have been read
+- **RESTful API**: Complete CRUD API with pagination
+- **Bulk Operations**: Efficiently mark multiple notifications as read
+- **Utility Functions**: Helper functions for creating notifications
+- **Admin Interface**: Full admin support for managing notifications
+
+## Models
+
+### Notification
+
+The main model representing a notification with the following fields:
+
+- `actor`: The user who triggered the event (ForeignKey to User)
+- `recipient`: The user receiving the notification (ForeignKey to User)
+- `verb`: The action that was performed (CharField)
+- `target`: Optional object affected by the action (GenericForeignKey)
+- `message`: Optional custom message (TextField)
+- `read`: Whether the notification has been read (BooleanField)
+- `extra_data`: Additional JSON data for context (JSONField)
+- `delivery_method`: How to deliver the notification - 'firebase', 'email', or 'both' (CharField)
+- `created_at`: When the notification was created (DateTimeField)
+- `updated_at`: When the notification was last updated (DateTimeField)
+
+## API Endpoints
+
+All endpoints require authentication and are prefixed with `/api/notifications/`.
+
+### List Notifications
+```
+GET /api/notifications/
+```
+Returns a paginated list of notifications for the authenticated user, ordered by newest first.
+
+### Retrieve Notification
+```
+GET /api/notifications/{id}/
+```
+Get details of a specific notification.
+
+### Mark as Read
+```
+PATCH /api/notifications/{id}/mark-as-read/
+```
+Mark a single notification as read.
+
+### Mark as Unread
+```
+PATCH /api/notifications/{id}/mark-as-unread/
+```
+Mark a single notification as unread.
+
+### Bulk Mark as Read
+```
+POST /api/notifications/bulk-mark-as-read/
+```
+Mark multiple notifications as read at once.
+
+**Request Body:**
+```json
+{
+  "notification_ids": [1, 2, 3]
+}
+```
+
+### Mark All as Read
+```
+POST /api/notifications/mark-all-as-read/
+```
+Mark all unread notifications for the authenticated user as read.
+
+### Unread Count
+```
+GET /api/notifications/unread-count/
+```
+Get the count of unread notifications for the authenticated user.
+
+## Utility Functions
+
+The `apps.notifications.utils` module provides helper functions for creating notifications:
+
+### create_notification
+
+Create a single notification:
+
+```python
+from apps.notifications.utils import create_notification
+
+notification = create_notification(
+    actor=user1,
+    recipient=user2,
+    verb="commented on your post",
+    target=post_object,  # Optional
+    message="This is a great post!",  # Optional
+    extra_data={"post_id": 123, "comment_url": "/posts/123#comment-456"},  # Optional
+    delivery_method="both"  # Optional: 'firebase', 'email', or 'both' (default: 'firebase')
+)
+```
+
+### create_bulk_notifications
+
+Create multiple notifications at once:
+
+```python
+from apps.notifications.utils import create_bulk_notifications
+
+notifications = create_bulk_notifications(
+    actor=user1,
+    recipients=[user2, user3, user4],
+    verb="mentioned you in a post",
+    target=post_object,
+    message="Check this out!",
+    extra_data={"post_id": 123},  # Optional
+    delivery_method="email"  # Optional
+)
+```
+
+### notify_user
+
+Create a notification, but only if the recipient is not the actor (avoids self-notifications):
+
+```python
+from apps.notifications.utils import notify_user
+
+notification = notify_user(
+    actor=current_user,
+    recipient=post_author,
+    verb="commented on your post",
+    target=post_object,
+    extra_data={"post_id": 123},  # Optional
+    delivery_method="both"  # Optional
+)
+# Returns None if current_user == post_author
+```
+
+## Usage Examples
+
+### Creating Notifications
+
+```python
+from apps.core.models import User
+from apps.notifications.utils import create_notification, notify_user
+
+# Get users
+actor = User.objects.get(username="john")
+recipient = User.objects.get(username="jane")
+
+# Create a simple notification
+notification = create_notification(
+    actor=actor,
+    recipient=recipient,
+    verb="sent you a friend request"
+)
+
+# Create a notification with a target object
+from apps.hrm.models import Employee
+employee = Employee.objects.get(id=123)
+
+notification = create_notification(
+    actor=actor,
+    recipient=recipient,
+    verb="updated employee record for",
+    target=employee,
+    message="Employee information has been updated"
+)
+
+# Avoid self-notifications
+def on_comment_created(comment, post):
+    """Notify post author when someone comments."""
+    notify_user(
+        actor=comment.author,
+        recipient=post.author,
+        verb="commented on your post",
+        target=post
+    )
+    # This won't create a notification if the commenter is the post author
+```
+
+### Querying Notifications
+
+```python
+from apps.notifications.models import Notification
+
+# Get all unread notifications for a user
+unread = Notification.objects.filter(recipient=user, read=False)
+
+# Get recent notifications
+recent = Notification.objects.filter(recipient=user)[:10]
+
+# Mark all as read
+Notification.objects.filter(recipient=user, read=False).update(read=True)
+```
+
+## Admin Interface
+
+The app includes a Django admin interface for managing notifications. Access it at `/admin/notifications/notification/`.
+
+Features:
+- Filter by read status, creation date, and target content type
+- Search by actor, recipient, verb, or message
+- Bulk actions for marking notifications as read/unread
+- Optimized queries with select_related
+
+## Testing
+
+The app includes comprehensive tests covering:
+- Model functionality
+- API endpoints
+- Utility functions
+
+Run tests with:
+```bash
+poetry run pytest apps/notifications/tests/ -v
+```
+
+## Future Enhancements
+
+Potential features for future implementation:
+
+- **Firebase Cloud Messaging (FCM)**: Push notifications to mobile devices
+- **WebSocket Integration**: Real-time notification delivery
+- **Email Notifications**: Send email alerts for important notifications
+- **Notification Preferences**: Let users customize which notifications they receive
+- **Notification Templates**: Predefined templates for common notification types
+- **Notification Grouping**: Group similar notifications together
+
+## Translation
+
+The app is prepared for internationalization. To update translation files:
+
+```bash
+python manage.py makemessages -l vi
+# Edit locale/vi/LC_MESSAGES/django.po
+python manage.py compilemessages
+```
+
+## Architecture Notes
+
+- Uses Django's GenericForeignKey for flexible target object support
+- Optimized database queries with indexes on recipient and read status
+- Follows the repository's existing patterns for serializers, views, and tests
+- Fully compatible with the envelope-based API response format
