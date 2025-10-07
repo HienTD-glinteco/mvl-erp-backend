@@ -1,7 +1,9 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 
 from apps.core.api.filtersets import PermissionFilterSet
 from apps.core.api.serializers.role import PermissionSerializer
@@ -30,3 +32,51 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["code", "description", "module", "submodule"]
     ordering_fields = ["code", "created_at"]
     ordering = ["code"]
+
+    @extend_schema(
+        summary="Get permission structure (modules/submodules)",
+        description=(
+            "Return distinct module and/or submodule names from permissions. "
+            "Use `type` query param to specify which data to return:\n\n"
+            "- `type=module`: return modules only\n"
+            "- `type=submodule`: return submodules only\n"
+            "- omit or `type=both`: return both"
+        ),
+        tags=["Permissions"],
+        parameters=[
+            OpenApiParameter(
+                name="type",
+                description="Specify whether to return 'module', 'submodule', or 'both' (default).",
+                required=False,
+                type=str,
+                enum=["module", "submodule", "both"],
+            ),
+        ],
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "modules": {"type": "array", "items": {"type": "string"}},
+                    "submodules": {"type": "array", "items": {"type": "string"}},
+                },
+            }
+        },
+    )
+    @action(detail=False, methods=["get"], url_path="structure")
+    def structure(self, request):
+        """Return distinct module and/or submodule values."""
+        query_type = request.query_params.get("type", "both").lower()
+
+        response_data = {}
+
+        if query_type in ["module", "both"]:
+            modules = Permission.objects.exclude(module="").order_by().values_list("module", flat=True).distinct()
+            response_data["modules"] = list(modules)
+
+        if query_type in ["submodule", "both"]:
+            submodules = (
+                Permission.objects.exclude(submodule="").order_by().values_list("submodule", flat=True).distinct()
+            )
+            response_data["submodules"] = list(submodules)
+
+        return Response(response_data)
