@@ -1,0 +1,38 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New Notification" %}{% endblock %}
+
+{% block extra_styles %}
+.notification-box { background-color: #ffffff; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0; border-radius: 3px; }
+.message-box { background-color: #e9ecef; padding: 15px; margin: 15px 0; border-radius: 5px; font-style: italic; }
+.actor-name { color: #007bff; font-weight: bold; }
+{% endblock %}
+
+{% block header_title %}{% trans "New Notification" %}{% endblock %}
+
+{% block content %}
+<p>{% blocktrans with name=recipient_name %}Hello <strong>{{ name }}</strong>,{% endblocktrans %}</p>
+
+<div class="notification-box">
+    <p>
+        <span class="actor-name">{{ actor_name }}</span>
+        {{ verb }}
+        {% if target_info %}
+            {{ target_info }}
+        {% endif %}
+    </p>
+</div>
+
+{% if message %}
+<div class="message-box">
+    <strong>{% trans "Message:" %}</strong><br>
+    {{ message }}
+</div>
+{% endif %}
+
+<p>{% trans "You can view all your notifications by logging into your MaiVietLand account." %}</p>
+
+<p>{% trans "Best regards," %}<br>
+<strong>{% trans "MaiVietLand Team" %}</strong></p>
+{% endblock %}

@@ -128,7 +128,7 @@ from apps.notifications.utils import create_bulk_notifications
 def create_post(request):
     # Create the post
     post = Post.objects.create(...)
-    
+
     # Notify followers
     followers = request.user.followers.all()
     create_bulk_notifications(
@@ -137,7 +137,7 @@ def create_post(request):
         verb="created a new post",
         target=post
     )
-    
+
     return Response({"status": "success"})
 ```
 
@@ -203,22 +203,22 @@ logger = logging.getLogger(__name__)
 
 class FCMService:
     """Service for sending push notifications via Firebase Cloud Messaging."""
-    
+
     FCM_URL = "https://fcm.googleapis.com/fcm/send"
-    
+
     @classmethod
     def send_notification(cls, notification: Notification) -> bool:
         """Send a push notification for a Notification object."""
         if not settings.FCM_ENABLED:
             return False
-            
+
         device = notification.recipient.device
         if not device or not device.fcm_token or not device.active:
             return False
-            
+
         payload = cls._build_payload(notification, device.fcm_token)
         return cls._send_fcm_request(payload)
-    
+
     @classmethod
     def _build_payload(cls, notification: Notification, fcm_token: str) -> dict:
         """Build FCM payload."""
@@ -236,7 +236,7 @@ class FCMService:
                 "created_at": notification.created_at.isoformat(),
             },
         }
-    
+
     @classmethod
     def _send_fcm_request(cls, payload: dict) -> bool:
         """Send request to FCM."""
@@ -286,11 +286,11 @@ from .tasks import send_push_notification
 
 def create_notification(...) -> Notification:
     notification = Notification.objects.create(...)
-    
+
     # Send push notification asynchronously
     if settings.FCM_ENABLED:
         send_push_notification.delay(notification.id)
-    
+
     return notification
 ```
 
@@ -333,12 +333,78 @@ For real-time notification delivery, Django Channels can be integrated:
 
 ### Email Notifications
 
-For important notifications, email alerts can be added:
+**Status: ✅ IMPLEMENTED**
 
-1. Create email templates for different notification types
-2. Add user preferences for email notifications
-3. Use Celery tasks to send emails asynchronously
-4. Include unsubscribe links in emails
+Email notifications are now fully implemented and supported. The system can send notifications via email asynchronously using Celery tasks.
+
+#### Features
+
+- **Automatic Email Sending**: Notifications with `delivery_method` set to `'email'` or `'both'` automatically trigger email notifications
+- **Asynchronous Processing**: Email sending is handled by Celery tasks for better performance
+- **HTML and Plain Text**: Email templates support both HTML and plain text formats
+- **Translation Support**: All email strings are wrapped with Django's translation functions
+- **Retry Logic**: Failed email sends are automatically retried (up to 3 times)
+
+#### Usage
+
+```python
+from apps.notifications.utils import create_notification
+
+# Send notification via email
+notification = create_notification(
+    actor=user1,
+    recipient=user2,
+    verb="assigned you to a task",
+    message="Please review the quarterly report",
+    delivery_method="email"
+)
+
+# Send via both Firebase and email
+notification = create_notification(
+    actor=user1,
+    recipient=user2,
+    verb="mentioned you in a comment",
+    delivery_method="both"
+)
+```
+
+#### Email Template
+
+The email template is located at `apps/notifiations/templates/emails/notification_email.html` and includes:
+- Responsive design
+- Professional styling
+- Support for custom messages
+- Target object information
+- Internationalization support
+
+#### Configuration
+
+Email settings are configured in `settings/base/email.py`. For production use, set the following environment variables:
+
+```bash
+DEFAULT_FROM_EMAIL=noreply@maivietland.com
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@example.com
+EMAIL_HOST_PASSWORD=your-app-password
+```
+
+#### Implementation Details
+
+- **Task**: `apps/notifications/tasks.py::send_notification_email_task`
+- **Template**: `apps/notifiations/templates/emails/notification_email.html`
+- **Integration**: Automatically triggered in `apps/notifications/utils.py` when creating notifications
+- **Tests**: Comprehensive test coverage in `apps/notifications/tests/test_tasks.py`
+
+#### Future Enhancements for Email
+
+- User preferences for email notification types
+- Email digest (batch multiple notifications)
+- Unsubscribe links
+- Rich text formatting for messages
+- Attachment support
 
 ## Performance Considerations
 
@@ -359,7 +425,7 @@ All API views use `select_related()` to minimize database queries:
 
 ```python
 queryset = Notification.objects.select_related(
-    'actor', 
+    'actor',
     'target_content_type'
 )
 ```

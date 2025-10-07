@@ -13,6 +13,12 @@ class Notification(BaseModel):
     for various notification types through a generic foreign key to the target object.
     """
 
+    # Delivery method
+    class DeliveryMethod(models.TextChoices):
+        FIREBASE = "firebase", _("Firebase")
+        EMAIL = "email", _("Email")
+        BOTH = "both", _("Both")
+
     # The user who triggered the event (e.g., who commented, who assigned a task)
     actor = models.ForeignKey(
         "core.User",
@@ -78,12 +84,6 @@ class Notification(BaseModel):
         verbose_name=_("Extra data"),
         help_text=_("Additional JSON data to provide context for rendering"),
     )
-
-    # Delivery method
-    class DeliveryMethod(models.TextChoices):
-        FIREBASE = "firebase", _("Firebase")
-        EMAIL = "email", _("Email")
-        BOTH = "both", _("Both")
 
     delivery_method = models.CharField(
         max_length=20,

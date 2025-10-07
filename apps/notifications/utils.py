@@ -8,6 +8,7 @@ from django.db import models
 from apps.core.models import User
 
 from .models import Notification
+from .signals import trigger_send_notification, trigger_send_notifications
 
 
 def create_notification(
@@ -60,7 +61,11 @@ def create_notification(
         notification_data["target_content_type"] = ContentType.objects.get_for_model(target)
         notification_data["target_object_id"] = str(target.pk)
 
-    return Notification.objects.create(**notification_data)
+    notification = Notification.objects.create(**notification_data)
+
+    trigger_send_notification(notification)
+
+    return notification
 
 
 def create_bulk_notifications(
@@ -122,7 +127,11 @@ def create_bulk_notifications(
             )
         )
 
-    return Notification.objects.bulk_create(notification_objects)
+    created_notifications = Notification.objects.bulk_create(notification_objects)
+
+    trigger_send_notifications(created_notifications, delivery_method)
+
+    return created_notifications
 
 
 def notify_user(

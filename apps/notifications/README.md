@@ -7,6 +7,8 @@ This app provides a robust notification system for the MaiVietLand backend appli
 - **User Notifications**: Track events that users should be aware of
 - **Flexible Target Objects**: Support for any model via GenericForeignKey
 - **Read/Unread Status**: Track which notifications have been read
+- **Email Notifications**: Send notifications via email using Celery tasks
+- **Multiple Delivery Methods**: Support for Firebase, Email, or both delivery methods
 - **RESTful API**: Complete CRUD API with pagination
 - **Bulk Operations**: Efficiently mark multiple notifications as read
 - **Utility Functions**: Helper functions for creating notifications
@@ -183,6 +185,41 @@ def on_comment_created(comment, post):
     # This won't create a notification if the commenter is the post author
 ```
 
+### Email Notifications
+
+Notifications can be sent via email by setting the `delivery_method` parameter:
+
+```python
+from apps.notifications.utils import create_notification
+
+# Send notification via email only
+notification = create_notification(
+    actor=actor,
+    recipient=recipient,
+    verb="assigned you to a task",
+    message="Please review the document",
+    delivery_method="email"
+)
+
+# Send notification via both Firebase and email
+notification = create_notification(
+    actor=actor,
+    recipient=recipient,
+    verb="mentioned you in a discussion",
+    delivery_method="both"
+)
+
+# Default is Firebase only
+notification = create_notification(
+    actor=actor,
+    recipient=recipient,
+    verb="liked your post",
+    delivery_method="firebase"  # or omit the parameter
+)
+```
+
+**Note**: Email notifications are sent asynchronously using Celery tasks. The recipient must have a valid email address, otherwise the email will be skipped.
+
 ### Querying Notifications
 
 ```python
@@ -214,11 +251,54 @@ The app includes comprehensive tests covering:
 - Model functionality
 - API endpoints
 - Utility functions
+- Email notification tasks
+- Notification delivery methods
 
 Run tests with:
 ```bash
 poetry run pytest apps/notifications/tests/ -v
 ```
+
+## Email Configuration
+
+Email notifications require proper email configuration in your environment settings.
+
+### Development Configuration
+
+In development, emails are printed to the console by default:
+
+```python
+# settings/base/email.py
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@maivietland.com"
+```
+
+### Production Configuration
+
+For production, configure SMTP settings in your `.env` file:
+
+```bash
+# Email settings
+DEFAULT_FROM_EMAIL=noreply@maivietland.com
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+```
+
+**Supported Email Services:**
+- Gmail SMTP (with App Passwords)
+- Amazon SES
+- SendGrid
+- Mailgun
+- Any SMTP-compatible service
+
+**Important Notes:**
+- Celery must be running for email notifications to be sent asynchronously
+- Email templates support both HTML and plain text formats
+- All email strings are wrapped with Django's translation functions for i18n support
 
 ## Future Enhancements
 
@@ -226,7 +306,6 @@ Potential features for future implementation:
 
 - **Firebase Cloud Messaging (FCM)**: Push notifications to mobile devices
 - **WebSocket Integration**: Real-time notification delivery
-- **Email Notifications**: Send email alerts for important notifications
 - **Notification Preferences**: Let users customize which notifications they receive
 - **Notification Templates**: Predefined templates for common notification types
 - **Notification Grouping**: Group similar notifications together

@@ -58,72 +58,72 @@ msgstr ""
 msgid "Unread notification count"
 msgstr ""
 
-#: apps/notifications/models.py:21
-msgid "Actor"
-msgstr ""
-
-#: apps/notifications/models.py:22
-msgid "The user who triggered the notification"
-msgstr ""
-
-#: apps/notifications/models.py:30
-msgid "Recipient"
-msgstr ""
-
-#: apps/notifications/models.py:31
-msgid "The user receiving the notification"
-msgstr ""
-
-#: apps/notifications/models.py:38
-msgid "Verb"
-msgstr ""
-
-#: apps/notifications/models.py:39
-msgid "The action that was performed"
-msgstr ""
-
-#: apps/notifications/models.py:49
-msgid "Target content type"
-msgstr ""
-
-#: apps/notifications/models.py:55
-msgid "Target object ID"
-msgstr ""
-
-#: apps/notifications/models.py:62
-msgid "Message"
-msgstr ""
-
-#: apps/notifications/models.py:63
-msgid "Optional custom message for the notification"
-msgstr ""
-
-#: apps/notifications/models.py:69
-msgid "Read"
-msgstr ""
-
-#: apps/notifications/models.py:70
-msgid "Whether the notification has been read"
-msgstr ""
-
-#: apps/notifications/models.py:78
-msgid "Extra data"
-msgstr ""
-
-#: apps/notifications/models.py:79
-msgid "Additional JSON data to provide context for rendering"
-msgstr ""
-
-#: apps/notifications/models.py:84
+#: apps/notifications/models.py:18
 msgid "Firebase"
 msgstr ""
 
-#: apps/notifications/models.py:85
+#: apps/notifications/models.py:19
 msgid "Email"
 msgstr ""
 
-#: apps/notifications/models.py:86
+#: apps/notifications/models.py:20
 msgid "Both"
+msgstr ""
+
+#: apps/notifications/models.py:27
+msgid "Actor"
+msgstr ""
+
+#: apps/notifications/models.py:28
+msgid "The user who triggered the notification"
+msgstr ""
+
+#: apps/notifications/models.py:36
+msgid "Recipient"
+msgstr ""
+
+#: apps/notifications/models.py:37
+msgid "The user receiving the notification"
+msgstr ""
+
+#: apps/notifications/models.py:44
+msgid "Verb"
+msgstr ""
+
+#: apps/notifications/models.py:45
+msgid "The action that was performed"
+msgstr ""
+
+#: apps/notifications/models.py:55
+msgid "Target content type"
+msgstr ""
+
+#: apps/notifications/models.py:61
+msgid "Target object ID"
+msgstr ""
+
+#: apps/notifications/models.py:68
+msgid "Message"
+msgstr ""
+
+#: apps/notifications/models.py:69
+msgid "Optional custom message for the notification"
+msgstr ""
+
+#: apps/notifications/models.py:75
+msgid "Read"
+msgstr ""
+
+#: apps/notifications/models.py:76
+msgid "Whether the notification has been read"
+msgstr ""
+
+#: apps/notifications/models.py:84
+msgid "Extra data"
+msgstr ""
+
+#: apps/notifications/models.py:85
+msgid "Additional JSON data to provide context for rendering"
 msgstr ""
 
 #: apps/notifications/models.py:92
@@ -140,4 +140,60 @@ msgstr ""
 
 #: apps/notifications/models.py:98
 msgid "Notifications"
+msgstr ""
+
+#: apps/notifications/tasks.py:70
+#, python-format
+msgid "Hello %(recipient_name)s,"
+msgstr ""
+
+#: apps/notifications/tasks.py:72
+#, python-format
+msgid "%(actor_name)s %(verb)s"
+msgstr ""
+
+#: apps/notifications/tasks.py:79
+#: apps/notifications/templates/emails/notification_email.html:29
+msgid "Message:"
+msgstr ""
+
+#: apps/notifications/tasks.py:84
+#: apps/notifications/templates/emails/notification_email.html:36
+msgid "Best regards,"
+msgstr ""
+
+#: apps/notifications/tasks.py:85
+#: apps/notifications/templates/emails/notification_email.html:37
+msgid "MaiVietLand Team"
+msgstr ""
+
+#: apps/notifications/tasks.py:92
+msgid "New Notification - MaiVietLand"
+msgstr ""
+
+#: apps/notifications/templates/emails/notification_email.html:4
+#: apps/notifications/templates/emails/notification_email.html:12
+msgid "New Notification"
+msgstr ""
+
+#: apps/notifications/templates/emails/notification_email.html:15
+#, python-format
+msgid "Hello <strong>%(name)s</strong>,"
+msgstr ""
+
+#: apps/notifications/templates/emails/notification_email.html:34
+msgid ""
+"You can view all your notifications by logging into your MaiVietLand account."
+msgstr ""
+
+#: templates/emails/base_email.html:6
+msgid "MaiVietLand"
+msgstr ""
+
+#: templates/emails/base_email.html:26
+msgid "This email is sent automatically, please do not reply."
+msgstr ""
+
+#: templates/emails/base_email.html:27
+msgid "All rights reserved."
 msgstr ""

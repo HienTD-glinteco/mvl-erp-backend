@@ -53,3 +53,15 @@ RABBITMQ_STREAM_NAME=audit_logs_stream
 
 # AUDIT_LOG
 AUDIT_LOG_DISABLED=false
+
+# EMAIL
+DEFAULT_FROM_EMAIL=noreply@maivietland.com
+# For development, use console backend (emails printed to console)
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+# For production, use SMTP backend
+# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# EMAIL_HOST=smtp.gmail.com
+# EMAIL_PORT=587
+# EMAIL_USE_TLS=True
+# EMAIL_HOST_USER=your-email@gmail.com
+# EMAIL_HOST_PASSWORD=your-app-password
