@@ -7,7 +7,6 @@ from io import StringIO
 import pytest
 from django.core.management import call_command
 from django.test import TestCase
-from rest_framework import viewsets
 from rest_framework.decorators import action
 
 from apps.core.models import Permission
@@ -19,8 +18,8 @@ class MockModel:
     """Mock model for testing"""
 
     class _meta:
-        verbose_name = "Test Item"
-        verbose_name_plural = "Test Items"
+        verbose_name = "Mock Model"
+        verbose_name_plural = "Mock Models"
 
 
 class SimpleTestViewSet(BaseModelViewSet):
@@ -78,7 +77,7 @@ class BaseModelViewSetTestCase(TestCase):
         model_name = SimpleTestViewSet.get_model_name()
 
         # Assert
-        self.assertEqual(model_name, "Test Item")
+        self.assertEqual(model_name, "Mock Model")
 
     def test_get_model_name_plural(self):
         """Test get_model_name_plural returns correct plural name"""
@@ -86,7 +85,7 @@ class BaseModelViewSetTestCase(TestCase):
         model_name_plural = SimpleTestViewSet.get_model_name_plural()
 
         # Assert
-        self.assertEqual(model_name_plural, "Test Items")
+        self.assertEqual(model_name_plural, "Mock Models")
 
     def test_get_custom_actions(self):
         """Test get_custom_actions returns all custom actions"""
@@ -140,7 +139,7 @@ class BaseModelViewSetTestCase(TestCase):
         self.assertEqual(list_perm["module"], "Test Module")
         self.assertEqual(list_perm["submodule"], "Test Submodule")
         self.assertIn("List", list_perm["name"])
-        self.assertIn("Test Items", list_perm["name"])  # Should use plural
+        self.assertIn("Mock Models", list_perm["name"])  # Should use plural
 
     def test_custom_actions_generate_permissions(self):
         """Test custom actions generate permissions"""
@@ -173,7 +172,7 @@ class BaseModelViewSetTestCase(TestCase):
         list_perm = next(p for p in permissions if p["code"] == "test_item.list")
 
         # Assert
-        self.assertIn("Test Items", list_perm["name"])  # Plural
+        self.assertIn("Mock Models", list_perm["name"])  # Plural
 
     def test_other_actions_use_singular_name(self):
         """Test that non-list actions use singular model name"""
@@ -182,7 +181,7 @@ class BaseModelViewSetTestCase(TestCase):
         create_perm = next(p for p in permissions if p["code"] == "test_item.create")
 
         # Assert
-        self.assertIn("Test Item", create_perm["name"])  # Singular
+        self.assertIn("Mock Model", create_perm["name"])  # Singular
 
 
 @pytest.mark.django_db
