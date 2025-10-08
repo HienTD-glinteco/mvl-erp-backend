@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
@@ -8,6 +8,7 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
 from apps.core.models import Role
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
@@ -42,7 +43,7 @@ from apps.core.models import Role
         tags=["Roles"],
     ),
 )
-class RoleViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Role model"""
 
     queryset = Role.objects.prefetch_related("permissions").all()
@@ -52,6 +53,11 @@ class RoleViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["code", "name", "created_at"]
     ordering = ["code"]
+
+    # Permission registration attributes
+    module = "Core"
+    submodule = "Role Management"
+    permission_prefix = "role"
 
     def destroy(self, request, *args, **kwargs):
         """Delete a role with validation"""

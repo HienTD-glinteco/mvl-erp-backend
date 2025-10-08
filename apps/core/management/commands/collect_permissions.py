@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.urls import get_resolver
 
@@ -11,17 +12,33 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Collecting permissions from views..."))
 
         found_permissions = []
-        url_patterns = self._get_all_url_patterns(get_resolver().url_patterns)
 
+        # 1. Collect permissions from BaseModelViewSet subclasses
+        self.stdout.write("Scanning BaseModelViewSet subclasses...")
+        viewset_permissions = self._collect_from_base_viewsets()
+        found_permissions.extend(viewset_permissions)
+        self.stdout.write(f"  Found {len(viewset_permissions)} permissions from BaseModelViewSet subclasses")
+
+        # 2. Collect permissions from URL patterns (legacy decorator-based)
+        self.stdout.write("Scanning URL patterns for decorator-based permissions...")
+        url_patterns = self._get_all_url_patterns(get_resolver().url_patterns)
         for pattern in url_patterns:
             permissions = self._extract_permissions_from_pattern(pattern)
             found_permissions.extend(permissions)
+
+        # Remove duplicates (keep first occurrence)
+        unique_permissions = []
+        seen_codes = set()
+        for perm in found_permissions:
+            if perm["code"] not in seen_codes:
+                unique_permissions.append(perm)
+                seen_codes.add(perm["code"])
 
         # Sync permissions to database
         created_count = 0
         updated_count = 0
 
-        for perm_data in found_permissions:
+        for perm_data in unique_permissions:
             code = perm_data["code"]
             name = perm_data.get("name", "")
             description = perm_data.get("description", "")
@@ -44,7 +61,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Successfully collected {len(found_permissions)} permissions "
+                f"Successfully collected {len(unique_permissions)} permissions "
                 f"({created_count} created, {updated_count} updated)"
             )
         )
@@ -132,5 +149,39 @@ class Command(BaseCommand):
                     perm_tuple = self._get_permission_tuple(attr)
                     if perm_tuple not in permissions:
                         permissions.append(perm_tuple)
+
+        return permissions
+
+    def _collect_from_base_viewsets(self):
+        """Collect permissions from all BaseModelViewSet and BaseReadOnlyModelViewSet subclasses"""
+        from libs.base_viewset import PermissionRegistrationMixin
+
+        permissions = []
+        
+        # Iterate through all installed apps
+        for app_config in apps.get_app_configs():
+            # Only process internal apps
+            if not app_config.name.startswith("apps."):
+                continue
+
+            # Try to import views module from the app
+            try:
+                views_module = __import__(f"{app_config.name}.api.views", fromlist=[""])
+            except (ImportError, ModuleNotFoundError):
+                continue
+
+            # Find all PermissionRegistrationMixin subclasses in the module
+            # This includes both BaseModelViewSet and BaseReadOnlyModelViewSet
+            for attr_name in dir(views_module):
+                attr = getattr(views_module, attr_name)
+                if (
+                    isinstance(attr, type)
+                    and issubclass(attr, PermissionRegistrationMixin)
+                    and attr is not PermissionRegistrationMixin
+                    and hasattr(attr, "get_registered_permissions")
+                ):
+                    # Get registered permissions from the viewset
+                    viewset_permissions = attr.get_registered_permissions()
+                    permissions.extend(viewset_permissions)
 
         return permissions

@@ -141,6 +141,7 @@ This project includes an **optimized CI/CD pipeline** using GitHub Actions with 
 - 📊 [CI Optimization Summary](docs/CI_OPTIMIZATION_SUMMARY.md) - Performance improvements
 - 📈 [Workflow Comparison](docs/CI_WORKFLOW_COMPARISON.md) - Before/after visualization
 - 🤖 [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) - Agent performance guide
+- 🔐 [Auto Permission Registration](docs/AUTO_PERMISSION_REGISTRATION.md) - Automatic permission generation for ViewSets
 
 ### Workflow
 
