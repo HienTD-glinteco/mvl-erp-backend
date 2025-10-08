@@ -24,11 +24,11 @@ jobs:
         script: |
           set -Eeuo pipefail
           trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
-          
+
           cd /home/ubuntu/maivietland/backend
           git checkout staging
           git pull origin staging
-          
+
           # Update API documentation version in .env file
           API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
@@ -36,12 +36,12 @@ jobs:
           else
             echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
           fi
-          
+
           export PATH="$HOME/.local/bin:$PATH"
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-root
           poetry run python manage.py migrate --noinput
-          sudo supervisorctl restart maivietland-api maivietland-worker
+          sudo supervisorctl restart maivietland-api maivietland-worker maivietland-consume-audit-logs
 
     - name: Health Check (with retry)
       run: |
