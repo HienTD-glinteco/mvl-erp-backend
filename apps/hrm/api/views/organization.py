@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -22,6 +22,7 @@ from apps.hrm.api.serializers import (
     PositionSerializer,
 )
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
@@ -56,7 +57,7 @@ from apps.hrm.models import Block, Branch, Department, OrganizationChart, Positi
         tags=["Branch"],
     ),
 )
-class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Branch model"""
 
     queryset = Branch.objects.all()
@@ -66,6 +67,11 @@ class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     search_fields = ["name", "code", "address"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["code"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "branch"
 
 
 @extend_schema_view(
@@ -100,7 +106,7 @@ class BranchViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         tags=["Block"],
     ),
 )
-class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Block model"""
 
     queryset = Block.objects.select_related("branch").all()
@@ -110,6 +116,11 @@ class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at", "block_type"]
     ordering = ["branch__code", "code"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "block"
 
 
 @extend_schema_view(
@@ -144,7 +155,7 @@ class BlockViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         tags=["Department"],
     ),
 )
-class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Department model"""
 
     queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
@@ -154,6 +165,11 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["block__code", "code"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "department"
 
     @extend_schema(
         summary="Department tree structure",
@@ -281,7 +297,7 @@ class DepartmentViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         tags=["Position"],
     ),
 )
-class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Position model"""
 
     queryset = Position.objects.all()
@@ -291,6 +307,11 @@ class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "level", "created_at"]
     ordering = ["level", "code"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "position"
 
 
 @extend_schema_view(
@@ -325,7 +346,7 @@ class PositionViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
         tags=["Organization Chart"],
     ),
 )
-class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
+class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for OrganizationChart model"""
 
     queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()
@@ -341,6 +362,11 @@ class OrganizationChartViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
     ]
     ordering_fields = ["start_date", "created_at", "position__level"]
     ordering = ["position__level", "start_date"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "organization_chart"
 
     def get_serializer_class(self):
         """Use detailed serializer for retrieve action"""

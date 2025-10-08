@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from apps.audit_logging import AuditLoggingMixin, LogAction, batch_audit_context
 from apps.core.models import User
 from apps.hrm.api.filtersets.employee_role import EmployeeRoleFilterSet
 from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
+from libs import BaseReadOnlyModelViewSet
 
 
 @extend_schema_view(
@@ -37,7 +38,7 @@ from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, Emp
         ],
     ),
 )
-class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
+class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """
     ViewSet for managing employees by role.
 
@@ -55,6 +56,11 @@ class EmployeeRoleViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = ["username", "first_name", "last_name", "role__name"]
     ordering_fields = ["username", "first_name", "last_name", "role__name", "created_at"]
     ordering = ["-username"]  # Default ordering: descending by employee code
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Employee Management"
+    permission_prefix = "employee_role"
 
     def get_queryset(self):
         """
