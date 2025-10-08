@@ -65,7 +65,13 @@ class PermissionRegistrationMixin:
             str: Model name (e.g., "Role", "Permission")
         """
         if hasattr(cls, "queryset") and cls.queryset is not None:
-            return cls.queryset.model._meta.verbose_name.title()
+            # Get the model class name and convert to readable format
+            # e.g., "OrganizationChart" -> "Organization Chart"
+            model_name = cls.queryset.model.__name__
+            # Add space before capital letters (except the first one)
+            import re
+            spaced_name = re.sub(r'(?<!^)(?=[A-Z])', ' ', model_name)
+            return spaced_name
         return cls.__name__.replace("ViewSet", "")
 
     @classmethod
@@ -76,9 +82,14 @@ class PermissionRegistrationMixin:
         Returns:
             str: Plural model name (e.g., "Roles", "Permissions")
         """
-        if hasattr(cls, "queryset") and cls.queryset is not None:
-            return cls.queryset.model._meta.verbose_name_plural.title()
-        return cls.get_model_name() + "s"
+        model_name = cls.get_model_name()
+        # Simple pluralization: add 's' or 'es'
+        if model_name.endswith(('s', 'x', 'z', 'ch', 'sh')):
+            return model_name + "es"
+        elif model_name.endswith('y') and len(model_name) > 1 and model_name[-2] not in 'aeiou':
+            return model_name[:-1] + "ies"
+        else:
+            return model_name + "s"
 
     @classmethod
     def get_custom_actions(cls):

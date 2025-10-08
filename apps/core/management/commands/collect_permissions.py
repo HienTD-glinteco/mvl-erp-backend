@@ -153,8 +153,8 @@ class Command(BaseCommand):
         return permissions
 
     def _collect_from_base_viewsets(self):
-        """Collect permissions from all BaseModelViewSet subclasses"""
-        from libs.base_viewset import BaseModelViewSet
+        """Collect permissions from all BaseModelViewSet and BaseReadOnlyModelViewSet subclasses"""
+        from libs.base_viewset import PermissionRegistrationMixin
 
         permissions = []
         
@@ -170,13 +170,15 @@ class Command(BaseCommand):
             except (ImportError, ModuleNotFoundError):
                 continue
 
-            # Find all BaseModelViewSet subclasses in the module
+            # Find all PermissionRegistrationMixin subclasses in the module
+            # This includes both BaseModelViewSet and BaseReadOnlyModelViewSet
             for attr_name in dir(views_module):
                 attr = getattr(views_module, attr_name)
                 if (
                     isinstance(attr, type)
-                    and issubclass(attr, BaseModelViewSet)
-                    and attr is not BaseModelViewSet
+                    and issubclass(attr, PermissionRegistrationMixin)
+                    and attr is not PermissionRegistrationMixin
+                    and hasattr(attr, "get_registered_permissions")
                 ):
                     # Get registered permissions from the viewset
                     viewset_permissions = attr.get_registered_permissions()
