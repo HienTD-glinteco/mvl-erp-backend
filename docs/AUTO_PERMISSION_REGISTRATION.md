@@ -6,6 +6,89 @@ This document describes the automatic permission registration system that elimin
 
 The system automatically generates permission metadata for every `BaseModelViewSet` and `BaseReadOnlyModelViewSet` subclass, which are then collected and synced to the database by the `collect_permissions` management command.
 
+## System Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Developer"
+        A[Create ViewSet]
+        A --> B[Inherit from BaseModelViewSet]
+        B --> C[Define: module, submodule, permission_prefix]
+    end
+    
+    subgraph "BaseModelViewSet"
+        D[get_registered_permissions]
+        D --> E[Scan Standard Actions]
+        D --> F[Scan Custom Actions]
+        E --> G[Generate Permission Metadata]
+        F --> G
+    end
+    
+    subgraph "Management Command"
+        H[python manage.py collect_permissions]
+        H --> I[Scan All Apps]
+        I --> J[Find BaseModelViewSet Subclasses]
+        J --> K[Call get_registered_permissions]
+        K --> L[Sync to Database]
+    end
+    
+    subgraph "Database"
+        M[(Permission Table)]
+        L --> M
+        M --> N[Permission Records]
+        N --> O[code, name, description, module, submodule]
+    end
+    
+    C --> D
+    G --> K
+    
+    style A fill:#e1f5ff
+    style B fill:#e1f5ff
+    style C fill:#e1f5ff
+    style D fill:#fff4e1
+    style G fill:#fff4e1
+    style H fill:#f0e1ff
+    style M fill:#e1ffe1
+```
+
+## Permission Generation Flow
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant VS as ViewSet
+    participant Base as BaseModelViewSet
+    participant Cmd as collect_permissions
+    participant DB as Database
+    
+    Dev->>VS: Create DocumentViewSet
+    Dev->>VS: Set permission_prefix="document"
+    Dev->>VS: Set module="HRM"
+    
+    Note over VS: ViewSet inherits from BaseModelViewSet
+    
+    Dev->>Cmd: Run collect_permissions
+    Cmd->>Cmd: Scan all apps
+    Cmd->>VS: Discover DocumentViewSet
+    Cmd->>Base: Call get_registered_permissions()
+    
+    Base->>Base: Check for list action
+    Base->>Base: Generate: document.list
+    Base->>Base: Check for create action
+    Base->>Base: Generate: document.create
+    Base->>Base: Check custom actions
+    Base->>Base: Generate: document.approve
+    
+    Base-->>Cmd: Return permissions list
+    
+    loop For each permission
+        Cmd->>DB: update_or_create(code, defaults)
+        DB-->>Cmd: Permission created/updated
+    end
+    
+    Cmd-->>Dev: Success: 6 permissions collected
+```
+
 ## Key Benefits
 
 1. **Eliminates Manual Work**: No need to manually decorate each ViewSet action with `@register_permission`
