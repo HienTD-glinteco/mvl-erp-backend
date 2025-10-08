@@ -16,10 +16,13 @@ INSTALLED_APPS += [  # NOQA
     "health_check.contrib.migrations",
     "health_check.contrib.celery",  # requires celery
     "health_check.contrib.celery_ping",  # requires celery
+    "django.contrib.staticfiles",  # for API admin in local & develop
 ]
 
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
+
+STATIC_ROOT = "staticfiles"
 
 # Cache settings
 CACHE_URL = config("CACHE_URL", default="redis://127.0.0.1:6379/2")

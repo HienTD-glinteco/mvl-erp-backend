@@ -5,12 +5,17 @@ to easily develop the app.
 
 from .base import *  # noqa
 
+INSTALLED_APPS += [  # NOQA
+    "django.contrib.staticfiles",  # for API admin in local & develop
+]
+
 ALLOWED_HOSTS = ["*"]
 
 INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = True
 
+STATIC_ROOT = "staticfiles"
 
 # Use SMTP:
 EMAIL_BACKEND = config(  # noqa
