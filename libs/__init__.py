@@ -1,3 +1,3 @@
-from .base_viewset import BaseModelViewSet
+from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 
-__all__ = ["BaseModelViewSet"]
+__all__ = ["BaseModelViewSet", "BaseReadOnlyModelViewSet"]

@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -8,6 +7,7 @@ from rest_framework.response import Response
 from apps.core.api.filtersets import PermissionFilterSet
 from apps.core.api.serializers.role import PermissionSerializer
 from apps.core.models import Permission
+from libs import BaseReadOnlyModelViewSet
 
 
 @extend_schema_view(
@@ -22,7 +22,7 @@ from apps.core.models import Permission
         tags=["Permissions"],
     ),
 )
-class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
+class PermissionViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for Permission model - Read only"""
 
     queryset = Permission.objects.all()
@@ -32,6 +32,11 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["code", "description", "module", "submodule"]
     ordering_fields = ["code", "created_at"]
     ordering = ["code"]
+
+    # Permission registration attributes
+    module = "Core"
+    submodule = "Permission Management"
+    permission_prefix = "permission"
 
     @extend_schema(
         summary="Get permission structure (modules/submodules)",

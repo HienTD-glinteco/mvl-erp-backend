@@ -267,6 +267,65 @@ class CollectPermissionsWithBaseViewSetTestCase(TestCase):
         self.assertIn("BaseModelViewSet", output)
 
 
+class BaseReadOnlyModelViewSetTestCase(TestCase):
+    """Test BaseReadOnlyModelViewSet permission generation"""
+
+    def test_readonly_viewset_only_generates_read_permissions(self):
+        """Test that ReadOnlyModelViewSet only generates list and retrieve permissions"""
+        # Import BaseReadOnlyModelViewSet
+        from libs.base_viewset import BaseReadOnlyModelViewSet
+
+        # Create a test readonly viewset
+        class TestReadOnlyViewSet(BaseReadOnlyModelViewSet):
+            class MockQuerySet:
+                model = MockModel
+
+            queryset = MockQuerySet()
+            module = "Test Module"
+            submodule = "Read Only"
+            permission_prefix = "readonly_test"
+
+        # Act
+        permissions = TestReadOnlyViewSet.get_registered_permissions()
+
+        # Assert
+        codes = [p["code"] for p in permissions]
+        # Should have list and retrieve
+        self.assertIn("readonly_test.list", codes)
+        self.assertIn("readonly_test.retrieve", codes)
+        # Should NOT have write operations
+        self.assertNotIn("readonly_test.create", codes)
+        self.assertNotIn("readonly_test.update", codes)
+        self.assertNotIn("readonly_test.destroy", codes)
+
+    def test_readonly_viewset_with_custom_actions(self):
+        """Test that ReadOnlyModelViewSet supports custom actions"""
+        from libs.base_viewset import BaseReadOnlyModelViewSet
+
+        class TestReadOnlyViewSetWithAction(BaseReadOnlyModelViewSet):
+            class MockQuerySet:
+                model = MockModel
+
+            queryset = MockQuerySet()
+            module = "Test Module"
+            submodule = "Read Only With Action"
+            permission_prefix = "readonly_action"
+
+            @action(detail=False, methods=["get"])
+            def export(self, request):
+                """Custom export action"""
+                pass
+
+        # Act
+        permissions = TestReadOnlyViewSetWithAction.get_registered_permissions()
+
+        # Assert
+        codes = [p["code"] for p in permissions]
+        self.assertIn("readonly_action.list", codes)
+        self.assertIn("readonly_action.retrieve", codes)
+        self.assertIn("readonly_action.export", codes)
+
+
 class BaseModelViewSetIntegrationTestCase(TestCase):
     """Integration tests for BaseModelViewSet with real models"""
 
@@ -290,3 +349,29 @@ class BaseModelViewSetIntegrationTestCase(TestCase):
         list_perm = next(p for p in permissions if p["code"] == "role.list")
         self.assertEqual(list_perm["module"], "Core")
         self.assertEqual(list_perm["submodule"], "Role Management")
+
+    def test_permission_viewset_generates_readonly_permissions(self):
+        """Test that PermissionViewSet generates correct readonly permissions"""
+        # Import the actual PermissionViewSet
+        from apps.core.api.views import PermissionViewSet
+
+        # Act
+        permissions = PermissionViewSet.get_registered_permissions()
+
+        # Assert
+        codes = [p["code"] for p in permissions]
+        # Should have read operations
+        self.assertIn("permission.list", codes)
+        self.assertIn("permission.retrieve", codes)
+        # Should NOT have write operations (it's ReadOnly)
+        self.assertNotIn("permission.create", codes)
+        self.assertNotIn("permission.update", codes)
+        self.assertNotIn("permission.destroy", codes)
+
+        # Should also have custom action
+        self.assertIn("permission.structure", codes)
+
+        # Check metadata
+        list_perm = next(p for p in permissions if p["code"] == "permission.list")
+        self.assertEqual(list_perm["module"], "Core")
+        self.assertEqual(list_perm["submodule"], "Permission Management")

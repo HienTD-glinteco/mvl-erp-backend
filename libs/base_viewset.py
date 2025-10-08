@@ -1,7 +1,7 @@
 """
 Base ViewSet with automatic permission registration.
 
-This module provides a base ViewSet class that automatically generates
+This module provides base ViewSet classes that automatically generate
 permission metadata for all standard DRF actions and custom actions.
 """
 
@@ -11,41 +11,24 @@ from rest_framework.decorators import action as drf_action
 from django.utils.translation import gettext_lazy as _
 
 
-class BaseModelViewSet(viewsets.ModelViewSet):
+class PermissionRegistrationMixin:
     """
-    Base ViewSet with automatic permission registration.
+    Mixin for ViewSets with automatic permission registration.
 
-    All project viewsets should inherit from this class to enable automatic
-    permission generation. Permissions are generated for standard DRF actions
-    (list, retrieve, create, update, partial_update, destroy) and any custom
-    actions decorated with @action.
+    This mixin provides automatic permission generation for ViewSets.
+    Permissions are generated for standard DRF actions and custom actions.
 
     Class Attributes:
         module (str): Module/system the permissions belong to (e.g., "HRM", "CRM")
         submodule (str): Sub-module within the main module (e.g., "Employee Management")
         permission_prefix (str): Prefix for permission codes (e.g., "document")
-
-    Example:
-        class DocumentViewSet(BaseModelViewSet):
-            queryset = Document.objects.all()
-            serializer_class = DocumentSerializer
-            module = "HRM"
-            submodule = "Document Management"
-            permission_prefix = "document"
-
-        This will automatically generate permissions:
-            - document.list
-            - document.retrieve
-            - document.create
-            - document.update
-            - document.destroy
     """
 
     module = ""
     submodule = ""
     permission_prefix = ""
 
-    # Standard DRF actions with their metadata
+    # Standard DRF actions with their metadata (full CRUD)
     STANDARD_ACTIONS = {
         "list": {
             "name_template": _("List {model_name}"),
@@ -174,3 +157,60 @@ class BaseModelViewSet(viewsets.ModelViewSet):
             )
 
         return permissions
+
+
+class BaseModelViewSet(PermissionRegistrationMixin, viewsets.ModelViewSet):
+    """
+    Base ModelViewSet with automatic permission registration.
+
+    All project viewsets that need full CRUD should inherit from this class.
+
+    Example:
+        class DocumentViewSet(BaseModelViewSet):
+            queryset = Document.objects.all()
+            serializer_class = DocumentSerializer
+            module = "HRM"
+            submodule = "Document Management"
+            permission_prefix = "document"
+
+        This will automatically generate permissions:
+            - document.list
+            - document.retrieve
+            - document.create
+            - document.update
+            - document.destroy
+    """
+
+    pass
+
+
+class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    Base ReadOnlyModelViewSet with automatic permission registration.
+
+    All project viewsets that only need read operations should inherit from this class.
+
+    Example:
+        class PermissionViewSet(BaseReadOnlyModelViewSet):
+            queryset = Permission.objects.all()
+            serializer_class = PermissionSerializer
+            module = "Core"
+            submodule = "Permission Management"
+            permission_prefix = "permission"
+
+        This will automatically generate permissions:
+            - permission.list
+            - permission.retrieve
+    """
+
+    # Override STANDARD_ACTIONS to only include read operations
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("List {model_name}"),
+            "description_template": _("View list of {model_name}"),
+        },
+        "retrieve": {
+            "name_template": _("View {model_name}"),
+            "description_template": _("View details of a {model_name}"),
+        },
+    }
