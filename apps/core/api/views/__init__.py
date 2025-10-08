@@ -1,3 +1,4 @@
+from .administrative_unit import AdministrativeUnitViewSet
 from .auth import (
     LoginView,
     OTPVerificationView,
@@ -8,6 +9,7 @@ from .auth import (
 )
 from .constants import ConstantsView
 from .permission import PermissionViewSet
+from .province import ProvinceViewSet
 from .role import RoleViewSet
 
 __all__ = [
@@ -20,4 +22,6 @@ __all__ = [
     "RoleViewSet",
     "PermissionViewSet",
     "ConstantsView",
+    "ProvinceViewSet",
+    "AdministrativeUnitViewSet",
 ]
