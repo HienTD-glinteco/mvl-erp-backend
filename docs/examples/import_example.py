@@ -4,9 +4,6 @@ Example: Using ImportXLSXMixin with a ViewSet
 This example demonstrates how to add XLSX import functionality to a ViewSet.
 """
 
-from django.db import models
-from rest_framework import serializers
-
 from apps.audit_logging import AuditLoggingMixin
 from libs import BaseModelViewSet, ImportXLSXMixin
 

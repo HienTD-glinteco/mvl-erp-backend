@@ -3,7 +3,6 @@ Tests for ImportXLSXMixin.
 """
 
 import io
-import tempfile
 
 import pytest
 from django.db import models
