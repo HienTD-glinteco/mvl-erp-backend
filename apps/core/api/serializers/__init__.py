@@ -1,3 +1,4 @@
+from .administrative_unit import AdministrativeUnitSerializer
 from .auth import (
     LoginSerializer,
     OTPVerificationSerializer,
@@ -6,6 +7,7 @@ from .auth import (
     PasswordResetOTPVerificationSerializer,
     PasswordResetSerializer,
 )
+from .province import ProvinceSerializer
 from .role import PermissionSerializer, RoleSerializer
 
 __all__ = [
@@ -17,4 +19,6 @@ __all__ = [
     "PasswordChangeSerializer",
     "RoleSerializer",
     "PermissionSerializer",
+    "ProvinceSerializer",
+    "AdministrativeUnitSerializer",
 ]
