@@ -96,6 +96,9 @@ opensearch-py = "^2.8.0"
 # Firebase Cloud Messaging
 firebase-admin = "^6.6.0"
 
+# XLSX Export
+openpyxl = "^3.1.2"
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"
 pytest-django = "^4.10.0"

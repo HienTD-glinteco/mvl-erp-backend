@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .api.views import (
     ConstantsView,
+    ExportStatusView,
     LoginView,
     OTPVerificationView,
     PasswordChangeView,
@@ -45,4 +46,6 @@ urlpatterns = [
     path("", include(router.urls)),
     # Constants endpoint
     path("constants/", ConstantsView.as_view(), name="constants"),
+    # Export status endpoint
+    path("export/status/", ExportStatusView.as_view(), name="export_status"),
 ]
