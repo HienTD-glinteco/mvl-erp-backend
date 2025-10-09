@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-08 14:03+0700\n"
+"POT-Creation-Date: 2025-10-09 17:14+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -264,6 +264,36 @@ msgstr "Phòng ban đã tồn tại: %s"
 msgid "Successfully set up default organizational data!"
 msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
+# models/organization.py:205
+#: apps/hrm/models/employee.py:13
+#, fuzzy
+#| msgid "Employee"
+msgid "Employee code"
+msgstr "Nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee.py:14
+#, fuzzy
+#| msgid "Employee"
+msgid "Employee name"
+msgstr "Nhân viên"
+
+#: apps/hrm/models/employee.py:19
+msgid "User"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee.py:23 apps/hrm/models/organization.py:217
+msgid "Employee"
+msgstr "Nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee.py:24
+#, fuzzy
+#| msgid "Employee"
+msgid "Employees"
+msgstr "Nhân viên"
+
 # models/organization.py:9
 #: apps/hrm/models/organization.py:12
 msgid "Branch name"
@@ -467,11 +497,6 @@ msgstr "Chức vụ"
 #: apps/hrm/models/organization.py:201
 msgid "Positions"
 msgstr "Chức vụ"
-
-# models/organization.py:205
-#: apps/hrm/models/organization.py:217
-msgid "Employee"
-msgstr "Nhân viên"
 
 # models/organization.py:217
 #: apps/hrm/models/organization.py:231

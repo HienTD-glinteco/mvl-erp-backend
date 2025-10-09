@@ -6,6 +6,7 @@ from apps.hrm.api.views import (
     BranchViewSet,
     DepartmentViewSet,
     EmployeeRoleViewSet,
+    EmployeeViewSet,
     OrganizationChartViewSet,
     PositionViewSet,
 )
@@ -19,6 +20,7 @@ router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"positions", PositionViewSet, basename="position")
 router.register(r"organization-chart", OrganizationChartViewSet, basename="organization-chart")
 router.register(r"employee-roles", EmployeeRoleViewSet, basename="employee-role")
+router.register(r"employees", EmployeeViewSet, basename="employee")
 
 urlpatterns = [
     path("", include(router.urls)),
