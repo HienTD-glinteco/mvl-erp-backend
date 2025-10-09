@@ -127,7 +127,7 @@ class BlockAPITest(TransactionTestCase, APITestMixin):
         """Test creating a block via API"""
         block_data = {
             "name": "Khối Hỗ trợ",
-            "code": "HT",
+            "code": "HT",  # This code should be ignored
             "block_type": Block.BlockType.SUPPORT,
             "branch": str(self.branch.id),
         }
@@ -141,6 +141,9 @@ class BlockAPITest(TransactionTestCase, APITestMixin):
         block = Block.objects.first()
         self.assertEqual(block.name, block_data["name"])
         self.assertEqual(block.block_type, block_data["block_type"])
+        # Verify auto-generated code (should not be "HT")
+        self.assertNotEqual(block.code, "HT")
+        self.assertTrue(block.code.startswith("KH"))
 
     def test_list_blocks_with_filtering(self):
         """Test listing blocks with filtering"""
