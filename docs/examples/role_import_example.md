@@ -92,11 +92,15 @@ The mixin automatically generates an import schema from the Role model:
 
 ### 3. Validation
 
-Each row is validated using `RoleSerializer`:
-- `code`: Required, unique, max 50 characters
+By default, validation is performed at the model level using `model.full_clean()`:
+- `code`: Can be imported directly (even though read-only in RoleSerializer)
 - `name`: Required, unique, max 100 characters
 - `description`: Optional, max 255 characters
-- `is_system_role`: Optional boolean, defaults to false
+- `is_system_role`: Can be imported (even though read-only in RoleSerializer)
+
+**Important:** Since RoleSerializer has `code` as read-only and auto-generates it,
+the default model-level validation allows importing it directly. This is perfect
+for migrating existing roles from another system.
 
 ### 4. Error Reporting
 
@@ -144,7 +148,9 @@ Run `poetry run python manage.py collect_permissions` to sync to database.
 
 ## Customizing Import (Optional)
 
-If you need to customize the import schema, override `get_import_schema`:
+### Option 1: Custom Import Schema
+
+If you need to limit which fields can be imported, override `get_import_schema`:
 
 ```python
 class RoleViewSet(AuditLoggingMixin, ImportXLSXMixin, BaseModelViewSet):
@@ -161,6 +167,36 @@ class RoleViewSet(AuditLoggingMixin, ImportXLSXMixin, BaseModelViewSet):
             "fields": ["code", "name", "description"],
             "required": ["code", "name"]
         }
+```
+
+### Option 2: Custom Import Serializer (for complex validation)
+
+If RoleSerializer's validation is too strict for imports (e.g., requires `permission_ids`),
+create a separate import serializer:
+
+```python
+class RoleImportSerializer(serializers.ModelSerializer):
+    """Serializer specifically for imports"""
+    
+    class Meta:
+        model = Role
+        fields = ["code", "name", "description", "is_system_role"]
+        # No read-only fields
+        # permission_ids not required for data migration
+
+class RoleViewSet(AuditLoggingMixin, ImportXLSXMixin, BaseModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer  # Used for CRUD operations
+    
+    def get_import_serializer_class(self):
+        """Use different serializer for imports"""
+        return RoleImportSerializer
+```
+
+**When to use each approach:**
+- **Model-level validation (default):** Best for simple imports and data migration
+- **Custom schema:** Limit importable fields
+- **Custom serializer:** Need complex validation or data transformation specific to imports
 ```
 
 ## Testing Import

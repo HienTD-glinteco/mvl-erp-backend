@@ -61,6 +61,19 @@ class TestImportViewSetWithCustomSchema(ImportXLSXMixin, BaseModelViewSet):
         }
 
 
+class TestImportViewSetWithSerializer(ImportXLSXMixin, BaseModelViewSet):
+    """Test ViewSet with custom import serializer"""
+
+    queryset = TestImportModel.objects.all()
+    serializer_class = TestImportSerializer
+    module = "Test"
+    submodule = "Import Test"
+    permission_prefix = "test_import_serializer"
+
+    def get_import_serializer_class(self):
+        return TestImportSerializer
+
+
 class ImportXLSXMixinTestCase(TestCase):
     """Test ImportXLSXMixin functionality"""
 

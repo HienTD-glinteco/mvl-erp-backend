@@ -125,6 +125,53 @@ class ProjectViewSet(ImportXLSXMixin, BaseModelViewSet):
 
 ## Advanced Features
 
+### Validation Strategies
+
+The mixin supports two validation approaches:
+
+#### 1. Model-Level Validation (Default)
+
+By default, validation is performed at the model level using `model.full_clean()`. This approach:
+- ✅ Allows importing ALL model fields, including read-only ones
+- ✅ Supports auto-generated fields (e.g., codes)
+- ✅ Works with fields that have defaults
+- ✅ Perfect for data migration scenarios
+
+**Example:**
+```python
+class RoleViewSet(ImportXLSXMixin, BaseModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer  # Has read-only fields
+    # No need to override anything - model validation handles it
+```
+
+This allows importing `code` even if it's read-only in the serializer.
+
+#### 2. Serializer-Level Validation (Optional)
+
+For stricter validation, override `get_import_serializer_class()`:
+
+```python
+class RoleImportSerializer(serializers.ModelSerializer):
+    """Custom serializer for imports without read-only restrictions"""
+    class Meta:
+        model = Role
+        fields = ["code", "name", "description"]
+        # No read-only fields, permission_ids not required
+
+class RoleViewSet(ImportXLSXMixin, BaseModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer  # Used for CRUD
+    
+    def get_import_serializer_class(self):
+        return RoleImportSerializer  # Used for imports only
+```
+
+**When to use:**
+- Need custom validation logic specific to imports
+- Want to enforce business rules during import
+- Need to transform data before saving
+
 ### Header Mapping
 
 The mixin automatically maps Excel headers to model fields with:

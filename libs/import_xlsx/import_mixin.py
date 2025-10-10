@@ -34,17 +34,41 @@ class ImportXLSXMixin:
     This mixin provides a universal `/import/` action that accepts XLSX files,
     maps columns to model fields, validates data, and performs bulk create/update.
 
-    Example:
+    By default, validation is done at the model level (using model.full_clean()).
+    This allows importing all model fields including read-only or auto-generated ones.
+    
+    If you need serializer-level validation, override get_import_serializer_class()
+    to return a custom import serializer without read-only field restrictions.
+
+    Example 1 - Basic import with model-level validation:
         class ProjectViewSet(ImportXLSXMixin, ModelViewSet):
             queryset = Project.objects.all()
             serializer_class = ProjectSerializer
 
-            # Optionally override to customize import schema
+    Example 2 - Custom import schema:
+        class ProjectViewSet(ImportXLSXMixin, ModelViewSet):
+            queryset = Project.objects.all()
+            serializer_class = ProjectSerializer
+
             def get_import_schema(self, request, file):
                 return {
                     "fields": ["name", "start_date", "budget"],
                     "required": ["name"],
                 }
+
+    Example 3 - Custom import serializer for validation:
+        class ProjectImportSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Project
+                fields = ["name", "code", "budget"]
+                # No read-only fields, all can be imported
+
+        class ProjectViewSet(ImportXLSXMixin, ModelViewSet):
+            queryset = Project.objects.all()
+            serializer_class = ProjectSerializer
+
+            def get_import_serializer_class(self):
+                return ProjectImportSerializer
     """
 
     @extend_schema(
@@ -174,6 +198,20 @@ class ImportXLSXMixin:
                 - validators: Optional dict of field validators
         """
         return self._auto_generate_schema()
+
+    def get_import_serializer_class(self):
+        """
+        Get the serializer class to use for import validation.
+
+        Override this method to use a different serializer for imports
+        than for regular CRUD operations. This is useful when the regular
+        serializer has read-only fields (like auto-generated codes) or
+        required fields (like relations) that should not be required for imports.
+
+        Returns:
+            Serializer class or None to skip serializer validation
+        """
+        return None  # By default, use model-level validation only
 
     def _auto_generate_schema(self) -> dict:
         """
@@ -311,17 +349,24 @@ class ImportXLSXMixin:
             if not row_data.get(required_field):
                 row_errors[required_field] = _("This field is required")
 
-        # Validate data using serializer
+        # Validate data using import serializer if provided
         if not row_errors:
-            serializer_class = self.get_serializer_class()
-            try:
-                serializer = serializer_class(data=row_data)
-                if serializer.is_valid():
-                    return serializer.validated_data, {}
-                else:
-                    row_errors.update(serializer.errors)
-            except Exception as e:
-                row_errors["_general"] = str(e)
+            serializer_class = self.get_import_serializer_class()
+            
+            if serializer_class:
+                # Use import-specific serializer for validation
+                try:
+                    serializer = serializer_class(data=row_data)
+                    if serializer.is_valid():
+                        return serializer.validated_data, {}
+                    else:
+                        row_errors.update(serializer.errors)
+                except Exception as e:
+                    row_errors["_general"] = str(e)
+            else:
+                # No import serializer - use model-level validation only
+                # Just return the raw data, validation will happen at model.full_clean()
+                return row_data, {}
 
         return None, row_errors
 
