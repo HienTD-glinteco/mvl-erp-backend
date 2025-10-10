@@ -1,11 +1,31 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
+from apps.core.api.serializers.province import ProvinceSerializer
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 
 class BranchSerializer(serializers.ModelSerializer):
-    """Serializer for Branch model"""
+    """Serializer for Branch model - used for create/update operations"""
+
+    province_id = serializers.PrimaryKeyRelatedField(
+        source="province",
+        queryset=Province.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
+    province = ProvinceSerializer(read_only=True)
+    administrative_unit_id = serializers.PrimaryKeyRelatedField(
+        source="administrative_unit",
+        queryset=AdministrativeUnit.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
+    administrative_unit = AdministrativeUnitSerializer(read_only=True)
 
     class Meta:
         model = Branch
@@ -16,11 +36,23 @@ class BranchSerializer(serializers.ModelSerializer):
             "address",
             "phone",
             "email",
+            "province_id",
+            "administrative_unit_id",
+            "province",
+            "administrative_unit",
+            "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "code",
+            "province",
+            "administrative_unit",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class BlockSerializer(serializers.ModelSerializer):

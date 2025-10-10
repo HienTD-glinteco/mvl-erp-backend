@@ -12,17 +12,44 @@ from ..constants import TEMP_CODE_PREFIX
 class Branch(BaseModel):
     """Company branch"""
 
+    CODE_PREFIX = "CN"
+
     name = models.CharField(max_length=200, verbose_name=_("Branch name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
     address = models.TextField(blank=True, verbose_name=_("Address"))
     phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
     email = models.EmailField(blank=True, verbose_name=_("Email"))
+    province = models.ForeignKey(
+        "core.Province",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="branches",
+        verbose_name=_("Province"),
+    )
+    administrative_unit = models.ForeignKey(
+        "core.AdministrativeUnit",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="branches",
+        verbose_name=_("Administrative unit"),
+    )
+    description = models.TextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
         verbose_name = _("Branch")
         verbose_name_plural = _("Branches")
         db_table = "hrm_branch"
+
+    def save(self, *args, **kwargs):
+        """Override save to set temporary code for new instances."""
+        # Set temporary code for new instances that don't have a code yet
+        # Use random string to avoid collisions, not all, but most of the time.
+        if self._state.adding and not self.code:
+            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
