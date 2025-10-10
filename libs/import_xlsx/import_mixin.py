@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 from django.db import transaction
+from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from openpyxl import load_workbook
@@ -36,7 +37,7 @@ class ImportXLSXMixin:
 
     By default, validation is done at the model level (using model.full_clean()).
     This allows importing all model fields including read-only or auto-generated ones.
-    
+
     If you need serializer-level validation, override get_import_serializer_class()
     to return a custom import serializer without read-only field restrictions.
 
@@ -70,6 +71,8 @@ class ImportXLSXMixin:
             def get_import_serializer_class(self):
                 return ProjectImportSerializer
     """
+
+    queryset: QuerySet[Any]
 
     @extend_schema(
         summary="Import data from XLSX",
@@ -352,7 +355,7 @@ class ImportXLSXMixin:
         # Validate data using import serializer if provided
         if not row_errors:
             serializer_class = self.get_import_serializer_class()
-            
+
             if serializer_class:
                 # Use import-specific serializer for validation
                 try:

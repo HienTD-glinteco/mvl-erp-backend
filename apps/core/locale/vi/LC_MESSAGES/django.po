@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 17:07+0700\n"
+"POT-Creation-Date: 2025-10-10 10:02+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -513,6 +513,176 @@ msgstr "Reset token hoặc mã OTP không hợp lệ"
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
+#: apps/core/api/views/export_status.py:57
+msgid "task_id parameter is required"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:14
+msgid ""
+"Import administrative data (provinces and units) from CSV or Excel files"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:22
+msgid "Type of data to import: 'province' or 'unit'"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:28
+msgid "Path to the CSV or Excel file to import"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:33
+msgid "Run in dry-run mode without saving to database"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:41
+msgid "Starting import of {} data from {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:44
+msgid "Running in DRY-RUN mode - no data will be saved"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:57
+msgid "Loaded {} rows from file"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:64
+msgid "Import completed successfully"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:67
+msgid "Error during import: {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:86
+msgid "Skipping row with missing code or name: {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:128
+msgid "Updated province: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:130
+msgid "Province unchanged: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:144
+msgid "Created province: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:147
+#: apps/core/management/commands/import_administrative_data.py:253
+msgid "Error processing row {}: {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:155
+msgid "Province import summary: {} created, {} updated, {} disabled"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:177
+msgid "Skipping row with missing required fields: {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:201
+msgid "Parent province not found for code {}: {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:234
+msgid "Updated unit: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:236
+msgid "Unit unchanged: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:250
+msgid "Created unit: {} - {}"
+msgstr ""
+
+#: apps/core/management/commands/import_administrative_data.py:261
+msgid "Unit import summary: {} created, {} updated, {} disabled, {} skipped"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:15
+msgid "District"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:16
+msgid "Commune"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:17
+msgid "Ward"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:18
+msgid "Township"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:22
+msgid "Unit code"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:23
+#, fuzzy
+#| msgid "Unique identifier for the device"
+msgid "Unique identifier code for the administrative unit"
+msgstr "Mã định danh duy nhất cho thiết bị"
+
+# models/user.py:16
+#: apps/core/models/administrative_unit.py:27
+#, fuzzy
+#| msgid "First name"
+msgid "Unit name"
+msgstr "Tên"
+
+#: apps/core/models/administrative_unit.py:28
+msgid "Official name of the administrative unit"
+msgstr ""
+
+# models/user.py:16
+#: apps/core/models/administrative_unit.py:33 apps/core/models/province.py:31
+#, fuzzy
+#| msgid "First name"
+msgid "English name"
+msgstr "Tên"
+
+#: apps/core/models/administrative_unit.py:34
+msgid "English name of the administrative unit"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:40
+msgid "Parent province"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:41
+msgid "Province that this unit belongs to"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:46 apps/core/models/province.py:37
+msgid "Administrative level"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:47
+msgid "Administrative level of the unit"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:51 apps/core/models/province.py:48
+msgid "Enabled"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:52
+msgid "Whether this administrative unit is currently enabled"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:56
+msgid "Administrative Unit"
+msgstr ""
+
+#: apps/core/models/administrative_unit.py:57
+msgid "Administrative Units"
+msgstr ""
+
 # models/user.py:41
 #: apps/core/models/device.py:13 apps/core/models/role.py:36
 #: apps/core/models/user.py:62
@@ -661,6 +831,62 @@ msgstr "Quyền"
 #: apps/core/models/permission.py:18 apps/core/models/role.py:19
 msgid "Permissions"
 msgstr "Quyền"
+
+#: apps/core/models/province.py:15
+msgid "Central City"
+msgstr ""
+
+#: apps/core/models/province.py:16 apps/core/models/province.py:53
+msgid "Province"
+msgstr ""
+
+# models/permission.py
+#: apps/core/models/province.py:20
+#, fuzzy
+#| msgid "Permission code"
+msgid "Province code"
+msgstr "Mã quyền"
+
+#: apps/core/models/province.py:21
+#, fuzzy
+#| msgid "Unique identifier for the device"
+msgid "Unique identifier code for the province"
+msgstr "Mã định danh duy nhất cho thiết bị"
+
+# models/permission.py
+#: apps/core/models/province.py:25
+#, fuzzy
+#| msgid "Permission name"
+msgid "Province name"
+msgstr "Tên quyền"
+
+#: apps/core/models/province.py:26
+msgid "Official name of the province"
+msgstr ""
+
+#: apps/core/models/province.py:32
+msgid "English name of the province"
+msgstr ""
+
+#: apps/core/models/province.py:38
+msgid "Administrative level of the province"
+msgstr ""
+
+#: apps/core/models/province.py:43
+msgid "Decree"
+msgstr ""
+
+#: apps/core/models/province.py:44
+msgid "Legal decree reference"
+msgstr ""
+
+#: apps/core/models/province.py:49
+msgid "Whether this province is currently enabled"
+msgstr ""
+
+#: apps/core/models/province.py:54
+msgid "Provinces"
+msgstr ""
 
 # models/role.py
 #: apps/core/models/role.py:12

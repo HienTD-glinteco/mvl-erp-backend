@@ -46,6 +46,7 @@ class BlockSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "code",
             "created_at",
             "updated_at",
             "branch_name",

@@ -95,7 +95,13 @@ opensearch-py = "^2.8.0"
 
 # Firebase Cloud Messaging
 firebase-admin = "^6.6.0"
+
+# XLSX Export
 openpyxl = "^3.1.5"
+
+# Data processing
+polars = "^1.19.0"
+fastexcel = "^0.16.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

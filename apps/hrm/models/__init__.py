@@ -1,3 +1,4 @@
+from .employee import Employee
 from .organization import (
     Block,
     Branch,
@@ -12,4 +13,5 @@ __all__ = [
     "Department",
     "Position",
     "OrganizationChart",
+    "Employee",
 ]
