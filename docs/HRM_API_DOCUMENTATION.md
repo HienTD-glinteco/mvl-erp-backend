@@ -417,6 +417,7 @@ For error responses:
   - `search` (string): Search by name, code, or description
   - `name` (string): Filter by name (case-insensitive contains)
   - `code` (string): Filter by code (case-insensitive contains)
+  - `belong_to` (string): Filter by belong to (choices: `job_website`, `marketing`)
   - `is_active` (boolean): Filter by active status
 
 **Example Response:**
@@ -428,6 +429,8 @@ For error responses:
       "id": 1,
       "name": "LinkedIn",
       "code": "LINKEDIN",
+      "belong_to": "job_website",
+      "belong_to_display": "Job Website",
       "description": "Professional networking platform",
       "is_active": true,
       "created_at": "2025-01-20T10:00:00Z",
@@ -444,6 +447,7 @@ For error responses:
   - `name` (string, max 200 chars): Channel name
   - `code` (string, max 50 chars, unique): Channel code
 - **Optional Fields**:
+  - `belong_to` (string, default: `marketing`): Channel belongs to (choices: `job_website`, `marketing`)
   - `description` (string): Channel description
   - `is_active` (boolean, default: true): Active status
 
@@ -452,6 +456,7 @@ For error responses:
 {
   "name": "LinkedIn",
   "code": "LINKEDIN",
+  "belong_to": "job_website",
   "description": "Professional networking platform",
   "is_active": true
 }

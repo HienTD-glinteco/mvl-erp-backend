@@ -37,6 +37,7 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         self.channel_data = {
             "name": "LinkedIn",
             "code": "LINKEDIN",
+            "belong_to": "job_website",
             "description": "Professional networking platform",
             "is_active": True,
         }
@@ -83,6 +84,7 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         update_data = {
             "name": "LinkedIn Updated",
             "code": "LINKEDIN",
+            "belong_to": "marketing",
             "description": "Updated description",
             "is_active": True,
         }

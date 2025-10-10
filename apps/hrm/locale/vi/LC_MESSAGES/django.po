@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 11:25+0700\n"
+"POT-Creation-Date: 2025-10-10 23:55+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -323,7 +323,7 @@ msgstr "Email"
 #: apps/hrm/models/organization.py:20 apps/hrm/models/organization.py:51
 #: apps/hrm/models/organization.py:117 apps/hrm/models/organization.py:210
 #: apps/hrm/models/organization.py:247
-#: apps/hrm/models/recruitment_channel.py:15
+#: apps/hrm/models/recruitment_channel.py:25
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -355,7 +355,7 @@ msgstr "Loại khối"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:50 apps/hrm/models/organization.py:116
 #: apps/hrm/models/organization.py:209
-#: apps/hrm/models/recruitment_channel.py:14
+#: apps/hrm/models/recruitment_channel.py:24
 msgid "Description"
 msgstr "Mô tả"
 
@@ -386,6 +386,7 @@ msgstr "Tuyển dụng - Đào tạo"
 
 # models/organization.py:64
 #: apps/hrm/models/organization.py:82 apps/hrm/models/organization.py:182
+#: apps/hrm/models/recruitment_channel.py:14
 msgid "Marketing"
 msgstr "Marketing"
 
@@ -532,24 +533,31 @@ msgstr ""
 "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời "
 "điểm."
 
+#: apps/hrm/models/recruitment_channel.py:13
+msgid "Job Website"
+msgstr "Web việc làm"
+
 # models/organization.py:9
-#: apps/hrm/models/recruitment_channel.py:12
 # models/recruitment_channel.py:12
-#: apps/hrm/models/recruitment_channel.py:12
+#: apps/hrm/models/recruitment_channel.py:16
 msgid "Channel name"
 msgstr "Tên kênh"
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/recruitment_channel.py:13
+#: apps/hrm/models/recruitment_channel.py:17
 msgid "Channel code"
 msgstr "Mã kênh"
 
+#: apps/hrm/models/recruitment_channel.py:22
+msgid "Belong to"
+msgstr "Thuộc"
+
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_channel.py:28
 msgid "Recruitment Channel"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_channel.py:29
 msgid "Recruitment Channels"
 msgstr "Kênh tuyển dụng"
