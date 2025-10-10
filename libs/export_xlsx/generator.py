@@ -177,47 +177,59 @@ class XLSXGenerator:
         prev_values = {field: None for field in merge_rules}
         merge_start = {field: start_row for field in merge_rules}
 
+        # Write data and track merge ranges
+        self._write_data_rows(ws, data, field_names, start_row, merge_rules, merge_ranges, prev_values, merge_start)
+
+        # Record final merge ranges
+        self._finalize_merge_ranges(data, field_names, start_row, merge_rules, merge_ranges, merge_start)
+
+        # Apply merges
+        self._apply_cell_merges(ws, merge_ranges)
+
+        return start_row + len(data)
+
+    def _write_data_rows(self, ws, data, field_names, start_row, merge_rules, merge_ranges, prev_values, merge_start):
+        """Write data to cells and track values for merging."""
         for row_idx, row_data in enumerate(data):
             current_row = start_row + row_idx
 
-            # Write data to cells
             for col, field_name in enumerate(field_names, start=1):
                 value = row_data.get(field_name, "")
                 cell = ws.cell(row=current_row, column=col, value=value)
                 cell.border = self._get_border()
 
-                # Check if this field should be tracked for merging
+                # Track merge ranges for this field if needed
                 if field_name in merge_rules:
-                    current_value = value
+                    self._track_merge_value(
+                        field_name, value, current_row, col, merge_ranges, prev_values, merge_start
+                    )
 
-                    # If value changed, record merge range for previous value
-                    if prev_values[field_name] is not None and current_value != prev_values[field_name]:
-                        if current_row - merge_start[field_name] > 1:
-                            merge_ranges[field_name].append(
-                                (merge_start[field_name], current_row - 1, col)
-                            )
-                        merge_start[field_name] = current_row
+    def _track_merge_value(self, field_name, current_value, current_row, col, merge_ranges, prev_values, merge_start):
+        """Track value changes for cell merging."""
+        # If value changed, record merge range for previous value
+        if prev_values[field_name] is not None and current_value != prev_values[field_name]:
+            if current_row - merge_start[field_name] > 1:
+                merge_ranges[field_name].append((merge_start[field_name], current_row - 1, col))
+            merge_start[field_name] = current_row
 
-                    prev_values[field_name] = current_value
+        prev_values[field_name] = current_value
 
-        # Record final merge ranges
+    def _finalize_merge_ranges(self, data, field_names, start_row, merge_rules, merge_ranges, merge_start):
+        """Record final merge ranges after all data is written."""
         final_row = start_row + len(data) - 1
         for field_name in merge_rules:
             col = field_names.index(field_name) + 1
             if final_row - merge_start[field_name] >= 1:
                 merge_ranges[field_name].append((merge_start[field_name], final_row, col))
 
-        # Apply merges
+    def _apply_cell_merges(self, ws, merge_ranges):
+        """Apply cell merges to worksheet."""
         for field_name, ranges in merge_ranges.items():
             for start_r, end_r, col in ranges:
                 if end_r > start_r:
                     ws.merge_cells(start_row=start_r, start_column=col, end_row=end_r, end_column=col)
                     # Center align merged cells
-                    ws.cell(row=start_r, column=col).alignment = Alignment(
-                        horizontal="center", vertical="center"
-                    )
-
-        return start_row + len(data)
+                    ws.cell(row=start_r, column=col).alignment = Alignment(horizontal="center", vertical="center")
 
     def _get_border(self):
         """
