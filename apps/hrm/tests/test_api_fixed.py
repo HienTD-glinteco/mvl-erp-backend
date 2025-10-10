@@ -58,7 +58,8 @@ class FixedBranchAPITest(TransactionTestCase, APITestMixin):
 
         branch = Branch.objects.first()
         self.assertEqual(branch.name, self.branch_data["name"])
-        self.assertEqual(branch.code, self.branch_data["code"])
+        # Code is now auto-generated, not from provided data
+        self.assertTrue(branch.code.startswith("CN"))
 
     def test_list_branches(self):
         """Test listing branches via API"""
