@@ -7,6 +7,7 @@ from .organization import (
     OrganizationChartViewSet,
     PositionViewSet,
 )
+from .recruitment_channel import RecruitmentChannelViewSet
 
 __all__ = [
     "BranchViewSet",
@@ -16,4 +17,5 @@ __all__ = [
     "OrganizationChartViewSet",
     "EmployeeRoleViewSet",
     "EmployeeViewSet",
+    "RecruitmentChannelViewSet",
 ]
