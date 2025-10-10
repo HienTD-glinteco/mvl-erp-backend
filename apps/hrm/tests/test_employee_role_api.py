@@ -57,7 +57,11 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         )
 
         self.department = Department.objects.create(
-            name="Phòng Kinh doanh 1", code="KD1", block=self.block, function=Department.DepartmentFunction.BUSINESS
+            name="Phòng Kinh doanh 1",
+            code="KD1",
+            block=self.block,
+            branch=self.branch,
+            function=Department.DepartmentFunction.BUSINESS,
         )
 
         self.position = Position.objects.create(

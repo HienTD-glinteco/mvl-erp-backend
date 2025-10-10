@@ -30,9 +30,23 @@ class DepartmentEnhancementsModelTest(TestCase):
 
     def test_department_function_auto_set_for_business_block(self):
         """Test function auto-set to 'business' for business blocks"""
-        dept = Department.objects.create(name="Phòng Kinh doanh 1", code="KD01", block=self.business_block)
+        dept = Department.objects.create(name="Phòng Kinh doanh 1", branch=self.branch, block=self.business_block)
         # Function should be auto-set to business
         self.assertEqual(dept.function, Department.DepartmentFunction.BUSINESS)
+        # Branch should be auto-set from block
+        self.assertEqual(dept.branch, self.branch)
+
+    def test_department_branch_auto_set_from_block(self):
+        """Test branch auto-set from block when not explicitly provided"""
+        dept = Department.objects.create(
+            name="Phòng Test",
+            branch=self.branch,
+            block=self.support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+        # Branch should be auto-set from block.branch
+        self.assertEqual(dept.branch, self.branch)
+        self.assertEqual(dept.branch, dept.block.branch)
 
     def test_department_function_choices_for_support_block(self):
         """Test available function choices for support blocks"""
@@ -63,7 +77,7 @@ class DepartmentEnhancementsModelTest(TestCase):
         # Create first main department
         dept1 = Department.objects.create(  # NOQA
             name="Phòng Nhân sự chính",
-            code="NS01",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
             is_main_department=True,
@@ -72,7 +86,7 @@ class DepartmentEnhancementsModelTest(TestCase):
         # Try to create another main department with same function - should fail
         dept2 = Department(
             name="Phòng Nhân sự phụ",
-            code="NS02",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
             is_main_department=True,
@@ -88,14 +102,14 @@ class DepartmentEnhancementsModelTest(TestCase):
         # Create departments
         hr_dept = Department.objects.create(
             name="Phòng Nhân sự",
-            code="NS",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
 
         accounting_dept = Department.objects.create(
             name="Phòng Kế toán",
-            code="KT",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.ACCOUNTING,
         )
@@ -113,7 +127,7 @@ class DepartmentEnhancementsModelTest(TestCase):
         # Create two HR departments
         hr_main = Department.objects.create(
             name="Phòng Nhân sự chính",
-            code="NS01",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
             is_main_department=True,
@@ -121,7 +135,7 @@ class DepartmentEnhancementsModelTest(TestCase):
 
         hr_sub = Department.objects.create(
             name="Ban Tuyển dụng",
-            code="TD",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
             management_department=hr_main,
@@ -135,7 +149,7 @@ class DepartmentEnhancementsModelTest(TestCase):
         """Test that a department cannot manage itself at model level"""
         dept = Department.objects.create(
             name="Phòng Hành chính",
-            code="HC01",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
@@ -238,14 +252,14 @@ class DepartmentEnhancementsAPITest(APITestCase):
         # Create HR departments
         hr_main = Department.objects.create(  # NOQA
             name="Phòng Nhân sự chính",
-            code="NS01",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
 
         hr_sub = Department.objects.create(  # NOQA
             name="Ban Đào tạo",
-            code="DT",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
@@ -267,8 +281,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         url = reverse("hrm:department-list")
         dept_data = {
             "name": "Phòng Kinh doanh 1",
-            "code": "KD01",
-            "block": str(self.business_block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.business_block.id),
             # Don't specify function - should be auto-set
         }
 
@@ -276,7 +290,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Check department was created with business function
-        dept = Department.objects.get(code="KD01")
+        data = self.get_response_data(response)
+        dept = Department.objects.get(id=data["id"])
         self.assertEqual(dept.function, Department.DepartmentFunction.BUSINESS)
 
     def test_create_department_with_invalid_function_for_block_type(self):
@@ -284,8 +299,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         url = reverse("hrm:department-list")
         dept_data = {
             "name": "Phòng Test",
-            "code": "TEST",
-            "block": str(self.business_block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.business_block.id),
             "function": "hr_admin",  # Invalid for business block
         }
 
@@ -296,7 +311,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
         """Test department serializer includes all new fields"""
         dept = Department.objects.create(
             name="Phòng Nhân sự",
-            code="NS",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
             is_main_department=True,
@@ -309,6 +324,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         data = self.get_response_data(response)
 
         # Check new fields are present
+        self.assertIn("branch", data)
+        self.assertIn("block", data)
         self.assertIn("function", data)
         self.assertIn("function_display", data)
         self.assertIn("is_main_department", data)
@@ -320,14 +337,16 @@ class DepartmentEnhancementsAPITest(APITestCase):
         self.assertEqual(data["function"], "hr_admin")
         self.assertEqual(data["function_display"], "HR Administration")
         self.assertTrue(data["is_main_department"])
+        self.assertIsNotNone(data["branch"])
+        self.assertIsNotNone(data["block"])
 
     def test_support_block_gets_default_function_api(self):
         """Test that support blocks get default function if not specified via API"""
         url = reverse("hrm:department-list")
         dept_data = {
             "name": "Phòng Hành chính",
-            "code": "HC01",
-            "block": str(self.support_block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.support_block.id),
             # Note: no function specified - should get default HR_ADMIN
         }
 
@@ -342,8 +361,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         url = reverse("hrm:department-list")
         dept_data = {
             "name": "Phòng Hành chính",
-            "code": "HC01",
-            "block": str(self.support_block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.support_block.id),
             "function": Department.DepartmentFunction.BUSINESS,
         }
 
@@ -362,7 +381,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
         # Create a department first
         dept = Department.objects.create(
             name="Phòng Hành chính",
-            code="HC01",
+            branch=self.branch,
             block=self.support_block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
@@ -371,8 +390,8 @@ class DepartmentEnhancementsAPITest(APITestCase):
         url = reverse("hrm:department-detail", kwargs={"pk": dept.id})
         update_data = {
             "name": dept.name,
-            "code": dept.code,
-            "block": str(dept.block.id),
+            "branch_id": str(dept.branch.id),
+            "block_id": str(dept.block.id),
             "function": dept.function,
             "management_department": str(dept.id),
         }

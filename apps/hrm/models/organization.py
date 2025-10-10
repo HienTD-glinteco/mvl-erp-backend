@@ -99,6 +99,8 @@ class Block(BaseModel):
 class Department(BaseModel):
     """Department"""
 
+    CODE_PREFIX = "PB"
+
     class DepartmentFunction(models.TextChoices):
         # Business function
         BUSINESS = "business", _("Business")
@@ -115,6 +117,7 @@ class Department(BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Department name"))
     code = models.CharField(max_length=50, verbose_name=_("Department code"))
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Branch"))
     block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Block"))
     parent_department = models.ForeignKey(
         "self",
@@ -189,6 +192,14 @@ class Department(BaseModel):
                 )
 
     def save(self, *args, **kwargs):
+        # Set temporary code for new instances that don't have a code yet
+        if self._state.adding and not self.code:
+            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
+
+        # Auto-set branch from block if not set
+        if not self.branch and self.block and self.block.branch:
+            self.branch = self.block.branch
+
         # Auto-set function based on block type if not set
         if not self.function and self.block:
             if self.block.block_type == Block.BlockType.BUSINESS:

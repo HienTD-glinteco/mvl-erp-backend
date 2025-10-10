@@ -89,8 +89,14 @@ class BlockSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     """Serializer for Department model"""
 
-    block_name = serializers.CharField(source="block.name", read_only=True)
-    block_type = serializers.CharField(source="block.block_type", read_only=True)
+    branch = BranchSerializer(read_only=True)
+    branch_id = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(), source="branch", write_only=True, required=True
+    )
+    block = BlockSerializer(read_only=True)
+    block_id = serializers.PrimaryKeyRelatedField(
+        queryset=Block.objects.all(), source="block", write_only=True, required=True
+    )
     parent_department_name = serializers.CharField(source="parent_department.name", read_only=True)
     management_department_name = serializers.CharField(source="management_department.name", read_only=True)
     function_display = serializers.CharField(source="get_function_display", read_only=True)
@@ -104,9 +110,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "code",
+            "branch",
+            "branch_id",
             "block",
-            "block_name",
-            "block_type",
+            "block_id",
             "parent_department",
             "parent_department_name",
             "function",
@@ -124,10 +131,11 @@ class DepartmentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "code",
             "created_at",
             "updated_at",
-            "block_name",
-            "block_type",
+            "branch",
+            "block",
             "parent_department_name",
             "management_department_name",
             "function_display",
@@ -170,9 +178,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
                     _("Parent department must be in the same block as the child department.")
                 )
         elif value and "block" in self.initial_data:
-            # For creation
+            # For creation - use block_id from initial_data
             try:
-                block = Block.objects.get(id=self.initial_data["block"])
+                block_id = self.initial_data.get("block_id") or self.initial_data.get("block")
+                block = Block.objects.get(id=block_id)
                 if value.block != block:
                     raise serializers.ValidationError(
                         _("Parent department must be in the same block as the child department.")
@@ -184,12 +193,16 @@ class DepartmentSerializer(serializers.ModelSerializer):
     def validate_management_department(self, value):
         """Validate management department constraints"""
         if value:
-            block_id = self.initial_data.get("block") if not self.instance else self.instance.block.id
-            function = self.initial_data.get("function") if not self.instance else self.instance.function
-
             # Check for self-reference
             if self.instance and value.id == self.instance.id:
                 raise serializers.ValidationError(_("Department cannot manage itself."))
+
+            block_id = (
+                self.initial_data.get("block_id") or self.initial_data.get("block")
+                if not self.instance
+                else self.instance.block.id
+            )
+            function = self.initial_data.get("function") if not self.instance else self.instance.function
 
             try:
                 block = Block.objects.get(id=block_id)

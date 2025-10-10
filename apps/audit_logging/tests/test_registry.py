@@ -19,14 +19,14 @@ class TestAuditLogRegistry(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestModel(models.Model):
+        class TestAuditLogRegistryModel(models.Model):
             name = models.CharField(max_length=100)
             value = models.IntegerField(default=0)
 
             class Meta:
                 app_label = "audit_logging"
 
-        cls.TestModel = TestModel
+        cls.TestModel = TestAuditLogRegistryModel
 
     def setUp(self):
         """Set up test environment."""
@@ -36,27 +36,21 @@ class TestAuditLogRegistry(TestCase):
     def test_register_model(self):
         """Test registering a model manually."""
 
-        class TestModel(models.Model):
-            name = models.CharField(max_length=100)
+        AuditLogRegistry.register(self.TestModel)
 
-            class Meta:
-                app_label = "audit_logging"
-
-        AuditLogRegistry.register(TestModel)
-
-        self.assertTrue(AuditLogRegistry.is_registered(TestModel))
+        self.assertTrue(AuditLogRegistry.is_registered(self.TestModel))
 
     def test_register_via_decorator(self):
         """Test that decorator automatically registers models."""
 
         @audit_logging_register
-        class DecoratedModel(models.Model):
+        class TestAuditLogRegistryDecoratedModel(models.Model):
             name = models.CharField(max_length=100)
 
             class Meta:
                 app_label = "audit_logging"
 
-        self.assertTrue(AuditLogRegistry.is_registered(DecoratedModel))
+        self.assertTrue(AuditLogRegistry.is_registered(TestAuditLogRegistryDecoratedModel))
 
     def test_is_registered_returns_false_for_unregistered(self):
         """Test that is_registered returns False for unregistered models."""

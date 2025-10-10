@@ -24,14 +24,14 @@ class TestLogAuditEvent(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestModel(models.Model):
+        class TestLogAuditEventModel(models.Model):
             name = models.CharField(max_length=100)
             value = models.IntegerField(default=0)
 
             class Meta:
                 app_label = "audit_logging"
 
-        cls.TestModel = TestModel
+        cls.TestModel = TestLogAuditEventModel
 
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
@@ -66,7 +66,7 @@ class TestLogAuditEvent(TestCase):
 
         # Verify the logged data
         self.assertEqual(call_args["action"], LogAction.ADD)
-        self.assertEqual(call_args["object_type"], "testmodel")
+        self.assertEqual(call_args["object_type"], self.TestModel._meta.model_name)
         self.assertEqual(call_args["object_id"], "1")
         self.assertEqual(call_args["object_repr"], str(test_obj))
         self.assertEqual(call_args["user_id"], str(self.user.pk))
@@ -255,13 +255,13 @@ class TestAuditLoggingDecorator(TestCase):
         self.factory = RequestFactory()
 
         @audit_logging_register
-        class DecoratedModel(models.Model):
+        class TestAuditLoggingDecoratorModel(models.Model):
             name = models.CharField(max_length=100)
 
             class Meta:
                 app_label = "audit_logging"
 
-        self.DecoratedModel = DecoratedModel
+        self.DecoratedModel = TestAuditLoggingDecoratorModel
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_decorator_logs_create(self, mock_log_event):

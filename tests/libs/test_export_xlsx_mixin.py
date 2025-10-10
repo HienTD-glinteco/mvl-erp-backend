@@ -6,13 +6,13 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
-
 from rest_framework import status
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Role
-from libs.export_xlsx import ExportXLSXMixin
 from libs.base_viewset import BaseModelViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 User = get_user_model()
 
@@ -46,16 +46,17 @@ class ExportXLSXMixinTests(TestCase):
         """Test synchronous export returns file."""
         request = self.factory.get("/api/test/export/")
         request.user = self.user
+        drf_request = Request(request)
 
         viewset = TestExportViewSet()
-        viewset.request = request
+        viewset.request = drf_request
         viewset.format_kwarg = None
 
         # Mock filter_queryset and get_queryset
         viewset.filter_queryset = lambda qs: qs
         viewset.get_queryset = lambda: Role.objects.all()
 
-        response = viewset.export(request)
+        response = viewset.export(drf_request)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -72,14 +73,15 @@ class ExportXLSXMixinTests(TestCase):
 
         request = self.factory.get("/api/test/export/?async=true")
         request.user = self.user
+        drf_request = Request(request)
 
         viewset = TestExportViewSet()
-        viewset.request = request
+        viewset.request = drf_request
         viewset.format_kwarg = None
         viewset.filter_queryset = lambda qs: qs
         viewset.get_queryset = lambda: Role.objects.all()
 
-        response = viewset.export(request)
+        response = viewset.export(drf_request)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.assertEqual(response.data["task_id"], "test-task-id-123")
@@ -90,12 +92,13 @@ class ExportXLSXMixinTests(TestCase):
         """Test async export fails when Celery is not enabled."""
         request = self.factory.get("/api/test/export/?async=true")
         request.user = self.user
+        drf_request = Request(request)
 
         viewset = TestExportViewSet()
-        viewset.request = request
+        viewset.request = drf_request
         viewset.format_kwarg = None
 
-        response = viewset.export(request)
+        response = viewset.export(drf_request)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

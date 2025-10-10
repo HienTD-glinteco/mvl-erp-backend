@@ -271,8 +271,8 @@ class FixedDepartmentAPITest(TransactionTestCase, APITestMixin):
         """Test creating a department via API"""
         dept_data = {
             "name": "Phòng Nhân sự",
-            "code": "NS",
-            "block": str(self.block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.block.id),
             "function": Department.DepartmentFunction.HR_ADMIN,  # Required for support blocks
         }
 
@@ -286,13 +286,13 @@ class FixedDepartmentAPITest(TransactionTestCase, APITestMixin):
         """Test department tree structure endpoint"""
         parent_dept = Department.objects.create(
             name="Phòng Nhân sự",
-            code="NS",
+            branch=self.branch,
             block=self.block,
             function=Department.DepartmentFunction.HR_ADMIN,
         )
         child_dept = Department.objects.create(
             name="Ban Tuyển dụng",
-            code="TD",
+            branch=self.branch,
             block=self.block,
             function=Department.DepartmentFunction.HR_ADMIN,
             parent_department=parent_dept,
@@ -337,7 +337,7 @@ class FixedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
             block_type=Block.BlockType.SUPPORT,
             branch=self.branch,
         )
-        self.department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        self.department = Department.objects.create(name="Phòng Nhân sự", branch=self.branch, block=self.block)
         self.position = Position.objects.create(name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER)
 
     def test_create_organization_chart(self):

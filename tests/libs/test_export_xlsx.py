@@ -8,9 +8,7 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.test import TestCase, override_settings
-
 from openpyxl import load_workbook
-from rest_framework.test import APIRequestFactory
 
 from libs.export_xlsx import SchemaBuilder, XLSXGenerator, get_storage_backend
 from libs.export_xlsx.constants import ERROR_INVALID_SCHEMA, STORAGE_LOCAL, STORAGE_S3
@@ -18,23 +16,28 @@ from libs.export_xlsx.constants import ERROR_INVALID_SCHEMA, STORAGE_LOCAL, STOR
 User = get_user_model()
 
 
-class TestModel(models.Model):
-    """Test model for schema builder tests."""
-
-    name = models.CharField(max_length=100, verbose_name="Name")
-    email = models.EmailField(verbose_name="Email Address")
-    age = models.IntegerField(verbose_name="Age")
-    is_active = models.BooleanField(default=True, verbose_name="Active")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        app_label = "test"
-        verbose_name = "Test Item"
-        verbose_name_plural = "Test Items"
-
-
 class SchemaBuilderTests(TestCase):
     """Test cases for SchemaBuilder."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        class SchemaBuilderTestsModel(models.Model):
+            """Test model for schema builder tests."""
+
+            name = models.CharField(max_length=100, verbose_name="Name")
+            email = models.EmailField(verbose_name="Email Address")
+            age = models.IntegerField(verbose_name="Age")
+            is_active = models.BooleanField(default=True, verbose_name="Active")
+            created_at = models.DateTimeField(auto_now_add=True)
+
+            class Meta:
+                app_label = "test"
+                verbose_name = "Test Item"
+                verbose_name_plural = "Test Items"
+
+        cls.TestModel = SchemaBuilderTestsModel
 
     def setUp(self):
         """Set up test fixtures."""
@@ -42,7 +45,7 @@ class SchemaBuilderTests(TestCase):
 
     def test_build_from_model_without_data(self):
         """Test building schema from model without data."""
-        schema = self.builder.build_from_model(TestModel)
+        schema = self.builder.build_from_model(self.TestModel)
 
         self.assertIn("sheets", schema)
         self.assertEqual(len(schema["sheets"]), 1)
@@ -69,7 +72,7 @@ class SchemaBuilderTests(TestCase):
 
         mock_queryset = [mock_obj]
 
-        schema = self.builder.build_from_model(TestModel, mock_queryset)
+        schema = self.builder.build_from_model(self.TestModel, mock_queryset)
 
         sheet = schema["sheets"][0]
         self.assertEqual(len(sheet["data"]), 1)
@@ -83,7 +86,7 @@ class SchemaBuilderTests(TestCase):
 
     def test_get_field_label(self):
         """Test field label generation."""
-        field = TestModel._meta.get_field("name")
+        field = self.TestModel._meta.get_field("name")
         label = self.builder._get_field_label(field)
         self.assertEqual(label, "Name")
 
@@ -92,7 +95,7 @@ class SchemaBuilderTests(TestCase):
         custom_excluded = {"name", "email"}
         builder = SchemaBuilder(excluded_fields=custom_excluded)
 
-        schema = builder.build_from_model(TestModel)
+        schema = builder.build_from_model(self.TestModel)
         sheet = schema["sheets"][0]
 
         self.assertNotIn("name", sheet["field_names"])
@@ -198,9 +201,9 @@ class XLSXGeneratorTests(TestCase):
         wb = load_workbook(file_content)
         ws = wb["Merged Sheet"]
 
-        # Check data values
+        # Check data values for merged cells
         self.assertEqual(ws.cell(2, 1).value, "Project A")
-        self.assertEqual(ws.cell(3, 1).value, "Project A")
+        self.assertIsNone(ws.cell(3, 1).value)  # Merged cell, should be None
         self.assertEqual(ws.cell(4, 1).value, "Project B")
 
     def test_generate_invalid_schema(self):

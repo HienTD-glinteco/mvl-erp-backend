@@ -100,7 +100,7 @@ class DepartmentModelTest(TestCase):
 
     def test_create_department(self):
         """Test creating a department"""
-        department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
         self.assertEqual(department.name, "Phòng Nhân sự")
         self.assertEqual(department.code, "NS")
         self.assertEqual(department.block, self.block)
@@ -109,11 +109,12 @@ class DepartmentModelTest(TestCase):
 
     def test_department_hierarchy(self):
         """Test department hierarchical structure"""
-        parent_dept = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        parent_dept = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
 
         child_dept = Department.objects.create(
             name="Ban Tuyển dụng",
             code="TD",
+            branch=self.branch,
             block=self.block,
             parent_department=parent_dept,
         )
@@ -124,11 +125,11 @@ class DepartmentModelTest(TestCase):
 
     def test_department_unique_together(self):
         """Test department code uniqueness within block"""
-        Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
 
         # Should fail - same code in same block
         with self.assertRaises(Exception):  # IntegrityError
-            Department.objects.create(name="Phòng khác", code="NS", block=self.block)
+            Department.objects.create(name="Phòng khác", code="NS", block=self.block, branch=self.branch)
 
 
 class PositionModelTest(TestCase):
@@ -181,7 +182,9 @@ class OrganizationChartModelTest(TestCase):
             block_type=Block.BlockType.SUPPORT,
             branch=self.branch,
         )
-        self.department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        self.department = Department.objects.create(
+            name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch
+        )
         self.position = Position.objects.create(name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER)
 
     def test_create_organization_chart(self):

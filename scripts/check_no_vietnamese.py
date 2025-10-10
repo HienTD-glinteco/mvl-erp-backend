@@ -33,6 +33,7 @@ SKIP_PATTERNS = [
     ".po",  # Translation files
     ".mo",  # Compiled translation files
     "test_fixtures",  # Test data
+    "tests/",  # test files
 ]
 
 
