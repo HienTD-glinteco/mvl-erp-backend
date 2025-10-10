@@ -468,95 +468,9 @@ class ImportXLSXMixin:
         Returns:
             list: List of header names
         """
-        headers = []
-        for cell in sheet[1]:
-            if cell.value:
-                headers.append(str(cell.value).strip())
-        return headers
+        from .utils import extract_headers
 
-    def _resolve_foreign_key(self, field, value: Any) -> Any:
-        """
-        Resolve ForeignKey value.
-
-        Args:
-            field: Django ForeignKey field
-            value: Value from Excel (can be ID, natural key, or string)
-
-        Returns:
-            Related model instance or None
-
-        Raises:
-            ValueError: If related object not found
-        """
-        if value is None or value == "":
-            return None
-
-        related_model = field.related_model
-
-        # Try to find by primary key first
-        try:
-            if isinstance(value, (int, float)):
-                return related_model.objects.get(pk=int(value))
-        except (related_model.DoesNotExist, ValueError):
-            pass
-
-        # Try to find by common natural keys (name, code, email, username)
-        for lookup_field in ["name", "code", "email", "username"]:
-            if hasattr(related_model, lookup_field):
-                try:
-                    return related_model.objects.get(**{lookup_field: str(value)})
-                except related_model.DoesNotExist:
-                    continue
-
-        # Try __str__ match as last resort
-        try:
-            return related_model.objects.get(**{f"{lookup_field}__iexact": str(value)})
-        except:
-            pass
-
-        raise ValueError(_(ERROR_FOREIGN_KEY_NOT_FOUND).format(field=field.name, value=value))
-
-    def _resolve_many_to_many(self, field, value: Any) -> list:
-        """
-        Resolve ManyToMany values.
-
-        Args:
-            field: Django ManyToManyField
-            value: Comma-separated string of IDs or names
-
-        Returns:
-            List of related model instances
-        """
-        if value is None or value == "":
-            return []
-
-        related_model = field.related_model
-        values = [v.strip() for v in str(value).split(",") if v.strip()]
-        instances = []
-
-        for val in values:
-            try:
-                # Try to find by primary key first
-                try:
-                    if val.isdigit():
-                        instances.append(related_model.objects.get(pk=int(val)))
-                        continue
-                except (related_model.DoesNotExist, ValueError):
-                    pass
-
-                # Try natural keys
-                for lookup_field in ["name", "code", "email", "username"]:
-                    if hasattr(related_model, lookup_field):
-                        try:
-                            instances.append(related_model.objects.get(**{lookup_field: val}))
-                            break
-                        except related_model.DoesNotExist:
-                            continue
-
-            except Exception:
-                logger.warning(f"Could not resolve {field.name} value: {val}")
-
-        return instances
+        return extract_headers(sheet)
 
     def _process_row(
         self, row: tuple, headers: list[str], field_mapping: dict, schema: dict
@@ -573,47 +487,10 @@ class ImportXLSXMixin:
         Returns:
             tuple: (validated_data, errors)
         """
-        from django.db import models
-
-        row_data = {}
-        row_errors = {}
-        m2m_data = {}  # Store ManyToMany data separately
+        from .utils import process_row
 
         model = self.queryset.model
-
-        # Map cells to fields
-        for col_idx, cell_value in enumerate(row):
-            if col_idx < len(headers):
-                field_name = field_mapping.get(headers[col_idx])
-                if field_name:
-                    # Check if this is a relational field
-                    try:
-                        model_field = model._meta.get_field(field_name)
-
-                        if isinstance(model_field, models.ForeignKey):
-                            # Resolve ForeignKey
-                            try:
-                                row_data[field_name] = self._resolve_foreign_key(model_field, cell_value)
-                            except ValueError as e:
-                                row_errors[field_name] = str(e)
-                        elif isinstance(model_field, models.ManyToManyField):
-                            # Store ManyToMany for later (after instance creation)
-                            m2m_data[field_name] = self._resolve_many_to_many(model_field, cell_value)
-                        else:
-                            # Regular field
-                            row_data[field_name] = cell_value
-                    except:
-                        # Field not found in model, just store as-is
-                        row_data[field_name] = cell_value
-
-        # Store M2M data for later use
-        if m2m_data:
-            row_data["_m2m_data"] = m2m_data
-
-        # Validate required fields
-        for required_field in schema.get("required", []):
-            if not row_data.get(required_field):
-                row_errors[required_field] = _("This field is required")
+        row_data, row_errors = process_row(row, headers, field_mapping, schema, model)
 
         # Validate data using import serializer if provided
         if not row_errors:
@@ -649,17 +526,9 @@ class ImportXLSXMixin:
         Returns:
             dict: Mapping of header to field name
         """
-        mapping = {}
-        field_lookup = {field.lower().replace("_", " "): field for field in fields}
+        from .utils import map_headers_to_fields
 
-        for header in headers:
-            normalized_header = header.lower().replace("_", " ")
-            if normalized_header in field_lookup:
-                mapping[header] = field_lookup[normalized_header]
-            elif header in fields:
-                mapping[header] = header
-
-        return mapping
+        return map_headers_to_fields(headers, fields)
 
     def _bulk_import(self, data: list[dict], schema: dict, errors: list[dict]) -> int:
         """
@@ -673,66 +542,11 @@ class ImportXLSXMixin:
         Returns:
             int: Number of successfully imported records
         """
+        from .utils import bulk_import_data
+
         model = self.queryset.model
-        success_count = 0
+        request = self.request if hasattr(self, "request") else None
+        user_id = request.user.id if request and hasattr(request, "user") and request.user.is_authenticated else None
 
-        try:
-            with transaction.atomic():
-                for item_data in data:
-                    try:
-                        # Extract M2M data if present
-                        m2m_data = item_data.pop("_m2m_data", {})
-
-                        # Create model instance
-                        instance = model(**item_data)
-                        instance.full_clean()
-                        instance.save()
-
-                        # Set ManyToMany relationships
-                        for field_name, related_objects in m2m_data.items():
-                            getattr(instance, field_name).set(related_objects)
-
-                        success_count += 1
-
-                        # Log audit event if audit logging is enabled
-                        self._log_import_audit(instance)
-
-                    except Exception as e:
-                        logger.warning(f"Failed to import row: {e}")
-                        errors.append(
-                            {
-                                "row": success_count + len(errors) + 2,
-                                "errors": {"_general": str(e)},
-                            }
-                        )
-
-        except Exception as e:
-            logger.exception(f"Bulk import failed: {e}")
-            raise
-
-        return success_count
-
-    def _log_import_audit(self, instance: Any) -> None:
-        """
-        Log audit event for imported instance.
-
-        Only logs if audit logging is available and enabled.
-
-        Args:
-            instance: The imported model instance
-        """
-        try:
-            from apps.audit_logging import LogAction, log_audit_event
-
-            request = self.request if hasattr(self, "request") else None
-            log_audit_event(
-                action=LogAction.IMPORT,
-                modified_object=instance,
-                user=request.user if request and hasattr(request, "user") else None,
-                request=request,
-            )
-        except ImportError:
-            # Audit logging not available
-            pass
-        except Exception as e:
-            logger.warning(f"Failed to log audit event: {e}")
+        # Use shared utility with request context for audit logging
+        return bulk_import_data(model, data, errors, user_id=user_id, request=request)
