@@ -10,7 +10,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+
+from libs.export_xlsx.serializers import ExportStatusResponseSerializer
 
 
 class ExportStatusView(APIView):
@@ -29,6 +31,10 @@ class ExportStatusView(APIView):
                 type=str,
             ),
         ],
+        responses={
+            200: ExportStatusResponseSerializer,
+            400: OpenApiResponse(description="Bad request (missing task_id parameter)"),
+        },
         tags=["Export"],
     )
     def get(self, request):

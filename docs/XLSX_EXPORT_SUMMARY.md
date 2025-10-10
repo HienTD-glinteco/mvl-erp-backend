@@ -32,7 +32,7 @@ Successfully implemented a comprehensive XLSX export system for Django REST Fram
 ### 2. DRF Integration
 
 **ExportXLSXMixin:**
-- Adds `/download/` action to any ViewSet
+- Adds `/export/` action to any ViewSet
 - Supports both sync and async modes
 - Auto-generates schema from model or uses custom `get_export_data()`
 - Respects ViewSet filters and search parameters
@@ -46,7 +46,7 @@ from rest_framework import viewsets
 class MyViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
-    # That's it! /download/ endpoint is now available
+    # That's it! /export/ endpoint is now available
 ```
 
 ### 3. Configuration & Settings
@@ -69,8 +69,8 @@ class MyViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
 - Returns file URL when export completes
 
 **ViewSet Export Actions:**
-- `GET /api/{resource}/download/` - Synchronous export
-- `GET /api/{resource}/download/?async=true` - Async export (returns task ID)
+- `GET /api/{resource}/export/` - Synchronous export
+- `GET /api/{resource}/export/?async=true` - Async export (returns task ID)
 
 ### 5. Dependencies
 
@@ -156,7 +156,7 @@ class RoleViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     serializer_class = RoleSerializer
 
 # 2. Access export
-# GET /api/roles/download/
+# GET /api/roles/export/
 # Returns: XLSX file with all role data
 ```
 
@@ -195,7 +195,7 @@ EXPORTER_CELERY_ENABLED = True
 EXPORTER_STORAGE_BACKEND = "s3"
 
 # 2. Request async export
-# GET /api/projects/download/?async=true
+# GET /api/projects/export/?async=true
 # Response: {"task_id": "abc123", "status": "PENDING"}
 
 # 3. Check status
@@ -209,7 +209,7 @@ EXPORTER_STORAGE_BACKEND = "s3"
 ┌─────────────────────────────┐
 │   DRF ViewSet               │
 │   + ExportXLSXMixin         │
-│   └── download() action     │
+│   └── export() action     │
 └───────────┬─────────────────┘
             │
             ├─ Sync Mode ───────────┐
@@ -256,7 +256,7 @@ To enable export on existing ViewSets:
 1. **Add dependency** (already in pyproject.toml)
 2. **Add mixin** to ViewSet class
 3. **Configure settings** (optional for S3/async)
-4. **Test export** at `/download/` endpoint
+4. **Test export** at `/export/` endpoint
 5. **Customize** with `get_export_data()` if needed
 
 ## Next Steps

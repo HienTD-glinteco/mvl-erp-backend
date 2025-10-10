@@ -39,10 +39,10 @@ class MyViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
 
 ```bash
 # Synchronous export
-GET /api/my-endpoint/download/
+GET /api/my-endpoint/export/
 
 # Asynchronous export (requires Celery)
-GET /api/my-endpoint/download/?async=true
+GET /api/my-endpoint/export/?async=true
 ```
 
 ## Module Structure
@@ -63,10 +63,10 @@ libs/export_xlsx/
 
 ### ExportXLSXMixin
 
-DRF ViewSet mixin that adds `/download/` action.
+DRF ViewSet mixin that adds `/export/` action.
 
 **Methods:**
-- `download(request)` - Export action handler
+- `export(request)` - Export action handler
 - `get_export_data(request)` - Override for custom export
 - `_generate_default_schema(request)` - Auto-generate from model
 - `_get_export_filename()` - Generate filename

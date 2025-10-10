@@ -37,14 +37,14 @@ class ExportXLSXMixinTests(TestCase):
         Role.objects.create(code="admin", name="Administrator")
         Role.objects.create(code="user", name="User")
 
-    def test_download_action_exists(self):
-        """Test that download action exists."""
+    def test_export_action_exists(self):
+        """Test that export action exists."""
         viewset = TestExportViewSet()
-        self.assertTrue(hasattr(viewset, "download"))
+        self.assertTrue(hasattr(viewset, "export"))
 
     def test_synchronous_export(self):
         """Test synchronous export returns file."""
-        request = self.factory.get("/api/test/download/")
+        request = self.factory.get("/api/test/export/")
         request.user = self.user
 
         viewset = TestExportViewSet()
@@ -55,7 +55,7 @@ class ExportXLSXMixinTests(TestCase):
         viewset.filter_queryset = lambda qs: qs
         viewset.get_queryset = lambda: Role.objects.all()
 
-        response = viewset.download(request)
+        response = viewset.export(request)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -70,7 +70,7 @@ class ExportXLSXMixinTests(TestCase):
         """Test async export when Celery is enabled."""
         mock_task.return_value.id = "test-task-id-123"
 
-        request = self.factory.get("/api/test/download/?async=true")
+        request = self.factory.get("/api/test/export/?async=true")
         request.user = self.user
 
         viewset = TestExportViewSet()
@@ -79,7 +79,7 @@ class ExportXLSXMixinTests(TestCase):
         viewset.filter_queryset = lambda qs: qs
         viewset.get_queryset = lambda: Role.objects.all()
 
-        response = viewset.download(request)
+        response = viewset.export(request)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         self.assertEqual(response.data["task_id"], "test-task-id-123")
@@ -88,20 +88,20 @@ class ExportXLSXMixinTests(TestCase):
 
     def test_async_export_without_celery_enabled(self):
         """Test async export fails when Celery is not enabled."""
-        request = self.factory.get("/api/test/download/?async=true")
+        request = self.factory.get("/api/test/export/?async=true")
         request.user = self.user
 
         viewset = TestExportViewSet()
         viewset.request = request
         viewset.format_kwarg = None
 
-        response = viewset.download(request)
+        response = viewset.export(request)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_export_data_default(self):
         """Test default export data generation."""
-        request = self.factory.get("/api/test/download/")
+        request = self.factory.get("/api/test/export/")
         request.user = self.user
 
         viewset = TestExportViewSet()
@@ -139,7 +139,7 @@ class ExportXLSXMixinTests(TestCase):
                     ]
                 }
 
-        request = self.factory.get("/api/test/download/")
+        request = self.factory.get("/api/test/export/")
         request.user = self.user
 
         viewset = CustomExportViewSet()

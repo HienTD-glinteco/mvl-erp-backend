@@ -418,7 +418,7 @@ def main():
         print("NEXT STEPS:")
         print("=" * 70)
         print("1. Add ExportXLSXMixin to your ViewSet")
-        print("2. Access export at: GET /api/your-endpoint/download/")
+        print("2. Access export at: GET /api/your-endpoint/export/")
         print("3. Customize export by overriding get_export_data()")
         print("4. See docs/XLSX_EXPORT_GUIDE.md for detailed usage")
         print("5. Check docs/XLSX_EXPORT_EXAMPLES.py for code examples")

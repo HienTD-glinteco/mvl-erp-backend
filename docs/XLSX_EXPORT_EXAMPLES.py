@@ -21,11 +21,11 @@ class RoleViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     """
     Simple ViewSet with auto-generated export.
 
-    The mixin automatically creates a /download/ endpoint that exports
+    The mixin automatically creates a /export/ endpoint that exports
     all Role fields (excluding id, created_at, updated_at).
 
     Usage:
-        GET /api/roles/download/
+        GET /api/roles/export/
     """
 
     queryset = Role.objects.all()
@@ -353,9 +353,9 @@ class FilteredExportViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
         includes only the filtered data that matches the query parameters.
 
         Example URLs:
-            /api/projects/download/?status=active
-            /api/projects/download/?search=building
-            /api/projects/download/?manager=5&status=active
+            /api/projects/export/?status=active
+            /api/projects/export/?search=building
+            /api/projects/export/?manager=5&status=active
         """
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -447,7 +447,7 @@ class LargeDatasetViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
         Export large dataset.
 
         Usage:
-            GET /api/large-data/download/?async=true
+            GET /api/large-data/export/?async=true
 
         Response:
             {

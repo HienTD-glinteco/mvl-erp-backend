@@ -10,11 +10,12 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 
 from .constants import ERROR_MISSING_MODEL, ERROR_MISSING_QUERYSET
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
+from .serializers import ExportAsyncResponseSerializer
 from .storage import get_storage_backend
 from .tasks import generate_xlsx_task
 
@@ -43,11 +44,28 @@ class ExportXLSXMixin:
 
     @extend_schema(
         summary="Export to XLSX",
-        description="Export filtered queryset data to XLSX format. Returns file directly or task ID for async export.",
+        description="Export filtered queryset data to XLSX format. "
+        "Returns file directly for synchronous export or task information for async export.",
+        parameters=[
+            OpenApiParameter(
+                name="async",
+                description="If 'true', process export in background using Celery (requires EXPORTER_CELERY_ENABLED=true)",
+                required=False,
+                type=bool,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description="XLSX file content (synchronous export)",
+                response=bytes,
+            ),
+            202: ExportAsyncResponseSerializer,
+            400: OpenApiResponse(description="Bad request (e.g., async mode not enabled)"),
+        },
         tags=["Export"],
     )
-    @action(detail=False, methods=["get", "post"], url_path="download")
-    def download(self, request, *args, **kwargs):
+    @action(detail=False, methods=["get"], url_path="export")
+    def export(self, request, *args, **kwargs):
         """
         Export action to download data as XLSX.
 
@@ -55,8 +73,8 @@ class ExportXLSXMixin:
             async: If 'true', process in background (requires Celery)
 
         Returns:
-            - Synchronous: XLSX file download
-            - Asynchronous: Task ID and status URL
+            - Synchronous (200): XLSX file download
+            - Asynchronous (202): Task ID and status information
         """
         # Check if async mode is enabled
         use_async = request.query_params.get("async", "false").lower() == "true"

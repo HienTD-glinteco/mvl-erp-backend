@@ -21,11 +21,11 @@ class RoleViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     serializer_class = RoleSerializer
 ```
 
-This automatically adds a `/download/` action that exports the filtered queryset to XLSX format.
+This automatically adds a `/export/` action that exports the filtered queryset to XLSX format.
 
 **API Endpoint:**
 ```
-GET /api/roles/download/
+GET /api/roles/export/
 ```
 
 The mixin will auto-generate the export schema from your model fields (excluding `id`, `created_at`, `updated_at`, etc.).
@@ -153,7 +153,7 @@ EXPORTER_FILE_EXPIRE_DAYS=7
 
 **1. Start async export:**
 ```
-GET /api/projects/download/?async=true
+GET /api/projects/export/?async=true
 ```
 
 **Response:**
@@ -367,8 +367,8 @@ class ProjectViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
         POST /api/projects/ - Create project
         PUT /api/projects/{id}/ - Update project
         DELETE /api/projects/{id}/ - Delete project
-        GET /api/projects/download/ - Export to XLSX
-        GET /api/projects/download/?async=true - Async export
+        GET /api/projects/export/ - Export to XLSX
+        GET /api/projects/export/?async=true - Async export
     """
     
     queryset = Project.objects.all()
