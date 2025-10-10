@@ -8,6 +8,7 @@ from .organization import (
     OrganizationChartSerializer,
     PositionSerializer,
 )
+from .recruitment_channel import RecruitmentChannelSerializer
 
 __all__ = [
     "BranchSerializer",
@@ -19,4 +20,5 @@ __all__ = [
     "EmployeeRoleListSerializer",
     "BulkUpdateRoleSerializer",
     "EmployeeSerializer",
+    "RecruitmentChannelSerializer",
 ]

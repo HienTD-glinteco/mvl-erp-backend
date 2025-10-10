@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 00:46+0700\n"
+"POT-Creation-Date: 2025-10-10 11:25+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -323,6 +323,7 @@ msgstr "Email"
 #: apps/hrm/models/organization.py:20 apps/hrm/models/organization.py:51
 #: apps/hrm/models/organization.py:117 apps/hrm/models/organization.py:210
 #: apps/hrm/models/organization.py:247
+#: apps/hrm/models/recruitment_channel.py:15
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -354,6 +355,7 @@ msgstr "Loại khối"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:50 apps/hrm/models/organization.py:116
 #: apps/hrm/models/organization.py:209
+#: apps/hrm/models/recruitment_channel.py:14
 msgid "Description"
 msgstr "Mô tả"
 
@@ -529,3 +531,25 @@ msgid "Employee can only have one primary position in a department at a time."
 msgstr ""
 "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời "
 "điểm."
+
+# models/organization.py:9
+#: apps/hrm/models/recruitment_channel.py:12
+# models/recruitment_channel.py:12
+#: apps/hrm/models/recruitment_channel.py:12
+msgid "Channel name"
+msgstr "Tên kênh"
+
+# models/recruitment_channel.py:13
+#: apps/hrm/models/recruitment_channel.py:13
+msgid "Channel code"
+msgstr "Mã kênh"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_channel.py:18
+msgid "Recruitment Channel"
+msgstr "Kênh tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_channel.py:19
+msgid "Recruitment Channels"
+msgstr "Kênh tuyển dụng"
