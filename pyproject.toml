@@ -96,6 +96,9 @@ opensearch-py = "^2.8.0"
 # Firebase Cloud Messaging
 firebase-admin = "^6.6.0"
 
+# XLSX Export
+openpyxl = "^3.1.2"
+
 # Data processing
 polars = "^1.19.0"
 fastexcel = "^0.16.0"
