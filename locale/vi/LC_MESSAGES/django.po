@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-08 14:03+0700\n"
+"POT-Creation-Date: 2025-10-10 10:02+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -76,6 +76,15 @@ msgstr ""
 #: libs/base_viewset.py:55
 #, python-brace-format
 msgid "Delete a {model_name}"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:85
+msgid "Async export is not enabled"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:104
+#, python-brace-format
+msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
 msgstr ""
 
 #: templates/emails/base_email.html:6

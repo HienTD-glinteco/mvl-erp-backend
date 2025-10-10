@@ -2,6 +2,7 @@
 XLSX generator for creating Excel files from schema definitions.
 """
 
+import logging
 from io import BytesIO
 
 from openpyxl import Workbook
@@ -15,6 +16,8 @@ from .constants import (
     DEFAULT_HEADER_FONT_SIZE,
     ERROR_INVALID_SCHEMA,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class XLSXGenerator:
@@ -117,7 +120,9 @@ class XLSXGenerator:
             # Write group title
             cell = ws.cell(row=start_row, column=col, value=title)
             cell.font = Font(bold=True, size=DEFAULT_HEADER_FONT_SIZE)
-            cell.fill = PatternFill(start_color=DEFAULT_HEADER_BG_COLOR, end_color=DEFAULT_HEADER_BG_COLOR, fill_type="solid")
+            cell.fill = PatternFill(
+                start_color=DEFAULT_HEADER_BG_COLOR, end_color=DEFAULT_HEADER_BG_COLOR, fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal=DEFAULT_HEADER_ALIGNMENT, vertical="center")
             cell.border = self._get_border()
 
@@ -149,7 +154,9 @@ class XLSXGenerator:
         for col, header in enumerate(headers, start=1):
             cell = ws.cell(row=start_row, column=col, value=header)
             cell.font = Font(bold=DEFAULT_HEADER_FONT_BOLD, size=DEFAULT_HEADER_FONT_SIZE)
-            cell.fill = PatternFill(start_color=DEFAULT_HEADER_BG_COLOR, end_color=DEFAULT_HEADER_BG_COLOR, fill_type="solid")
+            cell.fill = PatternFill(
+                start_color=DEFAULT_HEADER_BG_COLOR, end_color=DEFAULT_HEADER_BG_COLOR, fill_type="solid"
+            )
             cell.alignment = Alignment(horizontal=DEFAULT_HEADER_ALIGNMENT, vertical="center")
             cell.border = self._get_border()
 
@@ -174,8 +181,8 @@ class XLSXGenerator:
 
         # Track merge ranges for each merge rule field
         merge_ranges = {field: [] for field in merge_rules}
-        prev_values = {field: None for field in merge_rules}
-        merge_start = {field: start_row for field in merge_rules}
+        prev_values = dict.fromkeys(merge_rules)
+        merge_start = dict.fromkeys(merge_rules, start_row)
 
         # Write data and track merge ranges
         self._write_data_rows(ws, data, field_names, start_row, merge_rules, merge_ranges, prev_values, merge_start)
@@ -256,8 +263,8 @@ class XLSXGenerator:
                 try:
                     if cell.value:
                         max_length = max(max_length, len(str(cell.value)))
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Skipping cell due to error: {e}")
 
             # Set column width (add padding)
             adjusted_width = min(max_length + 2, 50)

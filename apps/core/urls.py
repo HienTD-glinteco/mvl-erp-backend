@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .api.views import (
+    AdministrativeUnitViewSet,
     ConstantsView,
     ExportStatusView,
     LoginView,
@@ -11,6 +12,7 @@ from .api.views import (
     PasswordResetOTPVerificationView,
     PasswordResetView,
     PermissionViewSet,
+    ProvinceViewSet,
     RoleViewSet,
 )
 from .api.views.token import TokenRefreshView, TokenVerifyView
@@ -20,6 +22,8 @@ app_name = "core"
 router = DefaultRouter()
 router.register(r"roles", RoleViewSet, basename="role")
 router.register(r"permissions", PermissionViewSet, basename="permission")
+router.register(r"provinces", ProvinceViewSet, basename="province")
+router.register(r"administrative-units", AdministrativeUnitViewSet, basename="administrative-unit")
 
 urlpatterns = [
     # Authentication endpoints

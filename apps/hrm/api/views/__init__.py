@@ -1,3 +1,4 @@
+from .employee import EmployeeViewSet
 from .employee_role import EmployeeRoleViewSet
 from .organization import (
     BlockViewSet,
@@ -14,4 +15,5 @@ __all__ = [
     "PositionViewSet",
     "OrganizationChartViewSet",
     "EmployeeRoleViewSet",
+    "EmployeeViewSet",
 ]
