@@ -8,8 +8,9 @@ class RecruitmentChannelFilterSet(django_filters.FilterSet):
 
     name = django_filters.CharFilter(lookup_expr="icontains")
     code = django_filters.CharFilter(lookup_expr="icontains")
+    belong_to = django_filters.ChoiceFilter(choices=RecruitmentChannel.BelongTo.choices)
     is_active = django_filters.BooleanFilter()
 
     class Meta:
         model = RecruitmentChannel
-        fields = ["name", "code", "is_active"]
+        fields = ["name", "code", "belong_to", "is_active"]

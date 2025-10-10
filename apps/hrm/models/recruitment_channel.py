@@ -9,8 +9,18 @@ from libs.base_model_mixin import BaseModel
 class RecruitmentChannel(BaseModel):
     """Recruitment channel for tracking candidate sources"""
 
+    class BelongTo(models.TextChoices):
+        JOB_WEBSITE = "job_website", _("Job Website")
+        MARKETING = "marketing", _("Marketing")
+
     name = models.CharField(max_length=200, verbose_name=_("Channel name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Channel code"))
+    belong_to = models.CharField(
+        max_length=20,
+        choices=BelongTo.choices,
+        default=BelongTo.MARKETING,
+        verbose_name=_("Belong to"),
+    )
     description = models.TextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
