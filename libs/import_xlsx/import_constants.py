@@ -23,12 +23,19 @@ ERROR_EMPTY_FILE = "File is empty or has no data"
 ERROR_MISSING_COLUMNS = "Missing required columns: {columns}"
 ERROR_INVALID_DATA = "Invalid data in row {row}: {error}"
 ERROR_DUPLICATE_KEY = "Duplicate key in row {row}: {key}"
+ERROR_ASYNC_NOT_ENABLED = "Async import is not enabled"
+ERROR_FOREIGN_KEY_NOT_FOUND = "Related object not found for {field}: {value}"
 
 # Success messages
 SUCCESS_IMPORT_COMPLETE = "Import completed successfully"
 SUCCESS_ROWS_IMPORTED = "{count} rows imported successfully"
+SUCCESS_PREVIEW_COMPLETE = "Preview completed successfully"
 
 # Log messages
 LOG_IMPORT_STARTED = "Import started for {model} with {rows} rows"
 LOG_IMPORT_COMPLETED = "Import completed for {model}: {success} success, {error} errors"
 LOG_VALIDATION_ERROR = "Validation error in row {row}: {error}"
+
+# Storage constants
+STORAGE_LOCAL = "local"
+STORAGE_S3 = "s3"

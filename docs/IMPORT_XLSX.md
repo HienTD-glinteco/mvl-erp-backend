@@ -11,9 +11,12 @@ The **ImportXLSXMixin** provides a reusable, universal import functionality for 
 - ✅ **Customizable Mapping**: Override `get_import_schema()` for custom field mapping
 - ✅ **Validation**: Full validation using DRF serializers with per-row error reporting
 - ✅ **Bulk Operations**: Efficient bulk create/update of model instances
+- ✅ **Async Processing**: Background import with Celery for large files (>1000 rows)
+- ✅ **Preview Mode**: Dry-run validation without saving data
+- ✅ **Error Reports**: Download detailed error reports as XLSX files
+- ✅ **Relational Support**: Automatic resolution of ForeignKey and ManyToMany fields
 - ✅ **Audit Logging**: Automatic integration with audit logging system
 - ✅ **Permission Support**: Import action automatically generates permission metadata
-- ✅ **Error Reporting**: Detailed error messages for each row with validation failures
 
 ## Quick Start
 
@@ -231,6 +234,176 @@ The import action automatically generates permission metadata:
 ```
 
 Run `poetry run python manage.py collect_permissions` to sync permissions to database.
+
+## Async Import (Celery)
+
+For large files (>1000 rows), use async processing to avoid timeouts:
+
+### Configuration
+
+```python
+# settings/.env
+IMPORTER_CELERY_ENABLED=true
+IMPORTER_STORAGE_BACKEND=s3  # or 'local'
+IMPORTER_S3_BUCKET_NAME=your-bucket
+```
+
+### Usage
+
+```python
+# Add ?async=true to import endpoint
+POST /api/projects/import/?async=true
+```
+
+**Request:** Upload XLSX file
+
+**Response (202 Accepted):**
+```json
+{
+  "task_id": "abc123",
+  "status": "PENDING",
+  "message": "Import task has been queued for processing"
+}
+```
+
+**Check Status:**
+```python
+from celery.result import AsyncResult
+
+result = AsyncResult(task_id)
+status = result.status  # PENDING, PROCESSING, SUCCESS, FAILED
+```
+
+## Preview Mode (Dry-Run)
+
+Validate data without saving to database:
+
+### Usage
+
+```python
+# Add ?preview=true to import endpoint
+POST /api/projects/import/?preview=true
+```
+
+**Response:**
+```json
+{
+  "valid_count": 95,
+  "invalid_count": 5,
+  "errors": [
+    {
+      "row": 3,
+      "errors": {
+        "email": ["Enter a valid email address"]
+      }
+    }
+  ],
+  "preview_data": [
+    {"name": "Project A", "budget": 10000},
+    {"name": "Project B", "budget": 20000}
+  ],
+  "detail": "Preview completed successfully"
+}
+```
+
+**Use Cases:**
+- Validate files before committing changes
+- Test import configuration
+- Preview what will be imported
+
+## Error Reports
+
+When import has validation errors, download a detailed error report:
+
+### Automatic Generation
+
+If import completes with errors, response includes error report URL:
+
+```json
+{
+  "success_count": 95,
+  "error_count": 5,
+  "errors": [...],
+  "error_file_url": "https://s3.amazonaws.com/bucket/imports/errors/import_errors_20240101.xlsx",
+  "detail": "Import completed successfully"
+}
+```
+
+### Error Report Contents
+
+The XLSX error report includes:
+
+1. **Error Summary Sheet**
+   - Row number
+   - Field name
+   - Error message
+
+2. **Original Data Sheet** (if available)
+   - All original data
+   - Error column showing what failed
+   - Highlighted error rows
+
+### Download
+
+```python
+# From API response
+error_url = response.data["error_file_url"]
+
+# Download file
+import requests
+file_content = requests.get(error_url).content
+```
+
+## Relational Fields Support
+
+Automatically resolve ForeignKey and ManyToMany relationships:
+
+### ForeignKey
+
+Supports multiple lookup methods:
+
+```python
+# Excel file can reference related objects by:
+# 1. Primary key (ID)
+# 2. Natural keys (name, code, email, username)
+
+# Example: Project with Department (ForeignKey)
+| name        | department |
+|-------------|------------|
+| Project A   | 5          |  # By ID
+| Project B   | Engineering|  # By name
+| Project C   | ENG        |  # By code
+```
+
+### ManyToMany
+
+Use comma-separated values:
+
+```python
+# Example: Role with Permissions (ManyToMany)
+| name        | code  | permissions          |
+|-------------|-------|----------------------|
+| Admin       | ADMIN | 1,2,3               |  # By IDs
+| Manager     | MGR   | view,edit,delete    |  # By names
+| User        | USER  | view                |  # Single value
+```
+
+### Custom Resolution
+
+Override resolution logic for specific fields:
+
+```python
+class ProjectViewSet(ImportXLSXMixin, BaseModelViewSet):
+    def get_import_schema(self, request, file):
+        schema = super().get_import_schema(request, file)
+        
+        # Add custom field resolver
+        schema["resolvers"] = {
+            "department": lambda value: Department.objects.get(code=value)
+        }
+        
+        return schema
+```
 
 ## Testing
 
