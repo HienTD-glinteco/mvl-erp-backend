@@ -18,7 +18,9 @@ class AuditLogViewSet(viewsets.GenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    # TODO: Add proper permission check to verify user has access to audit logs
+    module = "Core"
+    submodule = "Audit Logging"
+    permission_prefix = "audit_logging"
 
     @extend_schema(
         summary="Search audit logs",
