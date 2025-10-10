@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 18:51+0700\n"
+"POT-Creation-Date: 2025-10-11 00:22+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -333,6 +333,7 @@ msgstr "Hành chính Nhân sự"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:38 apps/hrm/models/organization.py:77
 #: apps/hrm/models/organization.py:146 apps/hrm/models/organization.py:247
+#: apps/hrm/models/recruitment_channel.py:24
 msgid "Description"
 msgstr "Mô tả"
 
@@ -340,6 +341,7 @@ msgstr "Mô tả"
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:78
 #: apps/hrm/models/organization.py:147 apps/hrm/models/organization.py:248
 #: apps/hrm/models/organization.py:285
+#: apps/hrm/models/recruitment_channel.py:25
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -396,6 +398,7 @@ msgstr "Tuyển dụng - Đào tạo"
 
 # models/organization.py:64
 #: apps/hrm/models/organization.py:111 apps/hrm/models/organization.py:220
+#: apps/hrm/models/recruitment_channel.py:14
 msgid "Marketing"
 msgstr "Marketing"
 
@@ -541,3 +544,32 @@ msgid "Employee can only have one primary position in a department at a time."
 msgstr ""
 "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời "
 "điểm."
+
+#: apps/hrm/models/recruitment_channel.py:13
+msgid "Job Website"
+msgstr "Web việc làm"
+
+# models/organization.py:9
+# models/recruitment_channel.py:12
+#: apps/hrm/models/recruitment_channel.py:16
+msgid "Channel name"
+msgstr "Tên kênh"
+
+# models/recruitment_channel.py:13
+#: apps/hrm/models/recruitment_channel.py:17
+msgid "Channel code"
+msgstr "Mã kênh"
+
+#: apps/hrm/models/recruitment_channel.py:22
+msgid "Belong to"
+msgstr "Thuộc"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_channel.py:28
+msgid "Recruitment Channel"
+msgstr "Kênh tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_channel.py:29
+msgid "Recruitment Channels"
+msgstr "Kênh tuyển dụng"
