@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 23:55+0700\n"
+"POT-Creation-Date: 2025-10-11 00:22+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -333,13 +333,14 @@ msgstr "Hành chính Nhân sự"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:38 apps/hrm/models/organization.py:77
 #: apps/hrm/models/organization.py:146 apps/hrm/models/organization.py:247
+#: apps/hrm/models/recruitment_channel.py:24
 msgid "Description"
 msgstr "Mô tả"
 
 # models/organization.py:14
-#: apps/hrm/models/organization.py:20 apps/hrm/models/organization.py:51
-#: apps/hrm/models/organization.py:117 apps/hrm/models/organization.py:210
-#: apps/hrm/models/organization.py:247
+#: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:78
+#: apps/hrm/models/organization.py:147 apps/hrm/models/organization.py:248
+#: apps/hrm/models/organization.py:285
 #: apps/hrm/models/recruitment_channel.py:25
 msgid "Active"
 msgstr "Hoạt động"
@@ -370,13 +371,6 @@ msgstr "Mã khối"
 msgid "Block type"
 msgstr "Loại khối"
 
-# models/organization.py:39
-#: apps/hrm/models/organization.py:50 apps/hrm/models/organization.py:116
-#: apps/hrm/models/organization.py:209
-#: apps/hrm/models/recruitment_channel.py:24
-msgid "Description"
-msgstr "Mô tả"
-
 # models/organization.py:45
 #: apps/hrm/models/organization.py:81 apps/hrm/models/organization.py:121
 msgid "Block"
@@ -403,7 +397,7 @@ msgid "Recruitment & Training"
 msgstr "Tuyển dụng - Đào tạo"
 
 # models/organization.py:64
-#: apps/hrm/models/organization.py:82 apps/hrm/models/organization.py:182
+#: apps/hrm/models/organization.py:111 apps/hrm/models/organization.py:220
 #: apps/hrm/models/recruitment_channel.py:14
 msgid "Marketing"
 msgstr "Marketing"

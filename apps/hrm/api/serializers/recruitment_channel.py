@@ -6,8 +6,6 @@ from apps.hrm.models import RecruitmentChannel
 class RecruitmentChannelSerializer(serializers.ModelSerializer):
     """Serializer for RecruitmentChannel model"""
 
-    belong_to_display = serializers.CharField(source="get_belong_to_display", read_only=True)
-
     class Meta:
         model = RecruitmentChannel
         fields = [
@@ -15,7 +13,6 @@ class RecruitmentChannelSerializer(serializers.ModelSerializer):
             "name",
             "code",
             "belong_to",
-            "belong_to_display",
             "description",
             "is_active",
             "created_at",
