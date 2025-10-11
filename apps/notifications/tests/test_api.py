@@ -68,9 +68,12 @@ class TestNotificationAPI:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["success"] is True
+        assert data["data"]["count"] == 2
+
         # Should be ordered newest first
-        assert data["data"][0]["id"] == notification2.id
-        assert data["data"][1]["id"] == notification1.id
+        notifications = data["data"]["results"]
+        assert notifications[0]["id"] == notification2.id
+        assert notifications[1]["id"] == notification1.id
 
     def test_list_notifications_requires_authentication(self, api_client):
         """Test that listing notifications requires authentication."""
