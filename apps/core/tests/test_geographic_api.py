@@ -1,5 +1,4 @@
 import json
-import os
 
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
@@ -276,7 +275,8 @@ class AdministrativeUnitAPITest(TransactionTestCase, APITestMixin):
         """Test combining multiple filters"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(
-            url, {"parent_province": self.province1.id, "level": AdministrativeUnit.UnitLevel.DISTRICT, "enabled": "true"}
+            url,
+            {"parent_province": self.province1.id, "level": AdministrativeUnit.UnitLevel.DISTRICT, "enabled": "true"},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
