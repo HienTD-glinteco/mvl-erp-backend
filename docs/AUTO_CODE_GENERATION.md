@@ -74,11 +74,12 @@ block = Block(id=1234)
 code = generate_model_code(block)  # Returns "BL1234"
 ```
 
-#### 2. `create_auto_code_signal_handler(temp_code_prefix: str)`
+#### 2. `create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=None)`
 Factory function that creates a generic signal handler for auto-code generation.
 
 **Parameters:**
 - `temp_code_prefix`: Prefix used to identify temporary codes (e.g., "TEMP_")
+- `custom_generate_code`: Optional custom function to generate codes. If provided, this function will be used instead of `generate_model_code`. The function should accept an instance and return a string code.
 
 **Returns:** A signal handler function that can be connected to post_save signal
 
@@ -88,8 +89,14 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from libs.code_generation import create_auto_code_signal_handler
 
-# Create generic handler
+# Create generic handler with default code generation
 auto_code_handler = create_auto_code_signal_handler("TEMP_")
+
+# Create handler with custom code generation
+def custom_code_gen(instance):
+    return f"{instance.CODE_PREFIX}{instance.id:05d}"
+
+custom_handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
 
 # Register for multiple models using multiple decorators
 @receiver(post_save, sender=Branch)
@@ -99,20 +106,27 @@ def generate_code(sender, instance, created, **kwargs):
     auto_code_handler(sender, instance, created, **kwargs)
 ```
 
-#### 3. `register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_")`
+#### 3. `register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_", custom_generate_code=None)`
 Convenience function to register auto-code generation for multiple models at once.
 
 **Parameters:**
 - `*models`: Model classes to register the signal for
 - `temp_code_prefix`: Prefix for temporary codes (default: "TEMP_")
+- `custom_generate_code`: Optional custom function to generate codes. If provided, this function will be used instead of `generate_model_code`.
 
 **Usage:**
 ```python
 from apps.hrm.models import Branch, Block, Department
 from libs.code_generation import register_auto_code_signal
 
-# Register all models in one call
+# Register with default code generation
 register_auto_code_signal(Branch, Block, Department)
+
+# Register with custom code generation
+def custom_code_gen(instance):
+    return f"{instance.CODE_PREFIX}{instance.id:05d}"
+
+register_auto_code_signal(Branch, Block, custom_generate_code=custom_code_gen)
 ```
 
 ## How It Works

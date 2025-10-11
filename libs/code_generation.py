@@ -34,12 +34,15 @@ def generate_model_code(instance) -> str:
     instance_id = instance.id
 
     # Format with at least 3 digits, but allow more if needed
-    subcode = f"{instance_id:03d}"
+    if instance_id < 1000:
+        subcode = f"{instance_id:03d}"
+    else:
+        subcode = str(instance_id)
 
     return f"{prefix}{subcode}"
 
 
-def create_auto_code_signal_handler(temp_code_prefix: str):
+def create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=None):
     """Factory function to create a generic signal handler for auto-code generation.
 
     This creates a reusable signal handler that can automatically generate codes
@@ -47,6 +50,9 @@ def create_auto_code_signal_handler(temp_code_prefix: str):
 
     Args:
         temp_code_prefix: The prefix used to identify temporary codes (e.g., "TEMP_")
+        custom_generate_code: Optional custom function to generate codes. 
+                            If provided, this function will be used instead of generate_model_code.
+                            The function should accept an instance and return a string code.
 
     Returns:
         A signal handler function that can be connected to post_save signal
@@ -55,8 +61,14 @@ def create_auto_code_signal_handler(temp_code_prefix: str):
         from django.db.models.signals import post_save
         from django.dispatch import receiver
 
-        # Create generic handler
+        # Create generic handler with default code generation
         auto_code_handler = create_auto_code_signal_handler("TEMP_")
+
+        # Create handler with custom code generation
+        def custom_code_gen(instance):
+            return f"{instance.CODE_PREFIX}{instance.id:05d}"
+        
+        custom_handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
 
         # Register for multiple models
         @receiver(post_save, sender=Branch)
@@ -84,14 +96,17 @@ def create_auto_code_signal_handler(temp_code_prefix: str):
         """
         # Only generate code for new instances that have a temporary code
         if created and hasattr(instance, "code") and instance.code and instance.code.startswith(temp_code_prefix):
-            instance.code = generate_model_code(instance)
+            if custom_generate_code:
+                instance.code = custom_generate_code(instance)
+            else:
+                instance.code = generate_model_code(instance)
             # Use update_fields to prevent triggering the signal again (avoid infinite loop)
             instance.save(update_fields=["code"])
 
     return signal_handler
 
 
-def register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_"):
+def register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_", custom_generate_code=None):
     """Register auto-code generation signal for multiple models.
 
     This is a convenience function to register the auto-code generation signal
@@ -100,14 +115,24 @@ def register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_"):
     Args:
         *models: Model classes to register the signal for
         temp_code_prefix: The prefix used to identify temporary codes (default: "TEMP_")
+        custom_generate_code: Optional custom function to generate codes.
+                            If provided, this function will be used instead of generate_model_code.
+                            The function should accept an instance and return a string code.
 
     Example:
         from apps.hrm.models import Branch, Block, Department
         from libs.code_generation import register_auto_code_signal
 
+        # Register with default code generation
         register_auto_code_signal(Branch, Block, Department)
+
+        # Register with custom code generation
+        def custom_code_gen(instance):
+            return f"{instance.CODE_PREFIX}{instance.id:05d}"
+        
+        register_auto_code_signal(Branch, Block, custom_generate_code=custom_code_gen)
     """
-    handler = create_auto_code_signal_handler(temp_code_prefix)
+    handler = create_auto_code_signal_handler(temp_code_prefix, custom_generate_code=custom_generate_code)
 
     for model in models:
         post_save.connect(handler, sender=model, weak=False)

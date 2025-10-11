@@ -186,6 +186,41 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
         self.assertEqual(mock_instance.code, "TST099")
         mock_instance.save.assert_called_once_with(update_fields=["code"])
 
+    def test_handler_with_custom_generate_code_function(self):
+        """Test handler with custom code generation function."""
+        # Arrange
+        def custom_code_gen(instance):
+            return f"{instance.__class__.CODE_PREFIX}{instance.id:05d}"
+        
+        handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
+        mock_instance = MagicMock()
+        mock_instance.code = "TEMP_abc123"
+        mock_instance.id = 42
+        mock_instance.__class__.CODE_PREFIX = "CUS"
+
+        # Act
+        handler(sender=MagicMock, instance=mock_instance, created=True)
+
+        # Assert
+        self.assertEqual(mock_instance.code, "CUS00042")
+        mock_instance.save.assert_called_once_with(update_fields=["code"])
+
+    def test_handler_uses_default_when_custom_generate_code_is_none(self):
+        """Test that handler uses default generate_model_code when custom is None."""
+        # Arrange
+        handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=None)
+        mock_instance = MagicMock()
+        mock_instance.code = "TEMP_xyz"
+        mock_instance.id = 5
+        mock_instance.__class__.CODE_PREFIX = "DEF"
+
+        # Act
+        handler(sender=MagicMock, instance=mock_instance, created=True)
+
+        # Assert
+        self.assertEqual(mock_instance.code, "DEF005")
+        mock_instance.save.assert_called_once_with(update_fields=["code"])
+
 
 class RegisterAutoCodeSignalTest(unittest.TestCase):
     """Test cases for register_auto_code_signal function."""
@@ -246,3 +281,28 @@ class RegisterAutoCodeSignalTest(unittest.TestCase):
         mock_instance.__class__.CODE_PREFIX = "TST"
         handler(sender=mock_model, instance=mock_instance, created=True)
         self.assertEqual(mock_instance.code, "TST001")
+
+    @patch("libs.code_generation.post_save")
+    def test_register_with_custom_generate_code(self, mock_post_save):
+        """Test registering signal with custom code generation function."""
+        # Arrange
+        mock_model = MagicMock()
+        
+        def custom_code_gen(instance):
+            return f"{instance.__class__.CODE_PREFIX}-{instance.id:04d}"
+
+        # Act
+        register_auto_code_signal(mock_model, custom_generate_code=custom_code_gen)
+
+        # Assert
+        mock_post_save.connect.assert_called_once()
+        # Handler should be created with custom code generation
+        call_args = mock_post_save.connect.call_args
+        handler = call_args[0][0]
+        # Test the handler works with custom code generation
+        mock_instance = MagicMock()
+        mock_instance.code = "TEMP_test"
+        mock_instance.id = 99
+        mock_instance.__class__.CODE_PREFIX = "CUS"
+        handler(sender=mock_model, instance=mock_instance, created=True)
+        self.assertEqual(mock_instance.code, "CUS-0099")
