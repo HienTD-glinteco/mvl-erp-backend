@@ -17,6 +17,41 @@ A unified, reusable approach using generic signal handlers that can work with an
 
 ## Implementation Details
 
+### AutoCodeMixin (libs/base_model_mixin.py)
+
+A Django model mixin that automatically generates temporary codes for new instances.
+
+**Features:**
+- Automatically generates temporary code when creating new instances
+- Configurable temporary code prefix via `TEMP_CODE_PREFIX` class attribute
+- Works seamlessly with signal handlers for final code generation
+- No need to override `save()` method for basic use cases
+
+**Usage:**
+```python
+from libs.base_model_mixin import AutoCodeMixin, BaseModel
+
+class Branch(AutoCodeMixin, BaseModel):
+    CODE_PREFIX = "CN"
+    TEMP_CODE_PREFIX = "TEMP_"  # Optional, defaults to "TEMP_"
+    code = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=200)
+```
+
+**For models with custom save logic:**
+```python
+class Department(AutoCodeMixin, BaseModel):
+    CODE_PREFIX = "PB"
+    
+    def save(self, *args, **kwargs):
+        # Custom logic before temp code generation
+        if not self.branch and self.block:
+            self.branch = self.block.branch
+        
+        # Call super to handle temp code generation
+        super().save(*args, **kwargs)
+```
+
 ### Core Functions (libs/code_generation.py)
 
 #### 1. `generate_model_code(instance) -> str`
@@ -102,24 +137,23 @@ register_auto_code_signal(Branch, Block, Department)
 
 For a model to use auto-code generation, it must:
 
-1. **Have a `CODE_PREFIX` class attribute:**
+1. **Inherit from `AutoCodeMixin`:**
 ```python
-class Branch(models.Model):
+from libs.base_model_mixin import AutoCodeMixin, BaseModel
+
+class Branch(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "CN"
     ...
 ```
 
-2. **Have a code field:**
+2. **Have a `CODE_PREFIX` class attribute:**
 ```python
-code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
+CODE_PREFIX = "CN"
 ```
 
-3. **Generate temporary code in save() method:**
+3. **Have a code field:**
 ```python
-def save(self, *args, **kwargs):
-    if self._state.adding and not self.code:
-        self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-    super().save(*args, **kwargs)
+code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
 ```
 
 4. **Register the signal handler:**
@@ -129,6 +163,8 @@ def save(self, *args, **kwargs):
 def generate_branch_code(sender, instance, created, **kwargs):
     auto_code_handler(sender, instance, created, **kwargs)
 ```
+
+**Note:** The `AutoCodeMixin` automatically handles temporary code generation in the `save()` method, so you don't need to override it for basic use cases.
 
 ## Current Implementation (apps/hrm/signals.py)
 
@@ -161,29 +197,25 @@ def generate_model_code_on_save(sender, instance, created, **kwargs):
 
 To add auto-code generation to a new model:
 
-1. **Add `CODE_PREFIX` to the model:**
+1. **Inherit from `AutoCodeMixin` and add `CODE_PREFIX`:**
 ```python
-class NewModel(models.Model):
+from libs.base_model_mixin import AutoCodeMixin, BaseModel
+
+class NewModel(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "NM"  # Choose a unique prefix
     code = models.CharField(max_length=50, unique=True)
     ...
 ```
 
-2. **Add temporary code generation in save():**
-```python
-def save(self, *args, **kwargs):
-    if self._state.adding and not self.code:
-        self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-    super().save(*args, **kwargs)
-```
-
-3. **Register the signal handler:**
+2. **Register the signal handler:**
 ```python
 # In signals.py - add to existing decorator stack
 @receiver(post_save, sender=NewModel)
 def generate_model_code_on_save(sender, instance, created, **kwargs):
     _auto_code_handler(sender, instance, created, **kwargs)
 ```
+
+**That's it!** The `AutoCodeMixin` automatically handles temporary code generation.
 
 ### Custom Code Generation Logic
 

@@ -1,18 +1,18 @@
 from django.db import models
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.base_model_mixin import BaseModel
+from libs.base_model_mixin import AutoCodeMixin, BaseModel
 
 from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class Branch(BaseModel):
+class Branch(AutoCodeMixin, BaseModel):
     """Company branch"""
 
     CODE_PREFIX = "CN"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     name = models.CharField(max_length=200, verbose_name=_("Branch name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
@@ -43,23 +43,16 @@ class Branch(BaseModel):
         verbose_name_plural = _("Branches")
         db_table = "hrm_branch"
 
-    def save(self, *args, **kwargs):
-        """Override save to set temporary code for new instances."""
-        # Set temporary code for new instances that don't have a code yet
-        # Use random string to avoid collisions, not all, but most of the time.
-        if self._state.adding and not self.code:
-            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.code} - {self.name}"
 
 
 @audit_logging_register
-class Block(BaseModel):
+class Block(AutoCodeMixin, BaseModel):
     """Business unit/block"""
 
     CODE_PREFIX = "KH"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class BlockType(models.TextChoices):
         SUPPORT = "support", _("Support Block")
@@ -83,23 +76,16 @@ class Block(BaseModel):
         db_table = "hrm_block"
         unique_together = [["code", "branch"]]
 
-    def save(self, *args, **kwargs):
-        """Override save to set temporary code for new instances."""
-        # Set temporary code for new instances that don't have a code yet
-        # Use random string to avoid collisions, not all, but most of the time.
-        if self._state.adding and not self.code:
-            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.code} - {self.name} ({self.get_block_type_display()})"
 
 
 @audit_logging_register
-class Department(BaseModel):
+class Department(AutoCodeMixin, BaseModel):
     """Department"""
 
     CODE_PREFIX = "PB"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class DepartmentFunction(models.TextChoices):
         # Business function
@@ -192,10 +178,6 @@ class Department(BaseModel):
                 )
 
     def save(self, *args, **kwargs):
-        # Set temporary code for new instances that don't have a code yet
-        if self._state.adding and not self.code:
-            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-
         # Auto-set branch from block if not set
         if not self.branch and self.block and self.block.branch:
             self.branch = self.block.branch

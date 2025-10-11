@@ -422,26 +422,38 @@ pytest apps/hrm/tests/test_*_auto_code.py -v
 4. **Write tests:** Every code generation path needs tests
 5. **Consider race conditions:** Sequential numbering needs proper locking
 
-### 6.3 Future Enhancements
+### 6.3 Implemented Enhancements
 
-**Potential Improvements:**
-
-1. **Model Mixin:**
+**1. Model Mixin (Implemented):**
 ```python
 class AutoCodeMixin(models.Model):
-    """Mixin that adds auto-code generation."""
-    code = models.CharField(max_length=50, unique=True)
+    """Mixin that provides automatic temporary code generation."""
+    
+    TEMP_CODE_PREFIX = "TEMP_"
     
     class Meta:
         abstract = True
     
     def save(self, *args, **kwargs):
-        if self._state.adding and not self.code:
-            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
+        if self._state.adding and hasattr(self, "code") and not self.code:
+            temp_prefix = getattr(self.__class__, "TEMP_CODE_PREFIX", "TEMP_")
+            self.code = f"{temp_prefix}{get_random_string(20)}"
         super().save(*args, **kwargs)
 ```
 
-2. **Class Decorator:**
+**Usage:**
+```python
+class Branch(AutoCodeMixin, BaseModel):
+    CODE_PREFIX = "CN"
+    code = models.CharField(max_length=50, unique=True)
+    # Temporary code generation is automatic!
+```
+
+### Future Enhancements
+
+**Potential Further Improvements:**
+
+1. **Class Decorator:**
 ```python
 @auto_code(prefix="BL", temp_prefix="TEMP_")
 class Block(models.Model):
@@ -449,7 +461,7 @@ class Block(models.Model):
     # code field and signal handler added automatically
 ```
 
-3. **Registry Pattern:**
+2. **Registry Pattern:**
 ```python
 # Central registry of all auto-code models
 AUTO_CODE_REGISTRY = {

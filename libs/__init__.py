@@ -1,3 +1,4 @@
+from .base_model_mixin import AutoCodeMixin
 from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .code_generation import (
     create_auto_code_signal_handler,
@@ -13,6 +14,7 @@ from .export_xlsx import (
 )
 
 __all__ = [
+    "AutoCodeMixin",
     "BaseModelViewSet",
     "BaseReadOnlyModelViewSet",
     "ExportXLSXMixin",
