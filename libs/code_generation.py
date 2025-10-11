@@ -34,10 +34,7 @@ def generate_model_code(instance) -> str:
     instance_id = instance.id
 
     # Format with at least 3 digits, but allow more if needed
-    if instance_id < 1000:
-        subcode = f"{instance_id:03d}"
-    else:
-        subcode = str(instance_id)
+    subcode = f"{instance_id:03d}"
 
     return f"{prefix}{subcode}"
 

@@ -1,7 +1,7 @@
 """Tests for code generation utilities."""
 
 import unittest
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 from libs.code_generation import (
     create_auto_code_signal_handler,
@@ -159,8 +159,9 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
         """Test that handler gracefully handles instances without code attribute."""
         # Arrange
         handler = create_auto_code_signal_handler("TEMP_")
-        mock_instance = MagicMock(spec=[])  # No attributes
-        del mock_instance.code  # Explicitly remove code attribute
+        mock_instance = MagicMock(spec=[])
+        del mock_instance.code
+        mock_instance.save = MagicMock()
 
         # Act
         handler(sender=MagicMock, instance=mock_instance, created=True)
