@@ -11,7 +11,7 @@ class BaseModel(models.Model):
         ordering = ["created_at"]
 
 
-class AutoCodeMixin(models.Model):
+class AutoCodeMixin:
     """Mixin that provides automatic temporary code generation for new instances.
 
     This mixin automatically generates a temporary code for new model instances
@@ -34,6 +34,7 @@ class AutoCodeMixin(models.Model):
     """
 
     TEMP_CODE_PREFIX = "TEMP_"
+    CODE_PREFIX = None
 
     class Meta:
         abstract = True
