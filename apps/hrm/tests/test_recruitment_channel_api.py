@@ -36,7 +36,6 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
         self.channel_data = {
             "name": "LinkedIn",
-            "code": "LINKEDIN",
             "belong_to": "job_website",
             "description": "Professional networking platform",
             "is_active": True,
@@ -52,13 +51,15 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
         channel = RecruitmentChannel.objects.first()
         self.assertEqual(channel.name, self.channel_data["name"])
-        self.assertEqual(channel.code, self.channel_data["code"])
+        # Verify code was auto-generated
+        self.assertTrue(channel.code.startswith("CH"))
 
     def test_list_recruitment_channels(self):
         """Test listing recruitment channels via API"""
-        RecruitmentChannel.objects.create(**self.channel_data)
-
+        # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-channel-list")
+        self.client.post(url, self.channel_data, format="json")
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -68,9 +69,12 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
     def test_retrieve_recruitment_channel(self):
         """Test retrieving a recruitment channel via API"""
-        channel = RecruitmentChannel.objects.create(**self.channel_data)
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        create_response = self.client.post(url, self.channel_data, format="json")
+        channel_id = self.get_response_data(create_response)["id"]
 
-        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel.pk})
+        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel_id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -79,42 +83,50 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
     def test_update_recruitment_channel(self):
         """Test updating a recruitment channel via API"""
-        channel = RecruitmentChannel.objects.create(**self.channel_data)
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        create_response = self.client.post(url, self.channel_data, format="json")
+        channel_id = self.get_response_data(create_response)["id"]
 
         update_data = {
             "name": "LinkedIn Updated",
-            "code": "LINKEDIN",
             "belong_to": "marketing",
             "description": "Updated description",
             "is_active": True,
         }
 
-        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel.pk})
+        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel_id})
         response = self.client.put(url, update_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        channel.refresh_from_db()
+        channel = RecruitmentChannel.objects.get(id=channel_id)
         self.assertEqual(channel.name, update_data["name"])
         self.assertEqual(channel.description, update_data["description"])
 
     def test_partial_update_recruitment_channel(self):
         """Test partially updating a recruitment channel via API"""
-        channel = RecruitmentChannel.objects.create(**self.channel_data)
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        create_response = self.client.post(url, self.channel_data, format="json")
+        channel_id = self.get_response_data(create_response)["id"]
 
         update_data = {"is_active": False}
 
-        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel.pk})
+        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel_id})
         response = self.client.patch(url, update_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        channel.refresh_from_db()
+        channel = RecruitmentChannel.objects.get(id=channel_id)
         self.assertFalse(channel.is_active)
 
     def test_delete_recruitment_channel(self):
         """Test deleting a recruitment channel via API"""
-        channel = RecruitmentChannel.objects.create(**self.channel_data)
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        create_response = self.client.post(url, self.channel_data, format="json")
+        channel_id = self.get_response_data(create_response)["id"]
 
-        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel.pk})
+        url = reverse("hrm:recruitment-channel-detail", kwargs={"pk": channel_id})
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -122,24 +134,25 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_recruitment_channels(self):
         """Test searching recruitment channels by name and code"""
-        RecruitmentChannel.objects.create(
-            name="LinkedIn",
-            code="LINKEDIN",
-            description="Professional network",
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        self.client.post(
+            url,
+            {"name": "LinkedIn", "description": "Professional network"},
+            format="json",
         )
-        RecruitmentChannel.objects.create(
-            name="Facebook Jobs",
-            code="FACEBOOK",
-            description="Social media jobs",
+        self.client.post(
+            url,
+            {"name": "Facebook Jobs", "description": "Social media jobs"},
+            format="json",
         )
-        RecruitmentChannel.objects.create(
-            name="Indeed",
-            code="INDEED",
-            description="Job search engine",
+        self.client.post(
+            url,
+            {"name": "Indeed", "description": "Job search engine"},
+            format="json",
         )
 
         # Search by name
-        url = reverse("hrm:recruitment-channel-list")
         response = self.client.get(url, {"search": "LinkedIn"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -148,27 +161,28 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[0]["name"], "LinkedIn")
 
         # Search by code
-        response = self.client.get(url, {"search": "FACE"})
+        response = self.client.get(url, {"search": "CH"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["code"], "FACEBOOK")
+        # All channels should have CH prefix
+        self.assertEqual(len(response_data), 3)
 
     def test_filter_recruitment_channels_by_active_status(self):
         """Test filtering recruitment channels by active status"""
-        RecruitmentChannel.objects.create(
-            name="Active Channel",
-            code="ACTIVE",
-            is_active=True,
+        # Create via API to ensure signal is triggered
+        url = reverse("hrm:recruitment-channel-list")
+        self.client.post(
+            url,
+            {"name": "Active Channel", "is_active": True},
+            format="json",
         )
-        RecruitmentChannel.objects.create(
-            name="Inactive Channel",
-            code="INACTIVE",
-            is_active=False,
+        self.client.post(
+            url,
+            {"name": "Inactive Channel", "is_active": False},
+            format="json",
         )
 
         # Filter active channels
-        url = reverse("hrm:recruitment-channel-list")
         response = self.client.get(url, {"is_active": "true"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -184,36 +198,34 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[0]["name"], "Inactive Channel")
 
     def test_unique_code_constraint(self):
-        """Test that recruitment channel codes must be unique"""
-        RecruitmentChannel.objects.create(**self.channel_data)
-
+        """Test that recruitment channel codes are auto-generated and unique"""
+        # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-channel-list")
-        response = self.client.post(url, self.channel_data, format="json")
+        response1 = self.client.post(url, self.channel_data, format="json")
+        response2 = self.client.post(url, self.channel_data, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Both should succeed with different codes
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+
+        data1 = self.get_response_data(response1)
+        data2 = self.get_response_data(response2)
+        self.assertNotEqual(data1["code"], data2["code"])
 
     def test_ordering_by_created_at_desc(self):
         """Test that channels are ordered by created_at descending by default"""
-        channel1 = RecruitmentChannel.objects.create(
-            name="First Channel",
-            code="FIRST",
-        )
-        channel2 = RecruitmentChannel.objects.create(
-            name="Second Channel",
-            code="SECOND",
-        )
-        channel3 = RecruitmentChannel.objects.create(
-            name="Third Channel",
-            code="THIRD",
-        )
-
+        # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-channel-list")
+        response1 = self.client.post(url, {"name": "First Channel"}, format="json")
+        response2 = self.client.post(url, {"name": "Second Channel"}, format="json")
+        response3 = self.client.post(url, {"name": "Third Channel"}, format="json")
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 3)
         # Most recent first
-        self.assertEqual(response_data[0]["code"], "THIRD")
-        self.assertEqual(response_data[1]["code"], "SECOND")
-        self.assertEqual(response_data[2]["code"], "FIRST")
+        self.assertEqual(response_data[0]["name"], "Third Channel")
+        self.assertEqual(response_data[1]["name"], "Second Channel")
+        self.assertEqual(response_data[2]["name"], "First Channel")
