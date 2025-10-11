@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import PageNumberPagination
 
 from apps.audit_logging import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentChannelFilterSet
@@ -51,6 +52,7 @@ class RecruitmentChannelViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["-created_at"]
+    pagination_class = PageNumberPagination
 
     # Permission registration attributes
     module = "HRM"
