@@ -20,7 +20,11 @@ class APITestMixin:
         """Extract data from wrapped API response"""
         content = json.loads(response.content.decode())
         if "data" in content:
-            return content["data"]
+            data = content["data"]
+            # Handle paginated responses - extract results list
+            if isinstance(data, dict) and "results" in data:
+                return data["results"]
+            return data
         return content
 
 
