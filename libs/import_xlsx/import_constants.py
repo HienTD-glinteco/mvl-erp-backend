@@ -39,3 +39,22 @@ LOG_VALIDATION_ERROR = "Validation error in row {row}: {error}"
 # Storage constants
 STORAGE_LOCAL = "local"
 STORAGE_S3 = "s3"
+
+# Configuration errors
+ERROR_INVALID_CONFIG = "Invalid import configuration"
+ERROR_MISSING_SHEETS = "Configuration must have 'sheets' key"
+ERROR_INVALID_SHEET = "Invalid sheet configuration"
+ERROR_MISSING_MODEL = "Sheet configuration must specify 'model'"
+ERROR_MODEL_NOT_FOUND = "Model '{model}' not found in Django apps"
+ERROR_INVALID_FIELD_CONFIG = "Invalid field configuration for '{field}'"
+ERROR_MISSING_COMBINE_FIELDS = "Field '{field}' specifies 'combine' but missing field list"
+ERROR_INVALID_RELATION_CONFIG = "Invalid relation configuration for '{relation}'"
+
+# Transformation errors
+ERROR_COMBINE_MISSING_VALUE = "Missing value for combine field: {field}"
+ERROR_INVALID_DATE_FORMAT = "Invalid date format for field '{field}': {value}"
+ERROR_TRANSFORMATION_FAILED = "Transformation failed for field '{field}': {error}"
+
+# Relationship errors
+ERROR_PARENT_NOT_FOUND = "Parent object not found for '{model}': {value}"
+ERROR_RELATED_CREATE_FAILED = "Failed to create related object '{model}': {error}"
