@@ -1,4 +1,5 @@
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.models import Role, User
@@ -30,6 +31,7 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    @extend_schema_field(serializers.CharField())
     def get_branch_name(self, obj):
         """Get branch name from primary organization position"""
         primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
@@ -37,6 +39,7 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
             return primary_org.department.block.branch.name
         return ""
 
+    @extend_schema_field(serializers.CharField())
     def get_block_name(self, obj):
         """Get block name from primary organization position"""
         primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
@@ -44,6 +47,7 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
             return primary_org.department.block.name
         return ""
 
+    @extend_schema_field(serializers.CharField())
     def get_department_name(self, obj):
         """Get department name from primary organization position"""
         primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
@@ -51,6 +55,7 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
             return primary_org.department.name
         return ""
 
+    @extend_schema_field(serializers.CharField())
     def get_position_name(self, obj):
         """Get position name from primary organization position"""
         primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()

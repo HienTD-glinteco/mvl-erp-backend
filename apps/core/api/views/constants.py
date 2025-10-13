@@ -9,12 +9,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.api.serializers import ConstantsResponseSerializer
+
 
 class ConstantsView(APIView):
     """
     API endpoint to retrieve application constants from constants.py files
     and model field choices/enums across all installed apps.
     """
+
+    serializer_class = ConstantsResponseSerializer
 
     @extend_schema(
         summary="Get application constants",

@@ -7,6 +7,7 @@ from .auth import (
     PasswordResetOTPVerificationSerializer,
     PasswordResetSerializer,
 )
+from .constants import ConstantsResponseSerializer
 from .province import ProvinceSerializer
 from .role import PermissionSerializer, RoleSerializer
 
@@ -21,4 +22,5 @@ __all__ = [
     "PermissionSerializer",
     "ProvinceSerializer",
     "AdministrativeUnitSerializer",
+    "ConstantsResponseSerializer",
 ]
