@@ -6,6 +6,7 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 
 - [ ] ✅ **NO Vietnamese text** in code, comments, or docstrings
 - [ ] ✅ **ALL API documentation** (`@extend_schema`) must be in English
+- [ ] ✅ **ALL API endpoints** must include request and response examples using `OpenApiExample`
 - [ ] ✅ **ALL user-facing strings** must be wrapped in `gettext()` or `gettext_lazy()`
 - [ ] ✅ **Use constants for string values** - Define strings in `constants.py` or module-level constants
 - [ ] ✅ **English strings ONLY** - Vietnamese goes in `.po` translation files
@@ -231,27 +232,94 @@ python scripts/check_string_constants.py apps/core/api/views.py
 
 #### API Documentation (drf-spectacular)
 
-**ALL API documentation MUST be in English:**
+**ALL API documentation MUST be in English and include examples:**
 
 ```python
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 
-# ✅ CORRECT - English only
+# ✅ CORRECT - English with examples
 @extend_schema_view(
     list=extend_schema(
         summary="List all roles",
         description="Retrieve a list of all roles in the system",
         tags=["Roles"],
+        examples=[
+            OpenApiExample(
+                "List roles example",
+                description="Example response when listing roles",
+                value={
+                    "success": True,
+                    "data": [
+                        {
+                            "id": 1,
+                            "code": "VT001",
+                            "name": "System Admin",
+                            "description": "Full system access",
+                            "is_system_role": True,
+                            "created_by": "System",
+                            "permissions_detail": [
+                                {"id": 1, "code": "user.create", "name": "Create User"}
+                            ],
+                            "created_at": "2025-01-01T00:00:00Z",
+                            "updated_at": "2025-01-01T00:00:00Z"
+                        }
+                    ]
+                },
+                response_only=True,
+            )
+        ],
     ),
     create=extend_schema(
         summary="Create a new role",
         description="Create a new role in the system",
         tags=["Roles"],
+        examples=[
+            OpenApiExample(
+                "Create role request",
+                description="Example request to create a new role",
+                value={
+                    "name": "Manager",
+                    "description": "Manager role",
+                    "permission_ids": [1, 2, 3]
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Create role success response",
+                description="Success response when creating a role",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 5,
+                        "code": "VT005",
+                        "name": "Manager",
+                        "description": "Manager role",
+                        "is_system_role": False,
+                        "created_by": "admin@example.com",
+                        "permissions_detail": [
+                            {"id": 1, "code": "user.view", "name": "View User"}
+                        ],
+                        "created_at": "2025-01-15T10:30:00Z",
+                        "updated_at": "2025-01-15T10:30:00Z"
+                    }
+                },
+                response_only=True,
+            )
+        ],
     ),
 )
 ```
 
-**❌ NEVER use Vietnamese in API documentation decorators!**
+**Mandatory Requirements for ALL API Endpoints:**
+
+1. **Include Examples**: Every API endpoint MUST have at least one example for both request (if applicable) and response
+2. **Cover Success Cases**: Always include a success response example
+3. **Cover Error Cases**: Include error response examples for validation errors, not found, etc.
+4. **Use OpenApiExample**: Use `OpenApiExample` from `drf_spectacular.utils`
+5. **Realistic Data**: Examples should use realistic, meaningful data that helps developers understand the API
+6. **English Only**: All example data and descriptions must be in English
+
+**❌ NEVER use Vietnamese in API documentation decorators or examples!**
 
 #### Other Documentation Requirements
 
@@ -265,20 +333,45 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 #### Documentation Files - What NOT to Create
 
-**⚠️ IMPORTANT: Do NOT create unnecessary documentation files**
+**⚠️ CRITICAL: Do NOT create unnecessary documentation files ⚠️**
 
-* **DO NOT create** task planning documents, work summaries, issue resolution docs, or compliance guides
-* **DO NOT create** files like `TASK_PLAN.md`, `WORK_SUMMARY.md`, `ISSUE_RESOLUTION_*.md`, `*_SUMMARY.md`
-* **DO NOT create** quick reference cards or instruction compliance documents
-* The PR description and commit messages already contain task information - additional summary docs are redundant
+**Copilot must ONLY generate documentation that is truly necessary and directly related to business flows and logic.**
 
-**Only create documentation files when:**
-* Adding a new feature that requires user-facing documentation
-* Updating existing documentation (README, API docs, etc.)
-* Creating technical design documents explicitly requested by the team lead
-* Adding architecture diagrams for significant changes
+**FORBIDDEN Documentation Types** (these are considered WASTE and must NOT be created):
+* ❌ **Task planning documents**: `TASK_PLAN.md`, `WORK_PLAN.md`
+* ❌ **Work summaries**: `WORK_SUMMARY.md`, `TASK_SUMMARY.md`
+* ❌ **Implementation summaries**: `*_IMPLEMENTATION_SUMMARY.md`, `*_SUMMARY.md`
+* ❌ **Issue resolution docs**: `ISSUE_RESOLUTION_*.md`, `ISSUE_*.md`
+* ❌ **Checklists**: `*_CHECKLIST.md`, `*_MIGRATION_CHECKLIST.md`
+* ❌ **Quick reference cards**: `*_QUICK_REFERENCE.md`, `*_REFERENCE.md`
+* ❌ **Compliance/instruction documents**: `INSTRUCTION_COMPLIANCE.md`, `COPILOT_VALIDATION.md`
+* ❌ **Review documents**: `*_REVIEW.md`, `CODE_*_REVIEW.md`
+* ❌ **Optimization summaries**: `*_OPTIMIZATION_SUMMARY.md`, `CI_OPTIMIZATION_*.md`
+* ❌ **Comparison documents**: `*_COMPARISON.md`, `*_WORKFLOW_COMPARISON.md`
 
-**Remember:** Less documentation is better than redundant documentation. Focus on code quality, not creating summaries of your work.
+**Why these are forbidden:**
+- PR descriptions already contain task information
+- Commit messages already explain what was done and why
+- These docs become outdated and misleading
+- They waste time and clutter the repository
+- They provide no value to end users or future developers
+
+**ONLY create documentation when:**
+* ✅ Adding a **new feature** that requires **user-facing documentation**
+* ✅ Documenting **API endpoints** (with examples) for integration
+* ✅ Updating **existing documentation** (README, API docs)
+* ✅ Creating **technical design documents** explicitly requested by the team lead
+* ✅ Adding **architecture diagrams** for significant changes (Mermaid format)
+* ✅ Documenting **business logic and workflows** that are complex and need explanation
+
+**Before creating ANY documentation file, ask yourself:**
+1. Does this document business logic or workflows?
+2. Will this help users/developers integrate with the system?
+3. Was this explicitly requested by the team lead?
+
+If all answers are "NO", **DO NOT create the file**.
+
+**Remember:** Excessive documentation is WASTE. Focus on clean code, good commit messages, and thorough PR descriptions.
 
 ## 6. Version Control (Git)
 * **Branching:** All work must be done on a feature or fix branch created from `master`. Never commit directly to `master`.
