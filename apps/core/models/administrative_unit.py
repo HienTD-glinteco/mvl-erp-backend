@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.base_model_mixin import BaseModel
+from libs.models import BaseModel
 
 ENABLED_ADMINISTRATIVE_UNIT_CODE_UNIQUE_CONSTRAINT_NAME = "unique_enabled_administrative_unit_code"
 

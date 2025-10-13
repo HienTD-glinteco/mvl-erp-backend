@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext as _, gettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.base_model_mixin import BaseModel
+from libs.models import BaseModel
 
 
 @audit_logging_register

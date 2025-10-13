@@ -13,6 +13,7 @@ from django.test import RequestFactory, TestCase
 
 from apps.audit_logging import LogAction, audit_logging_register, log_audit_event
 from apps.audit_logging.middleware import audit_context, get_current_request, get_current_user, set_current_request
+from libs.models import create_dummy_model
 
 User = get_user_model()
 
@@ -24,14 +25,13 @@ class TestLogAuditEvent(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestLogAuditEventModel(models.Model):
-            name = models.CharField(max_length=100)
-            value = models.IntegerField(default=0)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        cls.TestModel = TestLogAuditEventModel
+        cls.TestModel = create_dummy_model(
+            base_name="TestLogAuditEventModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
 
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
@@ -254,14 +254,11 @@ class TestAuditLoggingDecorator(TestCase):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
-        @audit_logging_register
-        class TestAuditLoggingDecoratorModel(models.Model):
-            name = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        self.DecoratedModel = TestAuditLoggingDecoratorModel
+        self.DecoratedModel = create_dummy_model(
+            base_name="TestAuditLoggingDecoratorModel",
+            fields={"name": models.CharField(max_length=100)},
+        )
+        self.DecoratedModel = audit_logging_register(self.DecoratedModel)
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_decorator_logs_create(self, mock_log_event):

@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.base_model_mixin import BaseModel
+from libs.models import BaseModel
 
 
 class Permission(BaseModel):

@@ -12,6 +12,7 @@ from django.db import models
 from django.test import RequestFactory, TestCase
 
 from apps.audit_logging import AuditLogRegistry, LogAction, audit_logging_register, batch_audit_context
+from libs.models import create_dummy_model
 
 User = get_user_model()
 
@@ -23,17 +24,14 @@ class TestBatchAuditContext(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestBatchModel(models.Model):
-            """Test model for batch audit logging tests."""
-
-            name = models.CharField(max_length=100)
-            value = models.IntegerField(default=0)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        AuditLogRegistry.register(TestBatchModel)
-        cls.TestBatchModel = TestBatchModel
+        cls.TestBatchModel = create_dummy_model(
+            base_name="TestBatchModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
+        AuditLogRegistry.register(cls.TestBatchModel)
 
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
@@ -160,17 +158,16 @@ class TestBatchWithDecorator(TestCase):
     def test_batch_context_creates_individual_logs_with_metadata(self, mock_log_event):
         """Test that individual logs ARE created with batch metadata attached."""
 
-        # Apply decorator to test model
-        @audit_logging_register
-        class BatchDecoratedModel(models.Model):
-            name = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "audit_logging"
-
         from django.db.models.signals import post_save
 
         from apps.audit_logging.middleware import audit_context
+
+        # Create and register a decorated model
+        BatchDecoratedModel = create_dummy_model(
+            base_name="BatchDecoratedModel",
+            fields={"name": models.CharField(max_length=100)},
+        )
+        BatchDecoratedModel = audit_logging_register(BatchDecoratedModel)
 
         request = self.factory.post("/api/import/")
         request.user = self.user
