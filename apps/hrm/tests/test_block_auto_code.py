@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch
 
 User = get_user_model()
@@ -27,7 +28,28 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
     def get_response_data(self, response):
         """Extract data from wrapped API response."""

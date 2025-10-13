@@ -21,17 +21,13 @@ class Branch(AutoCodeMixin, BaseModel):
     email = models.EmailField(blank=True, verbose_name=_("Email"))
     province = models.ForeignKey(
         "core.Province",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.PROTECT,
         related_name="branches",
         verbose_name=_("Province"),
     )
     administrative_unit = models.ForeignKey(
         "core.AdministrativeUnit",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.PROTECT,
         related_name="branches",
         verbose_name=_("Administrative unit"),
     )
@@ -210,22 +206,14 @@ class Department(AutoCodeMixin, BaseModel):
 
 
 @audit_logging_register
-class Position(BaseModel):
+class Position(AutoCodeMixin, BaseModel):
     """Position/Role"""
 
-    class PositionLevel(models.IntegerChoices):
-        CEO = 1, _("Chief Executive Officer (CEO)")
-        DIRECTOR = 2, _("Block Director")
-        DEPUTY_DIRECTOR = 3, _("Deputy Block Director")
-        MANAGER = 4, _("Department Manager")
-        DEPUTY_MANAGER = 5, _("Deputy Department Manager")
-        SUPERVISOR = 6, _("Supervisor")
-        STAFF = 7, _("Staff")
-        INTERN = 8, _("Intern")
+    CODE_PREFIX = "CV"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     name = models.CharField(max_length=200, verbose_name=_("Position name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
-    level = models.IntegerField(choices=PositionLevel.choices, verbose_name=_("Level"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
@@ -233,7 +221,7 @@ class Position(BaseModel):
         verbose_name = _("Position")
         verbose_name_plural = _("Positions")
         db_table = "hrm_position"
-        ordering = ["level", "name"]
+        ordering = ["name"]
 
     def __str__(self):
         return f"{self.code} - {self.name}"

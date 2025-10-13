@@ -167,21 +167,6 @@ class ConstantsAPITestCase(TestCase):
         block_type_found = any("BlockType" in key for key in hrm_constants.keys())
         self.assertTrue(block_type_found, "Should contain Block BlockType choices")
 
-    def test_constants_position_level_choices(self):
-        """Test that Position.PositionLevel choices are included"""
-        # Act
-        response = self.client.get(self.url, {"modules": "hrm"})
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        data = response_data.get("data", {})
-
-        # Should have Position_PositionLevel constant
-        hrm_constants = data.get("hrm", {})
-        position_level_found = any("PositionLevel" in key for key in hrm_constants.keys())
-        self.assertTrue(position_level_found, "Should contain Position PositionLevel choices")
-
     def test_constants_department_function_choices(self):
         """Test that Department.DepartmentFunction choices are included"""
         # Act

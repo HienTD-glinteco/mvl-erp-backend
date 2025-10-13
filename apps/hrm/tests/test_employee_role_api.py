@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import Role
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 User = get_user_model()
@@ -51,9 +52,30 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         self.role_manager = Role.objects.create(name="Manager", code="VT003", description="Manager role")
         self.role_staff = Role.objects.create(name="Staff", code="VT004", description="Staff role")
 
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
         # Create organizational structure
         self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội", code="HN", address="123 Lê Duẩn, Hà Nội", phone="0243456789"
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            address="123 Lê Duẩn, Hà Nội",
+            phone="0243456789",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
         )
 
         self.block = Block.objects.create(
@@ -69,7 +91,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         )
 
         self.position = Position.objects.create(
-            name="Nhân viên Kinh doanh", code="NVKD", level=Position.PositionLevel.STAFF
+            name="Nhân viên Kinh doanh", code="NVKD"
         )
 
         # Create test employees

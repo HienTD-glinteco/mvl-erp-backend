@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:06+0700\n"
+"POT-Creation-Date: 2025-10-13 17:09+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -299,7 +299,7 @@ msgstr "Cần chọn ít nhất 1 Quyền"
 msgid "Role name already exists"
 msgstr "Tên vai trò đã tồn tại"
 
-#: apps/core/api/serializers/role.py:93
+#: apps/core/api/serializers/role.py:80
 msgid "System roles can only update permissions, not other fields"
 msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
@@ -514,6 +514,7 @@ msgid "Run in dry-run mode without saving to database"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:41
+#, python-brace-format
 msgid "Starting import of {} data from {}"
 msgstr ""
 
@@ -522,6 +523,7 @@ msgid "Running in DRY-RUN mode - no data will be saved"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:57
+#, python-brace-format
 msgid "Loaded {} rows from file"
 msgstr ""
 
@@ -530,55 +532,68 @@ msgid "Import completed successfully"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:67
+#, python-brace-format
 msgid "Error during import: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:86
+#, python-brace-format
 msgid "Skipping row with missing code or name: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:128
+#, python-brace-format
 msgid "Updated province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:130
+#, python-brace-format
 msgid "Province unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:144
+#, python-brace-format
 msgid "Created province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:147
 #: apps/core/management/commands/import_administrative_data.py:253
+#, python-brace-format
 msgid "Error processing row {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:155
+#, python-brace-format
 msgid "Province import summary: {} created, {} updated, {} disabled"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:177
+#, python-brace-format
 msgid "Skipping row with missing required fields: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:201
+#, python-brace-format
 msgid "Parent province not found for code {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:234
+#, python-brace-format
 msgid "Updated unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:236
+#, python-brace-format
 msgid "Unit unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:250
+#, python-brace-format
 msgid "Created unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:261
+#, python-brace-format
 msgid "Unit import summary: {} created, {} updated, {} disabled, {} skipped"
 msgstr ""
 
@@ -663,7 +678,7 @@ msgid "Administrative Units"
 msgstr ""
 
 # models/user.py:41
-#: apps/core/models/device.py:13 apps/core/models/role.py:36
+#: apps/core/models/device.py:13 apps/core/models/role.py:39
 #: apps/core/models/user.py:62
 msgid "User"
 msgstr "Người dùng"
@@ -791,7 +806,7 @@ msgstr "Mã quyền"
 msgid "Permission name"
 msgstr "Tên quyền"
 
-#: apps/core/models/permission.py:12 apps/core/models/role.py:14
+#: apps/core/models/permission.py:12 apps/core/models/role.py:17
 msgid "Description"
 msgstr "Mô tả"
 
@@ -807,7 +822,7 @@ msgstr "Phân hệ con"
 msgid "Permission"
 msgstr "Quyền"
 
-#: apps/core/models/permission.py:18 apps/core/models/role.py:19
+#: apps/core/models/permission.py:18 apps/core/models/role.py:22
 msgid "Permissions"
 msgstr "Quyền"
 
@@ -868,36 +883,36 @@ msgid "Provinces"
 msgstr ""
 
 # models/role.py
-#: apps/core/models/role.py:12
+#: apps/core/models/role.py:15
 msgid "Role code"
 msgstr "Mã vai trò"
 
-#: apps/core/models/role.py:13
+#: apps/core/models/role.py:16
 msgid "Role name"
 msgstr "Tên vai trò"
 
-#: apps/core/models/role.py:15
+#: apps/core/models/role.py:18
 msgid "System role"
 msgstr "Vai trò hệ thống"
 
-#: apps/core/models/role.py:24 apps/core/models/user.py:31
+#: apps/core/models/role.py:27 apps/core/models/user.py:31
 #: apps/core/models/user.py:53
 msgid "Role"
 msgstr "Vai trò"
 
-#: apps/core/models/role.py:25
+#: apps/core/models/role.py:28
 msgid "Roles"
 msgstr "Vai trò"
 
-#: apps/core/models/role.py:36
+#: apps/core/models/role.py:39
 msgid "System"
 msgstr "Hệ thống"
 
-#: apps/core/models/role.py:42
+#: apps/core/models/role.py:45
 msgid "Cannot delete system role"
 msgstr "Không thể xóa vai trò hệ thống"
 
-#: apps/core/models/role.py:46
+#: apps/core/models/role.py:49
 msgid "Role is currently being used by employees"
 msgstr "Vai trò đang được sử dụng bởi nhân viên"
 
@@ -1120,6 +1135,7 @@ msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 # validators.py:34
 #: apps/core/validators.py:34
+#, python-brace-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

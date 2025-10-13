@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Branch
 
 User = get_user_model()
@@ -26,6 +27,22 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        # Create Province and AdministrativeUnit for Branch creation
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
         content = json.loads(response.content.decode())
@@ -41,6 +58,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
             "address": "123 Lê Duẩn, Hà Nội",
             "phone": "0243456789",
             "email": "hanoi@maivietland.com",
+            "province_id": str(self.province.id),
+            "administrative_unit_id": str(self.administrative_unit.id),
         }
 
         # Act
@@ -69,6 +88,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
             "address": "123 Lê Duẩn, Hà Nội",
             "phone": "0243456789",
             "email": "hanoi@maivietland.com",
+            "province_id": str(self.province.id),
+            "administrative_unit_id": str(self.administrative_unit.id),
         }
 
         # Act
@@ -89,6 +110,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
         branch_data = {
             "name": "Chi nhánh Hà Nội",
             "address": "123 Lê Duẩn, Hà Nội",
+            "province_id": str(self.province.id),
+            "administrative_unit_id": str(self.administrative_unit.id),
         }
 
         # Act
@@ -113,6 +136,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
             branch_data = {
                 "name": f"Chi nhánh {i + 1}",
                 "address": f"Địa chỉ {i + 1}",
+                "province_id": str(self.province.id),
+                "administrative_unit_id": str(self.administrative_unit.id),
             }
             response = self.client.post(url, branch_data, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -134,6 +159,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
         branch_data = {
             "name": "Chi nhánh Hà Nội",
             "address": "123 Lê Duẩn, Hà Nội",
+            "province_id": str(self.province.id),
+            "administrative_unit_id": str(self.administrative_unit.id),
         }
 
         # Act - Create branch
@@ -162,6 +189,8 @@ class BranchAutoCodeGenerationAPITest(TransactionTestCase):
             "name": "Chi nhánh Hà Nội",
             "address": "123 Lê Duẩn, Hà Nội",
             "description": "Branch description here",
+            "province_id": str(self.province.id),
+            "administrative_unit_id": str(self.administrative_unit.id),
         }
 
         # Act

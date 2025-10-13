@@ -2,12 +2,15 @@ from django.db import models
 from django.utils.translation import gettext as _, gettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import BaseModel
+from libs.models import AutoCodeMixin, BaseModel
 
 
 @audit_logging_register
-class Role(BaseModel):
+class Role(AutoCodeMixin, BaseModel):
     """Model representing a role that groups permissions"""
+
+    CODE_PREFIX = "VT"
+    TEMP_CODE_PREFIX = "TEMP_"
 
     code = models.CharField(max_length=50, unique=True, verbose_name=gettext_lazy("Role code"))
     name = models.CharField(max_length=100, unique=True, verbose_name=gettext_lazy("Role name"))

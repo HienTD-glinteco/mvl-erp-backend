@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department
 
 User = get_user_model()
@@ -14,7 +15,28 @@ class DepartmentEnhancementsModelTest(TestCase):
     """Test cases for enhanced Department model according to SRS 2.3.2"""
 
     def setUp(self):
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.support_block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
@@ -181,7 +203,28 @@ class DepartmentEnhancementsAPITest(APITestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.support_block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
@@ -393,7 +436,7 @@ class DepartmentEnhancementsAPITest(APITestCase):
             "branch_id": str(dept.branch.id),
             "block_id": str(dept.block.id),
             "function": dept.function,
-            "management_department": str(dept.id),
+            "management_department_id": str(dept.id),
         }
 
         response = self.client.put(url, update_data, format="json")
@@ -403,4 +446,4 @@ class DepartmentEnhancementsAPITest(APITestCase):
         fields = set()
         if isinstance(error, dict) and isinstance(error.get("errors"), list):
             fields = {e.get("attr") for e in error["errors"] if e.get("attr")}
-        self.assertIn("management_department", fields)
+        self.assertIn("management_department_id", fields)

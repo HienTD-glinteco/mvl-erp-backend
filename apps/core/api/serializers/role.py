@@ -63,21 +63,8 @@ class RoleSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        """Create a new role with auto-generated code"""
-        # Auto-generate code VTxxx
-        last_role = Role.objects.order_by("-code").first()
-        if last_role and last_role.code.startswith("VT"):
-            try:
-                last_number = int(last_role.code[2:])
-                new_number = last_number + 1
-            except ValueError:
-                new_number = 3
-        else:
-            new_number = 3
-
-        validated_data["code"] = f"VT{new_number:03d}"
+        """Create a new role"""
         validated_data["is_system_role"] = False
-
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

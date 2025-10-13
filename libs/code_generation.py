@@ -50,7 +50,7 @@ def create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=
 
     Args:
         temp_code_prefix: The prefix used to identify temporary codes (e.g., "TEMP_")
-        custom_generate_code: Optional custom function to generate codes. 
+        custom_generate_code: Optional custom function to generate codes.
                             If provided, this function will be used instead of generate_model_code.
                             The function should accept an instance and return a string code.
 
@@ -67,7 +67,7 @@ def create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=
         # Create handler with custom code generation
         def custom_code_gen(instance):
             return f"{instance.CODE_PREFIX}{instance.id:05d}"
-        
+
         custom_handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
 
         # Register for multiple models
@@ -129,7 +129,7 @@ def register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_", custom_g
         # Register with custom code generation
         def custom_code_gen(instance):
             return f"{instance.CODE_PREFIX}{instance.id:05d}"
-        
+
         register_auto_code_signal(Branch, Block, custom_generate_code=custom_code_gen)
     """
     handler = create_auto_code_signal_handler(temp_code_prefix, custom_generate_code=custom_generate_code)

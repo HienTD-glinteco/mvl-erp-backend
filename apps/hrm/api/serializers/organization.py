@@ -14,16 +14,14 @@ class BranchSerializer(serializers.ModelSerializer):
     province_id = serializers.PrimaryKeyRelatedField(
         source="province",
         queryset=Province.objects.all(),
-        required=False,
-        allow_null=True,
+        required=True,
         write_only=True,
     )
     province = ProvinceSerializer(read_only=True)
     administrative_unit_id = serializers.PrimaryKeyRelatedField(
         source="administrative_unit",
         queryset=AdministrativeUnit.objects.all(),
-        required=False,
-        allow_null=True,
+        required=True,
         write_only=True,
     )
     administrative_unit = AdministrativeUnitSerializer(read_only=True)
@@ -51,6 +49,7 @@ class BranchSerializer(serializers.ModelSerializer):
             "code",
             "province",
             "administrative_unit",
+            "is_active",
             "created_at",
             "updated_at",
         ]
@@ -84,7 +83,17 @@ class BlockSerializer(serializers.ModelSerializer):
             "updated_at",
             "branch_name",
             "block_type_display",
+            "is_active",
         ]
+
+
+class DepartmentNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested department references"""
+
+    class Meta:
+        model = Department
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id", "name", "code"]
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -98,8 +107,18 @@ class DepartmentSerializer(serializers.ModelSerializer):
     block_id = serializers.PrimaryKeyRelatedField(
         queryset=Block.objects.all(), source="block", write_only=True, required=True
     )
-    parent_department_name = serializers.CharField(source="parent_department.name", read_only=True)
-    management_department_name = serializers.CharField(source="management_department.name", read_only=True)
+    parent_department = DepartmentNestedSerializer(read_only=True)
+    parent_department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(), source="parent_department", write_only=True, required=False, allow_null=True
+    )
+    management_department = DepartmentNestedSerializer(read_only=True)
+    management_department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source="management_department",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
     function_display = serializers.CharField(source="get_function_display", read_only=True)
     full_hierarchy = serializers.CharField(read_only=True)
     available_function_choices = serializers.SerializerMethodField()
@@ -116,13 +135,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "block",
             "block_id",
             "parent_department",
-            "parent_department_name",
+            "parent_department_id",
+            "management_department",
+            "management_department_id",
             "function",
             "function_display",
             "available_function_choices",
             "is_main_department",
-            "management_department",
-            "management_department_name",
             "available_management_departments",
             "full_hierarchy",
             "description",
@@ -137,12 +156,13 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "updated_at",
             "branch",
             "block",
-            "parent_department_name",
-            "management_department_name",
+            "parent_department",
+            "management_department",
             "function_display",
             "full_hierarchy",
             "available_function_choices",
             "available_management_departments",
+            "is_active",
         ]
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
@@ -173,7 +193,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             ]
         return []
 
-    def validate_parent_department(self, value):
+    def validate_parent_department_id(self, value):
         """Validate parent department is in the same block"""
         if value and self.instance:
             if value.block != self.instance.block:
@@ -193,7 +213,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
                 pass
         return value
 
-    def validate_management_department(self, value):
+    def validate_management_department_id(self, value):
         """Validate management department constraints"""
         if value:
             # Check for self-reference
@@ -258,22 +278,18 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
 
-    level_display = serializers.CharField(source="get_level_display", read_only=True)
-
     class Meta:
         model = Position
         fields = [
             "id",
             "name",
             "code",
-            "level",
-            "level_display",
             "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "level_display"]
+        read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]
 
 
 class OrganizationChartSerializer(serializers.ModelSerializer):
@@ -313,6 +329,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
             "position_name",
             "department_name",
             "department_hierarchy",
+            "is_active",
         ]
 
     def validate(self, attrs):

@@ -450,8 +450,8 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     filterset_class = PositionFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
-    ordering_fields = ["name", "code", "level", "created_at"]
-    ordering = ["level", "code"]
+    ordering_fields = ["name", "code", "created_at"]
+    ordering = ["name", "code"]
 
     # Permission registration attributes
     module = "HRM"
@@ -505,8 +505,8 @@ class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
         "position__name",
         "department__name",
     ]
-    ordering_fields = ["start_date", "created_at", "position__level"]
-    ordering = ["position__level", "start_date"]
+    ordering_fields = ["start_date", "created_at", "position__name"]
+    ordering = ["position__name", "start_date"]
 
     # Permission registration attributes
     module = "HRM"
@@ -552,9 +552,9 @@ class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
 
             hierarchy[dept_key]["positions"].append(OrganizationChartDetailSerializer(org_chart).data)
 
-        # Sort positions by level within each department
+        # Sort positions by name within each department
         for dept_data in hierarchy.values():
-            dept_data["positions"].sort(key=lambda x: x["position"]["level"])
+            dept_data["positions"].sort(key=lambda x: x["position"]["name"])
 
         return Response(list(hierarchy.values()))
 
