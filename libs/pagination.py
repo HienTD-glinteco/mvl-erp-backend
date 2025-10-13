@@ -7,7 +7,7 @@ Provides pagination classes with configurable page size via query parameters.
 from rest_framework.pagination import PageNumberPagination
 
 
-class CustomPageNumberPagination(PageNumberPagination):
+class PageNumberWithSizePagination(PageNumberPagination):
     """
     Custom pagination class that allows clients to control page size.
 

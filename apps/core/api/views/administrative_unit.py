@@ -7,7 +7,6 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets.administrative_unit import AdministrativeUnitFilterSet
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
 from apps.core.models import AdministrativeUnit
-from libs import CustomPageNumberPagination
 
 
 @extend_schema_view(
@@ -93,7 +92,6 @@ class AdministrativeUnitViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet
     search_fields = ["name", "code"]
     ordering_fields = ["code", "name", "parent_province__code", "created_at"]
     ordering = ["parent_province__code", "code"]
-    pagination_class = CustomPageNumberPagination
 
     # Permission registration attributes
     module = "Core"

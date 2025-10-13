@@ -6,7 +6,7 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import Employee
-from libs import BaseModelViewSet, CustomPageNumberPagination
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
@@ -51,7 +51,6 @@ class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["code", "name"]
     ordering_fields = ["code", "name", "created_at"]
     ordering = ["code"]
-    pagination_class = CustomPageNumberPagination
 
     # Permission registration attributes
     module = "HRM"

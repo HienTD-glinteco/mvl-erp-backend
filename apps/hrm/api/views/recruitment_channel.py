@@ -6,7 +6,7 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentChannelFilterSet
 from apps.hrm.api.serializers import RecruitmentChannelSerializer
 from apps.hrm.models import RecruitmentChannel
-from libs import BaseModelViewSet, CustomPageNumberPagination
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
@@ -51,7 +51,6 @@ class RecruitmentChannelViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["-created_at"]
-    pagination_class = CustomPageNumberPagination
 
     # Permission registration attributes
     module = "HRM"

@@ -12,7 +12,7 @@ from .export_xlsx import (
     get_storage_backend,
 )
 from .models import AutoCodeMixin, BaseModel, create_dummy_model
-from .pagination import CustomPageNumberPagination
+from .pagination import PageNumberWithSizePagination
 from .spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 
 __all__ = [
@@ -21,7 +21,7 @@ __all__ = [
     "create_dummy_model",
     "BaseModelViewSet",
     "BaseReadOnlyModelViewSet",
-    "CustomPageNumberPagination",
+    "PageNumberWithSizePagination",
     "ExportXLSXMixin",
     "XLSXGenerator",
     "SchemaBuilder",

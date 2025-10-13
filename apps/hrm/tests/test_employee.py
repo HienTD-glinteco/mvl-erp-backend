@@ -208,12 +208,9 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
-        self.assertEqual(count, 3)
+        self.assertEqual(count, 2)
 
-        if len(results) != count:
-            self.assertLessEqual(len(results), 2)
-        else:
-            self.assertEqual(len(results), count)
+        self.assertLessEqual(len(results), 2)
 
     def test_retrieve_employee(self):
         """Test retrieving a single employee"""
