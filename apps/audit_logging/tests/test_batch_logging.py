@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.audit_logging import AuditLogRegistry, LogAction, audit_logging_register, batch_audit_context
 from libs.models import create_dummy_model
@@ -17,6 +17,7 @@ from libs.models import create_dummy_model
 User = get_user_model()
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestBatchAuditContext(TestCase):
     """Test cases for the batch_audit_context context manager."""
 
@@ -147,6 +148,7 @@ class TestBatchAuditContext(TestCase):
         self.assertEqual(len(call_args["errors"]), 20)  # Limited to first 20
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestBatchWithDecorator(TestCase):
     """Test that batch context works with the @audit_logging decorator."""
 

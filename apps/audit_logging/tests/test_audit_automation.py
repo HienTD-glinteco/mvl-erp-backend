@@ -9,7 +9,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_delete, post_save
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.audit_logging import LogAction, audit_logging_register, log_audit_event
 from apps.audit_logging.middleware import audit_context, get_current_request, get_current_user, set_current_request
@@ -18,6 +18,7 @@ from libs.models import create_dummy_model
 User = get_user_model()
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestLogAuditEvent(TestCase):
     """Test cases for the refactored log_audit_event function."""
 
@@ -173,6 +174,7 @@ class TestLogAuditEvent(TestCase):
         self.assertEqual(call_args["import_source"], "excel_file.xlsx")
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditContext(TestCase):
     """Test cases for the audit context functionality."""
 
@@ -247,6 +249,7 @@ class TestAuditContext(TestCase):
             self.assertIsNone(current_user)
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditLoggingDecorator(TestCase):
     """Test cases for the @audit_logging decorator."""
 
@@ -325,6 +328,7 @@ class TestAuditLoggingDecorator(TestCase):
             self.assertEqual(call_args["action"], LogAction.DELETE)
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestLogActionEnum(TestCase):
     """Test cases for the LogAction enum."""
 

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 
 from apps.audit_logging import LogAction, log_audit_event
 from apps.audit_logging.producer import _collect_related_changes, _prepare_change_messages
@@ -17,6 +18,7 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
+@override_settings(AUDIT_LOG_DISABLED=False)
 @patch("apps.audit_logging.producer._audit_producer.log_event")
 def test_related_changes_field_added_to_log(mock_log_event):
     """Test that related_changes field is added when there are related changes."""
@@ -59,6 +61,7 @@ def test_related_changes_field_added_to_log(mock_log_event):
 
 
 @pytest.mark.django_db
+@override_settings(AUDIT_LOG_DISABLED=False)
 @patch("apps.audit_logging.producer._audit_producer.log_event")
 def test_backward_compatibility_with_add_action(mock_log_event):
     """Test that ADD action works without related_changes (backward compatibility)."""
@@ -93,6 +96,7 @@ def test_backward_compatibility_with_add_action(mock_log_event):
 
 
 @pytest.mark.django_db
+@override_settings(AUDIT_LOG_DISABLED=False)
 @patch("apps.audit_logging.producer._audit_producer.log_event")
 def test_backward_compatibility_with_delete_action(mock_log_event):
     """Test that DELETE action works without related_changes (backward compatibility)."""
@@ -126,6 +130,7 @@ def test_backward_compatibility_with_delete_action(mock_log_event):
     assert "related_changes" not in call_args
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 def test_collect_related_changes_with_no_meta():
     """Test that _collect_related_changes handles objects without _meta gracefully."""
     # Create objects without _meta attribute
@@ -140,6 +145,7 @@ def test_collect_related_changes_with_no_meta():
     assert len(related_changes) == 0
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 def test_collect_related_changes_with_empty_relationships():
     """Test that _collect_related_changes works when there are no relationships."""
     # Create mock objects with _meta but no relationships
@@ -161,6 +167,7 @@ def test_collect_related_changes_with_empty_relationships():
     assert len(related_changes) == 0
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 def test_prepare_change_messages_adds_related_changes():
     """Test that _prepare_change_messages adds related_changes field."""
     # Create mock objects with relationships
