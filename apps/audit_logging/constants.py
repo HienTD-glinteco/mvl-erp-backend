@@ -70,16 +70,11 @@ class ObjectType(metaclass=_ObjectTypeMeta):
             if not model_info_map:
                 return
 
-            for model_class, info in model_info_map.items():
+            for _, info in model_info_map.items():
+                model_name = info["model_name"]
                 # Prefer the actual class name for attribute naming
-                raw_name = getattr(model_class, "__name__", str(info.get("model_name", "")).title())
-                # Sanitize to a safe Python identifier
-                safe_name = "".join(ch for ch in raw_name if ch.isalnum() or ch == "_") or raw_name
-                if safe_name and safe_name[0].isdigit():
-                    safe_name = f"_{safe_name}"
-
-                verbose = info.get("verbose_name") or raw_name
+                verbose = info.get("verbose_name") or model_name
                 # Ensure user-facing string goes through translation
-                setattr(cls, safe_name, verbose)
+                setattr(cls, model_name, verbose)
         except Exception as exc:  # pragma: no cover - defensive guard
             logging.getLogger(__name__).warning("Failed to populate ObjectType: %s", exc)

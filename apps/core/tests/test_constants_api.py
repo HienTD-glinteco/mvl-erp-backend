@@ -77,11 +77,14 @@ class ConstantsAPITestCase(TestCase):
         for module_name, module_constants in data.items():
             for constant_name, constant_value in module_constants.items():
                 if isinstance(constant_value, list) and len(constant_value) > 0:
-                    # Check format of choice items
+                    # Check format of choice items - new format uses {value: label} pairs
                     choice_item = constant_value[0]
                     self.assertIsInstance(choice_item, dict)
-                    self.assertIn("value", choice_item)
-                    self.assertIn("label", choice_item)
+                    # Each item should be a dict with one key-value pair (choice value -> label)
+                    self.assertEqual(len(choice_item), 1)
+                    # The dict should have a string value (the label)
+                    for key, value in choice_item.items():
+                        self.assertIsInstance(value, str)
                     found_choice = True
                     break
             if found_choice:
