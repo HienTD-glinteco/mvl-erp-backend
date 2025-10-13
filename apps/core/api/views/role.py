@@ -8,14 +8,19 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
 from apps.core.models import Role
-from libs import BaseModelViewSet
+from libs import BaseModelViewSet, FIELD_FILTERING_PARAMETER
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="List roles",
-        description="Retrieve a list of all roles in the system",
+        description=(
+            "Retrieve a list of all roles in the system. "
+            "Supports field filtering to optimize response payload size. "
+            "Use the 'fields' parameter to specify which fields to include (e.g., ?fields=id,name,code)."
+        ),
         tags=["Roles"],
+        parameters=[FIELD_FILTERING_PARAMETER],
         examples=[
             OpenApiExample(
                 "List roles success",
@@ -113,8 +118,13 @@ from libs import BaseModelViewSet
     ),
     retrieve=extend_schema(
         summary="Get role details",
-        description="Retrieve detailed information about a specific role",
+        description=(
+            "Retrieve detailed information about a specific role. "
+            "Supports field filtering to optimize response payload size. "
+            "Use the 'fields' parameter to specify which fields to include (e.g., ?fields=id,name,description)."
+        ),
         tags=["Roles"],
+        parameters=[FIELD_FILTERING_PARAMETER],
         examples=[
             OpenApiExample(
                 "Get role success",

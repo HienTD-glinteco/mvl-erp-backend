@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from apps.hrm.models import Employee
+from libs import FieldFilteringSerializerMixin
 
 
-class EmployeeSerializer(serializers.ModelSerializer):
+class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model"""
 
     class Meta:

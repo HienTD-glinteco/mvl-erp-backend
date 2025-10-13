@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from apps.core.models import Province
+from libs import FieldFilteringSerializerMixin
 
 
-class ProvinceSerializer(serializers.ModelSerializer):
+class ProvinceSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Province model"""
 
     level_display = serializers.CharField(source="get_level_display", read_only=True)

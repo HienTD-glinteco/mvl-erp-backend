@@ -22,14 +22,18 @@ from apps.hrm.api.serializers import (
     PositionSerializer,
 )
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
-from libs import BaseModelViewSet
+from libs import BaseModelViewSet, FIELD_FILTERING_PARAMETER
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="List all branches",
-        description="Retrieve a list of all branches in the system",
+        description=(
+            "Retrieve a list of all branches in the system. "
+            "Supports field filtering via the 'fields' parameter (e.g., ?fields=id,name,code)."
+        ),
         tags=["Branch"],
+        parameters=[FIELD_FILTERING_PARAMETER],
         examples=[
             OpenApiExample(
                 "List branches success",

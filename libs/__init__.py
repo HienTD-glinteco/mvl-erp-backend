@@ -1,3 +1,9 @@
+from .api_doc_constants import (
+    API_LIST_DESCRIPTION_WITH_FILTERING,
+    API_RETRIEVE_DESCRIPTION_WITH_FILTERING,
+    FIELD_FILTERING_DESCRIPTION,
+    FIELD_FILTERING_PARAMETER,
+)
 from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .code_generation import (
     create_auto_code_signal_handler,
@@ -34,4 +40,8 @@ __all__ = [
     "register_auto_code_signal",
     "AutoDocOrderingFilterExtension",
     "wrap_with_envelope",
+    "FIELD_FILTERING_PARAMETER",
+    "FIELD_FILTERING_DESCRIPTION",
+    "API_LIST_DESCRIPTION_WITH_FILTERING",
+    "API_RETRIEVE_DESCRIPTION_WITH_FILTERING",
 ]

@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from apps.core.models import AdministrativeUnit
+from libs import FieldFilteringSerializerMixin
 
 
-class AdministrativeUnitSerializer(serializers.ModelSerializer):
+class AdministrativeUnitSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for AdministrativeUnit model"""
 
     level_display = serializers.CharField(source="get_level_display", read_only=True)
