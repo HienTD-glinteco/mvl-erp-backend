@@ -110,7 +110,7 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         for i in range(3):
             channel_data = {
                 "name": f"Channel {i + 1}",
-                "belong_to": "marketing",
+                "belong_to": "marketing" if i % 2 else "job_website",
             }
             response = self.client.post(url, channel_data, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)

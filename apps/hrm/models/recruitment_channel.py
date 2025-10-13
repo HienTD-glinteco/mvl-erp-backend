@@ -23,7 +23,8 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
     belong_to = models.CharField(
         max_length=20,
         choices=BelongTo.choices,
-        default=BelongTo.MARKETING,
+        blank=True,
+        default="",
         verbose_name=_("Belong to"),
     )
     description = models.TextField(blank=True, verbose_name=_("Description"))

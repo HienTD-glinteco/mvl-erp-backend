@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:06+0700\n"
+"POT-Creation-Date: 2025-10-13 14:20+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -332,7 +332,7 @@ msgstr "Hành chính Nhân sự"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:38 apps/hrm/models/organization.py:70
 #: apps/hrm/models/organization.py:132 apps/hrm/models/organization.py:229
-#: apps/hrm/models/recruitment_channel.py:29
+#: apps/hrm/models/recruitment_channel.py:30
 msgid "Description"
 msgstr "Mô tả"
 
@@ -340,7 +340,7 @@ msgstr "Mô tả"
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:71
 #: apps/hrm/models/organization.py:133 apps/hrm/models/organization.py:230
 #: apps/hrm/models/organization.py:267
-#: apps/hrm/models/recruitment_channel.py:30
+#: apps/hrm/models/recruitment_channel.py:31
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -559,16 +559,16 @@ msgstr "Tên kênh"
 msgid "Channel code"
 msgstr "Mã kênh"
 
-#: apps/hrm/models/recruitment_channel.py:27
+#: apps/hrm/models/recruitment_channel.py:28
 msgid "Belong to"
 msgstr "Thuộc"
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_channel.py:33
+#: apps/hrm/models/recruitment_channel.py:34
 msgid "Recruitment Channel"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_channel.py:34
+#: apps/hrm/models/recruitment_channel.py:35
 msgid "Recruitment Channels"
 msgstr "Kênh tuyển dụng"

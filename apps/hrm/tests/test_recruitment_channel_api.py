@@ -55,6 +55,7 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
         channel = RecruitmentChannel.objects.first()
         self.assertEqual(channel.name, self.channel_data["name"])
+        self.assertEqual(channel.belong_to, self.channel_data["belong_to"])
         # Verify code was auto-generated
         self.assertTrue(channel.code.startswith("CH"))
 
@@ -70,6 +71,7 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], self.channel_data["name"])
+        self.assertEqual(response_data[0]["belong_to"], self.channel_data["belong_to"])
 
     def test_retrieve_recruitment_channel(self):
         """Test retrieving a recruitment channel via API"""
@@ -105,6 +107,7 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         channel = RecruitmentChannel.objects.get(id=channel_id)
         self.assertEqual(channel.name, update_data["name"])
+        self.assertEqual(channel.belong_to, update_data["belong_to"])
         self.assertEqual(channel.description, update_data["description"])
 
     def test_partial_update_recruitment_channel(self):
@@ -121,7 +124,9 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         channel = RecruitmentChannel.objects.get(id=channel_id)
+
         self.assertFalse(channel.is_active)
+        # Belong_to should remain unchanged (default or previously set)
 
     def test_delete_recruitment_channel(self):
         """Test deleting a recruitment channel via API"""
@@ -142,17 +147,17 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-channel-list")
         self.client.post(
             url,
-            {"name": "LinkedIn", "description": "Professional network"},
+            {"name": "LinkedIn", "description": "Professional network", "belong_to": "job_website"},
             format="json",
         )
         self.client.post(
             url,
-            {"name": "Facebook Jobs", "description": "Social media jobs"},
+            {"name": "Facebook Jobs", "description": "Social media jobs", "belong_to": "marketing"},
             format="json",
         )
         self.client.post(
             url,
-            {"name": "Indeed", "description": "Job search engine"},
+            {"name": "Indeed", "description": "Job search engine", "belong_to": "job_website"},
             format="json",
         )
 
@@ -177,12 +182,12 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-channel-list")
         self.client.post(
             url,
-            {"name": "Active Channel", "is_active": True},
+            {"name": "Active Channel", "is_active": True, "belong_to": "job_website"},
             format="json",
         )
         self.client.post(
             url,
-            {"name": "Inactive Channel", "is_active": False},
+            {"name": "Inactive Channel", "is_active": False, "belong_to": "marketing"},
             format="json",
         )
 
@@ -218,11 +223,10 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
 
     def test_ordering_by_created_at_desc(self):
         """Test that channels are ordered by created_at descending by default"""
-        # Create via API to ensure signal is triggered
         url = reverse("hrm:recruitment-channel-list")
-        response1 = self.client.post(url, {"name": "First Channel"}, format="json")
-        response2 = self.client.post(url, {"name": "Second Channel"}, format="json")
-        response3 = self.client.post(url, {"name": "Third Channel"}, format="json")
+        self.client.post(url, {"name": "First Channel", "belong_to": "job_website"}, format="json")
+        self.client.post(url, {"name": "Second Channel", "belong_to": "marketing"}, format="json")
+        self.client.post(url, {"name": "Third Channel", "belong_to": "job_website"}, format="json")
 
         response = self.client.get(url)
 
