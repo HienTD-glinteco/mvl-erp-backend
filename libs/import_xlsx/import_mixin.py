@@ -21,6 +21,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .error_report import ErrorReportGenerator
+from .field_transformer import FieldTransformer
 from .import_constants import (
     ERROR_ASYNC_NOT_ENABLED,
     ERROR_EMPTY_FILE,
@@ -30,6 +31,8 @@ from .import_constants import (
     SUCCESS_IMPORT_COMPLETE,
     SUCCESS_PREVIEW_COMPLETE,
 )
+from .mapping_config import MappingConfigParser
+from .multi_model_processor import MultiModelProcessor
 from .serializers import ImportAsyncResponseSerializer, ImportPreviewResponseSerializer, ImportResultSerializer
 from .storage import get_storage_backend
 from .tasks import import_xlsx_task
@@ -172,6 +175,20 @@ class ImportXLSXMixin:
         preview_mode = request.query_params.get("preview", "false").lower() == "true"
 
         try:
+            # Check if using advanced config-driven import
+            import_config = self.get_import_config(request, file)
+            
+            if import_config:
+                # Use advanced multi-model processor
+                return self._handle_advanced_import(
+                    request=request,
+                    file=file,
+                    config=import_config,
+                    use_async=use_async,
+                    preview_mode=preview_mode,
+                )
+            
+            # Otherwise, use simple schema-based import
             # Load import schema
             import_schema = self.get_import_schema(request, file)
 
@@ -253,6 +270,60 @@ class ImportXLSXMixin:
             Serializer class or None to skip serializer validation
         """
         return None  # By default, use model-level validation only
+
+    def get_import_config(self, request: Request, file: Any) -> dict | None:
+        """
+        Get advanced import configuration for multi-model imports.
+
+        Override this method to provide a full mapping configuration
+        that supports multiple models, field combinations, nested relationships,
+        and conditional relations.
+
+        If this method returns a configuration, it will be used instead of
+        get_import_schema(), enabling advanced import features.
+
+        Returns:
+            dict or None: Configuration dictionary (see MappingConfigParser for format)
+                or None to use simple schema-based import
+
+        Example:
+            def get_import_config(self, request, file):
+                return {
+                    "sheets": [{
+                        "name": "Employees",
+                        "model": "Employee",
+                        "app_label": "hrm",
+                        "fields": {
+                            "employee_code": "Employee Code",
+                            "start_date": {
+                                "combine": ["Day", "Month", "Year"],
+                                "format": "YYYY-MM-DD"
+                            },
+                            "department": {
+                                "model": "Department",
+                                "lookup": "Department",
+                                "create_if_not_found": true,
+                                "relations": {
+                                    "division": {
+                                        "model": "Division",
+                                        "lookup": "Division"
+                                    }
+                                }
+                            }
+                        },
+                        "relations": {
+                            "accounts": [{
+                                "model": "Account",
+                                "fields": {
+                                    "bank": "VPBank",
+                                    "account_number": "VPBank Account"
+                                }
+                            }]
+                        }
+                    }]
+                }
+        """
+        return None  # By default, use simple schema-based import
 
     def _handle_async_import(self, request: Request, file: Any, schema: dict) -> Response:
         """
@@ -550,3 +621,93 @@ class ImportXLSXMixin:
 
         # Use shared utility with request context for audit logging
         return bulk_import_data(model, data, errors, user_id=user_id, request=request)
+
+    def _handle_advanced_import(
+        self,
+        request: Request,
+        file: Any,
+        config: dict,
+        use_async: bool = False,
+        preview_mode: bool = False,
+    ) -> Response:
+        """
+        Handle advanced config-driven import with multi-model support.
+
+        Args:
+            request: HTTP request
+            file: Uploaded XLSX file
+            config: Import configuration dictionary
+            use_async: Whether to process asynchronously
+            preview_mode: Whether to run in preview mode
+
+        Returns:
+            Response: Import results or async task info
+        """
+        try:
+            # Validate and parse configuration
+            config_parser = MappingConfigParser(config)
+            
+            # TODO: Implement async handling for advanced imports
+            if use_async:
+                return Response(
+                    {"detail": "Async mode not yet supported for advanced imports"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            # Load workbook
+            workbook = load_workbook(file, data_only=True)
+            
+            # Process using MultiModelProcessor
+            processor = MultiModelProcessor(config_parser)
+            results = processor.process_file(
+                workbook=workbook,
+                preview=preview_mode,
+                user=request.user if hasattr(request, "user") else None,
+                request=request,
+            )
+            
+            # Build response
+            response_data = {
+                "success_count": results["success_count"],
+                "error_count": results["error_count"],
+                "errors": results["errors"],
+                "detail": _(SUCCESS_PREVIEW_COMPLETE if preview_mode else SUCCESS_IMPORT_COMPLETE),
+            }
+            
+            # Add preview data if in preview mode
+            if preview_mode and results.get("preview_data"):
+                response_data["preview_data"] = results["preview_data"][:10]  # Limit to 10 rows
+                response_data["valid_count"] = results["success_count"]
+                response_data["invalid_count"] = results["error_count"]
+            
+            # Generate error report if errors exist and not in preview mode
+            if not preview_mode and results["errors"]:
+                try:
+                    error_generator = ErrorReportGenerator()
+                    error_file_path = error_generator.generate_report(
+                        errors=results["errors"],
+                        original_data=[],  # TODO: Get original data from processor
+                        headers=[],
+                    )
+                    
+                    # Get storage backend
+                    storage = get_storage_backend()
+                    error_file_url = storage.get_url(error_file_path)
+                    response_data["error_file_url"] = error_file_url
+                except Exception as e:
+                    logger.warning(f"Failed to generate error report: {e}")
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        except ValueError as e:
+            logger.error(f"Configuration error: {e}")
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error(f"Import error: {e}")
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
