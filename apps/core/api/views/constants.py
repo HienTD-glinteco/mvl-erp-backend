@@ -114,17 +114,25 @@ class ConstantsView(APIView):
             refresh()
 
         result: dict[str, Any] = {}
-        for attr_name, attr_value in vars(cls_obj).items():
-            if attr_name.startswith("_"):
-                continue
-            if (
-                inspect.isroutine(attr_value)
-                or isinstance(attr_value, (staticmethod, classmethod, property))
-                or inspect.isclass(attr_value)
-                or inspect.ismodule(attr_value)
-            ):
-                continue
-            result[attr_name] = attr_value
+
+        # Support django enum
+        if hasattr(cls_obj, "_member_map_"):
+            for member in cls_obj._member_map_.values():
+                attr_name = member.value
+                attr_value = member.label
+                result[attr_name] = attr_value
+        else:
+            for attr_name, attr_value in vars(cls_obj).items():
+                if attr_name.startswith("_"):
+                    continue
+                if (
+                    inspect.isroutine(attr_value)
+                    or isinstance(attr_value, (staticmethod, classmethod, property))
+                    or inspect.isclass(attr_value)
+                    or inspect.ismodule(attr_value)
+                ):
+                    continue
+                result[attr_name] = attr_value
 
         return result
 
@@ -170,7 +178,7 @@ class ConstantsView(APIView):
                     constant_name = f"{model_name}_{field_name_upper}_CHOICES"
 
                 # Format choices as list of dicts with value and label
-                formatted_choices = [{"value": value, "label": str(label)} for value, label in choices]
+                formatted_choices = [{value: str(label)} for value, label in choices]
 
                 model_constants[constant_name] = formatted_choices
 
