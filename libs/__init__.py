@@ -12,6 +12,7 @@ from .export_xlsx import (
     generate_xlsx_task,
     get_storage_backend,
 )
+from .spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 
 __all__ = [
     "AutoCodeMixin",
@@ -25,4 +26,6 @@ __all__ = [
     "create_auto_code_signal_handler",
     "generate_model_code",
     "register_auto_code_signal",
+    "AutoDocOrderingFilterExtension",
+    "wrap_with_envelope",
 ]

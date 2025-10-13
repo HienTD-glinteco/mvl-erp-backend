@@ -42,7 +42,7 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATIONS": False,
     "SCHEMA_PATH_PREFIX": "/api/",
     "POSTPROCESSING_HOOKS": [
-        "libs.schema_hooks.wrap_with_envelope",
+        "libs.spectacular.schema_hooks.wrap_with_envelope",
     ],
 }
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 18:51+0700\n"
+"POT-Creation-Date: 2025-10-13 14:06+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -304,34 +304,8 @@ msgid "System roles can only update permissions, not other fields"
 msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
-# api/views/auth/login.py:33
-#: apps/core/api/views/auth/login.py:34
-msgid "Login with username and password"
-msgstr "Đăng nhập với tên đăng nhập và mật khẩu"
-
-# api/views/auth/login.py:34
-#: apps/core/api/views/auth/login.py:35
-msgid "Authenticate login credentials and send OTP code via email"
-msgstr "Xác thực thông tin đăng nhập và gửi mã OTP qua email"
-
-# api/views/auth/login.py:37
-#: apps/core/api/views/auth/login.py:38
-msgid "Invalid login credentials"
-msgstr "Thông tin đăng nhập không hợp lệ"
-
-# api/views/auth/login.py:38
-#: apps/core/api/views/auth/login.py:39
-msgid "Too many login requests"
-msgstr "Quá nhiều yêu cầu đăng nhập"
-
-# api/views/auth/login.py:39
-#: apps/core/api/views/auth/login.py:40
-#: apps/core/api/views/auth/password_reset.py:43
-msgid "System error while sending OTP"
-msgstr "Lỗi hệ thống khi gửi OTP"
-
 # api/views/auth/login.py:52
-#: apps/core/api/views/auth/login.py:54
+#: apps/core/api/views/auth/login.py:89
 msgid ""
 "OTP code has been sent to your email. Please check your email and enter the "
 "OTP code to complete login."
@@ -340,7 +314,7 @@ msgstr ""
 "để hoàn tất đăng nhập."
 
 # api/views/auth/login.py:60
-#: apps/core/api/views/auth/login.py:63
+#: apps/core/api/views/auth/login.py:98
 msgid "Unable to send OTP code. Please try again later."
 msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
 
@@ -438,6 +412,11 @@ msgstr "Thông tin không hợp lệ"
 #: apps/core/api/views/auth/password_reset.py:42
 msgid "Too many password reset requests"
 msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
+
+# api/views/auth/login.py:39
+#: apps/core/api/views/auth/password_reset.py:43
+msgid "System error while sending OTP"
+msgstr "Lỗi hệ thống khi gửi OTP"
 
 # api/views/auth/password_reset.py:63
 #: apps/core/api/views/auth/password_reset.py:65
