@@ -2,10 +2,9 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.models import Permission, Role
-from libs import FieldFilteringSerializerMixin
 
 
-class PermissionSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class PermissionSerializer(serializers.ModelSerializer):
     """Serializer for Permission model"""
 
     class Meta:
@@ -14,7 +13,7 @@ class PermissionSerializer(FieldFilteringSerializerMixin, serializers.ModelSeria
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-class RoleSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class RoleSerializer(serializers.ModelSerializer):
     """Serializer for Role model"""
 
     created_by = serializers.CharField(source="created_by_display", read_only=True)

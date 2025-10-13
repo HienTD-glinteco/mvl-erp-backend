@@ -3,10 +3,9 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.models import Role, User
-from libs import FieldFilteringSerializerMixin
 
 
-class EmployeeRoleListSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class EmployeeRoleListSerializer(serializers.ModelSerializer):
     """Serializer for listing employees with their roles and organizational information"""
 
     employee_code = serializers.CharField(source="username", read_only=True)

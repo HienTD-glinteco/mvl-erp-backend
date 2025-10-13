@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.notifications.models import Notification
-from libs import FieldFilteringSerializerMixin
 
 
 class ActorSerializer(serializers.Serializer):
@@ -13,7 +12,7 @@ class ActorSerializer(serializers.Serializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
 
 
-class NotificationSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class NotificationSerializer(serializers.ModelSerializer):
     """Serializer for notification list and detail views."""
 
     actor = ActorSerializer(read_only=True)

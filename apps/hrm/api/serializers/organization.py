@@ -6,10 +6,9 @@ from apps.core.api.serializers.administrative_unit import AdministrativeUnitSeri
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
-from libs import FieldFilteringSerializerMixin
 
 
-class BranchSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class BranchSerializer(serializers.ModelSerializer):
     """Serializer for Branch model - used for create/update operations"""
 
     province_id = serializers.PrimaryKeyRelatedField(
@@ -57,7 +56,7 @@ class BranchSerializer(FieldFilteringSerializerMixin, serializers.ModelSerialize
         ]
 
 
-class BlockSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class BlockSerializer(serializers.ModelSerializer):
     """Serializer for Block model"""
 
     branch_name = serializers.CharField(source="branch.name", read_only=True)
@@ -88,7 +87,7 @@ class BlockSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer
         ]
 
 
-class DepartmentSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class DepartmentSerializer(serializers.ModelSerializer):
     """Serializer for Department model"""
 
     branch = BranchSerializer(read_only=True)
@@ -256,7 +255,7 @@ class DepartmentSerializer(FieldFilteringSerializerMixin, serializers.ModelSeria
         return attrs
 
 
-class PositionSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
 
     level_display = serializers.CharField(source="get_level_display", read_only=True)
@@ -277,7 +276,7 @@ class PositionSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         read_only_fields = ["id", "created_at", "updated_at", "level_display"]
 
 
-class OrganizationChartSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class OrganizationChartSerializer(serializers.ModelSerializer):
     """Serializer for OrganizationChart model"""
 
     employee_name = serializers.CharField(source="employee.get_full_name", read_only=True)

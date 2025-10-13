@@ -7,18 +7,13 @@ from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets.province import ProvinceFilterSet
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import Province
-from libs import FIELD_FILTERING_PARAMETER
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="List provinces",
-        description=(
-            "Retrieve a list of all provinces/cities in the system. "
-            "Supports field filtering via the 'fields' parameter (e.g., ?fields=id,name,code)."
-        ),
+        description="Retrieve a list of all provinces/cities in the system",
         tags=["Geographic"],
-        parameters=[FIELD_FILTERING_PARAMETER],
         examples=[
             OpenApiExample(
                 "List provinces success",
