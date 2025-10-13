@@ -1,4 +1,5 @@
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
@@ -144,12 +145,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "available_management_departments",
         ]
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_available_function_choices(self, obj):
         """Get available function choices based on block type"""
         if obj.block:
             return Department.get_function_choices_for_block_type(obj.block.block_type)
         return []
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_available_management_departments(self, obj):
         """Get available management departments with same function"""
         if obj.function and obj.block:
@@ -329,6 +332,7 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
     position = PositionSerializer(read_only=True)
     department = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.DictField())
     def get_employee(self, obj):
         """Get employee basic info"""
         return {
@@ -338,6 +342,7 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
             "email": obj.employee.email,
         }
 
+    @extend_schema_field(serializers.DictField())
     def get_department(self, obj):
         """Get department with block info"""
         return {
