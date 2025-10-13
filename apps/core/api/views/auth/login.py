@@ -1,7 +1,7 @@
 import logging
 
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -31,14 +31,49 @@ class LoginView(APIView):
     serializer_class = LoginSerializer
 
     @extend_schema(
-        summary=_("Login with username and password"),
-        description=_("Authenticate login credentials and send OTP code via email"),
+        summary="Login with username and password",
+        description="Authenticate login credentials and send OTP code via email",
         responses={
             200: LoginResponseSerializer,
-            400: OpenApiResponse(description=_("Invalid login credentials")),
-            429: OpenApiResponse(description=_("Too many login requests")),
-            500: OpenApiResponse(description=_("System error while sending OTP")),
+            400: OpenApiResponse(description="Invalid login credentials"),
+            429: OpenApiResponse(description="Too many login requests"),
+            500: OpenApiResponse(description="System error while sending OTP"),
         },
+        examples=[
+            OpenApiExample(
+                "Login request",
+                description="Example login request",
+                value={"username": "admin@example.com", "password": "SecurePassword123!"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Login success - OTP sent",
+                description="Success response when OTP is sent to email",
+                value={
+                    "success": True,
+                    "data": {
+                        "message": "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login.",
+                        "username": "admin@example.com",
+                        "email_hint": "adm***@example.com",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Login error - invalid credentials",
+                description="Error response when credentials are invalid",
+                value={"success": False, "error": {"username": ["Invalid username or password"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Login error - too many attempts",
+                description="Error response when rate limit is exceeded",
+                value={"success": False, "error": "Too many login requests. Please try again later."},
+                response_only=True,
+                status_codes=["429"],
+            ),
+        ],
     )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
