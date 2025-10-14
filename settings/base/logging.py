@@ -1,7 +1,6 @@
 import os
 from typing import Any
 
-from .audit_logging import AUDIT_LOG_DISABLED
 from .base import BASE_DIR, LOG_LEVEL
 
 LOG_DIRECTORY = os.path.join(BASE_DIR, "logs")
@@ -31,29 +30,30 @@ LOGGING: dict[str, Any] = {
     },
 }
 
-if not AUDIT_LOG_DISABLED:
-    if not os.path.exists(LOG_DIRECTORY):
-        os.makedirs(LOG_DIRECTORY)
-    if not os.path.exists(os.path.join(LOG_DIRECTORY, "audit_logging")):
-        os.makedirs(os.path.join(LOG_DIRECTORY, "audit_logging"))
+# Always set up audit file logging (even if AUDIT_LOG_DISABLED is True)
+# File logging should always happen; AUDIT_LOG_DISABLED only controls RabbitMQ streaming
+if not os.path.exists(LOG_DIRECTORY):
+    os.makedirs(LOG_DIRECTORY)
+if not os.path.exists(os.path.join(LOG_DIRECTORY, "audit_logging")):
+    os.makedirs(os.path.join(LOG_DIRECTORY, "audit_logging"))
 
-    LOGGING["formatters"]["audit_logging"] = {
-        "format": "{levelname} {asctime} {module} {message}",
-        "style": "{",
-    }
-    LOGGING["handlers"]["audit_file"] = {
-        "level": "INFO",
-        "class": "logging.handlers.TimedRotatingFileHandler",
-        "filename": os.path.join(LOG_DIRECTORY, "audit_logging", "audit.log"),
-        "when": "midnight",
-        "backupCount": 30,
-        "utc": True,
-        "formatter": "audit_logging",
-    }
+LOGGING["formatters"]["audit_logging"] = {
+    "format": "{levelname} {asctime} {module} {message}",
+    "style": "{",
+}
+LOGGING["handlers"]["audit_file"] = {
+    "level": "INFO",
+    "class": "logging.handlers.TimedRotatingFileHandler",
+    "filename": os.path.join(LOG_DIRECTORY, "audit_logging", "audit.log"),
+    "when": "midnight",
+    "backupCount": 30,
+    "utc": True,
+    "formatter": "audit_logging",
+}
 
-    LOGGING.setdefault("loggers", {})
-    LOGGING["loggers"]["audit_logging"] = {  # A dedicated logger for our audit trails
-        "handlers": ["audit_file"],
-        "level": "INFO",
-        "propagate": False,
-    }
+LOGGING.setdefault("loggers", {})
+LOGGING["loggers"]["audit_logging"] = {  # A dedicated logger for our audit trails
+    "handlers": ["audit_file"],
+    "level": "INFO",
+    "propagate": False,
+}
