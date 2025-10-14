@@ -7,6 +7,7 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 - [ ] ✅ **NO Vietnamese text** in code, comments, or docstrings
 - [ ] ✅ **ALL API documentation** (`@extend_schema`) must be in English
 - [ ] ✅ **ALL API endpoints** must include request and response examples using `OpenApiExample`
+- [ ] ✅ **ALL response examples** must use envelope format: `{success: true/false, data: ..., error: ...}`
 - [ ] ✅ **ALL user-facing strings** must be wrapped in `gettext()` or `gettext_lazy()`
 - [ ] ✅ **Use constants for string values** - Define strings in `constants.py` or module-level constants
 - [ ] ✅ **English strings ONLY** - Vietnamese goes in `.po` translation files
@@ -234,10 +235,41 @@ python scripts/check_string_constants.py apps/core/api/views.py
 
 **ALL API documentation MUST be in English and include examples:**
 
+##### Response Envelope Format (CRITICAL - MANDATORY)
+
+**ALL API response examples MUST use the standard envelope format:**
+
+This project uses `ApiResponseWrapperMiddleware` which wraps all responses in a consistent envelope. The `wrap_with_envelope` hook in `libs/spectacular/schema_hooks.py` automatically updates the OpenAPI schema, but **examples must manually include this envelope structure**.
+
+**Success Response Format:**
+```json
+{
+  "success": true,
+  "data": <actual response data>,
+  "error": null
+}
+```
+
+**Error Response Format:**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": <error details>
+}
+```
+
+**Error details can be:**
+- A string: `"error": "User not found"`
+- An object with field errors: `"error": {"email": ["Invalid email format"], "password": ["Too short"]}`
+- An object with a message: `"error": {"detail": "Permission denied"}`
+
+##### Complete Example with Envelope Format
+
 ```python
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 
-# ✅ CORRECT - English with examples
+# ✅ CORRECT - English with envelope format
 @extend_schema_view(
     list=extend_schema(
         summary="List all roles",
@@ -304,7 +336,58 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
                     }
                 },
                 response_only=True,
-            )
+            ),
+            OpenApiExample(
+                "Create role validation error",
+                description="Error response when validation fails",
+                value={
+                    "success": False,
+                    "error": {
+                        "name": ["Role name already exists"],
+                        "permission_ids": ["At least one permission must be selected"]
+                    }
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get role details",
+        description="Retrieve detailed information about a specific role",
+        tags=["Roles"],
+        examples=[
+            OpenApiExample(
+                "Get role success",
+                description="Success response when retrieving a role",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "VT001",
+                        "name": "System Admin",
+                        "description": "Full system access",
+                        "is_system_role": True,
+                        "created_by": "System",
+                        "permissions_detail": [
+                            {"id": 1, "code": "user.create", "name": "Create User"}
+                        ],
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z"
+                    }
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Get role not found",
+                description="Error response when role is not found",
+                value={
+                    "success": False,
+                    "error": "Role not found"
+                },
+                response_only=True,
+                status_codes=["404"],
+            ),
         ],
     ),
 )
@@ -312,14 +395,17 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
 
 **Mandatory Requirements for ALL API Endpoints:**
 
-1. **Include Examples**: Every API endpoint MUST have at least one example for both request (if applicable) and response
-2. **Cover Success Cases**: Always include a success response example
-3. **Cover Error Cases**: Include error response examples for validation errors, not found, etc.
-4. **Use OpenApiExample**: Use `OpenApiExample` from `drf_spectacular.utils`
-5. **Realistic Data**: Examples should use realistic, meaningful data that helps developers understand the API
-6. **English Only**: All example data and descriptions must be in English
+1. **Use Envelope Format**: ALL response examples MUST wrap data in `{success: true/false, data: ..., error: ...}` structure
+2. **Include Examples**: Every API endpoint MUST have at least one example for both request (if applicable) and response
+3. **Cover Success Cases**: Always include a success response example with `success: true` and `data` field
+4. **Cover Error Cases**: Include error response examples with `success: false` and `error` field for validation errors, not found, etc.
+5. **Use OpenApiExample**: Use `OpenApiExample` from `drf_spectacular.utils`
+6. **Realistic Data**: Examples should use realistic, meaningful data that helps developers understand the API
+7. **English Only**: All example data and descriptions must be in English
 
 **❌ NEVER use Vietnamese in API documentation decorators or examples!**
+
+**❌ NEVER omit the envelope structure (`success`, `data`, `error` fields) from response examples!**
 
 #### Other Documentation Requirements
 
@@ -450,6 +536,60 @@ from django.utils.translation import gettext_lazy as _
 class Role(models.Model):
     code = models.CharField(max_length=50, verbose_name=_("Role code"))
     name = models.CharField(max_length=100, verbose_name=_("Role name"))
+```
+
+### ❌ Missing Response Envelope Format
+
+**NEVER create response examples without the envelope structure:**
+
+```python
+# ❌ WRONG - Missing envelope
+OpenApiExample(
+    "List users",
+    value=[
+        {"id": 1, "name": "John"},
+        {"id": 2, "name": "Jane"}
+    ],
+    response_only=True,
+)
+
+# ❌ WRONG - Missing data field
+OpenApiExample(
+    "Create user success",
+    value={
+        "success": True,
+        "id": 5,
+        "name": "John Doe"
+    },
+    response_only=True,
+)
+
+# ✅ CORRECT - Success with envelope
+OpenApiExample(
+    "List users success",
+    value={
+        "success": True,
+        "data": [
+            {"id": 1, "name": "John"},
+            {"id": 2, "name": "Jane"}
+        ]
+    },
+    response_only=True,
+)
+
+# ✅ CORRECT - Error with envelope
+OpenApiExample(
+    "Create user validation error",
+    value={
+        "success": False,
+        "error": {
+            "name": ["This field is required"],
+            "email": ["Invalid email format"]
+        }
+    },
+    response_only=True,
+    status_codes=["400"],
+)
 ```
 
 ### ❌ Forgetting to Update Translation Files
