@@ -5,6 +5,46 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def populate_username_email(apps, schema_editor):
+    """Populate username and email for existing employees during forward migration.
+
+    Priority:
+    1. If employee has a linked User, copy username and email from User
+    2. Otherwise, generate unique username and email
+    """
+    Employee = apps.get_model("hrm", "Employee")
+
+    employees = list(Employee.objects.all())
+    for idx, employee in enumerate(employees, start=1):
+        # If employee has a linked User, copy data from User
+        if employee.user_id:
+            try:
+                user = employee.user
+                if not employee.username and user.username:
+                    employee.username = user.username
+                if not employee.email and user.email:
+                    employee.email = user.email
+            except Exception:
+                # If User doesn't exist or other error, fallback to generated values
+                pass
+
+        # Generate unique username if still empty
+        if not employee.username:
+            employee.username = f"employee_{employee.id or idx}"
+
+        # Generate unique email if still empty
+        if not employee.email:
+            employee.email = f"employee_{employee.id or idx}@maivietland.com"
+
+    if employees:
+        Employee.objects.bulk_update(employees, ["username", "email"])
+
+
+def reverse_populate_username_email(apps, schema_editor):
+    """Reverse migration - no action needed for username/email."""
+    pass
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("hrm", "0009_update_code_related_models"),
@@ -12,31 +52,39 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Remove old name field
-        migrations.RemoveField(
+        # Rename name field to fullname
+        migrations.RenameField(
             model_name="employee",
-            name="name",
+            old_name="name",
+            new_name="fullname",
         ),
-        # Add new fullname field
-        migrations.AddField(
-            model_name="employee",
-            name="fullname",
-            field=models.CharField(default="", max_length=200, verbose_name="Full name"),
-            preserve_default=False,
-        ),
-        # Add username field
+        # Add username field WITHOUT unique constraint first
         migrations.AddField(
             model_name="employee",
             name="username",
-            field=models.CharField(default="", max_length=100, unique=True, verbose_name="Username"),
+            field=models.CharField(default="", max_length=100, verbose_name="Username"),
             preserve_default=False,
         ),
-        # Add email field
+        # Add email field WITHOUT unique constraint first
         migrations.AddField(
             model_name="employee",
             name="email",
-            field=models.EmailField(default="", max_length=254, unique=True, verbose_name="Email"),
+            field=models.EmailField(default="", max_length=254, verbose_name="Email"),
             preserve_default=False,
+        ),
+        # Populate data for username and email
+        migrations.RunPython(populate_username_email, reverse_populate_username_email),
+        # Now add unique constraint for username
+        migrations.AlterField(
+            model_name="employee",
+            name="username",
+            field=models.CharField(max_length=100, unique=True, verbose_name="Username"),
+        ),
+        # Now add unique constraint for email
+        migrations.AlterField(
+            model_name="employee",
+            name="email",
+            field=models.EmailField(unique=True, verbose_name="Email"),
         ),
         # Add phone field
         migrations.AddField(
@@ -101,5 +149,10 @@ class Migration(migrations.Migration):
                 to=settings.AUTH_USER_MODEL,
                 verbose_name="User",
             ),
+        ),
+        migrations.AlterField(
+            model_name="employee",
+            name="fullname",
+            field=models.CharField(max_length=200, verbose_name="Full name"),
         ),
     ]
