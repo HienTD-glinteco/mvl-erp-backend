@@ -51,8 +51,17 @@ class PasswordChangeView(APIView):
             logger.info(f"Password successfully changed for user {user}")
 
             # Log audit event for password change
+            # For authentication events, set object_type to Employee if user has employee record
+            modified_object = None
+            if hasattr(user, "employee"):
+                try:
+                    modified_object = user.employee
+                except Exception:
+                    pass
+            
             log_audit_event(
                 action=LogAction.PASSWORD_CHANGE,
+                modified_object=modified_object,
                 user=user,
                 request=request,
                 change_message=f"User {user.username} changed their password",

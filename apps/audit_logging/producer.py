@@ -66,6 +66,15 @@ _audit_producer = AuditStreamProducer()
 def _prepare_user_info(log_data: dict, user=None):
     log_data["user_id"] = str(user.pk) if hasattr(user, "pk") else None
     log_data["username"] = getattr(user, "username", None) or getattr(user, "email", None) or str(user)
+    
+    # Add employee code if user has an associated employee record
+    if hasattr(user, "employee"):
+        try:
+            employee = user.employee
+            log_data["employee_code"] = employee.code
+        except Exception:
+            # User doesn't have an employee record or it's not accessible
+            pass
 
 
 def _prepare_request_info(log_data: dict, request):

@@ -51,8 +51,17 @@ class PasswordResetChangePasswordView(APIView):
             logger.info(f"Password successfully reset for user {user} via forgot password flow")
 
             # Log audit event for password reset completion
+            # For authentication events, set object_type to Employee if user has employee record
+            modified_object = None
+            if hasattr(user, "employee"):
+                try:
+                    modified_object = user.employee
+                except Exception:
+                    pass
+            
             log_audit_event(
                 action=LogAction.PASSWORD_RESET,
+                modified_object=modified_object,
                 user=user,
                 request=request,
                 change_message=f"User {user.username} completed password reset (changed password)",
