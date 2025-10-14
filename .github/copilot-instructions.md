@@ -7,6 +7,7 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 - [ ] ✅ **NO Vietnamese text** in code, comments, or docstrings
 - [ ] ✅ **ALL API documentation** (`@extend_schema`) must be in English
 - [ ] ✅ **ALL API endpoints** must include request and response examples using `OpenApiExample`
+- [ ] ✅ **ALL response examples** must use envelope format: `{success: true/false, data: ..., error: ...}`
 - [ ] ✅ **ALL user-facing strings** must be wrapped in `gettext()` or `gettext_lazy()`
 - [ ] ✅ **Use constants for string values** - Define strings in `constants.py` or module-level constants
 - [ ] ✅ **English strings ONLY** - Vietnamese goes in `.po` translation files
@@ -22,49 +23,24 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 
 **⚠️ ABSOLUTELY NO VIETNAMESE TEXT IN CODE ⚠️**
 
-This is a **NON-NEGOTIABLE** requirement. All code must be in English.
+All code, comments, docstrings, and API docs MUST be in **English**. User-facing strings must be:
+1. Written in English in code
+2. Wrapped in `gettext()` or `gettext_lazy()` (imported as `_`)
+3. Translated in `.po` files
 
-- **ALL Code:** Variable names, function names, class names, comments, docstrings must be in **English**.
-- **API Documentation:** ALL drf-spectacular decorators (`summary`, `description`, `tags`) must be in **English**.
-- **User-Facing Strings:** ALL strings shown to end-users must be:
-  1. Written in **English** in the code
-  2. Wrapped in Django's translation functions: `gettext()` or `gettext_lazy()` (imported as `_`)
-  3. Translated in `.po` files
-
-**Examples of CORRECT usage:**
+**Examples:**
 ```python
 from django.utils.translation import gettext as _
 
-# ✅ CORRECT - English string wrapped in gettext
+# ✅ CORRECT
 error_message = _("Invalid email address")
-
-# ✅ CORRECT - API documentation in English
-@extend_schema(
-    summary="List all roles",
-    description="Retrieve a list of all roles in the system",
-    tags=["Roles"],
-)
-
-# ✅ CORRECT - Model verbose names in English
+@extend_schema(summary="List all roles", tags=["Roles"])
 class Role(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_("Role name"))
-```
+    name = models.CharField(verbose_name=_("Role name"))
 
-**Examples of INCORRECT usage (NEVER DO THIS):**
-```python
-# ❌ WRONG - Vietnamese directly in code
+# ❌ WRONG - Vietnamese in code
 error_message = "Địa chỉ email không hợp lệ"
-
-# ❌ WRONG - API documentation in Vietnamese
-@extend_schema(
-    summary="Danh sách vai trò",
-    description="Lấy danh sách tất cả vai trò trong hệ thống",
-    tags=["Vai trò"],
-)
-
-# ❌ WRONG - Model verbose names in Vietnamese
-class Role(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Tên vai trò")
+@extend_schema(summary="Danh sách vai trò")
 ```
 
 ### String Constants and DRY Principle
@@ -234,92 +210,47 @@ python scripts/check_string_constants.py apps/core/api/views.py
 
 **ALL API documentation MUST be in English and include examples:**
 
-```python
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+##### Response Envelope Format (CRITICAL - MANDATORY)
 
-# ✅ CORRECT - English with examples
-@extend_schema_view(
-    list=extend_schema(
-        summary="List all roles",
-        description="Retrieve a list of all roles in the system",
-        tags=["Roles"],
-        examples=[
-            OpenApiExample(
-                "List roles example",
-                description="Example response when listing roles",
-                value={
-                    "success": True,
-                    "data": [
-                        {
-                            "id": 1,
-                            "code": "VT001",
-                            "name": "System Admin",
-                            "description": "Full system access",
-                            "is_system_role": True,
-                            "created_by": "System",
-                            "permissions_detail": [
-                                {"id": 1, "code": "user.create", "name": "Create User"}
-                            ],
-                            "created_at": "2025-01-01T00:00:00Z",
-                            "updated_at": "2025-01-01T00:00:00Z"
-                        }
-                    ]
-                },
-                response_only=True,
-            )
-        ],
-    ),
-    create=extend_schema(
-        summary="Create a new role",
-        description="Create a new role in the system",
-        tags=["Roles"],
-        examples=[
-            OpenApiExample(
-                "Create role request",
-                description="Example request to create a new role",
-                value={
-                    "name": "Manager",
-                    "description": "Manager role",
-                    "permission_ids": [1, 2, 3]
-                },
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Create role success response",
-                description="Success response when creating a role",
-                value={
-                    "success": True,
-                    "data": {
-                        "id": 5,
-                        "code": "VT005",
-                        "name": "Manager",
-                        "description": "Manager role",
-                        "is_system_role": False,
-                        "created_by": "admin@example.com",
-                        "permissions_detail": [
-                            {"id": 1, "code": "user.view", "name": "View User"}
-                        ],
-                        "created_at": "2025-01-15T10:30:00Z",
-                        "updated_at": "2025-01-15T10:30:00Z"
-                    }
-                },
-                response_only=True,
-            )
-        ],
-    ),
+**ALL API response examples MUST use the standard envelope format:**
+
+This project uses `ApiResponseWrapperMiddleware` which wraps all responses. The `wrap_with_envelope` hook automatically updates the OpenAPI schema, but **examples must manually include this envelope structure**.
+
+**Formats:**
+
+Success (single item): `{"success": true, "data": {...}, "error": null}`  
+Success (list with pagination): `{"success": true, "data": {"count": N, "next": "...", "previous": null, "results": [...]}, "error": null}`  
+Success (list no pagination): `{"success": true, "data": [...], "error": null}`  
+Error: `{"success": false, "data": null, "error": "..." or {...}}`
+
+**Example:**
+```python
+from drf_spectacular.utils import extend_schema, OpenApiExample
+
+@extend_schema(
+    summary="List all roles",
+    tags=["Roles"],
+    examples=[
+        OpenApiExample(
+            "Success",
+            value={"success": True, "data": {"count": 1, "next": None, "previous": None, "results": [{"id": 1, "name": "Admin"}]}},
+            response_only=True,
+        ),
+        OpenApiExample(
+            "Error",
+            value={"success": False, "error": {"field": ["Error message"]}},
+            response_only=True,
+            status_codes=["400"],
+        ),
+    ],
 )
 ```
 
-**Mandatory Requirements for ALL API Endpoints:**
-
-1. **Include Examples**: Every API endpoint MUST have at least one example for both request (if applicable) and response
-2. **Cover Success Cases**: Always include a success response example
-3. **Cover Error Cases**: Include error response examples for validation errors, not found, etc.
-4. **Use OpenApiExample**: Use `OpenApiExample` from `drf_spectacular.utils`
-5. **Realistic Data**: Examples should use realistic, meaningful data that helps developers understand the API
-6. **English Only**: All example data and descriptions must be in English
-
-**❌ NEVER use Vietnamese in API documentation decorators or examples!**
+**Requirements:**
+1. Use envelope format: `{success, data, error}`
+2. Include success AND error examples
+3. List endpoints with pagination: Include `count`, `next`, `previous`, `results` in `data`
+4. All text in English only
 
 #### Other Documentation Requirements
 
@@ -397,86 +328,17 @@ If all answers are "NO", **DO NOT create the file**.
 
 ## 9. Common Violations - NEVER DO THESE
 
-This section lists common mistakes that violate our standards. Review this before every change.
+**❌ Vietnamese text in code** - Use English + `gettext()`: `_("Invalid email")` not `"Email không hợp lệ"`
 
-### ❌ Vietnamese Text in Code
+**❌ Vietnamese in API docs** - `@extend_schema(summary="List roles")` not `summary="Danh sách vai trò"`
 
-**NEVER write Vietnamese directly in code:**
+**❌ Missing envelope** - Always use `{"success": true/false, "data": ..., "error": ...}` in response examples
 
-```python
-# ❌ WRONG
-error_message = "Địa chỉ email không hợp lệ"
-raise PermissionDenied("Bạn không có quyền thực hiện hành động này")
+**❌ Missing pagination** - List endpoints: `{"success": true, "data": {"count": N, "results": [...]}}` not direct array
 
-# ✅ CORRECT
-from django.utils.translation import gettext as _
-error_message = _("Invalid email address")
-raise PermissionDenied(_("You do not have permission to perform this action"))
-```
+**❌ Forgot translations** - After adding `_()` strings, run: `poetry run python manage.py makemessages -l vi --no-obsolete`
 
-### ❌ Vietnamese API Documentation
-
-**NEVER use Vietnamese in drf-spectacular decorators:**
-
-```python
-# ❌ WRONG
-@extend_schema(
-    summary="Danh sách vai trò",
-    description="Lấy danh sách tất cả vai trò trong hệ thống",
-    tags=["Vai trò"],
-)
-
-# ✅ CORRECT
-@extend_schema(
-    summary="List all roles",
-    description="Retrieve a list of all roles in the system",
-    tags=["Roles"],
-)
-```
-
-### ❌ Vietnamese Model Verbose Names
-
-**NEVER use Vietnamese in model field definitions:**
-
-```python
-# ❌ WRONG
-class Role(models.Model):
-    code = models.CharField(max_length=50, verbose_name="Mã vai trò")
-    name = models.CharField(max_length=100, verbose_name="Tên vai trò")
-
-# ✅ CORRECT
-from django.utils.translation import gettext_lazy as _
-
-class Role(models.Model):
-    code = models.CharField(max_length=50, verbose_name=_("Role code"))
-    name = models.CharField(max_length=100, verbose_name=_("Role name"))
-```
-
-### ❌ Forgetting to Update Translation Files
-
-**ALWAYS update .po files when adding new translatable strings:**
-
-```bash
-# After adding new gettext strings, ALWAYS run:
-poetry run python manage.py makemessages -l vi --no-obsolete
-
-# Then edit locale/vi/LC_MESSAGES/django.po and add Vietnamese translations:
-msgid "Invalid email address"
-msgstr "Địa chỉ email không hợp lệ"
-
-# Finally compile:
-poetry run python manage.py compilemessages
-```
-
-### ✅ Self-Check Before Committing
-
-Before using `report_progress`, run pre-commit to validate all changes:
-
-```bash
-pre-commit run --all-files
-```
-
-This will automatically check for Vietnamese text, linting issues, and other code quality problems.
+**✅ Before committing:** Run `pre-commit run --all-files`
 
 ## 10. Performance & Optimization for Agent Tasks
 To ensure fast iteration and minimize startup time:

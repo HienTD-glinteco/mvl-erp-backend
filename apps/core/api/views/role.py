@@ -22,48 +22,53 @@ from libs import BaseModelViewSet
                 description="Example response when listing roles",
                 value={
                     "success": True,
-                    "data": [
-                        {
-                            "id": 1,
-                            "code": "VT001",
-                            "name": "System Admin",
-                            "description": "Full system access with all permissions",
-                            "is_system_role": True,
-                            "created_by": "System",
-                            "permissions_detail": [
-                                {
-                                    "id": 1,
-                                    "code": "user.create",
-                                    "name": "Create User",
-                                    "description": "Permission to create users",
-                                    "module": "Core",
-                                    "submodule": "User Management",
-                                }
-                            ],
-                            "created_at": "2025-01-01T00:00:00Z",
-                            "updated_at": "2025-01-01T00:00:00Z",
-                        },
-                        {
-                            "id": 2,
-                            "code": "VT002",
-                            "name": "Manager",
-                            "description": "Manager role with limited permissions",
-                            "is_system_role": False,
-                            "created_by": "admin@example.com",
-                            "permissions_detail": [
-                                {
-                                    "id": 5,
-                                    "code": "user.view",
-                                    "name": "View User",
-                                    "description": "Permission to view users",
-                                    "module": "Core",
-                                    "submodule": "User Management",
-                                }
-                            ],
-                            "created_at": "2025-01-10T10:30:00Z",
-                            "updated_at": "2025-01-10T10:30:00Z",
-                        },
-                    ],
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "VT001",
+                                "name": "System Admin",
+                                "description": "Full system access with all permissions",
+                                "is_system_role": True,
+                                "created_by": "System",
+                                "permissions_detail": [
+                                    {
+                                        "id": 1,
+                                        "code": "user.create",
+                                        "name": "Create User",
+                                        "description": "Permission to create users",
+                                        "module": "Core",
+                                        "submodule": "User Management",
+                                    }
+                                ],
+                                "created_at": "2025-01-01T00:00:00Z",
+                                "updated_at": "2025-01-01T00:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "code": "VT002",
+                                "name": "Manager",
+                                "description": "Manager role with limited permissions",
+                                "is_system_role": False,
+                                "created_by": "admin@example.com",
+                                "permissions_detail": [
+                                    {
+                                        "id": 5,
+                                        "code": "user.view",
+                                        "name": "View User",
+                                        "description": "Permission to view users",
+                                        "module": "Core",
+                                        "submodule": "User Management",
+                                    }
+                                ],
+                                "created_at": "2025-01-10T10:30:00Z",
+                                "updated_at": "2025-01-10T10:30:00Z",
+                            },
+                        ],
+                    },
                 },
                 response_only=True,
             )
