@@ -12,17 +12,17 @@ from libs import BaseModelViewSet
 @extend_schema_view(
     list=extend_schema(
         summary="List all employees",
-        description="Retrieve a paginated list of all employees with support for filtering by code and name",
+        description="Retrieve a paginated list of all employees with support for filtering by code, fullname, username, email, and organizational structure",
         tags=["Employee"],
     ),
     create=extend_schema(
         summary="Create a new employee",
-        description="Create a new employee in the system",
+        description="Create a new employee in the system. A User account will be automatically created based on the employee data.",
         tags=["Employee"],
     ),
     retrieve=extend_schema(
         summary="Get employee details",
-        description="Retrieve detailed information about a specific employee",
+        description="Retrieve detailed information about a specific employee including their organizational structure and user account",
         tags=["Employee"],
     ),
     update=extend_schema(
@@ -44,12 +44,14 @@ from libs import BaseModelViewSet
 class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
-    queryset = Employee.objects.select_related("user").all()
+    queryset = Employee.objects.select_related(
+        "user", "branch", "block", "department"
+    ).all()
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["code", "name"]
-    ordering_fields = ["code", "name", "created_at"]
+    search_fields = ["code", "fullname", "username", "email"]
+    ordering_fields = ["code", "fullname", "created_at"]
     ordering = ["code"]
 
     # Permission registration attributes

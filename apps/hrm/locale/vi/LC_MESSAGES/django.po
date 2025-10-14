@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 11:45+0700\n"
+"POT-Creation-Date: 2025-10-14 12:17+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,6 +14,24 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/hrm/api/serializers/employee.py:147 apps/hrm/models/employee.py:97
+msgid "Block must belong to the selected branch."
+msgstr ""
+
+# models/organization.py:126
+#: apps/hrm/api/serializers/employee.py:152 apps/hrm/models/employee.py:103
+#, fuzzy
+#| msgid "Management department must be in the same block."
+msgid "Department must belong to the selected block."
+msgstr "Phòng ban quản lý phải thuộc cùng khối."
+
+# models/organization.py:126
+#: apps/hrm/api/serializers/employee.py:158 apps/hrm/models/employee.py:109
+#, fuzzy
+#| msgid "Management department must be in the same block."
+msgid "Department must belong to the selected branch."
+msgstr "Phòng ban quản lý phải thuộc cùng khối."
 
 #: apps/hrm/api/serializers/employee_role.py:74
 msgid "List of employee IDs to update (maximum 25)"
@@ -259,26 +277,68 @@ msgid "Successfully set up default organizational data!"
 msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:13
+#: apps/hrm/models/employee.py:39
+#, fuzzy
+#| msgid "Employee"
 msgid "Employee code"
 msgstr "Mã nhân viên"
 
-# models/organization.py:205
-#: apps/hrm/models/employee.py:14
-msgid "Employee name"
-msgstr "Tên nhân viên"
+# models/organization.py:32
+#: apps/hrm/models/employee.py:40
+#, fuzzy
+#| msgid "Block name"
+msgid "Full name"
+msgstr "Tên khối"
 
-#: apps/hrm/models/employee.py:19
+#: apps/hrm/models/employee.py:41
+msgid "Username"
+msgstr ""
+
+# models/organization.py:13
+#: apps/hrm/models/employee.py:42 apps/hrm/models/organization.py:21
+msgid "Email"
+msgstr "Email"
+
+# models/organization.py:12
+#: apps/hrm/models/employee.py:43 apps/hrm/models/organization.py:20
+msgid "Phone number"
+msgstr "Số điện thoại"
+
+# models/organization.py:17
+#: apps/hrm/models/employee.py:48 apps/hrm/models/organization.py:38
+#: apps/hrm/models/organization.py:64 apps/hrm/models/organization.py:102
+msgid "Branch"
+msgstr "Chi nhánh"
+
+# models/organization.py:45
+#: apps/hrm/models/employee.py:54 apps/hrm/models/organization.py:70
+#: apps/hrm/models/organization.py:103
+msgid "Block"
+msgstr "Khối"
+
+# models/organization.py:102
+#: apps/hrm/models/employee.py:60 apps/hrm/models/organization.py:132
+#: apps/hrm/models/organization.py:250
+msgid "Department"
+msgstr "Phòng ban"
+
+#: apps/hrm/models/employee.py:68
 msgid "User"
-msgstr "Người dùng"
+msgstr ""
+
+#: apps/hrm/models/employee.py:70
+msgid "Note"
+msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:23 apps/hrm/models/organization.py:238
+#: apps/hrm/models/employee.py:73 apps/hrm/models/organization.py:238
 msgid "Employee"
 msgstr "Nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:24
+#: apps/hrm/models/employee.py:74
+#, fuzzy
+#| msgid "Employee"
 msgid "Employees"
 msgstr "Các nhân viên"
 
@@ -296,16 +356,6 @@ msgstr "Mã chi nhánh"
 #: apps/hrm/models/organization.py:19
 msgid "Address"
 msgstr "Địa chỉ"
-
-# models/organization.py:12
-#: apps/hrm/models/organization.py:20
-msgid "Phone number"
-msgstr "Số điện thoại"
-
-# models/organization.py:13
-#: apps/hrm/models/organization.py:21
-msgid "Email"
-msgstr "Email"
 
 #: apps/hrm/models/organization.py:26
 msgid "Province"
@@ -331,12 +381,6 @@ msgstr "Mô tả"
 msgid "Active"
 msgstr "Hoạt động"
 
-# models/organization.py:17
-#: apps/hrm/models/organization.py:38 apps/hrm/models/organization.py:64
-#: apps/hrm/models/organization.py:102
-msgid "Branch"
-msgstr "Chi nhánh"
-
 # models/organization.py:18
 #: apps/hrm/models/organization.py:39
 msgid "Branches"
@@ -356,11 +400,6 @@ msgstr "Mã khối"
 #: apps/hrm/models/organization.py:59
 msgid "Block type"
 msgstr "Loại khối"
-
-# models/organization.py:45
-#: apps/hrm/models/organization.py:70 apps/hrm/models/organization.py:103
-msgid "Block"
-msgstr "Khối"
 
 # models/organization.py:46
 #: apps/hrm/models/organization.py:71
@@ -442,11 +481,6 @@ msgstr "Phòng ban đầu mối"
 #: apps/hrm/models/organization.py:126
 msgid "Management department"
 msgstr "Phòng ban quản lý"
-
-# models/organization.py:102
-#: apps/hrm/models/organization.py:132 apps/hrm/models/organization.py:250
-msgid "Department"
-msgstr "Phòng ban"
 
 # models/organization.py:103
 #: apps/hrm/models/organization.py:133

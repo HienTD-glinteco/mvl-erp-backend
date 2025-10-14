@@ -116,6 +116,9 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
     """Test cases for audit logging with employee records in authentication flows"""
 
     def setUp(self):
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department
+
         self.client = APIClient()
         self.user = User.objects.create_user(
             username="emp001",
@@ -124,10 +127,43 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
             first_name="Jane",
             last_name="Smith",
         )
+
+        # Create organizational structure required for Employee
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Test Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001",
+            name="Test Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        self.department = Department.objects.create(
+            code="PB001",
+            name="Test Department",
+            branch=self.branch,
+            block=self.block,
+        )
+
         # Create associated employee record
         self.employee = Employee.objects.create(
             code="EMP001",
-            name="Jane Smith",
+            fullname="Jane Smith",
+            username="emp001",
+            email="employee@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
             user=self.user,
         )
         self.otp_url = reverse("core:verify_otp")

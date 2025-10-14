@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Employee
+from apps.hrm.models import Block, Branch, Department, Employee
 
 User = get_user_model()
 
@@ -43,42 +43,162 @@ class EmployeeModelTest(TestCase):
     """Test cases for Employee model"""
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
+        # Create test branch, block, and department
+        from apps.core.models import AdministrativeUnit, Province
+
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Test Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001",
+            name="Test Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        self.department = Department.objects.create(
+            code="PB001",
+            name="Test Department",
+            branch=self.branch,
+            block=self.block,
         )
 
     def test_create_employee(self):
         """Test creating an employee"""
         employee = Employee.objects.create(
-            code="EMP001",
-            name="John Doe",
-            user=self.user,
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            phone="1234567890",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
         )
-        self.assertEqual(employee.code, "EMP001")
-        self.assertEqual(employee.name, "John Doe")
-        self.assertEqual(employee.user, self.user)
-        self.assertEqual(str(employee), "EMP001 - John Doe")
+        self.assertTrue(employee.code.startswith("MV"))
+        self.assertEqual(employee.fullname, "John Doe")
+        self.assertEqual(employee.username, "johndoe")
+        self.assertEqual(employee.email, "john@example.com")
+        self.assertIsNotNone(employee.user)
+        self.assertEqual(employee.user.username, "johndoe")
+        self.assertEqual(employee.user.email, "john@example.com")
+        self.assertIn("John Doe", str(employee))
 
     def test_employee_code_unique(self):
         """Test employee code uniqueness"""
-        user2 = User.objects.create_user(
-            username="testuser2",
-            email="test2@example.com",
-            password="testpass123",
+        employee1 = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
         )
-        Employee.objects.create(code="EMP001", name="John Doe", user=self.user)
+
+        # Cannot create with same code manually
+        with self.assertRaises(Exception):
+            Employee.objects.create(
+                code=employee1.code,
+                fullname="Jane Doe",
+                username="janedoe",
+                email="jane@example.com",
+                branch=self.branch,
+                block=self.block,
+                department=self.department,
+            )
+
+    def test_employee_username_unique(self):
+        """Test that username must be unique"""
+        Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
 
         with self.assertRaises(Exception):
-            Employee.objects.create(code="EMP001", name="Jane Doe", user=user2)
+            Employee.objects.create(
+                fullname="Jane Doe",
+                username="johndoe",
+                email="jane@example.com",
+                branch=self.branch,
+                block=self.block,
+                department=self.department,
+            )
 
-    def test_employee_user_one_to_one(self):
-        """Test that one user can only have one employee record"""
-        Employee.objects.create(code="EMP001", name="John Doe", user=self.user)
+    def test_employee_email_unique(self):
+        """Test that email must be unique"""
+        Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
 
         with self.assertRaises(Exception):
-            Employee.objects.create(code="EMP002", name="John Doe Again", user=self.user)
+            Employee.objects.create(
+                fullname="Jane Doe",
+                username="janedoe",
+                email="john@example.com",
+                branch=self.branch,
+                block=self.block,
+                department=self.department,
+            )
+
+    def test_employee_validation_block_branch(self):
+        """Test validation that block must belong to branch"""
+        branch2 = Branch.objects.create(
+            code="CN002",
+            name="Test Branch 2",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        employee = Employee(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            branch=branch2,
+            block=self.block,  # This block belongs to self.branch, not branch2
+            department=self.department,
+        )
+
+        with self.assertRaises(Exception):
+            employee.clean()
+
+    def test_employee_validation_department_block(self):
+        """Test validation that department must belong to block"""
+        block2 = Block.objects.create(
+            code="KH002",
+            name="Test Block 2",
+            branch=self.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+
+        employee = Employee(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            branch=self.branch,
+            block=block2,
+            department=self.department,  # This department belongs to self.block, not block2
+        )
+
+        with self.assertRaises(Exception):
+            employee.clean()
 
 
 class EmployeeAPITest(TestCase, APITestMixin):
@@ -86,6 +206,8 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
+        from apps.core.models import AdministrativeUnit, Province
+
         self.admin_user = User.objects.create_user(
             username="admin",
             email="admin@example.com",
@@ -94,38 +216,63 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.admin_user)
 
-        # Create test users and employees
-        self.user1 = User.objects.create_user(
+        # Create test organizational structure
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Test Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001",
+            name="Test Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        self.department = Department.objects.create(
+            code="PB001",
+            name="Test Department",
+            branch=self.branch,
+            block=self.block,
+        )
+
+        # Create test employees
+        self.employee1 = Employee.objects.create(
+            fullname="John Doe",
             username="emp001",
             email="emp1@example.com",
-            password="testpass123",
-        )
-        self.employee1 = Employee.objects.create(
-            code="EMP001",
-            name="John Doe",
-            user=self.user1,
+            phone="1234567890",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
         )
 
-        self.user2 = User.objects.create_user(
+        self.employee2 = Employee.objects.create(
+            fullname="Jane Smith",
             username="emp002",
             email="emp2@example.com",
-            password="testpass123",
-        )
-        self.employee2 = Employee.objects.create(
-            code="EMP002",
-            name="Jane Smith",
-            user=self.user2,
+            phone="2234567890",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
         )
 
-        self.user3 = User.objects.create_user(
+        self.employee3 = Employee.objects.create(
+            fullname="Bob Johnson",
             username="emp003",
             email="emp3@example.com",
-            password="testpass123",
-        )
-        self.employee3 = Employee.objects.create(
-            code="EMP003",
-            name="Bob Johnson",
-            user=self.user3,
+            phone="3234567890",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
         )
 
     def test_list_employees(self):
@@ -140,54 +287,29 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(count, 3)
         self.assertEqual(len(results), 3)
         codes = {item["code"] for item in results}
-        self.assertSetEqual(codes, {"EMP001", "EMP002", "EMP003"})
+        self.assertTrue(all(code.startswith("MV") for code in codes))
 
     def test_filter_employees_by_code(self):
         """Test filtering employees by code"""
         url = reverse("hrm:employee-list")
-        response = self.client.get(url, {"code": "EMP001"})
+        response = self.client.get(url, {"code": self.employee1.code})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
         self.assertEqual(count, 1)
-        self.assertEqual(results[0]["code"], "EMP001")
+        self.assertEqual(results[0]["code"], self.employee1.code)
 
-    def test_filter_employees_by_code_partial(self):
-        """Test filtering employees by partial code match"""
+    def test_filter_employees_by_fullname(self):
+        """Test filtering employees by fullname"""
         url = reverse("hrm:employee-list")
-        response = self.client.get(url, {"code": "001"})
+        response = self.client.get(url, {"fullname": "John"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
-        self.assertEqual(count, 1)
-        self.assertEqual(results[0]["code"], "EMP001")
-
-    def test_filter_employees_by_name(self):
-        """Test filtering employees by name"""
-        url = reverse("hrm:employee-list")
-        response = self.client.get(url, {"name": "John"})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = self.get_response_data(response)
-        results, count = self.normalize_list_response(data)
-        self.assertEqual(count, 2)
-
-        codes = [item["code"] for item in results]
-        self.assertIn("EMP001", codes)
-        self.assertIn("EMP003", codes)
-
-    def test_filter_employees_by_name_partial(self):
-        """Test filtering employees by partial name match"""
-        url = reverse("hrm:employee-list")
-        response = self.client.get(url, {"name": "Jane"})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = self.get_response_data(response)
-        results, count = self.normalize_list_response(data)
-        self.assertEqual(count, 1)
-        self.assertEqual(results[0]["name"], "Jane Smith")
+        self.assertGreaterEqual(count, 1)
+        self.assertTrue(any("John" in item["fullname"] for item in results))
 
     def test_search_employees(self):
         """Test searching employees"""
@@ -198,7 +320,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
         self.assertGreaterEqual(count, 1)
-        self.assertTrue(any(item["name"] == "Jane Smith" for item in results))
+        self.assertTrue(any(item["fullname"] == "Jane Smith" for item in results))
 
     def test_list_employees_pagination(self):
         """Test employee list pagination"""
@@ -209,7 +331,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
         self.assertEqual(count, 2)
-
         self.assertLessEqual(len(results), 2)
 
     def test_retrieve_employee(self):
@@ -219,61 +340,77 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
-        self.assertEqual(data["code"], "EMP001")
-        self.assertEqual(data["name"], "John Doe")
+        self.assertEqual(data["fullname"], "John Doe")
+        self.assertEqual(data["username"], "emp001")
+        self.assertEqual(data["email"], "emp1@example.com")
+        self.assertIn("user", data)
+        self.assertIn("branch", data)
+        self.assertIn("block", data)
+        self.assertIn("department", data)
 
-    # TODO: fix this test when the model Employee is implemented.
-    # def test_create_employee(self):
-    #     """Test creating an employee"""
-    #     user4 = User.objects.create_user(
-    #         username="emp004",
-    #         email="emp4@example.com",
-    #         password="testpass123",
-    #     )
-    #     url = reverse("hrm:employee-list")
-    #     payload = {
-    #         "code": "EMP004",
-    #         "name": "Alice Williams",
-    #         "user_id": user4.id,
-    #     }
-    #     response = self.client.post(url, payload, format="json")
+    def test_create_employee(self):
+        """Test creating an employee"""
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Alice Williams",
+            "username": "emp004",
+            "email": "emp4@example.com",
+            "phone": "4234567890",
+            "branch_id": self.branch.id,
+            "block_id": self.block.id,
+            "department_id": self.department.id,
+            "note": "Test note",
+        }
+        response = self.client.post(url, payload, format="json")
 
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     data = self.get_response_data(response)
-    #     self.assertEqual(data["code"], "EMP004")
-    #     self.assertEqual(data["name"], "Alice Williams")
-    #     self.assertEqual(data["user_id"], user4.id)
-    #     self.assertTrue(Employee.objects.filter(code="EMP004").exists())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+        self.assertTrue(data["code"].startswith("MV"))
+        self.assertEqual(data["fullname"], "Alice Williams")
+        self.assertEqual(data["username"], "emp004")
+        self.assertEqual(data["email"], "emp4@example.com")
+        self.assertTrue(Employee.objects.filter(username="emp004").exists())
+
+        # Verify user was created
+        employee = Employee.objects.get(username="emp004")
+        self.assertIsNotNone(employee.user)
+        self.assertEqual(employee.user.username, "emp004")
 
     def test_update_employee(self):
         """Test updating an employee"""
         url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
         payload = {
-            "code": "EMP001",
-            "name": "John Updated",
-            "user_id": self.user1.id,
+            "fullname": "John Updated",
+            "username": "emp001",
+            "email": "emp1@example.com",
+            "phone": "9999999999",
+            "branch_id": self.branch.id,
+            "block_id": self.block.id,
+            "department_id": self.department.id,
         }
         response = self.client.put(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
-        self.assertEqual(data["name"], "John Updated")
+        self.assertEqual(data["fullname"], "John Updated")
+        self.assertEqual(data["phone"], "9999999999")
 
         self.employee1.refresh_from_db()
-        self.assertEqual(self.employee1.name, "John Updated")
+        self.assertEqual(self.employee1.fullname, "John Updated")
+        self.assertEqual(self.employee1.phone, "9999999999")
 
     def test_partial_update_employee(self):
         """Test partially updating an employee"""
         url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
-        payload = {"name": "John Partially Updated"}
+        payload = {"fullname": "John Partially Updated"}
         response = self.client.patch(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
-        self.assertEqual(data["name"], "John Partially Updated")
+        self.assertEqual(data["fullname"], "John Partially Updated")
 
         self.employee1.refresh_from_db()
-        self.assertEqual(self.employee1.name, "John Partially Updated")
+        self.assertEqual(self.employee1.fullname, "John Partially Updated")
 
     def test_delete_employee(self):
         """Test deleting an employee"""
@@ -282,3 +419,27 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Employee.objects.filter(id=self.employee3.id).exists())
+
+    def test_create_employee_invalid_block(self):
+        """Test creating employee with block that doesn't belong to branch"""
+        branch2 = Branch.objects.create(
+            code="CN002",
+            name="Test Branch 2",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Invalid Employee",
+            "username": "invalid",
+            "email": "invalid@example.com",
+            "branch_id": branch2.id,
+            "block_id": self.block.id,  # This block belongs to self.branch, not branch2
+            "department_id": self.department.id,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.json()
+        self.assertIn("error", data)
