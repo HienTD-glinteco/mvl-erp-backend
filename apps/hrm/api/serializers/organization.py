@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -6,6 +7,8 @@ from apps.core.api.serializers.administrative_unit import AdministrativeUnitSeri
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+
+User = get_user_model()
 
 
 class BranchSerializer(serializers.ModelSerializer):
@@ -58,7 +61,13 @@ class BranchSerializer(serializers.ModelSerializer):
 class BlockSerializer(serializers.ModelSerializer):
     """Serializer for Block model"""
 
-    branch_name = serializers.CharField(source="branch.name", read_only=True)
+    branch_id = serializers.PrimaryKeyRelatedField(
+        source="branch",
+        queryset=Branch.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    branch = BranchSerializer(read_only=True)
     block_type_display = serializers.CharField(source="get_block_type_display", read_only=True)
 
     class Meta:
@@ -69,8 +78,8 @@ class BlockSerializer(serializers.ModelSerializer):
             "code",
             "block_type",
             "block_type_display",
+            "branch_id",
             "branch",
-            "branch_name",
             "description",
             "is_active",
             "created_at",
@@ -81,7 +90,7 @@ class BlockSerializer(serializers.ModelSerializer):
             "code",
             "created_at",
             "updated_at",
-            "branch_name",
+            "branch",
             "block_type_display",
             "is_active",
         ]
@@ -292,27 +301,52 @@ class PositionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]
 
 
+class EmployeeNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested employee references"""
+
+    full_name = serializers.CharField(source="get_full_name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "full_name"]
+        read_only_fields = ["id", "username", "email", "full_name"]
+
+
 class OrganizationChartSerializer(serializers.ModelSerializer):
     """Serializer for OrganizationChart model"""
 
-    employee_name = serializers.CharField(source="employee.get_full_name", read_only=True)
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    position_name = serializers.CharField(source="position.name", read_only=True)
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    department_hierarchy = serializers.CharField(source="department.full_hierarchy", read_only=True)
+    employee_id = serializers.PrimaryKeyRelatedField(
+        source="employee",
+        queryset=User.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    employee = EmployeeNestedSerializer(read_only=True)
+    position_id = serializers.PrimaryKeyRelatedField(
+        source="position",
+        queryset=Position.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    position = PositionSerializer(read_only=True)
+    department_id = serializers.PrimaryKeyRelatedField(
+        source="department",
+        queryset=Department.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    department = DepartmentNestedSerializer(read_only=True)
 
     class Meta:
         model = OrganizationChart
         fields = [
             "id",
+            "employee_id",
             "employee",
-            "employee_name",
-            "employee_username",
+            "position_id",
             "position",
-            "position_name",
+            "department_id",
             "department",
-            "department_name",
-            "department_hierarchy",
             "start_date",
             "end_date",
             "is_primary",
@@ -324,11 +358,9 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "updated_at",
-            "employee_name",
-            "employee_username",
-            "position_name",
-            "department_name",
-            "department_hierarchy",
+            "employee",
+            "position",
+            "department",
             "is_active",
         ]
 

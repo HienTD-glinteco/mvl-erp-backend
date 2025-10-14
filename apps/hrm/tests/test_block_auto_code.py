@@ -64,7 +64,7 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
         block_data = {
             "name": "Khối Hỗ trợ",
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         # Act
@@ -91,7 +91,7 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
             "name": "Khối Hỗ trợ",
             "code": "MANUAL",  # This should be ignored
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         # Act
@@ -112,7 +112,7 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
         block_data = {
             "name": "Khối Hỗ trợ",
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         # Act
@@ -137,7 +137,7 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
             block_data = {
                 "name": f"Khối {i + 1}",
                 "block_type": Block.BlockType.SUPPORT if i % 2 == 0 else Block.BlockType.BUSINESS,
-                "branch": str(self.branch.id),
+                "branch_id": str(self.branch.id),
             }
             response = self.client.post(url, block_data, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -159,7 +159,7 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
         block_data = {
             "name": "Khối Hỗ trợ",
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         # Act - Create block

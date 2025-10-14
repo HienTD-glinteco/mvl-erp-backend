@@ -189,7 +189,7 @@ class FixedBlockAPITest(TransactionTestCase, APITestMixin):
             "name": "Khối Hỗ trợ",
             "code": "HT",
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         url = reverse("hrm:block-list")
@@ -455,9 +455,9 @@ class FixedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
     def test_create_organization_chart(self):
         """Test creating an organization chart entry via API"""
         org_data = {
-            "employee": str(self.employee.id),
-            "position": str(self.position.id),
-            "department": str(self.department.id),
+            "employee_id": str(self.employee.id),
+            "position_id": str(self.position.id),
+            "department_id": str(self.department.id),
             "start_date": date.today().isoformat(),
             "is_primary": True,
         }
