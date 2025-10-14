@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 17:09+0700\n"
+"POT-Creation-Date: 2025-10-14 11:45+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -84,7 +84,7 @@ msgstr "Chức năng này không phù hợp với loại khối %(block_type)s."
 msgid "End date must be after start date."
 msgstr "Ngày kết thúc phải sau ngày bắt đầu."
 
-#: apps/hrm/api/views/employee_role.py:186
+#: apps/hrm/api/views/employee_role.py:191
 msgid "Update successful"
 msgstr ""
 
@@ -260,21 +260,17 @@ msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:13
-#, fuzzy
-#| msgid "Employee"
 msgid "Employee code"
-msgstr "Nhân viên"
+msgstr "Mã nhân viên"
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:14
-#, fuzzy
-#| msgid "Employee"
 msgid "Employee name"
-msgstr "Nhân viên"
+msgstr "Tên nhân viên"
 
 #: apps/hrm/models/employee.py:19
 msgid "User"
-msgstr ""
+msgstr "Người dùng"
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:23 apps/hrm/models/organization.py:238
@@ -283,10 +279,8 @@ msgstr "Nhân viên"
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:24
-#, fuzzy
-#| msgid "Employee"
 msgid "Employees"
-msgstr "Nhân viên"
+msgstr "Các nhân viên"
 
 # models/organization.py:9
 #: apps/hrm/models/organization.py:17
@@ -319,10 +313,8 @@ msgstr ""
 
 # models/organization.py:62
 #: apps/hrm/models/organization.py:32
-#, fuzzy
-#| msgid "HR Administration"
 msgid "Administrative unit"
-msgstr "Hành chính Nhân sự"
+msgstr "Đơn vị hành chính"
 
 # models/organization.py:39
 #: apps/hrm/models/organization.py:34 apps/hrm/models/organization.py:66

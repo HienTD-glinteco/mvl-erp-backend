@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Notifications\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 14:06+0700\n"
+"POT-Creation-Date: 2025-10-14 11:45+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -35,23 +35,23 @@ msgstr ""
 msgid "Timestamps"
 msgstr ""
 
-#: apps/notifications/api/views/notification.py:147
+#: apps/notifications/api/views/notification.py:152
 msgid "Notification marked as read"
 msgstr "Thông báo đã được đánh dấu đã đọc"
 
-#: apps/notifications/api/views/notification.py:174
+#: apps/notifications/api/views/notification.py:179
 msgid "Notification marked as unread"
 msgstr "Thông báo đã được đánh dấu chưa đọc"
 
-#: apps/notifications/api/views/notification.py:216
+#: apps/notifications/api/views/notification.py:221
 msgid "Notifications marked as read"
 msgstr "Các thông báo đã được đánh dấu đã đọc"
 
-#: apps/notifications/api/views/notification.py:245
+#: apps/notifications/api/views/notification.py:250
 msgid "All notifications marked as read"
 msgstr "Tất cả thông báo đã được đánh dấu đã đọc"
 
-#: apps/notifications/api/views/notification.py:273
+#: apps/notifications/api/views/notification.py:278
 msgid "Unread notification count"
 msgstr ""
 

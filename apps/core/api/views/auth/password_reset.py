@@ -95,13 +95,11 @@ class PasswordResetView(APIView):
 
             # Log audit event for password reset request
             # For authentication events, set object_type to Employee if user has employee record
-            modified_object = None
-            if hasattr(user, "employee"):
-                try:
-                    modified_object = user.employee
-                except Exception:
-                    pass
-            
+            try:
+                modified_object = user.employee
+            except Exception:
+                modified_object = None
+
             log_audit_event(
                 action=LogAction.PASSWORD_RESET,
                 modified_object=modified_object,
