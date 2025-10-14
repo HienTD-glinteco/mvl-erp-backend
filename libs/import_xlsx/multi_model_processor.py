@@ -382,6 +382,13 @@ class MultiModelProcessor:
                     )
                     related_data[field_name] = value
                 
+                # Add defaults (static values)
+                defaults = relation_config.get("defaults", {})
+                for field_name, field_value in defaults.items():
+                    # Only set default if field not already set from fields config
+                    if field_name not in related_data:
+                        related_data[field_name] = field_value
+                
                 # Link to main instance (assuming foreign key field name matches)
                 main_model_name = main_instance.__class__.__name__.lower()
                 related_data[main_model_name] = main_instance

@@ -441,23 +441,28 @@ This creates:
 
 #### 1. One-to-Many Relations
 
+**With Dynamic Fields:**
 ```json
 {
   "relations": {
-    "accounts": [
+    "bank_accounts": [
       {
-        "model": "Account",
+        "model": "EmployeeBankAccount",
         "fields": {
-          "bank": "VPBank",
-          "account_number": "VPBank Account Number"
+          "number": "VPBank Account Number"
+        },
+        "defaults": {
+          "bank_name": "VPBank"
         },
         "create_if_not_found": true
       },
       {
-        "model": "Account",
+        "model": "EmployeeBankAccount",
         "fields": {
-          "bank": "Vietcombank",
-          "account_number": "VCB Account Number"
+          "number": "Vietcombank Account Number"
+        },
+        "defaults": {
+          "bank_name": "VietcomBank"
         },
         "create_if_not_found": true
       }
@@ -465,6 +470,11 @@ This creates:
   }
 }
 ```
+
+**Explanation:**
+- `fields`: Maps Excel column names to model fields (dynamic values from Excel)
+- `defaults`: Sets static values for fields
+- Both can be combined - `defaults` fills in fields not specified in `fields`
 
 #### 2. Conditional Relations
 
