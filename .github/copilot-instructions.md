@@ -264,6 +264,33 @@ This project uses `ApiResponseWrapperMiddleware` which wraps all responses in a 
 - An object with field errors: `"error": {"email": ["Invalid email format"], "password": ["Too short"]}`
 - An object with a message: `"error": {"detail": "Permission denied"}`
 
+**Pagination Response Format (for list endpoints):**
+
+List endpoints that use pagination MUST include pagination metadata within the `data` field:
+```json
+{
+  "success": true,
+  "data": {
+    "count": 123,
+    "next": "http://api.example.org/endpoint/?page=2",
+    "previous": null,
+    "results": [
+      <array of items>
+    ]
+  }
+}
+```
+
+**Important:** List endpoints WITHOUT pagination (with `pagination_class = None`) should use direct array in `data`:
+```json
+{
+  "success": true,
+  "data": [
+    <array of items>
+  ]
+}
+```
+
 ##### Complete Example with Envelope Format
 
 ```python
@@ -281,21 +308,26 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExam
                 description="Example response when listing roles",
                 value={
                     "success": True,
-                    "data": [
-                        {
-                            "id": 1,
-                            "code": "VT001",
-                            "name": "System Admin",
-                            "description": "Full system access",
-                            "is_system_role": True,
-                            "created_by": "System",
-                            "permissions_detail": [
-                                {"id": 1, "code": "user.create", "name": "Create User"}
-                            ],
-                            "created_at": "2025-01-01T00:00:00Z",
-                            "updated_at": "2025-01-01T00:00:00Z"
-                        }
-                    ]
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "VT001",
+                                "name": "System Admin",
+                                "description": "Full system access",
+                                "is_system_role": True,
+                                "created_by": "System",
+                                "permissions_detail": [
+                                    {"id": 1, "code": "user.create", "name": "Create User"}
+                                ],
+                                "created_at": "2025-01-01T00:00:00Z",
+                                "updated_at": "2025-01-01T00:00:00Z"
+                            }
+                        ]
+                    }
                 },
                 response_only=True,
             )
