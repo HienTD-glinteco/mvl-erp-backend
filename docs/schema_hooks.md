@@ -126,6 +126,20 @@ OpenApiExample(
 )
 ```
 
+**For delete/204 No Content responses:**
+```python
+OpenApiExample(
+    "Delete success",
+    value={
+        "success": True,
+        "data": None,
+        "error": None
+    },
+    response_only=True,
+    status_codes=["204"],
+)
+```
+
 **Important:** Individual items in the `results` array should NOT be wrapped in the envelope. Only the top-level response uses the envelope format.
 
 ### Testing

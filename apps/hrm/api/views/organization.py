@@ -200,7 +200,7 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Delete branch success",
                 description="Success response when deleting a branch",
-                value=None,
+                value={"success": True, "data": None, "error": None},
                 response_only=True,
                 status_codes=["204"],
             )

@@ -224,7 +224,7 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Delete role success",
                 description="Success response when deleting a role",
-                value=None,
+                value={"success": True, "data": None, "error": None},
                 response_only=True,
                 status_codes=["204"],
             ),
