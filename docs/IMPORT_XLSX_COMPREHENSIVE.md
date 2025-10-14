@@ -312,6 +312,7 @@ Combine multiple Excel columns into one field:
 
 #### 3. ForeignKey Fields
 
+**Basic ForeignKey with Defaults**:
 ```json
 {
   "fields": {
@@ -327,14 +328,34 @@ Combine multiple Excel columns into one field:
 }
 ```
 
+**ForeignKey with Field Mapping**:
+```json
+{
+  "fields": {
+    "department": {
+      "model": "Department",
+      "lookup": "Department Name",
+      "fields": {
+        "code": "Dept Code",
+        "name": "Department Name",
+        "description": "Dept Description"
+      },
+      "create_if_not_found": true
+    }
+  }
+}
+```
+
 **Parameters**:
 - `model`: Related model name
 - `lookup`: Excel column name for lookup value
+- `fields`: Map Excel columns to model fields (NEW - supports multiple field mapping)
 - `create_if_not_found`: Create if not exists (default: false)
-- `defaults`: Default values when creating new object
+- `defaults`: Static default values when creating new object (merged with fields mapping)
 
 #### 4. Nested ForeignKey (Multi-Level Hierarchy)
 
+**Basic Nested Relations**:
 ```json
 {
   "fields": {
@@ -363,11 +384,58 @@ Combine multiple Excel columns into one field:
 }
 ```
 
+**Nested Relations with Field Mapping**:
+```json
+{
+  "fields": {
+    "department": {
+      "model": "Department",
+      "lookup": "Department Name",
+      "fields": {
+        "code": "Dept Code",
+        "name": "Department Name"
+      },
+      "create_if_not_found": true,
+      "relations": {
+        "block": {
+          "model": "Block",
+          "lookup": "Block Name",
+          "fields": {
+            "code": "Block Code",
+            "name": "Block Name"
+          },
+          "create_if_not_found": true,
+          "relations": {
+            "branch": {
+              "model": "Branch",
+              "lookup": "Branch Name",
+              "fields": {
+                "code": "Branch Code",
+                "name": "Branch Name"
+              },
+              "create_if_not_found": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 This creates:
-1. Branch (if not exists)
-2. Division with Branch reference (if not exists)
+1. Branch with mapped fields (code, name) - if not exists
+2. Block with Branch reference and mapped fields - if not exists  
 3. Parent Department (if specified)
-4. Department with Division, Branch, and Parent references
+4. Department with Block reference and mapped fields
+
+**Excel Format Example**:
+```
+| Dept Code | Department Name | Block Code | Block Name | Branch Code | Branch Name |
+|-----------|-----------------|------------|------------|-------------|-------------|
+| D001      | Engineering     | B001       | Tech Block | BR001       | HQ          |
+| D002      | Marketing       | B002       | Biz Block  | BR002       | Branch A    |
+```
 
 ### Relations Configuration
 

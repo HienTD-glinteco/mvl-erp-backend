@@ -212,11 +212,19 @@ class RelationshipResolver:
             {
                 "model": "Department",
                 "lookup": "Engineering",
+                "fields": {
+                    "code": "Dept Code",
+                    "name": "Department"
+                },
                 "create_if_not_found": true,
                 "relations": {
                     "division": {
                         "model": "Division",
                         "lookup": "Technology",
+                        "fields": {
+                            "code": "Div Code",
+                            "name": "Division"
+                        },
                         "create_if_not_found": true
                     },
                     "branch": {
@@ -266,10 +274,21 @@ class RelationshipResolver:
             if related_obj:
                 related_objects[relation_field_name] = related_obj
         
+        # Build defaults from fields mapping if provided
+        defaults = field_config.get("defaults", {}).copy()
+        fields_mapping = field_config.get("fields", {})
+        
+        if fields_mapping:
+            # Map Excel columns to model fields
+            for model_field, excel_column in fields_mapping.items():
+                if excel_column in row_data:
+                    value = row_data.get(excel_column)
+                    if value is not None and value != "":
+                        defaults[model_field] = value
+        
         # Now resolve the main object with related objects
         lookup_field = field_config.get("lookup_field", "name")
         create_if_not_found = field_config.get("create_if_not_found", False)
-        defaults = field_config.get("defaults", {})
         
         return self.resolve_foreign_key(
             model=model,
