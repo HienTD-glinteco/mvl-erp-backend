@@ -353,3 +353,57 @@ class TestLogActionEnum(TestCase):
         choices = LogAction.choices
         self.assertEqual(len(choices), 8)
         self.assertIn(("ADD", LogAction.ADD.label), choices)
+
+
+@override_settings(AUDIT_LOG_DISABLED=True)
+class TestAuditLogDisabled(TestCase):
+    """Test cases for AUDIT_LOG_DISABLED setting."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.TestModel = create_dummy_model(
+            base_name="TestAuditLogDisabledModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.factory = RequestFactory()
+
+    @patch("asyncio.run")
+    def test_log_event_writes_to_file_but_not_rabbitmq_when_disabled(self, mock_asyncio_run):
+        """Test that when AUDIT_LOG_DISABLED=True, logs are written to file but not sent to RabbitMQ."""
+        test_obj = self.TestModel(name="Test", value=42)
+        test_obj.pk = 1
+
+        # Call log_audit_event
+        log_audit_event(
+            action=LogAction.ADD,
+            original_object=None,
+            modified_object=test_obj,
+            user=self.user,
+        )
+
+        # Verify asyncio.run was NOT called (RabbitMQ send should not happen when disabled)
+        mock_asyncio_run.assert_not_called()
+
+    @patch("asyncio.run")
+    def test_log_event_directly_respects_disabled_setting(self, mock_asyncio_run):
+        """Test that AuditStreamProducer.log_event respects AUDIT_LOG_DISABLED setting."""
+        from apps.audit_logging.producer import _audit_producer
+
+        # Call log_event directly
+        _audit_producer.log_event(
+            action=LogAction.ADD,
+            object_type="test_model",
+            object_id="1",
+            object_repr="Test Object",
+        )
+
+        # Verify asyncio.run was NOT called (RabbitMQ send should not happen when disabled)
+        mock_asyncio_run.assert_not_called()

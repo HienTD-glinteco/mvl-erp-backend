@@ -55,7 +55,11 @@ class AuditStreamProducer:
         # Step 1: Write to local file for backup/local auditing.
         file_audit_logger.info(log_json_string)
 
-        # Step 2: Push to RabbitMQ Stream.
+        # Step 2: Check if external audit logging is disabled
+        if settings.AUDIT_LOG_DISABLED:
+            return
+
+        # Step 3: Push to RabbitMQ Stream.
         asyncio.run(self._send_message_async(log_json_string))
 
 
@@ -292,9 +296,6 @@ def log_audit_event(
     This is the public interface for logging. It formats the event, writes it
     to a local log file, and pushes it to a RabbitMQ Stream.
     """
-    if settings.AUDIT_LOG_DISABLED:
-        return
-
     log_data: dict[str, Any] = {"action": action}
 
     # Determine which object to use for extracting metadata
