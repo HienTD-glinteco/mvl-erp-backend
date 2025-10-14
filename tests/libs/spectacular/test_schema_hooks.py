@@ -207,6 +207,68 @@ class SchemaHookTest(unittest.TestCase):
         if "properties" in response_schema["properties"]["data"]:
             assert "success" not in response_schema["properties"]["data"]["properties"]
 
+    def test_wrap_with_envelope_handles_paginated_responses(self):
+        """Test that paginated response schemas are correctly wrapped"""
+        # Arrange - pagination object schema (DRF PageNumberPagination format)
+        result = {
+            "paths": {
+                "/api/roles/": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {"type": "integer"},
+                                                "next": {"type": "string", "nullable": True},
+                                                "previous": {"type": "string", "nullable": True},
+                                                "results": {
+                                                    "type": "array",
+                                                    "items": {"$ref": "#/components/schemas/Role"},
+                                                },
+                                            },
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Act
+        wrapped_result = wrap_with_envelope(result, None, None, True)
+
+        # Assert
+        response_schema = wrapped_result["paths"]["/api/roles/"]["get"]["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]
+
+        # Should have envelope structure
+        assert "properties" in response_schema
+        assert "success" in response_schema["properties"]
+        assert "data" in response_schema["properties"]
+        assert "error" in response_schema["properties"]
+
+        # Data should contain the pagination object
+        data_schema = response_schema["properties"]["data"]
+        assert data_schema["type"] == "object"
+        assert "properties" in data_schema
+
+        # Pagination properties should be in data
+        pagination_props = data_schema["properties"]
+        assert "count" in pagination_props
+        assert "next" in pagination_props
+        assert "previous" in pagination_props
+        assert "results" in pagination_props
+
+        # Results should be an array
+        assert pagination_props["results"]["type"] == "array"
+        assert "items" in pagination_props["results"]
+
 
 class SchemaGenerationIntegrationTest(TestCase):
     """Integration tests for schema generation with envelope wrapping"""
