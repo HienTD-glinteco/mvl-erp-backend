@@ -5,7 +5,7 @@ This module contains hooks that modify the OpenAPI schema after it's generated.
 """
 
 
-def wrap_with_envelope(result, generator, request, public):
+def wrap_with_envelope(result, generator, request, public):  # noqa: C901
     """
     Post-processing hook that wraps all application/json response schemas
     in a consistent envelope format.
@@ -52,6 +52,10 @@ def wrap_with_envelope(result, generator, request, public):
                 if "application/json" in content:
                     json_content = content["application/json"]
                     original_schema = json_content.get("schema", {})
+
+                    # Skip if manual examples are defined (they should already have envelope format)
+                    if "examples" in json_content and json_content["examples"]:
+                        continue
 
                     # Skip if already wrapped (check for 'success' and 'data' fields)
                     if "properties" in original_schema:

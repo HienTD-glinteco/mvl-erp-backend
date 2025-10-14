@@ -207,6 +207,66 @@ class SchemaHookTest(unittest.TestCase):
         if "properties" in response_schema["properties"]["data"]:
             assert "success" not in response_schema["properties"]["data"]["properties"]
 
+    def test_wrap_with_envelope_skips_when_manual_examples_defined(self):
+        """Test that schemas with manual examples are not wrapped (examples should already have envelope)"""
+        # Arrange - schema with manual examples defined
+        result = {
+            "paths": {
+                "/api/roles/": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "count": {"type": "integer"},
+                                                "results": {"type": "array"},
+                                            },
+                                        },
+                                        "examples": {
+                                            "List roles success": {
+                                                "value": {
+                                                    "success": True,
+                                                    "data": {
+                                                        "count": 2,
+                                                        "next": None,
+                                                        "previous": None,
+                                                        "results": [],
+                                                    },
+                                                }
+                                            }
+                                        },
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Act
+        wrapped_result = wrap_with_envelope(result, None, None, True)
+
+        # Assert - schema should NOT be wrapped because examples are defined
+        response_schema = wrapped_result["paths"]["/api/roles/"]["get"]["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]
+
+        # Should remain unwrapped (original pagination structure)
+        assert "count" in response_schema["properties"]
+        assert "results" in response_schema["properties"]
+        assert "success" not in response_schema["properties"]
+
+        # Examples should remain unchanged
+        examples = wrapped_result["paths"]["/api/roles/"]["get"]["responses"]["200"]["content"]["application/json"][
+            "examples"
+        ]
+        assert "List roles success" in examples
+        assert examples["List roles success"]["value"]["success"] is True
+
 
 class SchemaGenerationIntegrationTest(TestCase):
     """Integration tests for schema generation with envelope wrapping"""
