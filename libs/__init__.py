@@ -13,7 +13,7 @@ from .export_xlsx import (
 )
 from .models import AutoCodeMixin, BaseModel, create_dummy_model
 from .pagination import PageNumberWithSizePagination
-from .serializer_mixins import FieldFilteringSerializerMixin
+from .serializers.mixins import FieldFilteringSerializerMixin
 from .spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 
 __all__ = [

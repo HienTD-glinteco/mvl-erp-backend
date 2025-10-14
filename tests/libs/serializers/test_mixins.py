@@ -9,7 +9,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Role
-from libs.serializer_mixins import FieldFilteringSerializerMixin
+from libs.serializers.mixins import FieldFilteringSerializerMixin
 
 User = get_user_model()
 

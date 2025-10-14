@@ -7,7 +7,7 @@ dynamic field filtering based on request parameters.
 
 import logging
 
-from .serializer_constants import (
+from libs.constants.serializers import (
     LOG_FIELD_FILTERING_APPLIED,
     LOG_NO_FIELDS_PARAM,
     LOG_NO_REQUEST_CONTEXT,
