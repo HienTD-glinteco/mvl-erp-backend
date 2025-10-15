@@ -8,6 +8,7 @@ data for multiple related models from a single Excel file.
 import logging
 from typing import Any
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models as django_models
 from django.db import transaction
 from django.utils.translation import gettext as _
@@ -249,7 +250,7 @@ class MultiModelProcessor:
                                 # Handle M2M later (after instance creation)
                                 related_many_to_many[field_name] = (related_model, field_config)
                                 continue
-                        except:
+                        except (FieldDoesNotExist, AttributeError):
                             pass
                         
                         # Handle ForeignKey with relations

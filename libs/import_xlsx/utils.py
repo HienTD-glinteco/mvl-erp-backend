@@ -79,7 +79,7 @@ def resolve_foreign_key(field, value: Any) -> Any:
     # Try __str__ match as last resort
     try:
         return related_model.objects.get(**{f"{lookup_field}__iexact": str(value)})
-    except:
+    except (related_model.DoesNotExist, related_model.MultipleObjectsReturned, Exception):
         pass
 
     raise ValueError(_(ERROR_FOREIGN_KEY_NOT_FOUND).format(field=field.name, value=value))
@@ -277,7 +277,7 @@ def log_import_audit(instance, user_id=None, request=None):
                 from apps.core.models import User
 
                 user = User.objects.get(pk=user_id)
-            except:
+            except (ImportError, User.DoesNotExist, Exception):  # noqa: F821
                 pass
         elif request and hasattr(request, "user"):
             # Get user from request (for sync imports)
