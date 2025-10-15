@@ -8,6 +8,7 @@ from .organization import (
     PositionFilterSet,
 )
 from .recruitment_channel import RecruitmentChannelFilterSet
+from .recruitment_source import RecruitmentSourceFilterSet
 
 __all__ = [
     "BranchFilterSet",
@@ -18,4 +19,5 @@ __all__ = [
     "EmployeeRoleFilterSet",
     "EmployeeFilterSet",
     "RecruitmentChannelFilterSet",
+    "RecruitmentSourceFilterSet",
 ]

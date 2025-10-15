@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.models import Block, Branch, Department, Employee, Position, RecruitmentChannel
+from apps.hrm.models import Block, Branch, Department, Employee, Position, RecruitmentChannel, RecruitmentSource
 from libs.code_generation import register_auto_code_signal
 
 from .constants import TEMP_CODE_PREFIX
@@ -18,6 +18,7 @@ register_auto_code_signal(
     Employee,
     Position,
     RecruitmentChannel,
+    RecruitmentSource,
     temp_code_prefix=TEMP_CODE_PREFIX,
 )
 
@@ -25,7 +26,7 @@ register_auto_code_signal(
 @receiver(post_save, sender=Employee)
 def create_user_for_employee(sender, instance, created, **kwargs):
     """Create a User instance for the Employee after it is created.
-    
+
     This signal handler automatically creates a User account when an Employee
     is created. It uses the employee's username and email fields.
     """

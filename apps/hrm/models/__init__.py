@@ -7,6 +7,7 @@ from .organization import (
     Position,
 )
 from .recruitment_channel import RecruitmentChannel
+from .recruitment_source import RecruitmentSource
 
 __all__ = [
     "Branch",
@@ -16,4 +17,5 @@ __all__ = [
     "OrganizationChart",
     "Employee",
     "RecruitmentChannel",
+    "RecruitmentSource",
 ]
