@@ -408,6 +408,77 @@ For error responses:
 
 ---
 
+### 6. Recruitment Channels (Kênh tuyển dụng)
+
+#### List Recruitment Channels
+- **GET** `/api/hrm/recruitment-channels/`
+- **Description**: Get list of all recruitment channels ordered by creation time (descending)
+- **Query Parameters**:
+  - `search` (string): Search by name, code, or description
+  - `name` (string): Filter by name (case-insensitive contains)
+  - `code` (string): Filter by code (case-insensitive contains)
+  - `belong_to` (string): Filter by belong to (choices: `job_website`, `marketing`)
+  - `is_active` (boolean): Filter by active status
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "LinkedIn",
+      "code": "LINKEDIN",
+      "belong_to": "job_website",
+      "belong_to_display": "Job Website",
+      "description": "Professional networking platform",
+      "is_active": true,
+      "created_at": "2025-01-20T10:00:00Z",
+      "updated_at": "2025-01-20T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### Create Recruitment Channel
+- **POST** `/api/hrm/recruitment-channels/`
+- **Description**: Create a new recruitment channel
+- **Required Fields**:
+  - `name` (string, max 200 chars): Channel name
+  - `code` (string, max 50 chars, unique): Channel code
+- **Optional Fields**:
+  - `belong_to` (string, default: `marketing`): Channel belongs to (choices: `job_website`, `marketing`)
+  - `description` (string): Channel description
+  - `is_active` (boolean, default: true): Active status
+
+**Request Body:**
+```json
+{
+  "name": "LinkedIn",
+  "code": "LINKEDIN",
+  "belong_to": "job_website",
+  "description": "Professional networking platform",
+  "is_active": true
+}
+```
+
+#### Get Recruitment Channel Details
+- **GET** `/api/hrm/recruitment-channels/{id}/`
+- **Description**: Get detailed information about a specific recruitment channel
+
+#### Update Recruitment Channel
+- **PUT** `/api/hrm/recruitment-channels/{id}/`
+- **Description**: Update all fields of a recruitment channel
+- **PATCH** `/api/hrm/recruitment-channels/{id}/`
+- **Description**: Partially update a recruitment channel
+
+#### Delete Recruitment Channel
+- **DELETE** `/api/hrm/recruitment-channels/{id}/`
+- **Description**: Delete a recruitment channel
+- **Response**: 204 No Content on success
+
+---
+
 ## Error Handling
 
 ### Common Error Codes

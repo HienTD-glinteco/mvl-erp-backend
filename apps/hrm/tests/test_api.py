@@ -7,6 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 User = get_user_model()
@@ -19,7 +20,11 @@ class APITestMixin:
         """Extract data from wrapped API response"""
         content = json.loads(response.content.decode())
         if "data" in content:
-            return content["data"]
+            data = content["data"]
+            # Handle paginated responses - extract results list
+            if isinstance(data, dict) and "results" in data:
+                return data["results"]
+            return data
         return content
 
 
@@ -39,12 +44,30 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        # Create Province and AdministrativeUnit for Branch tests
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
         self.branch_data = {
             "name": "Chi nhánh Hà Nội",
             "code": "HN",
             "address": "123 Lê Duẩn, Hà Nội",
             "phone": "0243456789",
             "email": "hanoi@maivietland.com",
+            "province_id": self.province.id,
+            "administrative_unit_id": self.administrative_unit.id,
         }
 
     def test_create_branch(self):
@@ -57,11 +80,20 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
 
         branch = Branch.objects.first()
         self.assertEqual(branch.name, self.branch_data["name"])
-        self.assertEqual(branch.code, self.branch_data["code"])
+        # Code is now auto-generated, not from provided data
+        self.assertTrue(branch.code.startswith("CN"))
 
     def test_list_branches(self):
         """Test listing branches via API"""
-        Branch.objects.create(**self.branch_data)
+        Branch.objects.create(
+            name=self.branch_data["name"],
+            code=self.branch_data["code"],
+            address=self.branch_data["address"],
+            phone=self.branch_data["phone"],
+            email=self.branch_data["email"],
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
         url = reverse("hrm:branch-list")
         response = self.client.get(url)
@@ -73,7 +105,15 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
 
     def test_retrieve_branch(self):
         """Test retrieving a branch via API"""
-        branch = Branch.objects.create(**self.branch_data)
+        branch = Branch.objects.create(
+            name=self.branch_data["name"],
+            code=self.branch_data["code"],
+            address=self.branch_data["address"],
+            phone=self.branch_data["phone"],
+            email=self.branch_data["email"],
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.get(url)
@@ -84,7 +124,15 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
 
     def test_update_branch(self):
         """Test updating a branch via API"""
-        branch = Branch.objects.create(**self.branch_data)
+        branch = Branch.objects.create(
+            name=self.branch_data["name"],
+            code=self.branch_data["code"],
+            address=self.branch_data["address"],
+            phone=self.branch_data["phone"],
+            email=self.branch_data["email"],
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
         update_data = {"name": "Chi nhánh Hà Nội Updated"}
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
@@ -96,7 +144,15 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
 
     def test_delete_branch(self):
         """Test deleting a branch via API"""
-        branch = Branch.objects.create(**self.branch_data)
+        branch = Branch.objects.create(
+            name=self.branch_data["name"],
+            code=self.branch_data["code"],
+            address=self.branch_data["address"],
+            phone=self.branch_data["phone"],
+            email=self.branch_data["email"],
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
         url = reverse("hrm:branch-detail", kwargs={"pk": branch.pk})
         response = self.client.delete(url)
@@ -121,7 +177,28 @@ class BlockAPITest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
     def test_create_block(self):
         """Test creating a block via API"""
@@ -129,7 +206,7 @@ class BlockAPITest(TransactionTestCase, APITestMixin):
             "name": "Khối Hỗ trợ",
             "code": "HT",  # This code should be ignored
             "block_type": Block.BlockType.SUPPORT,
-            "branch": str(self.branch.id),
+            "branch_id": str(self.branch.id),
         }
 
         url = reverse("hrm:block-list")
@@ -186,7 +263,28 @@ class DepartmentAPITest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
@@ -198,8 +296,8 @@ class DepartmentAPITest(TransactionTestCase, APITestMixin):
         """Test creating a department via API"""
         dept_data = {
             "name": "Phòng Nhân sự",
-            "code": "NS",
-            "block": str(self.block.id),
+            "branch_id": str(self.branch.id),
+            "block_id": str(self.block.id),
             "function": Department.DepartmentFunction.HR_ADMIN,  # Required for support blocks
         }
 
@@ -211,10 +309,10 @@ class DepartmentAPITest(TransactionTestCase, APITestMixin):
 
     def test_department_tree_endpoint(self):
         """Test department tree structure endpoint"""
-        parent_dept = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        parent_dept = Department.objects.create(name="Phòng Nhân sự", branch=self.branch, block=self.block)
         child_dept = Department.objects.create(
             name="Ban Tuyển dụng",
-            code="TD",
+            branch=self.branch,
             block=self.block,
             parent_department=parent_dept,
         )
@@ -249,7 +347,7 @@ class PositionAPITest(TransactionTestCase, APITestMixin):
         position_data = {
             "name": "Tổng Giám đốc",
             "code": "TGD",
-            "level": Position.PositionLevel.CEO,
+
         }
 
         url = reverse("hrm:position-list")
@@ -260,19 +358,19 @@ class PositionAPITest(TransactionTestCase, APITestMixin):
 
     def test_position_ordering(self):
         """Test position ordering in API response"""
-        Position.objects.create(name="Nhân viên", code="NV", level=Position.PositionLevel.STAFF)
-        Position.objects.create(name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO)
-        Position.objects.create(name="Giám đốc", code="GD", level=Position.PositionLevel.DIRECTOR)
+        Position.objects.create(name="Nhân viên", code="NV")
+        Position.objects.create(name="Tổng Giám đốc", code="TGD")
+        Position.objects.create(name="Giám đốc", code="GD")
 
         url = reverse("hrm:position-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        # Should be ordered by level (CEO=1, DIRECTOR=2, STAFF=7)
-        self.assertEqual(response_data[0]["code"], "TGD")
-        self.assertEqual(response_data[1]["code"], "GD")
-        self.assertEqual(response_data[2]["code"], "NV")
+        # Should be ordered by name alphabetically (Giám đốc, Nhân viên, Tổng Giám đốc)
+        self.assertEqual(response_data[0]["code"], "GD")
+        self.assertEqual(response_data[1]["code"], "NV")
+        self.assertEqual(response_data[2]["code"], "TGD")
 
 
 class OrganizationChartAPITest(TransactionTestCase, APITestMixin):
@@ -298,22 +396,43 @@ class OrganizationChartAPITest(TransactionTestCase, APITestMixin):
             last_name="Doe",
         )
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
             block_type=Block.BlockType.SUPPORT,
             branch=self.branch,
         )
-        self.department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
-        self.position = Position.objects.create(name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER)
+        self.department = Department.objects.create(name="Phòng Nhân sự", branch=self.branch, block=self.block)
+        self.position = Position.objects.create(name="Trưởng phòng", code="TP")
 
     def test_create_organization_chart(self):
         """Test creating an organization chart entry via API"""
         org_data = {
-            "employee": str(self.employee.id),
-            "position": str(self.position.id),
-            "department": str(self.department.id),
+            "employee_id": str(self.employee.id),
+            "position_id": str(self.position.id),
+            "department_id": str(self.department.id),
             "start_date": date.today().isoformat(),
             "is_primary": True,
         }
@@ -387,9 +506,35 @@ class APIFilteringAndSearchTest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
         # Create test data
-        self.branch1 = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
-        self.branch2 = Branch.objects.create(name="Chi nhánh TP.HCM", code="HCM")
+        self.branch1 = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
+        self.branch2 = Branch.objects.create(
+            name="Chi nhánh TP.HCM",
+            code="HCM",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
         self.block1 = Block.objects.create(
             name="Khối Hỗ trợ",

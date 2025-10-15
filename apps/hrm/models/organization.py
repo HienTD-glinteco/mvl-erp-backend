@@ -1,22 +1,37 @@
 from django.db import models
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.base_model_mixin import BaseModel
+from libs.models import AutoCodeMixin, BaseModel
 
 from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class Branch(BaseModel):
+class Branch(AutoCodeMixin, BaseModel):
     """Company branch"""
+
+    CODE_PREFIX = "CN"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     name = models.CharField(max_length=200, verbose_name=_("Branch name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
     address = models.TextField(blank=True, verbose_name=_("Address"))
     phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
     email = models.EmailField(blank=True, verbose_name=_("Email"))
+    province = models.ForeignKey(
+        "core.Province",
+        on_delete=models.PROTECT,
+        related_name="branches",
+        verbose_name=_("Province"),
+    )
+    administrative_unit = models.ForeignKey(
+        "core.AdministrativeUnit",
+        on_delete=models.PROTECT,
+        related_name="branches",
+        verbose_name=_("Administrative unit"),
+    )
+    description = models.TextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
@@ -29,10 +44,11 @@ class Branch(BaseModel):
 
 
 @audit_logging_register
-class Block(BaseModel):
+class Block(AutoCodeMixin, BaseModel):
     """Business unit/block"""
 
     CODE_PREFIX = "KH"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class BlockType(models.TextChoices):
         SUPPORT = "support", _("Support Block")
@@ -56,21 +72,16 @@ class Block(BaseModel):
         db_table = "hrm_block"
         unique_together = [["code", "branch"]]
 
-    def save(self, *args, **kwargs):
-        """Override save to set temporary code for new instances."""
-        # Set temporary code for new instances that don't have a code yet
-        # Use random string to avoid collisions, not all, but most of the time.
-        if self._state.adding and not self.code:
-            self.code = f"{TEMP_CODE_PREFIX}{get_random_string(20)}"
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.code} - {self.name} ({self.get_block_type_display()})"
 
 
 @audit_logging_register
-class Department(BaseModel):
+class Department(AutoCodeMixin, BaseModel):
     """Department"""
+
+    CODE_PREFIX = "PB"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class DepartmentFunction(models.TextChoices):
         # Business function
@@ -88,6 +99,7 @@ class Department(BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Department name"))
     code = models.CharField(max_length=50, verbose_name=_("Department code"))
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Branch"))
     block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Block"))
     parent_department = models.ForeignKey(
         "self",
@@ -162,6 +174,10 @@ class Department(BaseModel):
                 )
 
     def save(self, *args, **kwargs):
+        # Auto-set branch from block if not set
+        if not self.branch and self.block and self.block.branch:
+            self.branch = self.block.branch
+
         # Auto-set function based on block type if not set
         if not self.function and self.block:
             if self.block.block_type == Block.BlockType.BUSINESS:
@@ -190,22 +206,14 @@ class Department(BaseModel):
 
 
 @audit_logging_register
-class Position(BaseModel):
+class Position(AutoCodeMixin, BaseModel):
     """Position/Role"""
 
-    class PositionLevel(models.IntegerChoices):
-        CEO = 1, _("Chief Executive Officer (CEO)")
-        DIRECTOR = 2, _("Block Director")
-        DEPUTY_DIRECTOR = 3, _("Deputy Block Director")
-        MANAGER = 4, _("Department Manager")
-        DEPUTY_MANAGER = 5, _("Deputy Department Manager")
-        SUPERVISOR = 6, _("Supervisor")
-        STAFF = 7, _("Staff")
-        INTERN = 8, _("Intern")
+    CODE_PREFIX = "CV"
+    TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     name = models.CharField(max_length=200, verbose_name=_("Position name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
-    level = models.IntegerField(choices=PositionLevel.choices, verbose_name=_("Level"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
@@ -213,7 +221,7 @@ class Position(BaseModel):
         verbose_name = _("Position")
         verbose_name_plural = _("Positions")
         db_table = "hrm_position"
-        ordering = ["level", "name"]
+        ordering = ["name"]
 
     def __str__(self):
         return f"{self.code} - {self.name}"

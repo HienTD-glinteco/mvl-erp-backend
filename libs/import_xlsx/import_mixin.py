@@ -9,9 +9,7 @@ import logging
 from typing import Any
 
 from django.conf import settings
-from django.db import transaction
 from django.db.models import QuerySet
-from django.http import HttpResponse
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from openpyxl import load_workbook
@@ -21,11 +19,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .error_report import ErrorReportGenerator
-from .field_transformer import FieldTransformer
 from .import_constants import (
     ERROR_ASYNC_NOT_ENABLED,
     ERROR_EMPTY_FILE,
-    ERROR_FOREIGN_KEY_NOT_FOUND,
     ERROR_INVALID_FILE_TYPE,
     ERROR_NO_FILE,
     SUCCESS_IMPORT_COMPLETE,
@@ -33,7 +29,7 @@ from .import_constants import (
 )
 from .mapping_config import MappingConfigParser
 from .multi_model_processor import MultiModelProcessor
-from .serializers import ImportAsyncResponseSerializer, ImportPreviewResponseSerializer, ImportResultSerializer
+from .serializers import ImportAsyncResponseSerializer, ImportResultSerializer
 from .storage import get_storage_backend
 from .tasks import import_xlsx_task
 
@@ -145,39 +141,18 @@ class ImportXLSXMixin:
             - Asynchronous (202): Task ID and status information
             - Preview (200): Validation results without saving
         """
-        # Validate file upload
-        if "file" not in request.FILES:
-            return Response(
-                {"detail": _(ERROR_NO_FILE)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        file = request.FILES["file"]
-
-        # Check file extension
-        if not file.name.endswith(".xlsx"):
-            return Response(
-                {"detail": _(ERROR_INVALID_FILE_TYPE)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Check for async mode
-        use_async = request.query_params.get("async", "false").lower() == "true"
-        celery_enabled = getattr(settings, "IMPORTER_CELERY_ENABLED", False)
-
-        if use_async and not celery_enabled:
-            return Response(
-                {"error": _(ERROR_ASYNC_NOT_ENABLED)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Check for preview mode
-        preview_mode = request.query_params.get("preview", "false").lower() == "true"
-
         try:
+            file = self._validate_file(request)
+            use_async, preview_mode, celery_enabled = self._get_import_modes(request)
+
+            if use_async and not celery_enabled:
+                return Response(
+                    {"error": _(ERROR_ASYNC_NOT_ENABLED)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             # Check if using advanced config-driven import
             import_config = self.get_import_config(request, file)
-            
+
             if import_config:
                 # Use advanced multi-model processor
                 return self._handle_advanced_import(
@@ -187,7 +162,7 @@ class ImportXLSXMixin:
                     use_async=use_async,
                     preview_mode=preview_mode,
                 )
-            
+
             # Otherwise, use simple schema-based import
             # Load import schema
             import_schema = self.get_import_schema(request, file)
@@ -237,6 +212,28 @@ class ImportXLSXMixin:
                 {"detail": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    def _validate_file(self, request: Request):
+        # Validate file upload
+        if "file" not in request.FILES:
+            raise ValueError(_(ERROR_NO_FILE))
+
+        file = request.FILES["file"]
+
+        if not file.name.endswith(".xlsx"):
+            raise ValueError(_(ERROR_INVALID_FILE_TYPE))
+
+        return file
+
+    def _get_import_modes(self, request: Request):
+        # Check for async mode
+        use_async = request.query_params.get("async", "false").lower() == "true"
+        celery_enabled = getattr(settings, "IMPORTER_CELERY_ENABLED", False)
+
+        # Check for preview mode
+        preview_mode = request.query_params.get("preview", "false").lower() == "true"
+
+        return use_async, preview_mode, celery_enabled
 
     def get_import_schema(self, request: Request, file: Any) -> dict:
         """
@@ -412,7 +409,7 @@ class ImportXLSXMixin:
 
         except Exception as e:
             logger.warning(f"Failed to generate error report: {e}")
-            return None
+            return None  # type: ignore[return-value]
 
     def _auto_generate_schema(self) -> dict:
         """
@@ -646,17 +643,17 @@ class ImportXLSXMixin:
         try:
             # Validate and parse configuration
             config_parser = MappingConfigParser(config)
-            
+
             # TODO: Implement async handling for advanced imports
             if use_async:
                 return Response(
                     {"detail": "Async mode not yet supported for advanced imports"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            
+
             # Load workbook
             workbook = load_workbook(file, data_only=True)
-            
+
             # Process using MultiModelProcessor
             processor = MultiModelProcessor(config_parser)
             results = processor.process_file(
@@ -665,7 +662,7 @@ class ImportXLSXMixin:
                 user=request.user if hasattr(request, "user") else None,
                 request=request,
             )
-            
+
             # Build response
             response_data = {
                 "success_count": results["success_count"],
@@ -673,32 +670,32 @@ class ImportXLSXMixin:
                 "errors": results["errors"],
                 "detail": _(SUCCESS_PREVIEW_COMPLETE if preview_mode else SUCCESS_IMPORT_COMPLETE),
             }
-            
+
             # Add preview data if in preview mode
             if preview_mode and results.get("preview_data"):
                 response_data["preview_data"] = results["preview_data"][:10]  # Limit to 10 rows
                 response_data["valid_count"] = results["success_count"]
                 response_data["invalid_count"] = results["error_count"]
-            
+
             # Generate error report if errors exist and not in preview mode
             if not preview_mode and results["errors"]:
                 try:
                     error_generator = ErrorReportGenerator()
-                    error_file_path = error_generator.generate_report(
+                    error_file_path = error_generator.generate_report(  # type: ignore[attr-defined]
                         errors=results["errors"],
                         original_data=[],  # TODO: Get original data from processor
                         headers=[],
                     )
-                    
+
                     # Get storage backend
                     storage = get_storage_backend()
                     error_file_url = storage.get_url(error_file_path)
                     response_data["error_file_url"] = error_file_url
                 except Exception as e:
                     logger.warning(f"Failed to generate error report: {e}")
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
-        
+
         except ValueError as e:
             logger.error(f"Configuration error: {e}")
             return Response(

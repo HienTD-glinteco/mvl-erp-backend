@@ -1,6 +1,6 @@
 import logging
 
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -18,7 +18,9 @@ class AuditLogViewSet(viewsets.GenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    # TODO: Add proper permission check to verify user has access to audit logs
+    module = "Core"
+    submodule = "Audit Logging"
+    permission_prefix = "audit_logging"
 
     @extend_schema(
         summary="Search audit logs",
@@ -30,6 +32,52 @@ class AuditLogViewSet(viewsets.GenericViewSet):
                 description="Successful response with audit logs data",
             ),
         },
+        examples=[
+            OpenApiExample(
+                "Search audit logs success",
+                description="Example response when searching audit logs",
+                value={
+                    "success": True,
+                    "data": {
+                        "results": [
+                            {
+                                "log_id": "abc123def456",
+                                "timestamp": "2025-10-13T14:30:00Z",
+                                "user_id": "user-uuid-1",
+                                "username": "admin@example.com",
+                                "full_name": "Admin User",
+                                "action": "CREATE",
+                                "object_type": "Role",
+                                "object_id": "10",
+                                "object_repr": "Project Manager",
+                            },
+                            {
+                                "log_id": "xyz789uvw012",
+                                "timestamp": "2025-10-13T13:15:00Z",
+                                "user_id": "user-uuid-2",
+                                "username": "john.doe@example.com",
+                                "full_name": "John Doe",
+                                "action": "UPDATE",
+                                "object_type": "User",
+                                "object_id": "user-uuid-3",
+                                "object_repr": "jane.smith@example.com",
+                            },
+                        ],
+                        "total": 150,
+                        "page": 1,
+                        "page_size": 20,
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Search audit logs validation error",
+                description="Error response when validation fails",
+                value={"success": False, "error": {"start_date": ["Invalid date format. Use YYYY-MM-DD."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
@@ -82,6 +130,42 @@ class AuditLogViewSet(viewsets.GenericViewSet):
                 description="Successful response with full audit log data",
             ),
         },
+        examples=[
+            OpenApiExample(
+                "Get audit log detail success",
+                description="Example response when retrieving audit log details",
+                value={
+                    "success": True,
+                    "data": {
+                        "log_id": "abc123def456",
+                        "timestamp": "2025-10-13T14:30:00Z",
+                        "user_id": "user-uuid-1",
+                        "username": "admin@example.com",
+                        "full_name": "Admin User",
+                        "action": "CREATE",
+                        "object_type": "Role",
+                        "object_id": "10",
+                        "object_repr": "Project Manager",
+                        "ip_address": "192.168.1.100",
+                        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                        "changes": {
+                            "name": {"old": None, "new": "Project Manager"},
+                            "description": {"old": None, "new": "Manages projects and teams"},
+                            "permission_ids": {"old": None, "new": [1, 2, 5, 10]},
+                        },
+                        "additional_data": {"request_id": "req-12345", "session_id": "sess-67890"},
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Get audit log detail not found",
+                description="Error response when audit log is not found",
+                value={"success": False, "error": "Log with id abc123 not found"},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="detail/(?P<log_id>[^/.]+)")
     def get_detail(self, request, log_id=None):

@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 User = get_user_model()
@@ -13,12 +14,30 @@ class BranchModelTest(TestCase):
     """Test cases for Branch model"""
 
     def setUp(self):
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
         self.branch_data = {
             "name": "Chi nhánh Hà Nội",
             "code": "HN",
             "address": "123 Lê Duẩn, Hà Nội",
             "phone": "0243456789",
             "email": "hanoi@maivietland.com",
+            "province": self.province,
+            "administrative_unit": self.administrative_unit,
         }
 
     def test_create_branch(self):
@@ -42,7 +61,28 @@ class BlockModelTest(TestCase):
     """Test cases for Block model"""
 
     def setUp(self):
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
 
     def test_create_support_block(self):
         """Test creating a support block"""
@@ -90,7 +130,28 @@ class DepartmentModelTest(TestCase):
     """Test cases for Department model"""
 
     def setUp(self):
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
@@ -100,7 +161,7 @@ class DepartmentModelTest(TestCase):
 
     def test_create_department(self):
         """Test creating a department"""
-        department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
         self.assertEqual(department.name, "Phòng Nhân sự")
         self.assertEqual(department.code, "NS")
         self.assertEqual(department.block, self.block)
@@ -109,11 +170,12 @@ class DepartmentModelTest(TestCase):
 
     def test_department_hierarchy(self):
         """Test department hierarchical structure"""
-        parent_dept = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        parent_dept = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
 
         child_dept = Department.objects.create(
             name="Ban Tuyển dụng",
             code="TD",
+            branch=self.branch,
             block=self.block,
             parent_department=parent_dept,
         )
@@ -124,11 +186,11 @@ class DepartmentModelTest(TestCase):
 
     def test_department_unique_together(self):
         """Test department code uniqueness within block"""
-        Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
+        Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch)
 
         # Should fail - same code in same block
         with self.assertRaises(Exception):  # IntegrityError
-            Department.objects.create(name="Phòng khác", code="NS", block=self.block)
+            Department.objects.create(name="Phòng khác", code="NS", block=self.block, branch=self.branch)
 
 
 class PositionModelTest(TestCase):
@@ -136,31 +198,29 @@ class PositionModelTest(TestCase):
 
     def test_create_position(self):
         """Test creating a position"""
-        position = Position.objects.create(name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO)
+        position = Position.objects.create(name="Tổng Giám đốc", code="TGD")
         self.assertEqual(position.name, "Tổng Giám đốc")
         self.assertEqual(position.code, "TGD")
-        self.assertEqual(position.level, Position.PositionLevel.CEO)
-        self.assertEqual(position.get_level_display(), "Chief Executive Officer (CEO)")
         self.assertTrue(position.is_active)
 
     def test_position_code_unique(self):
         """Test position code uniqueness"""
-        Position.objects.create(name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO)
+        Position.objects.create(name="Tổng Giám đốc", code="TGD")
 
         # Should fail - same code
         with self.assertRaises(Exception):  # IntegrityError
-            Position.objects.create(name="Tổng Giám đốc khác", code="TGD", level=Position.PositionLevel.CEO)
+            Position.objects.create(name="Tổng Giám đốc khác", code="TGD")
 
     def test_position_ordering(self):
-        """Test position ordering by level"""
-        ceo = Position.objects.create(name="Tổng Giám đốc", code="TGD", level=Position.PositionLevel.CEO)
-        director = Position.objects.create(name="Giám đốc", code="GD", level=Position.PositionLevel.DIRECTOR)
-        staff = Position.objects.create(name="Nhân viên", code="NV", level=Position.PositionLevel.STAFF)
+        """Test position ordering by name"""
+        director = Position.objects.create(name="Giám đốc", code="GD")
+        staff = Position.objects.create(name="Nhân viên", code="NV")
+        ceo = Position.objects.create(name="Tổng Giám đốc", code="TGD")
 
         positions = list(Position.objects.all())
-        self.assertEqual(positions[0], ceo)  # Level 1 first
-        self.assertEqual(positions[1], director)  # Level 2 second
-        self.assertEqual(positions[2], staff)  # Level 7 last
+        self.assertEqual(positions[0], director)  # "Giám đốc" alphabetically first
+        self.assertEqual(positions[1], staff)  # "Nhân viên" second
+        self.assertEqual(positions[2], ceo)  # "Tổng Giám đốc" last
 
 
 class OrganizationChartModelTest(TestCase):
@@ -174,15 +234,38 @@ class OrganizationChartModelTest(TestCase):
             last_name="User",
         )
 
-        self.branch = Branch.objects.create(name="Chi nhánh Hà Nội", code="HN")
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Chi nhánh Hà Nội",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
         self.block = Block.objects.create(
             name="Khối Hỗ trợ",
             code="HT",
             block_type=Block.BlockType.SUPPORT,
             branch=self.branch,
         )
-        self.department = Department.objects.create(name="Phòng Nhân sự", code="NS", block=self.block)
-        self.position = Position.objects.create(name="Trưởng phòng", code="TP", level=Position.PositionLevel.MANAGER)
+        self.department = Department.objects.create(
+            name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch
+        )
+        self.position = Position.objects.create(name="Trưởng phòng", code="TP")
 
     def test_create_organization_chart(self):
         """Test creating an organization chart entry"""
@@ -228,7 +311,6 @@ class OrganizationChartModelTest(TestCase):
         another_position = Position.objects.create(
             name="Phó Trưởng phòng",
             code="PTP",
-            level=Position.PositionLevel.DEPUTY_MANAGER,
         )
 
         # This should not raise ValidationError if we're not trying to make it primary

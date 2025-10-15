@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -14,11 +14,69 @@ from apps.core.models import Province
         summary="List provinces",
         description="Retrieve a list of all provinces/cities in the system",
         tags=["Geographic"],
+        examples=[
+            OpenApiExample(
+                "List provinces success",
+                description="Example response when listing provinces",
+                value={
+                    "success": True,
+                    "data": [
+                        {
+                            "id": 1,
+                            "code": "01",
+                            "name": "Thành phố Hà Nội",
+                            "english_name": "Ha Noi",
+                            "level": "central_city",
+                            "level_display": "Central City",
+                            "decree": "Nghị quyết 15/2019/NQ-CP",
+                            "enabled": True,
+                            "created_at": "2025-01-10T10:00:00Z",
+                            "updated_at": "2025-01-10T10:00:00Z",
+                        },
+                        {
+                            "id": 2,
+                            "code": "48",
+                            "name": "Thành phố Đà Nẵng",
+                            "english_name": "Da Nang",
+                            "level": "central_city",
+                            "level_display": "Central City",
+                            "decree": "Nghị quyết 120/2019/NQ-CP",
+                            "enabled": True,
+                            "created_at": "2025-01-10T10:00:00Z",
+                            "updated_at": "2025-01-10T10:00:00Z",
+                        },
+                    ],
+                },
+                response_only=True,
+            )
+        ],
     ),
     retrieve=extend_schema(
         summary="Retrieve a province",
         description="Retrieve detailed information about a specific province.",
         tags=["Geographic"],
+        examples=[
+            OpenApiExample(
+                "Get province success",
+                description="Example response when retrieving a province",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "01",
+                        "name": "Thành phố Hà Nội",
+                        "english_name": "Ha Noi",
+                        "level": "central_city",
+                        "level_display": "Central City",
+                        "decree": "Nghị quyết 15/2019/NQ-CP",
+                        "enabled": True,
+                        "created_at": "2025-01-10T10:00:00Z",
+                        "updated_at": "2025-01-10T10:00:00Z",
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
 )
 class ProvinceViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):

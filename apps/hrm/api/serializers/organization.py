@@ -1,11 +1,33 @@
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
+from apps.core.api.serializers.province import ProvinceSerializer
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+
+User = get_user_model()
 
 
 class BranchSerializer(serializers.ModelSerializer):
-    """Serializer for Branch model"""
+    """Serializer for Branch model - used for create/update operations"""
+
+    province_id = serializers.PrimaryKeyRelatedField(
+        source="province",
+        queryset=Province.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    province = ProvinceSerializer(read_only=True)
+    administrative_unit_id = serializers.PrimaryKeyRelatedField(
+        source="administrative_unit",
+        queryset=AdministrativeUnit.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    administrative_unit = AdministrativeUnitSerializer(read_only=True)
 
     class Meta:
         model = Branch
@@ -16,17 +38,36 @@ class BranchSerializer(serializers.ModelSerializer):
             "address",
             "phone",
             "email",
+            "province_id",
+            "administrative_unit_id",
+            "province",
+            "administrative_unit",
+            "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "code",
+            "province",
+            "administrative_unit",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class BlockSerializer(serializers.ModelSerializer):
     """Serializer for Block model"""
 
-    branch_name = serializers.CharField(source="branch.name", read_only=True)
+    branch_id = serializers.PrimaryKeyRelatedField(
+        source="branch",
+        queryset=Branch.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    branch = BranchSerializer(read_only=True)
     block_type_display = serializers.CharField(source="get_block_type_display", read_only=True)
 
     class Meta:
@@ -37,8 +78,8 @@ class BlockSerializer(serializers.ModelSerializer):
             "code",
             "block_type",
             "block_type_display",
+            "branch_id",
             "branch",
-            "branch_name",
             "description",
             "is_active",
             "created_at",
@@ -49,18 +90,44 @@ class BlockSerializer(serializers.ModelSerializer):
             "code",
             "created_at",
             "updated_at",
-            "branch_name",
+            "branch",
             "block_type_display",
+            "is_active",
         ]
+
+
+class DepartmentNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested department references"""
+
+    class Meta:
+        model = Department
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id", "name", "code"]
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     """Serializer for Department model"""
 
-    block_name = serializers.CharField(source="block.name", read_only=True)
-    block_type = serializers.CharField(source="block.block_type", read_only=True)
-    parent_department_name = serializers.CharField(source="parent_department.name", read_only=True)
-    management_department_name = serializers.CharField(source="management_department.name", read_only=True)
+    branch = BranchSerializer(read_only=True)
+    branch_id = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(), source="branch", write_only=True, required=True
+    )
+    block = BlockSerializer(read_only=True)
+    block_id = serializers.PrimaryKeyRelatedField(
+        queryset=Block.objects.all(), source="block", write_only=True, required=True
+    )
+    parent_department = DepartmentNestedSerializer(read_only=True)
+    parent_department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(), source="parent_department", write_only=True, required=False, allow_null=True
+    )
+    management_department = DepartmentNestedSerializer(read_only=True)
+    management_department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source="management_department",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
     function_display = serializers.CharField(source="get_function_display", read_only=True)
     full_hierarchy = serializers.CharField(read_only=True)
     available_function_choices = serializers.SerializerMethodField()
@@ -72,17 +139,18 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "code",
+            "branch",
+            "branch_id",
             "block",
-            "block_name",
-            "block_type",
+            "block_id",
             "parent_department",
-            "parent_department_name",
+            "parent_department_id",
+            "management_department",
+            "management_department_id",
             "function",
             "function_display",
             "available_function_choices",
             "is_main_department",
-            "management_department",
-            "management_department_name",
             "available_management_departments",
             "full_hierarchy",
             "description",
@@ -92,24 +160,28 @@ class DepartmentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "code",
             "created_at",
             "updated_at",
-            "block_name",
-            "block_type",
-            "parent_department_name",
-            "management_department_name",
+            "branch",
+            "block",
+            "parent_department",
+            "management_department",
             "function_display",
             "full_hierarchy",
             "available_function_choices",
             "available_management_departments",
+            "is_active",
         ]
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_available_function_choices(self, obj):
         """Get available function choices based on block type"""
         if obj.block:
             return Department.get_function_choices_for_block_type(obj.block.block_type)
         return []
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_available_management_departments(self, obj):
         """Get available management departments with same function"""
         if obj.function and obj.block:
@@ -130,7 +202,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             ]
         return []
 
-    def validate_parent_department(self, value):
+    def validate_parent_department_id(self, value):
         """Validate parent department is in the same block"""
         if value and self.instance:
             if value.block != self.instance.block:
@@ -138,9 +210,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
                     _("Parent department must be in the same block as the child department.")
                 )
         elif value and "block" in self.initial_data:
-            # For creation
+            # For creation - use block_id from initial_data
             try:
-                block = Block.objects.get(id=self.initial_data["block"])
+                block_id = self.initial_data.get("block_id") or self.initial_data.get("block")
+                block = Block.objects.get(id=block_id)
                 if value.block != block:
                     raise serializers.ValidationError(
                         _("Parent department must be in the same block as the child department.")
@@ -149,15 +222,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
                 pass
         return value
 
-    def validate_management_department(self, value):
+    def validate_management_department_id(self, value):
         """Validate management department constraints"""
         if value:
-            block_id = self.initial_data.get("block") if not self.instance else self.instance.block.id
-            function = self.initial_data.get("function") if not self.instance else self.instance.function
-
             # Check for self-reference
             if self.instance and value.id == self.instance.id:
                 raise serializers.ValidationError(_("Department cannot manage itself."))
+
+            block_id = (
+                self.initial_data.get("block_id") or self.initial_data.get("block")
+                if not self.instance
+                else self.instance.block.id
+            )
+            function = self.initial_data.get("function") if not self.instance else self.instance.function
 
             try:
                 block = Block.objects.get(id=block_id)
@@ -210,45 +287,66 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
 
-    level_display = serializers.CharField(source="get_level_display", read_only=True)
-
     class Meta:
         model = Position
         fields = [
             "id",
             "name",
             "code",
-            "level",
-            "level_display",
             "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "level_display"]
+        read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]
+
+
+class EmployeeNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested employee references"""
+
+    full_name = serializers.CharField(source="get_full_name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "full_name"]
+        read_only_fields = ["id", "username", "email", "full_name"]
 
 
 class OrganizationChartSerializer(serializers.ModelSerializer):
     """Serializer for OrganizationChart model"""
 
-    employee_name = serializers.CharField(source="employee.get_full_name", read_only=True)
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    position_name = serializers.CharField(source="position.name", read_only=True)
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    department_hierarchy = serializers.CharField(source="department.full_hierarchy", read_only=True)
+    employee_id = serializers.PrimaryKeyRelatedField(
+        source="employee",
+        queryset=User.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    employee = EmployeeNestedSerializer(read_only=True)
+    position_id = serializers.PrimaryKeyRelatedField(
+        source="position",
+        queryset=Position.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    position = PositionSerializer(read_only=True)
+    department_id = serializers.PrimaryKeyRelatedField(
+        source="department",
+        queryset=Department.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    department = DepartmentNestedSerializer(read_only=True)
 
     class Meta:
         model = OrganizationChart
         fields = [
             "id",
+            "employee_id",
             "employee",
-            "employee_name",
-            "employee_username",
+            "position_id",
             "position",
-            "position_name",
+            "department_id",
             "department",
-            "department_name",
-            "department_hierarchy",
             "start_date",
             "end_date",
             "is_primary",
@@ -260,11 +358,10 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "updated_at",
-            "employee_name",
-            "employee_username",
-            "position_name",
-            "department_name",
-            "department_hierarchy",
+            "employee",
+            "position",
+            "department",
+            "is_active",
         ]
 
     def validate(self, attrs):
@@ -284,6 +381,7 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
     position = PositionSerializer(read_only=True)
     department = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.DictField())
     def get_employee(self, obj):
         """Get employee basic info"""
         return {
@@ -293,6 +391,7 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
             "email": obj.employee.email,
         }
 
+    @extend_schema_field(serializers.DictField())
     def get_department(self, obj):
         """Get department with block info"""
         return {

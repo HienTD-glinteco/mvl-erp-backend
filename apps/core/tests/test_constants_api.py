@@ -77,11 +77,14 @@ class ConstantsAPITestCase(TestCase):
         for module_name, module_constants in data.items():
             for constant_name, constant_value in module_constants.items():
                 if isinstance(constant_value, list) and len(constant_value) > 0:
-                    # Check format of choice items
+                    # Check format of choice items - new format uses {value: label} pairs
                     choice_item = constant_value[0]
                     self.assertIsInstance(choice_item, dict)
-                    self.assertIn("value", choice_item)
-                    self.assertIn("label", choice_item)
+                    # Each item should be a dict with one key-value pair (choice value -> label)
+                    self.assertEqual(len(choice_item), 1)
+                    # The dict should have a string value (the label)
+                    for key, value in choice_item.items():
+                        self.assertIsInstance(value, str)
                     found_choice = True
                     break
             if found_choice:
@@ -163,21 +166,6 @@ class ConstantsAPITestCase(TestCase):
         hrm_constants = data.get("hrm", {})
         block_type_found = any("BlockType" in key for key in hrm_constants.keys())
         self.assertTrue(block_type_found, "Should contain Block BlockType choices")
-
-    def test_constants_position_level_choices(self):
-        """Test that Position.PositionLevel choices are included"""
-        # Act
-        response = self.client.get(self.url, {"modules": "hrm"})
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        data = response_data.get("data", {})
-
-        # Should have Position_PositionLevel constant
-        hrm_constants = data.get("hrm", {})
-        position_level_found = any("PositionLevel" in key for key in hrm_constants.keys())
-        self.assertTrue(position_level_found, "Should contain Position PositionLevel choices")
 
     def test_constants_department_function_choices(self):
         """Test that Department.DepartmentFunction choices are included"""

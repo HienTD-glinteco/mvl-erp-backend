@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 10:02+0700\n"
+"POT-Creation-Date: 2025-10-15 12:25+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -299,39 +299,13 @@ msgstr "Cần chọn ít nhất 1 Quyền"
 msgid "Role name already exists"
 msgstr "Tên vai trò đã tồn tại"
 
-#: apps/core/api/serializers/role.py:93
+#: apps/core/api/serializers/role.py:80
 msgid "System roles can only update permissions, not other fields"
 msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
-# api/views/auth/login.py:33
-#: apps/core/api/views/auth/login.py:34
-msgid "Login with username and password"
-msgstr "Đăng nhập với tên đăng nhập và mật khẩu"
-
-# api/views/auth/login.py:34
-#: apps/core/api/views/auth/login.py:35
-msgid "Authenticate login credentials and send OTP code via email"
-msgstr "Xác thực thông tin đăng nhập và gửi mã OTP qua email"
-
-# api/views/auth/login.py:37
-#: apps/core/api/views/auth/login.py:38
-msgid "Invalid login credentials"
-msgstr "Thông tin đăng nhập không hợp lệ"
-
-# api/views/auth/login.py:38
-#: apps/core/api/views/auth/login.py:39
-msgid "Too many login requests"
-msgstr "Quá nhiều yêu cầu đăng nhập"
-
-# api/views/auth/login.py:39
-#: apps/core/api/views/auth/login.py:40
-#: apps/core/api/views/auth/password_reset.py:43
-msgid "System error while sending OTP"
-msgstr "Lỗi hệ thống khi gửi OTP"
-
 # api/views/auth/login.py:52
-#: apps/core/api/views/auth/login.py:54
+#: apps/core/api/views/auth/login.py:89
 msgid ""
 "OTP code has been sent to your email. Please check your email and enter the "
 "OTP code to complete login."
@@ -340,7 +314,7 @@ msgstr ""
 "để hoàn tất đăng nhập."
 
 # api/views/auth/login.py:60
-#: apps/core/api/views/auth/login.py:63
+#: apps/core/api/views/auth/login.py:98
 msgid "Unable to send OTP code. Please try again later."
 msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
 
@@ -366,18 +340,18 @@ msgid "Too many verification requests"
 msgstr "Quá nhiều yêu cầu xác thực"
 
 # api/views/auth/otp_verification.py:77
-#: apps/core/api/views/auth/otp_verification.py:77
+#: apps/core/api/views/auth/otp_verification.py:84
 #, python-brace-format
 msgid "Your account was logged in from IP address: {ip_address}"
 msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ IP: {ip_address}"
 
 # api/views/auth/otp_verification.py:81
-#: apps/core/api/views/auth/otp_verification.py:82
+#: apps/core/api/views/auth/otp_verification.py:89
 msgid "logged in"
 msgstr "đã đăng nhập"
 
 # api/views/auth/otp_verification.py:58
-#: apps/core/api/views/auth/otp_verification.py:92
+#: apps/core/api/views/auth/otp_verification.py:99
 msgid "Login successful."
 msgstr "Đăng nhập thành công."
 
@@ -407,7 +381,7 @@ msgid "Too many password change requests"
 msgstr "Quá nhiều yêu cầu thay đổi mật khẩu"
 
 # api/views/auth/password_change.py:50
-#: apps/core/api/views/auth/password_change.py:64
+#: apps/core/api/views/auth/password_change.py:71
 msgid ""
 "Password has been changed successfully. All other login sessions have been "
 "logged out."
@@ -438,6 +412,11 @@ msgstr "Thông tin không hợp lệ"
 #: apps/core/api/views/auth/password_reset.py:42
 msgid "Too many password reset requests"
 msgstr "Quá nhiều yêu cầu đặt lại mật khẩu"
+
+# api/views/auth/login.py:39
+#: apps/core/api/views/auth/password_reset.py:43
+msgid "System error while sending OTP"
+msgstr "Lỗi hệ thống khi gửi OTP"
 
 # api/views/auth/password_reset.py:63
 #: apps/core/api/views/auth/password_reset.py:65
@@ -481,7 +460,7 @@ msgid "Too many requests"
 msgstr "Quá nhiều yêu cầu"
 
 # api/views/auth/password_reset_change_password.py:51
-#: apps/core/api/views/auth/password_reset_change_password.py:62
+#: apps/core/api/views/auth/password_reset_change_password.py:69
 msgid ""
 "Password has been reset successfully. All old login sessions have been "
 "logged out."
@@ -624,28 +603,22 @@ msgid "Unit code"
 msgstr ""
 
 #: apps/core/models/administrative_unit.py:23
-#, fuzzy
-#| msgid "Unique identifier for the device"
 msgid "Unique identifier code for the administrative unit"
-msgstr "Mã định danh duy nhất cho thiết bị"
+msgstr "Mã định danh duy nhất cho đơn vị hành chính"
 
 # models/user.py:16
 #: apps/core/models/administrative_unit.py:27
-#, fuzzy
-#| msgid "First name"
 msgid "Unit name"
-msgstr "Tên"
+msgstr "Tên đơn vị hành chính"
 
 #: apps/core/models/administrative_unit.py:28
 msgid "Official name of the administrative unit"
-msgstr ""
+msgstr "Tên chính thức của đơn vị hành chính"
 
 # models/user.py:16
 #: apps/core/models/administrative_unit.py:33 apps/core/models/province.py:31
-#, fuzzy
-#| msgid "First name"
 msgid "English name"
-msgstr "Tên"
+msgstr "Tên tiêng Anh"
 
 #: apps/core/models/administrative_unit.py:34
 msgid "English name of the administrative unit"
@@ -684,7 +657,7 @@ msgid "Administrative Units"
 msgstr ""
 
 # models/user.py:41
-#: apps/core/models/device.py:13 apps/core/models/role.py:36
+#: apps/core/models/device.py:13 apps/core/models/role.py:39
 #: apps/core/models/user.py:62
 msgid "User"
 msgstr "Người dùng"
@@ -812,7 +785,7 @@ msgstr "Mã quyền"
 msgid "Permission name"
 msgstr "Tên quyền"
 
-#: apps/core/models/permission.py:12 apps/core/models/role.py:14
+#: apps/core/models/permission.py:12 apps/core/models/role.py:17
 msgid "Description"
 msgstr "Mô tả"
 
@@ -828,7 +801,7 @@ msgstr "Phân hệ con"
 msgid "Permission"
 msgstr "Quyền"
 
-#: apps/core/models/permission.py:18 apps/core/models/role.py:19
+#: apps/core/models/permission.py:18 apps/core/models/role.py:22
 msgid "Permissions"
 msgstr "Quyền"
 
@@ -842,35 +815,29 @@ msgstr ""
 
 # models/permission.py
 #: apps/core/models/province.py:20
-#, fuzzy
-#| msgid "Permission code"
 msgid "Province code"
-msgstr "Mã quyền"
+msgstr "Mã tỉnh/thành"
 
 #: apps/core/models/province.py:21
-#, fuzzy
-#| msgid "Unique identifier for the device"
 msgid "Unique identifier code for the province"
-msgstr "Mã định danh duy nhất cho thiết bị"
+msgstr "Mã định danh duy nhất cho tỉnh/thành"
 
 # models/permission.py
 #: apps/core/models/province.py:25
-#, fuzzy
-#| msgid "Permission name"
 msgid "Province name"
-msgstr "Tên quyền"
+msgstr "Tên tỉnh/thành"
 
 #: apps/core/models/province.py:26
 msgid "Official name of the province"
-msgstr ""
+msgstr "Tên chính thức của tỉnh/thành"
 
 #: apps/core/models/province.py:32
 msgid "English name of the province"
-msgstr ""
+msgstr "Tên tiếng Anh của tỉnh/thành"
 
 #: apps/core/models/province.py:38
 msgid "Administrative level of the province"
-msgstr ""
+msgstr "Cấp đơn vị hành chính của tỉnh/thành"
 
 #: apps/core/models/province.py:43
 msgid "Decree"
@@ -889,36 +856,36 @@ msgid "Provinces"
 msgstr ""
 
 # models/role.py
-#: apps/core/models/role.py:12
+#: apps/core/models/role.py:15
 msgid "Role code"
 msgstr "Mã vai trò"
 
-#: apps/core/models/role.py:13
+#: apps/core/models/role.py:16
 msgid "Role name"
 msgstr "Tên vai trò"
 
-#: apps/core/models/role.py:15
+#: apps/core/models/role.py:18
 msgid "System role"
 msgstr "Vai trò hệ thống"
 
-#: apps/core/models/role.py:24 apps/core/models/user.py:31
+#: apps/core/models/role.py:27 apps/core/models/user.py:31
 #: apps/core/models/user.py:53
 msgid "Role"
 msgstr "Vai trò"
 
-#: apps/core/models/role.py:25
+#: apps/core/models/role.py:28
 msgid "Roles"
 msgstr "Vai trò"
 
-#: apps/core/models/role.py:36
+#: apps/core/models/role.py:39
 msgid "System"
 msgstr "Hệ thống"
 
-#: apps/core/models/role.py:42
+#: apps/core/models/role.py:45
 msgid "Cannot delete system role"
 msgstr "Không thể xóa vai trò hệ thống"
 
-#: apps/core/models/role.py:46
+#: apps/core/models/role.py:49
 msgid "Role is currently being used by employees"
 msgstr "Vai trò đang được sử dụng bởi nhân viên"
 

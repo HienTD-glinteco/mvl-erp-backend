@@ -1,5 +1,4 @@
 import json
-import os
 
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
@@ -19,7 +18,11 @@ class APITestMixin:
         """Extract data from wrapped API response"""
         content = json.loads(response.content.decode())
         if "data" in content:
-            return content["data"]
+            data = content["data"]
+            # Handle paginated responses - extract results list
+            if isinstance(data, dict) and "results" in data:
+                return data["results"]
+            return data
         return content
 
 
@@ -272,7 +275,8 @@ class AdministrativeUnitAPITest(TransactionTestCase, APITestMixin):
         """Test combining multiple filters"""
         url = reverse("core:administrative-unit-list")
         response = self.client.get(
-            url, {"parent_province": self.province1.id, "level": AdministrativeUnit.UnitLevel.DISTRICT, "enabled": "true"}
+            url,
+            {"parent_province": self.province1.id, "level": AdministrativeUnit.UnitLevel.DISTRICT, "enabled": "true"},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

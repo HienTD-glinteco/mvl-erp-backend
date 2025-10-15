@@ -18,7 +18,11 @@ class APITestMixin:
         """Extract data from wrapped API response"""
         content = json.loads(response.content.decode())
         if "data" in content:
-            return content["data"]
+            data = content["data"]
+            # Handle paginated responses - extract results list
+            if isinstance(data, dict) and "results" in data:
+                return data["results"]
+            return data
         return content
 
 
@@ -291,3 +295,48 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         num1 = int(code1[2:])
         num2 = int(code2[2:])
         self.assertEqual(num2, num1 + 1)
+
+    def test_pagination_with_page_size(self):
+        """Test that page_size query parameter works correctly"""
+        # Create multiple roles for pagination testing
+        for i in range(15):
+            Role.objects.create(
+                code=f"VTP{i:03d}",
+                name=f"Test Role {i}",
+                description=f"Test role {i} for pagination",
+            )
+
+        url = reverse("core:role-list")
+
+        # Test with default page size (25)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        # Should return all roles (2 system + 15 test = 17 total, less than default 25)
+        self.assertEqual(len(response_data), 17)
+
+        # Test with custom page_size=5
+        response = self.client.get(url, {"page_size": 5})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode())
+        data = content["data"]
+        self.assertEqual(len(data["results"]), 5)
+        self.assertEqual(data["count"], 17)
+        self.assertIsNotNone(data["next"])
+        self.assertIsNone(data["previous"])
+
+        # Test with page_size=10 and page=2
+        response = self.client.get(url, {"page_size": 10, "page": 2})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content.decode())
+        data = content["data"]
+        self.assertEqual(len(data["results"]), 7)  # 17 total - 10 on page 1 = 7 on page 2
+        self.assertIsNone(data["next"])
+        self.assertIsNotNone(data["previous"])
+
+        # Test with page_size exceeding max (100)
+        response = self.client.get(url, {"page_size": 200})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        # Should be capped at 100, but we only have 17 items
+        self.assertEqual(len(response_data), 17)

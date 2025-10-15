@@ -26,6 +26,8 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
+    "DEFAULT_PAGINATION_CLASS": "libs.pagination.PageNumberWithSizePagination",
+    "PAGE_SIZE": 25,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
@@ -40,7 +42,7 @@ SPECTACULAR_SETTINGS = {
     "SORT_OPERATIONS": False,
     "SCHEMA_PATH_PREFIX": "/api/",
     "POSTPROCESSING_HOOKS": [
-        "libs.schema_hooks.wrap_with_envelope",
+        "libs.spectacular.schema_hooks.wrap_with_envelope",
     ],
 }
 

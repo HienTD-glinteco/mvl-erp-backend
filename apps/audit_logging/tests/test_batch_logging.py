@@ -9,13 +9,15 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.audit_logging import AuditLogRegistry, LogAction, audit_logging_register, batch_audit_context
+from libs.models import create_dummy_model
 
 User = get_user_model()
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestBatchAuditContext(TestCase):
     """Test cases for the batch_audit_context context manager."""
 
@@ -23,17 +25,14 @@ class TestBatchAuditContext(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestBatchModel(models.Model):
-            """Test model for batch audit logging tests."""
-
-            name = models.CharField(max_length=100)
-            value = models.IntegerField(default=0)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        AuditLogRegistry.register(TestBatchModel)
-        cls.TestBatchModel = TestBatchModel
+        cls.TestBatchModel = create_dummy_model(
+            base_name="TestBatchModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
+        AuditLogRegistry.register(cls.TestBatchModel)
 
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
@@ -149,6 +148,7 @@ class TestBatchAuditContext(TestCase):
         self.assertEqual(len(call_args["errors"]), 20)  # Limited to first 20
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestBatchWithDecorator(TestCase):
     """Test that batch context works with the @audit_logging decorator."""
 
@@ -160,17 +160,16 @@ class TestBatchWithDecorator(TestCase):
     def test_batch_context_creates_individual_logs_with_metadata(self, mock_log_event):
         """Test that individual logs ARE created with batch metadata attached."""
 
-        # Apply decorator to test model
-        @audit_logging_register
-        class BatchDecoratedModel(models.Model):
-            name = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "audit_logging"
-
         from django.db.models.signals import post_save
 
         from apps.audit_logging.middleware import audit_context
+
+        # Create and register a decorated model
+        BatchDecoratedModel = create_dummy_model(
+            base_name="BatchDecoratedModel",
+            fields={"name": models.CharField(max_length=100)},
+        )
+        BatchDecoratedModel = audit_logging_register(BatchDecoratedModel)
 
         request = self.factory.post("/api/import/")
         request.user = self.user

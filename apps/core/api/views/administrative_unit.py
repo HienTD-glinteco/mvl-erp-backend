@@ -1,8 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.pagination import PageNumberPagination
 
 from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets.administrative_unit import AdministrativeUnitFilterSet
@@ -15,11 +14,77 @@ from apps.core.models import AdministrativeUnit
         summary="List administrative units",
         description="Retrieve a paginated list of all administrative units (districts, wards, communes, etc.)",
         tags=["Geographic"],
+        examples=[
+            OpenApiExample(
+                "List administrative units success",
+                description="Example response when listing administrative units",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "001",
+                                "name": "Quận Ba Đình",
+                                "parent_province": 1,
+                                "province_code": "01",
+                                "province_name": "Thành phố Hà Nội",
+                                "level": "district",
+                                "level_display": "District",
+                                "enabled": True,
+                                "created_at": "2025-01-10T10:00:00Z",
+                                "updated_at": "2025-01-10T10:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "code": "002",
+                                "name": "Quận Hoàn Kiếm",
+                                "parent_province": 1,
+                                "province_code": "01",
+                                "province_name": "Thành phố Hà Nội",
+                                "level": "district",
+                                "level_display": "District",
+                                "enabled": True,
+                                "created_at": "2025-01-10T10:00:00Z",
+                                "updated_at": "2025-01-10T10:00:00Z",
+                            },
+                        ],
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
     retrieve=extend_schema(
         summary="Retrieve an administrative unit",
         description="Retrieve detailed information about a specific administrative unit.",
         tags=["Geographic"],
+        examples=[
+            OpenApiExample(
+                "Get administrative unit success",
+                description="Example response when retrieving an administrative unit",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "001",
+                        "name": "Quận Ba Đình",
+                        "parent_province": 1,
+                        "province_code": "01",
+                        "province_name": "Thành phố Hà Nội",
+                        "level": "district",
+                        "level_display": "District",
+                        "enabled": True,
+                        "created_at": "2025-01-10T10:00:00Z",
+                        "updated_at": "2025-01-10T10:00:00Z",
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
 )
 class AdministrativeUnitViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
@@ -32,7 +97,6 @@ class AdministrativeUnitViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet
     search_fields = ["name", "code"]
     ordering_fields = ["code", "name", "parent_province__code", "created_at"]
     ordering = ["parent_province__code", "code"]
-    pagination_class = PageNumberPagination
 
     # Permission registration attributes
     module = "Core"

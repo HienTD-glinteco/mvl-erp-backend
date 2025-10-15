@@ -5,18 +5,15 @@ DRF ViewSet mixin for XLSX export functionality.
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
-
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 
 from .constants import ERROR_MISSING_MODEL, ERROR_MISSING_QUERYSET
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
 from .serializers import ExportAsyncResponseSerializer
-from .storage import get_storage_backend
 from .tasks import generate_xlsx_task
 
 

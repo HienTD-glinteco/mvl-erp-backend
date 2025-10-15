@@ -9,14 +9,16 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_delete, post_save
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.audit_logging import LogAction, audit_logging_register, log_audit_event
 from apps.audit_logging.middleware import audit_context, get_current_request, get_current_user, set_current_request
+from libs.models import create_dummy_model
 
 User = get_user_model()
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestLogAuditEvent(TestCase):
     """Test cases for the refactored log_audit_event function."""
 
@@ -24,14 +26,13 @@ class TestLogAuditEvent(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        class TestModel(models.Model):
-            name = models.CharField(max_length=100)
-            value = models.IntegerField(default=0)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        cls.TestModel = TestModel
+        cls.TestModel = create_dummy_model(
+            base_name="TestLogAuditEventModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
 
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
@@ -66,7 +67,7 @@ class TestLogAuditEvent(TestCase):
 
         # Verify the logged data
         self.assertEqual(call_args["action"], LogAction.ADD)
-        self.assertEqual(call_args["object_type"], "testmodel")
+        self.assertEqual(call_args["object_type"], self.TestModel._meta.model_name)
         self.assertEqual(call_args["object_id"], "1")
         self.assertEqual(call_args["object_repr"], str(test_obj))
         self.assertEqual(call_args["user_id"], str(self.user.pk))
@@ -173,6 +174,7 @@ class TestLogAuditEvent(TestCase):
         self.assertEqual(call_args["import_source"], "excel_file.xlsx")
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditContext(TestCase):
     """Test cases for the audit context functionality."""
 
@@ -247,6 +249,7 @@ class TestAuditContext(TestCase):
             self.assertIsNone(current_user)
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditLoggingDecorator(TestCase):
     """Test cases for the @audit_logging decorator."""
 
@@ -254,14 +257,11 @@ class TestAuditLoggingDecorator(TestCase):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
-        @audit_logging_register
-        class DecoratedModel(models.Model):
-            name = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "audit_logging"
-
-        self.DecoratedModel = DecoratedModel
+        self.DecoratedModel = create_dummy_model(
+            base_name="TestAuditLoggingDecoratorModel",
+            fields={"name": models.CharField(max_length=100)},
+        )
+        self.DecoratedModel = audit_logging_register(self.DecoratedModel)
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_decorator_logs_create(self, mock_log_event):
@@ -328,6 +328,7 @@ class TestAuditLoggingDecorator(TestCase):
             self.assertEqual(call_args["action"], LogAction.DELETE)
 
 
+@override_settings(AUDIT_LOG_DISABLED=False)
 class TestLogActionEnum(TestCase):
     """Test cases for the LogAction enum."""
 
@@ -352,3 +353,57 @@ class TestLogActionEnum(TestCase):
         choices = LogAction.choices
         self.assertEqual(len(choices), 8)
         self.assertIn(("ADD", LogAction.ADD.label), choices)
+
+
+@override_settings(AUDIT_LOG_DISABLED=True)
+class TestAuditLogDisabled(TestCase):
+    """Test cases for AUDIT_LOG_DISABLED setting."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.TestModel = create_dummy_model(
+            base_name="TestAuditLogDisabledModel",
+            fields={
+                "name": models.CharField(max_length=100),
+                "value": models.IntegerField(default=0),
+            },
+        )
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.factory = RequestFactory()
+
+    @patch("asyncio.run")
+    def test_log_event_writes_to_file_but_not_rabbitmq_when_disabled(self, mock_asyncio_run):
+        """Test that when AUDIT_LOG_DISABLED=True, logs are written to file but not sent to RabbitMQ."""
+        test_obj = self.TestModel(name="Test", value=42)
+        test_obj.pk = 1
+
+        # Call log_audit_event
+        log_audit_event(
+            action=LogAction.ADD,
+            original_object=None,
+            modified_object=test_obj,
+            user=self.user,
+        )
+
+        # Verify asyncio.run was NOT called (RabbitMQ send should not happen when disabled)
+        mock_asyncio_run.assert_not_called()
+
+    @patch("asyncio.run")
+    def test_log_event_directly_respects_disabled_setting(self, mock_asyncio_run):
+        """Test that AuditStreamProducer.log_event respects AUDIT_LOG_DISABLED setting."""
+        from apps.audit_logging.producer import _audit_producer
+
+        # Call log_event directly
+        _audit_producer.log_event(
+            action=LogAction.ADD,
+            object_type="test_model",
+            object_id="1",
+            object_repr="Test Object",
+        )
+
+        # Verify asyncio.run was NOT called (RabbitMQ send should not happen when disabled)
+        mock_asyncio_run.assert_not_called()

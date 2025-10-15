@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -30,31 +30,181 @@ from libs import BaseModelViewSet
         summary="List all branches",
         description="Retrieve a list of all branches in the system",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "List branches success",
+                description="Example response when listing branches",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": "550e8400-e29b-41d4-a716-446655440000",
+                                "code": "CN001",
+                                "name": "Chi nhánh Hà Nội",
+                                "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                                "phone": "024-3456-7890",
+                                "email": "hanoi@example.com",
+                                "is_active": True,
+                                "created_at": "2025-01-10T10:00:00Z",
+                                "updated_at": "2025-01-10T10:00:00Z",
+                            },
+                            {
+                                "id": "550e8400-e29b-41d4-a716-446655440001",
+                                "code": "CN002",
+                                "name": "Chi nhánh TP.HCM",
+                                "address": "456 Nguyễn Văn Linh, Quận 7, TP.HCM",
+                                "phone": "028-9876-5432",
+                                "email": "hcmc@example.com",
+                                "is_active": True,
+                                "created_at": "2025-01-11T14:30:00Z",
+                                "updated_at": "2025-01-11T14:30:00Z",
+                            },
+                        ],
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
     create=extend_schema(
         summary="Create a new branch",
         description="Create a new branch in the system",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "Create branch request",
+                description="Example request to create a new branch",
+                value={"name": "Chi nhánh Đà Nẵng", "address": "789 Trần Phú, Hải Châu, Đà Nẵng", "phone": "0236-1234-567", "email": "danang@example.com", "is_active": True},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Create branch success",
+                description="Success response when creating a branch",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440003",
+                        "code": "CN003",
+                        "name": "Chi nhánh Đà Nẵng",
+                        "address": "789 Trần Phú, Hải Châu, Đà Nẵng",
+                        "phone": "0236-1234-567",
+                        "email": "danang@example.com",
+                        "is_active": True,
+                        "created_at": "2025-01-15T09:20:00Z",
+                        "updated_at": "2025-01-15T09:20:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get branch details",
         description="Retrieve detailed information about a specific branch",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "Get branch success",
+                description="Example response when retrieving a branch",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "code": "CN001",
+                        "name": "Chi nhánh Hà Nội",
+                        "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                        "phone": "024-3456-7890",
+                        "email": "hanoi@example.com",
+                        "is_active": True,
+                        "created_at": "2025-01-10T10:00:00Z",
+                        "updated_at": "2025-01-10T10:00:00Z",
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
     update=extend_schema(
         summary="Update branch",
         description="Update branch information",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "Update branch request",
+                description="Example request to update a branch",
+                value={"name": "Chi nhánh Hà Nội - Cập nhật", "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội", "phone": "024-3456-7899", "email": "hanoi@example.com", "is_active": True},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Update branch success",
+                description="Success response when updating a branch",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "code": "CN001",
+                        "name": "Chi nhánh Hà Nội - Cập nhật",
+                        "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                        "phone": "024-3456-7899",
+                        "email": "hanoi@example.com",
+                        "is_active": True,
+                        "created_at": "2025-01-10T10:00:00Z",
+                        "updated_at": "2025-01-16T11:45:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Partially update branch",
         description="Partially update branch information",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "Partial update request",
+                description="Example request to partially update a branch",
+                value={"phone": "024-3456-7891"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Partial update success",
+                description="Success response when partially updating a branch",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "code": "CN001",
+                        "name": "Chi nhánh Hà Nội",
+                        "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                        "phone": "024-3456-7891",
+                        "email": "hanoi@example.com",
+                        "is_active": True,
+                        "created_at": "2025-01-10T10:00:00Z",
+                        "updated_at": "2025-01-16T13:20:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
     ),
     destroy=extend_schema(
         summary="Delete branch",
         description="Remove a branch from the system",
         tags=["Branch"],
+        examples=[
+            OpenApiExample(
+                "Delete branch success",
+                description="Success response when deleting a branch",
+                value=None,
+                response_only=True,
+                status_codes=["204"],
+            )
+        ],
     ),
 )
 class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -305,8 +455,8 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     filterset_class = PositionFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
-    ordering_fields = ["name", "code", "level", "created_at"]
-    ordering = ["level", "code"]
+    ordering_fields = ["name", "code", "created_at"]
+    ordering = ["name", "code"]
 
     # Permission registration attributes
     module = "HRM"
@@ -360,8 +510,8 @@ class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
         "position__name",
         "department__name",
     ]
-    ordering_fields = ["start_date", "created_at", "position__level"]
-    ordering = ["position__level", "start_date"]
+    ordering_fields = ["start_date", "created_at", "position__name"]
+    ordering = ["position__name", "start_date"]
 
     # Permission registration attributes
     module = "HRM"
@@ -407,9 +557,9 @@ class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
 
             hierarchy[dept_key]["positions"].append(OrganizationChartDetailSerializer(org_chart).data)
 
-        # Sort positions by level within each department
+        # Sort positions by name within each department
         for dept_data in hierarchy.values():
-            dept_data["positions"].sort(key=lambda x: x["position"]["level"])
+            dept_data["positions"].sort(key=lambda x: x["position"]["name"])
 
         return Response(list(hierarchy.values()))
 

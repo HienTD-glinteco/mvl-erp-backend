@@ -71,14 +71,11 @@ class PositionFilterSet(django_filters.FilterSet):
 
     name = django_filters.CharFilter(lookup_expr="icontains")
     code = django_filters.CharFilter(lookup_expr="icontains")
-    level = django_filters.ChoiceFilter(choices=Position.PositionLevel.choices)
-    level_gte = django_filters.NumberFilter(field_name="level", lookup_expr="gte")
-    level_lte = django_filters.NumberFilter(field_name="level", lookup_expr="lte")
     is_active = django_filters.BooleanFilter()
 
     class Meta:
         model = Position
-        fields = ["name", "code", "level", "level_gte", "level_lte", "is_active"]
+        fields = ["name", "code", "is_active"]
 
 
 class OrganizationChartFilterSet(django_filters.FilterSet):
@@ -87,7 +84,6 @@ class OrganizationChartFilterSet(django_filters.FilterSet):
     employee = django_filters.UUIDFilter()
     employee_username = django_filters.CharFilter(field_name="employee__username", lookup_expr="icontains")
     position = django_filters.ModelChoiceFilter(queryset=Position.objects.all())
-    position_level = django_filters.ChoiceFilter(field_name="position__level", choices=Position.PositionLevel.choices)
     department = django_filters.ModelChoiceFilter(queryset=Department.objects.all())
     department_code = django_filters.CharFilter(field_name="department__code", lookup_expr="icontains")
     block = django_filters.ModelChoiceFilter(field_name="department__block", queryset=Block.objects.all())
@@ -113,7 +109,6 @@ class OrganizationChartFilterSet(django_filters.FilterSet):
             "employee",
             "employee_username",
             "position",
-            "position_level",
             "department",
             "department_code",
             "block",

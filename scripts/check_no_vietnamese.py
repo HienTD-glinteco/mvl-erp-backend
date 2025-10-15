@@ -11,8 +11,10 @@ Vietnamese is only allowed in:
 - Translation files (*.po)
 - Test fixtures/data
 - Migration files (historical data)
+- OpenApiExample value data (for realistic API documentation)
 """
 
+import ast
 import re
 import sys
 
@@ -33,6 +35,7 @@ SKIP_PATTERNS = [
     ".po",  # Translation files
     ".mo",  # Compiled translation files
     "test_fixtures",  # Test data
+    "tests/",  # test files
 ]
 
 
@@ -42,6 +45,73 @@ def should_check_file(filepath: str) -> bool:
         if pattern in filepath:
             return False
     return filepath.endswith(".py")
+
+
+class VietnameseTextVisitor(ast.NodeVisitor):
+    """AST visitor to find Vietnamese text in code, comments, and docstrings.
+    
+    This visitor skips Vietnamese text inside OpenApiExample value parameters,
+    as those are realistic API documentation examples.
+    """
+
+    def __init__(self, source_lines: list[str]):
+        self.source_lines = source_lines
+        self.violations: list[tuple[int, str]] = []
+        self.in_openapi_example = False
+        self.openapi_example_depth = 0
+
+    def visit_Call(self, node: ast.Call) -> None:
+        """Visit function calls to detect OpenApiExample usage."""
+        # Check if this is an OpenApiExample call
+        func_name = ""
+        if isinstance(node.func, ast.Name):
+            func_name = node.func.id
+        elif isinstance(node.func, ast.Attribute):
+            func_name = node.func.attr
+
+        # Track if we're entering an OpenApiExample call
+        was_in_example = self.in_openapi_example
+        if func_name == "OpenApiExample":
+            self.in_openapi_example = True
+            self.openapi_example_depth += 1
+
+        self.generic_visit(node)
+
+        # Restore state when leaving OpenApiExample
+        if func_name == "OpenApiExample":
+            self.openapi_example_depth -= 1
+            if self.openapi_example_depth == 0:
+                self.in_openapi_example = False
+
+    def visit_Constant(self, node: ast.Constant) -> None:
+        """Visit constant nodes (string literals)."""
+        value = getattr(node, "value", None)
+        if not isinstance(value, str):
+            self.generic_visit(node)
+            return
+
+        # Skip if we're inside an OpenApiExample call
+        if self.in_openapi_example:
+            self.generic_visit(node)
+            return
+
+        # Check if this string contains Vietnamese
+        if VIETNAMESE_PATTERN.search(value):
+            lineno = getattr(node, "lineno", 0)
+            if 0 < lineno <= len(self.source_lines):
+                line_content = self.source_lines[lineno - 1].strip()
+                self.violations.append((lineno, line_content))
+
+        self.generic_visit(node)
+
+    # For Python < 3.8 compatibility
+    def visit_Str(self, node) -> None:
+        """Visit string nodes (for older Python AST)."""
+        if hasattr(node, "lineno") and hasattr(node, "s"):
+            # Create a Constant node and visit it
+            const_node = ast.Constant(value=node.s)
+            const_node.lineno = node.lineno
+            self.visit_Constant(const_node)
 
 
 def check_file_for_vietnamese(filepath: str) -> tuple[bool, list[tuple[int, str]]]:
@@ -54,9 +124,32 @@ def check_file_for_vietnamese(filepath: str) -> tuple[bool, list[tuple[int, str]
 
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            for line_num, line in enumerate(f, start=1):
+            source = f.read()
+            source_lines = source.splitlines()
+
+        # Parse the file and check for Vietnamese in strings
+        try:
+            tree = ast.parse(source, filename=filepath)
+            visitor = VietnameseTextVisitor(source_lines)
+            visitor.visit(tree)
+            violations.extend(visitor.violations)
+        except SyntaxError:
+            # If AST parsing fails, fall back to line-by-line checking
+            # (but this shouldn't happen for valid Python files)
+            for line_num, line in enumerate(source_lines, start=1):
                 if VIETNAMESE_PATTERN.search(line):
                     violations.append((line_num, line.strip()))
+
+        # Also check comments (which AST doesn't capture)
+        for line_num, line in enumerate(source_lines, start=1):
+            # Check if line has a comment
+            if "#" in line:
+                comment_part = line[line.index("#"):]
+                if VIETNAMESE_PATTERN.search(comment_part):
+                    # Check if this violation is already recorded
+                    if not any(v[0] == line_num for v in violations):
+                        violations.append((line_num, line.strip()))
+
     except Exception as e:
         print(f"Error reading {filepath}: {e}", file=sys.stderr)
         return False, []

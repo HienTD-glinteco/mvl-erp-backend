@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.notifications.models import Notification
@@ -48,6 +49,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_target_type(self, obj):
         """Get the content type of the target object."""
         if obj.target_content_type:

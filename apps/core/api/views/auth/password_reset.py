@@ -94,8 +94,15 @@ class PasswordResetView(APIView):
                 }
 
             # Log audit event for password reset request
+            # For authentication events, set object_type to Employee if user has employee record
+            try:
+                modified_object = user.employee
+            except Exception:
+                modified_object = None
+
             log_audit_event(
                 action=LogAction.PASSWORD_RESET,
+                modified_object=modified_object,
                 user=user,
                 request=request,
                 change_message=f"User {user.username} requested password reset via {'email' if is_email else 'SMS'}",

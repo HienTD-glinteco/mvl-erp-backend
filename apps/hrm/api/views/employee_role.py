@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -35,6 +35,43 @@ from libs import BaseReadOnlyModelViewSet
                 description="Sort by field (default: -username). Add '-' prefix for descending order.",
                 type=str,
             ),
+        ],
+        examples=[
+            OpenApiExample(
+                "List employees by role success",
+                description="Example response when listing employees with role information",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": "user-uuid-1",
+                                "username": "john.doe@example.com",
+                                "full_name": "John Doe",
+                                "role": {"id": 5, "code": "VT005", "name": "Project Manager"},
+                                "branch_name": "Chi nhánh Hà Nội",
+                                "block_name": "Khối Kinh doanh",
+                                "department_name": "Phòng Kinh doanh 1",
+                                "position_name": "Manager",
+                            },
+                            {
+                                "id": "user-uuid-2",
+                                "username": "jane.smith@example.com",
+                                "full_name": "Jane Smith",
+                                "role": {"id": 3, "code": "VT003", "name": "Employee"},
+                                "branch_name": "Chi nhánh TP.HCM",
+                                "block_name": "Khối Hỗ trợ",
+                                "department_name": "Phòng Nhân sự",
+                                "position_name": "HR Staff",
+                            },
+                        ],
+                    },
+                },
+                response_only=True,
+            )
         ],
     ),
 )
@@ -80,41 +117,34 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         "When an employee's role changes, the system will log them out.",
         tags=["Employee Role Management"],
         request=BulkUpdateRoleSerializer,
-        responses={
-            200: {
-                "description": "Update successful",
-                "content": {
-                    "application/json": {
-                        "example": {
-                            "success": True,
-                            "message": _("Update successful"),
-                            "updated_count": 5,
-                        }
-                    }
-                },
-            },
-            400: {
-                "description": "Validation error",
-                "content": {
-                    "application/json": {
-                        "examples": {
-                            "no_selection": {
-                                "summary": "No employees selected",
-                                "value": {"employee_ids": ["Please select at least one employee."]},
-                            },
-                            "too_many": {
-                                "summary": "More than 25 employees",
-                                "value": {"employee_ids": ["Cannot update more than 25 employees at once."]},
-                            },
-                            "no_role": {
-                                "summary": "No new role selected",
-                                "value": {"new_role_id": ["Please select a new role."]},
-                            },
-                        }
-                    }
-                },
-            },
-        },
+        examples=[
+            OpenApiExample(
+                "Bulk update roles request",
+                description="Example request to update roles for multiple employees",
+                value={"employee_ids": ["user-uuid-1", "user-uuid-2", "user-uuid-3"], "new_role_id": 5},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Bulk update success",
+                description="Success response when updating roles",
+                value={"success": True, "data": {"message": "Update successful", "updated_count": 3}},
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Bulk update error - no employees",
+                description="Error when no employees are selected",
+                value={"success": False, "error": {"employee_ids": ["Please select at least one employee."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Bulk update error - too many",
+                description="Error when more than 25 employees are selected",
+                value={"success": False, "error": {"employee_ids": ["Cannot update more than 25 employees at once."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["post"], url_path="bulk-update-roles")
     def bulk_update_roles(self, request):

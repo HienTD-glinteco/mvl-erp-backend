@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.querysets import UserManager
-from libs.base_model_mixin import BaseModel
+from libs.models import BaseModel
 
 
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):

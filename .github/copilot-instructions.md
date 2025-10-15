@@ -6,6 +6,8 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 
 - [ ] ✅ **NO Vietnamese text** in code, comments, or docstrings
 - [ ] ✅ **ALL API documentation** (`@extend_schema`) must be in English
+- [ ] ✅ **ALL API endpoints** must include request and response examples using `OpenApiExample`
+- [ ] ✅ **ALL response examples** must use envelope format: `{success: true/false, data: ..., error: ...}`
 - [ ] ✅ **ALL user-facing strings** must be wrapped in `gettext()` or `gettext_lazy()`
 - [ ] ✅ **Use constants for string values** - Define strings in `constants.py` or module-level constants
 - [ ] ✅ **English strings ONLY** - Vietnamese goes in `.po` translation files
@@ -21,49 +23,24 @@ Before writing ANY code, verify you understand these NON-NEGOTIABLE rules:
 
 **⚠️ ABSOLUTELY NO VIETNAMESE TEXT IN CODE ⚠️**
 
-This is a **NON-NEGOTIABLE** requirement. All code must be in English.
+All code, comments, docstrings, and API docs MUST be in **English**. User-facing strings must be:
+1. Written in English in code
+2. Wrapped in `gettext()` or `gettext_lazy()` (imported as `_`)
+3. Translated in `.po` files
 
-- **ALL Code:** Variable names, function names, class names, comments, docstrings must be in **English**.
-- **API Documentation:** ALL drf-spectacular decorators (`summary`, `description`, `tags`) must be in **English**.
-- **User-Facing Strings:** ALL strings shown to end-users must be:
-  1. Written in **English** in the code
-  2. Wrapped in Django's translation functions: `gettext()` or `gettext_lazy()` (imported as `_`)
-  3. Translated in `.po` files
-
-**Examples of CORRECT usage:**
+**Examples:**
 ```python
 from django.utils.translation import gettext as _
 
-# ✅ CORRECT - English string wrapped in gettext
+# ✅ CORRECT
 error_message = _("Invalid email address")
-
-# ✅ CORRECT - API documentation in English
-@extend_schema(
-    summary="List all roles",
-    description="Retrieve a list of all roles in the system",
-    tags=["Roles"],
-)
-
-# ✅ CORRECT - Model verbose names in English
+@extend_schema(summary="List all roles", tags=["Roles"])
 class Role(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_("Role name"))
-```
+    name = models.CharField(verbose_name=_("Role name"))
 
-**Examples of INCORRECT usage (NEVER DO THIS):**
-```python
-# ❌ WRONG - Vietnamese directly in code
+# ❌ WRONG - Vietnamese in code
 error_message = "Địa chỉ email không hợp lệ"
-
-# ❌ WRONG - API documentation in Vietnamese
-@extend_schema(
-    summary="Danh sách vai trò",
-    description="Lấy danh sách tất cả vai trò trong hệ thống",
-    tags=["Vai trò"],
-)
-
-# ❌ WRONG - Model verbose names in Vietnamese
-class Role(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Tên vai trò")
+@extend_schema(summary="Danh sách vai trò")
 ```
 
 ### String Constants and DRY Principle
@@ -231,27 +208,49 @@ python scripts/check_string_constants.py apps/core/api/views.py
 
 #### API Documentation (drf-spectacular)
 
-**ALL API documentation MUST be in English:**
+**ALL API documentation MUST be in English and include examples:**
 
+##### Response Envelope Format (CRITICAL - MANDATORY)
+
+**ALL API response examples MUST use the standard envelope format:**
+
+This project uses `ApiResponseWrapperMiddleware` which wraps all responses. The `wrap_with_envelope` hook automatically updates the OpenAPI schema, but **examples must manually include this envelope structure**.
+
+**Formats:**
+
+Success (single item): `{"success": true, "data": {...}, "error": null}`  
+Success (list with pagination): `{"success": true, "data": {"count": N, "next": "...", "previous": null, "results": [...]}, "error": null}`  
+Success (list no pagination): `{"success": true, "data": [...], "error": null}`  
+Error: `{"success": false, "data": null, "error": "..." or {...}}`
+
+**Example:**
 ```python
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, OpenApiExample
 
-# ✅ CORRECT - English only
-@extend_schema_view(
-    list=extend_schema(
-        summary="List all roles",
-        description="Retrieve a list of all roles in the system",
-        tags=["Roles"],
-    ),
-    create=extend_schema(
-        summary="Create a new role",
-        description="Create a new role in the system",
-        tags=["Roles"],
-    ),
+@extend_schema(
+    summary="List all roles",
+    tags=["Roles"],
+    examples=[
+        OpenApiExample(
+            "Success",
+            value={"success": True, "data": {"count": 1, "next": None, "previous": None, "results": [{"id": 1, "name": "Admin"}]}},
+            response_only=True,
+        ),
+        OpenApiExample(
+            "Error",
+            value={"success": False, "error": {"field": ["Error message"]}},
+            response_only=True,
+            status_codes=["400"],
+        ),
+    ],
 )
 ```
 
-**❌ NEVER use Vietnamese in API documentation decorators!**
+**Requirements:**
+1. Use envelope format: `{success, data, error}`
+2. Include success AND error examples
+3. List endpoints with pagination: Include `count`, `next`, `previous`, `results` in `data`
+4. All text in English only
 
 #### Other Documentation Requirements
 
@@ -265,20 +264,45 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 #### Documentation Files - What NOT to Create
 
-**⚠️ IMPORTANT: Do NOT create unnecessary documentation files**
+**⚠️ CRITICAL: Do NOT create unnecessary documentation files ⚠️**
 
-* **DO NOT create** task planning documents, work summaries, issue resolution docs, or compliance guides
-* **DO NOT create** files like `TASK_PLAN.md`, `WORK_SUMMARY.md`, `ISSUE_RESOLUTION_*.md`, `*_SUMMARY.md`
-* **DO NOT create** quick reference cards or instruction compliance documents
-* The PR description and commit messages already contain task information - additional summary docs are redundant
+**Copilot must ONLY generate documentation that is truly necessary and directly related to business flows and logic.**
 
-**Only create documentation files when:**
-* Adding a new feature that requires user-facing documentation
-* Updating existing documentation (README, API docs, etc.)
-* Creating technical design documents explicitly requested by the team lead
-* Adding architecture diagrams for significant changes
+**FORBIDDEN Documentation Types** (these are considered WASTE and must NOT be created):
+* ❌ **Task planning documents**: `TASK_PLAN.md`, `WORK_PLAN.md`
+* ❌ **Work summaries**: `WORK_SUMMARY.md`, `TASK_SUMMARY.md`
+* ❌ **Implementation summaries**: `*_IMPLEMENTATION_SUMMARY.md`, `*_SUMMARY.md`
+* ❌ **Issue resolution docs**: `ISSUE_RESOLUTION_*.md`, `ISSUE_*.md`
+* ❌ **Checklists**: `*_CHECKLIST.md`, `*_MIGRATION_CHECKLIST.md`
+* ❌ **Quick reference cards**: `*_QUICK_REFERENCE.md`, `*_REFERENCE.md`
+* ❌ **Compliance/instruction documents**: `INSTRUCTION_COMPLIANCE.md`, `COPILOT_VALIDATION.md`
+* ❌ **Review documents**: `*_REVIEW.md`, `CODE_*_REVIEW.md`
+* ❌ **Optimization summaries**: `*_OPTIMIZATION_SUMMARY.md`, `CI_OPTIMIZATION_*.md`
+* ❌ **Comparison documents**: `*_COMPARISON.md`, `*_WORKFLOW_COMPARISON.md`
 
-**Remember:** Less documentation is better than redundant documentation. Focus on code quality, not creating summaries of your work.
+**Why these are forbidden:**
+- PR descriptions already contain task information
+- Commit messages already explain what was done and why
+- These docs become outdated and misleading
+- They waste time and clutter the repository
+- They provide no value to end users or future developers
+
+**ONLY create documentation when:**
+* ✅ Adding a **new feature** that requires **user-facing documentation**
+* ✅ Documenting **API endpoints** (with examples) for integration
+* ✅ Updating **existing documentation** (README, API docs)
+* ✅ Creating **technical design documents** explicitly requested by the team lead
+* ✅ Adding **architecture diagrams** for significant changes (Mermaid format)
+* ✅ Documenting **business logic and workflows** that are complex and need explanation
+
+**Before creating ANY documentation file, ask yourself:**
+1. Does this document business logic or workflows?
+2. Will this help users/developers integrate with the system?
+3. Was this explicitly requested by the team lead?
+
+If all answers are "NO", **DO NOT create the file**.
+
+**Remember:** Excessive documentation is WASTE. Focus on clean code, good commit messages, and thorough PR descriptions.
 
 ## 6. Version Control (Git)
 * **Branching:** All work must be done on a feature or fix branch created from `master`. Never commit directly to `master`.
@@ -304,86 +328,17 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 ## 9. Common Violations - NEVER DO THESE
 
-This section lists common mistakes that violate our standards. Review this before every change.
+**❌ Vietnamese text in code** - Use English + `gettext()`: `_("Invalid email")` not `"Email không hợp lệ"`
 
-### ❌ Vietnamese Text in Code
+**❌ Vietnamese in API docs** - `@extend_schema(summary="List roles")` not `summary="Danh sách vai trò"`
 
-**NEVER write Vietnamese directly in code:**
+**❌ Missing envelope** - Always use `{"success": true/false, "data": ..., "error": ...}` in response examples
 
-```python
-# ❌ WRONG
-error_message = "Địa chỉ email không hợp lệ"
-raise PermissionDenied("Bạn không có quyền thực hiện hành động này")
+**❌ Missing pagination** - List endpoints: `{"success": true, "data": {"count": N, "results": [...]}}` not direct array
 
-# ✅ CORRECT
-from django.utils.translation import gettext as _
-error_message = _("Invalid email address")
-raise PermissionDenied(_("You do not have permission to perform this action"))
-```
+**❌ Forgot translations** - After adding `_()` strings, run: `poetry run python manage.py makemessages -l vi --no-obsolete`
 
-### ❌ Vietnamese API Documentation
-
-**NEVER use Vietnamese in drf-spectacular decorators:**
-
-```python
-# ❌ WRONG
-@extend_schema(
-    summary="Danh sách vai trò",
-    description="Lấy danh sách tất cả vai trò trong hệ thống",
-    tags=["Vai trò"],
-)
-
-# ✅ CORRECT
-@extend_schema(
-    summary="List all roles",
-    description="Retrieve a list of all roles in the system",
-    tags=["Roles"],
-)
-```
-
-### ❌ Vietnamese Model Verbose Names
-
-**NEVER use Vietnamese in model field definitions:**
-
-```python
-# ❌ WRONG
-class Role(models.Model):
-    code = models.CharField(max_length=50, verbose_name="Mã vai trò")
-    name = models.CharField(max_length=100, verbose_name="Tên vai trò")
-
-# ✅ CORRECT
-from django.utils.translation import gettext_lazy as _
-
-class Role(models.Model):
-    code = models.CharField(max_length=50, verbose_name=_("Role code"))
-    name = models.CharField(max_length=100, verbose_name=_("Role name"))
-```
-
-### ❌ Forgetting to Update Translation Files
-
-**ALWAYS update .po files when adding new translatable strings:**
-
-```bash
-# After adding new gettext strings, ALWAYS run:
-poetry run python manage.py makemessages -l vi --no-obsolete
-
-# Then edit locale/vi/LC_MESSAGES/django.po and add Vietnamese translations:
-msgid "Invalid email address"
-msgstr "Địa chỉ email không hợp lệ"
-
-# Finally compile:
-poetry run python manage.py compilemessages
-```
-
-### ✅ Self-Check Before Committing
-
-Before using `report_progress`, run pre-commit to validate all changes:
-
-```bash
-pre-commit run --all-files
-```
-
-This will automatically check for Vietnamese text, linting issues, and other code quality problems.
+**✅ Before committing:** Run `pre-commit run --all-files`
 
 ## 10. Performance & Optimization for Agent Tasks
 To ensure fast iteration and minimize startup time:

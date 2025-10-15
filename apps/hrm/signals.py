@@ -1,33 +1,42 @@
 """Signal handlers for HRM app."""
 
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.models import Block
-from libs.code_generation import generate_model_code
+from apps.hrm.models import Block, Branch, Department, Employee, Position, RecruitmentChannel
+from libs.code_generation import register_auto_code_signal
 
 from .constants import TEMP_CODE_PREFIX
 
+User = get_user_model()
 
-@receiver(post_save, sender=Block)
-def generate_block_code(sender, instance, created, **kwargs):
-    """Auto-generate code for Block when created.
+register_auto_code_signal(
+    Branch,
+    Block,
+    Department,
+    Employee,
+    Position,
+    RecruitmentChannel,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+)
 
-    This signal handler generates a unique code for newly created Block instances.
-    It uses the instance ID to create a code in the format: {PREFIX}{subcode}
 
-    Args:
-        sender: The model class (Block)
-        instance: The Block instance being saved
-        created: Boolean indicating if this is a new instance
-        **kwargs: Additional keyword arguments from the signal
-
-    Note:
-        We use update_fields parameter and check if code starts with TEMP_
-        to prevent infinite loop from the save() call inside the signal.
+@receiver(post_save, sender=Employee)
+def create_user_for_employee(sender, instance, created, **kwargs):
+    """Create a User instance for the Employee after it is created.
+    
+    This signal handler automatically creates a User account when an Employee
+    is created. It uses the employee's username and email fields.
     """
-    # Only generate code for new instances that have a temporary code
-    if created and instance.code and instance.code.startswith(TEMP_CODE_PREFIX):
-        instance.code = generate_model_code(instance)
-        # Use update_fields to prevent triggering the signal again (avoid infinite loop)
-        instance.save(update_fields=["code"])
+    # Only create user if employee was just created and doesn't have a user yet
+    if created and not instance.user:
+        user = User.objects.create_user(
+            username=instance.username,
+            email=instance.email,
+            first_name=instance.fullname.split()[0] if instance.fullname else "",
+            last_name=" ".join(instance.fullname.split()[1:]) if len(instance.fullname.split()) > 1 else "",
+        )
+        # Update the employee with the created user
+        instance.user = user
+        instance.save(update_fields=["user"])
