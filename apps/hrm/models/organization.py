@@ -145,43 +145,75 @@ class Department(AutoCodeMixin, BaseModel):
         return self.name
 
     def clean(self):
-        """Custom validation for Department"""
+        """Comprehensive validation for Department - SINGLE SOURCE OF TRUTH"""
         from django.core.exceptions import ValidationError
 
-        # Validate management department is in same block and function
-        if self.management_department:
-            if self.management_department.id == self.id:
-                raise ValidationError({"management_department": _("Department cannot manage itself.")})
-            if self.management_department.block != self.block:
-                raise ValidationError({"management_department": _("Management department must be in the same block.")})
-            if self.management_department.function != self.function:
-                raise ValidationError(
-                    {"management_department": _("Management department must have the same function.")}
-                )
+        errors = {}
 
-        # Validate only one main department per function
+        # 1. Parent department validation - must be in same block
+        if self.parent_department:
+            if self.parent_department.block != self.block:
+                errors["parent_department"] = _("Parent department must be in the same block as the child department.")
+
+        # 2. Management department validation
+        if self.management_department:
+            # 2.1. Cannot manage itself
+            if self.management_department.id == self.id:
+                errors["management_department"] = _("Department cannot manage itself.")
+            # 2.2. Must be in same block
+            elif self.management_department.block != self.block:
+                errors["management_department"] = _("Management department must be in the same block.")
+            # 2.3. Must have same function
+            elif self.management_department.function != self.function:
+                errors["management_department"] = _("Management department must have the same function.")
+
+        # 3. Function validation based on block type
+        if self.block and self.function:
+            allowed_functions = [c[0] for c in self.get_function_choices_for_block_type(self.block.block_type)]
+            if self.function not in allowed_functions:
+                errors["function"] = _("This function is not compatible with block type %(block_type)s.") % {
+                    "block_type": self.block.get_block_type_display()
+                }
+
+        # 4. Business block can only have business function
+        if self.block and self.block.block_type == Block.BlockType.BUSINESS:
+            if self.function != self.DepartmentFunction.BUSINESS:
+                errors["function"] = _("Business block can only have business function.")
+
+        # 5. Support block cannot have business function
+        if self.block and self.block.block_type == Block.BlockType.SUPPORT:
+            if self.function == self.DepartmentFunction.BUSINESS:
+                errors["function"] = _("Support block cannot have business function.")
+
+        # 6. Main department uniqueness - only one per function
         if self.is_main_department:
             existing_main = Department.objects.filter(
                 function=self.function, is_main_department=True, is_active=True
-            ).exclude(id=self.id)
+            ).exclude(id=self.id if self.id else None)
 
             if existing_main.exists():
-                raise ValidationError(
-                    {
-                        "is_main_department": _("A main department already exists for function %(function)s.")
-                        % {"function": self.get_function_display()}
-                    }
-                )
+                errors["is_main_department"] = _("A main department already exists for function %(function)s.") % {
+                    "function": self.get_function_display()
+                }
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Auto-set branch from block if not set
         if not self.branch and self.block and self.block.branch:
             self.branch = self.block.branch
 
-        # Auto-set function based on block type if not set
-        if not self.function and self.block:
+        # Auto-set function based on block type if needed
+        if self.block:
+            # For business blocks, function must be business
             if self.block.block_type == Block.BlockType.BUSINESS:
-                self.function = self.DepartmentFunction.BUSINESS
+                if not self.function or self.function != self.DepartmentFunction.BUSINESS:
+                    self.function = self.DepartmentFunction.BUSINESS
+            # For support blocks, if function is not set or is incorrectly set to business, default to HR_ADMIN
+            elif self.block.block_type == Block.BlockType.SUPPORT:
+                if not self.function or self.function == self.DepartmentFunction.BUSINESS:
+                    self.function = self.DepartmentFunction.HR_ADMIN
 
         self.clean()
         super().save(*args, **kwargs)

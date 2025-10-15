@@ -6,7 +6,7 @@ SENTRY_SAMPLE_RATE = config("SENTRY_SAMPLE_RATE", default=0.5, cast=float)
 SENTRY_ENVIRONMENT = config("SENTRY_ENVIRONMENT", default=ENVIRONMENT)
 
 
-if SENTRY_DSN and ENVIRONMENT not in ["local", "testing"]:
+if SENTRY_DSN and ENVIRONMENT not in ["local", "test", "testing"]:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 

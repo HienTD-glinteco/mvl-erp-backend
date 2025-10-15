@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -202,84 +203,55 @@ class DepartmentSerializer(serializers.ModelSerializer):
             ]
         return []
 
-    def validate_parent_department_id(self, value):
-        """Validate parent department is in the same block"""
-        if value and self.instance:
-            if value.block != self.instance.block:
-                raise serializers.ValidationError(
-                    _("Parent department must be in the same block as the child department.")
-                )
-        elif value and "block" in self.initial_data:
-            # For creation - use block_id from initial_data
-            try:
-                block_id = self.initial_data.get("block_id") or self.initial_data.get("block")
-                block = Block.objects.get(id=block_id)
-                if value.block != block:
-                    raise serializers.ValidationError(
-                        _("Parent department must be in the same block as the child department.")
-                    )
-            except Block.DoesNotExist:
-                pass
-        return value
-
-    def validate_management_department_id(self, value):
-        """Validate management department constraints"""
-        if value:
-            # Check for self-reference
-            if self.instance and value.id == self.instance.id:
-                raise serializers.ValidationError(_("Department cannot manage itself."))
-
-            block_id = (
-                self.initial_data.get("block_id") or self.initial_data.get("block")
-                if not self.instance
-                else self.instance.block.id
-            )
-            function = self.initial_data.get("function") if not self.instance else self.instance.function
-
-            try:
-                block = Block.objects.get(id=block_id)
-                if value.block != block:
-                    raise serializers.ValidationError(_("Management department must be in the same block."))
-                if function and value.function != function:
-                    raise serializers.ValidationError(_("Management department must have the same function."))
-            except Block.DoesNotExist:
-                pass
-        return value
-
     def validate(self, attrs):
-        """Custom validation for Department"""
-        # Auto-set or validate function based on block type
-        if "block" in attrs:
-            block = attrs["block"]
-            provided_function = attrs.get("function")
+        """
+        Delegate validation to model's clean() method to avoid duplication.
+        This ensures consistent validation across all entry points.
+        """
+        # Create a temporary instance to run validation
+        if self.instance:
+            # Update operation - use existing instance
+            instance = self.instance
+            for key, value in attrs.items():
+                setattr(instance, key, value)
+        else:
+            # Create operation - create temporary instance
+            instance = Department(**attrs)
 
-            if block.block_type == Block.BlockType.BUSINESS:
-                # If function provided and not BUSINESS -> error; else default to BUSINESS
-                if provided_function is not None and provided_function != Department.DepartmentFunction.BUSINESS:
-                    raise serializers.ValidationError(
-                        {"function": _("Business block can only have business function.")}
-                    )
-                if provided_function is None:
-                    attrs["function"] = Department.DepartmentFunction.BUSINESS
-            elif block.block_type == Block.BlockType.SUPPORT:
-                # If provided BUSINESS for support -> error; else default to HR_ADMIN if missing
-                if provided_function == Department.DepartmentFunction.BUSINESS:
-                    raise serializers.ValidationError({"function": _("Support block cannot have business function.")})
-                if provided_function is None:
-                    attrs["function"] = Department.DepartmentFunction.HR_ADMIN
+        # Auto-set branch from block if not provided (model does this in save())
+        if instance.block and not instance.branch:
+            instance.branch = instance.block.branch
 
-        # Validate function choice based on block type (final guard)
-        if "block" in attrs and "function" in attrs:
-            block = attrs["block"]
-            function = attrs["function"]
-            allowed = [c[0] for c in Department.get_function_choices_for_block_type(block.block_type)]
-            if function not in allowed:
-                raise serializers.ValidationError(
-                    {
-                        "function": _("This function is not compatible with block type %(block_type)s.")
-                        % {"block_type": block.get_block_type_display()}
-                    }
-                )
+        # Auto-set function based on block type if needed (model does this in save())
+        # Only auto-set if function was NOT explicitly provided by the user
+        if instance.block and "function" not in attrs:
+            # For business blocks, function must be business
+            if instance.block.block_type == Block.BlockType.BUSINESS:
+                instance.function = Department.DepartmentFunction.BUSINESS
+            # For support blocks, if function is the model default (BUSINESS), set to HR_ADMIN
+            elif instance.block.block_type == Block.BlockType.SUPPORT:
+                if instance.function == Department.DepartmentFunction.BUSINESS:
+                    instance.function = Department.DepartmentFunction.HR_ADMIN
+
+        # Run model validation (calls our custom clean() method)
+        # We use clean() directly instead of full_clean() because:
+        # - DRF already validates required fields
+        # - Code is auto-generated in save(), so it's not available yet
+        # - Unique constraints are handled by DRF
+        try:
+            instance.clean()
+        except ValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            # Map model field names to serializer field names (e.g., management_department -> management_department_id)
+            error_dict = {}
+            for field_name, errors in e.message_dict.items():
+                # Map model field names to serializer write-only field names
+                if field_name == "parent_department":
+                    field_name = "parent_department_id"
+                elif field_name == "management_department":
+                    field_name = "management_department_id"
+                error_dict[field_name] = errors
+            raise serializers.ValidationError(error_dict)
 
         return attrs
 
