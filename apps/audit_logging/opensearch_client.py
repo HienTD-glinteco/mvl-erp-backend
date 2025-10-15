@@ -224,6 +224,7 @@ class OpenSearchClient:
                 "timestamp",
                 "user_id",
                 "username",
+                "employee_code",
                 "full_name",
                 "action",
                 "object_type",

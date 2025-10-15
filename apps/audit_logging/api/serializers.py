@@ -13,6 +13,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
     to_date = serializers.DateField(required=False, help_text="Filter logs to this date")
     user_id = serializers.CharField(required=False, help_text="Filter by user ID")
     username = serializers.CharField(required=False, help_text="Filter by username")
+    employee_code = serializers.CharField(required=False, help_text="Filter by employee code")
     action = serializers.CharField(required=False, help_text="Filter by action type")
     object_type = serializers.CharField(required=False, help_text="Filter by object type")
     object_id = serializers.CharField(required=False, help_text="Filter by object ID")
@@ -53,6 +54,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
         for field in [
             "user_id",
             "username",
+            "employee_code",
             "action",
             "object_type",
             "object_id",
@@ -95,6 +97,7 @@ class AuditLogSummarySerializer(serializers.Serializer):
     timestamp = serializers.DateTimeField()
     user_id = serializers.CharField(required=False, allow_null=True)
     username = serializers.CharField(required=False, allow_null=True)
+    employee_code = serializers.CharField(required=False, allow_null=True)
     full_name = serializers.CharField(required=False, allow_null=True)
     action = serializers.CharField(required=False, allow_null=True)
     object_type = serializers.CharField(required=False, allow_null=True)
@@ -109,6 +112,7 @@ class AuditLogSerializer(serializers.Serializer):
     timestamp = serializers.DateTimeField()
     user_id = serializers.CharField(required=False, allow_null=True)
     username = serializers.CharField(required=False, allow_null=True)
+    employee_code = serializers.CharField(required=False, allow_null=True)
     full_name = serializers.CharField(required=False, allow_null=True)
     action = serializers.CharField(required=False, allow_null=True)
     object_type = serializers.CharField(required=False, allow_null=True)

@@ -32,6 +32,7 @@ class TestAuditLogViewSet(TestCase):
                     "timestamp": "2023-12-15T10:30:00Z",
                     "action": "test_action",
                     "user_id": "1",
+                    "employee_code": "EMP001",
                     "object_type": "test_object",
                 }
             ],
@@ -49,6 +50,8 @@ class TestAuditLogViewSet(TestCase):
         data = response_data["data"]
         self.assertEqual(len(data["items"]), 1)
         self.assertEqual(data["total"], 1)
+        # Verify employee_code is in the response
+        self.assertEqual(data["items"][0]["employee_code"], "EMP001")
 
         # Verify OpenSearch client was called with correct parameters including summary_fields_only
         mock_client.search_logs.assert_called_once_with(
@@ -66,8 +69,17 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [],
-            "total": 0,
+            "items": [
+                {
+                    "log_id": "test-filter-123",
+                    "timestamp": "2023-12-15T10:30:00Z",
+                    "user_id": "123",
+                    "employee_code": "EMP001",
+                    "action": "test_action",
+                    "object_type": "test_object",
+                }
+            ],
+            "total": 1,
             "next_offset": None,
             "has_next": False,
         }
@@ -79,6 +91,7 @@ class TestAuditLogViewSet(TestCase):
                 "from_date": "2023-12-01",
                 "to_date": "2023-12-31",
                 "user_id": "123",
+                "employee_code": "EMP001",
                 "search_term": "test query",
                 "page_size": "25",
                 "sort_order": "asc",
@@ -87,6 +100,12 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # Verify employee_code is in the response
+        response_data = response.json()
+        data = response_data["data"]
+        if data["items"]:
+            self.assertEqual(data["items"][0]["employee_code"], "EMP001")
+
         # Verify filters were passed correctly
         mock_client.search_logs.assert_called_once()
         call_kwargs = mock_client.search_logs.call_args.kwargs
@@ -94,6 +113,7 @@ class TestAuditLogViewSet(TestCase):
         self.assertEqual(call_kwargs["sort_order"], "asc")
         self.assertTrue(call_kwargs["summary_fields_only"])
         self.assertIn("user_id", call_kwargs["filters"])
+        self.assertIn("employee_code", call_kwargs["filters"])
         self.assertIn("search_term", call_kwargs["filters"])
 
     def test_search_audit_logs_invalid_sort_order(self):
@@ -158,6 +178,7 @@ class TestAuditLogViewSet(TestCase):
             "timestamp": "2023-12-15T10:30:00Z",
             "user_id": "1",
             "username": "testuser",
+            "employee_code": "EMP001",
             "action": "CREATE",
             "object_type": "Customer",
             "object_id": "456",
@@ -177,6 +198,7 @@ class TestAuditLogViewSet(TestCase):
         data = response_data["data"]
         self.assertEqual(data["log_id"], "test-123")
         self.assertEqual(data["action"], "CREATE")
+        self.assertEqual(data["employee_code"], "EMP001")
         self.assertIn("change_message", data)
         self.assertIn("ip_address", data)
         self.assertIn("user_agent", data)
@@ -255,7 +277,7 @@ class TestAuditLogViewSet(TestCase):
 
     @patch("apps.audit_logging.api.views.get_opensearch_client")
     def test_detail_includes_new_fields(self, mock_get_client):
-        """Test that detail endpoint includes full_name and HR fields."""
+        """Test that detail endpoint includes full_name, employee_code and HR fields."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
@@ -264,6 +286,7 @@ class TestAuditLogViewSet(TestCase):
             "timestamp": "2023-12-15T10:30:00Z",
             "user_id": "1",
             "username": "testuser",
+            "employee_code": "EMP002",
             "full_name": "Test User",
             "action": "CREATE",
             "object_type": "Customer",
@@ -283,6 +306,7 @@ class TestAuditLogViewSet(TestCase):
         self.assertTrue(response_data["success"])
         data = response_data["data"]
         self.assertEqual(data["full_name"], "Test User")
+        self.assertEqual(data["employee_code"], "EMP002")
 
     @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_default_sort_order_desc(self, mock_get_client):
@@ -305,3 +329,37 @@ class TestAuditLogViewSet(TestCase):
         # Verify default sort order is desc
         call_kwargs = mock_client.search_logs.call_args.kwargs
         self.assertEqual(call_kwargs["sort_order"], "desc")
+
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
+    def test_search_audit_logs_with_employee_code(self, mock_get_client):
+        """Test audit log search filtered by employee code."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "items": [
+                {
+                    "log_id": "test-456",
+                    "timestamp": "2023-12-15T10:30:00Z",
+                    "user_id": "1",
+                    "username": "testuser",
+                    "employee_code": "EMP001",
+                    "action": "CREATE",
+                    "object_type": "test_object",
+                }
+            ],
+            "total": 1,
+            "next_offset": None,
+            "has_next": False,
+        }
+
+        url = "/api/audit-logs/search/"
+        response = self.client.get(url, {"employee_code": "EMP001"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify employee_code filter was passed correctly
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("employee_code", call_kwargs["filters"])
+        self.assertEqual(call_kwargs["filters"]["employee_code"], "EMP001")

@@ -184,9 +184,10 @@ class TestOpenSearchClient(TestCase):
         call_args = self.mock_opensearch.search.call_args
         search_body = call_args.kwargs["body"]
         self.assertIn("_source", search_body)
-        self.assertEqual(len(search_body["_source"]), 9)  # 9 summary fields
+        self.assertEqual(len(search_body["_source"]), 10)  # 10 summary fields (added employee_code)
         self.assertIn("log_id", search_body["_source"])
         self.assertIn("timestamp", search_body["_source"])
+        self.assertIn("employee_code", search_body["_source"])
         self.assertIn("object_repr", search_body["_source"])
 
 
