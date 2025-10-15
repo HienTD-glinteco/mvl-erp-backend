@@ -13,7 +13,9 @@ class ErrorReportGenerator:
     Generate XLSX error reports for import failures.
     """
 
-    def generate(self, errors: list[dict], original_data: list[list] = None, headers: list[str] = None) -> bytes:
+    def generate(
+        self, errors: list[dict], original_data: list[list] | None = None, headers: list[str] | None = None
+    ) -> bytes:
         """
         Generate error report as XLSX file.
 

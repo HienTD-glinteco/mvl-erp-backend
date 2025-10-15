@@ -25,7 +25,7 @@ class ImportStorage:
         self.storage_type = storage_type
         self.base_path = getattr(settings, "IMPORTER_LOCAL_STORAGE_PATH", "imports")
 
-    def save_error_report(self, content: bytes, filename: str = None) -> str:
+    def save_error_report(self, content: bytes, filename: str | None = None) -> str:
         """
         Save error report file.
 
@@ -60,8 +60,9 @@ class ImportStorage:
         """
         if self.storage_type == "s3":
             # For S3, generate a signed URL
-            expire_seconds = getattr(settings, "IMPORTER_S3_SIGNED_URL_EXPIRE", 3600)
-            return default_storage.url(file_path, expire=expire_seconds)
+            # Note: Django's default storage.url() doesn't support expire parameter
+            # If using S3, configure AWS_QUERYSTRING_EXPIRE in settings
+            return default_storage.url(file_path)
         else:
             # For local storage, return media URL
             return default_storage.url(file_path)
