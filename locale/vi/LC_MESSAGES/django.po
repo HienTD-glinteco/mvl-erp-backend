@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-15 12:57+0700\n"
+"POT-Creation-Date: 2025-10-16 14:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,62 +18,227 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: libs/base_viewset.py:34 libs/base_viewset.py:220
+#: apps/files/api/serializers/file_serializers.py:16
+msgid "Name of the file being uploaded"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:20
+msgid "MIME type of the file (e.g., application/pdf, image/png)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:24
+msgid "Upload category (e.g., job_description, invoice, employee_cv)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:51
+msgid "Presigned PUT URL for direct upload to S3"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:54
+msgid "Temporary S3 path (uploads/tmp/...)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:57
+msgid "Token for later confirmation"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:65
+msgid "Token returned by presign endpoint"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:68
+msgid "Django model label (e.g., 'hrm.JobDescription')"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:72
+msgid "Related object ID"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:76
+msgid "File purpose (used to determine final folder)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:82
+#, python-brace-format
+msgid ""
+"Optional field name on related model to set as ForeignKey to this file. If "
+"provided, related_object.{related_field} = file_model"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:92
+#, python-brace-format
+msgid "Invalid model label: {model}"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:104
+#, python-brace-format
+msgid "Object with ID {id} not found"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:107
+msgid "Invalid model"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:115
+msgid "Presigned URL for viewing the file (valid for 1 hour)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:116
+msgid "Presigned URL for downloading the file (valid for 1 hour)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:120
+msgid "Username of the user who uploaded this file"
+msgstr ""
+
+#: apps/files/models.py:19
+msgid "Purpose"
+msgstr ""
+
+#: apps/files/models.py:20
+msgid "File purpose category (e.g., job_description, invoice, employee_cv)"
+msgstr ""
+
+#: apps/files/models.py:24
+msgid "File name"
+msgstr ""
+
+#: apps/files/models.py:25
+msgid "Original name of the uploaded file"
+msgstr ""
+
+#: apps/files/models.py:29
+msgid "File path"
+msgstr ""
+
+#: apps/files/models.py:30
+msgid "S3 path where the file is stored"
+msgstr ""
+
+#: apps/files/models.py:35
+msgid "File size"
+msgstr ""
+
+#: apps/files/models.py:36
+msgid "File size in bytes"
+msgstr ""
+
+#: apps/files/models.py:42
+msgid "Checksum"
+msgstr ""
+
+#: apps/files/models.py:43
+msgid "MD5 checksum for file integrity verification"
+msgstr ""
+
+#: apps/files/models.py:47
+msgid "Confirmed"
+msgstr ""
+
+#: apps/files/models.py:48
+msgid "Whether the file upload has been confirmed"
+msgstr ""
+
+#: apps/files/models.py:56
+msgid "Uploaded by"
+msgstr ""
+
+#: apps/files/models.py:57
+msgid "User who uploaded this file"
+msgstr ""
+
+#: apps/files/models.py:66
+msgid "Content type"
+msgstr ""
+
+#: apps/files/models.py:71
+msgid "Object ID"
+msgstr ""
+
+#: apps/files/models.py:77
+msgid "File"
+msgstr ""
+
+#: apps/files/models.py:78
+msgid "Files"
+msgstr ""
+
+#: apps/files/utils/s3_utils.py:80
+#, python-brace-format
+msgid "Failed to generate presigned URL: {error}"
+msgstr ""
+
+#: apps/files/utils/s3_utils.py:123
+#, python-brace-format
+msgid "Failed to move file in S3: {error}"
+msgstr ""
+
+#: apps/files/utils/s3_utils.py:163
+#, python-brace-format
+msgid "Failed to delete file from S3: {error}"
+msgstr ""
+
+#: apps/files/utils/s3_utils.py:208
+#, python-brace-format
+msgid "Failed to generate presigned GET URL: {error}"
+msgstr ""
+
+#: libs/base_viewset.py:32 libs/base_viewset.py:218
 #, python-brace-format
 msgid "List {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:35 libs/base_viewset.py:221
+#: libs/base_viewset.py:33 libs/base_viewset.py:219
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:38 libs/base_viewset.py:224
+#: libs/base_viewset.py:36 libs/base_viewset.py:222
 #, python-brace-format
 msgid "View {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:39 libs/base_viewset.py:225
+#: libs/base_viewset.py:37 libs/base_viewset.py:223
 #, python-brace-format
 msgid "View details of a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:42
+#: libs/base_viewset.py:40
 #, python-brace-format
 msgid "Create {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:43
+#: libs/base_viewset.py:41
 #, python-brace-format
 msgid "Create a new {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:46
+#: libs/base_viewset.py:44
 #, python-brace-format
 msgid "Update {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:47
+#: libs/base_viewset.py:45
 #, python-brace-format
 msgid "Update a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:50
+#: libs/base_viewset.py:48
 #, python-brace-format
 msgid "Partially update {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:51
+#: libs/base_viewset.py:49
 #, python-brace-format
 msgid "Partially update a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:54
+#: libs/base_viewset.py:52
 #, python-brace-format
 msgid "Delete {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:55
+#: libs/base_viewset.py:53
 #, python-brace-format
 msgid "Delete a {model_name}"
 msgstr ""

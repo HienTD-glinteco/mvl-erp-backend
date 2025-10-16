@@ -16,7 +16,7 @@ API_CONFIRM_DESCRIPTION = (
 API_CONFIRM_TAG = "Files"
 
 # Error Messages
-ERROR_INVALID_FILE_TOKEN = "Invalid or expired file token"
+ERROR_INVALID_FILE_TOKEN = "Invalid or expired file token"  # nosec B105
 ERROR_FILE_NOT_FOUND_S3 = "File not found in S3"
 ERROR_RELATED_MODEL_NOT_FOUND = "Related model not found"
 ERROR_INVALID_PURPOSE = "Invalid file purpose"
