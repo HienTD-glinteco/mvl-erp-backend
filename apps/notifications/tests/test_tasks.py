@@ -92,8 +92,7 @@ class TestNotificationEmailTasks:
     def test_send_notification_email_task_with_target_info(self, mock_send_mail, actor, recipient):
         """Test sending notification email with target information."""
         # Arrange
-        from django.contrib.contenttypes.models import ContentType
-        
+
         # Use another user as target for testing
         target_user = User.objects.create_user(
             username="target",
@@ -194,7 +193,7 @@ class TestNotificationEmailTasks:
         # Clear the email to test the handler
         recipient_no_email.email = ""
         recipient_no_email.save()
-        
+
         notification = Notification.objects.create(
             actor=actor,
             recipient=recipient_no_email,

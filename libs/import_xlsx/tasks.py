@@ -6,7 +6,6 @@ import logging
 
 from celery import shared_task
 from django.apps import apps
-from django.utils.translation import gettext as _
 from openpyxl import load_workbook
 
 logger = logging.getLogger(__name__)

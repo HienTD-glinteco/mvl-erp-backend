@@ -52,7 +52,7 @@ class FieldTransformer:
             }
         )
     """
-    
+
     # Supported date format patterns
     DATE_FORMATS = {
         "YYYY-MM-DD": "%Y-%m-%d",
@@ -62,7 +62,7 @@ class FieldTransformer:
         "YYYY/MM/DD": "%Y/%m/%d",
         "DD.MM.YYYY": "%d.%m.%Y",
     }
-    
+
     def transform_field(
         self,
         field_name: str,
@@ -87,7 +87,7 @@ class FieldTransformer:
         if isinstance(field_config, str):
             column_name = field_config
             return row_data.get(column_name)
-        
+
         # Complex field configuration
         if isinstance(field_config, dict):
             # Handle combine fields (e.g., day/month/year → date)
@@ -97,14 +97,14 @@ class FieldTransformer:
                     field_config=field_config,
                     row_data=row_data,
                 )
-            
+
             # Handle lookup column for relational fields
             if "lookup" in field_config:
                 column_name = field_config["lookup"]
                 return row_data.get(column_name)
-        
+
         return None
-    
+
     def _combine_fields(
         self,
         field_name: str,
@@ -128,16 +128,16 @@ class FieldTransformer:
         try:
             combine_fields = field_config["combine"]
             values = []
-            
+
             for source_field in combine_fields:
                 value = row_data.get(source_field)
                 if value is None or value == "":
                     raise ValueError(_(ERROR_COMBINE_MISSING_VALUE).format(field=source_field))
                 values.append(str(value).strip())
-            
+
             # Get format if specified
             format_pattern = field_config.get("format")
-            
+
             # If format is a date format, parse and combine
             if format_pattern and format_pattern in self.DATE_FORMATS:
                 return self._parse_date(
@@ -145,15 +145,15 @@ class FieldTransformer:
                     format_pattern=format_pattern,
                     field_name=field_name,
                 )
-            
+
             # Default: join with separator
             separator = field_config.get("separator", "-")
             return separator.join(values)
-        
+
         except Exception as e:
             logger.error(f"Error combining fields for {field_name}: {e}")
             raise ValueError(_(ERROR_TRANSFORMATION_FAILED).format(field=field_name, error=str(e)))
-    
+
     def _parse_date(
         self,
         values: list[str],
@@ -181,19 +181,19 @@ class FieldTransformer:
                 # Validate and format
                 date_obj = datetime(int(year), int(month), int(day))
                 return date_obj.strftime("%Y-%m-%d")
-            
+
             # For DD/MM/YYYY with 3 values
             elif format_pattern == "DD/MM/YYYY" and len(values) == 3:
                 day, month, year = values
                 date_obj = datetime(int(year), int(month), int(day))
                 return date_obj.strftime("%Y-%m-%d")
-            
+
             # For MM/DD/YYYY with 3 values
             elif format_pattern == "MM/DD/YYYY" and len(values) == 3:
                 month, day, year = values
                 date_obj = datetime(int(year), int(month), int(day))
                 return date_obj.strftime("%Y-%m-%d")
-            
+
             # Generic: try to join and parse
             else:
                 separator = "-" if "-" in format_pattern else "/"
@@ -201,7 +201,7 @@ class FieldTransformer:
                 strptime_format = self.DATE_FORMATS.get(format_pattern, "%Y-%m-%d")
                 date_obj = datetime.strptime(date_string, strptime_format)
                 return date_obj.strftime("%Y-%m-%d")
-        
+
         except (ValueError, IndexError) as e:
             logger.error(f"Error parsing date for {field_name}: {e}")
             raise ValueError(
@@ -210,7 +210,7 @@ class FieldTransformer:
                     value=", ".join(values),
                 )
             )
-    
+
     def transform_row(
         self,
         fields_config: dict,
@@ -227,7 +227,7 @@ class FieldTransformer:
             dict: Transformed row data with model field names as keys
         """
         transformed_data = {}
-        
+
         for field_name, field_config in fields_config.items():
             try:
                 value = self.transform_field(
@@ -240,5 +240,5 @@ class FieldTransformer:
                 # Log error but continue processing other fields
                 logger.warning(f"Error transforming field {field_name}: {e}")
                 transformed_data[field_name] = None
-        
+
         return transformed_data

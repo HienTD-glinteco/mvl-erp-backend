@@ -3,14 +3,11 @@ API view for checking export task status.
 """
 
 from celery.result import AsyncResult
-
 from django.utils.translation import gettext as _
-
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 
 from libs.export_xlsx.serializers import ExportStatusResponseSerializer
 

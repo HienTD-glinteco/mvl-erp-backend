@@ -3,7 +3,6 @@ Celery tasks for async XLSX export.
 """
 
 from celery import shared_task
-from django.utils.translation import gettext as _
 
 from .generator import XLSXGenerator
 from .storage import get_storage_backend

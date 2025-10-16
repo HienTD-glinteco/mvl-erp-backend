@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-15 12:25+0700\n"
+"POT-Creation-Date: 2025-10-16 14:40+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -492,7 +492,7 @@ msgstr "Reset token hoặc mã OTP không hợp lệ"
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
-#: apps/core/api/views/export_status.py:57
+#: apps/core/api/views/export_status.py:54
 msgid "task_id parameter is required"
 msgstr ""
 

@@ -89,20 +89,20 @@ class Employee(AutoCodeMixin, BaseModel):
             ValidationError: If any organizational hierarchy constraint is violated
         """
         super().clean()
-        
+
         # Validate relationship between branch, block, and department
         if self.block and self.branch:
             if self.block.branch_id != self.branch_id:
                 raise ValidationError({
                     "block": _("Block must belong to the selected branch.")
                 })
-        
+
         if self.department and self.block:
             if self.department.block_id != self.block_id:
                 raise ValidationError({
                     "department": _("Department must belong to the selected block.")
                 })
-        
+
         if self.department and self.branch:
             if self.department.branch_id != self.branch_id:
                 raise ValidationError({

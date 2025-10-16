@@ -1,6 +1,6 @@
 """Tests for Firebase Cloud Messaging service."""
 
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from firebase_admin import messaging

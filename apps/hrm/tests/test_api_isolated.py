@@ -279,7 +279,7 @@ class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
         position_data = {
             "name": "Tổng Giám đốc",
             "code": "TGD",
-            
+
         }
 
         url = reverse("hrm:position-list")

@@ -157,7 +157,7 @@ class Command(BaseCommand):
         from libs.base_viewset import PermissionRegistrationMixin
 
         permissions = []
-        
+
         # Iterate through all installed apps
         for app_config in apps.get_app_configs():
             # Only process internal apps

@@ -4,6 +4,7 @@ to allow running unittests.
 """
 
 from .base import *  # noqa
+from .base.drf import REST_FRAMEWORK
 
 import warnings
 
@@ -17,21 +18,23 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = False
 
-# Use dummy cache for tests to avoid Redis dependency
+# Use SQLite for testing to avoid PostgreSQL dependency
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+}
+
+# Use local memory cache for tests to avoid Redis dependency
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "test-cache",
     },
 }
 
 # Disable throttling in tests by setting very high rates
-REST_FRAMEWORK = {
-    **REST_FRAMEWORK,  # noqa: F405
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "10000/minute",
-        "user": "10000/minute",
-        "login": "10000/minute",
-    },
-}
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
 
 LANGUAGE_CODE = "en"
