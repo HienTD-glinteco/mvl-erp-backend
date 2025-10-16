@@ -40,7 +40,7 @@ from apps.files.utils import S3FileUploadService
             description="Example request to generate presigned URL",
             value={
                 "file_name": "JD.pdf",
-                "file_size": 123456,
+                "file_type": "application/pdf",
                 "purpose": "job_description",
             },
             request_only=True,
@@ -89,14 +89,14 @@ class PresignURLView(APIView):
         serializer.is_valid(raise_exception=True)
 
         file_name = serializer.validated_data["file_name"]
-        file_size = serializer.validated_data["file_size"]
+        file_type = serializer.validated_data["file_type"]
         purpose = serializer.validated_data["purpose"]
 
         # Generate presigned URL
         s3_service = S3FileUploadService()
         presign_data = s3_service.generate_presigned_url(
             file_name=file_name,
-            file_size=file_size,
+            file_type=file_type,
             purpose=purpose,
         )
 
@@ -104,7 +104,7 @@ class PresignURLView(APIView):
         cache_key = f"{CACHE_KEY_PREFIX}{presign_data['file_token']}"
         cache_data = {
             "file_name": file_name,
-            "file_size": file_size,
+            "file_type": file_type,
             "purpose": purpose,
             "file_path": presign_data["file_path"],
         }
@@ -193,6 +193,7 @@ class ConfirmFileUploadView(APIView):
         related_model = serializer.validated_data["related_model"]
         related_object_id = serializer.validated_data["related_object_id"]
         purpose = serializer.validated_data["purpose"]
+        related_field = serializer.validated_data.get("related_field")
 
         # Retrieve file metadata from cache
         cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
@@ -239,12 +240,19 @@ class ConfirmFileUploadView(APIView):
             purpose=purpose,
             file_name=file_name,
             file_path=permanent_path,
-            size=s3_metadata.get("size") if s3_metadata else file_metadata.get("file_size"),
+            size=s3_metadata.get("size") if s3_metadata else None,
             checksum=s3_metadata.get("etag") if s3_metadata else None,
             is_confirmed=True,
             content_type=content_type,
             object_id=related_object_id,
         )
+
+        # If related_field is specified, set it as ForeignKey on related object
+        if related_field:
+            related_object = model_class.objects.get(pk=related_object_id)
+            if hasattr(related_object, related_field):
+                setattr(related_object, related_field, file_record)
+                related_object.save(update_fields=[related_field])
 
         # Delete cache entry
         cache.delete(cache_key)

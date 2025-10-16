@@ -35,7 +35,7 @@ class S3FileUploadServiceTest(TestCase):
         # Act
         result = service.generate_presigned_url(
             file_name="test.pdf",
-            file_size=123456,
+            file_type="application/pdf",
             purpose="test_purpose",
         )
 
@@ -63,7 +63,7 @@ class S3FileUploadServiceTest(TestCase):
         with self.assertRaises(Exception):
             service.generate_presigned_url(
                 file_name="test.pdf",
-                file_size=123456,
+                file_type="application/pdf",
                 purpose="test_purpose",
             )
 

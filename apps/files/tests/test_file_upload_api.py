@@ -63,7 +63,7 @@ class PresignURLAPITest(TestCase, APITestMixin):
         url = reverse("files:presign")
         data = {
             "file_name": "test.pdf",
-            "file_size": 123456,
+            "file_type": "application/pdf",
             "purpose": "job_description",
         }
         response = self.client.post(url, data, format="json")
@@ -84,16 +84,16 @@ class PresignURLAPITest(TestCase, APITestMixin):
 
         cached_obj = json.loads(cached_data)
         self.assertEqual(cached_obj["file_name"], "test.pdf")
-        self.assertEqual(cached_obj["file_size"], 123456)
+        self.assertEqual(cached_obj["file_type"], "application/pdf")
         self.assertEqual(cached_obj["purpose"], "job_description")
 
-    def test_presign_url_invalid_file_size(self):
-        """Test presign URL with invalid file size."""
+    def test_presign_url_invalid_file_type(self):
+        """Test presign URL with invalid file type for purpose."""
         # Arrange & Act
         url = reverse("files:presign")
         data = {
-            "file_name": "test.pdf",
-            "file_size": 0,  # Invalid: must be >= 1
+            "file_name": "test.exe",
+            "file_type": "application/x-msdownload",  # Invalid for job_description
             "purpose": "job_description",
         }
         response = self.client.post(url, data, format="json")
@@ -107,7 +107,7 @@ class PresignURLAPITest(TestCase, APITestMixin):
         url = reverse("files:presign")
         data = {
             "file_name": "test.pdf",
-            # Missing file_size and purpose
+            # Missing file_type and purpose
         }
         response = self.client.post(url, data, format="json")
 
@@ -123,7 +123,7 @@ class PresignURLAPITest(TestCase, APITestMixin):
         url = reverse("files:presign")
         data = {
             "file_name": "test.pdf",
-            "file_size": 123456,
+            "file_type": "application/pdf",
             "purpose": "job_description",
         }
         response = client.post(url, data, format="json")
@@ -155,7 +155,7 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         cache_key = f"{CACHE_KEY_PREFIX}{self.file_token}"
         cache_data = {
             "file_name": "test.pdf",
-            "file_size": 123456,
+            "file_type": "application/pdf",
             "purpose": "job_description",
             "file_path": "uploads/tmp/test-token-123/test.pdf",
         }

@@ -62,7 +62,7 @@ Example paths:
 ```json
 {
   "file_name": "document.pdf",
-  "file_size": 123456,
+  "file_type": "application/pdf",
   "purpose": "job_description"
 }
 ```
@@ -81,10 +81,17 @@ Example paths:
 ```
 
 **What happens**:
-1. System generates unique file token and temporary S3 path
-2. Creates presigned PUT URL (expires in 1 hour)
-3. Stores file metadata in cache (expires in 1 hour)
-4. Returns upload URL and token to client
+1. System validates file type is allowed for the specified purpose
+2. Generates unique file token and temporary S3 path
+3. Creates presigned PUT URL with ContentType in signature (expires in 1 hour)
+4. Stores file metadata in cache (expires in 1 hour)
+5. Returns upload URL and token to client
+
+**File Type Validation**: The system enforces allowed file types per purpose. For example:
+- `job_description`: PDF, DOC, DOCX
+- `employee_cv`: PDF, DOC, DOCX
+- `invoice`: PDF, PNG, JPEG
+- `profile_picture`: PNG, JPEG, JPG, WEBP
 
 ### 2. Confirm File Upload
 
@@ -98,7 +105,8 @@ Example paths:
   "file_token": "f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32",
   "related_model": "hrm.Employee",
   "related_object_id": 42,
-  "purpose": "employee_cv"
+  "purpose": "employee_cv",
+  "related_field": "cv_file"  // Optional: sets employee.cv_file = file_record
 }
 ```
 
@@ -143,7 +151,7 @@ const presignResponse = await fetch('/api/files/presign/', {
   },
   body: JSON.stringify({
     file_name: 'CV.pdf',
-    file_size: file.size,
+    file_type: file.type,  // e.g., 'application/pdf'
     purpose: 'employee_cv'
   })
 });
@@ -151,6 +159,7 @@ const presignResponse = await fetch('/api/files/presign/', {
 const { upload_url, file_token } = presignResponse.data;
 
 // Step 2: Upload file directly to S3
+// IMPORTANT: Must include Content-Type header matching the file_type from step 1
 await fetch(upload_url, {
   method: 'PUT',
   body: file,
@@ -186,14 +195,17 @@ await fetch('/api/files/confirm/', {
     file_token: file_token,
     related_model: 'hrm.Employee',
     related_object_id: employeeId,
-    purpose: 'employee_cv'
+    purpose: 'employee_cv',
+    related_field: 'cv_file'  // Optional: automatically sets employee.cv_file = file_record
   })
 });
 ```
 
 ### Backend Integration
 
-To link files to your model, add a GenericRelation:
+#### Option 1: Using Generic Relations (Many files per object)
+
+To link multiple files to your model, add a GenericRelation:
 
 ```python
 from django.contrib.contenttypes.fields import GenericRelation
@@ -202,7 +214,7 @@ from apps.files.models import FileModel
 class Employee(models.Model):
     # ... your fields ...
     
-    # Add this to enable reverse lookup
+    # Add this to enable reverse lookup for multiple files
     files = GenericRelation(FileModel)
     
     def get_cv(self):
@@ -210,7 +222,79 @@ class Employee(models.Model):
         return self.files.filter(purpose='employee_cv').first()
 ```
 
+#### Option 2: Using ForeignKey (Single file per object)
+
+For cases where you want a direct ForeignKey relationship (one file per purpose), use the `related_field` parameter:
+
+```python
+from apps.files.models import FileModel
+
+class Employee(models.Model):
+    # ... your fields ...
+    
+    # Direct ForeignKey to file
+    cv_file = models.ForeignKey(
+        FileModel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='employee_cv'
+    )
+    
+    profile_picture = models.ForeignKey(
+        FileModel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='employee_profile'
+    )
+```
+
+When confirming the upload, pass `related_field` to automatically set the ForeignKey:
+
+```json
+{
+  "file_token": "...",
+  "related_model": "hrm.Employee",
+  "related_object_id": 42,
+  "purpose": "employee_cv",
+  "related_field": "cv_file"  // This will set employee.cv_file = file_record
+}
+```
+
 ## Configuration
+
+### File Type Restrictions
+
+Configure allowed file types per purpose in `apps/files/constants.py`:
+
+```python
+ALLOWED_FILE_TYPES = {
+    "job_description": [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+    "employee_cv": [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+    "invoice": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+    ],
+    "profile_picture": [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+    ],
+}
+```
+
+If a purpose is not in this dictionary, all file types are allowed. Add new purposes as needed without migrations.
 
 ### Cache Settings
 

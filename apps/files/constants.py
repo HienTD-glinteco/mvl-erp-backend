@@ -31,3 +31,34 @@ S3_UPLOADS_PREFIX = "uploads/"
 
 # Presigned URL Settings
 PRESIGNED_URL_EXPIRATION = 3600  # 1 hour
+
+# Allowed file types per purpose
+# Format: purpose -> list of allowed MIME types (None = allow all)
+ALLOWED_FILE_TYPES = {
+    "job_description": [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+    "employee_cv": [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+    "invoice": [
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+    ],
+    "profile_picture": [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+    ],
+    # Add more purposes as needed
+    # If a purpose is not listed here, all file types are allowed
+}
+
+# Error Messages for file type validation
+ERROR_INVALID_FILE_TYPE = "Invalid file type for purpose {purpose}. Allowed types: {allowed_types}"

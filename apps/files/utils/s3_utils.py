@@ -27,7 +27,7 @@ class S3FileUploadService:
     def generate_presigned_url(
         self,
         file_name: str,
-        file_size: int,
+        file_type: str,
         purpose: str,
         expiration: int = PRESIGNED_URL_EXPIRATION,
     ) -> dict[str, str]:
@@ -36,7 +36,7 @@ class S3FileUploadService:
 
         Args:
             file_name: Original name of the file
-            file_size: Size of the file in bytes
+            file_type: MIME type of the file (e.g., application/pdf)
             purpose: Purpose/category of the file
             expiration: URL expiration time in seconds (default: 1 hour)
 
@@ -54,13 +54,13 @@ class S3FileUploadService:
 
         try:
             # Generate presigned URL for PUT operation
-            # Note: ContentLength should not be in Params as it's not a valid S3 parameter
-            # The client will send it in the request headers instead
+            # Include ContentType in signature to ensure client uploads with correct type
             presigned_url = self.s3_client.generate_presigned_url(
                 "put_object",
                 Params={
                     "Bucket": self.bucket_name,
                     "Key": temp_path,
+                    "ContentType": file_type,
                 },
                 ExpiresIn=expiration,
             )

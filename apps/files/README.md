@@ -12,7 +12,7 @@ curl -X POST http://localhost:8000/api/files/presign/ \
   -H "Content-Type: application/json" \
   -d '{
     "file_name": "document.pdf",
-    "file_size": 123456,
+    "file_type": "application/pdf",
     "purpose": "job_description"
   }'
 ```
