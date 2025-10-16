@@ -8,6 +8,7 @@ from .organization import (
     Position,
 )
 from .recruitment_channel import RecruitmentChannel
+from .recruitment_request import RecruitmentRequest
 from .recruitment_source import RecruitmentSource
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "RecruitmentChannel",
     "RecruitmentSource",
     "JobDescription",
+    "RecruitmentRequest",
 ]

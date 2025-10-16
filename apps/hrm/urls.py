@@ -11,6 +11,7 @@ from apps.hrm.api.views import (
     OrganizationChartViewSet,
     PositionViewSet,
     RecruitmentChannelViewSet,
+    RecruitmentRequestViewSet,
     RecruitmentSourceViewSet,
 )
 
@@ -27,6 +28,7 @@ router.register(r"employees", EmployeeViewSet, basename="employee")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")
 router.register(r"job-descriptions", JobDescriptionViewSet, basename="job-description")
+router.register(r"recruitment-requests", RecruitmentRequestViewSet, basename="recruitment-request")
 
 urlpatterns = [
     path("", include(router.urls)),
