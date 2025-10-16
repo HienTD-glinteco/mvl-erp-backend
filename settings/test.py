@@ -4,6 +4,7 @@ to allow running unittests.
 """
 
 from .base import *  # noqa
+from .base.drf import REST_FRAMEWORK
 
 import warnings
 
@@ -36,6 +37,7 @@ CACHES = {
 # Disable throttling in tests by setting very high rates
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,  # noqa: F405
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "10000/minute",
         "user": "10000/minute",
