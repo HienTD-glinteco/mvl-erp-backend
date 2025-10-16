@@ -1,4 +1,5 @@
 from .employee import Employee
+from .job_description import JobDescription
 from .organization import (
     Block,
     Branch,
@@ -18,4 +19,5 @@ __all__ = [
     "Employee",
     "RecruitmentChannel",
     "RecruitmentSource",
+    "JobDescription",
 ]

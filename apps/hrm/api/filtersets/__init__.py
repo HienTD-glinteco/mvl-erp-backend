@@ -1,5 +1,6 @@
 from .employee import EmployeeFilterSet
 from .employee_role import EmployeeRoleFilterSet
+from .job_description import JobDescriptionFilterSet
 from .organization import (
     BlockFilterSet,
     BranchFilterSet,
@@ -20,4 +21,5 @@ __all__ = [
     "EmployeeFilterSet",
     "RecruitmentChannelFilterSet",
     "RecruitmentSourceFilterSet",
+    "JobDescriptionFilterSet",
 ]
