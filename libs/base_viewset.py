@@ -5,10 +5,8 @@ This module provides base ViewSet classes that automatically generate
 permission metadata for all standard DRF actions and custom actions.
 """
 
-from rest_framework import viewsets
-from rest_framework.decorators import action as drf_action
-
 from django.utils.translation import gettext_lazy as _
+from rest_framework import viewsets
 
 
 class PermissionRegistrationMixin:

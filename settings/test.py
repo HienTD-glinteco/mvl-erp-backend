@@ -17,10 +17,19 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = False
 
-# Use dummy cache for tests to avoid Redis dependency
+# Use SQLite for testing to avoid PostgreSQL dependency
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+}
+
+# Use local memory cache for tests to avoid Redis dependency
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "test-cache",
     },
 }
 

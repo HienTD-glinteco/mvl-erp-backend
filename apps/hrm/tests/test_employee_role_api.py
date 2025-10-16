@@ -7,8 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import Role
-from apps.core.models import AdministrativeUnit, Province
+from apps.core.models import AdministrativeUnit, Province, Role
 from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
 
 User = get_user_model()

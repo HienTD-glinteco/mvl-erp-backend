@@ -27,6 +27,7 @@ INTERNAL_APPS = [
     "apps.audit_logging",
     "apps.hrm",
     "apps.notifications",
+    "apps.files",
 ]
 
 INSTALLED_APPS = DJANGO_APPs + EXTERNAL_APPS + INTERNAL_APPS

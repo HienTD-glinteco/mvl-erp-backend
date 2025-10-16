@@ -163,12 +163,12 @@ class AdministrativeUnitModelTest(TestCase):
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=True,
         )
-        
+
         province_id = province2.id
         unit_id = unit2.id
-        
+
         province2.delete()
-        
+
         # Unit should be deleted
         self.assertFalse(AdministrativeUnit.objects.filter(id=unit_id).exists())
 
@@ -181,7 +181,7 @@ class AdministrativeUnitModelTest(TestCase):
             level=AdministrativeUnit.UnitLevel.DISTRICT,
             enabled=True,
         )
-        
+
         units = self.province.administrative_units.all()
         self.assertEqual(units.count(), 2)
         self.assertIn(self.unit, units)
