@@ -337,6 +337,14 @@ Potential improvements (not yet implemented):
 
 ## Troubleshooting
 
+### Issue: XML error response when uploading to presigned URL
+
+**Problem**: Client receives XML error response like `<?xml version="1.0" encoding="UTF-8"?>` when attempting to upload to the presigned URL.
+
+**Solution**: This was fixed by removing the `ContentLength` parameter from presigned URL generation. The `ContentLength` should be sent in the request headers by the client, not included in the presigned URL parameters. The fix ensures the presigned URL only contains the necessary S3 parameters (Bucket, Key).
+
+**Client-side note**: When uploading, the client should include the `Content-Length` header in their PUT request to S3.
+
 ### Issue: Cache not working
 
 **Problem**: File tokens not persisting between presign and confirm.

@@ -54,12 +54,13 @@ class S3FileUploadService:
 
         try:
             # Generate presigned URL for PUT operation
+            # Note: ContentLength should not be in Params as it's not a valid S3 parameter
+            # The client will send it in the request headers instead
             presigned_url = self.s3_client.generate_presigned_url(
                 "put_object",
                 Params={
                     "Bucket": self.bucket_name,
                     "Key": temp_path,
-                    "ContentLength": file_size,
                 },
                 ExpiresIn=expiration,
             )
