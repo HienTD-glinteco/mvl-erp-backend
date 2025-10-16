@@ -25,7 +25,7 @@ curl -X PUT "PRESIGNED_URL_FROM_STEP_1" \
   --data-binary @document.pdf
 ```
 
-### 3. Confirm Upload
+### 3. Confirm Upload (Single File)
 
 ```bash
 curl -X POST http://localhost:8000/api/files/confirm/ \
@@ -36,6 +36,22 @@ curl -X POST http://localhost:8000/api/files/confirm/ \
     "related_model": "hrm.Employee",
     "related_object_id": 42,
     "purpose": "job_description"
+  }'
+```
+
+### 4. Confirm Multiple Files (New)
+
+```bash
+curl -X POST http://localhost:8000/api/files/confirm-multiple/ \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file_tokens": ["TOKEN_1", "TOKEN_2", "TOKEN_3"],
+    "related_object": {
+      "app_label": "hrm",
+      "model": "jobdescription",
+      "object_id": 15
+    }
   }'
 ```
 
@@ -73,10 +89,90 @@ apps/files/
 
 - **PresignURLView**: Generates presigned S3 upload URLs
 - **ConfirmFileUploadView**: Confirms upload and moves file to permanent storage
+- **ConfirmMultipleFilesView**: Confirms multiple uploads in a single transaction (New)
+
+### Serializers
+
+- **PresignRequestSerializer**: Validates presign requests
+- **ConfirmFileSerializer**: Validates single file confirmation
+- **ConfirmMultipleFilesSerializer**: Validates multiple file confirmation (New)
+- **FileSerializer**: Serializes FileModel instances
 
 ### Utilities
 
 - **S3FileUploadService**: Handles all S3 operations (presign, check, move, metadata)
+
+### Mixins
+
+- **FileConfirmSerializerMixin**: Auto-confirms files when serializer is saved (New)
+
+## Using FileConfirmSerializerMixin
+
+The `FileConfirmSerializerMixin` enables automatic file confirmation during serializer save, eliminating the need for a separate confirmation API call.
+
+### Example Usage
+
+```python
+from rest_framework import serializers
+from libs import FileConfirmSerializerMixin
+from apps.hrm.models import JobDescription
+
+class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+    file_tokens = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        write_only=True,
+        help_text="List of file tokens to confirm and attach"
+    )
+
+    class Meta:
+        model = JobDescription
+        fields = [
+            "id",
+            "code",
+            "title",
+            "responsibility",
+            "requirement",
+            "benefit",
+            "proposed_salary",
+            "file_tokens",  # Add this field
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "code", "created_at", "updated_at"]
+```
+
+### Workflow
+
+1. Frontend uploads files via presigned URLs and receives `file_tokens`
+2. Frontend submits form data with `file_tokens` included:
+
+```json
+{
+  "title": "Senior Developer",
+  "responsibility": "Lead development team...",
+  "requirement": "5+ years experience...",
+  "benefit": "Competitive salary...",
+  "proposed_salary": "$100k-$120k",
+  "file_tokens": ["abc123", "xyz789"]
+}
+```
+
+3. The mixin automatically:
+   - Validates all file tokens
+   - Confirms files exist in S3
+   - Moves files from temp to permanent storage
+   - Links files to the created/updated instance
+   - All in a single database transaction
+
+### Features
+
+- ✅ Automatic file confirmation on save
+- ✅ Transaction safety (rollback if confirmation fails)
+- ✅ Supports multiple files
+- ✅ Validates content types
+- ✅ Links files via Generic Relations
+- ✅ Cleans up cache after confirmation
 
 ## Testing
 
@@ -85,7 +181,13 @@ Run tests:
 poetry run pytest apps/files/tests/ -v
 ```
 
-All 22 tests should pass.
+Test coverage includes:
+- ✅ Presign URL generation
+- ✅ Single file confirmation
+- ✅ Multiple file confirmation (New)
+- ✅ FileConfirmSerializerMixin (New)
+- ✅ S3 utilities
+- ✅ Error handling and validation
 
 ## Documentation
 
