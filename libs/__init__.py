@@ -11,6 +11,7 @@ from .export_xlsx import (
     generate_xlsx_task,
     get_storage_backend,
 )
+from .import_xlsx import ImportXLSXMixin
 from .models import AutoCodeMixin, BaseModel, create_dummy_model
 from .pagination import PageNumberWithSizePagination
 from .serializers.mixins import FieldFilteringSerializerMixin
@@ -29,6 +30,7 @@ __all__ = [
     "SchemaBuilder",
     "get_storage_backend",
     "generate_xlsx_task",
+    "ImportXLSXMixin",
     "create_auto_code_signal_handler",
     "generate_model_code",
     "register_auto_code_signal",

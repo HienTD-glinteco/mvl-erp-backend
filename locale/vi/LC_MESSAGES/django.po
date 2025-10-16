@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-10 18:51+0700\n"
+"POT-Creation-Date: 2025-10-15 12:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -85,6 +85,14 @@ msgstr ""
 #: libs/export_xlsx/mixins.py:101
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
+msgstr ""
+
+#: libs/import_xlsx/import_mixin.py:357
+msgid "Import task has been queued for processing"
+msgstr ""
+
+#: libs/import_xlsx/utils.py:181
+msgid "This field is required"
 msgstr ""
 
 #: templates/emails/base_email.html:6
