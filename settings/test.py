@@ -35,14 +35,6 @@ CACHES = {
 }
 
 # Disable throttling in tests by setting very high rates
-REST_FRAMEWORK = {
-    **REST_FRAMEWORK,  # noqa: F405
-    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "10000/minute",
-        "user": "10000/minute",
-        "login": "10000/minute",
-    },
-}
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
 
 LANGUAGE_CODE = "en"
