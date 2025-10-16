@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province, Role
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
 
 User = get_user_model()
 
@@ -89,9 +89,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             function=Department.DepartmentFunction.BUSINESS,
         )
 
-        self.position = Position.objects.create(
-            name="Nhân viên Kinh doanh", code="NVKD"
-        )
+        self.position = Position.objects.create(name="Nhân viên Kinh doanh", code="NVKD")
 
         # Create test employees
         self.employee1 = User.objects.create_user(
@@ -119,6 +117,43 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             first_name="Lê",
             last_name="Văn C",
             role=self.role_manager,
+        )
+
+        # Create Employee records for each user
+        Employee.objects.create(
+            code="NV001",
+            fullname="Nguyễn Văn A",
+            username="emp1",
+            email="emp1_hrm@example.com",
+            phone="0123456781",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            user=self.employee1,
+        )
+
+        Employee.objects.create(
+            code="NV002",
+            fullname="Trần Thị B",
+            username="emp2",
+            email="emp2_hrm@example.com",
+            phone="0123456782",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            user=self.employee2,
+        )
+
+        Employee.objects.create(
+            code="NV003",
+            fullname="Lê Văn C",
+            username="emp3",
+            email="emp3_hrm@example.com",
+            phone="0123456783",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            user=self.employee3,
         )
 
         # Create organization chart entries

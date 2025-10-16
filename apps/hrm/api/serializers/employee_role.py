@@ -8,7 +8,7 @@ from apps.core.models import Role, User
 class EmployeeRoleListSerializer(serializers.ModelSerializer):
     """Serializer for listing employees with their roles and organizational information"""
 
-    employee_code = serializers.CharField(source="username", read_only=True)
+    employee_code = serializers.CharField(source="employee.code", read_only=True)
     employee_name = serializers.CharField(source="get_full_name", read_only=True)
     role_name = serializers.CharField(source="role.name", read_only=True)
     branch_name = serializers.SerializerMethodField()
