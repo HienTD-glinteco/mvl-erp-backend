@@ -122,6 +122,8 @@ Example paths:
     "size": 123456,
     "checksum": "abc123def456",
     "is_confirmed": true,
+    "uploaded_by": 5,
+    "uploaded_by_username": "john_doe",
     "view_url": "https://s3.amazonaws.com/bucket/uploads/employee_cv/42/document.pdf?...",
     "download_url": "https://s3.amazonaws.com/bucket/uploads/employee_cv/42/document.pdf?response-content-disposition=attachment...",
     "created_at": "2025-10-16T04:00:00Z",
@@ -132,6 +134,8 @@ Example paths:
 ```
 
 **Response includes**:
+- `uploaded_by`: ID of the user who uploaded the file
+- `uploaded_by_username`: Username of the user who uploaded the file
 - `view_url`: Presigned URL for viewing the file inline (valid for 1 hour)
 - `download_url`: Presigned URL for downloading the file with original filename (valid for 1 hour)
 ```

@@ -47,6 +47,15 @@ class FileModel(BaseModel):
         verbose_name=_("Confirmed"),
         help_text=_("Whether the file upload has been confirmed"),
     )
+    uploaded_by = models.ForeignKey(
+        "core.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_files",
+        verbose_name=_("Uploaded by"),
+        help_text=_("User who uploaded this file"),
+    )
 
     # Generic foreign key to link to any model
     content_type = models.ForeignKey(

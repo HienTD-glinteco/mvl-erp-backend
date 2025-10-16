@@ -114,6 +114,11 @@ class FileSerializer(serializers.ModelSerializer):
 
     view_url = serializers.ReadOnlyField(help_text=_("Presigned URL for viewing the file (valid for 1 hour)"))
     download_url = serializers.ReadOnlyField(help_text=_("Presigned URL for downloading the file (valid for 1 hour)"))
+    uploaded_by_username = serializers.CharField(
+        source="uploaded_by.username",
+        read_only=True,
+        help_text=_("Username of the user who uploaded this file"),
+    )
 
     class Meta:
         model = FileModel
@@ -125,6 +130,8 @@ class FileSerializer(serializers.ModelSerializer):
             "size",
             "checksum",
             "is_confirmed",
+            "uploaded_by",
+            "uploaded_by_username",
             "view_url",
             "download_url",
             "created_at",

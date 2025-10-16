@@ -187,7 +187,7 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
                 "etag": "abc123def456",
             },
         ]
-        
+
         # Mock S3 service in utils (for properties in serializer)
         mock_utils_instance = mock_s3_service_utils.return_value
         mock_utils_instance.generate_view_url.return_value = "https://s3.amazonaws.com/view-url"
@@ -219,6 +219,12 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         self.assertEqual(file_record.purpose, "job_description")
         self.assertTrue(file_record.is_confirmed)
         self.assertEqual(file_record.object_id, self.user.id)
+
+        # Assert: Check uploaded_by is set
+        self.assertEqual(file_record.uploaded_by, self.user)
+        self.assertIn("uploaded_by", response_data)
+        self.assertIn("uploaded_by_username", response_data)
+        self.assertEqual(response_data["uploaded_by_username"], self.user.username)
 
         # Assert: Check S3 service was called correctly
         mock_instance.check_file_exists.assert_called_once_with("uploads/tmp/test-token-123/test.pdf")

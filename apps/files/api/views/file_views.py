@@ -145,6 +145,8 @@ class PresignURLView(APIView):
                     "size": 123456,
                     "checksum": None,
                     "is_confirmed": True,
+                    "uploaded_by": 5,
+                    "uploaded_by_username": "john_doe",
                     "view_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?AWSAccessKeyId=...",
                     "download_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?response-content-disposition=attachment...",
                     "created_at": "2025-10-16T04:00:00Z",
@@ -289,6 +291,7 @@ class ConfirmFileUploadView(APIView):
             is_confirmed=True,
             content_type=content_type,
             object_id=related_object_id,
+            uploaded_by=request.user if request.user.is_authenticated else None,
         )
 
         # If related_field is specified, set it as ForeignKey on related object
