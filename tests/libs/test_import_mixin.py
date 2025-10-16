@@ -9,6 +9,7 @@ from django.db import models
 from django.test import TestCase
 from openpyxl import Workbook
 from rest_framework import serializers
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from libs import ImportXLSXMixin
@@ -291,7 +292,8 @@ class ImportXLSXMixinTestCase(TestCase):
         # Arrange
         viewset = TestImportViewSet()
         request = self.factory.post("/import/")
-        viewset.request = request
+        viewset.request = Request(request)
+        viewset.format_kwarg = None
 
         # Act
         response = viewset.import_data(request)
@@ -308,7 +310,8 @@ class ImportXLSXMixinTestCase(TestCase):
         file = io.BytesIO(b"not an xlsx file")
         file.name = "test.txt"
         request = self.factory.post("/import/", {"file": file})
-        viewset.request = request
+        viewset.request = Request(request)
+        viewset.format_kwarg = None
 
         # Act
         response = viewset.import_data(request)
@@ -324,10 +327,12 @@ class ImportXLSXMixinTestCase(TestCase):
         viewset = TestImportViewSet()
         file = self._create_xlsx_file([], ["name", "email"])
         request = self.factory.post("/import/", {"file": file}, format="multipart")
-        viewset.request = request
+        drf_request = Request(request)
+        viewset.request = drf_request
+        viewset.format_kwarg = None
 
         # Act
-        response = viewset.import_data(request)
+        response = viewset.import_data(drf_request)
 
         # Assert
         self.assertEqual(response.status_code, 400)

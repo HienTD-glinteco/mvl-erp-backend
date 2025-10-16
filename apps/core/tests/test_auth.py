@@ -24,6 +24,7 @@ class AuthenticationTestCase(TestCase):
         self.otp_url = reverse("core:verify_otp")
         self.forgot_password_url = reverse("core:forgot_password")
 
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_otp_email_task.delay")
     def test_successful_login(self, mock_email_task):
         """Test successful login with correct credentials"""
@@ -67,6 +68,7 @@ class AuthenticationTestCase(TestCase):
             str(response_data["error"]["non_field_errors"][0]),
         )
 
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     def test_account_lockout_after_failed_attempts(self):
         """Test account lockout after 5 failed login attempts"""
         data = {"username": "testuser001", "password": "wrongpassword"}
@@ -83,6 +85,7 @@ class AuthenticationTestCase(TestCase):
         self.assertFalse(response_data["success"])
         self.assertIn("locked", str(response_data["error"]["non_field_errors"][0]))
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_otp_verification_success(self, mock_trigger_send_notification):
         """Test successful OTP verification"""
@@ -101,6 +104,7 @@ class AuthenticationTestCase(TestCase):
         self.assertIn("access", response_data["data"]["tokens"])
         self.assertIn("refresh", response_data["data"]["tokens"])
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     def test_otp_verification_wrong_code(self):
         """Test OTP verification with wrong code"""
         # First generate OTP for the user
@@ -122,6 +126,7 @@ class AuthenticationTestCase(TestCase):
             or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
         )
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_email(self, mock_email_task):
         """Test password reset request with email"""
@@ -136,6 +141,7 @@ class AuthenticationTestCase(TestCase):
         self.assertIn("message", response_data["data"])
         self.assertIn("Password reset", response_data["data"]["message"])
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
     def test_password_reset_request_phone(self, mock_sms_task):
         """Test password reset request with phone number uses SMS"""
@@ -160,6 +166,7 @@ class AuthenticationTestCase(TestCase):
         # Verify SMS task was called
         mock_sms_task.assert_called_once()
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     def test_password_reset_wrong_identifier(self):
         """Test password reset with wrong identifier"""
         data = {"identifier": "wrong@example.com"}
@@ -241,6 +248,7 @@ class AuthenticationTestCase(TestCase):
             or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
         )
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_step1_returns_reset_token(self, mock_email_task):
         mock_email_task.return_value = MagicMock()
@@ -260,6 +268,10 @@ class AuthenticationTestCase(TestCase):
         reset_request = PasswordResetOTP.objects.get_by_token(data["reset_token"])
         self.assertIsNotNone(reset_request)
 
+    @patch(
+        "apps.core.api.views.auth.password_reset_otp_verification.PasswordResetOTPVerificationView.throttle_classes",
+        new=[],
+    )
     def test_password_reset_step2_verify_otp_returns_jwt(self):
         # Create a fresh reset request to get the plain OTP code
         reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
@@ -275,6 +287,10 @@ class AuthenticationTestCase(TestCase):
         self.assertIn("access", data["tokens"])  # access token provided
         self.assertIn("refresh", data["tokens"])  # refresh token provided
 
+    @patch(
+        "apps.core.api.views.auth.password_reset_otp_verification.PasswordResetOTPVerificationView.throttle_classes",
+        new=[],
+    )
     def test_password_reset_step3_change_password_authenticated(self):
         # Step 2: verify OTP to get JWT first
         reset_request, otp_code = PasswordResetOTP.objects.create_request(self.user, channel="email")
@@ -299,12 +315,17 @@ class AuthenticationTestCase(TestCase):
             {"new_password": new_password, "confirm_password": new_password},
             format="json",
         )
+
         self.assertEqual(resp3.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password(new_password))
         # Ensure reset request is cleaned up
         self.assertFalse(PasswordResetOTP.objects.filter(user=self.user, is_verified=True, is_used=False).exists())
 
+    @patch(
+        "apps.core.api.views.auth.password_reset_change_password.PasswordResetChangePasswordView.throttle_classes",
+        new=[],
+    )
     def test_password_reset_step3_requires_authentication(self):
         new_password = "NewSecure123!"
         url_change = reverse("core:forgot_password_change_password")
@@ -315,11 +336,16 @@ class AuthenticationTestCase(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    @patch(
+        "apps.core.api.views.auth.password_reset_change_password.PasswordResetChangePasswordView.throttle_classes",
+        new=[],
+    )
     def test_password_reset_step3_without_verified_request(self):
         # Authenticate with a token that didn't come from step 2
         access = str(RefreshToken.for_user(self.user).access_token)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+
         url_change = reverse("core:forgot_password_change_password")
         resp = client.post(
             url_change,

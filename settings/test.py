@@ -36,5 +36,6 @@ CACHES = {
 
 # Disable throttling in tests by setting very high rates
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}
 
 LANGUAGE_CODE = "en"

@@ -27,6 +27,7 @@ class LoginNotificationTestCase(TestCase):
         )
         self.otp_url = reverse("core:verify_otp")
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_login_creates_notification(self, mock_trigger_send_notification):
         """Test that successful login creates a notification for the user."""
@@ -93,6 +94,7 @@ class LoginNotificationTestCase(TestCase):
         notification = Notification.objects.first()
         self.assertEqual(notification.extra_data["ip_address"], "203.0.113.42")
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_login_notification_delivery_method(self, mock_trigger_send_notification):
         """Test that login notification uses firebase delivery method."""
@@ -108,6 +110,7 @@ class LoginNotificationTestCase(TestCase):
         notification = Notification.objects.first()
         self.assertEqual(notification.delivery_method, Notification.DeliveryMethod.FIREBASE)
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_login_notification_includes_user_agent(self, mock_trigger_send_notification):
         """Test that login notification includes user agent in extra_data."""
@@ -130,6 +133,7 @@ class LoginNotificationTestCase(TestCase):
         self.assertIn("user_agent", notification.extra_data)
         self.assertEqual(notification.extra_data["user_agent"], user_agent)
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_multiple_logins_create_multiple_notifications(self, mock_trigger_send_notification):
         """Test that multiple logins create separate notifications."""
@@ -159,6 +163,7 @@ class LoginNotificationTestCase(TestCase):
         self.assertEqual(notifications[1].recipient, self.user)
         self.assertEqual(notifications[1].extra_data["ip_address"], "10.0.0.5")
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_login_notification_without_ip_address(self, mock_trigger_send_notification):
         """Test that notification is created even when IP address is not available."""
@@ -177,6 +182,7 @@ class LoginNotificationTestCase(TestCase):
         self.assertIsNotNone(notification)
         self.assertEqual(notification.extra_data["ip_address"], UNKNOWN_IP)
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     def test_failed_login_does_not_create_notification(self):
         """Test that failed login attempts do not create notifications."""
         # Act - Try to login with invalid OTP

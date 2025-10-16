@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.audit_logging import LogAction
-from apps.core.models import PasswordResetOTP, User
-from apps.hrm.models import Employee
+from apps.core.models import AdministrativeUnit, PasswordResetOTP, Province, User
+from apps.hrm.models import Block, Branch, Department, Employee
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
@@ -28,6 +28,7 @@ class AuthAuditLoggingTestCase(TestCase):
         self.forgot_password_url = reverse("core:forgot_password")
 
     @patch("apps.notifications.utils.trigger_send_notification")
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.core.api.views.auth.otp_verification.log_audit_event")
     def test_login_audit_log(self, mock_log_audit_event, mock_trigger_send_notification):
         """Test that successful login creates an audit log"""
@@ -46,6 +47,7 @@ class AuthAuditLoggingTestCase(TestCase):
         self.assertEqual(call_kwargs["user"], self.user)
         self.assertIn("logged in successfully", call_kwargs["change_message"])
 
+    @patch("apps.core.api.views.auth.password_change.PasswordChangeView.throttle_classes", new=[])
     @patch("apps.core.api.views.auth.password_change.log_audit_event")
     def test_password_change_audit_log(self, mock_log_audit_event):
         """Test that password change creates an audit log"""
@@ -57,6 +59,7 @@ class AuthAuditLoggingTestCase(TestCase):
             "new_password": "Newpass456!",
             "confirm_password": "Newpass456!",
         }
+
         response = self.client.post(self.password_change_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -68,6 +71,7 @@ class AuthAuditLoggingTestCase(TestCase):
         self.assertEqual(call_kwargs["user"], self.user)
         self.assertIn("changed their password", call_kwargs["change_message"])
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.api.views.auth.password_reset.log_audit_event")
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_request_audit_log(self, mock_email_task, mock_log_audit_event):
@@ -87,6 +91,7 @@ class AuthAuditLoggingTestCase(TestCase):
         self.assertIn("requested password reset", call_kwargs["change_message"])
         self.assertEqual(call_kwargs["reset_channel"], "email")
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.api.views.auth.password_reset.log_audit_event")
     @patch("apps.core.tasks.sms.send_otp_sms_task.delay")
     def test_password_reset_request_sms_audit_log(self, mock_sms_task, mock_log_audit_event):
@@ -116,9 +121,6 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
     """Test cases for audit logging with employee records in authentication flows"""
 
     def setUp(self):
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department
-
         self.client = APIClient()
         self.user = User.objects.create_user(
             username="emp001",
@@ -170,6 +172,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
         self.password_change_url = reverse("core:change_password")
         self.forgot_password_url = reverse("core:forgot_password")
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_login_audit_log_includes_employee_code_and_object(self, mock_log_event, mock_trigger_send_notification):
@@ -215,6 +218,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
         self.assertEqual(call_kwargs["object_id"], str(self.employee.pk))
         self.assertIn("changed their password", call_kwargs["change_message"])
 
+    @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
     def test_password_reset_audit_log_includes_employee_code_and_object(self, mock_email_task, mock_log_event):
@@ -236,6 +240,10 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
         self.assertIn("requested password reset", call_kwargs["change_message"])
         self.assertEqual(call_kwargs["reset_channel"], "email")
 
+    @patch(
+        "apps.core.api.views.auth.password_reset_change_password.PasswordResetChangePasswordView.throttle_classes",
+        new=[],
+    )
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_password_reset_change_password_audit_log_includes_employee(self, mock_log_event):
         """Test that password reset change (step 3) includes employee code and object type/id"""
@@ -268,6 +276,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
             self.assertEqual(call_kwargs["object_type"], "employee")
             self.assertEqual(call_kwargs["object_id"], str(self.employee.pk))
 
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_login_audit_log_without_employee_record(self, mock_log_event, mock_trigger_send_notification):
