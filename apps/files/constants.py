@@ -15,12 +15,22 @@ API_CONFIRM_DESCRIPTION = (
 )
 API_CONFIRM_TAG = "Files"
 
+API_CONFIRM_MULTI_SUMMARY = "Confirm multiple file uploads"
+API_CONFIRM_MULTI_DESCRIPTION = (
+    "Confirm multiple file uploads in a single transaction. "
+    "All files are moved from temporary to permanent storage and linked to the related object."
+)
+API_CONFIRM_MULTI_TAG = "Files"
+
 # Error Messages
 ERROR_INVALID_FILE_TOKEN = "Invalid or expired file token"  # nosec B105
 ERROR_FILE_NOT_FOUND_S3 = "File not found in S3"
 ERROR_RELATED_MODEL_NOT_FOUND = "Related model not found"
 ERROR_INVALID_PURPOSE = "Invalid file purpose"
 ERROR_CONTENT_TYPE_MISMATCH = "Uploaded file content type does not match expected type"
+ERROR_FILE_ALREADY_CONFIRMED = "File has already been confirmed"
+ERROR_NO_FILES_TO_CONFIRM = "No file tokens provided"
+ERROR_RELATED_OBJECT_NOT_FOUND = "Related object does not exist"
 
 # Cache Keys
 CACHE_KEY_PREFIX = "file_upload:"

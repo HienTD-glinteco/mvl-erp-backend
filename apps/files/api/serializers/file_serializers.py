@@ -138,3 +138,56 @@ class FileSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = fields
+
+
+class RelatedObjectSerializer(serializers.Serializer):
+    """Serializer for related object reference."""
+
+    app_label = serializers.CharField(
+        help_text=_("Django app label (e.g., 'hrm')"),
+    )
+    model = serializers.CharField(
+        help_text=_("Model name (e.g., 'jobdescription')"),
+    )
+    object_id = serializers.IntegerField(
+        min_value=1,
+        help_text=_("Related object ID"),
+    )
+
+    def validate(self, attrs):
+        """Validate that the related object exists."""
+        app_label = attrs["app_label"]
+        model = attrs["model"]
+        object_id = attrs["object_id"]
+
+        try:
+            model_class = apps.get_model(app_label, model)
+            if not model_class.objects.filter(pk=object_id).exists():
+                raise serializers.ValidationError(
+                    {"object_id": _("Object with ID {id} not found").format(id=object_id)}
+                )
+        except (LookupError, ValueError):
+            raise serializers.ValidationError(
+                {"model": _("Invalid app label or model: {app}.{model}").format(app=app_label, model=model)}
+            )
+
+        return attrs
+
+
+class ConfirmMultipleFilesSerializer(serializers.Serializer):
+    """Serializer for confirming multiple file uploads."""
+
+    file_tokens = serializers.ListField(
+        child=serializers.CharField(),
+        min_length=1,
+        help_text=_("List of tokens returned by presign endpoint"),
+    )
+    related_object = RelatedObjectSerializer(
+        help_text=_("Related object reference (app, model, and ID)"),
+    )
+
+    def validate_file_tokens(self, value):
+        """Validate that file tokens list is not empty."""
+        if not value:
+            raise serializers.ValidationError(_("No file tokens provided"))
+        return value
