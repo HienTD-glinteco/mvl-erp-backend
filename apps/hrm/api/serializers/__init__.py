@@ -1,5 +1,6 @@
 from .employee import EmployeeSerializer
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
+from .job_description import JobDescriptionSerializer
 from .organization import (
     BlockSerializer,
     BranchSerializer,
@@ -23,4 +24,5 @@ __all__ = [
     "EmployeeSerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",
+    "JobDescriptionSerializer",
 ]

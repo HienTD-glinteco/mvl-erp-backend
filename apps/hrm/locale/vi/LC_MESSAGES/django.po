@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 14:35+0700\n"
+"POT-Creation-Date: 2025-10-16 11:06+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -57,48 +57,8 @@ msgstr ""
 msgid "Please select a new role."
 msgstr ""
 
-# api/serializers/organization.py:135
-#: apps/hrm/api/serializers/organization.py:210
-#: apps/hrm/api/serializers/organization.py:219
-msgid "Parent department must be in the same block as the child department."
-msgstr "Phòng ban cha phải thuộc cùng khối với phòng ban con."
-
-# models/organization.py:124
-#: apps/hrm/api/serializers/organization.py:230
-#: apps/hrm/models/organization.py:154
-msgid "Department cannot manage itself."
-msgstr "Phòng ban không thể quản lý chính nó."
-
-# models/organization.py:126
-#: apps/hrm/api/serializers/organization.py:242
-#: apps/hrm/models/organization.py:156
-msgid "Management department must be in the same block."
-msgstr "Phòng ban quản lý phải thuộc cùng khối."
-
-# models/organization.py:128
-#: apps/hrm/api/serializers/organization.py:244
-#: apps/hrm/models/organization.py:159
-msgid "Management department must have the same function."
-msgstr "Phòng ban quản lý phải có cùng chức năng."
-
-# api/serializers/organization.py:154
-#: apps/hrm/api/serializers/organization.py:260
-msgid "Business block can only have business function."
-msgstr "Khối kinh doanh chỉ được phép chức năng kinh doanh."
-
-# api/serializers/organization.py:184
-#: apps/hrm/api/serializers/organization.py:267
-msgid "Support block cannot have business function."
-msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
-
-# api/serializers/organization.py:195
-#: apps/hrm/api/serializers/organization.py:279
-#, python-format
-msgid "This function is not compatible with block type %(block_type)s."
-msgstr "Chức năng này không phù hợp với loại khối %(block_type)s."
-
 # api/serializers/organization.py:267
-#: apps/hrm/api/serializers/organization.py:372
+#: apps/hrm/api/serializers/organization.py:344
 msgid "End date must be after start date."
 msgstr "Ngày kết thúc phải sau ngày bắt đầu."
 
@@ -318,7 +278,7 @@ msgstr "Khối"
 
 # models/organization.py:102
 #: apps/hrm/models/employee.py:60 apps/hrm/models/organization.py:132
-#: apps/hrm/models/organization.py:250
+#: apps/hrm/models/organization.py:282
 msgid "Department"
 msgstr "Phòng ban"
 
@@ -326,12 +286,12 @@ msgstr "Phòng ban"
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:70
+#: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:24
 msgid "Note"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:73 apps/hrm/models/organization.py:238
+#: apps/hrm/models/employee.py:73 apps/hrm/models/organization.py:270
 msgid "Employee"
 msgstr "Nhân viên"
 
@@ -341,6 +301,57 @@ msgstr "Nhân viên"
 #| msgid "Employee"
 msgid "Employees"
 msgstr "Các nhân viên"
+
+# models/organization.py:183
+#: apps/hrm/models/job_description.py:17
+#, fuzzy
+#| msgid "Position code"
+msgid "Job description code"
+msgstr "Mã chức vụ"
+
+#: apps/hrm/models/job_description.py:18
+#, fuzzy
+#| msgid "Job Website"
+msgid "Job title"
+msgstr "Web việc làm"
+
+#: apps/hrm/models/job_description.py:19
+msgid "Responsibility"
+msgstr ""
+
+#: apps/hrm/models/job_description.py:20
+msgid "Requirement"
+msgstr ""
+
+#: apps/hrm/models/job_description.py:21
+msgid "Preferred criteria"
+msgstr ""
+
+#: apps/hrm/models/job_description.py:22
+msgid "Benefit"
+msgstr ""
+
+#: apps/hrm/models/job_description.py:23
+msgid "Proposed salary"
+msgstr ""
+
+#: apps/hrm/models/job_description.py:25
+msgid "Attachment"
+msgstr ""
+
+# models/organization.py:39
+#: apps/hrm/models/job_description.py:28
+#, fuzzy
+#| msgid "Description"
+msgid "Job Description"
+msgstr "Mô tả"
+
+# models/organization.py:39
+#: apps/hrm/models/job_description.py:29
+#, fuzzy
+#| msgid "Description"
+msgid "Job Descriptions"
+msgstr "Mô tả"
 
 # models/organization.py:9
 #: apps/hrm/models/organization.py:17
@@ -368,15 +379,16 @@ msgstr "Đơn vị hành chính"
 
 # models/organization.py:39
 #: apps/hrm/models/organization.py:34 apps/hrm/models/organization.py:66
-#: apps/hrm/models/organization.py:128 apps/hrm/models/organization.py:217
+#: apps/hrm/models/organization.py:128 apps/hrm/models/organization.py:249
 #: apps/hrm/models/recruitment_channel.py:30
+#: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
 
 # models/organization.py:14
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:67
-#: apps/hrm/models/organization.py:129 apps/hrm/models/organization.py:218
-#: apps/hrm/models/organization.py:255
+#: apps/hrm/models/organization.py:129 apps/hrm/models/organization.py:250
+#: apps/hrm/models/organization.py:287
 #: apps/hrm/models/recruitment_channel.py:31
 msgid "Active"
 msgstr "Hoạt động"
@@ -407,48 +419,48 @@ msgid "Blocks"
 msgstr "Khối"
 
 # models/organization.py:59
-#: apps/hrm/models/organization.py:88 apps/hrm/models/organization.py:193
+#: apps/hrm/models/organization.py:88 apps/hrm/models/organization.py:225
 msgid "Business"
 msgstr "Kinh doanh"
 
 # models/organization.py:62
-#: apps/hrm/models/organization.py:91 apps/hrm/models/organization.py:196
+#: apps/hrm/models/organization.py:91 apps/hrm/models/organization.py:228
 msgid "HR Administration"
 msgstr "Hành chính Nhân sự"
 
 # models/organization.py:63
-#: apps/hrm/models/organization.py:92 apps/hrm/models/organization.py:197
+#: apps/hrm/models/organization.py:92 apps/hrm/models/organization.py:229
 msgid "Recruitment & Training"
 msgstr "Tuyển dụng - Đào tạo"
 
 # models/organization.py:64
-#: apps/hrm/models/organization.py:93 apps/hrm/models/organization.py:198
+#: apps/hrm/models/organization.py:93 apps/hrm/models/organization.py:230
 #: apps/hrm/models/recruitment_channel.py:19
 msgid "Marketing"
 msgstr "Marketing"
 
 # models/organization.py:65
-#: apps/hrm/models/organization.py:94 apps/hrm/models/organization.py:199
+#: apps/hrm/models/organization.py:94 apps/hrm/models/organization.py:231
 msgid "Business Secretary"
 msgstr "Thư ký Kinh doanh"
 
 # models/organization.py:66
-#: apps/hrm/models/organization.py:95 apps/hrm/models/organization.py:200
+#: apps/hrm/models/organization.py:95 apps/hrm/models/organization.py:232
 msgid "Accounting"
 msgstr "Kế toán"
 
 # models/organization.py:67
-#: apps/hrm/models/organization.py:96 apps/hrm/models/organization.py:201
+#: apps/hrm/models/organization.py:96 apps/hrm/models/organization.py:233
 msgid "Trading Floor"
 msgstr "Sàn liên kết"
 
 # models/organization.py:68
-#: apps/hrm/models/organization.py:97 apps/hrm/models/organization.py:202
+#: apps/hrm/models/organization.py:97 apps/hrm/models/organization.py:234
 msgid "Project Promotion"
 msgstr "Xúc tiến Dự án"
 
 # models/organization.py:69
-#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:203
+#: apps/hrm/models/organization.py:98 apps/hrm/models/organization.py:235
 msgid "Project Development"
 msgstr "Phát triển Dự án"
 
@@ -487,59 +499,95 @@ msgstr "Phòng ban quản lý"
 msgid "Departments"
 msgstr "Phòng ban"
 
+# api/serializers/organization.py:135
+#: apps/hrm/models/organization.py:156
+msgid "Parent department must be in the same block as the child department."
+msgstr "Phòng ban cha phải thuộc cùng khối với phòng ban con."
+
+# models/organization.py:124
+#: apps/hrm/models/organization.py:162
+msgid "Department cannot manage itself."
+msgstr "Phòng ban không thể quản lý chính nó."
+
+# models/organization.py:126
+#: apps/hrm/models/organization.py:165
+msgid "Management department must be in the same block."
+msgstr "Phòng ban quản lý phải thuộc cùng khối."
+
+# models/organization.py:128
+#: apps/hrm/models/organization.py:168
+msgid "Management department must have the same function."
+msgstr "Phòng ban quản lý phải có cùng chức năng."
+
+# api/serializers/organization.py:195
+#: apps/hrm/models/organization.py:174
+#, python-format
+msgid "This function is not compatible with block type %(block_type)s."
+msgstr "Chức năng này không phù hợp với loại khối %(block_type)s."
+
+# api/serializers/organization.py:154
+#: apps/hrm/models/organization.py:181
+msgid "Business block can only have business function."
+msgstr "Khối kinh doanh chỉ được phép chức năng kinh doanh."
+
+# api/serializers/organization.py:184
+#: apps/hrm/models/organization.py:186
+msgid "Support block cannot have business function."
+msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
+
 # models/organization.py:139
-#: apps/hrm/models/organization.py:171
+#: apps/hrm/models/organization.py:195
 #, python-format
 msgid "A main department already exists for function %(function)s."
 msgstr "Đã có phòng ban đầu mối cho chức năng %(function)s."
 
 # models/organization.py:182
-#: apps/hrm/models/organization.py:215
+#: apps/hrm/models/organization.py:247
 msgid "Position name"
 msgstr "Tên chức vụ"
 
 # models/organization.py:183
-#: apps/hrm/models/organization.py:216
+#: apps/hrm/models/organization.py:248
 msgid "Position code"
 msgstr "Mã chức vụ"
 
 # models/organization.py:189
-#: apps/hrm/models/organization.py:221 apps/hrm/models/organization.py:244
+#: apps/hrm/models/organization.py:253 apps/hrm/models/organization.py:276
 msgid "Position"
 msgstr "Chức vụ"
 
 # models/organization.py:190
-#: apps/hrm/models/organization.py:222
+#: apps/hrm/models/organization.py:254
 msgid "Positions"
 msgstr "Chức vụ"
 
 # models/organization.py:217
-#: apps/hrm/models/organization.py:252
+#: apps/hrm/models/organization.py:284
 msgid "Start date"
 msgstr "Ngày bắt đầu"
 
 # models/organization.py:218
-#: apps/hrm/models/organization.py:253
+#: apps/hrm/models/organization.py:285
 msgid "End date"
 msgstr "Ngày kết thúc"
 
 # models/organization.py:219
-#: apps/hrm/models/organization.py:254
+#: apps/hrm/models/organization.py:286
 msgid "Is primary position"
 msgstr "Chức vụ chính"
 
 # models/organization.py:225
-#: apps/hrm/models/organization.py:258
+#: apps/hrm/models/organization.py:290
 msgid "Organization Chart"
 msgstr "Sơ đồ tổ chức"
 
 # models/organization.py:226
-#: apps/hrm/models/organization.py:259
+#: apps/hrm/models/organization.py:291
 msgid "Organization Charts"
 msgstr "Sơ đồ tổ chức"
 
 # models/organization.py:249
-#: apps/hrm/models/organization.py:281
+#: apps/hrm/models/organization.py:313
 msgid "Employee can only have one primary position in a department at a time."
 msgstr ""
 "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời "
@@ -572,4 +620,32 @@ msgstr "Kênh tuyển dụng"
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_channel.py:35
 msgid "Recruitment Channels"
+msgstr "Kênh tuyển dụng"
+
+# models/organization.py:32
+#: apps/hrm/models/recruitment_source.py:17
+#, fuzzy
+#| msgid "Block name"
+msgid "Source name"
+msgstr "Tên khối"
+
+# models/organization.py:33
+#: apps/hrm/models/recruitment_source.py:18
+#, fuzzy
+#| msgid "Block code"
+msgid "Source code"
+msgstr "Mã khối"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_source.py:22
+#, fuzzy
+#| msgid "Recruitment Channel"
+msgid "Recruitment Source"
+msgstr "Kênh tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_source.py:23
+#, fuzzy
+#| msgid "Recruitment Channels"
+msgid "Recruitment Sources"
 msgstr "Kênh tuyển dụng"

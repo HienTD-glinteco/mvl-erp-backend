@@ -4,7 +4,16 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.models import Block, Branch, Department, Employee, Position, RecruitmentChannel, RecruitmentSource
+from apps.hrm.models import (
+    Block,
+    Branch,
+    Department,
+    Employee,
+    JobDescription,
+    Position,
+    RecruitmentChannel,
+    RecruitmentSource,
+)
 from libs.code_generation import register_auto_code_signal
 
 from .constants import TEMP_CODE_PREFIX
@@ -19,6 +28,7 @@ register_auto_code_signal(
     Position,
     RecruitmentChannel,
     RecruitmentSource,
+    JobDescription,
     temp_code_prefix=TEMP_CODE_PREFIX,
 )
 
