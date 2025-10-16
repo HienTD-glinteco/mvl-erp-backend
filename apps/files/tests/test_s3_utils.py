@@ -213,6 +213,69 @@ class S3FileUploadServiceTest(TestCase):
         with self.assertRaises(Exception):
             service.delete_file("uploads/tmp/file.pdf")
 
+    @patch("boto3.client")
+    def test_generate_view_url_success(self, mock_boto_client):
+        """Test successful view URL generation."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/view-url"
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act
+        result = service.generate_view_url("uploads/test/file.pdf")
+
+        # Assert
+        self.assertEqual(result, "https://s3.amazonaws.com/view-url")
+        mock_s3.generate_presigned_url.assert_called_once()
+        call_args = mock_s3.generate_presigned_url.call_args
+        self.assertEqual(call_args[0][0], "get_object")
+        self.assertEqual(call_args[1]["Params"]["Bucket"], "test-bucket")
+        self.assertEqual(call_args[1]["Params"]["Key"], "uploads/test/file.pdf")
+
+    @patch("boto3.client")
+    def test_generate_download_url_success(self, mock_boto_client):
+        """Test successful download URL generation."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/download-url"
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act
+        result = service.generate_download_url("uploads/test/file.pdf", "document.pdf")
+
+        # Assert
+        self.assertEqual(result, "https://s3.amazonaws.com/download-url")
+        mock_s3.generate_presigned_url.assert_called_once()
+        call_args = mock_s3.generate_presigned_url.call_args
+        self.assertEqual(call_args[0][0], "get_object")
+        params = call_args[1]["Params"]
+        self.assertEqual(params["Bucket"], "test-bucket")
+        self.assertEqual(params["Key"], "uploads/test/file.pdf")
+        self.assertIn("ResponseContentDisposition", params)
+        self.assertIn("attachment", params["ResponseContentDisposition"])
+        self.assertIn("document.pdf", params["ResponseContentDisposition"])
+
+    @patch("boto3.client")
+    def test_generate_presigned_get_url_failure(self, mock_boto_client):
+        """Test presigned GET URL generation failure."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_s3.generate_presigned_url.side_effect = ClientError(
+            {"Error": {"Code": "TestError", "Message": "Test error"}},
+            "generate_presigned_url",
+        )
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act & Assert
+        with self.assertRaises(Exception):
+            service.generate_view_url("uploads/test/file.pdf")
+
     def test_generate_permanent_path(self):
         """Test permanent path generation."""
         # Act

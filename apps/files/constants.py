@@ -32,6 +32,7 @@ S3_UPLOADS_PREFIX = "uploads/"
 
 # Presigned URL Settings
 PRESIGNED_URL_EXPIRATION = 3600  # 1 hour
+PRESIGNED_GET_URL_EXPIRATION = 3600  # 1 hour for view/download URLs
 
 # Allowed file types per purpose
 # Format: purpose -> list of allowed MIME types (None = allow all)

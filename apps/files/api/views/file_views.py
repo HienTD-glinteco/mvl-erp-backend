@@ -145,6 +145,8 @@ class PresignURLView(APIView):
                     "size": 123456,
                     "checksum": None,
                     "is_confirmed": True,
+                    "view_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?AWSAccessKeyId=...",
+                    "download_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?response-content-disposition=attachment...",
                     "created_at": "2025-10-16T04:00:00Z",
                     "updated_at": "2025-10-16T04:00:00Z",
                 },

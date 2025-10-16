@@ -75,3 +75,29 @@ class FileModel(BaseModel):
 
     def __str__(self):
         return f"{self.purpose} - {self.file_name}"
+
+    @property
+    def view_url(self) -> str:
+        """
+        Generate a presigned URL for viewing the file (inline display).
+
+        Returns:
+            Presigned URL that allows viewing the file in browser
+        """
+        from apps.files.utils.s3_utils import S3FileUploadService
+
+        service = S3FileUploadService()
+        return service.generate_view_url(self.file_path)
+
+    @property
+    def download_url(self) -> str:
+        """
+        Generate a presigned URL for downloading the file.
+
+        Returns:
+            Presigned URL that forces file download with original filename
+        """
+        from apps.files.utils.s3_utils import S3FileUploadService
+
+        service = S3FileUploadService()
+        return service.generate_download_url(self.file_path, self.file_name)

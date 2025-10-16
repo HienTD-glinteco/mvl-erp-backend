@@ -122,11 +122,18 @@ Example paths:
     "size": 123456,
     "checksum": "abc123def456",
     "is_confirmed": true,
+    "view_url": "https://s3.amazonaws.com/bucket/uploads/employee_cv/42/document.pdf?...",
+    "download_url": "https://s3.amazonaws.com/bucket/uploads/employee_cv/42/document.pdf?response-content-disposition=attachment...",
     "created_at": "2025-10-16T04:00:00Z",
     "updated_at": "2025-10-16T04:00:00Z"
   },
   "error": null
 }
+```
+
+**Response includes**:
+- `view_url`: Presigned URL for viewing the file inline (valid for 1 hour)
+- `download_url`: Presigned URL for downloading the file with original filename (valid for 1 hour)
 ```
 
 **What happens**:
@@ -138,6 +145,35 @@ Example paths:
 6. Creates FileModel record with Generic Foreign Key
 7. Optionally sets ForeignKey on related object (if `related_field` provided)
 8. Deletes cache entry
+9. Returns file record with presigned URLs for viewing and downloading
+
+### 3. View and Download Files
+
+Once a file is confirmed, you can access it through presigned URLs included in the response:
+
+- **`view_url`**: Opens the file inline in the browser (for PDFs, images, etc.)
+- **`download_url`**: Forces download with the original filename
+
+These URLs are valid for 1 hour and regenerated on each API request.
+
+**Accessing files**:
+```javascript
+// From confirm response or any endpoint returning FileModel
+const { view_url, download_url } = fileData;
+
+// Open file in new tab (inline viewing)
+window.open(view_url, '_blank');
+
+// Download file
+window.location.href = download_url;
+```
+
+**Using FileModel properties** (backend):
+```python
+file_record = FileModel.objects.get(id=112)
+view_url = file_record.view_url  # Presigned URL for viewing
+download_url = file_record.download_url  # Presigned URL for downloading
+```
 
 ## Usage Example
 

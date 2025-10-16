@@ -112,6 +112,9 @@ class ConfirmFileSerializer(serializers.Serializer):
 class FileSerializer(serializers.ModelSerializer):
     """Serializer for FileModel."""
 
+    view_url = serializers.ReadOnlyField(help_text=_("Presigned URL for viewing the file (valid for 1 hour)"))
+    download_url = serializers.ReadOnlyField(help_text=_("Presigned URL for downloading the file (valid for 1 hour)"))
+
     class Meta:
         model = FileModel
         fields = [
@@ -122,6 +125,8 @@ class FileSerializer(serializers.ModelSerializer):
             "size",
             "checksum",
             "is_confirmed",
+            "view_url",
+            "download_url",
             "created_at",
             "updated_at",
         ]

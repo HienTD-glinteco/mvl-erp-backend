@@ -8,7 +8,12 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from apps.files.constants import PRESIGNED_URL_EXPIRATION, S3_TMP_PREFIX, S3_UPLOADS_PREFIX
+from apps.files.constants import (
+    PRESIGNED_GET_URL_EXPIRATION,
+    PRESIGNED_URL_EXPIRATION,
+    S3_TMP_PREFIX,
+    S3_UPLOADS_PREFIX,
+)
 
 
 class S3FileUploadService:
@@ -156,6 +161,80 @@ class S3FileUploadService:
             return True
         except ClientError as e:
             raise Exception(_("Failed to delete file from S3: {error}").format(error=str(e)))
+
+    def generate_presigned_get_url(
+        self,
+        file_path: str,
+        expiration: int = PRESIGNED_GET_URL_EXPIRATION,
+        as_attachment: bool = False,
+        file_name: Optional[str] = None,
+    ) -> str:
+        """
+        Generate a presigned URL for viewing or downloading a file from S3.
+
+        Args:
+            file_path: S3 key/path of the file
+            expiration: URL expiration time in seconds (default: 1 hour)
+            as_attachment: If True, forces download. If False, allows inline viewing
+            file_name: Optional filename for Content-Disposition header
+
+        Returns:
+            Presigned GET URL
+
+        Raises:
+            Exception: If presigned URL generation fails
+        """
+        try:
+            params = {
+                "Bucket": self.bucket_name,
+                "Key": file_path,
+            }
+
+            # Add Content-Disposition header if needed
+            if as_attachment and file_name:
+                params["ResponseContentDisposition"] = f'attachment; filename="{file_name}"'
+            elif as_attachment:
+                params["ResponseContentDisposition"] = "attachment"
+
+            presigned_url = self.s3_client.generate_presigned_url(
+                "get_object",
+                Params=params,
+                ExpiresIn=expiration,
+            )
+
+            return presigned_url
+
+        except ClientError as e:
+            raise Exception(_("Failed to generate presigned GET URL: {error}").format(error=str(e)))
+
+    def generate_view_url(self, file_path: str, expiration: int = PRESIGNED_GET_URL_EXPIRATION) -> str:
+        """
+        Generate a presigned URL for viewing a file (inline display).
+
+        Args:
+            file_path: S3 key/path of the file
+            expiration: URL expiration time in seconds (default: 1 hour)
+
+        Returns:
+            Presigned URL for viewing the file
+        """
+        return self.generate_presigned_get_url(file_path, expiration, as_attachment=False)
+
+    def generate_download_url(
+        self, file_path: str, file_name: str, expiration: int = PRESIGNED_GET_URL_EXPIRATION
+    ) -> str:
+        """
+        Generate a presigned URL for downloading a file.
+
+        Args:
+            file_path: S3 key/path of the file
+            file_name: Filename to use for download
+            expiration: URL expiration time in seconds (default: 1 hour)
+
+        Returns:
+            Presigned URL for downloading the file
+        """
+        return self.generate_presigned_get_url(file_path, expiration, as_attachment=True, file_name=file_name)
 
     def generate_permanent_path(self, purpose: str, object_id: int, file_name: str) -> str:
         """

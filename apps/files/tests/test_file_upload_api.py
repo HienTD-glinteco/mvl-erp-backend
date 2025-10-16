@@ -165,11 +165,12 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         """Clean up after tests."""
         cache.clear()
 
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
     @patch("apps.files.api.views.file_views.S3FileUploadService")
-    def test_confirm_upload_success(self, mock_s3_service):
+    def test_confirm_upload_success(self, mock_s3_service_views, mock_s3_service_utils):
         """Test successful file upload confirmation."""
-        # Arrange: Mock S3 service
-        mock_instance = mock_s3_service.return_value
+        # Arrange: Mock S3 service in views
+        mock_instance = mock_s3_service_views.return_value
         mock_instance.check_file_exists.return_value = True
         mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/test.pdf"
         mock_instance.move_file.return_value = True
@@ -186,6 +187,11 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
                 "etag": "abc123def456",
             },
         ]
+        
+        # Mock S3 service in utils (for properties in serializer)
+        mock_utils_instance = mock_s3_service_utils.return_value
+        mock_utils_instance.generate_view_url.return_value = "https://s3.amazonaws.com/view-url"
+        mock_utils_instance.generate_download_url.return_value = "https://s3.amazonaws.com/download-url"
 
         # Act: Call confirm endpoint
         url = reverse("files:confirm")
@@ -412,3 +418,43 @@ class FileModelTest(TestCase):
         # Assert: Latest file should come first
         self.assertEqual(files[0].id, file2.id)
         self.assertEqual(files[1].id, file1.id)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_view_url_property(self, mock_s3_service):
+        """Test view_url property generates presigned URL."""
+        # Arrange
+        mock_instance = mock_s3_service.return_value
+        mock_instance.generate_view_url.return_value = "https://s3.amazonaws.com/view-url"
+
+        file_record = FileModel.objects.create(
+            purpose="test_purpose",
+            file_name="test.pdf",
+            file_path="uploads/test/1/test.pdf",
+        )
+
+        # Act
+        url = file_record.view_url
+
+        # Assert
+        self.assertEqual(url, "https://s3.amazonaws.com/view-url")
+        mock_instance.generate_view_url.assert_called_once_with("uploads/test/1/test.pdf")
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_download_url_property(self, mock_s3_service):
+        """Test download_url property generates presigned download URL."""
+        # Arrange
+        mock_instance = mock_s3_service.return_value
+        mock_instance.generate_download_url.return_value = "https://s3.amazonaws.com/download-url"
+
+        file_record = FileModel.objects.create(
+            purpose="test_purpose",
+            file_name="test.pdf",
+            file_path="uploads/test/1/test.pdf",
+        )
+
+        # Act
+        url = file_record.download_url
+
+        # Assert
+        self.assertEqual(url, "https://s3.amazonaws.com/download-url")
+        mock_instance.generate_download_url.assert_called_once_with("uploads/test/1/test.pdf", "test.pdf")
