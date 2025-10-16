@@ -183,6 +183,8 @@ class FileConfirmSerializerMixin:
         Raises:
             ValidationError: If any file token is invalid or file doesn't exist
         """
+        from rest_framework.exceptions import ValidationError
+
         from apps.files.constants import (
             ALLOWED_FILE_TYPES,
             CACHE_KEY_PREFIX,
@@ -192,7 +194,6 @@ class FileConfirmSerializerMixin:
         )
         from apps.files.models import FileModel
         from apps.files.utils import S3FileUploadService
-        from rest_framework.exceptions import ValidationError
 
         # Get file tokens from validated data
         tokens = self.validated_data.get(self.file_tokens_field, [])
