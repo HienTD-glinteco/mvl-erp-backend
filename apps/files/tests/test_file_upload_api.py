@@ -173,10 +173,19 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         mock_instance.check_file_exists.return_value = True
         mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/test.pdf"
         mock_instance.move_file.return_value = True
-        mock_instance.get_file_metadata.return_value = {
-            "size": 123456,
-            "etag": "abc123def456",
-        }
+        # Mock get_file_metadata to return correct content type for validation
+        # First call is for temp file (content type validation), second is for permanent file
+        mock_instance.get_file_metadata.side_effect = [
+            {
+                "size": 123456,
+                "content_type": "application/pdf",  # Matches expected type
+                "etag": "abc123def456",
+            },
+            {
+                "size": 123456,
+                "etag": "abc123def456",
+            },
+        ]
 
         # Act: Call confirm endpoint
         url = reverse("files:confirm")
@@ -285,6 +294,42 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("apps.files.api.views.file_views.S3FileUploadService")
+    def test_confirm_upload_content_type_mismatch(self, mock_s3_service):
+        """Test confirm upload when uploaded file content type doesn't match expected."""
+        # Arrange: Mock S3 service to return mismatched content type
+        mock_instance = mock_s3_service.return_value
+        mock_instance.check_file_exists.return_value = True
+        mock_instance.get_file_metadata.return_value = {
+            "size": 123456,
+            "content_type": "application/x-msdownload",  # Wrong type!
+            "etag": "abc123",
+        }
+        mock_instance.delete_file.return_value = True
+
+        # Act
+        url = reverse("files:confirm")
+        data = {
+            "file_token": self.file_token,
+            "related_model": "core.User",
+            "related_object_id": self.user.id,
+            "purpose": "job_description",
+        }
+        response = self.client.post(url, data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        # Check error is wrapped in envelope format
+        self.assertFalse(content.get("success"))
+        error_data = content.get("error", {})
+        self.assertIn("detail", error_data)
+        self.assertIn("expected", error_data)
+        self.assertIn("actual", error_data)
+
+        # Verify the temp file was deleted
+        mock_instance.delete_file.assert_called_once_with("uploads/tmp/test-token-123/test.pdf")
 
     def test_confirm_upload_unauthenticated(self):
         """Test confirm upload without authentication."""

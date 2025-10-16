@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from apps.files.api.serializers import ConfirmFileSerializer, FileSerializer, PresignRequestSerializer
 from apps.files.constants import (
+    ALLOWED_FILE_TYPES,
     API_CONFIRM_DESCRIPTION,
     API_CONFIRM_SUMMARY,
     API_CONFIRM_TAG,
@@ -22,6 +23,7 @@ from apps.files.constants import (
     API_PRESIGN_TAG,
     CACHE_KEY_PREFIX,
     CACHE_TIMEOUT,
+    ERROR_CONTENT_TYPE_MISMATCH,
     ERROR_FILE_NOT_FOUND_S3,
     ERROR_INVALID_FILE_TOKEN,
 )
@@ -172,6 +174,21 @@ class PresignURLView(APIView):
             response_only=True,
             status_codes=["400"],
         ),
+        OpenApiExample(
+            "Confirm error - content type mismatch",
+            description="Example error response when uploaded file type doesn't match declared type",
+            value={
+                "success": False,
+                "data": None,
+                "error": {
+                    "detail": "Uploaded file content type does not match expected type",
+                    "expected": "application/pdf",
+                    "actual": "application/x-msdownload",
+                },
+            },
+            response_only=True,
+            status_codes=["400"],
+        ),
     ],
 )
 class ConfirmFileUploadView(APIView):
@@ -217,6 +234,31 @@ class ConfirmFileUploadView(APIView):
                 {"detail": _(ERROR_FILE_NOT_FOUND_S3)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # Get file metadata to verify actual content type
+        temp_file_metadata = s3_service.get_file_metadata(temp_file_path)
+        if temp_file_metadata:
+            actual_content_type = temp_file_metadata.get("content_type")
+            expected_content_type = file_metadata.get("file_type")
+
+            # Verify content type matches what was declared during presign
+            # Check if this purpose has file type restrictions
+            if purpose in ALLOWED_FILE_TYPES:
+                allowed_types = ALLOWED_FILE_TYPES[purpose]
+                # If actual content type doesn't match expected or is not in allowed list
+                if actual_content_type != expected_content_type or actual_content_type not in allowed_types:
+                    # Delete the uploaded file as it doesn't match expected type
+                    s3_service.delete_file(temp_file_path)
+                    # Clear cache entry
+                    cache.delete(cache_key)
+                    return Response(
+                        {
+                            "detail": _(ERROR_CONTENT_TYPE_MISMATCH),
+                            "expected": expected_content_type,
+                            "actual": actual_content_type,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
         # Generate permanent path
         permanent_path = s3_service.generate_permanent_path(

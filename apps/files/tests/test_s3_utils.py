@@ -180,6 +180,39 @@ class S3FileUploadServiceTest(TestCase):
         # Assert
         self.assertIsNone(result)
 
+    @patch("boto3.client")
+    def test_delete_file_success(self, mock_boto_client):
+        """Test successful file deletion."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act
+        result = service.delete_file("uploads/tmp/file.pdf")
+
+        # Assert
+        self.assertTrue(result)
+        mock_s3.delete_object.assert_called_once_with(Bucket="test-bucket", Key="uploads/tmp/file.pdf")
+
+    @patch("boto3.client")
+    def test_delete_file_failure(self, mock_boto_client):
+        """Test file deletion failure."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_s3.delete_object.side_effect = ClientError(
+            {"Error": {"Code": "TestError", "Message": "Test error"}},
+            "delete_object",
+        )
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act & Assert
+        with self.assertRaises(Exception):
+            service.delete_file("uploads/tmp/file.pdf")
+
     def test_generate_permanent_path(self):
         """Test permanent path generation."""
         # Act

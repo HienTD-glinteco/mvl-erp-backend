@@ -138,6 +138,25 @@ class S3FileUploadService:
         except ClientError:
             return None
 
+    def delete_file(self, file_path: str) -> bool:
+        """
+        Delete a file from S3.
+
+        Args:
+            file_path: S3 key/path to delete
+
+        Returns:
+            True if successful, False otherwise
+
+        Raises:
+            Exception: If delete operation fails
+        """
+        try:
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=file_path)
+            return True
+        except ClientError as e:
+            raise Exception(_("Failed to delete file from S3: {error}").format(error=str(e)))
+
     def generate_permanent_path(self, purpose: str, object_id: int, file_name: str) -> str:
         """
         Generate permanent path for a confirmed file.

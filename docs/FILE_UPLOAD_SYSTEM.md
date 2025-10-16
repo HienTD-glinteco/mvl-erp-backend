@@ -132,10 +132,12 @@ Example paths:
 **What happens**:
 1. Validates file token from cache
 2. Verifies file exists in S3 temporary location
-3. Validates related object exists
-4. Moves file from temporary to permanent location
-5. Creates FileModel record with Generic Foreign Key
-6. Deletes cache entry
+3. **Validates actual file content type matches expected type** - If mismatch, deletes temp file and returns error
+4. Validates related object exists
+5. Moves file from temporary to permanent location
+6. Creates FileModel record with Generic Foreign Key
+7. Optionally sets ForeignKey on related object (if `related_field` provided)
+8. Deletes cache entry
 
 ## Usage Example
 
@@ -347,9 +349,14 @@ No code changes or migrations are needed to add new purposes.
 
 1. **Presigned URLs**: Expire after 1 hour, limiting upload window
 2. **Authentication**: Both endpoints require authentication
-3. **Validation**: Confirm endpoint validates related object exists
-4. **Token-based**: File token stored in cache prevents unauthorized confirmations
-5. **S3 Permissions**: Presigned URLs only allow PUT operation
+3. **File Type Validation**: System validates actual content type of uploaded file before confirmation
+   - Client cannot bypass validation by sending wrong content type
+   - If content type mismatch detected, temp file is automatically deleted
+   - Returns detailed error with expected vs actual content type
+4. **ContentType in Signature**: ContentType included in presigned URL signature prevents type spoofing
+5. **Token-based**: File token stored in cache prevents unauthorized confirmations
+6. **Related Object Validation**: Confirm endpoint validates related object exists
+7. **S3 Permissions**: Presigned URLs only allow PUT operation
 
 ## Error Handling
 
@@ -388,6 +395,21 @@ No code changes or migrations are needed to add new purposes.
 }
 ```
 
+**Content type mismatch** (uploaded file type doesn't match declared type):
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "detail": "Uploaded file content type does not match expected type",
+    "expected": "application/pdf",
+    "actual": "application/x-msdownload"
+  }
+}
+```
+
+**Note**: When content type mismatch is detected, the system automatically deletes the uploaded file from S3 for security.
+
 ## Testing
 
 The system includes comprehensive tests:
@@ -403,9 +425,12 @@ poetry run pytest apps/files/tests/test_s3_utils.py -v
 
 Test coverage:
 - Presign URL generation (success, errors, authentication)
+- File type validation (allowed/disallowed types)
+- Content type verification (prevents type spoofing)
 - File confirmation (success, errors, edge cases)
-- S3 operations (mocked)
+- S3 operations (presign, move, delete, metadata - all mocked)
 - FileModel CRUD operations
+- ForeignKey relationship handling
 
 ## Future Enhancements
 
