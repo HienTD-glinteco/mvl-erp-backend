@@ -189,8 +189,109 @@ def test_prepare_change_messages_adds_related_changes():
     # Call _prepare_change_messages
     _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
 
-    # Check that change_message was added
+    # Check that change_message was added (should be "Object modified" for no field changes)
     assert "change_message" in log_data
+    assert log_data["change_message"] == "Object modified"
 
     # related_changes should not be added if there are no actual changes
     # This verifies the function runs without errors
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_prepare_change_messages_with_field_changes():
+    """Test that _prepare_change_messages creates structured format for field changes."""
+    # Create mock field with verbose_name
+    mock_field = MagicMock()
+    mock_field.name = "expiration_date"
+    mock_field.verbose_name = "Expiration date"
+
+    # Create mock objects with field changes
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = [mock_field]
+    original._meta.many_to_many = []
+    original._meta.related_objects = []
+    original.expiration_date = "21/09/2025"
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = [mock_field]
+    modified._meta.many_to_many = []
+    modified._meta.related_objects = []
+    modified.expiration_date = "10/09/2025"
+
+    # Create log_data dict
+    log_data = {}
+
+    # Call _prepare_change_messages
+    _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
+
+    # Check that change_message has structured format
+    assert "change_message" in log_data
+    assert isinstance(log_data["change_message"], dict)
+    assert "headers" in log_data["change_message"]
+    assert "rows" in log_data["change_message"]
+
+    # Verify headers
+    assert log_data["change_message"]["headers"] == ["field", "old_value", "new_value"]
+
+    # Verify rows
+    rows = log_data["change_message"]["rows"]
+    assert len(rows) == 1
+    assert rows[0]["field"] == "Expiration date"
+    assert rows[0]["old_value"] == "21/09/2025"
+    assert rows[0]["new_value"] == "10/09/2025"
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_prepare_change_messages_with_multiple_field_changes():
+    """Test that _prepare_change_messages handles multiple field changes."""
+    # Create mock fields
+    mock_field1 = MagicMock()
+    mock_field1.name = "name"
+    mock_field1.verbose_name = "Name"
+
+    mock_field2 = MagicMock()
+    mock_field2.name = "email"
+    mock_field2.verbose_name = "Email address"
+
+    # Create mock objects
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = [mock_field1, mock_field2]
+    original._meta.many_to_many = []
+    original._meta.related_objects = []
+    original.name = "John Doe"
+    original.email = "john@example.com"
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = [mock_field1, mock_field2]
+    modified._meta.many_to_many = []
+    modified._meta.related_objects = []
+    modified.name = "Jane Doe"
+    modified.email = "jane@example.com"
+
+    # Create log_data dict
+    log_data = {}
+
+    # Call _prepare_change_messages
+    _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
+
+    # Check that change_message has structured format
+    assert "change_message" in log_data
+    assert isinstance(log_data["change_message"], dict)
+
+    # Verify rows
+    rows = log_data["change_message"]["rows"]
+    assert len(rows) == 2
+
+    # Check first change
+    assert rows[0]["field"] == "Name"
+    assert rows[0]["old_value"] == "John Doe"
+    assert rows[0]["new_value"] == "Jane Doe"
+
+    # Check second change
+    assert rows[1]["field"] == "Email address"
+    assert rows[1]["old_value"] == "john@example.com"
+    assert rows[1]["new_value"] == "jane@example.com"

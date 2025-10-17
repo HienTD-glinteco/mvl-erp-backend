@@ -185,7 +185,7 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
                         if old_value != new_value:
                             field_changes.append(
                                 {
-                                    "field": field.verbose_name or field_name,
+                                    "field": str(field.verbose_name) if field.verbose_name else field_name,
                                     "old_value": str(old_value) if old_value is not None else None,
                                     "new_value": str(new_value) if new_value is not None else None,
                                 }
@@ -227,7 +227,7 @@ def _prepare_change_messages(
     modified_object=None,
 ):
     if action == "CHANGE" and original_object and modified_object:
-        changes = []
+        rows = []
         # Try to detect field changes if both objects are Django models
         if hasattr(original_object, "_meta") and hasattr(modified_object, "_meta"):
             for field in modified_object._meta.fields:
@@ -235,9 +235,18 @@ def _prepare_change_messages(
                 old_value = getattr(original_object, field_name, None)
                 new_value = getattr(modified_object, field_name, None)
                 if old_value != new_value:
-                    changes.append(f"{field.verbose_name or field_name}: {old_value} -> {new_value}")
-        if changes:
-            log_data["change_message"] = "; ".join(changes)
+                    rows.append(
+                        {
+                            "field": str(field.verbose_name) if field.verbose_name else field_name,
+                            "old_value": str(old_value) if old_value is not None else None,
+                            "new_value": str(new_value) if new_value is not None else None,
+                        }
+                    )
+        if rows:
+            log_data["change_message"] = {
+                "headers": ["field", "old_value", "new_value"],
+                "rows": rows,
+            }
         else:
             log_data["change_message"] = "Object modified"
 
