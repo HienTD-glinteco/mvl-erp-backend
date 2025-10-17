@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db import models
 from django.test import TestCase
 from rest_framework import serializers
 
@@ -13,9 +14,6 @@ from apps.files.models import FileModel
 from libs import FileConfirmSerializerMixin
 
 User = get_user_model()
-
-
-from django.db import models
 
 
 class DummyModel(models.Model):
@@ -107,33 +105,37 @@ class FileConfirmSerializerMixinTest(TestCase):
         """Test that mixin confirms files when serializer is saved."""
         # Arrange: Mock cache to return file metadata
         cache_data = {}
-        
+
         def cache_get_side_effect(key):
             return cache_data.get(key)
-        
+
         def cache_delete_side_effect(key):
             if key in cache_data:
                 del cache_data[key]
-        
+
         # Pre-populate cache data
         cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
         cache_key_2 = f"{CACHE_KEY_PREFIX}{self.file_token_2}"
-        cache_data[cache_key_1] = json.dumps({
-            "file_name": "mixin_test1.pdf",
-            "file_type": "application/pdf",
-            "purpose": "job_description",
-            "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
-        })
-        cache_data[cache_key_2] = json.dumps({
-            "file_name": "mixin_test2.pdf",
-            "file_type": "application/pdf",
-            "purpose": "job_description",
-            "file_path": "uploads/tmp/test-token-mixin-002/mixin_test2.pdf",
-        })
-        
+        cache_data[cache_key_1] = json.dumps(
+            {
+                "file_name": "mixin_test1.pdf",
+                "file_type": "application/pdf",
+                "purpose": "job_description",
+                "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
+            }
+        )
+        cache_data[cache_key_2] = json.dumps(
+            {
+                "file_name": "mixin_test2.pdf",
+                "file_type": "application/pdf",
+                "purpose": "job_description",
+                "file_path": "uploads/tmp/test-token-mixin-002/mixin_test2.pdf",
+            }
+        )
+
         mock_cache_get.side_effect = cache_get_side_effect
         mock_cache_delete.side_effect = cache_delete_side_effect
-        
+
         # Arrange: Mock S3 service
         mock_instance = mock_s3_service.return_value
         mock_instance.check_file_exists.return_value = True
@@ -274,42 +276,49 @@ class FileConfirmSerializerMixinTest(TestCase):
     @patch("django.core.cache.cache.delete")
     @patch("django.core.cache.cache.get")
     @patch("apps.files.utils.S3FileUploadService")
-    def test_mixin_without_request_context(self, mock_s3_service, mock_cache_get, mock_cache_delete, mock_get_content_type, mock_file_create):
+    def test_mixin_without_request_context(
+        self, mock_s3_service, mock_cache_get, mock_cache_delete, mock_get_content_type, mock_file_create
+    ):
         """Test that mixin works without request in context (uploaded_by is None)."""
         # Arrange: Mock ContentType to avoid FK constraint issues with DummyModel
         from django.contrib.contenttypes.models import ContentType
+
         # Use User's ContentType as a valid ContentType that exists in the test database
         user_content_type = ContentType.objects.get_for_model(User)
         mock_get_content_type.return_value = user_content_type
-        
+
         # Mock FileModel.objects.create to return a mock file record
+        from unittest.mock import MagicMock
+
         mock_file_record = MagicMock()
         mock_file_record.id = 1
         mock_file_record.uploaded_by = None
         mock_file_record.is_confirmed = True
         mock_file_create.return_value = mock_file_record
-        
+
         # Arrange: Mock cache
         cache_data = {}
-        
+
         def cache_get_side_effect(key):
             return cache_data.get(key)
-        
+
         def cache_delete_side_effect(key):
             if key in cache_data:
                 del cache_data[key]
-        
+
         cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
-        cache_data[cache_key_1] = json.dumps({
-            "file_name": "mixin_test1.pdf",
-            "file_type": "application/pdf",
-            "purpose": "job_description",
-            "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
-        })
-        
+        cache_data[cache_key_1] = json.dumps(
+            {
+                "file_name": "mixin_test1.pdf",
+                "file_type": "application/pdf",
+                "purpose": "job_description",
+                "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
+            }
+        )
+
         mock_cache_get.side_effect = cache_get_side_effect
         mock_cache_delete.side_effect = cache_delete_side_effect
-        
+
         # Arrange: Mock S3 service
         mock_instance = mock_s3_service.return_value
         mock_instance.check_file_exists.return_value = True
