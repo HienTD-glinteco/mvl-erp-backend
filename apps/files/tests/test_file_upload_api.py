@@ -202,8 +202,8 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         mock_utils_instance.generate_view_url.return_value = "https://s3.amazonaws.com/view-url"
         mock_utils_instance.generate_download_url.return_value = "https://s3.amazonaws.com/download-url"
 
-        # Act: Call confirm-multiple endpoint
-        url = reverse("files:confirm-multiple")
+        # Act: Call confirm endpoint
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, self.file_token_2],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
@@ -253,7 +253,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
     def test_confirm_multiple_files_invalid_token(self):
         """Test confirm multiple files with one invalid token."""
         # Arrange & Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, "invalid-token"],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
@@ -279,7 +279,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         }
 
         # Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, self.file_token_2],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
@@ -298,7 +298,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
     def test_confirm_multiple_files_invalid_related_object(self):
         """Test confirm multiple files with invalid related object."""
         # Arrange & Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, self.file_token_2],
             "related_object": {"app_label": "core", "model": "user", "object_id": 99999},
@@ -311,7 +311,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
     def test_confirm_multiple_files_empty_list(self):
         """Test confirm multiple files with empty file_tokens list."""
         # Arrange & Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
@@ -334,7 +334,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         mock_instance.delete_file.return_value = True
 
         # Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, self.file_token_2],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
@@ -360,7 +360,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         client = APIClient()
 
         # Act
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "file_tokens": [self.file_token_1, self.file_token_2],
             "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
