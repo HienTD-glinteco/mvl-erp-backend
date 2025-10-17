@@ -205,8 +205,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Act: Call confirm endpoint
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, self.file_token_2],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "job_description",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "job_description",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -255,8 +267,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Arrange & Act
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, "invalid-token"],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": "invalid-token",
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -281,8 +305,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Act
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, self.file_token_2],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -300,8 +336,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Arrange & Act
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, self.file_token_2],
-            "related_object": {"app_label": "core", "model": "user", "object_id": 99999},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": 99999,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": 99999,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -309,13 +357,10 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_confirm_multiple_files_empty_list(self):
-        """Test confirm multiple files with empty file_tokens list."""
+        """Test confirm multiple files with empty files list."""
         # Arrange & Act
         url = reverse("files:confirm")
-        data = {
-            "file_tokens": [],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
-        }
+        data = {"files": []}
         response = self.client.post(url, data, format="json")
 
         # Assert
@@ -336,8 +381,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Act
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, self.file_token_2],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -362,8 +419,20 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Act
         url = reverse("files:confirm")
         data = {
-            "file_tokens": [self.file_token_1, self.file_token_2],
-            "related_object": {"app_label": "core", "model": "user", "object_id": self.user.id},
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = client.post(url, data, format="json")
 
