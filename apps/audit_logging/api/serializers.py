@@ -118,10 +118,18 @@ class AuditLogSerializer(serializers.Serializer):
     object_type = serializers.CharField(required=False, allow_null=True)
     object_id = serializers.CharField(required=False, allow_null=True)
     object_repr = serializers.CharField(required=False, allow_null=True)
-    change_message = serializers.JSONField(required=False, allow_null=True)
+    change_message = serializers.SerializerMethodField()
     ip_address = serializers.CharField(required=False, allow_null=True)
     user_agent = serializers.CharField(required=False, allow_null=True)
     session_key = serializers.CharField(required=False, allow_null=True)
+
+    def get_change_message(self, obj) -> str | dict | None:
+        change_message = obj.get("change_message")
+        if not change_message:
+            return None
+        if "message" in change_message:
+            return change_message["message"]
+        return change_message
 
 
 class AuditLogSearchResponseSerializer(serializers.Serializer):

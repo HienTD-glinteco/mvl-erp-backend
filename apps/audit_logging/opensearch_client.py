@@ -67,7 +67,7 @@ class OpenSearchClient:
                     "object_type": {"type": "keyword"},
                     "object_id": {"type": "keyword"},
                     "object_repr": {"type": "text", "analyzer": "standard"},
-                    "change_message": {"type": "flattened"},
+                    "change_message": {"type": "object"},
                     "ip_address": {"type": "ip"},
                     "user_agent": {"type": "text"},
                     "session_key": {"type": "keyword"},
@@ -87,10 +87,19 @@ class OpenSearchClient:
                 logger.error(f"Failed to create index {index_name}: {e}")
                 raise AuditLogException(f"Failed to create OpenSearch index: {e}") from e
 
+    def _normalize_change_message(self, log_data: Dict[str, Any]):
+        if "change_message" not in log_data:
+            return
+
+        if isinstance(log_data["change_message"], str):
+            log_data["change_message"] = {"message": log_data["change_message"]}
+
     def index_log(self, log_data: Dict[str, Any]):
         """Index a single log entry in OpenSearch."""
         index_name = self._get_index_name(log_data["timestamp"])
         self._ensure_index_exists(index_name)
+
+        self._normalize_change_message(log_data)
 
         try:
             response = self.client.index(index=index_name, id=log_data["log_id"], body=log_data)
