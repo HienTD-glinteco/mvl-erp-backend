@@ -269,11 +269,18 @@ class FileConfirmSerializerMixinTest(TestCase):
         # Verify the file was deleted
         mock_instance.delete_file.assert_called_once()
 
+    @patch("django.contrib.contenttypes.models.ContentType.objects.get_for_model")
     @patch("django.core.cache.cache.delete")
     @patch("django.core.cache.cache.get")
     @patch("apps.files.utils.S3FileUploadService")
-    def test_mixin_without_request_context(self, mock_s3_service, mock_cache_get, mock_cache_delete):
+    def test_mixin_without_request_context(self, mock_s3_service, mock_cache_get, mock_cache_delete, mock_get_content_type):
         """Test that mixin works without request in context (uploaded_by is None)."""
+        # Arrange: Mock ContentType to avoid FK constraint issues with DummyModel
+        from django.contrib.contenttypes.models import ContentType
+        # Use User's ContentType as a valid ContentType that exists in the test database
+        user_content_type = ContentType.objects.get_for_model(User)
+        mock_get_content_type.return_value = user_content_type
+        
         # Arrange: Mock cache
         cache_data = {}
         
@@ -314,7 +321,7 @@ class FileConfirmSerializerMixinTest(TestCase):
 
         # Assert: Check FileModel was created without uploaded_by
         self.assertEqual(FileModel.objects.count(), 1)
-        file_record = FileModel.objects.get(object_id=instance.pk)
+        file_record = FileModel.objects.first()
         self.assertIsNone(file_record.uploaded_by)
         self.assertTrue(file_record.is_confirmed)
 
