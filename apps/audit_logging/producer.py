@@ -185,9 +185,9 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
                         if old_value != new_value:
                             field_changes.append(
                                 {
-                                    "field": field.verbose_name or field_name,
-                                    "old_value": str(old_value) if old_value is not None else None,
-                                    "new_value": str(new_value) if new_value is not None else None,
+                                    "field": str(field.verbose_name) if field.verbose_name else field_name,
+                                    "old_value": _format_field_value(old_value, original_rel_obj, field),
+                                    "new_value": _format_field_value(new_value, modified_rel_obj, field),
                                 }
                             )
 
@@ -220,6 +220,46 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
     return related_changes
 
 
+def _format_field_value(value, instance=None, field=None):
+    """
+    Format a field value for audit logging.
+
+    Args:
+        value: The field value to format
+        instance: The model instance (optional, for choice field display)
+        field: The model field (optional, for choice field detection)
+
+    Returns:
+        - None if value is None
+        - List of string representations if value is a list
+        - Human-readable label for choice fields (using get_FOO_display())
+        - String representation otherwise
+    """
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple)):
+        return [str(item) for item in value]
+
+    # For choice fields, use get_FOO_display() to get human-readable label
+    # Only if field has actual choices (not empty/None) and the display method exists
+    if instance and field:
+        try:
+            # Check if field has real choices (not just the attribute)
+            has_choices = hasattr(field, "choices") and field.choices and len(field.choices) > 0
+            if has_choices:
+                display_method = f"get_{field.name}_display"
+                if hasattr(instance, display_method):
+                    display_value = getattr(instance, display_method)()
+                    # Only use display value if it's actually a string (not a MagicMock)
+                    if isinstance(display_value, str):
+                        return display_value
+        except (AttributeError, TypeError):
+            # If anything goes wrong, fall back to string representation
+            pass
+
+    return str(value)
+
+
 def _prepare_change_messages(
     log_data: dict,
     action: str,
@@ -227,7 +267,7 @@ def _prepare_change_messages(
     modified_object=None,
 ):
     if action == "CHANGE" and original_object and modified_object:
-        changes = []
+        rows = []
         # Try to detect field changes if both objects are Django models
         if hasattr(original_object, "_meta") and hasattr(modified_object, "_meta"):
             for field in modified_object._meta.fields:
@@ -235,9 +275,18 @@ def _prepare_change_messages(
                 old_value = getattr(original_object, field_name, None)
                 new_value = getattr(modified_object, field_name, None)
                 if old_value != new_value:
-                    changes.append(f"{field.verbose_name or field_name}: {old_value} -> {new_value}")
-        if changes:
-            log_data["change_message"] = "; ".join(changes)
+                    rows.append(
+                        {
+                            "field": str(field.verbose_name) if field.verbose_name else field_name,
+                            "old_value": _format_field_value(old_value, original_object, field),
+                            "new_value": _format_field_value(new_value, modified_object, field),
+                        }
+                    )
+        if rows:
+            log_data["change_message"] = {
+                "headers": ["field", "old_value", "new_value"],
+                "rows": rows,
+            }
         else:
             log_data["change_message"] = "Object modified"
 
