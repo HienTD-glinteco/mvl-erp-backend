@@ -380,6 +380,9 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         ]
         mock_instance.delete_file.return_value = True
 
+        # Disable exception raising for this test
+        self.client.raise_request_exception = False
+
         # Act
         url = reverse("files:confirm")
         data = {
