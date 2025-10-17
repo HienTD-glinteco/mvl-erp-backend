@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -16,7 +16,7 @@ class RecruitmentSource(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Source name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Source code"))
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     allow_referral = models.BooleanField(
         default=False,
         verbose_name=_("Allow referral"),

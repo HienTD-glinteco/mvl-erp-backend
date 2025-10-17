@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -27,7 +27,7 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
         default="",
         verbose_name=_("Belong to"),
     )
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:

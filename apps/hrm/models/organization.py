@@ -1,8 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -16,7 +17,7 @@ class Branch(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Branch name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
-    address = models.TextField(blank=True, verbose_name=_("Address"))
+    address = SafeTextField(blank=True, verbose_name=_("Address"))
     phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
     email = models.EmailField(blank=True, verbose_name=_("Email"))
     province = models.ForeignKey(
@@ -31,7 +32,7 @@ class Branch(AutoCodeMixin, BaseModel):
         related_name="branches",
         verbose_name=_("Administrative unit"),
     )
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
@@ -63,7 +64,7 @@ class Block(AutoCodeMixin, BaseModel):
         related_name="blocks",
         verbose_name=_("Branch"),
     )
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
@@ -125,7 +126,7 @@ class Department(AutoCodeMixin, BaseModel):
         related_name="managed_departments",
         verbose_name=_("Management department"),
     )
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
@@ -146,58 +147,61 @@ class Department(AutoCodeMixin, BaseModel):
 
     def clean(self):
         """Comprehensive validation for Department - SINGLE SOURCE OF TRUTH"""
-        from django.core.exceptions import ValidationError
-
         errors = {}
 
-        # 1. Parent department validation - must be in same block
-        if self.parent_department:
-            if self.parent_department.block != self.block:
-                errors["parent_department"] = _("Parent department must be in the same block as the child department.")
+        self._validate_parent_department(errors)
+        self._validate_management_department(errors)
+        self._validate_function_by_block_type(errors)
+        self._validate_business_block_function(errors)
+        self._validate_support_block_function(errors)
+        self._validate_main_department_uniqueness(errors)
 
-        # 2. Management department validation
-        if self.management_department:
-            # 2.1. Cannot manage itself
-            if self.management_department.id == self.id:
-                errors["management_department"] = _("Department cannot manage itself.")
-            # 2.2. Must be in same block
-            elif self.management_department.block != self.block:
-                errors["management_department"] = _("Management department must be in the same block.")
-            # 2.3. Must have same function
-            elif self.management_department.function != self.function:
-                errors["management_department"] = _("Management department must have the same function.")
+        if errors:
+            raise ValidationError(errors)
 
-        # 3. Function validation based on block type
-        if self.block and self.function:
-            allowed_functions = [c[0] for c in self.get_function_choices_for_block_type(self.block.block_type)]
-            if self.function not in allowed_functions:
-                errors["function"] = _("This function is not compatible with block type %(block_type)s.") % {
-                    "block_type": self.block.get_block_type_display()
-                }
+    def _validate_parent_department(self, errors):
+        if self.parent_department and self.parent_department.block != self.block:
+            errors["parent_department"] = _("Parent department must be in the same block as the child department.")
 
-        # 4. Business block can only have business function
+    def _validate_management_department(self, errors):
+        if not self.management_department:
+            return
+        if self.management_department.id == self.id:
+            errors["management_department"] = _("Department cannot manage itself.")
+        elif self.management_department.block != self.block:
+            errors["management_department"] = _("Management department must be in the same block.")
+        elif self.management_department.function != self.function:
+            errors["management_department"] = _("Management department must have the same function.")
+
+    def _validate_function_by_block_type(self, errors):
+        if not (self.block and self.function):
+            return
+        allowed_functions = [c[0] for c in self.get_function_choices_for_block_type(self.block.block_type)]
+        if self.function not in allowed_functions:
+            errors["function"] = _("This function is not compatible with block type %(block_type)s.") % {
+                "block_type": self.block.get_block_type_display()
+            }
+
+    def _validate_business_block_function(self, errors):
         if self.block and self.block.block_type == Block.BlockType.BUSINESS:
             if self.function != self.DepartmentFunction.BUSINESS:
                 errors["function"] = _("Business block can only have business function.")
 
-        # 5. Support block cannot have business function
+    def _validate_support_block_function(self, errors):
         if self.block and self.block.block_type == Block.BlockType.SUPPORT:
             if self.function == self.DepartmentFunction.BUSINESS:
                 errors["function"] = _("Support block cannot have business function.")
 
-        # 6. Main department uniqueness - only one per function
-        if self.is_main_department:
-            existing_main = Department.objects.filter(
-                function=self.function, is_main_department=True, is_active=True
-            ).exclude(id=self.id if self.id else None)
-
-            if existing_main.exists():
-                errors["is_main_department"] = _("A main department already exists for function %(function)s.") % {
-                    "function": self.get_function_display()
-                }
-
-        if errors:
-            raise ValidationError(errors)
+    def _validate_main_department_uniqueness(self, errors):
+        if not self.is_main_department:
+            return
+        existing_main = Department.objects.filter(
+            function=self.function, is_main_department=True, is_active=True
+        ).exclude(id=self.id if self.id else None)
+        if existing_main.exists():
+            errors["is_main_department"] = _("A main department already exists for function %(function)s.") % {
+                "function": self.get_function_display()
+            }
 
     def save(self, *args, **kwargs):
         # Auto-set branch from block if not set
@@ -246,7 +250,7 @@ class Position(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Position name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
-    description = models.TextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
@@ -297,8 +301,6 @@ class OrganizationChart(BaseModel):
 
     def clean(self):
         """Validate organization chart entry"""
-        from django.core.exceptions import ValidationError
-
         # Ensure employee can only have one primary position per department at a time
         if self.is_primary and self.is_active:
             existing = OrganizationChart.objects.filter(

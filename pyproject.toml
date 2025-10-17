@@ -102,6 +102,7 @@ openpyxl = "^3.1.5"
 # Data processing
 polars = "^1.19.0"
 fastexcel = "^0.16.0"
+nh3 = "^0.3.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

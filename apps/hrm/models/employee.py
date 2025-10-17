@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -12,14 +12,14 @@ from ..constants import TEMP_CODE_PREFIX
 @audit_logging_register
 class Employee(AutoCodeMixin, BaseModel):
     """Employee model representing staff members in the organization.
-    
+
     This model stores employee information and their position in the
     organizational hierarchy. Employee codes are automatically generated
     with the prefix "MV" (e.g., MV001, MV002).
-    
+
     A User account is automatically created when an Employee is created,
     using the employee's username and email fields.
-    
+
     Attributes:
         code: Auto-generated unique employee code with "MV" prefix
         fullname: Employee's full name
@@ -67,7 +67,7 @@ class Employee(AutoCodeMixin, BaseModel):
         related_name="employee",
         verbose_name=_("User"),
     )
-    note = models.TextField(blank=True, verbose_name=_("Note"))
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
 
     class Meta:
         verbose_name = _("Employee")
@@ -79,12 +79,12 @@ class Employee(AutoCodeMixin, BaseModel):
 
     def clean(self):
         """Validate organizational hierarchy relationships.
-        
+
         Ensures that:
         - Block belongs to the selected Branch
         - Department belongs to the selected Block
         - Department belongs to the selected Branch
-        
+
         Raises:
             ValidationError: If any organizational hierarchy constraint is violated
         """
@@ -93,18 +93,12 @@ class Employee(AutoCodeMixin, BaseModel):
         # Validate relationship between branch, block, and department
         if self.block and self.branch:
             if self.block.branch_id != self.branch_id:
-                raise ValidationError({
-                    "block": _("Block must belong to the selected branch.")
-                })
+                raise ValidationError({"block": _("Block must belong to the selected branch.")})
 
         if self.department and self.block:
             if self.department.block_id != self.block_id:
-                raise ValidationError({
-                    "department": _("Department must belong to the selected block.")
-                })
+                raise ValidationError({"department": _("Department must belong to the selected block.")})
 
         if self.department and self.branch:
             if self.department.branch_id != self.branch_id:
-                raise ValidationError({
-                    "department": _("Department must belong to the selected branch.")
-                })
+                raise ValidationError({"department": _("Department must belong to the selected branch.")})

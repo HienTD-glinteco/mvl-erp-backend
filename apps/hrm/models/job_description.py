@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -16,12 +16,12 @@ class JobDescription(AutoCodeMixin, BaseModel):
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Job description code"))
     title = models.CharField(max_length=200, verbose_name=_("Job title"))
-    responsibility = models.TextField(verbose_name=_("Responsibility"))
-    requirement = models.TextField(verbose_name=_("Requirement"))
-    preferred_criteria = models.TextField(blank=True, verbose_name=_("Preferred criteria"))
-    benefit = models.TextField(verbose_name=_("Benefit"))
+    responsibility = SafeTextField(verbose_name=_("Responsibility"))
+    requirement = SafeTextField(verbose_name=_("Requirement"))
+    preferred_criteria = SafeTextField(blank=True, verbose_name=_("Preferred criteria"))
+    benefit = SafeTextField(verbose_name=_("Benefit"))
     proposed_salary = models.CharField(max_length=100, verbose_name=_("Proposed salary"))
-    note = models.TextField(blank=True, verbose_name=_("Note"))
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
     attachment = models.CharField(max_length=500, blank=True, verbose_name=_("Attachment"))
 
     class Meta:
