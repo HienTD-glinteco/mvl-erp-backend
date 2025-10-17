@@ -17,6 +17,7 @@ from apps.files.api.serializers import (
     ConfirmMultipleFilesSerializer,
     FileSerializer,
     PresignRequestSerializer,
+    PresignResponseSerializer,
 )
 from apps.files.constants import (
     ALLOWED_FILE_TYPES,
@@ -42,6 +43,7 @@ from apps.files.utils import S3FileUploadService
     description=API_PRESIGN_DESCRIPTION,
     tags=[API_PRESIGN_TAG],
     request=PresignRequestSerializer,
+    responses={200: PresignResponseSerializer},
     examples=[
         OpenApiExample(
             "Presign request",
