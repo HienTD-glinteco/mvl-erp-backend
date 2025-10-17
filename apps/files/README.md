@@ -25,17 +25,30 @@ curl -X PUT "PRESIGNED_URL_FROM_STEP_1" \
   --data-binary @document.pdf
 ```
 
-### 3. Confirm Upload
+### 3. Confirm File Upload(s)
+
+Each file can be confirmed individually with its own related object and optional field assignment:
 
 ```bash
 curl -X POST http://localhost:8000/api/files/confirm/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "file_token": "TOKEN_FROM_STEP_1",
-    "related_model": "hrm.Employee",
-    "related_object_id": 42,
-    "purpose": "job_description"
+    "files": [
+      {
+        "file_token": "TOKEN_1",
+        "purpose": "job_description",
+        "related_model": "hrm.JobDescription",
+        "related_object_id": 15,
+        "related_field": "attachment"
+      },
+      {
+        "file_token": "TOKEN_2",
+        "purpose": "job_description",
+        "related_model": "hrm.JobDescription",
+        "related_object_id": 15
+      }
+    ]
   }'
 ```
 
@@ -72,11 +85,89 @@ apps/files/
 ### API Views
 
 - **PresignURLView**: Generates presigned S3 upload URLs
-- **ConfirmFileUploadView**: Confirms upload and moves file to permanent storage
+- **ConfirmMultipleFilesView**: Confirms multiple uploads in a single transaction
+
+### Serializers
+
+- **PresignRequestSerializer**: Validates presign requests
+- **ConfirmMultipleFilesSerializer**: Validates multiple file confirmation
+- **ConfirmMultipleFilesResponseSerializer**: Response serializer for multi-file confirmation
+- **FileSerializer**: Serializes FileModel instances
 
 ### Utilities
 
 - **S3FileUploadService**: Handles all S3 operations (presign, check, move, metadata)
+
+### Mixins
+
+- **FileConfirmSerializerMixin**: Auto-confirms files when serializer is saved (New)
+
+## Using FileConfirmSerializerMixin
+
+The `FileConfirmSerializerMixin` enables automatic file confirmation during serializer save, eliminating the need for a separate confirmation API call.
+
+### Example Usage
+
+```python
+from rest_framework import serializers
+from libs import FileConfirmSerializerMixin
+from apps.hrm.models import JobDescription
+
+class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+    # Note: 'files' field is automatically added by the mixin
+    
+    class Meta:
+        model = JobDescription
+        fields = [
+            "id",
+            "code",
+            "title",
+            "responsibility",
+            "requirement",
+            "benefit",
+            "proposed_salary",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "code", "created_at", "updated_at"]
+```
+
+### Workflow
+
+1. Frontend uploads files via presigned URLs and receives `file_tokens`
+2. Frontend submits form data with `files` dict mapping field names to tokens:
+
+```json
+{
+  "title": "Senior Developer",
+  "responsibility": "Lead development team...",
+  "requirement": "5+ years experience...",
+  "benefit": "Competitive salary...",
+  "proposed_salary": "$100k-$120k",
+  "files": {
+    "attachment": "abc123",
+    "document": "xyz789"
+  }
+}
+```
+
+3. The mixin automatically:
+   - Validates all file tokens
+   - Confirms files exist in S3
+   - Moves files from temp to permanent storage
+   - Links files to the created/updated instance
+   - **Assigns files to the specified model fields** (e.g., `attachment` field gets the file)
+   - All in a single database transaction
+
+### Features
+
+- ✅ Automatic file confirmation on save
+- ✅ Transaction safety (rollback if confirmation fails)
+- ✅ Supports multiple files with field assignments
+- ✅ Validates content types
+- ✅ Links files via Generic Relations
+- ✅ Assigns files directly to model fields
+- ✅ Cleans up cache after confirmation
 
 ## Testing
 
@@ -85,7 +176,13 @@ Run tests:
 poetry run pytest apps/files/tests/ -v
 ```
 
-All 22 tests should pass.
+Test coverage includes:
+- ✅ Presign URL generation
+- ✅ Single file confirmation
+- ✅ Multiple file confirmation (New)
+- ✅ FileConfirmSerializerMixin (New)
+- ✅ S3 utilities
+- ✅ Error handling and validation
 
 ## Documentation
 

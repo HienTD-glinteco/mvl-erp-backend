@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-16 14:40+0700\n"
+"POT-Creation-Date: 2025-10-17 17:56+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,53 +42,61 @@ msgstr ""
 msgid "Token for later confirmation"
 msgstr ""
 
+#: apps/files/api/serializers/file_serializers.py:64
+msgid "Presigned URL for viewing the file (valid for 1 hour)"
+msgstr ""
+
 #: apps/files/api/serializers/file_serializers.py:65
+msgid "Presigned URL for downloading the file (valid for 1 hour)"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:69
+msgid "Username of the user who uploaded this file"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:96
 msgid "Token returned by presign endpoint"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:68
+#: apps/files/api/serializers/file_serializers.py:99
+msgid "File purpose (e.g., 'job_description', 'invoice')"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:102
 msgid "Django model label (e.g., 'hrm.JobDescription')"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:72
+#: apps/files/api/serializers/file_serializers.py:106
 msgid "Related object ID"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:76
-msgid "File purpose (used to determine final folder)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:82
+#: apps/files/api/serializers/file_serializers.py:112
 #, python-brace-format
 msgid ""
 "Optional field name on related model to set as ForeignKey to this file. If "
 "provided, related_object.{related_field} = file_model"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:92
+#: apps/files/api/serializers/file_serializers.py:122
 #, python-brace-format
 msgid "Invalid model label: {model}"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:104
+#: apps/files/api/serializers/file_serializers.py:134
 #, python-brace-format
 msgid "Object with ID {id} not found"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:107
+#: apps/files/api/serializers/file_serializers.py:137
 msgid "Invalid model"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:115
-msgid "Presigned URL for viewing the file (valid for 1 hour)"
+#: apps/files/api/serializers/file_serializers.py:147
+msgid "List of confirmed files with metadata"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:116
-msgid "Presigned URL for downloading the file (valid for 1 hour)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:120
-msgid "Username of the user who uploaded this file"
+#: apps/files/api/serializers/file_serializers.py:157
+msgid "List of file configurations with tokens and related objects"
 msgstr ""
 
 #: apps/files/models.py:19
@@ -258,6 +266,12 @@ msgstr ""
 
 #: libs/import_xlsx/utils.py:181
 msgid "This field is required"
+msgstr ""
+
+#: libs/serializers/mixins.py:185
+msgid ""
+"Dictionary mapping field names to file tokens (e.g., {'attachment': "
+"'token123'})"
 msgstr ""
 
 #: templates/emails/base_email.html:6

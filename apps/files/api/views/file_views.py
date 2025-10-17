@@ -12,18 +12,25 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.files.api.serializers import ConfirmFileSerializer, FileSerializer, PresignRequestSerializer
+from apps.files.api.serializers import (
+    ConfirmMultipleFilesResponseSerializer,
+    ConfirmMultipleFilesSerializer,
+    FileSerializer,
+    PresignRequestSerializer,
+    PresignResponseSerializer,
+)
 from apps.files.constants import (
     ALLOWED_FILE_TYPES,
-    API_CONFIRM_DESCRIPTION,
-    API_CONFIRM_SUMMARY,
-    API_CONFIRM_TAG,
+    API_CONFIRM_MULTI_DESCRIPTION,
+    API_CONFIRM_MULTI_SUMMARY,
+    API_CONFIRM_MULTI_TAG,
     API_PRESIGN_DESCRIPTION,
     API_PRESIGN_SUMMARY,
     API_PRESIGN_TAG,
     CACHE_KEY_PREFIX,
     CACHE_TIMEOUT,
     ERROR_CONTENT_TYPE_MISMATCH,
+    ERROR_FILE_ALREADY_CONFIRMED,
     ERROR_FILE_NOT_FOUND_S3,
     ERROR_INVALID_FILE_TOKEN,
 )
@@ -36,6 +43,7 @@ from apps.files.utils import S3FileUploadService
     description=API_PRESIGN_DESCRIPTION,
     tags=[API_PRESIGN_TAG],
     request=PresignRequestSerializer,
+    responses={200: PresignResponseSerializer},
     examples=[
         OpenApiExample(
             "Presign request",
@@ -116,194 +124,258 @@ class PresignURLView(APIView):
 
 
 @extend_schema(
-    summary=API_CONFIRM_SUMMARY,
-    description=API_CONFIRM_DESCRIPTION,
-    tags=[API_CONFIRM_TAG],
-    request=ConfirmFileSerializer,
+    summary=API_CONFIRM_MULTI_SUMMARY,
+    description=API_CONFIRM_MULTI_DESCRIPTION,
+    tags=[API_CONFIRM_MULTI_TAG],
+    request=ConfirmMultipleFilesSerializer,
+    responses={201: ConfirmMultipleFilesResponseSerializer},
     examples=[
         OpenApiExample(
-            "Confirm request",
-            description="Example request to confirm file upload",
+            "Confirm multiple files request",
+            description="Example request to confirm multiple file uploads",
             value={
-                "file_token": "f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32",
-                "related_model": "hrm.JobDescription",
-                "related_object_id": 42,
-                "purpose": "job_description",
+                "files": [
+                    {
+                        "file_token": "f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32",
+                        "purpose": "job_description",
+                        "related_model": "hrm.JobDescription",
+                        "related_object_id": 15,
+                        "related_field": "attachment",
+                    },
+                    {
+                        "file_token": "a2b5d8e1-c43f-4a7d-9be3-7d8e3f5a6b21",
+                        "purpose": "job_description",
+                        "related_model": "hrm.JobDescription",
+                        "related_object_id": 15,
+                    },
+                ]
             },
             request_only=True,
         ),
         OpenApiExample(
-            "Confirm success",
+            "Confirm multiple files success",
             description="Example successful response after confirmation",
             value={
                 "success": True,
                 "data": {
-                    "id": 112,
-                    "purpose": "job_description",
-                    "file_name": "JD.pdf",
-                    "file_path": "uploads/job_description/42/JD.pdf",
-                    "size": 123456,
-                    "checksum": None,
-                    "is_confirmed": True,
-                    "uploaded_by": 5,
-                    "uploaded_by_username": "john_doe",
-                    "view_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?AWSAccessKeyId=...",
-                    "download_url": "https://s3.amazonaws.com/bucket/uploads/job_description/42/JD.pdf?response-content-disposition=attachment...",
-                    "created_at": "2025-10-16T04:00:00Z",
-                    "updated_at": "2025-10-16T04:00:00Z",
+                    "confirmed_files": [
+                        {
+                            "id": 112,
+                            "purpose": "job_description",
+                            "file_name": "JD.pdf",
+                            "file_path": "uploads/job_description/15/JD.pdf",
+                            "size": 123456,
+                            "checksum": None,
+                            "is_confirmed": True,
+                            "uploaded_by": 5,
+                            "uploaded_by_username": "john_doe",
+                            "view_url": "https://s3.amazonaws.com/bucket/uploads/job_description/15/JD.pdf?AWSAccessKeyId=...",
+                            "download_url": "https://s3.amazonaws.com/bucket/uploads/job_description/15/JD.pdf?response-content-disposition=attachment...",
+                            "created_at": "2025-10-16T04:00:00Z",
+                            "updated_at": "2025-10-16T04:00:00Z",
+                        },
+                        {
+                            "id": 113,
+                            "purpose": "job_description",
+                            "file_name": "Estimate.pdf",
+                            "file_path": "uploads/job_description/15/Estimate.pdf",
+                            "size": 234567,
+                            "checksum": None,
+                            "is_confirmed": True,
+                            "uploaded_by": 5,
+                            "uploaded_by_username": "john_doe",
+                            "view_url": "https://s3.amazonaws.com/bucket/uploads/job_description/15/Estimate.pdf?AWSAccessKeyId=...",
+                            "download_url": "https://s3.amazonaws.com/bucket/uploads/job_description/15/Estimate.pdf?response-content-disposition=attachment...",
+                            "created_at": "2025-10-16T04:00:00Z",
+                            "updated_at": "2025-10-16T04:00:00Z",
+                        },
+                    ]
                 },
                 "error": None,
             },
             response_only=True,
         ),
         OpenApiExample(
-            "Confirm error - invalid token",
+            "Confirm multiple files error - invalid token",
             description="Example error response for invalid or expired token",
             value={
                 "success": False,
                 "data": None,
-                "error": {"detail": "Invalid or expired file token"},
+                "error": {"detail": "Invalid or expired file token: abc123"},
             },
             response_only=True,
             status_codes=["400"],
         ),
         OpenApiExample(
-            "Confirm error - file not found",
-            description="Example error response when file not found in S3",
+            "Confirm multiple files error - already confirmed",
+            description="Example error response when file is already confirmed",
             value={
                 "success": False,
                 "data": None,
-                "error": {"detail": "File not found in S3"},
+                "error": {"detail": "File has already been confirmed: abc123"},
             },
             response_only=True,
-            status_codes=["400"],
+            status_codes=["409"],
         ),
         OpenApiExample(
-            "Confirm error - content type mismatch",
-            description="Example error response when uploaded file type doesn't match declared type",
+            "Confirm multiple files error - related object not found",
+            description="Example error response when related object doesn't exist",
             value={
                 "success": False,
                 "data": None,
-                "error": {
-                    "detail": "Uploaded file content type does not match expected type",
-                    "expected": "application/pdf",
-                    "actual": "application/x-msdownload",
-                },
+                "error": {"object_id": ["Object with ID 99999 not found"]},
             },
             response_only=True,
             status_codes=["400"],
         ),
     ],
 )
-class ConfirmFileUploadView(APIView):
+class ConfirmMultipleFilesView(APIView):
     """
-    Confirm file upload and move to permanent storage.
+    Confirm multiple file uploads in a single transaction.
 
-    This endpoint verifies the file exists in S3, moves it from temporary to
-    permanent storage, and creates a FileModel record linked to the related object.
+    This endpoint verifies all files exist in S3, moves them from temporary to
+    permanent storage, and creates FileModel records linked to the related object.
+    All operations are performed in a single database transaction.
     """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        """Confirm file upload and create FileModel record."""
-        serializer = ConfirmFileSerializer(data=request.data)
+        """Confirm multiple file uploads and create FileModel records."""
+        serializer = ConfirmMultipleFilesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        file_token = serializer.validated_data["file_token"]
-        related_model = serializer.validated_data["related_model"]
-        related_object_id = serializer.validated_data["related_object_id"]
-        purpose = serializer.validated_data["purpose"]
-        related_field = serializer.validated_data.get("related_field")
+        files_config = serializer.validated_data["files"]
 
-        # Retrieve file metadata from cache
-        cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
-        cached_data = cache.get(cache_key)
-
-        if not cached_data:
-            return Response(
-                {"detail": _(ERROR_INVALID_FILE_TOKEN)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Parse cached data
-        file_metadata = json.loads(cached_data)
-        temp_file_path = file_metadata["file_path"]
-        file_name = file_metadata["file_name"]
-
-        # Verify file exists in S3
+        # Initialize S3 service
         s3_service = S3FileUploadService()
-        if not s3_service.check_file_exists(temp_file_path):
-            return Response(
-                {"detail": _(ERROR_FILE_NOT_FOUND_S3)},
-                status=status.HTTP_400_BAD_REQUEST,
+
+        # Collect file metadata for all tokens
+        files_to_confirm = []
+        for file_config in files_config:
+            file_token = file_config["file_token"]
+            purpose = file_config["purpose"]
+            related_model = file_config["related_model"]
+            related_object_id = file_config["related_object_id"]
+            related_field = file_config.get("related_field")
+
+            cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
+            cached_data = cache.get(cache_key)
+
+            if not cached_data:
+                return Response(
+                    {"detail": _(ERROR_INVALID_FILE_TOKEN) + f": {file_token}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            file_metadata = json.loads(cached_data)
+            temp_file_path = file_metadata["file_path"]
+            file_name = file_metadata["file_name"]
+            file_type = file_metadata["file_type"]
+            cached_purpose = file_metadata["purpose"]
+
+            # Check if file already exists in database (already confirmed)
+            if FileModel.objects.filter(file_path=temp_file_path, is_confirmed=True).exists():
+                return Response(
+                    {"detail": _(ERROR_FILE_ALREADY_CONFIRMED) + f": {file_token}"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            # Verify file exists in S3
+            if not s3_service.check_file_exists(temp_file_path):
+                return Response(
+                    {"detail": _(ERROR_FILE_NOT_FOUND_S3) + f": {file_token}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Get file metadata to verify actual content type
+            temp_file_metadata = s3_service.get_file_metadata(temp_file_path)
+            if temp_file_metadata:
+                actual_content_type = temp_file_metadata.get("content_type")
+                expected_content_type = file_type
+
+                # Verify content type matches what was declared during presign
+                # Use the purpose from the request (can be different from cached)
+                check_purpose = purpose if purpose else cached_purpose
+                if check_purpose in ALLOWED_FILE_TYPES:
+                    allowed_types = ALLOWED_FILE_TYPES[check_purpose]
+                    if actual_content_type != expected_content_type or actual_content_type not in allowed_types:
+                        # Delete the uploaded file as it doesn't match expected type
+                        s3_service.delete_file(temp_file_path)
+                        cache.delete(cache_key)
+                        return Response(
+                            {
+                                "detail": _(ERROR_CONTENT_TYPE_MISMATCH) + f": {file_token}",
+                                "expected": expected_content_type,
+                                "actual": actual_content_type,
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+            # Get model class and content type
+            model_class = apps.get_model(related_model)
+            content_type = ContentType.objects.get_for_model(model_class)
+
+            files_to_confirm.append(
+                {
+                    "file_token": file_token,
+                    "cache_key": cache_key,
+                    "temp_file_path": temp_file_path,
+                    "file_name": file_name,
+                    "purpose": purpose if purpose else cached_purpose,
+                    "temp_metadata": temp_file_metadata,
+                    "model_class": model_class,
+                    "content_type": content_type,
+                    "object_id": related_object_id,
+                    "related_field": related_field,
+                }
             )
 
-        # Get file metadata to verify actual content type
-        temp_file_metadata = s3_service.get_file_metadata(temp_file_path)
-        if temp_file_metadata:
-            actual_content_type = temp_file_metadata.get("content_type")
-            expected_content_type = file_metadata.get("file_type")
+        # Process all files in a transaction
+        from django.db import transaction
 
-            # Verify content type matches what was declared during presign
-            # Check if this purpose has file type restrictions
-            if purpose in ALLOWED_FILE_TYPES:
-                allowed_types = ALLOWED_FILE_TYPES[purpose]
-                # If actual content type doesn't match expected or is not in allowed list
-                if actual_content_type != expected_content_type or actual_content_type not in allowed_types:
-                    # Delete the uploaded file as it doesn't match expected type
-                    s3_service.delete_file(temp_file_path)
-                    # Clear cache entry
-                    cache.delete(cache_key)
-                    return Response(
-                        {
-                            "detail": _(ERROR_CONTENT_TYPE_MISMATCH),
-                            "expected": expected_content_type,
-                            "actual": actual_content_type,
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        confirmed_files = []
+        with transaction.atomic():
+            for file_info in files_to_confirm:
+                # Generate permanent path
+                permanent_path = s3_service.generate_permanent_path(
+                    purpose=file_info["purpose"],
+                    object_id=file_info["object_id"],
+                    file_name=file_info["file_name"],
+                )
 
-        # Generate permanent path
-        permanent_path = s3_service.generate_permanent_path(
-            purpose=purpose,
-            object_id=related_object_id,
-            file_name=file_name,
-        )
+                # Move file from temp to permanent location
+                s3_service.move_file(file_info["temp_file_path"], permanent_path)
 
-        # Move file from temp to permanent location
-        s3_service.move_file(temp_file_path, permanent_path)
+                # Get file metadata from S3
+                s3_metadata = s3_service.get_file_metadata(permanent_path)
 
-        # Get file metadata from S3
-        s3_metadata = s3_service.get_file_metadata(permanent_path)
+                # Create FileModel record
+                file_record = FileModel.objects.create(
+                    purpose=file_info["purpose"],
+                    file_name=file_info["file_name"],
+                    file_path=permanent_path,
+                    size=s3_metadata.get("size") if s3_metadata else None,
+                    checksum=s3_metadata.get("etag") if s3_metadata else None,
+                    is_confirmed=True,
+                    content_type=file_info["content_type"],
+                    object_id=file_info["object_id"],
+                    uploaded_by=request.user if request.user.is_authenticated else None,
+                )
 
-        # Get ContentType for the related model
-        model_class = apps.get_model(related_model)
-        content_type = ContentType.objects.get_for_model(model_class)
+                # If related_field is specified, set it as ForeignKey on related object
+                if file_info["related_field"]:
+                    related_object = file_info["model_class"].objects.get(pk=file_info["object_id"])
+                    if hasattr(related_object, file_info["related_field"]):
+                        setattr(related_object, file_info["related_field"], file_record)
+                        related_object.save(update_fields=[file_info["related_field"]])
 
-        # Create FileModel record
-        file_record = FileModel.objects.create(
-            purpose=purpose,
-            file_name=file_name,
-            file_path=permanent_path,
-            size=s3_metadata.get("size") if s3_metadata else None,
-            checksum=s3_metadata.get("etag") if s3_metadata else None,
-            is_confirmed=True,
-            content_type=content_type,
-            object_id=related_object_id,
-            uploaded_by=request.user if request.user.is_authenticated else None,
-        )
+                confirmed_files.append(file_record)
 
-        # If related_field is specified, set it as ForeignKey on related object
-        if related_field:
-            related_object = model_class.objects.get(pk=related_object_id)
-            if hasattr(related_object, related_field):
-                setattr(related_object, related_field, file_record)
-                related_object.save(update_fields=[related_field])
+                # Delete cache entry
+                cache.delete(file_info["cache_key"])
 
-        # Delete cache entry
-        cache.delete(cache_key)
-
-        # Return file record
-        file_serializer = FileSerializer(file_record)
-        return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        # Return confirmed files
+        file_serializer = FileSerializer(confirmed_files, many=True)
+        return Response({"confirmed_files": file_serializer.data}, status=status.HTTP_201_CREATED)

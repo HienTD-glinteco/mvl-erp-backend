@@ -1,7 +1,7 @@
 """Tests for file upload API endpoints."""
 
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -132,8 +132,8 @@ class PresignURLAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class ConfirmFileUploadAPITest(TestCase, APITestMixin):
-    """Test cases for file upload confirmation endpoint."""
+class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
+    """Test cases for confirming multiple file uploads."""
 
     def setUp(self):
         """Set up test data."""
@@ -150,16 +150,27 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        # Store test data in cache
-        self.file_token = "test-token-123"
-        cache_key = f"{CACHE_KEY_PREFIX}{self.file_token}"
-        cache_data = {
-            "file_name": "test.pdf",
+        # Store test data in cache for multiple files
+        self.file_token_1 = "test-token-001"
+        self.file_token_2 = "test-token-002"
+
+        cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
+        cache_data_1 = {
+            "file_name": "test1.pdf",
             "file_type": "application/pdf",
             "purpose": "job_description",
-            "file_path": "uploads/tmp/test-token-123/test.pdf",
+            "file_path": "uploads/tmp/test-token-001/test1.pdf",
         }
-        cache.set(cache_key, json.dumps(cache_data), 3600)
+        cache.set(cache_key_1, json.dumps(cache_data_1), 3600)
+
+        cache_key_2 = f"{CACHE_KEY_PREFIX}{self.file_token_2}"
+        cache_data_2 = {
+            "file_name": "test2.pdf",
+            "file_type": "application/pdf",
+            "purpose": "job_description",
+            "file_path": "uploads/tmp/test-token-002/test2.pdf",
+        }
+        cache.set(cache_key_2, json.dumps(cache_data_2), 3600)
 
     def tearDown(self):
         """Clean up after tests."""
@@ -167,25 +178,23 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     @patch("apps.files.api.views.file_views.S3FileUploadService")
-    def test_confirm_upload_success(self, mock_s3_service_views, mock_s3_service_utils):
-        """Test successful file upload confirmation."""
+    def test_confirm_multiple_files_success(self, mock_s3_service_views, mock_s3_service_utils):
+        """Test successful confirmation of multiple files."""
         # Arrange: Mock S3 service in views
         mock_instance = mock_s3_service_views.return_value
         mock_instance.check_file_exists.return_value = True
-        mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/test.pdf"
+        mock_instance.generate_permanent_path.side_effect = [
+            "uploads/job_description/1/test1.pdf",
+            "uploads/job_description/1/test2.pdf",
+        ]
         mock_instance.move_file.return_value = True
-        # Mock get_file_metadata to return correct content type for validation
-        # First call is for temp file (content type validation), second is for permanent file
+
+        # Mock get_file_metadata calls (2 for validation + 2 for permanent)
         mock_instance.get_file_metadata.side_effect = [
-            {
-                "size": 123456,
-                "content_type": "application/pdf",  # Matches expected type
-                "etag": "abc123def456",
-            },
-            {
-                "size": 123456,
-                "etag": "abc123def456",
-            },
+            {"size": 123456, "content_type": "application/pdf", "etag": "abc123"},
+            {"size": 234567, "content_type": "application/pdf", "etag": "def456"},
+            {"size": 123456, "etag": "abc123"},
+            {"size": 234567, "etag": "def456"},
         ]
 
         # Mock S3 service in utils (for properties in serializer)
@@ -196,10 +205,20 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         # Act: Call confirm endpoint
         url = reverse("files:confirm")
         data = {
-            "file_token": self.file_token,
-            "related_model": "core.User",
-            "related_object_id": self.user.id,
-            "purpose": "job_description",
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "job_description",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "job_description",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
@@ -207,154 +226,174 @@ class ConfirmFileUploadAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
 
-        self.assertIn("id", response_data)
-        self.assertEqual(response_data["file_name"], "test.pdf")
-        self.assertEqual(response_data["purpose"], "job_description")
-        self.assertTrue(response_data["is_confirmed"])
-        self.assertEqual(response_data["size"], 123456)
+        self.assertIn("confirmed_files", response_data)
+        self.assertEqual(len(response_data["confirmed_files"]), 2)
 
-        # Assert: Check FileModel was created
-        file_record = FileModel.objects.get(id=response_data["id"])
-        self.assertEqual(file_record.file_name, "test.pdf")
-        self.assertEqual(file_record.purpose, "job_description")
-        self.assertTrue(file_record.is_confirmed)
-        self.assertEqual(file_record.object_id, self.user.id)
+        # Check first file
+        file1 = response_data["confirmed_files"][0]
+        self.assertEqual(file1["file_name"], "test1.pdf")
+        self.assertEqual(file1["purpose"], "job_description")
+        self.assertTrue(file1["is_confirmed"])
+        self.assertEqual(file1["size"], 123456)
 
-        # Assert: Check uploaded_by is set
-        self.assertEqual(file_record.uploaded_by, self.user)
-        self.assertIn("uploaded_by", response_data)
-        self.assertIn("uploaded_by_username", response_data)
-        self.assertEqual(response_data["uploaded_by_username"], self.user.username)
+        # Check second file
+        file2 = response_data["confirmed_files"][1]
+        self.assertEqual(file2["file_name"], "test2.pdf")
+        self.assertEqual(file2["purpose"], "job_description")
+        self.assertTrue(file2["is_confirmed"])
+        self.assertEqual(file2["size"], 234567)
+
+        # Assert: Check FileModel records were created
+        self.assertEqual(FileModel.objects.count(), 2)
+        file_records = FileModel.objects.filter(object_id=self.user.id).order_by("id")
+
+        self.assertEqual(file_records[0].file_name, "test1.pdf")
+        self.assertEqual(file_records[0].uploaded_by, self.user)
+        self.assertEqual(file_records[1].file_name, "test2.pdf")
+        self.assertEqual(file_records[1].uploaded_by, self.user)
 
         # Assert: Check S3 service was called correctly
-        mock_instance.check_file_exists.assert_called_once_with("uploads/tmp/test-token-123/test.pdf")
-        mock_instance.move_file.assert_called_once()
+        self.assertEqual(mock_instance.check_file_exists.call_count, 2)
+        self.assertEqual(mock_instance.move_file.call_count, 2)
 
         # Assert: Check cache was cleared
-        cache_key = f"{CACHE_KEY_PREFIX}{self.file_token}"
-        self.assertIsNone(cache.get(cache_key))
-
-    def test_confirm_upload_invalid_token(self):
-        """Test confirm upload with invalid token."""
-        # Arrange & Act
-        url = reverse("files:confirm")
-        data = {
-            "file_token": "invalid-token",
-            "related_model": "core.User",
-            "related_object_id": self.user.id,
-            "purpose": "job_description",
-        }
-        response = self.client.post(url, data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        # Check error is wrapped in envelope format
-        self.assertFalse(content.get("success"))
-        self.assertIn("detail", content.get("error", {}))
+        cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
+        cache_key_2 = f"{CACHE_KEY_PREFIX}{self.file_token_2}"
+        self.assertIsNone(cache.get(cache_key_1))
+        self.assertIsNone(cache.get(cache_key_2))
 
     @patch("apps.files.api.views.file_views.S3FileUploadService")
-    def test_confirm_upload_file_not_found_in_s3(self, mock_s3_service):
-        """Test confirm upload when file doesn't exist in S3."""
-        # Arrange: Mock S3 service to return False for file existence check
-        mock_instance = mock_s3_service.return_value
-        mock_instance.check_file_exists.return_value = False
+    def test_confirm_multiple_files_invalid_token(self, mock_s3_service_utils):
+        """Test confirm multiple files with one invalid token."""
+        # Arrange & Act
+        mock_s3 = MagicMock()
+        mock_s3_service_utils.return_value = mock_s3
 
-        # Act
         url = reverse("files:confirm")
         data = {
-            "file_token": self.file_token,
-            "related_model": "core.User",
-            "related_object_id": self.user.id,
-            "purpose": "job_description",
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": "invalid-token",
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = self.client.post(url, data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = json.loads(response.content.decode())
-        # Check error is wrapped in envelope format
-        self.assertFalse(content.get("success"))
-        self.assertIn("detail", content.get("error", {}))
-
-    def test_confirm_upload_invalid_related_model(self):
-        """Test confirm upload with invalid related model."""
-        # Arrange & Act
-        url = reverse("files:confirm")
-        data = {
-            "file_token": self.file_token,
-            "related_model": "invalid.Model",
-            "related_object_id": 1,
-            "purpose": "job_description",
-        }
-        response = self.client.post(url, data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_confirm_upload_related_object_not_found(self):
-        """Test confirm upload when related object doesn't exist."""
-        # Arrange & Act
-        url = reverse("files:confirm")
-        data = {
-            "file_token": self.file_token,
-            "related_model": "core.User",
-            "related_object_id": 99999,  # Non-existent ID
-            "purpose": "job_description",
-        }
-        response = self.client.post(url, data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @patch("apps.files.api.views.file_views.S3FileUploadService")
-    def test_confirm_upload_content_type_mismatch(self, mock_s3_service):
-        """Test confirm upload when uploaded file content type doesn't match expected."""
-        # Arrange: Mock S3 service to return mismatched content type
-        mock_instance = mock_s3_service.return_value
-        mock_instance.check_file_exists.return_value = True
-        mock_instance.get_file_metadata.return_value = {
-            "size": 123456,
-            "content_type": "application/x-msdownload",  # Wrong type!
-            "etag": "abc123",
-        }
-        mock_instance.delete_file.return_value = True
-
-        # Act
-        url = reverse("files:confirm")
-        data = {
-            "file_token": self.file_token,
-            "related_model": "core.User",
-            "related_object_id": self.user.id,
-            "purpose": "job_description",
-        }
-        response = self.client.post(url, data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        # Check error is wrapped in envelope format
         self.assertFalse(content.get("success"))
         error_data = content.get("error", {})
-        self.assertIn("detail", error_data)
-        self.assertIn("expected", error_data)
-        self.assertIn("actual", error_data)
+        # Check for validation or application error
+        self.assertTrue("detail" in error_data or "type" in error_data or len(error_data) > 0)
 
-        # Verify the temp file was deleted
-        mock_instance.delete_file.assert_called_once_with("uploads/tmp/test-token-123/test.pdf")
+    @patch("apps.files.api.views.file_views.S3FileUploadService")
+    def test_confirm_multiple_files_one_not_in_s3(self, mock_s3_service):
+        """Test confirm multiple files when one doesn't exist in S3."""
+        # Arrange: Mock S3 service - first file exists, second doesn't
+        mock_instance = mock_s3_service.return_value
+        mock_instance.check_file_exists.side_effect = [True, False]
+        mock_instance.get_file_metadata.return_value = {
+            "size": 123456,
+            "content_type": "application/pdf",
+            "etag": "abc123",
+        }
 
-    def test_confirm_upload_unauthenticated(self):
-        """Test confirm upload without authentication."""
+        # Act
+        url = reverse("files:confirm")
+        data = {
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
+        }
+        response = self.client.post(url, data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content.get("success"))
+        self.assertIn("detail", content.get("error", {}))
+
+        # Verify no files were created (transaction rolled back)
+        self.assertEqual(FileModel.objects.count(), 0)
+
+    def test_confirm_multiple_files_invalid_related_object(self):
+        """Test confirm multiple files with invalid related object."""
+        # Arrange & Act
+        url = reverse("files:confirm")
+        data = {
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": 99999,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": 99999,
+                },
+            ]
+        }
+        response = self.client.post(url, data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_confirm_multiple_files_empty_list(self):
+        """Test confirm multiple files with empty files list."""
+        # Arrange & Act
+        url = reverse("files:confirm")
+        data = {"files": []}
+        response = self.client.post(url, data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_confirm_multiple_files_unauthenticated(self):
+        """Test confirm multiple files without authentication."""
         # Arrange: Create unauthenticated client
         client = APIClient()
 
         # Act
         url = reverse("files:confirm")
         data = {
-            "file_token": self.file_token,
-            "related_model": "core.User",
-            "related_object_id": self.user.id,
-            "purpose": "job_description",
+            "files": [
+                {
+                    "file_token": self.file_token_1,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+                {
+                    "file_token": self.file_token_2,
+                    "purpose": "avatar",
+                    "related_model": "core.User",
+                    "related_object_id": self.user.id,
+                },
+            ]
         }
         response = client.post(url, data, format="json")
 

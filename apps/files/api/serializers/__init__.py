@@ -1,5 +1,7 @@
 from .file_serializers import (
-    ConfirmFileSerializer,
+    ConfirmMultipleFilesResponseSerializer,
+    ConfirmMultipleFilesSerializer,
+    FileConfirmationSerializer,
     FileSerializer,
     PresignRequestSerializer,
     PresignResponseSerializer,
@@ -8,6 +10,8 @@ from .file_serializers import (
 __all__ = [
     "PresignRequestSerializer",
     "PresignResponseSerializer",
-    "ConfirmFileSerializer",
+    "ConfirmMultipleFilesSerializer",
+    "ConfirmMultipleFilesResponseSerializer",
+    "FileConfirmationSerializer",
     "FileSerializer",
 ]

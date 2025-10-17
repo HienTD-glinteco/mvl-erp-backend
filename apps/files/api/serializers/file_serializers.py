@@ -58,11 +58,45 @@ class PresignResponseSerializer(serializers.Serializer):
     )
 
 
-class ConfirmFileSerializer(serializers.Serializer):
-    """Serializer for file upload confirmation."""
+class FileSerializer(serializers.ModelSerializer):
+    """Serializer for FileModel."""
+
+    view_url = serializers.ReadOnlyField(help_text=_("Presigned URL for viewing the file (valid for 1 hour)"))
+    download_url = serializers.ReadOnlyField(help_text=_("Presigned URL for downloading the file (valid for 1 hour)"))
+    uploaded_by_username = serializers.CharField(
+        source="uploaded_by.username",
+        read_only=True,
+        help_text=_("Username of the user who uploaded this file"),
+    )
+
+    class Meta:
+        model = FileModel
+        fields = [
+            "id",
+            "purpose",
+            "file_name",
+            "file_path",
+            "size",
+            "checksum",
+            "is_confirmed",
+            "uploaded_by",
+            "uploaded_by_username",
+            "view_url",
+            "download_url",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class FileConfirmationSerializer(serializers.Serializer):
+    """Serializer for individual file confirmation with related object."""
 
     file_token = serializers.CharField(
         help_text=_("Token returned by presign endpoint"),
+    )
+    purpose = serializers.CharField(
+        help_text=_("File purpose (e.g., 'job_description', 'invoice')"),
     )
     related_model = serializers.CharField(
         help_text=_("Django model label (e.g., 'hrm.JobDescription')"),
@@ -70,10 +104,6 @@ class ConfirmFileSerializer(serializers.Serializer):
     related_object_id = serializers.IntegerField(
         min_value=1,
         help_text=_("Related object ID"),
-    )
-    purpose = serializers.CharField(
-        max_length=100,
-        help_text=_("File purpose (used to determine final folder)"),
     )
     related_field = serializers.CharField(
         required=False,
@@ -109,32 +139,20 @@ class ConfirmFileSerializer(serializers.Serializer):
         return attrs
 
 
-class FileSerializer(serializers.ModelSerializer):
-    """Serializer for FileModel."""
+class ConfirmMultipleFilesResponseSerializer(serializers.Serializer):
+    """Serializer for multi-file confirmation response."""
 
-    view_url = serializers.ReadOnlyField(help_text=_("Presigned URL for viewing the file (valid for 1 hour)"))
-    download_url = serializers.ReadOnlyField(help_text=_("Presigned URL for downloading the file (valid for 1 hour)"))
-    uploaded_by_username = serializers.CharField(
-        source="uploaded_by.username",
-        read_only=True,
-        help_text=_("Username of the user who uploaded this file"),
+    confirmed_files = FileSerializer(
+        many=True,
+        help_text=_("List of confirmed files with metadata"),
     )
 
-    class Meta:
-        model = FileModel
-        fields = [
-            "id",
-            "purpose",
-            "file_name",
-            "file_path",
-            "size",
-            "checksum",
-            "is_confirmed",
-            "uploaded_by",
-            "uploaded_by_username",
-            "view_url",
-            "download_url",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = fields
+
+class ConfirmMultipleFilesSerializer(serializers.Serializer):
+    """Serializer for confirming multiple file uploads with per-file configuration."""
+
+    files = serializers.ListField(
+        child=FileConfirmationSerializer(),
+        min_length=1,
+        help_text=_("List of file configurations with tokens and related objects"),
+    )

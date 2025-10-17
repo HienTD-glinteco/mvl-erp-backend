@@ -1,3 +1,3 @@
-from .file_views import ConfirmFileUploadView, PresignURLView
+from .file_views import ConfirmMultipleFilesView, PresignURLView
 
-__all__ = ["PresignURLView", "ConfirmFileUploadView"]
+__all__ = ["PresignURLView", "ConfirmMultipleFilesView"]
