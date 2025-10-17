@@ -229,3 +229,87 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         source = RecruitmentSource.objects.first()
         self.assertEqual(source.name, data["name"])
         self.assertEqual(source.description, "")
+
+    def test_allow_referral_defaults_to_false(self):
+        """Test that allow_referral field defaults to False"""
+        # Arrange: Create a recruitment source without specifying allow_referral
+        url = reverse("hrm:recruitment-source-list")
+        data = {"name": "Job Board", "description": "Online job board"}
+
+        # Act: Create the source via API
+        response = self.client.post(url, data, format="json")
+
+        # Assert: Check that allow_referral is False by default
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        source = RecruitmentSource.objects.first()
+        self.assertFalse(source.allow_referral)
+
+        # Assert: Verify it's in the serialized response
+        response_data = self.get_response_data(response)
+        self.assertIn("allow_referral", response_data)
+        self.assertFalse(response_data["allow_referral"])
+
+    def test_allow_referral_can_be_set_to_true(self):
+        """Test that allow_referral field can be set to True"""
+        # Arrange: Prepare data with allow_referral=True
+        url = reverse("hrm:recruitment-source-list")
+        data = {"name": "Employee Referral", "description": "Referred by employees", "allow_referral": True}
+
+        # Act: Create the source via API
+        response = self.client.post(url, data, format="json")
+
+        # Assert: Check that allow_referral is True
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        source = RecruitmentSource.objects.first()
+        self.assertTrue(source.allow_referral)
+
+        # Assert: Verify it's in the serialized response
+        response_data = self.get_response_data(response)
+        self.assertTrue(response_data["allow_referral"])
+
+    def test_allow_referral_can_be_set_to_false_explicitly(self):
+        """Test that allow_referral field can be set to False explicitly"""
+        # Arrange: Prepare data with allow_referral=False
+        url = reverse("hrm:recruitment-source-list")
+        data = {"name": "Walk-in", "description": "Walk-in candidates", "allow_referral": False}
+
+        # Act: Create the source via API
+        response = self.client.post(url, data, format="json")
+
+        # Assert: Check that allow_referral is False
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        source = RecruitmentSource.objects.first()
+        self.assertFalse(source.allow_referral)
+
+        # Assert: Verify it's in the serialized response
+        response_data = self.get_response_data(response)
+        self.assertFalse(response_data["allow_referral"])
+
+    def test_allow_referral_api_serialization(self):
+        """Test that allow_referral is correctly serialized in API responses"""
+        # Arrange: Create sources with different allow_referral values
+        url = reverse("hrm:recruitment-source-list")
+        self.client.post(
+            url, {"name": "Referral Source", "description": "With referral", "allow_referral": True}, format="json"
+        )
+        self.client.post(
+            url,
+            {"name": "Non-Referral Source", "description": "Without referral", "allow_referral": False},
+            format="json",
+        )
+
+        # Act: Retrieve the list via API
+        response = self.client.get(url)
+
+        # Assert: Check that both sources have allow_referral in response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 2)
+
+        # Assert: Verify the first source has allow_referral=False (most recent first)
+        self.assertIn("allow_referral", response_data[0])
+        self.assertFalse(response_data[0]["allow_referral"])
+
+        # Assert: Verify the second source has allow_referral=True
+        self.assertIn("allow_referral", response_data[1])
+        self.assertTrue(response_data[1]["allow_referral"])

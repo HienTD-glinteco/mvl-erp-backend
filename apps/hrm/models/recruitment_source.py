@@ -17,6 +17,11 @@ class RecruitmentSource(AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=200, verbose_name=_("Source name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Source code"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
+    allow_referral = models.BooleanField(
+        default=False,
+        verbose_name=_("Allow referral"),
+        help_text=_("Enable users to set referrer and referee for candidates from this source"),
+    )
 
     class Meta:
         verbose_name = _("Recruitment Source")

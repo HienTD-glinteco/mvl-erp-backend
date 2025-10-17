@@ -13,6 +13,7 @@ class RecruitmentSourceSerializer(serializers.ModelSerializer):
             "name",
             "code",
             "description",
+            "allow_referral",
             "created_at",
             "updated_at",
         ]

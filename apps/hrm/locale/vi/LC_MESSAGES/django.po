@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-16 16:39+0700\n"
+"POT-Creation-Date: 2025-10-17 10:27+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -735,15 +735,26 @@ msgstr "Tên khối"
 msgid "Source code"
 msgstr "Mã khối"
 
-# models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_source.py:22
+msgid "Allow referral"
+msgstr "Cho phép giới thiệu"
+
+#: apps/hrm/models/recruitment_source.py:23
+msgid ""
+"Enable users to set referrer and referee for candidates from this source"
+msgstr ""
+"Cho phép người dùng thiết lập người giới thiệu và người được giới thiệu cho "
+"ứng viên từ nguồn này"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_source.py:27
 #, fuzzy
 #| msgid "Recruitment Channel"
 msgid "Recruitment Source"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_source.py:23
+#: apps/hrm/models/recruitment_source.py:28
 #, fuzzy
 #| msgid "Recruitment Channels"
 msgid "Recruitment Sources"
