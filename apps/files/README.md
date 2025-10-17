@@ -27,17 +27,28 @@ curl -X PUT "PRESIGNED_URL_FROM_STEP_1" \
 
 ### 3. Confirm File Upload(s)
 
+Each file can be confirmed individually with its own related object and optional field assignment:
+
 ```bash
 curl -X POST http://localhost:8000/api/files/confirm/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "file_tokens": ["TOKEN_1", "TOKEN_2", "TOKEN_3"],
-    "related_object": {
-      "app_label": "hrm",
-      "model": "jobdescription",
-      "object_id": 15
-    }
+    "files": [
+      {
+        "file_token": "TOKEN_1",
+        "purpose": "job_description",
+        "related_model": "hrm.JobDescription",
+        "related_object_id": 15,
+        "related_field": "attachment"
+      },
+      {
+        "file_token": "TOKEN_2",
+        "purpose": "job_description",
+        "related_model": "hrm.JobDescription",
+        "related_object_id": 15
+      }
+    ]
   }'
 ```
 
@@ -103,7 +114,7 @@ from libs import FileConfirmSerializerMixin
 from apps.hrm.models import JobDescription
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    # Note: file_tokens field is automatically added by the mixin
+    # Note: 'files' field is automatically added by the mixin
     
     class Meta:
         model = JobDescription
@@ -124,7 +135,7 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
 ### Workflow
 
 1. Frontend uploads files via presigned URLs and receives `file_tokens`
-2. Frontend submits form data with `file_tokens` included:
+2. Frontend submits form data with `files` dict mapping field names to tokens:
 
 ```json
 {
@@ -133,7 +144,10 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
   "requirement": "5+ years experience...",
   "benefit": "Competitive salary...",
   "proposed_salary": "$100k-$120k",
-  "file_tokens": ["abc123", "xyz789"]
+  "files": {
+    "attachment": "abc123",
+    "document": "xyz789"
+  }
 }
 ```
 
@@ -142,15 +156,17 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
    - Confirms files exist in S3
    - Moves files from temp to permanent storage
    - Links files to the created/updated instance
+   - **Assigns files to the specified model fields** (e.g., `attachment` field gets the file)
    - All in a single database transaction
 
 ### Features
 
 - ✅ Automatic file confirmation on save
 - ✅ Transaction safety (rollback if confirmation fails)
-- ✅ Supports multiple files
+- ✅ Supports multiple files with field assignments
 - ✅ Validates content types
 - ✅ Links files via Generic Relations
+- ✅ Assigns files directly to model fields
 - ✅ Cleans up cache after confirmation
 
 ## Testing

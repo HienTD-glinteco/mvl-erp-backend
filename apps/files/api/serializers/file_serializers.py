@@ -89,6 +89,56 @@ class FileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class FileConfirmationSerializer(serializers.Serializer):
+    """Serializer for individual file confirmation with related object."""
+
+    file_token = serializers.CharField(
+        help_text=_("Token returned by presign endpoint"),
+    )
+    purpose = serializers.CharField(
+        help_text=_("File purpose (e.g., 'job_description', 'invoice')"),
+    )
+    related_model = serializers.CharField(
+        help_text=_("Django model label (e.g., 'hrm.JobDescription')"),
+    )
+    related_object_id = serializers.IntegerField(
+        min_value=1,
+        help_text=_("Related object ID"),
+    )
+    related_field = serializers.CharField(
+        required=False,
+        allow_null=True,
+        help_text=_(
+            "Optional field name on related model to set as ForeignKey to this file. "
+            "If provided, related_object.{related_field} = file_model"
+        ),
+    )
+
+    def validate_related_model(self, value):
+        """Validate that the model exists."""
+        try:
+            apps.get_model(value)
+        except (LookupError, ValueError):
+            raise serializers.ValidationError(_("Invalid model label: {model}").format(model=value))
+        return value
+
+    def validate(self, attrs):
+        """Validate that the related object exists."""
+        related_model = attrs["related_model"]
+        related_object_id = attrs["related_object_id"]
+
+        try:
+            model_class = apps.get_model(related_model)
+            if not model_class.objects.filter(pk=related_object_id).exists():
+                raise serializers.ValidationError(
+                    {"related_object_id": _("Object with ID {id} not found").format(id=related_object_id)}
+                )
+        except (LookupError, ValueError):
+            raise serializers.ValidationError({"related_model": _("Invalid model")})
+
+        return attrs
+
+
 class ConfirmMultipleFilesResponseSerializer(serializers.Serializer):
     """Serializer for multi-file confirmation response."""
 
@@ -98,54 +148,11 @@ class ConfirmMultipleFilesResponseSerializer(serializers.Serializer):
     )
 
 
-class RelatedObjectSerializer(serializers.Serializer):
-    """Serializer for related object reference."""
-
-    app_label = serializers.CharField(
-        help_text=_("Django app label (e.g., 'hrm')"),
-    )
-    model = serializers.CharField(
-        help_text=_("Model name (e.g., 'jobdescription')"),
-    )
-    object_id = serializers.IntegerField(
-        min_value=1,
-        help_text=_("Related object ID"),
-    )
-
-    def validate(self, attrs):
-        """Validate that the related object exists."""
-        app_label = attrs["app_label"]
-        model = attrs["model"]
-        object_id = attrs["object_id"]
-
-        try:
-            model_class = apps.get_model(app_label, model)
-            if not model_class.objects.filter(pk=object_id).exists():
-                raise serializers.ValidationError(
-                    {"object_id": _("Object with ID {id} not found").format(id=object_id)}
-                )
-        except (LookupError, ValueError):
-            raise serializers.ValidationError(
-                {"model": _("Invalid app label or model: {app}.{model}").format(app=app_label, model=model)}
-            )
-
-        return attrs
-
-
 class ConfirmMultipleFilesSerializer(serializers.Serializer):
-    """Serializer for confirming multiple file uploads."""
+    """Serializer for confirming multiple file uploads with per-file configuration."""
 
-    file_tokens = serializers.ListField(
-        child=serializers.CharField(),
+    files = serializers.ListField(
+        child=FileConfirmationSerializer(),
         min_length=1,
-        help_text=_("List of tokens returned by presign endpoint"),
+        help_text=_("List of file configurations with tokens and related objects"),
     )
-    related_object = RelatedObjectSerializer(
-        help_text=_("Related object reference (app, model, and ID)"),
-    )
-
-    def validate_file_tokens(self, value):
-        """Validate that file tokens list is not empty."""
-        if not value:
-            raise serializers.ValidationError(_("No file tokens provided"))
-        return value

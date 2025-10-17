@@ -1,10 +1,10 @@
 from .file_serializers import (
     ConfirmMultipleFilesResponseSerializer,
     ConfirmMultipleFilesSerializer,
+    FileConfirmationSerializer,
     FileSerializer,
     PresignRequestSerializer,
     PresignResponseSerializer,
-    RelatedObjectSerializer,
 )
 
 __all__ = [
@@ -12,6 +12,6 @@ __all__ = [
     "PresignResponseSerializer",
     "ConfirmMultipleFilesSerializer",
     "ConfirmMultipleFilesResponseSerializer",
-    "RelatedObjectSerializer",
+    "FileConfirmationSerializer",
     "FileSerializer",
 ]

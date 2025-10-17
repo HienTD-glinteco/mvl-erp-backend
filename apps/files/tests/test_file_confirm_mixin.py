@@ -108,8 +108,8 @@ class FileConfirmSerializerMixinTest(TestCase):
             {"size": 234567, "etag": "def456"},
         ]
 
-        # Act: Create serializer with file tokens and save
-        data = {"title": "Test", "file_tokens": [self.file_token_1, self.file_token_2]}
+        # Act: Create serializer with file tokens dict and save
+        data = {"title": "Test", "files": {"attachment1": self.file_token_1, "attachment2": self.file_token_2}}
         serializer = DummySerializer(data=data, context={"request": type("obj", (object,), {"user": self.user})()})
         self.assertTrue(serializer.is_valid())
         instance = serializer.save()

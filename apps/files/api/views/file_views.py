@@ -134,8 +134,21 @@ class PresignURLView(APIView):
             "Confirm multiple files request",
             description="Example request to confirm multiple file uploads",
             value={
-                "file_tokens": ["f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32", "a2b5d8e1-c43f-4a7d-9be3-7d8e3f5a6b21"],
-                "related_object": {"app_label": "hrm", "model": "jobdescription", "object_id": 15},
+                "files": [
+                    {
+                        "file_token": "f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32",
+                        "purpose": "job_description",
+                        "related_model": "hrm.JobDescription",
+                        "related_object_id": 15,
+                        "related_field": "attachment",
+                    },
+                    {
+                        "file_token": "a2b5d8e1-c43f-4a7d-9be3-7d8e3f5a6b21",
+                        "purpose": "job_description",
+                        "related_model": "hrm.JobDescription",
+                        "related_object_id": 15,
+                    },
+                ]
             },
             request_only=True,
         ),
@@ -233,23 +246,20 @@ class ConfirmMultipleFilesView(APIView):
         serializer = ConfirmMultipleFilesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        file_tokens = serializer.validated_data["file_tokens"]
-        related_object = serializer.validated_data["related_object"]
-
-        app_label = related_object["app_label"]
-        model_name = related_object["model"]
-        object_id = related_object["object_id"]
-
-        # Get model class and content type
-        model_class = apps.get_model(app_label, model_name)
-        content_type = ContentType.objects.get_for_model(model_class)
+        files_config = serializer.validated_data["files"]
 
         # Initialize S3 service
         s3_service = S3FileUploadService()
 
         # Collect file metadata for all tokens
         files_to_confirm = []
-        for file_token in file_tokens:
+        for file_config in files_config:
+            file_token = file_config["file_token"]
+            purpose = file_config["purpose"]
+            related_model = file_config["related_model"]
+            related_object_id = file_config["related_object_id"]
+            related_field = file_config.get("related_field")
+
             cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
             cached_data = cache.get(cache_key)
 
@@ -263,7 +273,7 @@ class ConfirmMultipleFilesView(APIView):
             temp_file_path = file_metadata["file_path"]
             file_name = file_metadata["file_name"]
             file_type = file_metadata["file_type"]
-            purpose = file_metadata["purpose"]
+            cached_purpose = file_metadata["purpose"]
 
             # Check if file already exists in database (already confirmed)
             if FileModel.objects.filter(file_path=temp_file_path, is_confirmed=True).exists():
@@ -286,8 +296,10 @@ class ConfirmMultipleFilesView(APIView):
                 expected_content_type = file_type
 
                 # Verify content type matches what was declared during presign
-                if purpose in ALLOWED_FILE_TYPES:
-                    allowed_types = ALLOWED_FILE_TYPES[purpose]
+                # Use the purpose from the request (can be different from cached)
+                check_purpose = purpose if purpose else cached_purpose
+                if check_purpose in ALLOWED_FILE_TYPES:
+                    allowed_types = ALLOWED_FILE_TYPES[check_purpose]
                     if actual_content_type != expected_content_type or actual_content_type not in allowed_types:
                         # Delete the uploaded file as it doesn't match expected type
                         s3_service.delete_file(temp_file_path)
@@ -301,14 +313,22 @@ class ConfirmMultipleFilesView(APIView):
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
+            # Get model class and content type
+            model_class = apps.get_model(related_model)
+            content_type = ContentType.objects.get_for_model(model_class)
+
             files_to_confirm.append(
                 {
                     "file_token": file_token,
                     "cache_key": cache_key,
                     "temp_file_path": temp_file_path,
                     "file_name": file_name,
-                    "purpose": purpose,
+                    "purpose": purpose if purpose else cached_purpose,
                     "temp_metadata": temp_file_metadata,
+                    "model_class": model_class,
+                    "content_type": content_type,
+                    "object_id": related_object_id,
+                    "related_field": related_field,
                 }
             )
 
@@ -321,7 +341,7 @@ class ConfirmMultipleFilesView(APIView):
                 # Generate permanent path
                 permanent_path = s3_service.generate_permanent_path(
                     purpose=file_info["purpose"],
-                    object_id=object_id,
+                    object_id=file_info["object_id"],
                     file_name=file_info["file_name"],
                 )
 
@@ -339,10 +359,17 @@ class ConfirmMultipleFilesView(APIView):
                     size=s3_metadata.get("size") if s3_metadata else None,
                     checksum=s3_metadata.get("etag") if s3_metadata else None,
                     is_confirmed=True,
-                    content_type=content_type,
-                    object_id=object_id,
+                    content_type=file_info["content_type"],
+                    object_id=file_info["object_id"],
                     uploaded_by=request.user if request.user.is_authenticated else None,
                 )
+
+                # If related_field is specified, set it as ForeignKey on related object
+                if file_info["related_field"]:
+                    related_object = file_info["model_class"].objects.get(pk=file_info["object_id"])
+                    if hasattr(related_object, file_info["related_field"]):
+                        setattr(related_object, file_info["related_field"], file_record)
+                        related_object.save(update_fields=[file_info["related_field"]])
 
                 confirmed_files.append(file_record)
 

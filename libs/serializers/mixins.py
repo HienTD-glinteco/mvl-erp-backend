@@ -131,8 +131,9 @@ class FileConfirmSerializerMixin:
     when saving the model instance. Files are linked to the saved instance
     via Django's generic relations (content_type and object_id).
 
-    The mixin automatically adds a 'file_tokens' field to the serializer and
-    confirms all associated files in a single transaction when the serializer is saved.
+    The mixin automatically adds a 'files' field to the serializer that accepts
+    a dictionary mapping field names to file tokens. Each file is automatically
+    assigned to the corresponding field on the model instance.
 
     Usage:
         class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
@@ -142,13 +143,13 @@ class FileConfirmSerializerMixin:
 
     Workflow:
         1. User uploads files via presigned URLs and receives file_tokens
-        2. User submits form with file_tokens in the request
+        2. User submits form with files dict mapping field names to tokens
         3. On serializer save, the mixin confirms the files automatically
-        4. Files are linked to the saved model instance
+        4. Files are linked to the saved model instance and assigned to specified fields
 
     Attributes:
-        file_tokens_field (str): Name of the field containing file tokens.
-                                Default is 'file_tokens'. Can be overridden
+        file_tokens_field (str): Name of the field containing file token mappings.
+                                Default is 'files'. Can be overridden
                                 in the serializer class.
 
     Example Request:
@@ -156,7 +157,10 @@ class FileConfirmSerializerMixin:
         {
             "title": "Senior Developer",
             "responsibility": "...",
-            "file_tokens": ["abc123", "xyz789"]
+            "files": {
+                "attachment": "abc123",
+                "document": "xyz789"
+            }
         }
 
     Notes:
@@ -164,25 +168,26 @@ class FileConfirmSerializerMixin:
         - Files must exist in S3 temporary storage
         - All files are confirmed in a single database transaction
         - If confirmation fails, the entire save operation is rolled back
-        - The 'file_tokens' field is automatically added by the mixin
+        - The 'files' field is automatically added by the mixin
+        - Each file is assigned to the corresponding field on the model instance
     """
 
-    file_tokens_field = "file_tokens"
+    file_tokens_field = "files"
 
     def __init__(self, *args, **kwargs):
-        """Initialize the mixin and add file_tokens field."""
+        """Initialize the mixin and add files field."""
         super().__init__(*args, **kwargs)
-        # Add file_tokens field dynamically
-        self.fields[self.file_tokens_field] = serializers.ListField(
+        # Add files field dynamically as a dict
+        self.fields[self.file_tokens_field] = serializers.DictField(
             child=serializers.CharField(),
             required=False,
             write_only=True,
-            help_text=_("List of file tokens to confirm and attach to this instance"),
+            help_text=_("Dictionary mapping field names to file tokens (e.g., {'attachment': 'token123'})"),
         )
 
     def _confirm_related_files(self, instance):
         """
-        Confirm files associated with the instance.
+        Confirm files associated with the instance and assign to model fields.
 
         Args:
             instance: The saved model instance to link files to
@@ -202,9 +207,9 @@ class FileConfirmSerializerMixin:
         from apps.files.models import FileModel
         from apps.files.utils import S3FileUploadService
 
-        # Get file tokens from validated data
-        tokens = self.validated_data.get(self.file_tokens_field, [])
-        if not tokens:
+        # Get file token mappings from validated data
+        file_mappings = self.validated_data.get(self.file_tokens_field, {})
+        if not file_mappings:
             return
 
         # Get content type for the instance
@@ -215,7 +220,7 @@ class FileConfirmSerializerMixin:
 
         # Collect file metadata for all tokens
         files_to_confirm = []
-        for file_token in tokens:
+        for field_name, file_token in file_mappings.items():
             cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
             cached_data = cache.get(cache_key)
 
@@ -255,6 +260,7 @@ class FileConfirmSerializerMixin:
 
             files_to_confirm.append(
                 {
+                    "field_name": field_name,
                     "file_token": file_token,
                     "cache_key": cache_key,
                     "temp_file_path": temp_file_path,
@@ -284,7 +290,7 @@ class FileConfirmSerializerMixin:
             s3_metadata = s3_service.get_file_metadata(permanent_path)
 
             # Create FileModel record
-            FileModel.objects.create(
+            file_record = FileModel.objects.create(
                 purpose=file_info["purpose"],
                 file_name=file_info["file_name"],
                 file_path=permanent_path,
@@ -295,6 +301,13 @@ class FileConfirmSerializerMixin:
                 object_id=instance.pk,
                 uploaded_by=uploaded_by,
             )
+
+            # Assign file to the model field if field exists
+            field_name = file_info["field_name"]
+            if hasattr(instance, field_name):
+                setattr(instance, field_name, file_record)
+                # Save only the specific field to avoid triggering other logic
+                instance.save(update_fields=[field_name])
 
             # Delete cache entry
             cache.delete(file_info["cache_key"])
