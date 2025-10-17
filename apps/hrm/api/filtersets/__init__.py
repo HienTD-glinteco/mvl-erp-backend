@@ -11,6 +11,7 @@ from .organization import (
 from .recruitment_candidate import RecruitmentCandidateFilterSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogFilterSet
 from .recruitment_channel import RecruitmentChannelFilterSet
+from .recruitment_expense import RecruitmentExpenseFilterSet
 from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
 
@@ -28,4 +29,5 @@ __all__ = [
     "RecruitmentRequestFilterSet",
     "RecruitmentCandidateFilterSet",
     "RecruitmentCandidateContactLogFilterSet",
+    "RecruitmentExpenseFilterSet",
 ]

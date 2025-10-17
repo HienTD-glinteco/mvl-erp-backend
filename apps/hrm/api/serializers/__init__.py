@@ -12,6 +12,7 @@ from .organization import (
 from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSerializer
 from .recruitment_channel import RecruitmentChannelSerializer
+from .recruitment_expense import RecruitmentExpenseSerializer
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
 
@@ -32,4 +33,5 @@ __all__ = [
     "RecruitmentCandidateSerializer",
     "UpdateReferrerSerializer",
     "RecruitmentCandidateContactLogSerializer",
+    "RecruitmentExpenseSerializer",
 ]
