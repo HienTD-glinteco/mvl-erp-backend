@@ -1,7 +1,7 @@
 """Tests for file upload API endpoints."""
 
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -262,7 +262,10 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         self.assertIsNone(cache.get(cache_key_1))
         self.assertIsNone(cache.get(cache_key_2))
 
-    def test_confirm_multiple_files_invalid_token(self):
+    @patch("apps.files.api.views.file_views.S3FileUploadService")
+    def test_confirm_multiple_files_invalid_token(self, mock_s3_service_utils):
+        mock_s3 = MagicMock()
+        mock_s3_service_utils.return_value = mock_s3
         """Test confirm multiple files with one invalid token."""
         # Arrange & Act
         url = reverse("files:confirm")
