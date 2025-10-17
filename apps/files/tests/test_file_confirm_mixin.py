@@ -29,17 +29,15 @@ class DummyModel:
 class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
     """Dummy serializer for testing the mixin.
 
-    Note: file_tokens field is automatically added by FileConfirmSerializerMixin.
+    Note: files field is automatically added by FileConfirmSerializerMixin.
     """
 
     title = serializers.CharField()
 
     def create(self, validated_data):
         """Create a dummy instance."""
-        file_tokens = validated_data.pop("file_tokens", [])
+        # files field is already removed by the mixin's save() method
         instance = DummyModel(pk=1)
-        # Store tokens for testing
-        self.validated_data["file_tokens"] = file_tokens
         return instance
 
     def update(self, instance, validated_data):
@@ -151,9 +149,9 @@ class FileConfirmSerializerMixinTest(TestCase):
         self.assertIsNotNone(instance)
 
     def test_mixin_with_empty_file_tokens_list(self):
-        """Test that mixin works when file tokens list is empty."""
+        """Test that mixin works when files dict is empty."""
         # Arrange & Act
-        data = {"title": "Test", "file_tokens": []}
+        data = {"title": "Test", "files": {}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
         instance = serializer.save()
@@ -165,7 +163,7 @@ class FileConfirmSerializerMixinTest(TestCase):
     def test_mixin_with_invalid_token(self):
         """Test that mixin raises error for invalid token."""
         # Arrange & Act
-        data = {"title": "Test", "file_tokens": ["invalid-token"]}
+        data = {"title": "Test", "files": {"attachment": "invalid-token"}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
@@ -176,7 +174,7 @@ class FileConfirmSerializerMixinTest(TestCase):
             serializer.save()
 
         # Check error message
-        self.assertIn("file_tokens", context.exception.detail)
+        self.assertIn("files", context.exception.detail)
 
     @patch("libs.serializers.mixins.S3FileUploadService")
     def test_mixin_with_file_not_in_s3(self, mock_s3_service):
@@ -186,7 +184,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         mock_instance.check_file_exists.return_value = False
 
         # Act
-        data = {"title": "Test", "file_tokens": [self.file_token_1]}
+        data = {"title": "Test", "files": {"attachment": self.file_token_1}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
@@ -197,7 +195,7 @@ class FileConfirmSerializerMixinTest(TestCase):
             serializer.save()
 
         # Check error message
-        self.assertIn("file_tokens", context.exception.detail)
+        self.assertIn("files", context.exception.detail)
 
     @patch("libs.serializers.mixins.S3FileUploadService")
     def test_mixin_with_content_type_mismatch(self, mock_s3_service):
@@ -213,7 +211,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         mock_instance.delete_file.return_value = True
 
         # Act
-        data = {"title": "Test", "file_tokens": [self.file_token_1]}
+        data = {"title": "Test", "files": {"attachment": self.file_token_1}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
@@ -224,7 +222,7 @@ class FileConfirmSerializerMixinTest(TestCase):
             serializer.save()
 
         # Check error message
-        self.assertIn("file_tokens", context.exception.detail)
+        self.assertIn("files", context.exception.detail)
 
         # Verify the file was deleted
         mock_instance.delete_file.assert_called_once()
@@ -244,7 +242,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         ]
 
         # Act: Create serializer without request context
-        data = {"title": "Test", "file_tokens": [self.file_token_1]}
+        data = {"title": "Test", "files": {"attachment": self.file_token_1}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
         instance = serializer.save()
@@ -268,7 +266,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         }
 
         # Act
-        data = {"title": "Test", "file_tokens": [self.file_token_1, self.file_token_2]}
+        data = {"title": "Test", "files": {"attachment1": self.file_token_1, "attachment2": self.file_token_2}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
