@@ -15,18 +15,21 @@ from libs import FileConfirmSerializerMixin
 User = get_user_model()
 
 
-class DummyModel:
+from django.db import models
+
+
+class DummyModel(models.Model):
     """Dummy model for testing."""
 
-    def __init__(self, pk=1):
-        self.pk = pk
-        self.id = pk
+    title = models.CharField(max_length=255)
 
     class Meta:
-        pass
+        app_label = "files"
+        # Use managed=False to avoid creating this table in the database
+        managed = False
 
 
-class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
+class DummySerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Dummy serializer for testing the mixin.
 
     Note: files field is automatically added by FileConfirmSerializerMixin.
@@ -34,14 +37,24 @@ class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
 
     title = serializers.CharField()
 
+    class Meta:
+        model = DummyModel
+        fields = ["title"]
+
     def create(self, validated_data):
-        """Create a dummy instance."""
-        # files field is already removed by the mixin's save() method
-        instance = DummyModel(pk=1)
+        """Create a dummy instance without saving to database."""
+        # Create instance without saving to avoid database table requirement
+        instance = DummyModel(**validated_data)
+        instance.pk = 1
+        instance.id = 1
+        # Mark as saved to avoid Django thinking it needs to be saved
+        instance._state.adding = False
         return instance
 
     def update(self, instance, validated_data):
-        """Update is not used in tests."""
+        """Update instance without saving to database."""
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         return instance
 
 
@@ -87,24 +100,53 @@ class FileConfirmSerializerMixinTest(TestCase):
         """Clean up after tests."""
         cache.clear()
 
-    @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    @patch("libs.serializers.mixins.S3FileUploadService")
-    def test_mixin_confirms_files_on_save(self, mock_s3_service_mixin, mock_s3_service_utils):
+    @patch("django.core.cache.cache.delete")
+    @patch("django.core.cache.cache.get")
+    @patch("apps.files.utils.S3FileUploadService")
+    def test_mixin_confirms_files_on_save(self, mock_s3_service, mock_cache_get, mock_cache_delete):
         """Test that mixin confirms files when serializer is saved."""
+        # Arrange: Mock cache to return file metadata
+        cache_data = {}
+        
+        def cache_get_side_effect(key):
+            return cache_data.get(key)
+        
+        def cache_delete_side_effect(key):
+            if key in cache_data:
+                del cache_data[key]
+        
+        # Pre-populate cache data
+        cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
+        cache_key_2 = f"{CACHE_KEY_PREFIX}{self.file_token_2}"
+        cache_data[cache_key_1] = json.dumps({
+            "file_name": "mixin_test1.pdf",
+            "file_type": "application/pdf",
+            "purpose": "job_description",
+            "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
+        })
+        cache_data[cache_key_2] = json.dumps({
+            "file_name": "mixin_test2.pdf",
+            "file_type": "application/pdf",
+            "purpose": "job_description",
+            "file_path": "uploads/tmp/test-token-mixin-002/mixin_test2.pdf",
+        })
+        
+        mock_cache_get.side_effect = cache_get_side_effect
+        mock_cache_delete.side_effect = cache_delete_side_effect
+        
         # Arrange: Mock S3 service
-        mock_instance = mock_s3_service_mixin.return_value
+        mock_instance = mock_s3_service.return_value
         mock_instance.check_file_exists.return_value = True
         mock_instance.generate_permanent_path.side_effect = [
             "uploads/job_description/1/mixin_test1.pdf",
             "uploads/job_description/1/mixin_test2.pdf",
         ]
         mock_instance.move_file.return_value = True
-        mock_instance.get_file_metadata.side_effect = [
-            {"size": 123456, "content_type": "application/pdf", "etag": "abc123"},
-            {"size": 123456, "etag": "abc123"},
-            {"size": 234567, "content_type": "application/pdf", "etag": "def456"},
-            {"size": 234567, "etag": "def456"},
-        ]
+        mock_instance.get_file_metadata.return_value = {
+            "size": 123456,
+            "content_type": "application/pdf",
+            "etag": "abc123",
+        }
 
         # Act: Create serializer with file tokens dict and save
         data = {"title": "Test", "files": {"attachment1": self.file_token_1, "attachment2": self.file_token_2}}
@@ -176,7 +218,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         # Check error message
         self.assertIn("files", context.exception.detail)
 
-    @patch("libs.serializers.mixins.S3FileUploadService")
+    @patch("apps.files.utils.S3FileUploadService")
     def test_mixin_with_file_not_in_s3(self, mock_s3_service):
         """Test that mixin raises error when file doesn't exist in S3."""
         # Arrange: Mock S3 service to return False
@@ -197,7 +239,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         # Check error message
         self.assertIn("files", context.exception.detail)
 
-    @patch("libs.serializers.mixins.S3FileUploadService")
+    @patch("apps.files.utils.S3FileUploadService")
     def test_mixin_with_content_type_mismatch(self, mock_s3_service):
         """Test that mixin raises error for content type mismatch."""
         # Arrange: Mock S3 service with wrong content type
@@ -227,12 +269,11 @@ class FileConfirmSerializerMixinTest(TestCase):
         # Verify the file was deleted
         mock_instance.delete_file.assert_called_once()
 
-    @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    @patch("libs.serializers.mixins.S3FileUploadService")
-    def test_mixin_without_request_context(self, mock_s3_service_mixin, mock_s3_service_utils):
+    @patch("apps.files.utils.S3FileUploadService")
+    def test_mixin_without_request_context(self, mock_s3_service):
         """Test that mixin works without request in context (uploaded_by is None)."""
         # Arrange: Mock S3 service
-        mock_instance = mock_s3_service_mixin.return_value
+        mock_instance = mock_s3_service.return_value
         mock_instance.check_file_exists.return_value = True
         mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/mixin_test1.pdf"
         mock_instance.move_file.return_value = True
@@ -253,7 +294,7 @@ class FileConfirmSerializerMixinTest(TestCase):
         self.assertIsNone(file_record.uploaded_by)
         self.assertTrue(file_record.is_confirmed)
 
-    @patch("libs.serializers.mixins.S3FileUploadService")
+    @patch("apps.files.utils.S3FileUploadService")
     def test_mixin_transaction_rollback_on_error(self, mock_s3_service):
         """Test that files are not created if save fails (transaction rollback)."""
         # Arrange: Mock S3 service - first file OK, second fails
