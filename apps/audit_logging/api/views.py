@@ -132,8 +132,8 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         },
         examples=[
             OpenApiExample(
-                "Get audit log detail success",
-                description="Example response when retrieving audit log details",
+                "Get audit log detail success - CREATE action",
+                description="Example response when retrieving audit log details for CREATE action",
                 value={
                     "success": True,
                     "data": {
@@ -146,14 +146,44 @@ class AuditLogViewSet(viewsets.GenericViewSet):
                         "object_type": "Role",
                         "object_id": "10",
                         "object_repr": "Project Manager",
+                        "change_message": "Created new object",
                         "ip_address": "192.168.1.100",
                         "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                        "changes": {
-                            "name": {"old": None, "new": "Project Manager"},
-                            "description": {"old": None, "new": "Manages projects and teams"},
-                            "permission_ids": {"old": None, "new": [1, 2, 5, 10]},
+                        "session_key": "sess-67890",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Get audit log detail success - CHANGE action with field changes",
+                description="Example response for CHANGE action showing structured change_message with field-level changes",
+                value={
+                    "success": True,
+                    "data": {
+                        "log_id": "xyz789uvw012",
+                        "timestamp": "2025-10-17T06:09:48Z",
+                        "user_id": "user-uuid-2",
+                        "username": "john.doe@example.com",
+                        "full_name": "John Doe",
+                        "employee_code": "EMP001",
+                        "action": "CHANGE",
+                        "object_type": "Employee",
+                        "object_id": "789",
+                        "object_repr": "Jane Smith",
+                        "change_message": {
+                            "headers": ["field", "old_value", "new_value"],
+                            "rows": [
+                                {
+                                    "field": "Phone number",
+                                    "old_value": "0987654321",
+                                    "new_value": "1234567890",
+                                },
+                                {"field": "Note", "old_value": "string", "new_value": "new new"},
+                            ],
                         },
-                        "additional_data": {"request_id": "req-12345", "session_id": "sess-67890"},
+                        "ip_address": "192.168.1.101",
+                        "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+                        "session_key": "sess-12345",
                     },
                 },
                 response_only=True,

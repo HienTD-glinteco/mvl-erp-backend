@@ -176,6 +176,20 @@ The detail endpoint returns all fields including:
 - `log_id`, `timestamp`, `user_id`, `username`, `full_name`, `action`, `object_type`, `object_id`
 - `object_repr`, `change_message`, `ip_address`, `user_agent`, `session_key`
 
+**Note on `change_message` format**: The `change_message` field can be either a string or an object (dict):
+- **String format**: Simple message like "Created new object", "Deleted object", "Object modified"
+- **Structured format**: For CHANGE actions with field changes, a dictionary containing:
+  ```json
+  {
+    "headers": ["field", "old_value", "new_value"],
+    "rows": [
+      {"field": "Phone number", "old_value": "0987654321", "new_value": "1234567890"},
+      {"field": "Note", "old_value": "old text", "new_value": "new text"}
+    ]
+  }
+  ```
+  This allows the frontend to easily display field-level changes in a table format.
+
 ## Data Lifecycle
 
 1. **Real-time**: Logs are indexed to OpenSearch immediately for fast querying
@@ -244,6 +258,15 @@ curl -X GET "http://localhost:9200/_cat/indices/audit-logs-*?v"
 1. Verify OpenSearch is running: `curl http://localhost:9200`
 2. Check OpenSearch logs
 3. Verify index mapping matches log structure
+
+**Note**: The `change_message` field uses the `flattened` type in OpenSearch mapping (as of the latest update), which supports both string and object/dict values. If you have existing indices created before this update, you may need to:
+- Delete old indices and let the consumer recreate them with the new mapping, OR
+- Manually update the mapping for existing indices (may require reindexing)
+
+To check the current mapping:
+```bash
+curl -X GET "http://localhost:9200/audit-logs-*/_mapping"
+```
 
 ---
 
@@ -400,7 +423,9 @@ Each audit log entry contains:
   - `user_agent`: Browser/client user agent
   - `session_key`: Django session key
 - **Change Information**:
-  - `change_message`: Description of what changed
+  - `change_message`: Description of what changed (can be string or structured object)
+    - For simple actions (ADD, DELETE): String like "Created new object", "Deleted object"
+    - For CHANGE actions with field changes: Structured object with `headers` and `rows` arrays showing field-level changes
   - For CHANGE actions: Field-level diff showing old → new values
 - **Timestamps**:
   - `timestamp`: ISO 8601 formatted UTC timestamp

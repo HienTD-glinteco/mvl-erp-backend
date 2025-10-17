@@ -118,7 +118,7 @@ class AuditLogSerializer(serializers.Serializer):
     object_type = serializers.CharField(required=False, allow_null=True)
     object_id = serializers.CharField(required=False, allow_null=True)
     object_repr = serializers.CharField(required=False, allow_null=True)
-    change_message = serializers.CharField(required=False, allow_null=True)
+    change_message = serializers.JSONField(required=False, allow_null=True)
     ip_address = serializers.CharField(required=False, allow_null=True)
     user_agent = serializers.CharField(required=False, allow_null=True)
     session_key = serializers.CharField(required=False, allow_null=True)

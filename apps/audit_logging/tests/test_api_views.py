@@ -245,6 +245,78 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
+    def test_detail_audit_log_with_dict_change_message(self, mock_get_client):
+        """Test retrieval of audit log with dict change_message (structured format)."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.get_log_by_id.return_value = {
+            "log_id": "test-456",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "user_id": "1",
+            "username": "testuser",
+            "employee_code": "EMP001",
+            "action": "CHANGE",
+            "object_type": "Employee",
+            "object_id": "789",
+            "object_repr": "Jane Doe",
+            "change_message": {
+                "headers": ["field", "old_value", "new_value"],
+                "rows": [
+                    {"field": "Phone number", "old_value": "0987654321", "new_value": "1234567890"},
+                    {"field": "Note", "old_value": "string", "new_value": "new new"},
+                ],
+            },
+            "ip_address": "192.168.1.1",
+        }
+
+        url = "/api/audit-logs/detail/test-456/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        data = response_data["data"]
+        self.assertEqual(data["log_id"], "test-456")
+        self.assertEqual(data["action"], "CHANGE")
+        # Verify change_message is a dict
+        self.assertIsInstance(data["change_message"], dict)
+        self.assertIn("headers", data["change_message"])
+        self.assertIn("rows", data["change_message"])
+        self.assertEqual(len(data["change_message"]["rows"]), 2)
+        self.assertEqual(data["change_message"]["headers"], ["field", "old_value", "new_value"])
+
+    @patch("apps.audit_logging.api.views.get_opensearch_client")
+    def test_detail_audit_log_with_string_change_message(self, mock_get_client):
+        """Test retrieval of audit log with string change_message (legacy format)."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.get_log_by_id.return_value = {
+            "log_id": "test-789",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "user_id": "1",
+            "username": "testuser",
+            "action": "DELETE",
+            "object_type": "Customer",
+            "object_id": "123",
+            "object_repr": "Test Customer",
+            "change_message": "Deleted object",
+        }
+
+        url = "/api/audit-logs/detail/test-789/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        data = response_data["data"]
+        self.assertEqual(data["log_id"], "test-789")
+        # Verify change_message is a string
+        self.assertIsInstance(data["change_message"], str)
+        self.assertEqual(data["change_message"], "Deleted object")
+
     @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_with_from_date_to_date(self, mock_get_client):
         """Test search with from_date and to_date parameters."""
