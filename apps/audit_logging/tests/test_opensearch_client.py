@@ -208,7 +208,7 @@ class TestOpenSearchClient(TestCase):
         self.mock_opensearch.index.assert_called_once()
         call_args = self.mock_opensearch.index.call_args
         indexed_data = call_args.kwargs["body"]
-        self.assertEqual(indexed_data["change_message"], "Created new object")
+        self.assertEqual(indexed_data["change_message"], {"message": "Created new object"})
         self.assertEqual(result["result"], "created")
 
     def test_index_log_with_dict_change_message(self):
