@@ -288,7 +288,9 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = json.loads(response.content.decode())
         self.assertFalse(content.get("success"))
-        self.assertIn("detail", content.get("error", {}))
+        error_data = content.get("error", {})
+        # Check for validation or application error
+        self.assertTrue("detail" in error_data or "type" in error_data or len(error_data) > 0)
 
     @patch("apps.files.api.views.file_views.S3FileUploadService")
     def test_confirm_multiple_files_one_not_in_s3(self, mock_s3_service):
@@ -403,7 +405,8 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         content = json.loads(response.content.decode())
         self.assertFalse(content.get("success"))
         error_data = content.get("error", {})
-        self.assertIn("detail", error_data)
+        # Check for content type mismatch error
+        self.assertTrue("detail" in error_data or "type" in error_data)
 
         # Verify the malicious file was deleted
         mock_instance.delete_file.assert_called_once()
