@@ -11,6 +11,79 @@ from ..exceptions import AuditLogException
 User = get_user_model()
 
 
+class TestAuditLogSerializer(TestCase):
+    """Test cases for AuditLogSerializer and ChangeMessageField."""
+
+    def test_change_message_field_with_string(self):
+        """Test serialization of change_message with string value."""
+        from apps.audit_logging.api.serializers import AuditLogSerializer
+
+        data = {
+            "log_id": "test-123",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "change_message": "Created new object",
+        }
+        serializer = AuditLogSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(serializer.validated_data["change_message"], "Created new object")
+
+    def test_change_message_field_with_object(self):
+        """Test serialization of change_message with object value."""
+        from apps.audit_logging.api.serializers import AuditLogSerializer
+
+        change_message_obj = {
+            "headers": ["field", "old_value", "new_value"],
+            "rows": [
+                {"field": "Phone number", "old_value": "0987654321", "new_value": "1234567890"},
+                {"field": "Note", "old_value": "string", "new_value": "new new"},
+            ],
+        }
+        data = {
+            "log_id": "test-456",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "change_message": change_message_obj,
+        }
+        serializer = AuditLogSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(serializer.validated_data["change_message"], change_message_obj)
+
+    def test_change_message_field_with_null(self):
+        """Test serialization of change_message with null value."""
+        from apps.audit_logging.api.serializers import AuditLogSerializer
+
+        data = {
+            "log_id": "test-789",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "change_message": None,
+        }
+        serializer = AuditLogSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        self.assertIsNone(serializer.validated_data["change_message"])
+
+    def test_change_message_field_with_array_values(self):
+        """Test serialization of change_message with array values in rows."""
+        from apps.audit_logging.api.serializers import AuditLogSerializer
+
+        change_message_obj = {
+            "headers": ["field", "old_value", "new_value"],
+            "rows": [
+                {
+                    "field": "Certificates",
+                    "old_value": ["old_cert.jpg"],
+                    "new_value": ["cert1.jpg", "cert2.jpg"],
+                }
+            ],
+        }
+        data = {
+            "log_id": "test-999",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "change_message": change_message_obj,
+        }
+        serializer = AuditLogSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        self.assertEqual(serializer.validated_data["change_message"], change_message_obj)
+
+
 class TestAuditLogViewSet(TestCase):
     """Test cases for audit log ViewSet."""
 

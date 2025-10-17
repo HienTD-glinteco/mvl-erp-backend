@@ -1,9 +1,98 @@
 from datetime import UTC, datetime, time
 
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..opensearch_client import get_opensearch_client
+
+
+@extend_schema_field(
+    field={
+        "oneOf": [
+            {"type": "string", "nullable": True, "example": "Created new object"},
+            {"type": "null"},
+            {
+                "type": "object",
+                "properties": {
+                    "headers": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "example": ["field", "old_value", "new_value"],
+                        "description": "Fixed array of column headers",
+                    },
+                    "rows": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "field": {
+                                    "type": "string",
+                                    "description": "Name of the changed field",
+                                    "example": "Phone number",
+                                },
+                                "old_value": {
+                                    "oneOf": [
+                                        {"type": "string"},
+                                        {"type": "array", "items": {"type": "string"}},
+                                    ],
+                                    "description": "Previous value (can be string or array)",
+                                    "example": "0987654321",
+                                },
+                                "new_value": {
+                                    "oneOf": [
+                                        {"type": "string"},
+                                        {"type": "array", "items": {"type": "string"}},
+                                    ],
+                                    "description": "New value (can be string or array)",
+                                    "example": "1234567890",
+                                },
+                            },
+                            "required": ["field", "old_value", "new_value"],
+                        },
+                        "description": "Array of field changes",
+                    },
+                },
+                "required": ["headers", "rows"],
+                "example": {
+                    "headers": ["field", "old_value", "new_value"],
+                    "rows": [
+                        {"field": "Phone number", "old_value": "0987654321", "new_value": "1234567890"},
+                        {
+                            "field": "Certificates",
+                            "old_value": ["old_cert.jpg"],
+                            "new_value": ["cert1.jpg", "cert2.jpg"],
+                        },
+                    ],
+                },
+            },
+        ],
+        "description": (
+            "Change message can be a string, object, or null. "
+            "When it's an object, it contains 'headers' (fixed array: ['field', 'old_value', 'new_value']) "
+            "and 'rows' (array of change records with field name, old value, and new value)."
+        ),
+    }
+)
+class ChangeMessageField(serializers.JSONField):
+    """
+    Custom field for change_message that can be a string, object, or None.
+
+    When the value is an object, it has the following structure:
+    {
+        "headers": ["field", "old_value", "new_value"],
+        "rows": [
+            {
+                "field": "Field name",
+                "old_value": "old value or array of values",
+                "new_value": "new value or array of values"
+            },
+            ...
+        ]
+    }
+    """
+
+    pass
 
 
 class AuditLogSearchSerializer(serializers.Serializer):
@@ -118,7 +207,7 @@ class AuditLogSerializer(serializers.Serializer):
     object_type = serializers.CharField(required=False, allow_null=True)
     object_id = serializers.CharField(required=False, allow_null=True)
     object_repr = serializers.CharField(required=False, allow_null=True)
-    change_message = serializers.SerializerMethodField()
+    change_message = ChangeMessageField(required=False, allow_null=True)
     ip_address = serializers.CharField(required=False, allow_null=True)
     user_agent = serializers.CharField(required=False, allow_null=True)
     session_key = serializers.CharField(required=False, allow_null=True)
