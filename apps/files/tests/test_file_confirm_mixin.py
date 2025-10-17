@@ -27,10 +27,12 @@ class DummyModel:
 
 
 class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
-    """Dummy serializer for testing the mixin."""
+    """Dummy serializer for testing the mixin.
+
+    Note: file_tokens field is automatically added by FileConfirmSerializerMixin.
+    """
 
     title = serializers.CharField()
-    file_tokens = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
 
     def create(self, validated_data):
         """Create a dummy instance."""

@@ -8,13 +8,6 @@ API_PRESIGN_DESCRIPTION = (
 )
 API_PRESIGN_TAG = "Files"
 
-API_CONFIRM_SUMMARY = "Confirm file upload"
-API_CONFIRM_DESCRIPTION = (
-    "Confirm a file upload by moving it from temporary storage to permanent location "
-    "and creating a FileModel record linked to the related object."
-)
-API_CONFIRM_TAG = "Files"
-
 API_CONFIRM_MULTI_SUMMARY = "Confirm multiple file uploads"
 API_CONFIRM_MULTI_DESCRIPTION = (
     "Confirm multiple file uploads in a single transaction. "

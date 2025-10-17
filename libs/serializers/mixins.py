@@ -12,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
 from django.utils.translation import gettext as _
+from rest_framework import serializers
 
 from libs.constants.serializers import (
     LOG_FIELD_FILTERING_APPLIED,
@@ -130,17 +131,11 @@ class FileConfirmSerializerMixin:
     when saving the model instance. Files are linked to the saved instance
     via Django's generic relations (content_type and object_id).
 
-    The mixin extracts file tokens from validated data and confirms all
-    associated files in a single transaction when the serializer is saved.
+    The mixin automatically adds a 'file_tokens' field to the serializer and
+    confirms all associated files in a single transaction when the serializer is saved.
 
     Usage:
         class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-            file_tokens = serializers.ListField(
-                child=serializers.CharField(),
-                required=False,
-                write_only=True
-            )
-
             class Meta:
                 model = JobDescription
                 fields = '__all__'
@@ -169,9 +164,21 @@ class FileConfirmSerializerMixin:
         - Files must exist in S3 temporary storage
         - All files are confirmed in a single database transaction
         - If confirmation fails, the entire save operation is rolled back
+        - The 'file_tokens' field is automatically added by the mixin
     """
 
     file_tokens_field = "file_tokens"
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the mixin and add file_tokens field."""
+        super().__init__(*args, **kwargs)
+        # Add file_tokens field dynamically
+        self.fields[self.file_tokens_field] = serializers.ListField(
+            child=serializers.CharField(),
+            required=False,
+            write_only=True,
+            help_text=_("List of file tokens to confirm and attach to this instance"),
+        )
 
     def _confirm_related_files(self, instance):
         """

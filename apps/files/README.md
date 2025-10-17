@@ -25,24 +25,10 @@ curl -X PUT "PRESIGNED_URL_FROM_STEP_1" \
   --data-binary @document.pdf
 ```
 
-### 3. Confirm Upload (Single File)
+### 3. Confirm File Upload(s)
 
 ```bash
 curl -X POST http://localhost:8000/api/files/confirm/ \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "file_token": "TOKEN_FROM_STEP_1",
-    "related_model": "hrm.Employee",
-    "related_object_id": 42,
-    "purpose": "job_description"
-  }'
-```
-
-### 4. Confirm Multiple Files (New)
-
-```bash
-curl -X POST http://localhost:8000/api/files/confirm-multiple/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -88,14 +74,13 @@ apps/files/
 ### API Views
 
 - **PresignURLView**: Generates presigned S3 upload URLs
-- **ConfirmFileUploadView**: Confirms upload and moves file to permanent storage
-- **ConfirmMultipleFilesView**: Confirms multiple uploads in a single transaction (New)
+- **ConfirmMultipleFilesView**: Confirms multiple uploads in a single transaction
 
 ### Serializers
 
 - **PresignRequestSerializer**: Validates presign requests
-- **ConfirmFileSerializer**: Validates single file confirmation
-- **ConfirmMultipleFilesSerializer**: Validates multiple file confirmation (New)
+- **ConfirmMultipleFilesSerializer**: Validates multiple file confirmation
+- **ConfirmMultipleFilesResponseSerializer**: Response serializer for multi-file confirmation
 - **FileSerializer**: Serializes FileModel instances
 
 ### Utilities
@@ -118,13 +103,8 @@ from libs import FileConfirmSerializerMixin
 from apps.hrm.models import JobDescription
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    file_tokens = serializers.ListField(
-        child=serializers.CharField(),
-        required=False,
-        write_only=True,
-        help_text="List of file tokens to confirm and attach"
-    )
-
+    # Note: file_tokens field is automatically added by the mixin
+    
     class Meta:
         model = JobDescription
         fields = [
@@ -135,7 +115,6 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
             "requirement",
             "benefit",
             "proposed_salary",
-            "file_tokens",  # Add this field
             "created_at",
             "updated_at",
         ]
