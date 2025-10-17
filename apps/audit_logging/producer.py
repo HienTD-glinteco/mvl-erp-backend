@@ -220,6 +220,25 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
     return related_changes
 
 
+def _format_field_value(value):
+    """
+    Format a field value for audit logging.
+
+    Args:
+        value: The field value to format
+
+    Returns:
+        - None if value is None
+        - List of string representations if value is a list
+        - String representation otherwise
+    """
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple)):
+        return [str(item) for item in value]
+    return str(value)
+
+
 def _prepare_change_messages(
     log_data: dict,
     action: str,
@@ -238,8 +257,8 @@ def _prepare_change_messages(
                     rows.append(
                         {
                             "field": str(field.verbose_name) if field.verbose_name else field_name,
-                            "old_value": str(old_value) if old_value is not None else None,
-                            "new_value": str(new_value) if new_value is not None else None,
+                            "old_value": _format_field_value(old_value),
+                            "new_value": _format_field_value(new_value),
                         }
                     )
         if rows:

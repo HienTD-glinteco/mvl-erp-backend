@@ -336,3 +336,45 @@ def test_prepare_change_messages_with_null_values():
     assert rows[0]["field"] == "Description"
     assert rows[0]["old_value"] == "Some description"
     assert rows[0]["new_value"] is None
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_prepare_change_messages_with_list_values():
+    """Test that _prepare_change_messages handles list values correctly."""
+    # Create mock field
+    mock_field = MagicMock()
+    mock_field.name = "tags"
+    mock_field.verbose_name = "Tags"
+
+    # Create mock objects where value is a list
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = [mock_field]
+    original._meta.many_to_many = []
+    original._meta.related_objects = []
+    original.tags = ["tag1", "tag2"]
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = [mock_field]
+    modified._meta.many_to_many = []
+    modified._meta.related_objects = []
+    modified.tags = ["tag3", "tag4", "tag5"]
+
+    # Create log_data dict
+    log_data = {}
+
+    # Call _prepare_change_messages
+    _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
+
+    # Check that change_message has structured format
+    assert "change_message" in log_data
+    assert isinstance(log_data["change_message"], dict)
+
+    # Verify rows
+    rows = log_data["change_message"]["rows"]
+    assert len(rows) == 1
+    assert rows[0]["field"] == "Tags"
+    # List values should remain as lists with string representations
+    assert rows[0]["old_value"] == ["tag1", "tag2"]
+    assert rows[0]["new_value"] == ["tag3", "tag4", "tag5"]
