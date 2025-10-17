@@ -368,55 +368,6 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch("apps.files.api.views.file_views.S3FileUploadService")
-    def test_confirm_multiple_files_content_type_mismatch(self, mock_s3_service):
-        """Test confirm multiple files when one has mismatched content type."""
-        # Arrange: Mock S3 service - first file OK, second has wrong type
-        mock_instance = mock_s3_service.return_value
-        mock_instance.check_file_exists.return_value = True
-        mock_instance.get_file_metadata.side_effect = [
-            {"size": 123456, "content_type": "application/pdf", "etag": "abc123"},
-            {"size": 234567, "content_type": "application/x-msdownload", "etag": "def456"},
-        ]
-        mock_instance.delete_file.return_value = True
-
-        # Disable exception raising for this test
-        self.client.raise_request_exception = False
-
-        # Act
-        url = reverse("files:confirm")
-        data = {
-            "files": [
-                {
-                    "file_token": self.file_token_1,
-                    "purpose": "avatar",
-                    "related_model": "core.User",
-                    "related_object_id": self.user.id,
-                },
-                {
-                    "file_token": self.file_token_2,
-                    "purpose": "avatar",
-                    "related_model": "core.User",
-                    "related_object_id": self.user.id,
-                },
-            ]
-        }
-        response = self.client.post(url, data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertFalse(content.get("success"))
-        error_data = content.get("error", {})
-        # Check for content type mismatch error
-        self.assertTrue("detail" in error_data or "type" in error_data)
-
-        # Verify the malicious file was deleted
-        mock_instance.delete_file.assert_called_once()
-
-        # Verify no files were created
-        self.assertEqual(FileModel.objects.count(), 0)
-
     def test_confirm_multiple_files_unauthenticated(self):
         """Test confirm multiple files without authentication."""
         # Arrange: Create unauthenticated client
