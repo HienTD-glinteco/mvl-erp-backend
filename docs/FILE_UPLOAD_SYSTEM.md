@@ -30,13 +30,14 @@ class FileModel(BaseModel):
     purpose = CharField(max_length=100)          # e.g., "job_description", "invoice"
     file_name = CharField(max_length=255)        # Original filename
     file_path = CharField(max_length=500)        # S3 path
-    size = BigIntegerField()                     # File size in bytes
-    checksum = CharField(max_length=64)          # MD5 checksum (ETag)
+    size = BigIntegerField(null=True, blank=True)  # File size in bytes
+    checksum = CharField(max_length=64, null=True, blank=True)  # MD5 checksum (ETag)
     is_confirmed = BooleanField(default=False)   # Confirmation status
+    uploaded_by = ForeignKey("core.User", null=True, blank=True)  # User who uploaded
     
     # Generic Foreign Key
-    content_type = ForeignKey(ContentType)
-    object_id = PositiveIntegerField()
+    content_type = ForeignKey(ContentType, null=True, blank=True)
+    object_id = PositiveIntegerField(null=True, blank=True)
     related_object = GenericForeignKey("content_type", "object_id")
 ```
 
@@ -54,7 +55,23 @@ uploads/
 
 Example paths:
 - Temporary: `uploads/tmp/f7e3c91a-b32a-4c6d-bbe2-8c9f2a6a9f32/CV.pdf`
-- Permanent: `uploads/employee/42/CV.pdf`
+- Permanent: `uploads/employee_cv/42/CV.pdf` (purpose: `employee_cv`, object_id: `42`)
+
+## Integration Methods
+
+The system supports two integration approaches:
+
+| Aspect | Manual Confirmation | FileConfirmSerializerMixin |
+|--------|-------------------|---------------------------|
+| **API Calls** | 3 separate calls (presign, upload to S3, confirm) | 2 calls (presign + upload to S3, then create object with files) |
+| **Transaction Safety** | Manual transaction handling | Automatic (files + object in one transaction) |
+| **Use Case** | Files linked to different objects, pre-upload scenarios | Files belong to single object, atomic operations |
+| **Complexity** | More control, more code | Less code, simpler frontend |
+| **Best For** | Complex workflows, multiple related objects | Standard CRUD with file attachments |
+
+**Quick Start**:
+- New to the system? → Use **FileConfirmSerializerMixin** (Option 3 in Backend Integration)
+- Need fine control? → Use **Manual Confirmation** (see API Endpoints below)
 
 ## API Endpoints
 
@@ -692,9 +709,10 @@ The system includes comprehensive tests:
 # Run all file upload tests
 poetry run pytest apps/files/tests/ -v
 
-# Run specific test file
+# Run specific test files
 poetry run pytest apps/files/tests/test_file_upload_api.py -v
 poetry run pytest apps/files/tests/test_s3_utils.py -v
+poetry run pytest apps/files/tests/test_file_confirm_mixin.py -v
 ```
 
 Test coverage:
