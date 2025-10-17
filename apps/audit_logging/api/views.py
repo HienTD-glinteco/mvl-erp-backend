@@ -216,7 +216,8 @@ class AuditLogViewSet(viewsets.GenericViewSet):
         try:
             opensearch_client = get_opensearch_client()
             log_data = opensearch_client.get_log_by_id(log_id)
-            return Response(log_data)
+            serializer = AuditLogSerializer(log_data)
+            return Response(serializer.data)
 
         except AuditLogException as e:
             if "not found" in str(e).lower():
