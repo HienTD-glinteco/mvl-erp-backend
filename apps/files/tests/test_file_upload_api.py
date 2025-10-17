@@ -264,10 +264,11 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
 
     @patch("apps.files.api.views.file_views.S3FileUploadService")
     def test_confirm_multiple_files_invalid_token(self, mock_s3_service_utils):
-        mock_s3 = MagicMock()
-        mock_s3_service_utils.return_value = mock_s3
         """Test confirm multiple files with one invalid token."""
         # Arrange & Act
+        mock_s3 = MagicMock()
+        mock_s3_service_utils.return_value = mock_s3
+
         url = reverse("files:confirm")
         data = {
             "files": [

@@ -1,7 +1,7 @@
 """Tests for FileConfirmSerializerMixin."""
 
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -204,9 +204,13 @@ class FileConfirmSerializerMixinTest(TestCase):
         self.assertEqual(FileModel.objects.count(), 0)
         self.assertIsNotNone(instance)
 
-    def test_mixin_with_invalid_token(self):
+    @patch("apps.files.utils.S3FileUploadService")
+    def test_mixin_with_invalid_token(self, mock_s3_service_utils):
         """Test that mixin raises error for invalid token."""
         # Arrange & Act
+        mock_s3 = MagicMock()
+        mock_s3_service_utils.return_value = mock_s3
+
         data = {"title": "Test", "files": {"attachment": "invalid-token"}}
         serializer = DummySerializer(data=data)
         self.assertTrue(serializer.is_valid())
