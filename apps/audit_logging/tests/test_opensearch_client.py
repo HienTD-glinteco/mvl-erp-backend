@@ -190,6 +190,91 @@ class TestOpenSearchClient(TestCase):
         self.assertIn("employee_code", search_body["_source"])
         self.assertIn("object_repr", search_body["_source"])
 
+    def test_index_log_with_string_change_message(self):
+        """Test indexing log with change_message as string."""
+        self.mock_opensearch.indices.exists.return_value = True
+        self.mock_opensearch.index.return_value = {"result": "created"}
+
+        log_data = {
+            "log_id": "test-456",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "action": "ADD",
+            "object_type": "test_object",
+            "change_message": "Created new object",
+        }
+
+        result = self.client.index_log(log_data)
+
+        self.mock_opensearch.index.assert_called_once()
+        call_args = self.mock_opensearch.index.call_args
+        indexed_data = call_args.kwargs["body"]
+        self.assertEqual(indexed_data["change_message"], "Created new object")
+        self.assertEqual(result["result"], "created")
+
+    def test_index_log_with_dict_change_message(self):
+        """Test indexing log with change_message as dict (structured format)."""
+        self.mock_opensearch.indices.exists.return_value = True
+        self.mock_opensearch.index.return_value = {"result": "created"}
+
+        log_data = {
+            "log_id": "test-789",
+            "timestamp": "2023-12-15T10:30:00Z",
+            "action": "CHANGE",
+            "object_type": "Employee",
+            "change_message": {
+                "headers": ["field", "old_value", "new_value"],
+                "rows": [
+                    {"field": "Phone number", "old_value": "0987654321", "new_value": "1234567890"},
+                    {"field": "Note", "old_value": "string", "new_value": "new new"},
+                ],
+            },
+        }
+
+        result = self.client.index_log(log_data)
+
+        self.mock_opensearch.index.assert_called_once()
+        call_args = self.mock_opensearch.index.call_args
+        indexed_data = call_args.kwargs["body"]
+        self.assertIsInstance(indexed_data["change_message"], dict)
+        self.assertIn("headers", indexed_data["change_message"])
+        self.assertIn("rows", indexed_data["change_message"])
+        self.assertEqual(len(indexed_data["change_message"]["rows"]), 2)
+        self.assertEqual(result["result"], "created")
+
+    def test_get_log_by_id_with_dict_change_message(self):
+        """Test retrieving log with dict change_message."""
+        self.mock_opensearch.search.return_value = {
+            "hits": {
+                "hits": [
+                    {
+                        "_source": {
+                            "log_id": "test-890",
+                            "timestamp": "2023-12-15T10:30:00Z",
+                            "action": "CHANGE",
+                            "object_type": "Employee",
+                            "change_message": {
+                                "headers": ["field", "old_value", "new_value"],
+                                "rows": [
+                                    {
+                                        "field": "updated at",
+                                        "old_value": "2025-10-17 06:09:18.457499+00:00",
+                                        "new_value": "2025-10-17 06:09:48.100228+00:00",
+                                    }
+                                ],
+                            },
+                        }
+                    }
+                ]
+            }
+        }
+
+        result = self.client.get_log_by_id("test-890")
+
+        self.assertEqual(result["log_id"], "test-890")
+        self.assertIsInstance(result["change_message"], dict)
+        self.assertIn("headers", result["change_message"])
+        self.assertIn("rows", result["change_message"])
+
 
 @override_settings(
     OPENSEARCH_HOST="localhost",

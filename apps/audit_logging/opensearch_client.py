@@ -67,7 +67,7 @@ class OpenSearchClient:
                     "object_type": {"type": "keyword"},
                     "object_id": {"type": "keyword"},
                     "object_repr": {"type": "text", "analyzer": "standard"},
-                    "change_message": {"type": "text", "analyzer": "standard"},
+                    "change_message": {"type": "flattened"},
                     "ip_address": {"type": "ip"},
                     "user_agent": {"type": "text"},
                     "session_key": {"type": "keyword"},
