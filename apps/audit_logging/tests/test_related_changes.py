@@ -378,3 +378,52 @@ def test_prepare_change_messages_with_list_values():
     # List values should remain as lists with string representations
     assert rows[0]["old_value"] == ["tag1", "tag2"]
     assert rows[0]["new_value"] == ["tag3", "tag4", "tag5"]
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_prepare_change_messages_with_choice_field():
+    """Test that _prepare_change_messages handles choice fields correctly using get_FOO_display()."""
+    # Create mock field with choices
+    mock_field = MagicMock()
+    mock_field.name = "status"
+    mock_field.verbose_name = "Status"
+    mock_field.choices = [("A", "Active"), ("I", "Inactive")]
+
+    # Create mock objects with choice field
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = [mock_field]
+    original._meta.many_to_many = []
+    original._meta.related_objects = []
+    original.status = "A"
+    original.get_status_display = MagicMock(return_value="Active")
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = [mock_field]
+    modified._meta.many_to_many = []
+    modified._meta.related_objects = []
+    modified.status = "I"
+    modified.get_status_display = MagicMock(return_value="Inactive")
+
+    # Create log_data dict
+    log_data = {}
+
+    # Call _prepare_change_messages
+    _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
+
+    # Check that change_message has structured format
+    assert "change_message" in log_data
+    assert isinstance(log_data["change_message"], dict)
+
+    # Verify rows
+    rows = log_data["change_message"]["rows"]
+    assert len(rows) == 1
+    assert rows[0]["field"] == "Status"
+    # Choice field values should show human-readable labels
+    assert rows[0]["old_value"] == "Active"
+    assert rows[0]["new_value"] == "Inactive"
+
+    # Verify that get_status_display was called
+    original.get_status_display.assert_called_once()
+    modified.get_status_display.assert_called_once()
