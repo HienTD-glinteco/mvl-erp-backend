@@ -61,6 +61,7 @@ class OpenSearchClient:
                     "timestamp": {"type": "date"},
                     "user_id": {"type": "keyword"},
                     "username": {"type": "keyword"},
+                    "employee_code": {"type": "keyword"},
                     "full_name": {"type": "text", "analyzer": "standard"},
                     "action": {"type": "keyword"},
                     "object_type": {"type": "keyword"},
@@ -200,7 +201,7 @@ class OpenSearchClient:
             from_offset: Offset for pagination
             sort_order: Sort order ('asc' or 'desc')
             summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id,
-                                 username, action, object_type, object_id, object_repr)
+                                 username, full_name, employee_code, action, object_type, object_id, object_repr)
 
         Returns:
             dict: Search results with items, total, pagination info
@@ -269,8 +270,7 @@ class OpenSearchClient:
                     {
                         "multi_match": {
                             "query": value,
-                            "fields": ["object_repr", "change_message"],
-                            "type": "phrase_prefix",
+                            "fields": ["employee_code", "full_name"],
                         }
                     }
                 )

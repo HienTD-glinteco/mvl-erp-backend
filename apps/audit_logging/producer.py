@@ -11,6 +11,7 @@ from django.http import HttpRequest
 from rstream import Producer, exceptions
 
 from .registry import AuditLogRegistry
+from .utils import prepare_request_info, prepare_user_info
 
 file_audit_logger = logging.getLogger("audit_logging")
 
@@ -65,36 +66,6 @@ class AuditStreamProducer:
 
 # Singleton instance of the producer
 _audit_producer = AuditStreamProducer()
-
-
-def _prepare_user_info(log_data: dict, user=None):
-    log_data["user_id"] = str(user.pk) if hasattr(user, "pk") else None
-    log_data["username"] = getattr(user, "username", None) or getattr(user, "email", None) or str(user)
-
-    # Add employee code if user has an associated employee record
-    try:
-        employee = user.employee
-        log_data["employee_code"] = employee.code
-    except Exception:
-        # User doesn't have an employee record or it's not accessible
-        log_data["employee_code"] = ""
-
-
-def _prepare_request_info(log_data: dict, request):
-    # Get IP address
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip_address = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip_address = request.META.get("REMOTE_ADDR")
-    log_data["ip_address"] = ip_address
-
-    # Get user agent
-    log_data["user_agent"] = request.META.get("HTTP_USER_AGENT", "")
-
-    # Get session key if available
-    if hasattr(request, "session") and request.session.session_key:
-        log_data["session_key"] = request.session.session_key
 
 
 def _collect_related_changes(original_object, modified_object):  # noqa: C901
@@ -325,11 +296,11 @@ def log_audit_event(
 
     # Add user information
     if user:
-        _prepare_user_info(log_data, user)
+        prepare_user_info(log_data, user)
 
     # Extract request metadata if available
     if request:
-        _prepare_request_info(log_data, request)
+        prepare_request_info(log_data, request)
 
     # Create change message describing the changes
     _prepare_change_messages(log_data, action, original_object, modified_object)

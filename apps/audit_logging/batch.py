@@ -16,6 +16,7 @@ from .constants import LogAction
 from .middleware import get_current_request, get_current_user
 from .producer import _audit_producer
 from .registry import AuditLogRegistry
+from .utils import prepare_request_info, prepare_user_info
 
 logger = logging.getLogger(__name__)
 
@@ -193,23 +194,11 @@ class BatchContext:
 
             # Add user information
             if self.user:
-                log_data["user_id"] = str(self.user.pk) if hasattr(self.user, "pk") else None
-                log_data["username"] = (
-                    getattr(self.user, "username", None) or getattr(self.user, "email", None) or str(self.user)
-                )
+                prepare_user_info(log_data, self.user)
 
             # Add request metadata
             if self.request:
-                x_forwarded_for = self.request.META.get("HTTP_X_FORWARDED_FOR")
-                if x_forwarded_for:
-                    ip_address = x_forwarded_for.split(",")[0].strip()
-                else:
-                    ip_address = self.request.META.get("REMOTE_ADDR")
-                log_data["ip_address"] = ip_address
-                log_data["user_agent"] = self.request.META.get("HTTP_USER_AGENT", "")
-
-                if hasattr(self.request, "session") and self.request.session.session_key:
-                    log_data["session_key"] = self.request.session.session_key
+                prepare_request_info(log_data, self.request)
 
             # Create change message
             action_names = {
