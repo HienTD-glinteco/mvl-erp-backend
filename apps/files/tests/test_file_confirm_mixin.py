@@ -269,18 +269,42 @@ class FileConfirmSerializerMixinTest(TestCase):
         # Verify the file was deleted
         mock_instance.delete_file.assert_called_once()
 
+    @patch("django.core.cache.cache.delete")
+    @patch("django.core.cache.cache.get")
     @patch("apps.files.utils.S3FileUploadService")
-    def test_mixin_without_request_context(self, mock_s3_service):
+    def test_mixin_without_request_context(self, mock_s3_service, mock_cache_get, mock_cache_delete):
         """Test that mixin works without request in context (uploaded_by is None)."""
+        # Arrange: Mock cache
+        cache_data = {}
+        
+        def cache_get_side_effect(key):
+            return cache_data.get(key)
+        
+        def cache_delete_side_effect(key):
+            if key in cache_data:
+                del cache_data[key]
+        
+        cache_key_1 = f"{CACHE_KEY_PREFIX}{self.file_token_1}"
+        cache_data[cache_key_1] = json.dumps({
+            "file_name": "mixin_test1.pdf",
+            "file_type": "application/pdf",
+            "purpose": "job_description",
+            "file_path": "uploads/tmp/test-token-mixin-001/mixin_test1.pdf",
+        })
+        
+        mock_cache_get.side_effect = cache_get_side_effect
+        mock_cache_delete.side_effect = cache_delete_side_effect
+        
         # Arrange: Mock S3 service
         mock_instance = mock_s3_service.return_value
         mock_instance.check_file_exists.return_value = True
         mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/mixin_test1.pdf"
         mock_instance.move_file.return_value = True
-        mock_instance.get_file_metadata.side_effect = [
-            {"size": 123456, "content_type": "application/pdf", "etag": "abc123"},
-            {"size": 123456, "etag": "abc123"},
-        ]
+        mock_instance.get_file_metadata.return_value = {
+            "size": 123456,
+            "content_type": "application/pdf",
+            "etag": "abc123",
+        }
 
         # Act: Create serializer without request context
         data = {"title": "Test", "files": {"attachment": self.file_token_1}}
