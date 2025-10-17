@@ -427,3 +427,90 @@ def test_prepare_change_messages_with_choice_field():
     # Verify that get_status_display was called
     original.get_status_display.assert_called_once()
     modified.get_status_display.assert_called_once()
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_collect_related_changes_with_choice_field():
+    """Test that _collect_related_changes handles choice fields correctly using get_FOO_display()."""
+    # Create mock field with choices for related objects
+    mock_field = MagicMock()
+    mock_field.name = "priority"
+    mock_field.verbose_name = "Priority"
+    mock_field.choices = [("H", "High"), ("M", "Medium"), ("L", "Low")]
+
+    # Create main objects (parent)
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = []
+    original._meta.many_to_many = []
+    original.pk = 1
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = []
+    modified._meta.many_to_many = []
+    modified.pk = 1
+
+    # Create related object mock
+    related_object_mock = MagicMock()
+    related_object_mock.related_model = MagicMock()
+    related_object_mock.related_model._meta = MagicMock()
+    related_object_mock.related_model._meta.model_name = "task"
+    related_object_mock.get_accessor_name = MagicMock(return_value="tasks")
+
+    # Create original related object with choice field
+    original_task = MagicMock()
+    original_task._meta = MagicMock()
+    original_task._meta.fields = [mock_field]
+    original_task.pk = 101
+    original_task.priority = "H"
+    original_task.get_priority_display = MagicMock(return_value="High")
+    original_task.__str__ = MagicMock(return_value="Task 101")
+
+    # Create modified related object with choice field
+    modified_task = MagicMock()
+    modified_task._meta = MagicMock()
+    modified_task._meta.fields = [mock_field]
+    modified_task.pk = 101
+    modified_task.priority = "L"
+    modified_task.get_priority_display = MagicMock(return_value="Low")
+    modified_task.__str__ = MagicMock(return_value="Task 101")
+
+    # Set up the related objects on the main objects
+    original_tasks = MagicMock()
+    original_tasks.all = MagicMock(return_value=[original_task])
+    original.tasks = original_tasks
+
+    modified_tasks = MagicMock()
+    modified_tasks.all = MagicMock(return_value=[modified_task])
+    modified.tasks = modified_tasks
+
+    # Add the related object descriptor to meta
+    original._meta.related_objects = [related_object_mock]
+    modified._meta.related_objects = [related_object_mock]
+
+    # Call _collect_related_changes
+    related_changes = _collect_related_changes(original, modified)
+
+    # Verify the result
+    assert len(related_changes) == 1
+    assert related_changes[0]["object_type"] == "task"
+    assert related_changes[0]["relation_type"] == "reverse_foreign_key"
+    assert related_changes[0]["field_name"] == "tasks"
+
+    # Check the changes for the related object
+    changes = related_changes[0]["changes"]
+    assert len(changes) == 1
+    assert changes[0]["action"] == "modified"
+    assert changes[0]["object_id"] == "101"
+
+    # Check field changes - should use human-readable labels for choice fields
+    field_changes = changes[0]["field_changes"]
+    assert len(field_changes) == 1
+    assert field_changes[0]["field"] == "Priority"
+    assert field_changes[0]["old_value"] == "High"
+    assert field_changes[0]["new_value"] == "Low"
+
+    # Verify that get_priority_display was called
+    original_task.get_priority_display.assert_called_once()
+    modified_task.get_priority_display.assert_called_once()
