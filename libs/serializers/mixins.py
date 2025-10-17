@@ -324,7 +324,13 @@ class FileConfirmSerializerMixin:
         Returns:
             The saved model instance
         """
+        # Remove files field from validated_data to avoid passing it to model constructor
+        # Store it temporarily for file confirmation
+        file_mappings = self.validated_data.pop(self.file_tokens_field, {})
+
         with transaction.atomic():
             instance = super().save(**kwargs)
+            # Restore file_mappings to validated_data for _confirm_related_files
+            self.validated_data[self.file_tokens_field] = file_mappings
             self._confirm_related_files(instance)
         return instance
