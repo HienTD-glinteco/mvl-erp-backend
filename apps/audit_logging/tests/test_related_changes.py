@@ -295,3 +295,44 @@ def test_prepare_change_messages_with_multiple_field_changes():
     assert rows[1]["field"] == "Email address"
     assert rows[1]["old_value"] == "john@example.com"
     assert rows[1]["new_value"] == "jane@example.com"
+
+
+@override_settings(AUDIT_LOG_DISABLED=False)
+def test_prepare_change_messages_with_null_values():
+    """Test that _prepare_change_messages handles None values correctly."""
+    # Create mock field
+    mock_field = MagicMock()
+    mock_field.name = "description"
+    mock_field.verbose_name = "Description"
+
+    # Create mock objects where value changes to None
+    original = MagicMock()
+    original._meta = MagicMock()
+    original._meta.fields = [mock_field]
+    original._meta.many_to_many = []
+    original._meta.related_objects = []
+    original.description = "Some description"
+
+    modified = MagicMock()
+    modified._meta = MagicMock()
+    modified._meta.fields = [mock_field]
+    modified._meta.many_to_many = []
+    modified._meta.related_objects = []
+    modified.description = None
+
+    # Create log_data dict
+    log_data = {}
+
+    # Call _prepare_change_messages
+    _prepare_change_messages(log_data, LogAction.CHANGE, original, modified)
+
+    # Check that change_message has structured format
+    assert "change_message" in log_data
+    assert isinstance(log_data["change_message"], dict)
+
+    # Verify rows
+    rows = log_data["change_message"]["rows"]
+    assert len(rows) == 1
+    assert rows[0]["field"] == "Description"
+    assert rows[0]["old_value"] == "Some description"
+    assert rows[0]["new_value"] is None
