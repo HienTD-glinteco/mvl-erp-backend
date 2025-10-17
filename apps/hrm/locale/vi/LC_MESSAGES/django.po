@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 19:37+0700\n"
+"POT-Creation-Date: 2025-10-17 21:42+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,23 +14,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: apps/hrm/api/serializers/employee.py:147 apps/hrm/models/employee.py:96
-#: apps/hrm/models/recruitment_request.py:105
-msgid "Block must belong to the selected branch."
-msgstr ""
-
-# models/organization.py:126
-#: apps/hrm/api/serializers/employee.py:152 apps/hrm/models/employee.py:100
-#: apps/hrm/models/recruitment_request.py:97
-msgid "Department must belong to the selected block."
-msgstr "Phòng ban phải thuộc khối đã chọn."
-
-# models/organization.py:126
-#: apps/hrm/api/serializers/employee.py:158 apps/hrm/models/employee.py:104
-#: apps/hrm/models/recruitment_request.py:101
-msgid "Department must belong to the selected branch."
-msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
 
 #: apps/hrm/api/serializers/employee_role.py:74
 msgid "List of employee IDs to update (maximum 25)"
@@ -315,6 +298,20 @@ msgstr "Nhân viên"
 #: apps/hrm/models/employee.py:74
 msgid "Employees"
 msgstr "Các nhân viên"
+
+#: apps/hrm/models/employee.py:109 apps/hrm/models/recruitment_request.py:105
+msgid "Block must belong to the selected branch."
+msgstr ""
+
+# models/organization.py:126
+#: apps/hrm/models/employee.py:113 apps/hrm/models/recruitment_request.py:97
+msgid "Department must belong to the selected block."
+msgstr "Phòng ban phải thuộc khối đã chọn."
+
+# models/organization.py:126
+#: apps/hrm/models/employee.py:117 apps/hrm/models/recruitment_request.py:101
+msgid "Department must belong to the selected branch."
+msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
 
 # models/organization.py:183
 #: apps/hrm/models/job_description.py:17

@@ -1,4 +1,3 @@
-from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
@@ -40,12 +39,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     and accepts ID fields for write operations.
 
     Read operations return full nested objects for branch, block, department, and user.
-    Write operations (POST/PUT/PATCH) use _id fields to specify relationships.
-
-    The serializer also validates organizational hierarchy to ensure:
-    - Block belongs to the selected Branch
-    - Department belongs to the selected Block
-    - Department belongs to the selected Branch
+    Write operations (POST/PUT/PATCH) only require department_id.
+    Branch and block are automatically set based on the department's organizational structure.
     """
 
     # Nested read-only serializers for full object representation
@@ -54,24 +49,12 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     department = DepartmentNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
 
-    # Write-only fields for POST/PUT/PATCH operations
-    branch_id = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        source="branch",
-        write_only=True,
-        required=False,
-    )
-    block_id = serializers.PrimaryKeyRelatedField(
-        queryset=Block.objects.all(),
-        source="block",
-        write_only=True,
-        required=False,
-    )
+    # Write-only field for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
         source="department",
         write_only=True,
-        required=False,
+        required=True,
     )
 
     default_fields = [
@@ -82,9 +65,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         "email",
         "phone",
         "branch",
-        "branch_id",
         "block",
-        "block_id",
         "department",
         "department_id",
         "user",
@@ -101,9 +82,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "email",
             "phone",
             "branch",
-            "branch_id",
             "block",
-            "block_id",
             "department",
             "department_id",
             "user",
@@ -121,41 +100,3 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "created_at",
             "updated_at",
         ]
-
-    def validate(self, attrs):
-        """Validate organizational hierarchy relationships.
-
-        Ensures that the selected block belongs to the branch, and the
-        department belongs to both the block and branch.
-
-        Args:
-            attrs: Dictionary of validated field values
-
-        Returns:
-            Dictionary of validated attributes
-
-        Raises:
-            ValidationError: If organizational hierarchy constraints are violated
-        """
-        # Validate relationship between branch, block, and department
-        branch = attrs.get("branch") or (self.instance.branch if self.instance else None)
-        block = attrs.get("block") or (self.instance.block if self.instance else None)
-        department = attrs.get("department") or (self.instance.department if self.instance else None)
-
-        if block and branch:
-            if block.branch_id != branch.id:
-                raise serializers.ValidationError({"block_id": _("Block must belong to the selected branch.")})
-
-        if department and block:
-            if department.block_id != block.id:
-                raise serializers.ValidationError(
-                    {"department_id": _("Department must belong to the selected block.")}
-                )
-
-        if department and branch:
-            if department.branch_id != branch.id:
-                raise serializers.ValidationError(
-                    {"department_id": _("Department must belong to the selected branch.")}
-                )
-
-        return attrs

@@ -77,6 +77,19 @@ class Employee(AutoCodeMixin, BaseModel):
     def __str__(self):
         return f"{self.code} - {self.fullname}"
 
+    def save(self, *args, **kwargs):
+        """Save employee and auto-set block and branch from department.
+
+        Automatically sets the employee's block and branch based on the
+        selected department's organizational structure.
+        """
+        # Auto-set block and branch from department
+        if self.department:
+            self.block = self.department.block
+            self.branch = self.department.branch
+
+        super().save(*args, **kwargs)
+
     def clean(self):
         """Validate organizational hierarchy relationships.
 
