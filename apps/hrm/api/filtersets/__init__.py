@@ -8,6 +8,8 @@ from .organization import (
     OrganizationChartFilterSet,
     PositionFilterSet,
 )
+from .recruitment_candidate import RecruitmentCandidateFilterSet
+from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogFilterSet
 from .recruitment_channel import RecruitmentChannelFilterSet
 from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
@@ -24,4 +26,6 @@ __all__ = [
     "RecruitmentSourceFilterSet",
     "JobDescriptionFilterSet",
     "RecruitmentRequestFilterSet",
+    "RecruitmentCandidateFilterSet",
+    "RecruitmentCandidateContactLogFilterSet",
 ]

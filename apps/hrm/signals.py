@@ -11,6 +11,7 @@ from apps.hrm.models import (
     Employee,
     JobDescription,
     Position,
+    RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentRequest,
     RecruitmentSource,
@@ -31,6 +32,7 @@ register_auto_code_signal(
     RecruitmentSource,
     JobDescription,
     RecruitmentRequest,
+    RecruitmentCandidate,
     temp_code_prefix=TEMP_CODE_PREFIX,
 )
 
