@@ -6,7 +6,6 @@ correctly includes the 'fields' query parameter documentation.
 """
 
 import pytest
-from django.urls import path
 from rest_framework import serializers, viewsets
 from rest_framework.test import APIRequestFactory
 
