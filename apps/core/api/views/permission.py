@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -15,11 +15,75 @@ from libs import BaseReadOnlyModelViewSet
         summary="List permissions",
         description="Retrieve a list of all permissions available in the system",
         tags=["Permissions"],
+        examples=[
+            OpenApiExample(
+                "List permissions success",
+                description="Example response when listing permissions",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "Permission to create users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                                "created_at": "2025-01-01T00:00:00Z",
+                                "updated_at": "2025-01-01T00:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "code": "user.update",
+                                "name": "Update User",
+                                "description": "Permission to update users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                                "created_at": "2025-01-01T00:00:00Z",
+                                "updated_at": "2025-01-01T00:00:00Z",
+                            },
+                        ],
+                    },
+                },
+                response_only=True,
+            )
+        ],
     ),
     retrieve=extend_schema(
         summary="Get permission details",
         description="Retrieve detailed information about a specific permission",
         tags=["Permissions"],
+        examples=[
+            OpenApiExample(
+                "Get permission success",
+                description="Example response when retrieving a permission",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "user.create",
+                        "name": "Create User",
+                        "description": "Permission to create users",
+                        "module": "Core",
+                        "submodule": "User Management",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Get permission not found",
+                description="Error response when permission is not found",
+                value={"success": False, "error": "Permission not found"},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
     ),
 )
 class PermissionViewSet(BaseReadOnlyModelViewSet):
@@ -66,6 +130,31 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
                 },
             }
         },
+        examples=[
+            OpenApiExample(
+                "Get permission structure (both)",
+                description="Example response when requesting both modules and submodules",
+                value={
+                    "success": True,
+                    "data": {
+                        "modules": ["Core", "HRM", "CRM"],
+                        "submodules": [
+                            "User Management",
+                            "Role Management",
+                            "Employee Management",
+                            "Customer Management",
+                        ],
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Get permission structure (module only)",
+                description="Example response when requesting modules only (type=module)",
+                value={"success": True, "data": {"modules": ["Core", "HRM", "CRM"]}},
+                response_only=True,
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="structure")
     def structure(self, request):

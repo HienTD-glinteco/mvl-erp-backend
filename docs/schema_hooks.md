@@ -54,15 +54,17 @@ The hook:
 - ✅ Skips non-JSON responses (e.g., file downloads, PDFs)
 - ✅ Skips error responses (4xx, 5xx status codes)
 - ✅ Prevents double-wrapping if a schema is already wrapped
+- ✅ **Skips responses with manual examples defined** (examples should already have envelope format)
 
 ### Testing
 
-Unit tests are located in `api/tests/test_schema_hooks.py` and cover:
+Unit tests are located in `tests/libs/spectacular/test_schema_hooks.py` and cover:
 - Basic envelope structure
 - Array/list response handling
 - Error response skipping
 - Non-JSON response skipping
 - Double-wrap prevention
+- Skipping when manual examples are defined
 
 Run tests with:
 ```bash
