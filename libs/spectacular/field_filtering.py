@@ -6,9 +6,6 @@ FieldFilteringSerializerMixin. It adds the 'fields' query parameter to the
 OpenAPI schema with detailed information about available fields.
 """
 
-from typing import List
-
-from drf_spectacular.drainage import warn
 from drf_spectacular.extensions import OpenApiSerializerExtension
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.plumbing import build_parameter_type
@@ -72,9 +69,7 @@ class FieldFilteringAutoSchema(AutoSchema):
                 f"If the `fields` parameter is not provided, only the default fields will be returned.\n"
             )
         else:
-            description += (
-                "If the `fields` parameter is not provided, all available fields will be returned."
-            )
+            description += "If the `fields` parameter is not provided, all available fields will be returned."
 
         # Create the parameter schema
         fields_parameter = build_parameter_type(
@@ -90,7 +85,7 @@ class FieldFilteringAutoSchema(AutoSchema):
             example_fields = sorted(all_fields)[:3]
         else:
             example_fields = sorted(all_fields)
-        
+
         fields_parameter["example"] = ",".join(example_fields)
 
         return parameters + [fields_parameter]
@@ -99,7 +94,7 @@ class FieldFilteringAutoSchema(AutoSchema):
 class FieldFilteringSerializerExtension(OpenApiSerializerExtension):
     """
     Serializer extension for FieldFilteringSerializerMixin.
-    
+
     This extension helps drf-spectacular understand that serializers using
     FieldFilteringSerializerMixin have dynamic fields based on request parameters.
     """
@@ -109,7 +104,7 @@ class FieldFilteringSerializerExtension(OpenApiSerializerExtension):
     def map_serializer(self, auto_schema, direction):
         """
         Map the serializer, noting that fields may be filtered dynamically.
-        
+
         This method is called by drf-spectacular when processing serializers.
         We don't need to modify the schema here as the AutoSchema extension
         handles the query parameter documentation.
