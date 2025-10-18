@@ -5,7 +5,6 @@ These tests verify that the field filtering query parameter is automatically
 documented when a serializer uses FieldFilteringSerializerMixin.
 """
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -24,9 +23,7 @@ class TestFieldFilteringSerializer(FieldFilteringSerializerMixin, serializers.Mo
         fields = ["id", "code", "name", "description", "created_at", "updated_at"]
 
 
-class TestFieldFilteringSerializerWithDefaults(
-    FieldFilteringSerializerMixin, serializers.ModelSerializer
-):
+class TestFieldFilteringSerializerWithDefaults(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Test serializer with default_fields attribute."""
 
     default_fields = ["id", "name"]
@@ -105,9 +102,7 @@ class TestFieldFilteringAutoSchema:
 
     def test_fields_parameter_includes_default_fields_info(self, mock_view, mock_request):
         """Test that default_fields are mentioned in the description."""
-        schema = self._create_schema(
-            TestFieldFilteringSerializerWithDefaults, mock_view, mock_request
-        )
+        schema = self._create_schema(TestFieldFilteringSerializerWithDefaults, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
         fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
@@ -130,25 +125,19 @@ class TestFieldFilteringAutoSchema:
     def test_fields_parameter_only_for_get_requests(self, mock_view, mock_request):
         """Test that fields parameter is only added for GET/HEAD/OPTIONS requests."""
         # Test GET - should have fields parameter
-        schema_get = self._create_schema(
-            TestFieldFilteringSerializer, mock_view, mock_request, method="GET"
-        )
+        schema_get = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="GET")
         params_get = schema_get.get_override_parameters()
         fields_param_get = next((p for p in params_get if p.get("name") == "fields"), None)
         assert fields_param_get is not None
 
         # Test POST - should not have fields parameter
-        schema_post = self._create_schema(
-            TestFieldFilteringSerializer, mock_view, mock_request, method="POST"
-        )
+        schema_post = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="POST")
         params_post = schema_post.get_override_parameters()
         fields_param_post = next((p for p in params_post if p.get("name") == "fields"), None)
         assert fields_param_post is None
 
         # Test PUT - should not have fields parameter
-        schema_put = self._create_schema(
-            TestFieldFilteringSerializer, mock_view, mock_request, method="PUT"
-        )
+        schema_put = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="PUT")
         params_put = schema_put.get_override_parameters()
         fields_param_put = next((p for p in params_put if p.get("name") == "fields"), None)
         assert fields_param_put is None
