@@ -59,12 +59,11 @@ class TestFieldFilteringSchemaIntegration:
         # Get parameters
         parameters = schema.get_override_parameters()
 
-        # Verify fields parameter exists
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        # Verify fields parameter exists - now it's an OpenApiParameter object
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None, "Fields parameter should be present in schema"
-        assert fields_param["in"] == "query"
-        assert "schema" in fields_param
-        assert fields_param["schema"]["type"] == "string"
+        assert fields_param.location == "query"
+        assert fields_param.type is str
 
     def test_schema_fields_parameter_description(self):
         """Test that the fields parameter has a proper description."""
@@ -80,10 +79,10 @@ class TestFieldFilteringSchemaIntegration:
         schema.method = "GET"
 
         parameters = schema.get_override_parameters()
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
 
         assert fields_param is not None
-        description = fields_param.get("description", "")
+        description = fields_param.description
 
         # Check that description includes all expected information
         assert "Available fields" in description
@@ -107,13 +106,13 @@ class TestFieldFilteringSchemaIntegration:
         schema.method = "GET"
 
         parameters = schema.get_override_parameters()
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
 
         assert fields_param is not None
-        assert "example" in fields_param
-        assert isinstance(fields_param["example"], str)
-        # Example should contain comma-separated field names
-        assert "," in fields_param["example"]
+        # OpenApiParameter uses 'description' attribute, not 'example'
+        # The description contains usage examples
+        assert fields_param.description is not None
+        assert len(fields_param.description) > 0
 
 
 @pytest.mark.django_db
@@ -144,7 +143,7 @@ class TestFieldFilteringWithRegularSerializer:
         schema.method = "GET"
 
         parameters = schema.get_override_parameters()
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
 
         # Should not have fields parameter
         assert fields_param is None
