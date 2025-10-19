@@ -22,8 +22,8 @@ The `EnhancedAutoSchema` extends drf-spectacular's `AutoSchema` class to detect 
    - `EnhancedAutoSchema` - Generic, extensible AutoSchema class
    - Detects serializers using `FieldFilteringSerializerMixin`
    - Extracts available fields from the serializer using `_get_serializer()` method
+   - Creates `OpenApiParameter` objects for proper drf-spectacular integration
    - Generates comprehensive documentation for the `fields` parameter
-   - Adds examples for easy understanding
    - Designed to be modular and support additional features in the future
 
 2. **Settings Configuration** (`settings/base/drf.py`):
