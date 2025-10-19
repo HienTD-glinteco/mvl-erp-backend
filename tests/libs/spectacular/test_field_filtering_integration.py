@@ -7,6 +7,7 @@ correctly includes the 'fields' query parameter documentation.
 
 import pytest
 from rest_framework import serializers, viewsets
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Role
@@ -40,15 +41,17 @@ class TestFieldFilteringSchemaIntegration:
         # Create the view
         view = TestRoleViewSet.as_view({"get": "list"})
 
-        # Create a request
+        # Create a DRF request (not just Django request)
         factory = APIRequestFactory()
-        request = factory.get("/api/test/")
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
 
         # Set up the view instance
         view_instance = view.cls()
         view_instance.action = "list"
-        view_instance.request = request
+        view_instance.request = drf_request
         view_instance.format_kwarg = None
+        view_instance.kwargs = {}
 
         # Generate the schema
         schema = FieldFilteringAutoSchema()
@@ -67,11 +70,16 @@ class TestFieldFilteringSchemaIntegration:
 
     def test_schema_fields_parameter_description(self):
         """Test that the fields parameter has a proper description."""
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
         view_instance = TestRoleViewSet()
         view_instance.action = "list"
-        factory = APIRequestFactory()
-        view_instance.request = factory.get("/api/test/")
+        view_instance.request = drf_request
         view_instance.format_kwarg = None
+        view_instance.kwargs = {}
 
         schema = FieldFilteringAutoSchema()
         schema.view = view_instance
@@ -94,11 +102,16 @@ class TestFieldFilteringSchemaIntegration:
 
     def test_schema_fields_parameter_has_example(self):
         """Test that the fields parameter includes an example."""
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
         view_instance = TestRoleViewSet()
         view_instance.action = "list"
-        factory = APIRequestFactory()
-        view_instance.request = factory.get("/api/test/")
+        view_instance.request = drf_request
         view_instance.format_kwarg = None
+        view_instance.kwargs = {}
 
         schema = FieldFilteringAutoSchema()
         schema.view = view_instance
@@ -131,11 +144,16 @@ class TestFieldFilteringWithRegularSerializer:
             queryset = Role.objects.all()
             serializer_class = RegularSerializer
 
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
         view_instance = RegularViewSet()
         view_instance.action = "list"
-        factory = APIRequestFactory()
-        view_instance.request = factory.get("/api/test/")
+        view_instance.request = drf_request
         view_instance.format_kwarg = None
+        view_instance.kwargs = {}
 
         schema = FieldFilteringAutoSchema()
         schema.view = view_instance
