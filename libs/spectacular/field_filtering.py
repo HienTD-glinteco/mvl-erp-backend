@@ -1,9 +1,9 @@
 """
-AutoSchema extension for documenting field filtering query parameters.
+Enhanced AutoSchema for automatic API documentation generation.
 
-This module provides automatic documentation generation for APIs that use
-FieldFilteringSerializerMixin. It adds the 'fields' query parameter to the
-OpenAPI schema with detailed information about available fields.
+This module provides a custom AutoSchema class that extends drf-spectacular's
+AutoSchema with additional features like automatic field filtering documentation.
+The design is extensible to support more features in the future.
 """
 
 from drf_spectacular.extensions import OpenApiSerializerExtension
@@ -13,29 +13,48 @@ from drf_spectacular.plumbing import build_parameter_type
 from libs.serializers.mixins import FieldFilteringSerializerMixin
 
 
-class FieldFilteringAutoSchema(AutoSchema):
+class EnhancedAutoSchema(AutoSchema):
     """
-    Custom AutoSchema that adds 'fields' query parameter documentation
-    when serializer uses FieldFilteringSerializerMixin.
-    """
+    Enhanced AutoSchema that automatically documents various API features.
 
-    def get_operation_id(self):
-        """Get operation ID (delegated to parent)."""
-        return super().get_operation_id()
+    This custom AutoSchema extends drf-spectacular's AutoSchema to provide
+    automatic documentation for features like field filtering. The design
+    is modular and extensible to support additional features in the future.
+
+    Currently supported features:
+    - Field filtering via FieldFilteringSerializerMixin
+    """
 
     def get_override_parameters(self):
         """
-        Add 'fields' query parameter to API documentation if serializer
-        uses FieldFilteringSerializerMixin.
+        Override to add custom query parameters to API documentation.
+
+        This method extends the base implementation by adding documentation
+        for various features based on the serializer and view configuration.
         """
         parameters = super().get_override_parameters()
 
+        # Add field filtering documentation if applicable
+        parameters = self._add_field_filtering_parameter(parameters)
+
+        return parameters
+
+    def _add_field_filtering_parameter(self, parameters):
+        """
+        Add 'fields' query parameter documentation if serializer uses FieldFilteringSerializerMixin.
+
+        Args:
+            parameters: Existing list of parameters
+
+        Returns:
+            Updated list of parameters with field filtering documentation if applicable
+        """
         # Only add fields parameter for read operations (GET, HEAD, OPTIONS)
         if self.method.upper() not in ["GET", "HEAD", "OPTIONS"]:
             return parameters
 
         # Get the serializer class
-        serializer = self.get_serializer()
+        serializer = self._get_serializer()
         if not serializer:
             return parameters
 
@@ -111,3 +130,7 @@ class FieldFilteringSerializerExtension(OpenApiSerializerExtension):
         """
         # Let the default serializer mapping handle this
         return None
+
+
+# Backward compatibility alias
+FieldFilteringAutoSchema = EnhancedAutoSchema

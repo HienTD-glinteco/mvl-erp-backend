@@ -28,7 +28,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "libs.pagination.PageNumberWithSizePagination",
     "PAGE_SIZE": 25,
-    "DEFAULT_SCHEMA_CLASS": "libs.spectacular.field_filtering.FieldFilteringAutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "libs.spectacular.field_filtering.EnhancedAutoSchema",
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 

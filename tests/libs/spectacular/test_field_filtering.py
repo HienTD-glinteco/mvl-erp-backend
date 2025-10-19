@@ -65,7 +65,7 @@ class TestFieldFilteringAutoSchema:
         schema.view = view
         schema.path = "/api/test/"
         schema.method = method
-        schema.get_serializer = lambda: serializer_class()
+        schema._get_serializer = lambda: serializer_class()
         return schema
 
     def test_adds_fields_parameter_for_field_filtering_serializer(self, mock_view, mock_request):
@@ -173,7 +173,7 @@ class TestFieldFilteringAutoSchema:
         schema.view = mock_view
         schema.path = "/api/test/"
         schema.method = "GET"
-        schema.get_serializer = lambda: None  # No serializer
+        schema._get_serializer = lambda: None  # No serializer
 
         parameters = schema.get_override_parameters()
         fields_param = next((p for p in parameters if p.get("name") == "fields"), None)

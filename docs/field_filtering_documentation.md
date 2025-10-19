@@ -14,23 +14,27 @@ When a serializer uses `FieldFilteringSerializerMixin`, the API documentation wi
 
 ## How It Works
 
-The `FieldFilteringAutoSchema` extends drf-spectacular's `AutoSchema` class to detect when a serializer uses `FieldFilteringSerializerMixin` and automatically adds the `fields` query parameter to the API documentation.
+The `EnhancedAutoSchema` extends drf-spectacular's `AutoSchema` class to detect when a serializer uses `FieldFilteringSerializerMixin` and automatically adds the `fields` query parameter to the API documentation. This custom AutoSchema is designed to be extensible and can support additional features in the future.
 
 ### Implementation Details
 
-1. **AutoSchema Extension** (`libs/spectacular/field_filtering.py`):
+1. **Enhanced AutoSchema** (`libs/spectacular/field_filtering.py`):
+   - `EnhancedAutoSchema` - Generic, extensible AutoSchema class
    - Detects serializers using `FieldFilteringSerializerMixin`
-   - Extracts available fields from the serializer
+   - Extracts available fields from the serializer using `_get_serializer()` method
    - Generates comprehensive documentation for the `fields` parameter
    - Adds examples for easy understanding
+   - Designed to be modular and support additional features in the future
 
 2. **Settings Configuration** (`settings/base/drf.py`):
    ```python
    REST_FRAMEWORK = {
-       "DEFAULT_SCHEMA_CLASS": "libs.spectacular.field_filtering.FieldFilteringAutoSchema",
+       "DEFAULT_SCHEMA_CLASS": "libs.spectacular.field_filtering.EnhancedAutoSchema",
        # ... other settings
    }
    ```
+   
+   Note: `FieldFilteringAutoSchema` is maintained as a backward-compatible alias.
 
 ## Example Output
 
