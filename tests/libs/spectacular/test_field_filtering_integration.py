@@ -1,0 +1,167 @@
+"""
+Integration test for field filtering documentation in OpenAPI schema.
+
+This test creates a minimal view and verifies that the OpenAPI schema
+correctly includes the 'fields' query parameter documentation.
+"""
+
+import pytest
+from rest_framework import serializers, viewsets
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+
+from apps.core.models import Role
+from libs.serializers.mixins import FieldFilteringSerializerMixin
+from libs.spectacular.field_filtering import FieldFilteringAutoSchema
+
+
+class TestRoleSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+    """Test serializer for integration testing."""
+
+    default_fields = ["id", "name"]
+
+    class Meta:
+        model = Role
+        fields = ["id", "code", "name", "description", "created_at", "updated_at"]
+
+
+class TestRoleViewSet(viewsets.ReadOnlyModelViewSet):
+    """Test viewset for integration testing."""
+
+    queryset = Role.objects.all()
+    serializer_class = TestRoleSerializer
+
+
+@pytest.mark.django_db
+class TestFieldFilteringSchemaIntegration:
+    """Integration tests for field filtering schema generation."""
+
+    def test_schema_includes_fields_parameter(self):
+        """Test that the generated schema includes the 'fields' query parameter."""
+        # Create the view
+        view = TestRoleViewSet.as_view({"get": "list"})
+
+        # Create a DRF request (not just Django request)
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
+        # Set up the view instance
+        view_instance = view.cls()
+        view_instance.action = "list"
+        view_instance.request = drf_request
+        view_instance.format_kwarg = None
+        view_instance.kwargs = {}
+
+        # Generate the schema
+        schema = FieldFilteringAutoSchema()
+        schema.view = view_instance
+        schema.path = "/api/test/"
+        schema.method = "GET"
+
+        # Get parameters
+        parameters = schema.get_override_parameters()
+
+        # Verify fields parameter exists - now it's an OpenApiParameter object
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
+        assert fields_param is not None, "Fields parameter should be present in schema"
+        assert fields_param.location == "query"
+        assert fields_param.type is str
+
+    def test_schema_fields_parameter_description(self):
+        """Test that the fields parameter has a proper description."""
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
+        view_instance = TestRoleViewSet()
+        view_instance.action = "list"
+        view_instance.request = drf_request
+        view_instance.format_kwarg = None
+        view_instance.kwargs = {}
+
+        schema = FieldFilteringAutoSchema()
+        schema.view = view_instance
+        schema.path = "/api/test/"
+        schema.method = "GET"
+
+        parameters = schema.get_override_parameters()
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
+
+        assert fields_param is not None
+        description = fields_param.description
+
+        # Check that description includes all expected information
+        assert "Available fields" in description
+        assert "`id`" in description
+        assert "`code`" in description
+        assert "`name`" in description
+        assert "`description`" in description
+        assert "default fields" in description.lower()
+
+    def test_schema_fields_parameter_has_example(self):
+        """Test that the fields parameter includes an example."""
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
+        view_instance = TestRoleViewSet()
+        view_instance.action = "list"
+        view_instance.request = drf_request
+        view_instance.format_kwarg = None
+        view_instance.kwargs = {}
+
+        schema = FieldFilteringAutoSchema()
+        schema.view = view_instance
+        schema.path = "/api/test/"
+        schema.method = "GET"
+
+        parameters = schema.get_override_parameters()
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
+
+        assert fields_param is not None
+        # OpenApiParameter uses 'description' attribute, not 'example'
+        # The description contains usage examples
+        assert fields_param.description is not None
+        assert len(fields_param.description) > 0
+
+
+@pytest.mark.django_db
+class TestFieldFilteringWithRegularSerializer:
+    """Test that regular serializers don't get the fields parameter."""
+
+    def test_regular_serializer_no_fields_parameter(self):
+        """Test that serializers without the mixin don't get fields parameter."""
+
+        class RegularSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Role
+                fields = ["id", "name"]
+
+        class RegularViewSet(viewsets.ReadOnlyModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = RegularSerializer
+
+        # Create a DRF request
+        factory = APIRequestFactory()
+        django_request = factory.get("/api/test/")
+        drf_request = Request(django_request)
+
+        view_instance = RegularViewSet()
+        view_instance.action = "list"
+        view_instance.request = drf_request
+        view_instance.format_kwarg = None
+        view_instance.kwargs = {}
+
+        schema = FieldFilteringAutoSchema()
+        schema.view = view_instance
+        schema.path = "/api/test/"
+        schema.method = "GET"
+
+        parameters = schema.get_override_parameters()
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
+
+        # Should not have fields parameter
+        assert fields_param is None
