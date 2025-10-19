@@ -64,8 +64,21 @@ class EnhancedAutoSchema(AutoSchema):
         if not issubclass(serializer_class, FieldFilteringSerializerMixin):
             return parameters
 
-        # Get all available fields from the serializer
-        all_fields = list(serializer.fields.keys())
+        # Get all available fields from the serializer Meta class, not just instantiated fields
+        # This ensures we show all fields that could be requested, even if some are filtered by default
+        all_fields = []
+        if hasattr(serializer_class, "Meta") and hasattr(serializer_class.Meta, "fields"):
+            fields_attr = serializer_class.Meta.fields
+            # Handle both __all__ and explicit field lists
+            if fields_attr == "__all__":
+                # If fields is __all__, get from the current serializer instance
+                all_fields = list(serializer.fields.keys())
+            else:
+                # Otherwise, use the explicit field list from Meta
+                all_fields = list(fields_attr) if isinstance(fields_attr, (list, tuple)) else [fields_attr]
+        else:
+            # Fallback to instantiated fields
+            all_fields = list(serializer.fields.keys())
 
         if not all_fields:
             return parameters
