@@ -11,40 +11,44 @@ from apps.hrm.models import (
 from libs import FieldFilteringSerializerMixin
 
 
-class RecruitmentRequestNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested recruitment request references"""
+class RecruitmentExpenseRecruitmentRequestNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested recruitment request references in expense context"""
 
     class Meta:
         model = RecruitmentRequest
         fields = ["id", "code", "name"]
         read_only_fields = ["id", "code", "name"]
+        ref_name = "RecruitmentExpenseRecruitmentRequestNested"
 
 
-class EmployeeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested employee references"""
+class RecruitmentExpenseEmployeeNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested employee references in expense context"""
 
     class Meta:
         model = Employee
         fields = ["id", "code", "fullname"]
         read_only_fields = ["id", "code", "fullname"]
+        ref_name = "RecruitmentExpenseEmployeeNested"
 
 
-class RecruitmentSourceNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested recruitment source references"""
+class RecruitmentExpenseRecruitmentSourceNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested recruitment source references in expense context"""
 
     class Meta:
         model = RecruitmentSource
         fields = ["id", "code", "name", "allow_referral"]
         read_only_fields = ["id", "code", "name", "allow_referral"]
+        ref_name = "RecruitmentExpenseRecruitmentSourceNested"
 
 
-class RecruitmentChannelNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested recruitment channel references"""
+class RecruitmentExpenseRecruitmentChannelNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested recruitment channel references in expense context"""
 
     class Meta:
         model = RecruitmentChannel
         fields = ["id", "code", "name"]
         read_only_fields = ["id", "code", "name"]
+        ref_name = "RecruitmentExpenseRecruitmentChannelNested"
 
 
 class RecruitmentExpenseSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -60,11 +64,11 @@ class RecruitmentExpenseSerializer(FieldFilteringSerializerMixin, serializers.Mo
     """
 
     # Nested read-only serializers for full object representation
-    recruitment_source = RecruitmentSourceNestedSerializer(read_only=True)
-    recruitment_channel = RecruitmentChannelNestedSerializer(read_only=True)
-    recruitment_request = RecruitmentRequestNestedSerializer(read_only=True)
-    referee = EmployeeNestedSerializer(read_only=True)
-    referrer = EmployeeNestedSerializer(read_only=True)
+    recruitment_source = RecruitmentExpenseRecruitmentSourceNestedSerializer(read_only=True)
+    recruitment_channel = RecruitmentExpenseRecruitmentChannelNestedSerializer(read_only=True)
+    recruitment_request = RecruitmentExpenseRecruitmentRequestNestedSerializer(read_only=True)
+    referee = RecruitmentExpenseEmployeeNestedSerializer(read_only=True)
+    referrer = RecruitmentExpenseEmployeeNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     recruitment_source_id = serializers.PrimaryKeyRelatedField(

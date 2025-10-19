@@ -5,31 +5,34 @@ from apps.hrm.models import Block, Branch, Department, Employee
 from libs import FieldFilteringSerializerMixin
 
 
-class BranchNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested branch references"""
+class EmployeeBranchNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested branch references in employee context"""
 
     class Meta:
         model = Branch
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "EmployeeBranchNested"
 
 
-class BlockNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested block references"""
+class EmployeeBlockNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested block references in employee context"""
 
     class Meta:
         model = Block
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "EmployeeBlockNested"
 
 
-class DepartmentNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested department references"""
+class EmployeeDepartmentNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested department references in employee context"""
 
     class Meta:
         model = Department
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "EmployeeDepartmentNested"
 
 
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -44,9 +47,9 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     """
 
     # Nested read-only serializers for full object representation
-    branch = BranchNestedSerializer(read_only=True)
-    block = BlockNestedSerializer(read_only=True)
-    department = DepartmentNestedSerializer(read_only=True)
+    branch = EmployeeBranchNestedSerializer(read_only=True)
+    block = EmployeeBlockNestedSerializer(read_only=True)
+    department = EmployeeDepartmentNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
 
     # Write-only field for POST/PUT/PATCH operations

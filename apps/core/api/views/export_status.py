@@ -17,6 +17,8 @@ class ExportStatusView(APIView):
     API view to check the status of an async export task.
     """
 
+    serializer_class = ExportStatusResponseSerializer
+
     @extend_schema(
         summary="Check export task status",
         description="Check the status of an asynchronous export task using the task ID.",

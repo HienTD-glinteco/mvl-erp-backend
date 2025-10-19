@@ -21,40 +21,44 @@ class JobDescriptionNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "title"]
 
 
-class EmployeeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested employee references"""
+class RecruitmentRequestEmployeeNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested employee references in recruitment request context"""
 
     class Meta:
         model = Employee
         fields = ["id", "code", "fullname"]
         read_only_fields = ["id", "code", "fullname"]
+        ref_name = "RecruitmentRequestEmployeeNested"
 
 
-class BranchNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested branch references"""
+class RecruitmentRequestBranchNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested branch references in recruitment request context"""
 
     class Meta:
         model = Branch
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "RecruitmentRequestBranchNested"
 
 
-class BlockNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested block references"""
+class RecruitmentRequestBlockNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested block references in recruitment request context"""
 
     class Meta:
         model = Block
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "RecruitmentRequestBlockNested"
 
 
-class DepartmentNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested department references"""
+class RecruitmentRequestDepartmentNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested department references in recruitment request context"""
 
     class Meta:
         model = Department
         fields = ["id", "name", "code"]
         read_only_fields = ["id", "name", "code"]
+        ref_name = "RecruitmentRequestDepartmentNested"
 
 
 class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -73,10 +77,10 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
 
     # Nested read-only serializers for full object representation
     job_description = JobDescriptionNestedSerializer(read_only=True)
-    branch = BranchNestedSerializer(read_only=True)
-    block = BlockNestedSerializer(read_only=True)
-    department = DepartmentNestedSerializer(read_only=True)
-    proposer = EmployeeNestedSerializer(read_only=True)
+    branch = RecruitmentRequestBranchNestedSerializer(read_only=True)
+    block = RecruitmentRequestBlockNestedSerializer(read_only=True)
+    department = RecruitmentRequestDepartmentNestedSerializer(read_only=True)
+    proposer = RecruitmentRequestEmployeeNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     job_description_id = serializers.PrimaryKeyRelatedField(

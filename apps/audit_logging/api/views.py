@@ -17,6 +17,7 @@ class AuditLogViewSet(viewsets.GenericViewSet):
     """ViewSet for audit log operations."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = AuditLogSerializer
 
     module = "Core"
     submodule = "Audit Logging"
