@@ -8,7 +8,7 @@ The design is extensible to support more features in the future.
 
 from drf_spectacular.extensions import OpenApiSerializerExtension
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.plumbing import build_parameter_type
+from drf_spectacular.utils import OpenApiParameter
 
 from libs.serializers.mixins import FieldFilteringSerializerMixin
 
@@ -90,22 +90,14 @@ class EnhancedAutoSchema(AutoSchema):
         else:
             description += "If the `fields` parameter is not provided, all available fields will be returned."
 
-        # Create the parameter schema
-        fields_parameter = build_parameter_type(
+        # Create the parameter using OpenApiParameter
+        fields_parameter = OpenApiParameter(
             name="fields",
-            schema={"type": "string"},
+            type=str,
             location="query",
             required=False,
             description=description,
         )
-
-        # Add example to the parameter
-        if len(all_fields) >= 3:
-            example_fields = sorted(all_fields)[:3]
-        else:
-            example_fields = sorted(all_fields)
-
-        fields_parameter["example"] = ",".join(example_fields)
 
         return parameters + [fields_parameter]
 

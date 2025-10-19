@@ -73,25 +73,23 @@ class TestFieldFilteringAutoSchema:
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        # Find the fields parameter
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        # Find the fields parameter - now it's an OpenApiParameter object
+        fields_param = next((p for p in parameters if hasattr(p, 'name') and p.name == "fields"), None)
 
         assert fields_param is not None
-        assert fields_param["in"] == "query"
-        # Check required field - it may not be present if False is default
-        assert fields_param.get("required", False) is False
-        assert "schema" in fields_param
-        assert fields_param["schema"]["type"] == "string"
+        assert fields_param.location == "query"
+        assert fields_param.required is False
+        assert fields_param.type is str
 
     def test_fields_parameter_includes_available_fields(self, mock_view, mock_request):
         """Test that the fields parameter description includes all available fields."""
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, 'name') and p.name == "fields"), None)
         assert fields_param is not None
 
-        description = fields_param.get("description", "")
+        description = fields_param.description
         # Check that all fields are mentioned in description
         assert "`id`" in description
         assert "`code`" in description
@@ -105,10 +103,10 @@ class TestFieldFilteringAutoSchema:
         schema = self._create_schema(TestFieldFilteringSerializerWithDefaults, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None
 
-        description = fields_param.get("description", "")
+        description = fields_param.description
         assert "default fields" in description.lower()
         assert "`id`" in description
         assert "`name`" in description
@@ -119,7 +117,7 @@ class TestFieldFilteringAutoSchema:
         parameters = schema.get_override_parameters()
 
         # Fields parameter should not be present
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is None
 
     def test_fields_parameter_only_for_get_requests(self, mock_view, mock_request):
@@ -127,42 +125,42 @@ class TestFieldFilteringAutoSchema:
         # Test GET - should have fields parameter
         schema_get = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="GET")
         params_get = schema_get.get_override_parameters()
-        fields_param_get = next((p for p in params_get if p.get("name") == "fields"), None)
+        fields_param_get = next((p for p in params_get if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param_get is not None
 
         # Test POST - should not have fields parameter
         schema_post = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="POST")
         params_post = schema_post.get_override_parameters()
-        fields_param_post = next((p for p in params_post if p.get("name") == "fields"), None)
+        fields_param_post = next((p for p in params_post if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param_post is None
 
         # Test PUT - should not have fields parameter
         schema_put = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request, method="PUT")
         params_put = schema_put.get_override_parameters()
-        fields_param_put = next((p for p in params_put if p.get("name") == "fields"), None)
+        fields_param_put = next((p for p in params_put if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param_put is None
 
-    def test_fields_parameter_has_example(self, mock_view, mock_request):
-        """Test that the fields parameter includes an example value."""
+    def test_fields_parameter_has_correct_properties(self, mock_view, mock_request):
+        """Test that the fields parameter has correct properties."""
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None
-        assert "example" in fields_param
-        assert isinstance(fields_param["example"], str)
-        # Example should be comma-separated field names
-        assert "," in fields_param["example"]
+        assert fields_param.name == "fields"
+        assert fields_param.type is str
+        assert fields_param.location == "query"
+        assert fields_param.required is False
 
     def test_description_includes_usage_instructions(self, mock_view, mock_request):
         """Test that the description includes usage instructions."""
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None
 
-        description = fields_param.get("description", "")
+        description = fields_param.description
         assert "comma-separated" in description.lower()
         assert "?fields=" in description
         assert "Available fields" in description
@@ -176,7 +174,7 @@ class TestFieldFilteringAutoSchema:
         schema._get_serializer = lambda: None  # No serializer
 
         parameters = schema.get_override_parameters()
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is None
 
     def test_handles_serializer_with_no_fields(self, mock_view, mock_request):
@@ -189,7 +187,7 @@ class TestFieldFilteringAutoSchema:
         parameters = schema.get_override_parameters()
 
         # Should not add fields parameter if there are no fields
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is None
 
     def test_fields_sorted_in_description(self, mock_view, mock_request):
@@ -197,12 +195,13 @@ class TestFieldFilteringAutoSchema:
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if p.get("name") == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None
 
-        description = fields_param.get("description", "")
+        description = fields_param.description
         # Extract field names from description
         # Should be sorted alphabetically
         expected_fields = ["code", "created_at", "description", "id", "name", "updated_at"]
         for field in expected_fields:
             assert f"`{field}`" in description
+
