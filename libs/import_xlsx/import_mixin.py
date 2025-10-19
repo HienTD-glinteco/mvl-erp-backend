@@ -13,7 +13,7 @@ from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from openpyxl import load_workbook
-from rest_framework import status
+from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -150,6 +150,20 @@ class ImportXLSXMixin:
                     {"error": _(ERROR_ASYNC_NOT_ENABLED)},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+        except (ValueError, exceptions.UnsupportedMediaType) as e:
+            # Handle validation errors (file not found, invalid type, unsupported media, etc.)
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.exception(f"Import failed: {e}")
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        try:
             # Check if using advanced config-driven import
             import_config = self.get_import_config(request, file)
 
@@ -206,6 +220,12 @@ class ImportXLSXMixin:
 
             return Response(response_data, status=status.HTTP_200_OK)
 
+        except ValueError as e:
+            logger.error(f"Import validation error: {e}")
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             logger.exception(f"Import failed: {e}")
             return Response(
