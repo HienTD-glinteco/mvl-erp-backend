@@ -169,11 +169,7 @@ class PermissionRegistrationMixin:
         return permissions
 
 
-# Import HistoryMixin from audit_logging module
-from apps.audit_logging.history_mixin import HistoryMixin  # noqa: E402
-
-
-class BaseModelViewSet(HistoryMixin, PermissionRegistrationMixin, viewsets.ModelViewSet):
+class BaseModelViewSet(PermissionRegistrationMixin, viewsets.ModelViewSet):
     """
     Base ModelViewSet with automatic permission registration.
 
@@ -198,7 +194,7 @@ class BaseModelViewSet(HistoryMixin, PermissionRegistrationMixin, viewsets.Model
     pass
 
 
-class BaseReadOnlyModelViewSet(HistoryMixin, PermissionRegistrationMixin, viewsets.ReadOnlyModelViewSet):
+class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyModelViewSet):
     """
     Base ReadOnlyModelViewSet with automatic permission registration.
 

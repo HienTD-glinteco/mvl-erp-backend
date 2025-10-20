@@ -105,7 +105,7 @@ class BaseModelViewSetTestCase(TestCase):
         permissions = SimpleTestViewSet.get_registered_permissions()
 
         # Assert
-        self.assertEqual(len(permissions), 7)  # 6 standard actions + 1 history action
+        self.assertEqual(len(permissions), 6)  # 6 standard actions (history removed from base)
 
         # Extract permission codes
         codes = [p["code"] for p in permissions]
@@ -115,7 +115,6 @@ class BaseModelViewSetTestCase(TestCase):
         self.assertIn("test_item.update", codes)
         self.assertIn("test_item.partial_update", codes)
         self.assertIn("test_item.destroy", codes)
-        self.assertIn("test_item.history", codes)  # Added by HistoryMixin
 
     def test_permission_metadata_structure(self):
         """Test permission metadata has correct structure"""

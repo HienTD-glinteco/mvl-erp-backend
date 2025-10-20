@@ -9,6 +9,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
+from apps.audit_logging.history_mixin import HistoryMixin
 from libs import BaseModelViewSet
 
 
@@ -25,8 +26,8 @@ class MockModel:
         self.id = pk
 
 
-class TestHistoryViewSet(BaseModelViewSet):
-    """Test viewset with HistoryMixin (inherited from BaseModelViewSet)"""
+class TestHistoryViewSet(HistoryMixin, BaseModelViewSet):
+    """Test viewset with HistoryMixin explicitly added"""
 
     class MockQuerySet:
         model = MockModel
@@ -243,14 +244,15 @@ class HistoryMixinIntegrationTestCase(TestCase):
 
     def test_history_mixin_works_with_base_model_viewset(self):
         """Test that HistoryMixin integrates properly with BaseModelViewSet"""
-        # This test verifies that the mixin order is correct
+        # This test verifies that the mixin order is correct when explicitly added
         # HistoryMixin should be before BaseModelViewSet in the MRO
 
-        # Act
-        mro = [cls.__name__ for cls in BaseModelViewSet.__mro__]
+        # Act - use TestHistoryViewSet which explicitly includes HistoryMixin
+        mro = [cls.__name__ for cls in TestHistoryViewSet.__mro__]
 
         # Assert
         # HistoryMixin should come before ModelViewSet in the MRO
+        self.assertIn("HistoryMixin", mro)
         history_index = mro.index("HistoryMixin")
         viewset_index = mro.index("ModelViewSet")
         self.assertLess(history_index, viewset_index, "HistoryMixin should come before ModelViewSet in MRO")

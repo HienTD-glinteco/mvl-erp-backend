@@ -5,6 +5,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
 from apps.core.models import Role
@@ -82,7 +83,11 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Create role request",
                 description="Example request to create a new role",
-                value={"name": "Project Manager", "description": "Manages projects and teams", "permission_ids": [1, 2, 5, 10]},
+                value={
+                    "name": "Project Manager",
+                    "description": "Manages projects and teams",
+                    "permission_ids": [1, 2, 5, 10],
+                },
                 request_only=True,
             ),
             OpenApiExample(
@@ -98,8 +103,22 @@ from libs import BaseModelViewSet
                         "is_system_role": False,
                         "created_by": "admin@example.com",
                         "permissions_detail": [
-                            {"id": 1, "code": "user.create", "name": "Create User", "description": "", "module": "Core", "submodule": "User Management"},
-                            {"id": 2, "code": "user.update", "name": "Update User", "description": "", "module": "Core", "submodule": "User Management"},
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
+                            {
+                                "id": 2,
+                                "code": "user.update",
+                                "name": "Update User",
+                                "description": "",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
                         ],
                         "created_at": "2025-01-15T14:20:00Z",
                         "updated_at": "2025-01-15T14:20:00Z",
@@ -110,7 +129,13 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Create role validation error",
                 description="Error response when validation fails",
-                value={"success": False, "error": {"name": ["Role name already exists"], "permission_ids": ["At least one permission must be selected"]}},
+                value={
+                    "success": False,
+                    "error": {
+                        "name": ["Role name already exists"],
+                        "permission_ids": ["At least one permission must be selected"],
+                    },
+                },
                 response_only=True,
                 status_codes=["400"],
             ),
@@ -134,8 +159,22 @@ from libs import BaseModelViewSet
                         "is_system_role": True,
                         "created_by": "System",
                         "permissions_detail": [
-                            {"id": 1, "code": "user.create", "name": "Create User", "description": "Permission to create users", "module": "Core", "submodule": "User Management"},
-                            {"id": 2, "code": "user.update", "name": "Update User", "description": "Permission to update users", "module": "Core", "submodule": "User Management"},
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "Permission to create users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
+                            {
+                                "id": 2,
+                                "code": "user.update",
+                                "name": "Update User",
+                                "description": "Permission to update users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
                         ],
                         "created_at": "2025-01-01T00:00:00Z",
                         "updated_at": "2025-01-01T00:00:00Z",
@@ -160,7 +199,11 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Update role request",
                 description="Example request to update a role",
-                value={"name": "Senior Manager", "description": "Senior management role", "permission_ids": [1, 2, 3, 5, 10, 15]},
+                value={
+                    "name": "Senior Manager",
+                    "description": "Senior management role",
+                    "permission_ids": [1, 2, 3, 5, 10, 15],
+                },
                 request_only=True,
             ),
             OpenApiExample(
@@ -175,7 +218,16 @@ from libs import BaseModelViewSet
                         "description": "Senior management role",
                         "is_system_role": False,
                         "created_by": "admin@example.com",
-                        "permissions_detail": [{"id": 1, "code": "user.create", "name": "Create User", "description": "", "module": "Core", "submodule": "User Management"}],
+                        "permissions_detail": [
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            }
+                        ],
                         "created_at": "2025-01-15T14:20:00Z",
                         "updated_at": "2025-01-16T09:15:00Z",
                     },
@@ -207,7 +259,16 @@ from libs import BaseModelViewSet
                         "description": "Updated description for the role",
                         "is_system_role": False,
                         "created_by": "admin@example.com",
-                        "permissions_detail": [{"id": 1, "code": "user.create", "name": "Create User", "description": "", "module": "Core", "submodule": "User Management"}],
+                        "permissions_detail": [
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            }
+                        ],
                         "created_at": "2025-01-15T14:20:00Z",
                         "updated_at": "2025-01-16T11:30:00Z",
                     },
@@ -238,7 +299,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RoleViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Role model"""
 
     queryset = Role.objects.prefetch_related("permissions").all()

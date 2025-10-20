@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import RecruitmentSourceFilterSet
 from apps.hrm.api.serializers import RecruitmentSourceSerializer
 from apps.hrm.models import RecruitmentSource
@@ -41,7 +42,7 @@ from libs import BaseModelViewSet
         tags=["Recruitment Source"],
     ),
 )
-class RecruitmentSourceViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentSourceViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentSource model"""
 
     queryset = RecruitmentSource.objects.all()

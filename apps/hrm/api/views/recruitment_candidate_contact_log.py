@@ -3,6 +3,7 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import RecruitmentCandidateContactLogFilterSet
 from apps.hrm.api.serializers import RecruitmentCandidateContactLogSerializer
 from apps.hrm.models import RecruitmentCandidateContactLog
@@ -225,7 +226,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RecruitmentCandidateContactLogViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentCandidateContactLogViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentCandidateContactLog model"""
 
     queryset = RecruitmentCandidateContactLog.objects.select_related("employee", "recruitment_candidate").all()

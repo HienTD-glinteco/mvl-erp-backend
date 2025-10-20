@@ -6,6 +6,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import JobDescriptionFilterSet
 from apps.hrm.api.serializers import JobDescriptionSerializer
 from apps.hrm.models import JobDescription
@@ -179,7 +180,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
+class JobDescriptionViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for JobDescription model"""
 
     queryset = JobDescription.objects.all()

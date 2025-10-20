@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import RecruitmentExpenseFilterSet
 from apps.hrm.api.serializers import RecruitmentExpenseSerializer
 from apps.hrm.models import RecruitmentExpense
@@ -42,7 +43,7 @@ from libs import BaseModelViewSet
         tags=["Recruitment Expense"],
     ),
 )
-class RecruitmentExpenseViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentExpenseViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentExpense model"""
 
     queryset = RecruitmentExpense.objects.all()

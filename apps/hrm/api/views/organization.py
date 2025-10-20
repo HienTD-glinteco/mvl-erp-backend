@@ -6,6 +6,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchFilterSet,
@@ -78,7 +79,13 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Create branch request",
                 description="Example request to create a new branch",
-                value={"name": "Chi nhánh Đà Nẵng", "address": "789 Trần Phú, Hải Châu, Đà Nẵng", "phone": "0236-1234-567", "email": "danang@example.com", "is_active": True},
+                value={
+                    "name": "Chi nhánh Đà Nẵng",
+                    "address": "789 Trần Phú, Hải Châu, Đà Nẵng",
+                    "phone": "0236-1234-567",
+                    "email": "danang@example.com",
+                    "is_active": True,
+                },
                 request_only=True,
             ),
             OpenApiExample(
@@ -136,7 +143,13 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Update branch request",
                 description="Example request to update a branch",
-                value={"name": "Chi nhánh Hà Nội - Cập nhật", "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội", "phone": "024-3456-7899", "email": "hanoi@example.com", "is_active": True},
+                value={
+                    "name": "Chi nhánh Hà Nội - Cập nhật",
+                    "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                    "phone": "024-3456-7899",
+                    "email": "hanoi@example.com",
+                    "is_active": True,
+                },
                 request_only=True,
             ),
             OpenApiExample(
@@ -207,7 +220,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
+class BranchViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Branch model"""
 
     queryset = Branch.objects.all()
@@ -256,7 +269,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["Block"],
     ),
 )
-class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
+class BlockViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Block model"""
 
     queryset = Block.objects.select_related("branch").all()
@@ -305,7 +318,7 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["Department"],
     ),
 )
-class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
+class DepartmentViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Department model"""
 
     queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
@@ -447,7 +460,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["Position"],
     ),
 )
-class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
+class PositionViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Position model"""
 
     queryset = Position.objects.all()
@@ -496,7 +509,7 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["Organization Chart"],
     ),
 )
-class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
+class OrganizationChartViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for OrganizationChart model"""
 
     queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()
