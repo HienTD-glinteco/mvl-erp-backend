@@ -14,7 +14,7 @@ from .constants import ERROR_MISSING_MODEL, ERROR_MISSING_QUERYSET
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
 from .serializers import ExportAsyncResponseSerializer
-from .tasks import generate_xlsx_task
+from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_task
 
 
 class ExportXLSXMixin:
@@ -83,39 +83,138 @@ class ExportXLSXMixin:
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get export data/schema
-        schema = self.get_export_data(request)
-
-        # Generate filename
-        filename = self._get_export_filename()
-
         if use_async:
-            # Trigger background task
-            storage_backend = getattr(settings, "EXPORTER_STORAGE_BACKEND", "local")
-            task = generate_xlsx_task.delay(schema, filename, storage_backend)
+            # For async export, defer schema building to the task
+            # This avoids blocking the HTTP response while fetching/processing data
+            return self._async_export(request)
+        else:
+            # For synchronous export, build schema immediately
+            schema = self.get_export_data(request)
+            return self._sync_export(schema)
 
-            return Response(
-                {
-                    "task_id": task.id,
-                    "status": "PENDING",
-                    "message": _("Export started. Check status at /api/export/status/?task_id={task_id}").format(
-                        task_id=task.id
-                    ),
-                },
-                status=status.HTTP_202_ACCEPTED,
+    def _async_export(self, request):
+        """
+        Handle async export by deferring data fetching to Celery task.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: 202 response with task information
+        """
+        storage_backend = getattr(settings, "EXPORTER_STORAGE_BACKEND", "local")
+
+        # Check if using default schema generation (from model)
+        # If using custom get_export_data, we need to build schema upfront
+        if self._uses_default_export():
+            # Extract serializable parameters to rebuild queryset in task
+            task_params = self._get_export_task_params(request)
+
+            # Trigger background task with queryset parameters
+            task = generate_xlsx_from_queryset_task.delay(
+                app_label=task_params["app_label"],
+                model_name=task_params["model_name"],
+                queryset_filters=task_params.get("queryset_filters"),
+                filename=task_params.get("filename"),
+                storage_backend=storage_backend,
             )
         else:
-            # Generate file synchronously
-            generator = XLSXGenerator()
-            file_content = generator.generate(schema)
+            # Custom export - build schema upfront
+            schema = self.get_export_data(request)
+            filename = self._get_export_filename()
+            task = generate_xlsx_task.delay(schema, filename, storage_backend)
 
-            # Return as HTTP response
-            response = HttpResponse(
-                file_content.read(),
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
-            response["Content-Disposition"] = f'attachment; filename="{filename}"'
-            return response
+        return Response(
+            {
+                "task_id": task.id,
+                "status": "PENDING",
+                "message": _("Export started. Check status at /api/export/status/?task_id={task_id}").format(
+                    task_id=task.id
+                ),
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    def _sync_export(self, schema):
+        """
+        Handle synchronous export.
+
+        Args:
+            schema: Export schema
+
+        Returns:
+            HttpResponse: XLSX file response
+        """
+        filename = self._get_export_filename()
+
+        # Generate file synchronously
+        generator = XLSXGenerator()
+        file_content = generator.generate(schema)
+
+        # Return as HTTP response
+        response = HttpResponse(
+            file_content.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    def _uses_default_export(self):
+        """
+        Check if ViewSet uses default export (auto-generation from model).
+
+        Returns:
+            bool: True if using default export, False if custom get_export_data is overridden
+        """
+        # Check if get_export_data is overridden in the ViewSet class
+        # If it's the same as the mixin's method, it's using default
+        return self.__class__.get_export_data == ExportXLSXMixin.get_export_data
+
+    def _get_export_task_params(self, request):
+        """
+        Extract serializable parameters for async export task.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            dict: Parameters for Celery task
+        """
+        # Get model info
+        if not hasattr(self, "queryset") or self.queryset is None:
+            raise ValueError(ERROR_MISSING_QUERYSET)
+
+        model_class = self.queryset.model
+        if not model_class:
+            raise ValueError(ERROR_MISSING_MODEL)
+
+        # Get filtered queryset to extract filter parameters
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Extract filter kwargs from queryset query
+        # Note: This extracts filters but complex querysets may not serialize perfectly
+        queryset_filters = {}
+        if hasattr(queryset.query, "where") and queryset.query.where:
+            # For simple filters, extract them
+            # Complex queries will need custom handling
+            try:
+                # Try to get filter kwargs from queryset
+                # This works for simple .filter() calls
+                for child in queryset.query.where.children:
+                    if hasattr(child, "lhs") and hasattr(child, "rhs"):
+                        field_name = child.lhs.field.name
+                        value = child.rhs
+                        queryset_filters[field_name] = value
+            except (AttributeError, TypeError):
+                # If extraction fails, use empty filters (export all)
+                pass
+
+        return {
+            "app_label": model_class._meta.app_label,
+            "model_name": model_class._meta.object_name,
+            "queryset_filters": queryset_filters if queryset_filters else None,
+            "filename": self._get_export_filename(),
+        }
 
     def get_export_data(self, request):
         """

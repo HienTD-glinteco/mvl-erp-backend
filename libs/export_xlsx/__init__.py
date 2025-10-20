@@ -10,7 +10,7 @@ from .progress import ExportProgressTracker, get_progress
 from .schema_builder import SchemaBuilder
 from .serializers import ExportAsyncResponseSerializer, ExportStatusResponseSerializer
 from .storage import get_storage_backend
-from .tasks import generate_xlsx_task
+from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_task
 
 __all__ = [
     "ExportXLSXMixin",
@@ -18,6 +18,7 @@ __all__ = [
     "SchemaBuilder",
     "get_storage_backend",
     "generate_xlsx_task",
+    "generate_xlsx_from_queryset_task",
     "ExportAsyncResponseSerializer",
     "ExportStatusResponseSerializer",
     "ExportProgressTracker",

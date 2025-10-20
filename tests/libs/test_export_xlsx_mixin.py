@@ -66,7 +66,7 @@ class ExportXLSXMixinTests(TestCase):
         self.assertIn("attachment", response["Content-Disposition"])
 
     @override_settings(EXPORTER_CELERY_ENABLED=True)
-    @patch("libs.export_xlsx.mixins.generate_xlsx_task.delay")
+    @patch("libs.export_xlsx.mixins.generate_xlsx_from_queryset_task.delay")
     def test_async_export_with_celery_enabled(self, mock_task):
         """Test async export when Celery is enabled."""
         mock_task.return_value.id = "test-task-id-123"

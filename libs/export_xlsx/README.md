@@ -176,12 +176,16 @@ The export module provides real-time progress tracking for async exports:
 
 ### How It Works
 
-1. When an async export starts, it calculates the total number of rows
-2. As rows are written, progress is updated every N rows (configurable via `EXPORTER_PROGRESS_CHUNK_SIZE`)
-3. Progress is published to:
+1. When an async export starts, it immediately returns a 202 response with a task ID
+2. **Data fetching happens in the background**: The task fetches and processes data asynchronously, so the client doesn't wait
+3. The task calculates the total number of rows and begins processing
+4. As rows are written, progress is updated every N rows (configurable via `EXPORTER_PROGRESS_CHUNK_SIZE`)
+5. Progress is published to:
    - **Redis** - for fast, real-time access
    - **Celery task meta** - for persistence and fallback
-4. Clients poll the status endpoint to get progress updates
+6. Clients poll the status endpoint to get progress updates
+
+**Performance Optimization**: For default exports (auto-generated from models), the data fetching is deferred to the Celery task. This means the initial API call returns immediately without waiting for potentially slow database queries, providing true asynchronous behavior.
 
 ### API Usage
 
