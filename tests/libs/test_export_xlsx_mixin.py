@@ -160,3 +160,47 @@ class ExportXLSXMixinTests(TestCase):
 
         self.assertTrue(filename.endswith(".xlsx"))
         self.assertIn("role", filename.lower())  # Should include model name
+
+    @override_settings(EXPORTER_CELERY_ENABLED=True)
+    @patch("libs.export_xlsx.mixins.generate_xlsx_from_viewset_task.delay")
+    def test_async_export_with_custom_schema(self, mock_task):
+        """Test async export with custom get_export_data uses ViewSet task."""
+
+        class CustomExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+
+            def get_export_data(self, request):
+                return {
+                    "sheets": [
+                        {
+                            "name": "Custom Sheet",
+                            "headers": ["Code", "Name"],
+                            "data": [
+                                {"code": "admin", "name": "Administrator"},
+                            ],
+                        }
+                    ]
+                }
+
+        mock_task.return_value.id = "test-task-custom-123"
+
+        request = self.factory.get("/api/test/export/?async=true")
+        request.user = self.user
+        drf_request = Request(request)
+
+        viewset = CustomExportViewSet()
+        viewset.request = drf_request
+        viewset.format_kwarg = None
+        viewset.filter_queryset = lambda qs: qs
+        viewset.get_queryset = lambda: Role.objects.all()
+
+        response = viewset.export(drf_request)
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data["task_id"], "test-task-custom-123")
+        self.assertEqual(response.data["status"], "PENDING")
+        self.assertTrue(mock_task.called)
+        # Verify it was called with ViewSet path
+        call_args = mock_task.call_args
+        self.assertIn("viewset_class_path", call_args[1])

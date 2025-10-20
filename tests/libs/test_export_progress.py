@@ -555,3 +555,70 @@ class GenerateXLSXFromQuerysetTaskTests(TestCase):
         # Verify set_total was called with row count
         mock_tracker.set_total.assert_called_once_with(2)
         mock_tracker.set_completed.assert_called_once()
+
+
+@override_settings(
+    EXPORTER_CELERY_ENABLED=True,
+    EXPORTER_STORAGE_BACKEND="local",
+    EXPORTER_PROGRESS_CHUNK_SIZE=100,
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
+)
+class GenerateXLSXFromViewsetTaskTests(TestCase):
+    """Test cases for generate_xlsx_from_viewset_task."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after tests."""
+        cache.clear()
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    def test_task_calls_viewset_get_export_data(self, mock_tracker_class, mock_storage_backend):
+        """Test that task calls ViewSet's get_export_data method."""
+        # Mock storage
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        # Mock progress tracker
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from apps.core.models import Role
+        from libs.export_xlsx import tasks
+
+        # Create test data
+        Role.objects.create(code="admin", name="Administrator")
+
+        # Call the task with a ViewSet that has custom get_export_data
+        viewset_class_path = "tests.libs.test_export_xlsx_mixin.TestExportViewSet"
+        request_data = {
+            "query_params": {},
+            "user_id": None,
+        }
+
+        result = tasks.generate_xlsx_from_viewset_task.run(
+            viewset_class_path=viewset_class_path,
+            request_data=request_data,
+            filename="roles_export.xlsx",
+            storage_backend="local",
+        )
+
+        # Verify result
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["file_url"], "https://example.com/test.xlsx")
+
+        # Verify progress tracker was initialized
+        self.assertTrue(mock_tracker_class.called)
+        
+        # Verify set_completed was called
+        mock_tracker.set_completed.assert_called_once()

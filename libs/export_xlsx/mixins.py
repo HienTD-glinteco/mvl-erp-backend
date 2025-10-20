@@ -14,7 +14,7 @@ from .constants import ERROR_MISSING_MODEL, ERROR_MISSING_QUERYSET
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
 from .serializers import ExportAsyncResponseSerializer
-from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_task
+from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_from_viewset_task, generate_xlsx_task
 
 
 class ExportXLSXMixin:
@@ -105,7 +105,6 @@ class ExportXLSXMixin:
         storage_backend = getattr(settings, "EXPORTER_STORAGE_BACKEND", "local")
 
         # Check if using default schema generation (from model)
-        # If using custom get_export_data, we need to build schema upfront
         if self._uses_default_export():
             # Extract serializable parameters to rebuild queryset in task
             task_params = self._get_export_task_params(request)
@@ -119,10 +118,20 @@ class ExportXLSXMixin:
                 storage_backend=storage_backend,
             )
         else:
-            # Custom export - build schema upfront
-            schema = self.get_export_data(request)
+            # Custom export - use ViewSet-based task to defer get_export_data to worker
+            viewset_class_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
+            request_data = {
+                "query_params": dict(request.query_params),
+                "user_id": request.user.id if hasattr(request, "user") and request.user.is_authenticated else None,
+            }
             filename = self._get_export_filename()
-            task = generate_xlsx_task.delay(schema, filename, storage_backend)
+
+            task = generate_xlsx_from_viewset_task.delay(
+                viewset_class_path=viewset_class_path,
+                request_data=request_data,
+                filename=filename,
+                storage_backend=storage_backend,
+            )
 
         return Response(
             {

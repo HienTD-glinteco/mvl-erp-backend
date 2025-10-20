@@ -185,7 +185,7 @@ The export module provides real-time progress tracking for async exports:
    - **Celery task meta** - for persistence and fallback
 6. Clients poll the status endpoint to get progress updates
 
-**Performance Optimization**: For default exports (auto-generated from models), the data fetching is deferred to the Celery task. This means the initial API call returns immediately without waiting for potentially slow database queries, providing true asynchronous behavior.
+**Performance Optimization**: Both default exports (auto-generated from models) and custom exports defer all data fetching to the Celery worker. This ensures the initial API call returns immediately without waiting for potentially slow database queries or custom data processing logic, providing true asynchronous behavior for all export types.
 
 ### API Usage
 
