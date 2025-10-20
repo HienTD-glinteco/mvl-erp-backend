@@ -334,3 +334,117 @@ class FileConfirmSerializerMixin:
             self.validated_data[self.file_tokens_field] = file_mappings
             self._confirm_related_files(instance)
         return instance
+
+
+class FileConfirmSchemaMixin:
+    """
+    Schema-only mixin that injects a concrete 'files' field for OpenAPI documentation.
+
+    This mixin enhances the OpenAPI/Swagger schema by showing specific file field names
+    (e.g., attachment, document) instead of a generic dict. It does NOT modify the
+    actual serialization or file confirmation logic - it's purely for schema generation.
+
+    The mixin automatically detects file-related fields on the model by looking for
+    CharField fields whose names suggest file storage. Alternatively, serializers can
+    explicitly define which fields should appear in the schema.
+
+    Usage:
+        class JobDescriptionSerializer(FileConfirmSchemaMixin, FileConfirmSerializerMixin,
+                                       serializers.ModelSerializer):
+            # Optional: explicitly define file fields for schema
+            file_confirm_fields = ['attachment', 'document']
+
+            class Meta:
+                model = JobDescription
+                fields = '__all__'
+
+    The resulting OpenAPI schema will show:
+        {
+            "files": {
+                "attachment": "string (file token)",
+                "document": "string (file token)"
+            }
+        }
+
+    Attributes:
+        file_confirm_fields (list, optional): Explicit list of field names that represent
+                                             files. If not provided, the mixin will
+                                             attempt to auto-detect from model fields.
+
+    Notes:
+        - This mixin should be used alongside FileConfirmSerializerMixin
+        - It will not overwrite an existing 'files' field if already present
+        - The injected field is write-only and optional
+        - Auto-detection looks for CharField fields with names like 'attachment', 'document', etc.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the mixin and inject schema-only files field."""
+        super().__init__(*args, **kwargs)
+
+        # Skip if 'files' field already exists
+        if "files" in self.fields:
+            return
+
+        # Get file fields to show in schema
+        file_fields = self._get_file_confirm_fields()
+
+        if not file_fields:
+            return
+
+        # Create a serializer that defines the structure of the 'files' field
+        # This will show concrete field names in OpenAPI schema
+        file_fields_serializer_class = type(
+            "FileFieldsSerializer",
+            (serializers.Serializer,),
+            {
+                field_name: serializers.CharField(
+                    required=False,
+                    help_text=_("File token for {field}").format(field=field_name),
+                )
+                for field_name in file_fields
+            },
+        )
+
+        # Inject the files field with the concrete structure
+        self.fields["files"] = file_fields_serializer_class(
+            required=False,
+            write_only=True,
+            help_text=_("File tokens for uploading files. Each key corresponds to a file field on the model."),
+        )
+
+    def _get_file_confirm_fields(self):
+        """
+        Get list of file field names for schema generation.
+
+        Returns:
+            list: List of field names that should appear in the files schema
+
+        Priority:
+            1. Explicitly defined file_confirm_fields attribute on serializer
+            2. Auto-detected from model CharField fields with file-related names
+        """
+        # Check if explicitly defined on the serializer
+        if hasattr(self, "file_confirm_fields") and self.file_confirm_fields:
+            return self.file_confirm_fields
+
+        # Try to auto-detect from model
+        if hasattr(self, "Meta") and hasattr(self.Meta, "model"):
+            model = self.Meta.model
+            file_field_names = []
+
+            # Common file field name patterns
+            file_patterns = ["attachment", "document", "file", "upload", "photo", "image", "avatar"]
+
+            # Iterate through model fields
+            for field in model._meta.get_fields():
+                field_name = field.name
+                # Check if it's a CharField and matches file patterns
+                if hasattr(field, "get_internal_type") and field.get_internal_type() == "CharField":
+                    # Check if field name contains any file pattern
+                    if any(pattern in field_name.lower() for pattern in file_patterns):
+                        file_field_names.append(field_name)
+
+            return file_field_names
+
+        return []
