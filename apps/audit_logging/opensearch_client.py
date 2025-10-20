@@ -57,8 +57,6 @@ class OpenSearchClient:
                     "full_name": {"type": "text", "analyzer": "standard"},
                     "department_id": {"type": "keyword"},
                     "department_name": {"type": "text", "analyzer": "standard"},
-                    "position_id": {"type": "keyword"},
-                    "position_name": {"type": "text", "analyzer": "standard"},
                     "action": {"type": "keyword"},
                     "object_type": {"type": "keyword"},
                     "object_id": {"type": "keyword"},
@@ -207,7 +205,7 @@ class OpenSearchClient:
             sort_order: Sort order ('asc' or 'desc')
             summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id,
                                  username, full_name, employee_code, department_id, department_name,
-                                 position_id, position_name, action, object_type, object_id, object_repr)
+                                 action, object_type, object_id, object_repr)
 
         Returns:
             dict: Search results with items, total, pagination info
@@ -235,8 +233,6 @@ class OpenSearchClient:
                 "full_name",
                 "department_id",
                 "department_name",
-                "position_id",
-                "position_name",
                 "action",
                 "object_type",
                 "object_id",

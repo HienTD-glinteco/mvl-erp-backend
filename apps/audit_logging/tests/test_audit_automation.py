@@ -78,11 +78,9 @@ class TestLogAuditEvent(TestCase):
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_log_audit_event_with_employee_info(self, mock_log_event):
-        """Test that employee department and position info is captured."""
-        from datetime import date
-
+        """Test that employee department info is captured."""
         from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
+        from apps.hrm.models import Block, Branch, Department, Employee
 
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
@@ -122,22 +120,6 @@ class TestLogAuditEvent(TestCase):
         employee.user = self.user
         employee.save()
 
-        # Create position
-        position = Position.objects.create(
-            name="Test Position",
-            code="TP01",
-        )
-
-        # Create organization chart entry
-        OrganizationChart.objects.create(
-            employee=self.user,
-            position=position,
-            department=department,
-            start_date=date.today(),
-            is_primary=True,
-            is_active=True,
-        )
-
         # Create a test object
         test_obj = self.TestModel(name="Test", value=42)
         test_obj.pk = 1
@@ -156,7 +138,7 @@ class TestLogAuditEvent(TestCase):
             request=request,
         )
 
-        # Verify log_event was called with department and position info
+        # Verify log_event was called with department info
         # The last call should be for our test object
         self.assertTrue(mock_log_event.called)
         call_args = mock_log_event.call_args[1]
@@ -168,10 +150,6 @@ class TestLogAuditEvent(TestCase):
         # Verify department fields
         self.assertEqual(call_args["department_id"], str(department.pk))
         self.assertEqual(call_args["department_name"], "Test Department")
-
-        # Verify position fields
-        self.assertEqual(call_args["position_id"], str(position.pk))
-        self.assertEqual(call_args["position_name"], "Test Position")
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_log_audit_event_without_request(self, mock_log_event):
