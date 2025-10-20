@@ -70,6 +70,7 @@ class ExportProgressTracker:
         progress_data["file_path"] = file_path
 
         self._publish_to_redis(progress_data)
+        self._publish_to_celery(progress_data)
 
     def set_failed(self, error_message: str) -> None:
         """
@@ -83,6 +84,7 @@ class ExportProgressTracker:
         progress_data["error"] = error_message
 
         self._publish_to_redis(progress_data)
+        self._publish_to_celery(progress_data)
 
     def _publish_progress(self) -> None:
         """Publish current progress to Redis and Celery."""
