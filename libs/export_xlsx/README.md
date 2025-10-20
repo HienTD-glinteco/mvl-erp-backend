@@ -1,6 +1,6 @@
 # XLSX Export Module
 
-Dynamic XLSX exporter for Django REST Framework with support for async processing and multiple storage backends.
+Dynamic XLSX exporter for Django REST Framework with support for async processing, progress tracking, and multiple storage backends.
 
 ## Features
 
@@ -10,6 +10,7 @@ Dynamic XLSX exporter for Django REST Framework with support for async processin
 - ✅ **Merged cells** for grouped data visualization
 - ✅ **Multi-level headers** with grouping
 - ✅ **Async export** via Celery (optional)
+- ✅ **Real-time progress tracking** with percentage, speed, and ETA
 - ✅ **Multiple storage backends** (Local, S3)
 - ✅ **Automatic styling** with sensible defaults
 - ✅ **ViewSet mixin** for zero-config exports
@@ -158,6 +159,96 @@ Settings in `settings/base/export.py`:
 | `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | URL expiration (seconds) |
 | `EXPORTER_FILE_EXPIRE_DAYS` | `7` | Auto-delete after days |
 | `EXPORTER_LOCAL_STORAGE_PATH` | `exports` | Local storage path |
+| `EXPORTER_PROGRESS_CHUNK_SIZE` | `500` | Progress update frequency (rows) |
+
+## Progress Tracking
+
+The export module provides real-time progress tracking for async exports:
+
+### Features
+
+- **Progress percentage** (0-100%)
+- **Rows processed** / **total rows**
+- **Processing speed** (rows/second)
+- **Estimated time to completion** (seconds)
+- **Redis storage** for fast access
+- **Celery task meta** for persistence
+
+### How It Works
+
+1. When an async export starts, it calculates the total number of rows
+2. As rows are written, progress is updated every N rows (configurable via `EXPORTER_PROGRESS_CHUNK_SIZE`)
+3. Progress is published to:
+   - **Redis** - for fast, real-time access
+   - **Celery task meta** - for persistence and fallback
+4. Clients poll the status endpoint to get progress updates
+
+### API Usage
+
+Start an async export:
+```bash
+GET /api/my-endpoint/export/?async=true
+```
+
+Response:
+```json
+{
+  "task_id": "abc123...",
+  "status": "PENDING",
+  "message": "Export started. Check status at /api/export/status/?task_id=abc123..."
+}
+```
+
+Check export status with progress:
+```bash
+GET /api/core/export/status/?task_id=abc123...
+```
+
+Response (in progress):
+```json
+{
+  "success": true,
+  "data": {
+    "task_id": "abc123...",
+    "status": "PROGRESS",
+    "percent": 45,
+    "processed_rows": 4500,
+    "total_rows": 10000,
+    "speed_rows_per_sec": 125.5,
+    "eta_seconds": 43.8,
+    "updated_at": "2025-10-20T12:30:00"
+  }
+}
+```
+
+Response (completed):
+```json
+{
+  "success": true,
+  "data": {
+    "task_id": "abc123...",
+    "status": "SUCCESS",
+    "percent": 100,
+    "processed_rows": 10000,
+    "total_rows": 10000,
+    "file_url": "https://example.com/exports/data.xlsx",
+    "file_path": "exports/data.xlsx"
+  }
+}
+```
+
+### Programmatic Access
+
+```python
+from libs.export_xlsx import get_progress
+
+# Get progress for a task
+progress = get_progress(task_id="abc123...")
+if progress:
+    print(f"Progress: {progress['percent']}%")
+    print(f"Rows: {progress['processed_rows']}/{progress['total_rows']}")
+    print(f"Speed: {progress.get('speed_rows_per_sec', 0)} rows/sec")
+```
 
 ## Testing
 
