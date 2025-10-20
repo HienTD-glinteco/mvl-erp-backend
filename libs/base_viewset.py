@@ -68,7 +68,8 @@ class PermissionRegistrationMixin:
             model_name = cls.queryset.model.__name__
             # Add space before capital letters (except the first one)
             import re
-            spaced_name = re.sub(r'(?<!^)(?=[A-Z])', ' ', model_name)
+
+            spaced_name = re.sub(r"(?<!^)(?=[A-Z])", " ", model_name)
             return spaced_name
         return cls.__name__.replace("ViewSet", "")
 
@@ -82,9 +83,9 @@ class PermissionRegistrationMixin:
         """
         model_name = cls.get_model_name()
         # Simple pluralization: add 's' or 'es'
-        if model_name.endswith(('s', 'x', 'z', 'ch', 'sh')):
+        if model_name.endswith(("s", "x", "z", "ch", "sh")):
             return model_name + "es"
-        elif model_name.endswith('y') and len(model_name) > 1 and model_name[-2] not in 'aeiou':
+        elif model_name.endswith("y") and len(model_name) > 1 and model_name[-2] not in "aeiou":
             return model_name[:-1] + "ies"
         else:
             return model_name + "s"
