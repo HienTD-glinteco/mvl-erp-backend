@@ -1,4 +1,4 @@
-from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
+from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet, HistoryMixin
 from .code_generation import (
     create_auto_code_signal_handler,
     generate_model_code,
@@ -23,6 +23,7 @@ __all__ = [
     "create_dummy_model",
     "BaseModelViewSet",
     "BaseReadOnlyModelViewSet",
+    "HistoryMixin",
     "PageNumberWithSizePagination",
     "ExportXLSXMixin",
     "FieldFilteringSerializerMixin",
