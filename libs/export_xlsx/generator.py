@@ -25,9 +25,18 @@ class XLSXGenerator:
     Generator for creating XLSX files from schema definitions.
     """
 
-    def __init__(self):
-        """Initialize XLSX generator."""
+    def __init__(self, progress_callback=None, chunk_size=500):
+        """
+        Initialize XLSX generator.
+
+        Args:
+            progress_callback: Optional callback function(rows_processed: int) for progress updates
+            chunk_size: Number of rows to process before calling progress_callback
+        """
         self.workbook = None
+        self.progress_callback = progress_callback
+        self.chunk_size = chunk_size
+        self.total_rows_processed = 0
 
     def generate(self, schema):
         """
@@ -57,6 +66,9 @@ class XLSXGenerator:
         if "Sheet" in self.workbook.sheetnames:
             del self.workbook["Sheet"]
 
+        # Calculate total rows for progress tracking
+        total_rows = self._calculate_total_rows(schema)
+        
         # Create each sheet
         for sheet_def in schema["sheets"]:
             self._create_sheet(sheet_def)
@@ -66,6 +78,22 @@ class XLSXGenerator:
         self.workbook.save(output)
         output.seek(0)
         return output
+
+    def _calculate_total_rows(self, schema):
+        """
+        Calculate total number of data rows in schema.
+
+        Args:
+            schema: Export schema
+
+        Returns:
+            int: Total number of data rows
+        """
+        total = 0
+        for sheet_def in schema.get("sheets", []):
+            data = sheet_def.get("data", [])
+            total += len(data)
+        return total
 
     def _create_sheet(self, sheet_def):
         """
@@ -184,6 +212,9 @@ class XLSXGenerator:
         prev_values = dict.fromkeys(merge_rules)
         merge_start = dict.fromkeys(merge_rules, start_row)
 
+        # Track rows processed in this batch for progress callback
+        rows_before = self.total_rows_processed
+
         # Write data and track merge ranges
         self._write_data_rows(ws, data, field_names, start_row, merge_rules, merge_ranges, prev_values, merge_start)
 
@@ -192,6 +223,12 @@ class XLSXGenerator:
 
         # Apply merges
         self._apply_cell_merges(ws, merge_ranges)
+
+        # Call progress callback for any remaining rows not yet reported
+        rows_processed_in_batch = self.total_rows_processed - rows_before
+        remaining_rows = rows_processed_in_batch % self.chunk_size
+        if self.progress_callback and remaining_rows > 0:
+            self.progress_callback(remaining_rows)
 
         return start_row + len(data)
 
@@ -210,6 +247,11 @@ class XLSXGenerator:
                     self._track_merge_value(
                         field_name, value, current_row, col, merge_ranges, prev_values, merge_start
                     )
+
+            # Update progress tracking
+            self.total_rows_processed += 1
+            if self.progress_callback and self.total_rows_processed % self.chunk_size == 0:
+                self.progress_callback(self.chunk_size)
 
     def _track_merge_value(self, field_name, current_value, current_row, col, merge_ranges, prev_values, merge_start):
         """Track value changes for cell merging."""
