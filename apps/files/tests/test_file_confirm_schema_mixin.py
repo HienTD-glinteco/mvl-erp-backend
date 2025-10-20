@@ -1,23 +1,23 @@
-"""Tests for FileConfirmSchemaMixin.
+"""Tests for FileConfirmSerializerMixin schema functionality.
 
-This test module validates that the FileConfirmSchemaMixin properly injects
-a 'files' field into serializer schemas for OpenAPI documentation purposes.
+This test module validates that the FileConfirmSerializerMixin properly injects
+a 'files' field into serializer schemas with enhanced OpenAPI documentation support.
 """
 
 import pytest
 from django.apps import apps
 from rest_framework import serializers
 
-from libs import FileConfirmSchemaMixin
+from libs import FileConfirmSerializerMixin
 
 
-class TestFileConfirmSchemaMixin:
-    """Test cases for FileConfirmSchemaMixin schema generation."""
+class TestFileConfirmSerializerMixinSchema:
+    """Test cases for FileConfirmSerializerMixin schema generation."""
 
-    def test_mixin_injects_files_field(self):
-        """Test that mixin injects a 'files' field into the serializer."""
+    def test_mixin_injects_files_field_with_explicit_fields(self):
+        """Test that mixin injects a structured 'files' field when file_confirm_fields is provided."""
 
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
+        class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
             """Test serializer with explicit file fields."""
 
             file_confirm_fields = ["attachment", "document"]
@@ -31,29 +31,28 @@ class TestFileConfirmSchemaMixin:
         assert serializer.fields["files"].write_only is True
         assert serializer.fields["files"].required is False
 
-    def test_mixin_does_not_overwrite_existing_files_field(self):
-        """Test that mixin does not overwrite an existing 'files' field."""
+    def test_mixin_injects_generic_dict_without_file_fields(self):
+        """Test that mixin falls back to generic dict field when no file_confirm_fields provided."""
 
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
-            """Test serializer with pre-existing files field."""
+        class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
+            """Test serializer without file fields."""
 
-            file_confirm_fields = ["attachment"]
             title = serializers.CharField()
-            files = serializers.CharField(required=True)
 
         # Create serializer instance
         serializer = DummySerializer()
 
-        # Assert existing 'files' field was not overwritten
+        # Assert 'files' field was injected as generic DictField
         assert "files" in serializer.fields
-        # The field should remain as CharField (not the injected structure)
-        assert isinstance(serializer.fields["files"], serializers.CharField)
-        assert serializer.fields["files"].required is True
+        assert serializer.fields["files"].write_only is True
+        assert serializer.fields["files"].required is False
+        # Should be a DictField for backward compatibility
+        assert isinstance(serializer.fields["files"], serializers.DictField)
 
     def test_mixin_with_explicit_file_confirm_fields(self):
         """Test that mixin uses explicit file_confirm_fields when provided."""
 
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
+        class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
             """Test serializer with explicit file fields."""
 
             file_confirm_fields = ["attachment", "document", "photo"]
@@ -76,20 +75,6 @@ class TestFileConfirmSchemaMixin:
         assert "photo" in nested_fields
         assert len(nested_fields) == 3
 
-    def test_mixin_without_file_confirm_fields(self):
-        """Test that mixin handles serializers without file_confirm_fields."""
-
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
-            """Test serializer without file fields."""
-
-            title = serializers.CharField()
-
-        # Create serializer instance
-        serializer = DummySerializer()
-
-        # Since no file_confirm_fields and no model, 'files' should not be injected
-        assert "files" not in serializer.fields
-
     @pytest.mark.skipif(
         not apps.is_installed("apps.hrm"),
         reason="HRM app not installed",
@@ -104,7 +89,7 @@ class TestFileConfirmSchemaMixin:
         except LookupError:
             pytest.skip("JobDescription model not found")
 
-        class JobDescriptionSerializer(FileConfirmSchemaMixin, serializers.ModelSerializer):
+        class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
             """Test serializer for JobDescription with auto-detection."""
 
             class Meta:
@@ -140,7 +125,7 @@ class TestFileConfirmSchemaMixin:
         except LookupError:
             pytest.skip("JobDescription model not found")
 
-        class JobDescriptionSerializer(FileConfirmSchemaMixin, serializers.ModelSerializer):
+        class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
             """Test serializer with explicit file fields."""
 
             # Override auto-detection with explicit fields
@@ -166,7 +151,7 @@ class TestFileConfirmSchemaMixin:
     def test_mixin_with_empty_file_confirm_fields(self):
         """Test that mixin handles empty file_confirm_fields list."""
 
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
+        class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
             """Test serializer with empty file fields list."""
 
             file_confirm_fields = []
@@ -175,13 +160,14 @@ class TestFileConfirmSchemaMixin:
         # Create serializer instance
         serializer = DummySerializer()
 
-        # Since file_confirm_fields is empty, 'files' should not be injected
-        assert "files" not in serializer.fields
+        # Since file_confirm_fields is empty, should fall back to generic dict
+        assert "files" in serializer.fields
+        assert isinstance(serializer.fields["files"], serializers.DictField)
 
-    def test_mixin_field_properties(self):
-        """Test that injected 'files' field has correct properties."""
+    def test_mixin_field_properties_with_schema(self):
+        """Test that injected 'files' field has correct properties when using schema."""
 
-        class DummySerializer(FileConfirmSchemaMixin, serializers.Serializer):
+        class DummySerializer(FileConfirmSerializerMixin, serializers.Serializer):
             """Test serializer for field properties."""
 
             file_confirm_fields = ["attachment"]
@@ -196,3 +182,4 @@ class TestFileConfirmSchemaMixin:
         assert files_field.required is False
         # Check help text is present
         assert files_field.help_text is not None
+

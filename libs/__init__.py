@@ -14,11 +14,7 @@ from .export_xlsx import (
 from .import_xlsx import ImportXLSXMixin
 from .models import AutoCodeMixin, BaseModel, create_dummy_model
 from .pagination import PageNumberWithSizePagination
-from .serializers.mixins import (
-    FieldFilteringSerializerMixin,
-    FileConfirmSchemaMixin,
-    FileConfirmSerializerMixin,
-)
+from .serializers.mixins import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
 from .spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 
 __all__ = [
@@ -30,7 +26,6 @@ __all__ = [
     "PageNumberWithSizePagination",
     "ExportXLSXMixin",
     "FieldFilteringSerializerMixin",
-    "FileConfirmSchemaMixin",
     "FileConfirmSerializerMixin",
     "XLSXGenerator",
     "SchemaBuilder",
