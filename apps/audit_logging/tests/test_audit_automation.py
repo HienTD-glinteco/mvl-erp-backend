@@ -77,6 +77,103 @@ class TestLogAuditEvent(TestCase):
         self.assertIn("change_message", call_args)
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
+    def test_log_audit_event_with_employee_info(self, mock_log_event):
+        """Test that employee department and position info is captured."""
+        from datetime import date
+
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
+
+        # Create organizational structure
+        province = Province.objects.create(name="Test Province", code="TP")
+        admin_unit = AdministrativeUnit.objects.create(
+            name="Test Admin Unit",
+            code="TAU",
+            parent_province=province,
+            level="district",
+        )
+        branch = Branch.objects.create(
+            name="Test Branch",
+            code="TB01",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        block = Block.objects.create(
+            name="Test Block",
+            code="BL01",
+            block_type="support",
+            branch=branch,
+        )
+        department = Department.objects.create(
+            name="Test Department",
+            code="TD01",
+            branch=branch,
+            block=block,
+        )
+
+        # Create employee
+        employee = Employee.objects.create(
+            code="MV001",
+            fullname="Test User Full Name",
+            username="testuser_emp",
+            email="testuser_emp@example.com",
+            department=department,
+        )
+        employee.user = self.user
+        employee.save()
+
+        # Create position
+        position = Position.objects.create(
+            name="Test Position",
+            code="TP01",
+        )
+
+        # Create organization chart entry
+        OrganizationChart.objects.create(
+            employee=self.user,
+            position=position,
+            department=department,
+            start_date=date.today(),
+            is_primary=True,
+            is_active=True,
+        )
+
+        # Create a test object
+        test_obj = self.TestModel(name="Test", value=42)
+        test_obj.pk = 1
+
+        # Create a mock request
+        request = self.factory.get("/")
+        request.user = self.user
+        request.META["REMOTE_ADDR"] = "192.168.1.1"
+
+        # Call log_audit_event
+        log_audit_event(
+            action=LogAction.ADD,
+            original_object=None,
+            modified_object=test_obj,
+            user=self.user,
+            request=request,
+        )
+
+        # Verify log_event was called with department and position info
+        # The last call should be for our test object
+        self.assertTrue(mock_log_event.called)
+        call_args = mock_log_event.call_args[1]
+
+        # Verify employee fields
+        self.assertEqual(call_args["employee_code"], "MV001")
+        self.assertEqual(call_args["full_name"], "Test User Full Name")
+
+        # Verify department fields
+        self.assertEqual(call_args["department_id"], str(department.pk))
+        self.assertEqual(call_args["department_name"], "Test Department")
+
+        # Verify position fields
+        self.assertEqual(call_args["position_id"], str(position.pk))
+        self.assertEqual(call_args["position_name"], "Test Position")
+
+    @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_log_audit_event_without_request(self, mock_log_event):
         """Test log_audit_event without request context."""
 
