@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 19:37+0700\n"
+"POT-Creation-Date: 2025-10-17 23:51+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,23 +14,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: apps/hrm/api/serializers/employee.py:147 apps/hrm/models/employee.py:96
-#: apps/hrm/models/recruitment_request.py:105
-msgid "Block must belong to the selected branch."
-msgstr ""
-
-# models/organization.py:126
-#: apps/hrm/api/serializers/employee.py:152 apps/hrm/models/employee.py:100
-#: apps/hrm/models/recruitment_request.py:97
-msgid "Department must belong to the selected block."
-msgstr "Phòng ban phải thuộc khối đã chọn."
-
-# models/organization.py:126
-#: apps/hrm/api/serializers/employee.py:158 apps/hrm/models/employee.py:104
-#: apps/hrm/models/recruitment_request.py:101
-msgid "Department must belong to the selected branch."
-msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
 
 #: apps/hrm/api/serializers/employee_role.py:74
 msgid "List of employee IDs to update (maximum 25)"
@@ -302,6 +285,7 @@ msgstr ""
 #: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:24
 #: apps/hrm/models/recruitment_candidate.py:97
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
+#: apps/hrm/models/recruitment_expense.py:73
 msgid "Note"
 msgstr ""
 
@@ -315,6 +299,20 @@ msgstr "Nhân viên"
 #: apps/hrm/models/employee.py:74
 msgid "Employees"
 msgstr "Các nhân viên"
+
+#: apps/hrm/models/employee.py:109 apps/hrm/models/recruitment_request.py:105
+msgid "Block must belong to the selected branch."
+msgstr ""
+
+# models/organization.py:126
+#: apps/hrm/models/employee.py:113 apps/hrm/models/recruitment_request.py:97
+msgid "Department must belong to the selected block."
+msgstr "Phòng ban phải thuộc khối đã chọn."
+
+# models/organization.py:126
+#: apps/hrm/models/employee.py:117 apps/hrm/models/recruitment_request.py:101
+msgid "Department must belong to the selected branch."
+msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
 
 # models/organization.py:183
 #: apps/hrm/models/job_description.py:17
@@ -657,6 +655,7 @@ msgstr ""
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_candidate.py:46
+#: apps/hrm/models/recruitment_expense.py:34
 #, fuzzy
 #| msgid "Recruitment Channels"
 msgid "Recruitment request"
@@ -664,6 +663,7 @@ msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:76
+#: apps/hrm/models/recruitment_expense.py:22
 #, fuzzy
 #| msgid "Recruitment Channel"
 msgid "Recruitment source"
@@ -671,6 +671,7 @@ msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:82
+#: apps/hrm/models/recruitment_expense.py:28
 #, fuzzy
 #| msgid "Recruitment Channel"
 msgid "Recruitment channel"
@@ -700,6 +701,7 @@ msgid "Onboard date"
 msgstr "Ngày kết thúc"
 
 #: apps/hrm/models/recruitment_candidate.py:104
+#: apps/hrm/models/recruitment_expense.py:63
 msgid "Referrer"
 msgstr ""
 
@@ -781,6 +783,76 @@ msgstr "Kênh tuyển dụng"
 #: apps/hrm/models/recruitment_channel.py:35
 msgid "Recruitment Channels"
 msgstr "Kênh tuyển dụng"
+
+# models/organization.py:218
+#: apps/hrm/models/recruitment_expense.py:17
+#, fuzzy
+#| msgid "End date"
+msgid "Expense date"
+msgstr "Ngày kết thúc"
+
+#: apps/hrm/models/recruitment_expense.py:38
+msgid "Number of candidates participated"
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:43
+msgid "Total cost"
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:47
+msgid "Number of candidates hired"
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:55
+msgid "Referee"
+msgstr ""
+
+# models/organization.py:39
+#: apps/hrm/models/recruitment_expense.py:68
+#, fuzzy
+#| msgid "Job description"
+msgid "Activity description"
+msgstr "Mô tả công việc"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_expense.py:77
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Recruitment Expense"
+msgstr "Kênh tuyển dụng"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_expense.py:78
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Recruitment Expenses"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/recruitment_expense.py:107
+msgid "Recruitment request must be in status: Open, Closed, or Paused."
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:118
+msgid "Referee is required when recruitment source allows referral."
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:120
+msgid "Referrer is required when recruitment source allows referral."
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:124
+msgid ""
+"Referee must not be set when recruitment source does not allow referral."
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:126
+msgid ""
+"Referrer must not be set when recruitment source does not allow referral."
+msgstr ""
+
+#: apps/hrm/models/recruitment_expense.py:129
+msgid "Referrer and referee cannot be the same person."
+msgstr ""
 
 #: apps/hrm/models/recruitment_request.py:19
 msgid "New Hire"

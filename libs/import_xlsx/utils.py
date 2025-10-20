@@ -8,6 +8,8 @@ and the asynchronous Celery task to avoid code duplication.
 import logging
 from typing import Any
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import models as django_models
 from django.utils.translation import gettext as _
 
@@ -164,10 +166,20 @@ def process_row(row: tuple, headers: list[str], field_mapping: dict, schema: dic
                     elif isinstance(model_field, django_models.ManyToManyField):
                         # Store ManyToMany for later (after instance creation)
                         m2m_data[field_name] = resolve_many_to_many(model_field, cell_value)
+                    elif isinstance(model_field, django_models.EmailField):
+                        # Validate email format
+                        if cell_value and cell_value != "":
+                            try:
+                                validate_email(cell_value)
+                                row_data[field_name] = cell_value
+                            except ValidationError:
+                                row_errors[field_name] = _("Enter a valid email address")
+                        else:
+                            row_data[field_name] = cell_value
                     else:
                         # Regular field
                         row_data[field_name] = cell_value
-                except:
+                except Exception:
                     # Field not found in model, just store as-is
                     row_data[field_name] = cell_value
 

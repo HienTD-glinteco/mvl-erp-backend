@@ -200,6 +200,65 @@ class EmployeeModelTest(TestCase):
         with self.assertRaises(Exception):
             employee.clean()
 
+    def test_employee_auto_assign_branch_block_from_department(self):
+        """Test that branch and block are auto-assigned from department on save"""
+        # Create employee with only department specified
+        employee = Employee.objects.create(
+            fullname="Auto Assign Test",
+            username="autotest",
+            email="autotest@example.com",
+            department=self.department,
+        )
+
+        # Verify that branch and block were automatically set from department
+        self.assertEqual(employee.branch, self.department.branch)
+        self.assertEqual(employee.block, self.department.block)
+        self.assertEqual(employee.branch, self.branch)
+        self.assertEqual(employee.block, self.block)
+
+    def test_employee_update_department_updates_branch_block(self):
+        """Test that changing department updates branch and block"""
+        # Create a second organizational structure
+        branch2 = Branch.objects.create(
+            code="CN002",
+            name="Test Branch 2",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        block2 = Block.objects.create(
+            code="KH002",
+            name="Test Block 2",
+            branch=branch2,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        department2 = Department.objects.create(
+            code="PB002",
+            name="Test Department 2",
+            branch=branch2,
+            block=block2,
+        )
+
+        # Create employee with initial department
+        employee = Employee.objects.create(
+            fullname="Transfer Test",
+            username="transfertest",
+            email="transfertest@example.com",
+            department=self.department,
+        )
+
+        # Initially should be in first branch/block
+        self.assertEqual(employee.branch, self.branch)
+        self.assertEqual(employee.block, self.block)
+
+        # Update to second department
+        employee.department = department2
+        employee.save()
+
+        # Should now be in second branch/block
+        self.assertEqual(employee.branch, branch2)
+        self.assertEqual(employee.block, block2)
+        self.assertEqual(employee.department, department2)
+
 
 class EmployeeAPITest(TestCase, APITestMixin):
     """Test cases for Employee API endpoints"""
@@ -356,8 +415,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "username": "emp004",
             "email": "emp4@example.com",
             "phone": "4234567890",
-            "branch_id": self.branch.id,
-            "block_id": self.block.id,
             "department_id": self.department.id,
             "note": "Test note",
         }
@@ -375,6 +432,9 @@ class EmployeeAPITest(TestCase, APITestMixin):
         employee = Employee.objects.get(username="emp004")
         self.assertIsNotNone(employee.user)
         self.assertEqual(employee.user.username, "emp004")
+        # Verify branch and block were auto-set from department
+        self.assertEqual(employee.branch, self.branch)
+        self.assertEqual(employee.block, self.block)
 
     def test_update_employee(self):
         """Test updating an employee"""
@@ -384,8 +444,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "username": "emp001",
             "email": "emp1@example.com",
             "phone": "9999999999",
-            "branch_id": self.branch.id,
-            "block_id": self.block.id,
             "department_id": self.department.id,
         }
         response = self.client.put(url, payload, format="json")
@@ -421,25 +479,41 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertFalse(Employee.objects.filter(id=self.employee3.id).exists())
 
     def test_create_employee_invalid_block(self):
-        """Test creating employee with block that doesn't belong to branch"""
+        """Test that branch and block are auto-set from department"""
+        # Create a second branch with its own block and department
         branch2 = Branch.objects.create(
             code="CN002",
             name="Test Branch 2",
             province=self.province,
             administrative_unit=self.admin_unit,
         )
+        block2 = Block.objects.create(
+            code="KH002",
+            name="Test Block 2",
+            branch=branch2,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        department2 = Department.objects.create(
+            code="PB002",
+            name="Test Department 2",
+            branch=branch2,
+            block=block2,
+        )
 
         url = reverse("hrm:employee-list")
         payload = {
-            "fullname": "Invalid Employee",
-            "username": "invalid",
-            "email": "invalid@example.com",
-            "branch_id": branch2.id,
-            "block_id": self.block.id,  # This block belongs to self.branch, not branch2
-            "department_id": self.department.id,
+            "fullname": "Test Employee",
+            "username": "testuser",
+            "email": "testuser@example.com",
+            "department_id": department2.id,
         }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        data = response.json()
-        self.assertIn("error", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+
+        # Verify that branch and block were auto-set from department2
+        employee = Employee.objects.get(username="testuser")
+        self.assertEqual(employee.branch, branch2)
+        self.assertEqual(employee.block, block2)
+        self.assertEqual(employee.department, department2)
