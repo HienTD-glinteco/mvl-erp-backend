@@ -46,14 +46,6 @@ class OpenSearchClient:
         if self.client.indices.exists(index=index_name):
             return
 
-        # TODO: Add user org data fields when Org feature is implemented
-        # Fields to add: department, position, org, etc.
-        #
-        # TODO (Nice to have): Consider supporting dynamic fields for additional
-        # fields not known at audit log app level. This would make the app more
-        # portable to other projects by reducing domain knowledge requirements.
-        # If this adds too much complexity or causes performance issues, can skip.
-
         mapping = {
             "mappings": {
                 "properties": {
@@ -63,6 +55,8 @@ class OpenSearchClient:
                     "username": {"type": "keyword"},
                     "employee_code": {"type": "keyword"},
                     "full_name": {"type": "text", "analyzer": "standard"},
+                    "department_id": {"type": "keyword"},
+                    "department_name": {"type": "text", "analyzer": "standard"},
                     "action": {"type": "keyword"},
                     "object_type": {"type": "keyword"},
                     "object_id": {"type": "keyword"},
@@ -210,7 +204,8 @@ class OpenSearchClient:
             from_offset: Offset for pagination
             sort_order: Sort order ('asc' or 'desc')
             summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id,
-                                 username, full_name, employee_code, action, object_type, object_id, object_repr)
+                                 username, full_name, employee_code, department_id, department_name,
+                                 action, object_type, object_id, object_repr)
 
         Returns:
             dict: Search results with items, total, pagination info
@@ -236,6 +231,8 @@ class OpenSearchClient:
                 "username",
                 "employee_code",
                 "full_name",
+                "department_id",
+                "department_name",
                 "action",
                 "object_type",
                 "object_id",

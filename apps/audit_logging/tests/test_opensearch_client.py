@@ -184,10 +184,13 @@ class TestOpenSearchClient(TestCase):
         call_args = self.mock_opensearch.search.call_args
         search_body = call_args.kwargs["body"]
         self.assertIn("_source", search_body)
-        self.assertEqual(len(search_body["_source"]), 10)  # 10 summary fields (added employee_code)
+        self.assertEqual(len(search_body["_source"]), 12)  # 12 summary fields (added department)
         self.assertIn("log_id", search_body["_source"])
         self.assertIn("timestamp", search_body["_source"])
         self.assertIn("employee_code", search_body["_source"])
+        self.assertIn("full_name", search_body["_source"])
+        self.assertIn("department_id", search_body["_source"])
+        self.assertIn("department_name", search_body["_source"])
         self.assertIn("object_repr", search_body["_source"])
 
     def test_index_log_with_string_change_message(self):
