@@ -5,11 +5,11 @@ Tests for HistoryMixin functionality.
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
-from libs import BaseModelViewSet, HistoryMixin
+from libs import BaseModelViewSet
 
 
 # Test fixtures - Mock Model and ViewSet
@@ -25,8 +25,8 @@ class MockModel:
         self.id = pk
 
 
-class TestHistoryViewSet(HistoryMixin, BaseModelViewSet):
-    """Test viewset with HistoryMixin"""
+class TestHistoryViewSet(BaseModelViewSet):
+    """Test viewset with HistoryMixin (inherited from BaseModelViewSet)"""
 
     class MockQuerySet:
         model = MockModel
@@ -49,14 +49,14 @@ class HistoryMixinTestCase(TestCase):
         self.factory = APIRequestFactory()
         self.viewset = TestHistoryViewSet()
 
-    @patch("libs.base_viewset.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_exists(self, mock_serializer_class):
         """Test that history action is defined"""
         # Assert
         self.assertTrue(hasattr(self.viewset, "history"))
         self.assertTrue(callable(self.viewset.history))
 
-    @patch("libs.base_viewset.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_returns_audit_logs(self, mock_serializer_class):
         """Test that history action returns audit logs for an object"""
         # Arrange
@@ -84,6 +84,10 @@ class HistoryMixinTestCase(TestCase):
 
         # Create request
         request = self.factory.get("/test/123/history/")
+        # Wrap with DRF to get query_params attribute
+        from rest_framework.request import Request
+
+        request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
@@ -99,7 +103,7 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(call_args["object_type"], "mock_model")
         self.assertEqual(call_args["object_id"], "123")
 
-    @patch("libs.base_viewset.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_with_filters(self, mock_serializer_class):
         """Test that history action supports query parameter filters"""
         # Arrange
@@ -112,6 +116,10 @@ class HistoryMixinTestCase(TestCase):
         request = self.factory.get(
             "/test/123/history/", {"from_date": "2025-01-01", "to_date": "2025-12-31", "action": "CHANGE"}
         )
+        # Wrap with DRF to get query_params attribute
+        from rest_framework.request import Request
+
+        request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
@@ -144,7 +152,7 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn("error", response.data)
 
-    @patch("libs.base_viewset.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_validation_error(self, mock_serializer_class):
         """Test history action returns 400 on validation error"""
         # Arrange
@@ -154,6 +162,10 @@ class HistoryMixinTestCase(TestCase):
         mock_serializer_class.return_value = mock_serializer
 
         request = self.factory.get("/test/123/history/", {"from_date": "invalid"})
+        # Wrap with DRF to get query_params attribute
+        from rest_framework.request import Request
+
+        request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
@@ -164,7 +176,7 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
-    @patch("libs.base_viewset.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_audit_exception(self, mock_serializer_class):
         """Test history action handles audit log exceptions"""
         # Arrange
@@ -176,6 +188,10 @@ class HistoryMixinTestCase(TestCase):
         mock_serializer_class.return_value = mock_serializer
 
         request = self.factory.get("/test/123/history/")
+        # Wrap with DRF to get query_params attribute
+        from rest_framework.request import Request
+
+        request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 

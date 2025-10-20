@@ -268,7 +268,11 @@ class HistoryMixin:
                                 "change_message": {
                                     "headers": ["field", "old_value", "new_value"],
                                     "rows": [
-                                        {"field": "Email", "old_value": "old@example.com", "new_value": "new@example.com"},
+                                        {
+                                            "field": "Email",
+                                            "old_value": "old@example.com",
+                                            "new_value": "new@example.com",
+                                        },
                                         {"field": "Phone", "old_value": "0123456789", "new_value": "0987654321"},
                                     ],
                                 },
