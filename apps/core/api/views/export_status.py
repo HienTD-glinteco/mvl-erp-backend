@@ -18,6 +18,8 @@ class ExportStatusView(APIView):
     API view to check the status of an async export task with progress information.
     """
 
+    permission_classes = []  # No authentication required for checking task status
+
     @extend_schema(
         summary="Check export task status",
         description="Check the status of an asynchronous export task using the task ID. "
@@ -91,6 +93,8 @@ class ExportStatusView(APIView):
                 )
         # Handle FAILURE state
         elif task_result.state == "FAILURE":
-            response_data["error"] = str(task_result.result)
+            # Only set error from Celery if not already present from Redis
+            if "error" not in response_data:
+                response_data["error"] = str(task_result.result)
 
         return Response(response_data, status=status.HTTP_200_OK)

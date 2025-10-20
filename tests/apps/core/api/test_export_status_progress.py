@@ -5,7 +5,7 @@ Tests for export status API view with progress tracking.
 from unittest.mock import MagicMock, patch
 
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -13,6 +13,18 @@ from rest_framework.test import APIClient
 from libs.export_xlsx.constants import REDIS_PROGRESS_KEY_PREFIX
 
 
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
+    REST_FRAMEWORK={
+        "DEFAULT_AUTHENTICATION_CLASSES": [],
+        "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    },
+)
 class ExportStatusViewTests(TestCase):
     """Test cases for ExportStatusView with progress tracking."""
 
@@ -31,7 +43,9 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("error", data["error"])
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_pending_status(self, mock_async_result):
@@ -45,8 +59,8 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": "test-task-123"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["task_id"], "test-task-123")
-        self.assertEqual(response.data["status"], "PENDING")
+        self.assertEqual(response.json()["data"]["task_id"], "test-task-123")
+        self.assertEqual(response.json()["data"]["status"], "PENDING")
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_progress_status_from_redis(self, mock_async_result):
@@ -75,13 +89,13 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["task_id"], task_id)
-        self.assertEqual(response.data["status"], "PROGRESS")
-        self.assertEqual(response.data["percent"], 45)
-        self.assertEqual(response.data["processed_rows"], 450)
-        self.assertEqual(response.data["total_rows"], 1000)
-        self.assertEqual(response.data["speed_rows_per_sec"], 50.5)
-        self.assertEqual(response.data["eta_seconds"], 10.9)
+        self.assertEqual(response.json()["data"]["task_id"], task_id)
+        self.assertEqual(response.json()["data"]["status"], "PROGRESS")
+        self.assertEqual(response.json()["data"]["percent"], 45)
+        self.assertEqual(response.json()["data"]["processed_rows"], 450)
+        self.assertEqual(response.json()["data"]["total_rows"], 1000)
+        self.assertEqual(response.json()["data"]["speed_rows_per_sec"], 50.5)
+        self.assertEqual(response.json()["data"]["eta_seconds"], 10.9)
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_progress_status_from_celery_meta(self, mock_async_result):
@@ -103,10 +117,10 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "PROGRESS")
-        self.assertEqual(response.data["percent"], 60)
-        self.assertEqual(response.data["processed_rows"], 600)
-        self.assertEqual(response.data["total_rows"], 1000)
+        self.assertEqual(response.json()["data"]["status"], "PROGRESS")
+        self.assertEqual(response.json()["data"]["percent"], 60)
+        self.assertEqual(response.json()["data"]["processed_rows"], 600)
+        self.assertEqual(response.json()["data"]["total_rows"], 1000)
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_success_status(self, mock_async_result):
@@ -126,10 +140,10 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "SUCCESS")
-        self.assertEqual(response.data["file_url"], "https://example.com/exports/test.xlsx")
-        self.assertEqual(response.data["file_path"], "exports/test.xlsx")
-        self.assertEqual(response.data["percent"], 100)
+        self.assertEqual(response.json()["data"]["status"], "SUCCESS")
+        self.assertEqual(response.json()["data"]["file_url"], "https://example.com/exports/test.xlsx")
+        self.assertEqual(response.json()["data"]["file_path"], "exports/test.xlsx")
+        self.assertEqual(response.json()["data"]["percent"], 100)
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_success_status_with_redis_progress(self, mock_async_result):
@@ -161,10 +175,10 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "SUCCESS")
-        self.assertEqual(response.data["percent"], 100)
-        self.assertEqual(response.data["processed_rows"], 1000)
-        self.assertEqual(response.data["total_rows"], 1000)
+        self.assertEqual(response.json()["data"]["status"], "SUCCESS")
+        self.assertEqual(response.json()["data"]["percent"], 100)
+        self.assertEqual(response.json()["data"]["processed_rows"], 1000)
+        self.assertEqual(response.json()["data"]["total_rows"], 1000)
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_failure_status(self, mock_async_result):
@@ -180,8 +194,8 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "FAILURE")
-        self.assertIn("Export failed", response.data["error"])
+        self.assertEqual(response.json()["data"]["status"], "FAILURE")
+        self.assertIn("Export failed", response.json()["data"]["error"])
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_failure_status_with_redis_progress(self, mock_async_result):
@@ -208,10 +222,10 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "FAILURE")
-        self.assertEqual(response.data["processed_rows"], 750)
-        self.assertEqual(response.data["total_rows"], 1000)
-        self.assertEqual(response.data["error"], "Export failed: database error")
+        self.assertEqual(response.json()["data"]["status"], "FAILURE")
+        self.assertEqual(response.json()["data"]["processed_rows"], 750)
+        self.assertEqual(response.json()["data"]["total_rows"], 1000)
+        self.assertEqual(response.json()["data"]["error"], "Export failed: database error")
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_redis_priority_over_celery_meta(self, mock_async_result):
@@ -240,8 +254,8 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         # Should use Redis data
-        self.assertEqual(response.data["percent"], 80)
-        self.assertEqual(response.data["processed_rows"], 800)
+        self.assertEqual(response.json()["data"]["percent"], 80)
+        self.assertEqual(response.json()["data"]["processed_rows"], 800)
 
     @patch("apps.core.api.views.export_status.get_progress")
     @patch("apps.core.api.views.export_status.AsyncResult")
@@ -265,8 +279,8 @@ class ExportStatusViewTests(TestCase):
         response = self.client.get(self.url, {"task_id": task_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["percent"], 50)
-        self.assertEqual(response.data["processed_rows"], 500)
+        self.assertEqual(response.json()["data"]["percent"], 50)
+        self.assertEqual(response.json()["data"]["processed_rows"], 500)
 
     @patch("apps.core.api.views.export_status.AsyncResult")
     def test_response_includes_all_progress_fields(self, mock_async_result):
@@ -293,13 +307,14 @@ class ExportStatusViewTests(TestCase):
         cache.set(redis_key, progress_data, timeout=3600)
 
         response = self.client.get(self.url, {"task_id": task_id})
+        data = response.json()["data"]
 
         # Verify all fields are present
-        self.assertIn("task_id", response.data)
-        self.assertIn("status", response.data)
-        self.assertIn("percent", response.data)
-        self.assertIn("processed_rows", response.data)
-        self.assertIn("total_rows", response.data)
-        self.assertIn("speed_rows_per_sec", response.data)
-        self.assertIn("eta_seconds", response.data)
-        self.assertIn("updated_at", response.data)
+        self.assertIn("task_id", data)
+        self.assertIn("status", data)
+        self.assertIn("percent", data)
+        self.assertIn("processed_rows", data)
+        self.assertIn("total_rows", data)
+        self.assertIn("speed_rows_per_sec", data)
+        self.assertIn("eta_seconds", data)
+        self.assertIn("updated_at", data)

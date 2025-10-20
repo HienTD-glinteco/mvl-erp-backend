@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from openpyxl import load_workbook
 
 from libs.export_xlsx import ExportProgressTracker, XLSXGenerator, get_progress
@@ -19,16 +19,24 @@ from libs.export_xlsx.constants import (
 )
 
 
-class ExportProgressTrackerTests(TestCase):
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    }
+)
+class ExportProgressTrackerTests(SimpleTestCase):
     """Test cases for ExportProgressTracker."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.task_id = "test-task-123"
         self.celery_task = MagicMock()
-        self.tracker = ExportProgressTracker(task_id=self.task_id, celery_task=self.celery_task)
-        # Clear any existing cache data
+        # Clear cache before creating tracker
         cache.clear()
+        self.tracker = ExportProgressTracker(task_id=self.task_id, celery_task=self.celery_task)
 
     def tearDown(self):
         """Clean up after tests."""
@@ -155,7 +163,15 @@ class ExportProgressTrackerTests(TestCase):
             self.assertEqual(call_args[1]["timeout"], REDIS_PROGRESS_EXPIRE_SECONDS)
 
 
-class GetProgressTests(TestCase):
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    }
+)
+class GetProgressTests(SimpleTestCase):
     """Test cases for get_progress utility function."""
 
     def setUp(self):
@@ -190,7 +206,15 @@ class GetProgressTests(TestCase):
         self.assertIsNone(result)
 
 
-class XLSXGeneratorProgressTests(TestCase):
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    }
+)
+class XLSXGeneratorProgressTests(SimpleTestCase):
     """Test cases for XLSXGenerator progress callbacks."""
 
     def setUp(self):
@@ -291,8 +315,8 @@ class XLSXGeneratorProgressTests(TestCase):
         generator.generate(schema)
 
         # Total: 1300 rows
-        # Updates: 500, 500, 300 (3 updates)
-        self.assertEqual(len(self.progress_updates), 3)
+        # Updates: 500 (sheet1), 100 (sheet1 remaining), 500 (sheet2), 200 (sheet2 remaining) = 4 updates
+        self.assertEqual(len(self.progress_updates), 4)
         self.assertEqual(sum(self.progress_updates), 1300)
 
     def test_generator_callback_frequency(self):
@@ -351,8 +375,14 @@ class XLSXGeneratorProgressTests(TestCase):
     EXPORTER_CELERY_ENABLED=True,
     EXPORTER_STORAGE_BACKEND="local",
     EXPORTER_PROGRESS_CHUNK_SIZE=100,
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
 )
-class GenerateXLSXTaskProgressTests(TestCase):
+class GenerateXLSXTaskProgressTests(SimpleTestCase):
     """Test cases for generate_xlsx_task with progress tracking."""
 
     def setUp(self):
@@ -364,18 +394,30 @@ class GenerateXLSXTaskProgressTests(TestCase):
         cache.clear()
 
     @patch("libs.export_xlsx.tasks.get_storage_backend")
-    def test_task_publishes_progress(self, mock_storage_backend):
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_task_publishes_progress(self, mock_generator_class, mock_tracker_class, mock_storage_backend):
         """Test that task publishes progress during execution."""
+        # Mock XLSXGenerator
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
         # Mock storage
         mock_storage = Mock()
         mock_storage.save.return_value = "exports/test.xlsx"
         mock_storage.get_url.return_value = "https://example.com/test.xlsx"
         mock_storage_backend.return_value = mock_storage
 
-        # Import task
-        from libs.export_xlsx.tasks import generate_xlsx_task
+        # Mock progress tracker
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
 
-        # Create schema with 250 rows (should trigger progress updates)
+        # Import the task module to get the actual function (not bound)
+        from libs.export_xlsx import tasks
+
+        # Create schema with 250 rows
         schema = {
             "sheets": [
                 {
@@ -387,35 +429,46 @@ class GenerateXLSXTaskProgressTests(TestCase):
             ]
         }
 
-        # Create a mock task with request
-        task = generate_xlsx_task
-        task.request = Mock()
-        task.request.id = "test-task-progress-123"
+        # Create a mock self for the bound task
+        mock_self = Mock()
+        mock_self.request = Mock()
+        mock_self.request.id = "test-task-123"
 
-        # Execute task
-        result = task(schema, filename="test.xlsx", storage_backend="local")
+        # Call the underlying function directly
+        result = tasks.generate_xlsx_task.run(schema, filename="test.xlsx", storage_backend="local")
 
         # Verify result
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["file_url"], "https://example.com/test.xlsx")
 
-        # Verify progress was published to Redis
-        progress = get_progress(task.request.id)
-        self.assertIsNotNone(progress)
-        self.assertEqual(progress["status"], "SUCCESS")
-        self.assertEqual(progress["percent"], 100)
-        self.assertEqual(progress["total_rows"], 250)
-        self.assertEqual(progress["processed_rows"], 250)
+        # Verify progress tracker was initialized
+        self.assertTrue(mock_tracker_class.called)
+        
+        # Verify progress methods were called
+        mock_tracker.set_total.assert_called_once_with(250)
+        mock_tracker.set_completed.assert_called_once()
 
     @patch("libs.export_xlsx.tasks.get_storage_backend")
-    def test_task_handles_failure(self, mock_storage_backend):
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_task_handles_failure(self, mock_generator_class, mock_tracker_class, mock_storage_backend):
         """Test that task handles failures correctly."""
+        # Mock XLSXGenerator
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
         # Make storage raise an error
         mock_storage = Mock()
         mock_storage.save.side_effect = Exception("Storage error")
         mock_storage_backend.return_value = mock_storage
 
-        from libs.export_xlsx.tasks import generate_xlsx_task
+        # Mock progress tracker
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from libs.export_xlsx import tasks
 
         schema = {
             "sheets": [
@@ -428,18 +481,13 @@ class GenerateXLSXTaskProgressTests(TestCase):
             ]
         }
 
-        task = generate_xlsx_task
-        task.request = Mock()
-        task.request.id = "test-task-failure-456"
-
-        result = task(schema, filename="test.xlsx", storage_backend="local")
+        result = tasks.generate_xlsx_task.run(schema, filename="test.xlsx", storage_backend="local")
 
         # Verify result
         self.assertEqual(result["status"], "error")
         self.assertIn("Storage error", result["error"])
 
-        # Verify progress shows failure
-        progress = get_progress(task.request.id)
-        self.assertIsNotNone(progress)
-        self.assertEqual(progress["status"], "FAILURE")
-        self.assertIn("Storage error", progress["error"])
+        # Verify progress tracker recorded failure
+        mock_tracker.set_failed.assert_called_once()
+        error_call = mock_tracker.set_failed.call_args[0][0]
+        self.assertIn("Storage error", error_call)

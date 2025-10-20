@@ -4,7 +4,7 @@ Progress tracking utilities for XLSX export.
 
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 from django.core.cache import cache
 
@@ -94,7 +94,7 @@ class ExportProgressTracker:
         # Publish to Celery task meta
         self._publish_to_celery(progress_data)
 
-    def _build_progress_data(self) -> dict[str, Any]:
+    def _build_progress_data(self) -> dict:
         """
         Build progress data dictionary.
 
@@ -125,7 +125,7 @@ class ExportProgressTracker:
 
         return progress_data
 
-    def _publish_to_redis(self, progress_data: dict[str, Any]) -> None:
+    def _publish_to_redis(self, progress_data: dict) -> None:
         """
         Publish progress to Redis.
 
@@ -141,7 +141,7 @@ class ExportProgressTracker:
         except Exception as e:
             logger.warning(f"Failed to publish progress to Redis: {e}")
 
-    def _publish_to_celery(self, progress_data: dict[str, Any]) -> None:
+    def _publish_to_celery(self, progress_data: dict) -> None:
         """
         Publish progress to Celery task meta.
 
@@ -158,7 +158,7 @@ class ExportProgressTracker:
                 logger.warning(f"Failed to publish progress to Celery: {e}")
 
 
-def get_progress(task_id: str) -> dict[str, Any] | None:
+def get_progress(task_id: str) -> Optional[dict]:
     """
     Retrieve export progress from Redis.
 
