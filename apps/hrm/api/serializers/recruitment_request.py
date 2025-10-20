@@ -9,7 +9,7 @@ from apps.hrm.models import (
     JobDescription,
     RecruitmentRequest,
 )
-from libs import FieldFilteringSerializerMixin
+from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class JobDescriptionNestedSerializer(serializers.ModelSerializer):
@@ -78,6 +78,10 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
     department = DepartmentNestedSerializer(read_only=True)
     proposer = EmployeeNestedSerializer(read_only=True)
 
+    # Colored value fields
+    colored_status = ColoredValueSerializer(read_only=True)
+    colored_recruitment_type = ColoredValueSerializer(read_only=True)
+
     # Write-only fields for POST/PUT/PATCH operations
     job_description_id = serializers.PrimaryKeyRelatedField(
         queryset=JobDescription.objects.all(),
@@ -111,6 +115,8 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
         "proposer_id",
         "recruitment_type",
         "status",
+        "colored_status",
+        "colored_recruitment_type",
         "proposed_salary",
         "number_of_positions",
     ]
@@ -133,6 +139,8 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "proposer_id",
             "recruitment_type",
             "status",
+            "colored_status",
+            "colored_recruitment_type",
             "proposed_salary",
             "number_of_positions",
             "created_at",
@@ -146,9 +154,15 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "block",
             "department",
             "proposer",
+            "colored_status",
+            "colored_recruitment_type",
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "status": {"write_only": True},
+            "recruitment_type": {"write_only": True},
+        }
 
     def validate(self, attrs):
         """Validate recruitment request data.

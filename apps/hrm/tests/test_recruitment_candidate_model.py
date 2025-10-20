@@ -15,6 +15,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from libs import ColorVariant
 
 
 class RecruitmentCandidateModelTest(TransactionTestCase):
@@ -433,3 +434,54 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         candidates = list(RecruitmentCandidate.objects.all())
         self.assertEqual(candidates[0], candidate2)
         self.assertEqual(candidates[1], candidate1)
+
+    def test_colored_status_property(self):
+        """Test colored_status property returns correct value and variant"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van B",
+            citizen_id="123456789012",
+            email="nguyenvanb@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=5,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        colored_status = candidate.colored_status
+        self.assertEqual(colored_status["value"], "HIRED")
+        self.assertEqual(colored_status["variant"], ColorVariant.GREEN)
+
+    def test_colored_status_all_variants(self):
+        """Test all status values have correct color variants"""
+        test_cases = [
+            (RecruitmentCandidate.Status.CONTACTED, ColorVariant.GREY),
+            (RecruitmentCandidate.Status.INTERVIEW_SCHEDULED_1, ColorVariant.YELLOW),
+            (RecruitmentCandidate.Status.INTERVIEWED_1, ColorVariant.ORANGE),
+            (RecruitmentCandidate.Status.INTERVIEW_SCHEDULED_2, ColorVariant.PURPLE),
+            (RecruitmentCandidate.Status.INTERVIEWED_2, ColorVariant.BLUE),
+            (RecruitmentCandidate.Status.HIRED, ColorVariant.GREEN),
+            (RecruitmentCandidate.Status.REJECTED, ColorVariant.RED),
+        ]
+
+        for idx, (status, expected_variant) in enumerate(test_cases):
+            candidate = RecruitmentCandidate.objects.create(
+                name=f"Candidate {status}",
+                citizen_id=f"{123456789000 + idx:012d}",
+                email=f"candidate{idx}@example.com",
+                phone="0123456789",
+                recruitment_request=self.recruitment_request,
+                recruitment_source=self.recruitment_source,
+                recruitment_channel=self.recruitment_channel,
+                years_of_experience=5,
+                submitted_date=date(2025, 10, 15),
+                status=status,
+                onboard_date=date(2025, 11, 1) if status == RecruitmentCandidate.Status.HIRED else None,
+            )
+
+            colored_status = candidate.colored_status
+            self.assertEqual(colored_status["value"], status)
+            self.assertEqual(colored_status["variant"], expected_variant)

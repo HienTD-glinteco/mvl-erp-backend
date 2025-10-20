@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 17:56+0700\n"
+"POT-Creation-Date: 2025-10-20 23:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -191,22 +191,22 @@ msgstr ""
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr ""
 
-#: libs/base_viewset.py:32 libs/base_viewset.py:218
+#: libs/base_viewset.py:32 libs/base_viewset.py:219
 #, python-brace-format
 msgid "List {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:33 libs/base_viewset.py:219
+#: libs/base_viewset.py:33 libs/base_viewset.py:220
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:36 libs/base_viewset.py:222
+#: libs/base_viewset.py:36 libs/base_viewset.py:223
 #, python-brace-format
 msgid "View {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:37 libs/base_viewset.py:223
+#: libs/base_viewset.py:37 libs/base_viewset.py:224
 #, python-brace-format
 msgid "View details of a {model_name}"
 msgstr ""
@@ -260,15 +260,30 @@ msgstr ""
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
 msgstr ""
 
-#: libs/import_xlsx/import_mixin.py:357
+#: libs/import_xlsx/import_mixin.py:377
 msgid "Import task has been queued for processing"
 msgstr ""
 
-#: libs/import_xlsx/utils.py:181
+#: libs/import_xlsx/utils.py:176
+msgid "Enter a valid email address"
+msgstr ""
+
+#: libs/import_xlsx/utils.py:193
 msgid "This field is required"
 msgstr ""
 
-#: libs/serializers/mixins.py:185
+#: libs/serializers/mixins.py:223
+#, python-brace-format
+msgid "File token for {field}"
+msgstr ""
+
+#: libs/serializers/mixins.py:232
+msgid ""
+"File tokens for uploading files. Each key corresponds to a file field on the "
+"model."
+msgstr ""
+
+#: libs/serializers/mixins.py:240
 msgid ""
 "Dictionary mapping field names to file tokens (e.g., {'attachment': "
 "'token123'})"

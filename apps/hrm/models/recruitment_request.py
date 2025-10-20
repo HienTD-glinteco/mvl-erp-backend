@@ -3,13 +3,14 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 
 from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class RecruitmentRequest(AutoCodeMixin, BaseModel):
+class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Recruitment request for new hire or replacement positions"""
 
     CODE_PREFIX = "RR"
@@ -24,6 +25,19 @@ class RecruitmentRequest(AutoCodeMixin, BaseModel):
         OPEN = "OPEN", _("Open")
         PAUSED = "PAUSED", _("Paused")
         CLOSED = "CLOSED", _("Closed")
+
+    VARIANT_MAPPING = {
+        "status": {
+            Status.DRAFT: ColorVariant.GREY,
+            Status.OPEN: ColorVariant.GREEN,
+            Status.PAUSED: ColorVariant.YELLOW,
+            Status.CLOSED: ColorVariant.RED,
+        },
+        "recruitment_type": {
+            RecruitmentType.NEW_HIRE: ColorVariant.BLUE,
+            RecruitmentType.REPLACEMENT: ColorVariant.PURPLE,
+        },
+    }
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Request code"))
     name = models.CharField(max_length=200, verbose_name=_("Request name"))
@@ -85,6 +99,16 @@ class RecruitmentRequest(AutoCodeMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    @property
+    def colored_status(self):
+        """Get status with color variant"""
+        return self.get_colored_value("status")
+
+    @property
+    def colored_recruitment_type(self):
+        """Get recruitment type with color variant"""
+        return self.get_colored_value("recruitment_type")
 
     def clean(self):
         """Validate recruitment request"""

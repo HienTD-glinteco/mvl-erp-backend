@@ -19,6 +19,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from libs import ColorVariant
 
 User = get_user_model()
 
@@ -260,7 +261,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["status"], "HIRED")
+        self.assertEqual(response_data["colored_status"]["value"], "HIRED")
         self.assertEqual(response_data["onboard_date"], "2025-11-01")
 
     def test_retrieve_candidate(self):
@@ -319,7 +320,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["name"], "Nguyen Van B Updated")
         self.assertEqual(response_data["years_of_experience"], 6)
-        self.assertEqual(response_data["status"], "INTERVIEWED_1")
+        self.assertEqual(response_data["colored_status"]["value"], "INTERVIEWED_1")
 
     def test_partial_update_candidate(self):
         """Test partially updating a candidate"""
@@ -345,7 +346,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["status"], "HIRED")
+        self.assertEqual(response_data["colored_status"]["value"], "HIRED")
         self.assertEqual(response_data["onboard_date"], "2025-11-01")
 
     def test_delete_candidate(self):
@@ -433,7 +434,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["status"], "HIRED")
+        self.assertEqual(data[0]["colored_status"]["value"], "HIRED")
 
     def test_search_candidates(self):
         """Test searching candidates by name, email, or code"""
@@ -456,3 +457,70 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertGreaterEqual(len(data), 1)
         self.assertTrue(any(item["name"] == "Nguyen Van B" for item in data))
+
+    def test_colored_status_in_response(self):
+        """Test that colored_status field is included in API response"""
+        # Create candidate
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van B",
+            citizen_id="123456789012",
+            email="nguyenvanb@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=5,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Retrieve the candidate
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+
+        # Check colored_status is present and has correct structure
+        self.assertIn("colored_status", response_data)
+        colored_status = response_data["colored_status"]
+        self.assertIn("value", colored_status)
+        self.assertIn("variant", colored_status)
+        self.assertEqual(colored_status["value"], "CONTACTED")
+        self.assertEqual(colored_status["variant"], ColorVariant.GREY)
+
+    def test_colored_status_variants_for_all_statuses(self):
+        """Test that all status values return correct color variants"""
+        test_cases = [
+            ("CONTACTED", ColorVariant.GREY),
+            ("INTERVIEW_SCHEDULED_1", ColorVariant.YELLOW),
+            ("INTERVIEWED_1", ColorVariant.ORANGE),
+            ("INTERVIEW_SCHEDULED_2", ColorVariant.PURPLE),
+            ("INTERVIEWED_2", ColorVariant.BLUE),
+            ("HIRED", ColorVariant.GREEN),
+            ("REJECTED", ColorVariant.RED),
+        ]
+
+        for idx, (status_value, expected_variant) in enumerate(test_cases):
+            # Create candidate with specific status
+            candidate = RecruitmentCandidate.objects.create(
+                name=f"Candidate {status_value}",
+                citizen_id=f"{123456789000 + idx:012d}",
+                email=f"{status_value.lower()}@example.com",
+                phone="0123456789",
+                recruitment_request=self.recruitment_request,
+                recruitment_source=self.recruitment_source,
+                recruitment_channel=self.recruitment_channel,
+                years_of_experience=5,
+                submitted_date=date(2025, 10, 15),
+                status=status_value,
+                onboard_date=date(2025, 11, 1) if status_value == "HIRED" else None,
+            )
+
+            # Retrieve the candidate
+            url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.id})
+            response = self.client.get(url)
+
+            response_data = self.get_response_data(response)
+            colored_status = response_data["colored_status"]
+            self.assertEqual(colored_status["value"], status_value)
+            self.assertEqual(colored_status["variant"], expected_variant)

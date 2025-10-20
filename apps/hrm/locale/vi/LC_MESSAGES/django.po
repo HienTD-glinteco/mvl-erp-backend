@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 23:51+0700\n"
+"POT-Creation-Date: 2025-10-20 23:37+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -44,8 +44,8 @@ msgstr ""
 msgid "End date must be after start date."
 msgstr "Ngày kết thúc phải sau ngày bắt đầu."
 
-#: apps/hrm/api/serializers/recruitment_request.py:163
-#: apps/hrm/models/recruitment_request.py:109
+#: apps/hrm/api/serializers/recruitment_request.py:177
+#: apps/hrm/models/recruitment_request.py:133
 msgid "Number of positions must be at least 1."
 msgstr ""
 
@@ -245,7 +245,7 @@ msgstr ""
 
 # models/organization.py:13
 #: apps/hrm/models/employee.py:42 apps/hrm/models/organization.py:22
-#: apps/hrm/models/recruitment_candidate.py:40
+#: apps/hrm/models/recruitment_candidate.py:53
 msgid "Email"
 msgstr "Email"
 
@@ -257,24 +257,24 @@ msgstr "Số điện thoại"
 # models/organization.py:17
 #: apps/hrm/models/employee.py:48 apps/hrm/models/organization.py:39
 #: apps/hrm/models/organization.py:65 apps/hrm/models/organization.py:103
-#: apps/hrm/models/recruitment_candidate.py:52
-#: apps/hrm/models/recruitment_request.py:40
+#: apps/hrm/models/recruitment_candidate.py:65
+#: apps/hrm/models/recruitment_request.py:54
 msgid "Branch"
 msgstr "Chi nhánh"
 
 # models/organization.py:45
 #: apps/hrm/models/employee.py:54 apps/hrm/models/organization.py:71
 #: apps/hrm/models/organization.py:104
-#: apps/hrm/models/recruitment_candidate.py:60
-#: apps/hrm/models/recruitment_request.py:48
+#: apps/hrm/models/recruitment_candidate.py:73
+#: apps/hrm/models/recruitment_request.py:62
 msgid "Block"
 msgstr "Khối"
 
 # models/organization.py:102
 #: apps/hrm/models/employee.py:60 apps/hrm/models/organization.py:133
 #: apps/hrm/models/organization.py:286
-#: apps/hrm/models/recruitment_candidate.py:68
-#: apps/hrm/models/recruitment_request.py:56
+#: apps/hrm/models/recruitment_candidate.py:81
+#: apps/hrm/models/recruitment_request.py:70
 msgid "Department"
 msgstr "Phòng ban"
 
@@ -283,7 +283,7 @@ msgid "User"
 msgstr ""
 
 #: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:24
-#: apps/hrm/models/recruitment_candidate.py:97
+#: apps/hrm/models/recruitment_candidate.py:110
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
 msgid "Note"
@@ -300,17 +300,17 @@ msgstr "Nhân viên"
 msgid "Employees"
 msgstr "Các nhân viên"
 
-#: apps/hrm/models/employee.py:109 apps/hrm/models/recruitment_request.py:105
+#: apps/hrm/models/employee.py:109 apps/hrm/models/recruitment_request.py:129
 msgid "Block must belong to the selected branch."
 msgstr ""
 
 # models/organization.py:126
-#: apps/hrm/models/employee.py:113 apps/hrm/models/recruitment_request.py:97
+#: apps/hrm/models/employee.py:113 apps/hrm/models/recruitment_request.py:121
 msgid "Department must belong to the selected block."
 msgstr "Phòng ban phải thuộc khối đã chọn."
 
 # models/organization.py:126
-#: apps/hrm/models/employee.py:117 apps/hrm/models/recruitment_request.py:101
+#: apps/hrm/models/employee.py:117 apps/hrm/models/recruitment_request.py:125
 msgid "Department must belong to the selected branch."
 msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
 
@@ -340,7 +340,7 @@ msgid "Benefit"
 msgstr ""
 
 #: apps/hrm/models/job_description.py:23
-#: apps/hrm/models/recruitment_request.py:77
+#: apps/hrm/models/recruitment_request.py:91
 msgid "Proposed salary"
 msgstr ""
 
@@ -598,36 +598,36 @@ msgstr ""
 "Nhân viên chỉ có thể có một chức vụ chính trong một phòng ban tại một thời "
 "điểm."
 
-#: apps/hrm/models/recruitment_candidate.py:20
+#: apps/hrm/models/recruitment_candidate.py:21
 msgid "Contacted"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:21
+#: apps/hrm/models/recruitment_candidate.py:22
 msgid "Interview Scheduled 1"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:22
+#: apps/hrm/models/recruitment_candidate.py:23
 msgid "Interviewed 1"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:23
+#: apps/hrm/models/recruitment_candidate.py:24
 msgid "Interview Scheduled 2"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:24
+#: apps/hrm/models/recruitment_candidate.py:25
 msgid "Interviewed 2"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:25
+#: apps/hrm/models/recruitment_candidate.py:26
 msgid "Hired"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:26
+#: apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr ""
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/recruitment_candidate.py:28
+#: apps/hrm/models/recruitment_candidate.py:41
 #, fuzzy
 #| msgid "Channel code"
 msgid "Candidate code"
@@ -635,26 +635,26 @@ msgstr "Mã kênh"
 
 # models/organization.py:9
 # models/recruitment_channel.py:12
-#: apps/hrm/models/recruitment_candidate.py:29
+#: apps/hrm/models/recruitment_candidate.py:42
 #, fuzzy
 #| msgid "Channel name"
 msgid "Candidate name"
 msgstr "Tên kênh"
 
-#: apps/hrm/models/recruitment_candidate.py:32
+#: apps/hrm/models/recruitment_candidate.py:45
 msgid "Citizen ID"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:36
+#: apps/hrm/models/recruitment_candidate.py:49
 msgid "Citizen ID must contain exactly 12 digits."
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:41
+#: apps/hrm/models/recruitment_candidate.py:54
 msgid "Phone"
 msgstr ""
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_candidate.py:46
+#: apps/hrm/models/recruitment_candidate.py:59
 #: apps/hrm/models/recruitment_expense.py:34
 #, fuzzy
 #| msgid "Recruitment Channels"
@@ -662,7 +662,7 @@ msgid "Recruitment request"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:76
+#: apps/hrm/models/recruitment_candidate.py:89
 #: apps/hrm/models/recruitment_expense.py:22
 #, fuzzy
 #| msgid "Recruitment Channel"
@@ -670,56 +670,56 @@ msgid "Recruitment source"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:82
+#: apps/hrm/models/recruitment_candidate.py:95
 #: apps/hrm/models/recruitment_expense.py:28
 #, fuzzy
 #| msgid "Recruitment Channel"
 msgid "Recruitment channel"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/recruitment_candidate.py:84
+#: apps/hrm/models/recruitment_candidate.py:97
 msgid "Years of experience"
 msgstr ""
 
 # models/organization.py:217
-#: apps/hrm/models/recruitment_candidate.py:85
+#: apps/hrm/models/recruitment_candidate.py:98
 #, fuzzy
 #| msgid "Start date"
 msgid "Submitted date"
 msgstr "Ngày bắt đầu"
 
-#: apps/hrm/models/recruitment_candidate.py:90
-#: apps/hrm/models/recruitment_request.py:75
+#: apps/hrm/models/recruitment_candidate.py:103
+#: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/recruitment_candidate.py:95
+#: apps/hrm/models/recruitment_candidate.py:108
 #, fuzzy
 #| msgid "End date"
 msgid "Onboard date"
 msgstr "Ngày kết thúc"
 
-#: apps/hrm/models/recruitment_candidate.py:104
+#: apps/hrm/models/recruitment_candidate.py:117
 #: apps/hrm/models/recruitment_expense.py:63
 msgid "Referrer"
 msgstr ""
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:108
+#: apps/hrm/models/recruitment_candidate.py:121
 #, fuzzy
 #| msgid "Recruitment Channel"
 msgid "Recruitment Candidate"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_candidate.py:109
+#: apps/hrm/models/recruitment_candidate.py:122
 #, fuzzy
 #| msgid "Recruitment Channels"
 msgid "Recruitment Candidates"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/recruitment_candidate.py:123
+#: apps/hrm/models/recruitment_candidate.py:141
 msgid "Onboard date is required when status is HIRED."
 msgstr ""
 
@@ -854,66 +854,66 @@ msgstr ""
 msgid "Referrer and referee cannot be the same person."
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:19
+#: apps/hrm/models/recruitment_request.py:20
 msgid "New Hire"
 msgstr ""
 
 # models/organization.py:102
-#: apps/hrm/models/recruitment_request.py:20
+#: apps/hrm/models/recruitment_request.py:21
 msgid "Replacement"
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:23
+#: apps/hrm/models/recruitment_request.py:24
 msgid "Draft"
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:24
+#: apps/hrm/models/recruitment_request.py:25
 msgid "Open"
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:25
+#: apps/hrm/models/recruitment_request.py:26
 msgid "Paused"
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:26
+#: apps/hrm/models/recruitment_request.py:27
 msgid "Closed"
 msgstr ""
 
 # models/organization.py:33
-#: apps/hrm/models/recruitment_request.py:28
+#: apps/hrm/models/recruitment_request.py:42
 msgid "Request code"
 msgstr "Mã yêu cầu"
 
 # models/organization.py:32
-#: apps/hrm/models/recruitment_request.py:29
+#: apps/hrm/models/recruitment_request.py:43
 msgid "Request name"
 msgstr "Tên yêu cầu"
 
 # models/organization.py:39
-#: apps/hrm/models/recruitment_request.py:34
+#: apps/hrm/models/recruitment_request.py:48
 msgid "Job description"
 msgstr "Mô tả công việc"
 
-#: apps/hrm/models/recruitment_request.py:64
+#: apps/hrm/models/recruitment_request.py:78
 msgid "Proposer"
 msgstr ""
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_request.py:69
+#: apps/hrm/models/recruitment_request.py:83
 msgid "Recruitment type"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/recruitment_request.py:78
+#: apps/hrm/models/recruitment_request.py:92
 msgid "Number of positions"
 msgstr ""
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_request.py:81
+#: apps/hrm/models/recruitment_request.py:95
 msgid "Recruitment Request"
 msgstr "Yêu cầu tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_request.py:82
+#: apps/hrm/models/recruitment_request.py:96
 msgid "Recruitment Requests"
 msgstr "Các yêu cầu tuyển dụng"
 

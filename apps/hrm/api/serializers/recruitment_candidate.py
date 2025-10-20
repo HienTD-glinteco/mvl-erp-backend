@@ -11,7 +11,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
-from libs import FieldFilteringSerializerMixin
+from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class RecruitmentRequestNestedSerializer(serializers.ModelSerializer):
@@ -101,6 +101,9 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
     recruitment_channel = RecruitmentChannelNestedSerializer(read_only=True)
     referrer = EmployeeNestedSerializer(read_only=True)
 
+    # Colored value field
+    colored_status = ColoredValueSerializer(read_only=True)
+
     # Write-only fields for POST/PUT/PATCH operations
     recruitment_request_id = serializers.PrimaryKeyRelatedField(
         queryset=RecruitmentRequest.objects.all(),
@@ -137,6 +140,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
         "years_of_experience",
         "submitted_date",
         "status",
+        "colored_status",
         "onboard_date",
         "note",
         "referrer",
@@ -163,6 +167,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             "years_of_experience",
             "submitted_date",
             "status",
+            "colored_status",
             "onboard_date",
             "note",
             "referrer",
@@ -179,9 +184,13 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             "recruitment_source",
             "recruitment_channel",
             "referrer",
+            "colored_status",
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "status": {"write_only": True},
+        }
 
     def validate(self, attrs):
         """Validate recruitment candidate data by delegating to model's clean() method

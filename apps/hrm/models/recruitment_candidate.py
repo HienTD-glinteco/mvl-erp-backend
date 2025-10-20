@@ -4,13 +4,14 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 
 from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class RecruitmentCandidate(AutoCodeMixin, BaseModel):
+class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Candidate applying for recruitment request"""
 
     CODE_PREFIX = "UV"
@@ -24,6 +25,18 @@ class RecruitmentCandidate(AutoCodeMixin, BaseModel):
         INTERVIEWED_2 = "INTERVIEWED_2", _("Interviewed 2")
         HIRED = "HIRED", _("Hired")
         REJECTED = "REJECTED", _("Rejected")
+
+    VARIANT_MAPPING = {
+        "status": {
+            Status.CONTACTED: ColorVariant.GREY,
+            Status.INTERVIEW_SCHEDULED_1: ColorVariant.YELLOW,
+            Status.INTERVIEWED_1: ColorVariant.ORANGE,
+            Status.INTERVIEW_SCHEDULED_2: ColorVariant.PURPLE,
+            Status.INTERVIEWED_2: ColorVariant.BLUE,
+            Status.HIRED: ColorVariant.GREEN,
+            Status.REJECTED: ColorVariant.RED,
+        }
+    }
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Candidate code"))
     name = models.CharField(max_length=200, verbose_name=_("Candidate name"))
@@ -112,6 +125,11 @@ class RecruitmentCandidate(AutoCodeMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    @property
+    def colored_status(self):
+        """Get status with color variant"""
+        return self.get_colored_value("status")
 
     def clean(self):
         """Validate recruitment candidate business rules"""

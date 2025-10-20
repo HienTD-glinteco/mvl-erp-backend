@@ -10,6 +10,7 @@ from apps.hrm.models import (
     JobDescription,
     RecruitmentRequest,
 )
+from libs import ColorVariant
 
 
 class RecruitmentRequestModelTest(TransactionTestCase):
@@ -341,3 +342,79 @@ class RecruitmentRequestModelTest(TransactionTestCase):
         requests = list(RecruitmentRequest.objects.all())
         self.assertEqual(requests[0], request2)
         self.assertEqual(requests[1], request1)
+
+    def test_colored_status_property(self):
+        """Test colored_status property returns correct value and variant"""
+        request = RecruitmentRequest.objects.create(
+            name="Backend Developer Position",
+            job_description=self.job_description,
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="2000-3000 USD",
+        )
+
+        colored_status = request.colored_status
+        self.assertEqual(colored_status["value"], "OPEN")
+        self.assertEqual(colored_status["variant"], ColorVariant.GREEN)
+
+    def test_colored_status_all_variants(self):
+        """Test all status values have correct color variants"""
+        test_cases = [
+            (RecruitmentRequest.Status.DRAFT, ColorVariant.GREY),
+            (RecruitmentRequest.Status.OPEN, ColorVariant.GREEN),
+            (RecruitmentRequest.Status.PAUSED, ColorVariant.YELLOW),
+            (RecruitmentRequest.Status.CLOSED, ColorVariant.RED),
+        ]
+
+        for status, expected_variant in test_cases:
+            request = RecruitmentRequest.objects.create(
+                name=f"Position {status}",
+                job_description=self.job_description,
+                department=self.department,
+                proposer=self.employee,
+                recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+                status=status,
+                proposed_salary="2000-3000 USD",
+            )
+
+            colored_status = request.colored_status
+            self.assertEqual(colored_status["value"], status)
+            self.assertEqual(colored_status["variant"], expected_variant)
+
+    def test_colored_recruitment_type_property(self):
+        """Test colored_recruitment_type property returns correct value and variant"""
+        request = RecruitmentRequest.objects.create(
+            name="Backend Developer Position",
+            job_description=self.job_description,
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            proposed_salary="2000-3000 USD",
+        )
+
+        colored_recruitment_type = request.colored_recruitment_type
+        self.assertEqual(colored_recruitment_type["value"], "NEW_HIRE")
+        self.assertEqual(colored_recruitment_type["variant"], ColorVariant.BLUE)
+
+    def test_colored_recruitment_type_all_variants(self):
+        """Test all recruitment type values have correct color variants"""
+        test_cases = [
+            (RecruitmentRequest.RecruitmentType.NEW_HIRE, ColorVariant.BLUE),
+            (RecruitmentRequest.RecruitmentType.REPLACEMENT, ColorVariant.PURPLE),
+        ]
+
+        for recruitment_type, expected_variant in test_cases:
+            request = RecruitmentRequest.objects.create(
+                name=f"Position {recruitment_type}",
+                job_description=self.job_description,
+                department=self.department,
+                proposer=self.employee,
+                recruitment_type=recruitment_type,
+                proposed_salary="2000-3000 USD",
+            )
+
+            colored_recruitment_type = request.colored_recruitment_type
+            self.assertEqual(colored_recruitment_type["value"], recruitment_type)
+            self.assertEqual(colored_recruitment_type["variant"], expected_variant)

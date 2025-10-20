@@ -15,6 +15,7 @@ from apps.hrm.models import (
     JobDescription,
     RecruitmentRequest,
 )
+from libs import ColorVariant
 
 User = get_user_model()
 
@@ -206,7 +207,7 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["name"], self.request_data["name"])
-        self.assertEqual(response_data["recruitment_type"], self.request_data["recruitment_type"])
+        self.assertEqual(response_data["colored_recruitment_type"]["value"], self.request_data["recruitment_type"])
 
     def test_update_recruitment_request(self):
         """Test updating a recruitment request via API"""
@@ -232,8 +233,8 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["name"], update_data["name"])
-        self.assertEqual(response_data["recruitment_type"], update_data["recruitment_type"])
-        self.assertEqual(response_data["status"], update_data["status"])
+        self.assertEqual(response_data["colored_recruitment_type"]["value"], update_data["recruitment_type"])
+        self.assertEqual(response_data["colored_status"]["value"], update_data["status"])
         self.assertEqual(response_data["proposed_salary"], update_data["proposed_salary"])
         self.assertEqual(response_data["number_of_positions"], update_data["number_of_positions"])
 
@@ -254,11 +255,11 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["status"], partial_data["status"])
+        self.assertEqual(response_data["colored_status"]["value"], partial_data["status"])
         self.assertEqual(response_data["number_of_positions"], partial_data["number_of_positions"])
         # Other fields should remain unchanged
         self.assertEqual(response_data["name"], self.request_data["name"])
-        self.assertEqual(response_data["recruitment_type"], self.request_data["recruitment_type"])
+        self.assertEqual(response_data["colored_recruitment_type"]["value"], self.request_data["recruitment_type"])
 
     def test_delete_draft_recruitment_request(self):
         """Test deleting a recruitment request with DRAFT status"""
@@ -313,7 +314,7 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["status"], "DRAFT")
+        self.assertEqual(response_data[0]["colored_status"]["value"], "DRAFT")
 
     def test_filter_by_recruitment_type(self):
         """Test filtering recruitment requests by recruitment type"""
@@ -336,7 +337,7 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["recruitment_type"], "NEW_HIRE")
+        self.assertEqual(response_data[0]["colored_recruitment_type"]["value"], "NEW_HIRE")
 
     def test_filter_by_department(self):
         """Test filtering recruitment requests by department"""
@@ -504,3 +505,99 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
         del data["proposed_salary"]
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_colored_status_in_response(self):
+        """Test that colored_status field is included in API response"""
+        # Create via API
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, self.request_data, format="json")
+        request_id = self.get_response_data(create_response)["id"]
+
+        # Retrieve the request
+        url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+
+        # Check colored_status is present and has correct structure
+        self.assertIn("colored_status", response_data)
+        colored_status = response_data["colored_status"]
+        self.assertIn("value", colored_status)
+        self.assertIn("variant", colored_status)
+        self.assertEqual(colored_status["value"], "DRAFT")
+        self.assertEqual(colored_status["variant"], ColorVariant.GREY)
+
+    def test_colored_recruitment_type_in_response(self):
+        """Test that colored_recruitment_type field is included in API response"""
+        # Create via API
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, self.request_data, format="json")
+        request_id = self.get_response_data(create_response)["id"]
+
+        # Retrieve the request
+        url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+
+        # Check colored_recruitment_type is present and has correct structure
+        self.assertIn("colored_recruitment_type", response_data)
+        colored_recruitment_type = response_data["colored_recruitment_type"]
+        self.assertIn("value", colored_recruitment_type)
+        self.assertIn("variant", colored_recruitment_type)
+        self.assertEqual(colored_recruitment_type["value"], "NEW_HIRE")
+        self.assertEqual(colored_recruitment_type["variant"], ColorVariant.BLUE)
+
+    def test_colored_status_variants_for_all_statuses(self):
+        """Test that all status values return correct color variants"""
+        url = reverse("hrm:recruitment-request-list")
+
+        test_cases = [
+            ("DRAFT", ColorVariant.GREY),
+            ("OPEN", ColorVariant.GREEN),
+            ("PAUSED", ColorVariant.YELLOW),
+            ("CLOSED", ColorVariant.RED),
+        ]
+
+        for status_value, expected_variant in test_cases:
+            data = self.request_data.copy()
+            data["status"] = status_value
+            data["name"] = f"Position {status_value}"
+
+            create_response = self.client.post(url, data, format="json")
+            request_id = self.get_response_data(create_response)["id"]
+
+            detail_url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+            response = self.client.get(detail_url)
+
+            response_data = self.get_response_data(response)
+            colored_status = response_data["colored_status"]
+            self.assertEqual(colored_status["value"], status_value)
+            self.assertEqual(colored_status["variant"], expected_variant)
+
+    def test_colored_recruitment_type_variants(self):
+        """Test that all recruitment type values return correct color variants"""
+        url = reverse("hrm:recruitment-request-list")
+
+        test_cases = [
+            ("NEW_HIRE", ColorVariant.BLUE),
+            ("REPLACEMENT", ColorVariant.PURPLE),
+        ]
+
+        for type_value, expected_variant in test_cases:
+            data = self.request_data.copy()
+            data["recruitment_type"] = type_value
+            data["name"] = f"Position {type_value}"
+
+            create_response = self.client.post(url, data, format="json")
+            request_id = self.get_response_data(create_response)["id"]
+
+            detail_url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+            response = self.client.get(detail_url)
+
+            response_data = self.get_response_data(response)
+            colored_recruitment_type = response_data["colored_recruitment_type"]
+            self.assertEqual(colored_recruitment_type["value"], type_value)
+            self.assertEqual(colored_recruitment_type["variant"], expected_variant)
