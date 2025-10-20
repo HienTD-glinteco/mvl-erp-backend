@@ -16,9 +16,7 @@ class TestPrepareUserInfo(TestCase):
 
     def setUp(self):
         """Set up test data."""
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="testpass123"
-        )
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
 
     def test_prepare_user_info_basic_fields(self):
         """Test that basic user fields are captured."""
@@ -37,8 +35,8 @@ class TestPrepareUserInfo(TestCase):
 
     def test_prepare_user_info_with_employee(self):
         """Test that employee fields are captured when user has employee record."""
-        from apps.core.models import Province, AdministrativeUnit
-        from apps.hrm.models import Branch, Block, Department, Employee
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department, Employee
 
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
@@ -95,9 +93,10 @@ class TestPrepareUserInfo(TestCase):
 
     def test_prepare_user_info_with_position(self):
         """Test that position fields are captured from organization chart."""
-        from apps.core.models import Province, AdministrativeUnit
-        from apps.hrm.models import Branch, Block, Department, Employee, Position, OrganizationChart
         from datetime import date
+
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
 
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
@@ -169,9 +168,10 @@ class TestPrepareUserInfo(TestCase):
 
     def test_prepare_user_info_with_multiple_positions(self):
         """Test that only primary position is captured when user has multiple positions."""
-        from apps.core.models import Province, AdministrativeUnit
-        from apps.hrm.models import Branch, Block, Department, Employee, Position, OrganizationChart
         from datetime import date
+
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
 
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
