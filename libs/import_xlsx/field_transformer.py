@@ -22,22 +22,22 @@ ERROR_TRANSFORMATION_FAILED = "Transformation failed for field '{field}': {error
 class FieldTransformer:
     """
     Transform and combine field values according to configuration.
-    
+
     Supports:
     - Combining multiple fields into one (e.g., day/month/year → date)
     - Date format parsing and validation
     - Custom transformations
-    
+
     Example usage:
         transformer = FieldTransformer()
-        
+
         # Combine date fields
         date_value = transformer.combine_fields(
             ["2024", "01", "15"],
             format="YYYY-MM-DD"
         )
         # Returns: "2024-01-15"
-        
+
         # Transform with config
         value = transformer.transform_field(
             field_name="start_date",
@@ -71,15 +71,15 @@ class FieldTransformer:
     ) -> Any:
         """
         Transform a field value according to configuration.
-        
+
         Args:
             field_name: Target field name
             field_config: Field configuration (string for simple mapping, dict for complex)
             row_data: Dictionary of row data from Excel
-            
+
         Returns:
             Transformed field value
-            
+
         Raises:
             ValueError: If transformation fails
         """
@@ -113,15 +113,15 @@ class FieldTransformer:
     ) -> Any:
         """
         Combine multiple field values into one.
-        
+
         Args:
             field_name: Target field name
             field_config: Field configuration with 'combine' key
             row_data: Dictionary of row data
-            
+
         Returns:
             Combined field value
-            
+
         Raises:
             ValueError: If combination fails
         """
@@ -162,15 +162,15 @@ class FieldTransformer:
     ) -> str:
         """
         Parse date from multiple values.
-        
+
         Args:
             values: List of date component values
             format_pattern: Date format pattern (e.g., "YYYY-MM-DD")
             field_name: Field name for error messages
-            
+
         Returns:
             Formatted date string
-            
+
         Raises:
             ValueError: If date parsing fails
         """
@@ -218,11 +218,11 @@ class FieldTransformer:
     ) -> dict:
         """
         Transform all fields in a row according to configuration.
-        
+
         Args:
             fields_config: Fields configuration dictionary
             row_data: Dictionary of row data from Excel
-            
+
         Returns:
             dict: Transformed row data with model field names as keys
         """

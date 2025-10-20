@@ -28,9 +28,9 @@ ERROR_INVALID_RELATION_CONFIG = "Invalid relation configuration for '{relation}'
 class MappingConfigParser:
     """
     Parser and validator for import mapping configuration.
-    
+
     Supports JSON and YAML formats for defining how Excel data maps to Django models.
-    
+
     Example configuration:
         {
           "sheets": [
@@ -70,7 +70,7 @@ class MappingConfigParser:
     def __init__(self, config: dict | str):
         """
         Initialize parser with configuration.
-        
+
         Args:
             config: Dictionary or JSON/YAML string
         """
@@ -83,13 +83,13 @@ class MappingConfigParser:
     def _parse_string(self, config_str: str) -> dict:
         """
         Parse configuration from JSON or YAML string.
-        
+
         Args:
             config_str: JSON or YAML formatted string
-            
+
         Returns:
             dict: Parsed configuration
-            
+
         Raises:
             ValueError: If unable to parse
         """
@@ -108,7 +108,7 @@ class MappingConfigParser:
     def validate(self):
         """
         Validate the configuration structure.
-        
+
         Raises:
             ValueError: If configuration is invalid
         """
@@ -127,10 +127,10 @@ class MappingConfigParser:
     def _validate_sheet(self, sheet_config: dict):
         """
         Validate a single sheet configuration.
-        
+
         Args:
             sheet_config: Sheet configuration dictionary
-            
+
         Raises:
             ValueError: If sheet configuration is invalid
         """
@@ -164,10 +164,10 @@ class MappingConfigParser:
     def _validate_fields(self, fields_config: dict):
         """
         Validate fields configuration.
-        
+
         Args:
             fields_config: Fields configuration dictionary
-            
+
         Raises:
             ValueError: If fields configuration is invalid
         """
@@ -200,10 +200,10 @@ class MappingConfigParser:
     def _validate_relations(self, relations_config: dict):
         """
         Validate relations configuration.
-        
+
         Args:
             relations_config: Relations configuration dictionary
-            
+
         Raises:
             ValueError: If relations configuration is invalid
         """
@@ -224,13 +224,13 @@ class MappingConfigParser:
     def _get_model_by_name(self, model_name: str):
         """
         Find Django model by name across all apps.
-        
+
         Args:
             model_name: Name of the model
-            
+
         Returns:
             Model class
-            
+
         Raises:
             LookupError: If model not found
         """
@@ -243,7 +243,7 @@ class MappingConfigParser:
     def get_sheets(self) -> list[dict]:
         """
         Get list of sheet configurations.
-        
+
         Returns:
             list: List of sheet configuration dictionaries
         """
@@ -252,10 +252,10 @@ class MappingConfigParser:
     def get_sheet_by_name(self, name: str) -> dict | None:
         """
         Get sheet configuration by name.
-        
+
         Args:
             name: Sheet name
-            
+
         Returns:
             dict or None: Sheet configuration if found
         """
@@ -267,10 +267,10 @@ class MappingConfigParser:
     def get_model_for_sheet(self, sheet_config: dict):
         """
         Get Django model for a sheet configuration.
-        
+
         Args:
             sheet_config: Sheet configuration dictionary
-            
+
         Returns:
             Model class
         """
