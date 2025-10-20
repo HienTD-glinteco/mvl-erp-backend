@@ -43,7 +43,10 @@ class TestPrepareUserInfo(TestCase):
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
         admin_unit = AdministrativeUnit.objects.create(
-            name="Test Admin Unit", full_name="Test Admin Unit Full", code_name="TAU"
+            name="Test Admin Unit",
+            code="TAU",
+            parent_province=province,
+            level="district",
         )
         branch = Branch.objects.create(
             name="Test Branch",
@@ -99,7 +102,10 @@ class TestPrepareUserInfo(TestCase):
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
         admin_unit = AdministrativeUnit.objects.create(
-            name="Test Admin Unit", full_name="Test Admin Unit Full", code_name="TAU"
+            name="Test Admin Unit",
+            code="TAU",
+            parent_province=province,
+            level="district",
         )
         branch = Branch.objects.create(
             name="Test Branch",
@@ -170,7 +176,10 @@ class TestPrepareUserInfo(TestCase):
         # Create organizational structure
         province = Province.objects.create(name="Test Province", code="TP")
         admin_unit = AdministrativeUnit.objects.create(
-            name="Test Admin Unit", full_name="Test Admin Unit Full", code_name="TAU"
+            name="Test Admin Unit",
+            code="TAU",
+            parent_province=province,
+            level="district",
         )
         branch = Branch.objects.create(
             name="Test Branch",
