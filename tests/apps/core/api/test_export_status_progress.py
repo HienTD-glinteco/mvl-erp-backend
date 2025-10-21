@@ -20,19 +20,26 @@ from libs.export_xlsx.constants import REDIS_PROGRESS_KEY_PREFIX
             "LOCATION": "test-progress-cache",
         }
     },
-    REST_FRAMEWORK={
-        "DEFAULT_AUTHENTICATION_CLASSES": [],
-        "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    },
 )
 class ExportStatusViewTests(TestCase):
     """Test cases for ExportStatusView with progress tracking."""
 
     def setUp(self):
         """Set up test fixtures."""
+        from apps.core.models import User
+        
         self.client = APIClient()
         self.url = reverse("core:export_status")
         cache.clear()
+        
+        # Create and authenticate user
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            is_superuser=True,  # Superuser bypasses permission checks
+        )
+        self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
         """Clean up after tests."""

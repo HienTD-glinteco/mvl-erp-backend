@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.api.permissions import RoleBasedPermission
+from apps.core.utils.permissions import register_permission
 from libs.export_xlsx.progress import get_progress
 from libs.export_xlsx.serializers import ExportStatusResponseSerializer
 
@@ -18,7 +20,7 @@ class ExportStatusView(APIView):
     API view to check the status of an async export task with progress information.
     """
 
-    permission_classes = []  # No authentication required for checking task status
+    permission_classes = [RoleBasedPermission]
 
     @extend_schema(
         summary="Check export task status",
@@ -38,6 +40,7 @@ class ExportStatusView(APIView):
         },
         tags=["Export"],
     )
+    @register_permission("export.check_status", _("Check export status"))
     def get(self, request):
         """
         Check export task status with progress information.

@@ -160,6 +160,17 @@ Settings in `settings/base/export.py`:
 | `EXPORTER_FILE_EXPIRE_DAYS` | `7` | Auto-delete after days |
 | `EXPORTER_LOCAL_STORAGE_PATH` | `exports` | Local storage path |
 | `EXPORTER_PROGRESS_CHUNK_SIZE` | `500` | Progress update frequency (rows) |
+| `EXPORTER_ROW_DELAY_SECONDS` | `0` | Artificial delay per row for testing (0 = disabled) |
+
+### Testing Settings
+
+**EXPORTER_ROW_DELAY_SECONDS**: For testing purposes, you can add an artificial delay after processing each row. This is useful when testing progress tracking with small datasets that would otherwise complete too quickly to observe progress updates.
+
+Example:
+```bash
+# Add 0.1 second delay per row (useful for testing with ~100 rows)
+EXPORTER_ROW_DELAY_SECONDS=0.1
+```
 
 ### Storage Backend Details
 

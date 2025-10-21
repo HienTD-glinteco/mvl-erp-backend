@@ -3,8 +3,10 @@ XLSX generator for creating Excel files from schema definitions.
 """
 
 import logging
+import time
 from io import BytesIO
 
+from django.conf import settings
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
@@ -252,6 +254,15 @@ class XLSXGenerator:
             self.total_rows_processed += 1
             if self.progress_callback and self.total_rows_processed % self.chunk_size == 0:
                 self.progress_callback(self.chunk_size)
+            
+            # Artificial per-row delay for testing queue behavior.
+            # Controlled by EXPORTER_ROW_DELAY_SECONDS env var (0 = disabled).
+            row_delay = getattr(settings, "EXPORTER_ROW_DELAY_SECONDS", 0)
+            if row_delay and row_delay > 0:
+                logger.debug(
+                    f"Delaying {row_delay}s after writing row {self.total_rows_processed} (test mode)"
+                )
+                time.sleep(row_delay)
 
     def _track_merge_value(self, field_name, current_value, current_row, col, merge_ranges, prev_values, merge_start):
         """Track value changes for cell merging."""
