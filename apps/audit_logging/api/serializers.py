@@ -173,7 +173,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
             "results": result["results"],
             "count": result["count"],
             "next": result.get("next"),
-            "previous": result["previous"],
+            "previous": result.get("previous"),
         }
 
 
