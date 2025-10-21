@@ -16,6 +16,7 @@ class JobDescription(AutoCodeMixin, BaseModel):
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Job description code"))
     title = models.CharField(max_length=200, verbose_name=_("Job title"))
+    position_title = models.CharField(max_length=255, verbose_name=_("Position title"))
     responsibility = SafeTextField(verbose_name=_("Responsibility"))
     requirement = SafeTextField(verbose_name=_("Requirement"))
     preferred_criteria = SafeTextField(blank=True, verbose_name=_("Preferred criteria"))

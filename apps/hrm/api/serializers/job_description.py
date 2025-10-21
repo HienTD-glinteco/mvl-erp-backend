@@ -17,6 +17,7 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
             "id",
             "code",
             "title",
+            "position_title",
             "responsibility",
             "requirement",
             "preferred_criteria",

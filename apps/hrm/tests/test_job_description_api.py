@@ -40,6 +40,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         self.job_data = {
             "title": "Senior Python Developer",
+            "position_title": "Senior Backend Developer",
             "responsibility": "Develop and maintain backend services",
             "requirement": "5+ years Python experience",
             "preferred_criteria": "Experience with Django and FastAPI",
@@ -59,6 +60,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         job = JobDescription.objects.first()
         self.assertEqual(job.title, self.job_data["title"])
+        self.assertEqual(job.position_title, self.job_data["position_title"])
         self.assertEqual(job.responsibility, self.job_data["responsibility"])
         self.assertEqual(job.requirement, self.job_data["requirement"])
         self.assertEqual(job.preferred_criteria, self.job_data["preferred_criteria"])
@@ -73,6 +75,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:job-description-list")
         minimal_data = {
             "title": "Junior Developer",
+            "position_title": "Junior Software Engineer",
             "responsibility": "Learn and grow",
             "requirement": "Basic programming knowledge",
             "benefit": "benefit",
@@ -85,6 +88,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         job = JobDescription.objects.first()
         self.assertEqual(job.title, minimal_data["title"])
+        self.assertEqual(job.position_title, minimal_data["position_title"])
         self.assertEqual(job.preferred_criteria, "")
         self.assertEqual(job.benefit, "benefit")
         self.assertEqual(job.proposed_salary, "1000-1500 USD")
@@ -128,6 +132,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         update_data = {
             "title": "Senior Python Developer - Updated",
+            "position_title": "Senior Backend Developer - Updated",
             "responsibility": "Lead backend development",
             "requirement": "7+ years Python experience",
             "preferred_criteria": "Experience with Django, FastAPI, and microservices",
@@ -165,6 +170,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data["title"], partial_data["title"])
         self.assertEqual(response_data["proposed_salary"], partial_data["proposed_salary"])
         # Other fields should remain unchanged
+        self.assertEqual(response_data["position_title"], self.job_data["position_title"])
         self.assertEqual(response_data["responsibility"], self.job_data["responsibility"])
         self.assertEqual(response_data["requirement"], self.job_data["requirement"])
 
@@ -202,6 +208,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertNotEqual(copy_data["code"], original_code)
         self.assertTrue(copy_data["code"].startswith("JD"))
         self.assertEqual(copy_data["title"], self.job_data["title"])
+        self.assertEqual(copy_data["position_title"], self.job_data["position_title"])
         self.assertEqual(copy_data["responsibility"], self.job_data["responsibility"])
         self.assertEqual(copy_data["requirement"], self.job_data["requirement"])
         self.assertEqual(copy_data["preferred_criteria"], self.job_data["preferred_criteria"])
