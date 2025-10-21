@@ -154,12 +154,27 @@ Settings in `settings/base/export.py`:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `EXPORTER_CELERY_ENABLED` | `False` | Enable async export |
-| `EXPORTER_STORAGE_BACKEND` | `local` | Storage backend |
-| `EXPORTER_S3_BUCKET_NAME` | `""` | S3 bucket name |
-| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | URL expiration (seconds) |
+| `EXPORTER_STORAGE_BACKEND` | `local` | Storage backend (`local` or `s3`) |
+| `EXPORTER_S3_BUCKET_NAME` | `""` | S3 bucket name (optional, uses `AWS_STORAGE_BUCKET_NAME` if not set) |
+| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | Signed URL expiration (seconds) |
 | `EXPORTER_FILE_EXPIRE_DAYS` | `7` | Auto-delete after days |
 | `EXPORTER_LOCAL_STORAGE_PATH` | `exports` | Local storage path |
 | `EXPORTER_PROGRESS_CHUNK_SIZE` | `500` | Progress update frequency (rows) |
+
+### Storage Backend Details
+
+**Local Storage (`local`)**:
+- Uses `FileSystemStorage` to save files to the local filesystem
+- Files are saved to `MEDIA_ROOT/EXPORTER_LOCAL_STORAGE_PATH/`
+- Independent of Django's `STORAGES` configuration
+- URLs are served via Django's media URL
+
+**S3 Storage (`s3`)**:
+- Uses Django's `default_storage` (should be configured as S3)
+- Generates signed URLs using boto3 for secure, time-limited access
+- Respects `AWS_LOCATION` setting for file path prefix
+- Signed URLs expire after `EXPORTER_S3_SIGNED_URL_EXPIRE` seconds (default: 1 hour)
+- Falls back to standard storage URLs if signed URL generation fails
 
 ## Progress Tracking
 
