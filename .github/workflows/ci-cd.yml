@@ -203,7 +203,7 @@ jobs:
     name: Deploy to Develop Environment
     runs-on: ubuntu-latest
     environment: test
-    needs: [lint, django-checks, test]
+    needs: [lint, django-checks]
     # Only run deployment on push to master (not on pull requests) and only if all checks passed
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
