@@ -135,14 +135,25 @@ class FileConfirmSerializerMixin:
     OpenAPI/Swagger documentation, it can show concrete file field names instead
     of a generic dictionary by using auto-detection or explicit configuration.
 
+    Auto-Detection Features (NEW):
+        The mixin now intelligently detects file-related fields from your model:
+        - CharField fields with file-related names (attachment, document, file, upload, photo, image, avatar)
+        - ForeignKey/OneToOneField pointing to apps.files.models.FileModel
+        - ForeignKey/OneToOneField to any model with "file" in its class name
+        - GenericRelation fields (commonly used for file associations)
+
+        For models with ambiguous field patterns or GenericForeignKey setups,
+        explicit configuration via file_confirm_fields is recommended.
+
     Usage:
-        # Basic usage (generic dict field)
+        # Basic usage with auto-detection
         class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
             class Meta:
-                model = JobDescription
+                model = JobDescription  # Has ForeignKey to FileModel
                 fields = '__all__'
+            # Auto-detects 'attachment' field from model
 
-        # With explicit file fields for enhanced schema
+        # With explicit file fields (overrides auto-detection)
         class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
             file_confirm_fields = ['attachment', 'document']
 
@@ -164,7 +175,8 @@ class FileConfirmSerializerMixin:
                                              files. If provided, creates a structured
                                              schema showing specific field names instead
                                              of a generic dict. If not provided, attempts
-                                             auto-detection from model CharField fields.
+                                             auto-detection from model fields (CharField,
+                                             ForeignKey, OneToOneField, GenericRelation).
 
     Example Request:
         POST /api/hrm/job-descriptions/
@@ -200,7 +212,8 @@ class FileConfirmSerializerMixin:
         - If confirmation fails, the entire save operation is rolled back
         - The 'files' field is automatically added by the mixin
         - Each file is assigned to the corresponding field on the model instance
-        - Auto-detection looks for CharField fields with names like 'attachment', 'document', etc.
+        - Auto-detection now supports ForeignKey, OneToOneField, and GenericRelation in addition to CharField
+        - Import failures for apps.files.models.FileModel are handled gracefully with fallback detection
     """
 
     file_tokens_field = "files"
@@ -240,42 +253,120 @@ class FileConfirmSerializerMixin:
                 help_text=_("Dictionary mapping field names to file tokens (e.g., {'attachment': 'token123'})"),
             )
 
-    def _get_file_confirm_fields(self):
+    def _get_file_confirm_fields(self):  # noqa: C901
         """
-        Get list of file field names for schema generation.
+        Auto-detect file-related field names for schema generation.
+
+        This method intelligently identifies fields that are likely to be used for file uploads
+        by examining the model's field definitions.
+
+        Detection Rules (in order of precedence):
+            1. **CharField** with file-related names (attachment, document, file, upload, photo, image, avatar)
+            2. **ForeignKey/OneToOneField** pointing directly to apps.files.models.FileModel
+            3. **ForeignKey/OneToOneField** to any model with "file" in its class name (case-insensitive)
+            4. **GenericRelation** fields (commonly used for file associations)
+            5. Any field name matching file patterns (fallback for edge cases)
 
         Returns:
-            list: List of field names that should appear in the files schema
+            list: Deduplicated list of field names that should appear in the files schema
 
         Priority:
-            1. Explicitly defined file_confirm_fields attribute on serializer
-            2. Auto-detected from model CharField fields with file-related names
-            3. Empty list (fallback to generic dict field)
+            1. Explicitly defined file_confirm_fields attribute on serializer (always respected)
+            2. Auto-detected from model using the rules above
+            3. Empty list (fallback to generic dict field for backward compatibility)
+
+        Examples:
+            >>> # CharField detection
+            >>> class Model1(models.Model):
+            ...     attachment = models.CharField(max_length=500)  # Detected
+
+            >>> # ForeignKey to FileModel
+            >>> class Model2(models.Model):
+            ...     document = models.ForeignKey('files.FileModel', ...)  # Detected
+
+            >>> # ForeignKey with "file" in model name
+            >>> class UserFile(models.Model):
+            ...     pass
+            >>> class Model3(models.Model):
+            ...     upload = models.ForeignKey(UserFile, ...)  # Detected
+
+            >>> # GenericRelation
+            >>> class Model4(models.Model):
+            ...     attachments = GenericRelation('files.FileModel')  # Detected
+
+        Notes:
+            - Import failures are handled gracefully; falls back to name-based detection
+            - For ambiguous cases (e.g., GenericForeignKey), explicit configuration is recommended
+            - Deduplication ensures each field appears only once, preserving order
         """
-        # Check if explicitly defined on the serializer
+        # 1. Explicit override takes precedence
         if hasattr(self, "file_confirm_fields") and self.file_confirm_fields:
             return self.file_confirm_fields
 
-        # Try to auto-detect from model
-        if hasattr(self, "Meta") and hasattr(self.Meta, "model"):
-            model = self.Meta.model
-            file_field_names = []
+        # 2. Ensure model exists
+        if not (hasattr(self, "Meta") and hasattr(self.Meta, "model")):
+            return []
 
-            # Common file field name patterns
-            file_patterns = ["attachment", "document", "file", "upload", "photo", "image", "avatar"]
+        model = self.Meta.model
+        file_field_names = []
 
-            # Iterate through model fields
-            for field in model._meta.get_fields():
-                field_name = field.name
-                # Check if it's a CharField and matches file patterns
-                if hasattr(field, "get_internal_type") and field.get_internal_type() == "CharField":
-                    # Check if field name contains any file pattern
-                    if any(pattern in field_name.lower() for pattern in file_patterns):
+        # Common file field name patterns
+        file_patterns = ["attachment", "document", "file", "upload", "photo", "image", "avatar"]
+
+        # Import field types
+        from django.contrib.contenttypes.fields import GenericRelation
+        from django.db.models import CharField, ForeignKey, OneToOneField
+
+        # Try to import FileModel; if it fails, fall back to name-based detection
+        try:
+            from apps.files.models import FileModel
+        except Exception:
+            FileModel = None
+
+        # Iterate through model fields
+        for field in model._meta.get_fields():
+            field_name = getattr(field, "name", None)
+            if not field_name:
+                continue
+
+            # Rule 1: CharField with file-related pattern
+            if isinstance(field, CharField):
+                if any(pattern in field_name.lower() for pattern in file_patterns):
+                    file_field_names.append(field_name)
+                continue
+
+            # Rule 2 & 3: ForeignKey or OneToOneField
+            if isinstance(field, (ForeignKey, OneToOneField)):
+                remote = getattr(getattr(field, "remote_field", None), "model", None)
+                if remote:
+                    # Direct match to FileModel if available
+                    if FileModel and remote == FileModel:
                         file_field_names.append(field_name)
+                        continue
+                    # Fallback: related class name contains 'file'
+                    if "file" in getattr(remote, "__name__", "").lower():
+                        file_field_names.append(field_name)
+                        continue
 
-            return file_field_names
+            # Rule 4: GenericRelation
+            if isinstance(field, GenericRelation):
+                file_field_names.append(field_name)
+                continue
 
-        return []
+            # Rule 5: Optional last-resort name match (use with caution)
+            # This catches fields that don't match specific types but have file-like names
+            if any(pattern in field_name.lower() for pattern in file_patterns):
+                file_field_names.append(field_name)
+
+        # Deduplicate while preserving order
+        seen = set()
+        deduped = []
+        for name in file_field_names:
+            if name not in seen:
+                deduped.append(name)
+                seen.add(name)
+
+        return deduped
 
     def _confirm_related_files(self, instance):
         """
