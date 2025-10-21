@@ -134,7 +134,6 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
             "benefit": "Competitive salary, benefits, and stock options",
             "proposed_salary": "3000-4000 USD",
             "note": "Fully remote",
-            "attachment": "updated_jd.pdf",
         }
 
         url = reverse("hrm:job-description-detail", kwargs={"pk": job_id})
@@ -198,7 +197,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(JobDescription.objects.count(), 2)
 
         copy_data = self.get_response_data(copy_response)
-        # Check that all fields are copied except id, code, created_at, updated_at
+        # Check that all fields are copied except id, code, created_at, updated_at, attachment
         self.assertNotEqual(copy_data["id"], original_id)
         self.assertNotEqual(copy_data["code"], original_code)
         self.assertTrue(copy_data["code"].startswith("JD"))
@@ -209,7 +208,8 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(copy_data["benefit"], self.job_data["benefit"])
         self.assertEqual(copy_data["proposed_salary"], self.job_data["proposed_salary"])
         self.assertEqual(copy_data["note"], self.job_data["note"])
-        self.assertEqual(copy_data["attachment"], self.job_data["attachment"])
+        # Attachment is not copied as it's a ForeignKey to FileModel
+        self.assertIsNone(copy_data["attachment"])
 
     def test_filter_by_title(self):
         """Test filtering job descriptions by title"""
@@ -309,3 +309,79 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         # Code should be auto-generated, not the custom one
         self.assertNotEqual(response_data["code"], "CUSTOM_CODE")
         self.assertTrue(response_data["code"].startswith("JD"))
+
+    def test_create_job_description_with_file_upload(self):
+        """Test creating a job description with file upload"""
+        from unittest.mock import patch
+
+        from django.core.cache import cache
+
+        from apps.files.constants import CACHE_KEY_PREFIX
+        from apps.files.models import FileModel
+
+        # Arrange: Setup file token and cache data
+        file_token = "test-token-jd-001"
+        cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
+
+        # Clear cache before test
+        cache.clear()
+
+        with (
+            patch("libs.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
+            patch("apps.files.utils.s3_utils.S3FileUploadService") as mock_s3_service_model,
+        ):
+            # Mock cache to return file metadata
+            cache_data = {
+                "file_name": "job_description.pdf",
+                "file_type": "application/pdf",
+                "purpose": "job_description",
+                "file_path": "uploads/tmp/test-token-jd-001/job_description.pdf",
+            }
+            mock_cache.get.return_value = json.dumps(cache_data)
+
+            # Mock S3 service for file confirmation
+            mock_instance = mock_s3_service.return_value
+            mock_instance.check_file_exists.return_value = True
+            mock_instance.generate_permanent_path.return_value = "uploads/job_description/1/job_description.pdf"
+            mock_instance.move_file.return_value = True
+            mock_instance.get_file_metadata.return_value = {
+                "size": 123456,
+                "content_type": "application/pdf",
+                "etag": "abc123",
+            }
+
+            # Mock S3 service for view/download URLs in FileModel properties
+            mock_instance_model = mock_s3_service_model.return_value
+            mock_instance_model.generate_view_url.return_value = "https://example.com/view/job_description.pdf"
+            mock_instance_model.generate_download_url.return_value = "https://example.com/download/job_description.pdf"
+
+            # Act: Create job description with file token
+            url = reverse("hrm:job-description-list")
+            job_data_with_file = self.job_data.copy()
+            job_data_with_file["files"] = {"attachment": file_token}
+
+            response = self.client.post(url, job_data_with_file, format="json")
+
+            # Assert: Check response
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            response_data = self.get_response_data(response)
+
+            # Check that attachment is populated with FileModel data
+            self.assertIsNotNone(response_data["attachment"])
+            self.assertEqual(response_data["attachment"]["file_name"], "job_description.pdf")
+            self.assertEqual(response_data["attachment"]["purpose"], "job_description")
+            self.assertTrue(response_data["attachment"]["is_confirmed"])
+
+            # Check database
+            job = JobDescription.objects.get(pk=response_data["id"])
+            self.assertIsNotNone(job.attachment)
+            self.assertEqual(job.attachment.file_name, "job_description.pdf")
+            self.assertEqual(job.attachment.purpose, "job_description")
+            self.assertTrue(job.attachment.is_confirmed)
+
+            # Check FileModel was created
+            self.assertEqual(FileModel.objects.count(), 1)
+            file_record = FileModel.objects.first()
+            self.assertEqual(file_record.file_name, "job_description.pdf")
+            self.assertEqual(file_record.uploaded_by, self.user)

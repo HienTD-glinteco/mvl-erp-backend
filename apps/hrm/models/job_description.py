@@ -22,7 +22,14 @@ class JobDescription(AutoCodeMixin, BaseModel):
     benefit = SafeTextField(verbose_name=_("Benefit"))
     proposed_salary = models.CharField(max_length=100, verbose_name=_("Proposed salary"))
     note = SafeTextField(blank=True, verbose_name=_("Note"))
-    attachment = models.CharField(max_length=500, blank=True, verbose_name=_("Attachment"))
+    attachment = models.ForeignKey(
+        "files.FileModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="job_descriptions",
+        verbose_name=_("Attachment"),
+    )
 
     class Meta:
         verbose_name = _("Job Description")
