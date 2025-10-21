@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 23:37+0700\n"
+"POT-Creation-Date: 2025-10-21 11:01+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -44,7 +44,7 @@ msgstr ""
 msgid "End date must be after start date."
 msgstr "Ngày kết thúc phải sau ngày bắt đầu."
 
-#: apps/hrm/api/serializers/recruitment_request.py:177
+#: apps/hrm/api/serializers/recruitment_request.py:195
 #: apps/hrm/models/recruitment_request.py:133
 msgid "Number of positions must be at least 1."
 msgstr ""
@@ -53,7 +53,7 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_request.py:347
+#: apps/hrm/api/views/recruitment_request.py:397
 msgid ""
 "Cannot delete recruitment request. Only requests with DRAFT status can be "
 "deleted."

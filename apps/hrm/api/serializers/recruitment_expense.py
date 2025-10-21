@@ -123,6 +123,8 @@ class RecruitmentExpenseSerializer(FieldFilteringSerializerMixin, serializers.Mo
         "referrer_id",
         "activity",
         "note",
+        "created_at",
+        "updated_at",
     ]
 
     class Meta:

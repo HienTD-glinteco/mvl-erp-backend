@@ -17,8 +17,8 @@ class JobDescriptionNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobDescription
-        fields = ["id", "code", "title"]
-        read_only_fields = ["id", "code", "title"]
+        fields = ["id", "code", "title", "requirement", "benefit"]
+        read_only_fields = ["id", "code", "title", "requirement", "benefit"]
 
 
 class EmployeeNestedSerializer(serializers.ModelSerializer):
@@ -81,6 +81,8 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
     # Colored value fields
     colored_status = ColoredValueSerializer(read_only=True)
     colored_recruitment_type = ColoredValueSerializer(read_only=True)
+    number_of_candidates = serializers.SerializerMethodField()
+    number_of_hires = serializers.SerializerMethodField()
 
     # Write-only fields for POST/PUT/PATCH operations
     job_description_id = serializers.PrimaryKeyRelatedField(
@@ -119,6 +121,10 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
         "colored_recruitment_type",
         "proposed_salary",
         "number_of_positions",
+        "number_of_candidates",
+        "number_of_hires",
+        "created_at",
+        "updated_at",
     ]
 
     class Meta:
@@ -143,6 +149,8 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "colored_recruitment_type",
             "proposed_salary",
             "number_of_positions",
+            "number_of_candidates",
+            "number_of_hires",
             "created_at",
             "updated_at",
         ]
@@ -156,6 +164,8 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "proposer",
             "colored_status",
             "colored_recruitment_type",
+            "number_of_candidates",
+            "number_of_hires",
             "created_at",
             "updated_at",
         ]
@@ -163,6 +173,14 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "status": {"write_only": True},
             "recruitment_type": {"write_only": True},
         }
+
+    def get_number_of_candidates(self, obj) -> int:
+        """Get total number of candidates for this recruitment request"""
+        return obj.candidates.count()
+
+    def get_number_of_hires(self, obj) -> int:
+        """Get number of hired candidates for this recruitment request"""
+        return obj.candidates.filter(status="HIRED").count()
 
     def validate(self, attrs):
         """Validate recruitment request data.

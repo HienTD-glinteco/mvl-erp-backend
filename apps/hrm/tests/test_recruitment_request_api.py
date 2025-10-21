@@ -601,3 +601,120 @@ class RecruitmentRequestAPITest(TransactionTestCase, APITestMixin):
             colored_recruitment_type = response_data["colored_recruitment_type"]
             self.assertEqual(colored_recruitment_type["value"], type_value)
             self.assertEqual(colored_recruitment_type["variant"], expected_variant)
+
+    def test_number_of_candidates_field(self):
+        """Test that number_of_candidates field is included and accurate"""
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, self.request_data, format="json")
+        request_id = self.get_response_data(create_response)["id"]
+
+        # Initially should be 0
+        detail_url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.get(detail_url)
+        response_data = self.get_response_data(response)
+
+        self.assertIn("number_of_candidates", response_data)
+        self.assertEqual(response_data["number_of_candidates"], 0)
+
+    def test_number_of_hires_field(self):
+        """Test that number_of_hires field is included and accurate"""
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, self.request_data, format="json")
+        request_id = self.get_response_data(create_response)["id"]
+
+        # Initially should be 0
+        detail_url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.get(detail_url)
+        response_data = self.get_response_data(response)
+
+        self.assertIn("number_of_hires", response_data)
+        self.assertEqual(response_data["number_of_hires"], 0)
+
+    def test_number_fields_are_read_only(self):
+        """Test that number_of_candidates and number_of_hires are read-only"""
+        url = reverse("hrm:recruitment-request-list")
+
+        # Try to set these fields in create
+        data = self.request_data.copy()
+        data["number_of_candidates"] = 100
+        data["number_of_hires"] = 50
+
+        create_response = self.client.post(url, data, format="json")
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+
+        response_data = self.get_response_data(create_response)
+
+        # These fields should be 0 (ignored from request), not the values we tried to set
+        self.assertEqual(response_data["number_of_candidates"], 0)
+        self.assertEqual(response_data["number_of_hires"], 0)
+
+    def test_all_fields_in_list_response(self):
+        """Test that all fields including new ones are present in list response"""
+        url = reverse("hrm:recruitment-request-list")
+        self.client.post(url, self.request_data, format="json")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+
+        item = response_data[0]
+
+        # Check all expected fields are present
+        expected_fields = [
+            "id",
+            "code",
+            "name",
+            "job_description",
+            "branch",
+            "block",
+            "department",
+            "proposer",
+            "colored_status",
+            "colored_recruitment_type",
+            "proposed_salary",
+            "number_of_positions",
+            "number_of_candidates",
+            "number_of_hires",
+            "created_at",
+            "updated_at",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, item, f"Field '{field}' is missing from response")
+
+    def test_all_fields_in_detail_response(self):
+        """Test that all fields including new ones are present in detail response"""
+        url = reverse("hrm:recruitment-request-list")
+        create_response = self.client.post(url, self.request_data, format="json")
+        request_id = self.get_response_data(create_response)["id"]
+
+        detail_url = reverse("hrm:recruitment-request-detail", kwargs={"pk": request_id})
+        response = self.client.get(detail_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+
+        # Check all expected fields are present
+        expected_fields = [
+            "id",
+            "code",
+            "name",
+            "job_description",
+            "branch",
+            "block",
+            "department",
+            "proposer",
+            "colored_status",
+            "colored_recruitment_type",
+            "proposed_salary",
+            "number_of_positions",
+            "number_of_candidates",
+            "number_of_hires",
+            "created_at",
+            "updated_at",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, response_data, f"Field '{field}' is missing from response")
