@@ -13,9 +13,9 @@ from rest_framework.response import Response
 
 class HistoryMixin:
     """
-    Mixin that adds a history action to ViewSets.
+    Mixin that adds history actions to ViewSets.
 
-    This mixin provides an endpoint to retrieve the audit log history
+    This mixin provides endpoints to retrieve the audit log history
     of a specific object instance. It queries the audit logging system
     based on the object's type and ID.
 
@@ -36,12 +36,14 @@ class HistoryMixin:
             permission_prefix = "customer"
 
         This will automatically add:
-            - GET /customers/{id}/history/ endpoint
-            - customer.history permission
+            - GET /customers/{id}/histories/ endpoint
+            - GET /customers/{id}/history/{log_id}/ endpoint
+            - customer.histories permission
+            - customer.history_detail permission
     """
 
     @extend_schema(
-        summary="Get object history",
+        summary="Get object histories",
         description="Retrieve the audit log history for this object, showing all changes made over time",
         tags=["History"],
         parameters=[
@@ -149,8 +151,8 @@ class HistoryMixin:
             ),
         ],
     )
-    @action(detail=True, methods=["get"], url_path="history")
-    def history(self, request, pk=None):
+    @action(detail=True, methods=["get"], url_path="histories")
+    def histories(self, request, pk=None):
         """
         Get the audit log history for a specific object.
 
@@ -202,5 +204,116 @@ class HistoryMixin:
         except AuditLogException as e:
             return Response(
                 {"error": f"Failed to retrieve history: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @extend_schema(
+        summary="Get history detail",
+        description="Retrieve detailed information about a specific audit log entry",
+        tags=["History"],
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="ID of the object",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="log_id",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description="ID of the specific audit log entry",
+                required=True,
+            ),
+        ],
+        examples=[
+            OpenApiExample(
+                "Success - History detail",
+                description="Example response showing detailed information about a specific history entry",
+                value={
+                    "success": True,
+                    "data": {
+                        "log_id": "abc123def456",
+                        "timestamp": "2025-10-13T14:30:00Z",
+                        "user_id": "user-uuid-1",
+                        "username": "admin@example.com",
+                        "full_name": "Admin User",
+                        "employee_code": "EMP001",
+                        "action": "CHANGE",
+                        "object_type": "customer",
+                        "object_id": "123",
+                        "object_repr": "John Doe",
+                        "change_message": {
+                            "headers": ["field", "old_value", "new_value"],
+                            "rows": [
+                                {
+                                    "field": "Email",
+                                    "old_value": "old@example.com",
+                                    "new_value": "new@example.com",
+                                },
+                                {"field": "Phone", "old_value": "0123456789", "new_value": "0987654321"},
+                            ],
+                        },
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - History entry not found",
+                description="Error response when history entry doesn't exist",
+                value={"success": False, "error": "History entry not found"},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["get"], url_path="history/(?P<log_id>[^/.]+)")
+    def history_detail(self, request, pk=None, log_id=None):
+        """
+        Get detailed information about a specific audit log entry.
+
+        Returns detailed information about a single audit log entry
+        for this object.
+        """
+        # Import here to avoid circular dependency
+        from .api.serializers import AuditLogSearchSerializer
+        from .exceptions import AuditLogException
+
+        # Get the object to ensure it exists and get its model info
+        try:
+            obj = self.get_object()
+        except Exception:
+            return Response({"error": "Object not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get model metadata
+        model_class = obj.__class__
+        object_type = model_class._meta.model_name
+        object_id = str(obj.pk)
+
+        # Build search parameters to find specific log entry
+        search_params = {
+            "object_type": object_type,
+            "object_id": object_id,
+            "log_id": log_id,
+            "page_size": 1,
+        }
+
+        # Use the audit log search serializer
+        serializer = AuditLogSearchSerializer(data=search_params)
+        if not serializer.is_valid():
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Execute search
+            result = serializer.search()
+            if result.get("total", 0) == 0:
+                return Response({"error": "History entry not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Return the first (and only) result
+            return Response(result["results"][0] if result.get("results") else {})
+        except AuditLogException as e:
+            return Response(
+                {"error": f"Failed to retrieve history detail: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

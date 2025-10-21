@@ -6,9 +6,6 @@ from .middleware import audit_context, set_current_request
 from .producer import log_audit_event
 from .registry import AuditLogRegistry
 
-# Note: HistoryMixin is not exported here to avoid circular import issues
-# during Django setup. Import it directly from .history_mixin when needed.
-
 __all__ = [
     "AuditLoggingMixin",
     "LogAction",

@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import TestCase
 from rest_framework import status
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.audit_logging.history_mixin import HistoryMixin
@@ -52,14 +53,14 @@ class HistoryMixinTestCase(TestCase):
 
     @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_exists(self, mock_serializer_class):
-        """Test that history action is defined"""
+        """Test that histories action is defined"""
         # Assert
-        self.assertTrue(hasattr(self.viewset, "history"))
-        self.assertTrue(callable(self.viewset.history))
+        self.assertTrue(hasattr(self.viewset, "histories"))
+        self.assertTrue(callable(self.viewset.histories))
 
     @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_returns_audit_logs(self, mock_serializer_class):
-        """Test that history action returns audit logs for an object"""
+        """Test that histories action returns audit logs for an object"""
         # Arrange
         mock_result = {
             "results": [
@@ -86,14 +87,12 @@ class HistoryMixinTestCase(TestCase):
         # Create request
         request = self.factory.get("/test/123/history/")
         # Wrap with DRF to get query_params attribute
-        from rest_framework.request import Request
-
         request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
         # Act
-        response = self.viewset.history(request, pk=123)
+        response = self.viewset.histories(request, pk=123)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,7 +105,7 @@ class HistoryMixinTestCase(TestCase):
 
     @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_with_filters(self, mock_serializer_class):
-        """Test that history action supports query parameter filters"""
+        """Test that histories action supports query parameter filters"""
         # Arrange
         mock_serializer = MagicMock()
         mock_serializer.is_valid.return_value = True
@@ -118,14 +117,12 @@ class HistoryMixinTestCase(TestCase):
             "/test/123/history/", {"from_date": "2025-01-01", "to_date": "2025-12-31", "action": "CHANGE"}
         )
         # Wrap with DRF to get query_params attribute
-        from rest_framework.request import Request
-
         request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
         # Act
-        response = self.viewset.history(request, pk=123)
+        response = self.viewset.histories(request, pk=123)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -137,17 +134,17 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(call_args["action"], "CHANGE")
 
     def test_history_action_object_not_found(self):
-        """Test history action returns 404 when object doesn't exist"""
+        """Test histories action returns 404 when object doesn't exist"""
         # Arrange
         viewset = TestHistoryViewSet()
         viewset.get_object = MagicMock(side_effect=Exception("Not found"))
 
-        request = self.factory.get("/test/999/history/")
+        request = self.factory.get("/test/999/histories/")
         viewset.request = request
         viewset.format_kwarg = None
 
         # Act
-        response = viewset.history(request, pk=999)
+        response = viewset.histories(request, pk=999)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -155,23 +152,21 @@ class HistoryMixinTestCase(TestCase):
 
     @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_validation_error(self, mock_serializer_class):
-        """Test history action returns 400 on validation error"""
+        """Test histories action returns 400 on validation error"""
         # Arrange
         mock_serializer = MagicMock()
         mock_serializer.is_valid.return_value = False
         mock_serializer.errors = {"from_date": ["Invalid date format"]}
         mock_serializer_class.return_value = mock_serializer
 
-        request = self.factory.get("/test/123/history/", {"from_date": "invalid"})
+        request = self.factory.get("/test/123/histories/", {"from_date": "invalid"})
         # Wrap with DRF to get query_params attribute
-        from rest_framework.request import Request
-
         request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
         # Act
-        response = self.viewset.history(request, pk=123)
+        response = self.viewset.histories(request, pk=123)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -179,7 +174,7 @@ class HistoryMixinTestCase(TestCase):
 
     @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
     def test_history_action_audit_exception(self, mock_serializer_class):
-        """Test history action handles audit log exceptions"""
+        """Test histories action handles audit log exceptions"""
         # Arrange
         from apps.audit_logging.exceptions import AuditLogException
 
@@ -190,14 +185,12 @@ class HistoryMixinTestCase(TestCase):
 
         request = self.factory.get("/test/123/history/")
         # Wrap with DRF to get query_params attribute
-        from rest_framework.request import Request
-
         request = Request(request)
         self.viewset.request = request
         self.viewset.format_kwarg = None
 
         # Act
-        response = self.viewset.history(request, pk=123)
+        response = self.viewset.histories(request, pk=123)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -209,32 +202,32 @@ class HistoryMixinPermissionRegistrationTestCase(TestCase):
     """Test that HistoryMixin registers permissions correctly"""
 
     def test_history_action_is_detected_as_custom_action(self):
-        """Test that history action is detected in custom actions"""
+        """Test that histories action is detected in custom actions"""
         # Act
         custom_actions = TestHistoryViewSet.get_custom_actions()
 
         # Assert
-        self.assertIn("history", custom_actions)
+        self.assertIn("histories", custom_actions)
 
     def test_history_permission_is_registered(self):
-        """Test that history action generates a permission"""
+        """Test that histories action generates a permission"""
         # Act
         permissions = TestHistoryViewSet.get_registered_permissions()
 
         # Assert
         codes = [p["code"] for p in permissions]
-        self.assertIn("test_history.history", codes)
+        self.assertIn("test_history.histories", codes)
 
     def test_history_permission_metadata(self):
-        """Test that history permission has correct metadata"""
+        """Test that histories permission has correct metadata"""
         # Act
         permissions = TestHistoryViewSet.get_registered_permissions()
-        history_perm = next(p for p in permissions if p["code"] == "test_history.history")
+        history_perm = next(p for p in permissions if p["code"] == "test_history.histories")
 
         # Assert
         self.assertEqual(history_perm["module"], "Test Module")
         self.assertEqual(history_perm["submodule"], "History Testing")
-        self.assertIn("History", history_perm["name"])
+        self.assertIn("Histories", history_perm["name"])
         self.assertIn("Mock Model", history_perm["name"])
 
 
