@@ -10,7 +10,8 @@ from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.audit_logging.exceptions import AuditLogException
 from libs import BaseModelViewSet
 
 
@@ -51,14 +52,14 @@ class HistoryMixinTestCase(TestCase):
         self.factory = APIRequestFactory()
         self.viewset = TestHistoryViewSet()
 
-    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")
     def test_history_action_exists(self, mock_serializer_class):
         """Test that histories action is defined"""
         # Assert
         self.assertTrue(hasattr(self.viewset, "histories"))
         self.assertTrue(callable(self.viewset.histories))
 
-    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")
     def test_history_action_returns_audit_logs(self, mock_serializer_class):
         """Test that histories action returns audit logs for an object"""
         # Arrange
@@ -103,7 +104,7 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(call_args["object_type"], "mock_model")
         self.assertEqual(call_args["object_id"], "123")
 
-    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")
     def test_history_action_with_filters(self, mock_serializer_class):
         """Test that histories action supports query parameter filters"""
         # Arrange
@@ -150,7 +151,7 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn("error", response.data)
 
-    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")
     def test_history_action_validation_error(self, mock_serializer_class):
         """Test histories action returns 400 on validation error"""
         # Arrange
@@ -172,12 +173,10 @@ class HistoryMixinTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
-    @patch("apps.audit_logging.api.serializers.AuditLogSearchSerializer")
+    @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")
     def test_history_action_audit_exception(self, mock_serializer_class):
         """Test histories action handles audit log exceptions"""
         # Arrange
-        from apps.audit_logging.exceptions import AuditLogException
-
         mock_serializer = MagicMock()
         mock_serializer.is_valid.return_value = True
         mock_serializer.search.side_effect = AuditLogException("OpenSearch connection failed")

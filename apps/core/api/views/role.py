@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
 from apps.core.models import Role

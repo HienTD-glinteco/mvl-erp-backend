@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.filtersets import PermissionFilterSet
 from apps.core.api.serializers.role import PermissionSerializer
 from apps.core.models import Permission

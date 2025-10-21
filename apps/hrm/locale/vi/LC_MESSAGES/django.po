@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 23:51+0700\n"
+"POT-Creation-Date: 2025-10-21 14:02+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -49,7 +49,7 @@ msgstr "Ngày kết thúc phải sau ngày bắt đầu."
 msgid "Number of positions must be at least 1."
 msgstr ""
 
-#: apps/hrm/api/views/employee_role.py:191
+#: apps/hrm/api/views/employee_role.py:192
 msgid "Update successful"
 msgstr ""
 
@@ -628,18 +628,14 @@ msgstr ""
 
 # models/recruitment_channel.py:13
 #: apps/hrm/models/recruitment_candidate.py:28
-#, fuzzy
-#| msgid "Channel code"
 msgid "Candidate code"
-msgstr "Mã kênh"
+msgstr "Mã ứng viên"
 
 # models/organization.py:9
 # models/recruitment_channel.py:12
 #: apps/hrm/models/recruitment_candidate.py:29
-#, fuzzy
-#| msgid "Channel name"
 msgid "Candidate name"
-msgstr "Tên kênh"
+msgstr "Tên ứng viên"
 
 #: apps/hrm/models/recruitment_candidate.py:32
 msgid "Citizen ID"
@@ -656,24 +652,18 @@ msgstr ""
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_candidate.py:46
 #: apps/hrm/models/recruitment_expense.py:34
-#, fuzzy
-#| msgid "Recruitment Channels"
 msgid "Recruitment request"
-msgstr "Kênh tuyển dụng"
+msgstr "Yêu cầu tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:76
 #: apps/hrm/models/recruitment_expense.py:22
-#, fuzzy
-#| msgid "Recruitment Channel"
 msgid "Recruitment source"
-msgstr "Kênh tuyển dụng"
+msgstr "Nguồn tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:82
 #: apps/hrm/models/recruitment_expense.py:28
-#, fuzzy
-#| msgid "Recruitment Channel"
 msgid "Recruitment channel"
 msgstr "Kênh tuyển dụng"
 
@@ -683,10 +673,8 @@ msgstr ""
 
 # models/organization.py:217
 #: apps/hrm/models/recruitment_candidate.py:85
-#, fuzzy
-#| msgid "Start date"
 msgid "Submitted date"
-msgstr "Ngày bắt đầu"
+msgstr "Ngày nộp đơn"
 
 #: apps/hrm/models/recruitment_candidate.py:90
 #: apps/hrm/models/recruitment_request.py:75
@@ -695,10 +683,8 @@ msgstr ""
 
 # models/organization.py:218
 #: apps/hrm/models/recruitment_candidate.py:95
-#, fuzzy
-#| msgid "End date"
 msgid "Onboard date"
-msgstr "Ngày kết thúc"
+msgstr "Ngày nhận việc"
 
 #: apps/hrm/models/recruitment_candidate.py:104
 #: apps/hrm/models/recruitment_expense.py:63
@@ -707,17 +693,13 @@ msgstr ""
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:108
-#, fuzzy
-#| msgid "Recruitment Channel"
 msgid "Recruitment Candidate"
-msgstr "Kênh tuyển dụng"
+msgstr "Ứng viên"
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_candidate.py:109
-#, fuzzy
-#| msgid "Recruitment Channels"
 msgid "Recruitment Candidates"
-msgstr "Kênh tuyển dụng"
+msgstr "Các ứng viên"
 
 #: apps/hrm/models/recruitment_candidate.py:123
 msgid "Onboard date is required when status is HIRED."
@@ -725,10 +707,8 @@ msgstr ""
 
 # models/organization.py:217
 #: apps/hrm/models/recruitment_candidate_contact_log.py:18
-#, fuzzy
-#| msgid "Start date"
 msgid "Contact date"
-msgstr "Ngày bắt đầu"
+msgstr "Ngày lien hệ"
 
 #: apps/hrm/models/recruitment_candidate_contact_log.py:19
 msgid "Contact method"
@@ -736,24 +716,18 @@ msgstr ""
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate_contact_log.py:25
-#, fuzzy
-#| msgid "Recruitment Channel"
 msgid "Recruitment candidate"
-msgstr "Kênh tuyển dụng"
+msgstr "Ứng viên"
 
 # models/organization.py:63
 #: apps/hrm/models/recruitment_candidate_contact_log.py:29
-#, fuzzy
-#| msgid "Recruitment & Training"
 msgid "Recruitment Candidate Contact Log"
-msgstr "Tuyển dụng - Đào tạo"
+msgstr "Lịch sử liên hệ ứng viên"
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_candidate_contact_log.py:30
-#, fuzzy
-#| msgid "Recruitment Channels"
 msgid "Recruitment Candidate Contact Logs"
-msgstr "Kênh tuyển dụng"
+msgstr "Các lịch sử liên hệ ứng viên"
 
 #: apps/hrm/models/recruitment_channel.py:18
 msgid "Job Website"
@@ -786,10 +760,8 @@ msgstr "Kênh tuyển dụng"
 
 # models/organization.py:218
 #: apps/hrm/models/recruitment_expense.py:17
-#, fuzzy
-#| msgid "End date"
 msgid "Expense date"
-msgstr "Ngày kết thúc"
+msgstr "Ngày chi phí"
 
 #: apps/hrm/models/recruitment_expense.py:38
 msgid "Number of candidates participated"
@@ -809,24 +781,18 @@ msgstr ""
 
 # models/organization.py:39
 #: apps/hrm/models/recruitment_expense.py:68
-#, fuzzy
-#| msgid "Job description"
 msgid "Activity description"
-msgstr "Mô tả công việc"
+msgstr "Mô tả hoạt động"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_expense.py:77
-#, fuzzy
-#| msgid "Recruitment type"
 msgid "Recruitment Expense"
-msgstr "Kênh tuyển dụng"
+msgstr "Chi phí tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_expense.py:78
-#, fuzzy
-#| msgid "Recruitment type"
 msgid "Recruitment Expenses"
-msgstr "Kênh tuyển dụng"
+msgstr "Các chi phí tuyển dụng"
 
 #: apps/hrm/models/recruitment_expense.py:107
 msgid "Recruitment request must be in status: Open, Closed, or Paused."

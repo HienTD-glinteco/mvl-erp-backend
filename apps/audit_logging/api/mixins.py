@@ -10,7 +10,9 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from ..exceptions import AuditLogException
 from ..middleware import audit_context
+from .serializers import AuditLogSearchSerializer
 
 
 class AuditLoggingMixin:
@@ -187,10 +189,6 @@ class AuditLoggingMixin:
         Returns a list of all audit log entries for this object,
         including create, update, and delete actions.
         """
-        # Import here to avoid circular dependency
-        from ..api.serializers import AuditLogSearchSerializer
-        from ..exceptions import AuditLogException
-
         # Get the object to ensure it exists and get its model info
         try:
             obj = self.get_object()
@@ -304,10 +302,6 @@ class AuditLoggingMixin:
         Returns detailed information about a single audit log entry
         for this object.
         """
-        # Import here to avoid circular dependency
-        from ..api.serializers import AuditLogSearchSerializer
-        from ..exceptions import AuditLogException
-
         # Get the object to ensure it exists and get its model info
         try:
             obj = self.get_object()

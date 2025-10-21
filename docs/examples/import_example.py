@@ -4,7 +4,7 @@ Example: Using ImportXLSXMixin with a ViewSet
 This example demonstrates how to add XLSX import functionality to a ViewSet.
 """
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from libs import BaseModelViewSet, ImportXLSXMixin
 
 
