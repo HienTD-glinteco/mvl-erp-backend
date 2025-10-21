@@ -37,7 +37,7 @@ from libs import BaseModelViewSet
                                 "benefit": "Competitive salary and benefits",
                                 "proposed_salary": "2000-3000 USD",
                                 "note": "Remote work available",
-                                "attachment": "",
+                                "attachment": None,
                                 "created_at": "2025-10-16T03:00:00Z",
                                 "updated_at": "2025-10-16T03:00:00Z",
                             }
@@ -50,7 +50,7 @@ from libs import BaseModelViewSet
     ),
     create=extend_schema(
         summary="Create a new job description",
-        description="Create a new job description in the system",
+        description="Create a new job description in the system. Optionally include file token for attachment upload.",
         tags=["Job Description"],
         examples=[
             OpenApiExample(
@@ -67,7 +67,37 @@ from libs import BaseModelViewSet
                         "benefit": "Competitive salary and benefits",
                         "proposed_salary": "2000-3000 USD",
                         "note": "Remote work available",
-                        "attachment": "",
+                        "attachment": None,
+                        "created_at": "2025-10-16T03:00:00Z",
+                        "updated_at": "2025-10-16T03:00:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Success with attachment",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "JD0001",
+                        "title": "Senior Python Developer",
+                        "responsibility": "Develop and maintain backend services",
+                        "requirement": "5+ years Python experience",
+                        "preferred_criteria": "Experience with Django and FastAPI",
+                        "benefit": "Competitive salary and benefits",
+                        "proposed_salary": "2000-3000 USD",
+                        "note": "Remote work available",
+                        "attachment": {
+                            "id": 1,
+                            "purpose": "job_description",
+                            "file_name": "jd_attachment.pdf",
+                            "file_path": "uploads/job_description/1/jd_attachment.pdf",
+                            "size": 123456,
+                            "is_confirmed": True,
+                            "view_url": "https://example.com/view/...",
+                            "download_url": "https://example.com/download/...",
+                        },
                         "created_at": "2025-10-16T03:00:00Z",
                         "updated_at": "2025-10-16T03:00:00Z",
                     },
@@ -101,7 +131,7 @@ from libs import BaseModelViewSet
                         "benefit": "Competitive salary and benefits",
                         "proposed_salary": "2000-3000 USD",
                         "note": "Remote work available",
-                        "attachment": "",
+                        "attachment": None,
                         "created_at": "2025-10-16T03:00:00Z",
                         "updated_at": "2025-10-16T03:00:00Z",
                     },
@@ -129,7 +159,7 @@ from libs import BaseModelViewSet
                         "benefit": "Competitive salary and benefits",
                         "proposed_salary": "2000-3000 USD",
                         "note": "Remote work available",
-                        "attachment": "",
+                        "attachment": None,
                         "created_at": "2025-10-16T03:00:00Z",
                         "updated_at": "2025-10-16T03:00:00Z",
                     },
@@ -157,7 +187,7 @@ from libs import BaseModelViewSet
                         "benefit": "Competitive salary and benefits",
                         "proposed_salary": "2000-3000 USD",
                         "note": "Remote work available",
-                        "attachment": "",
+                        "attachment": None,
                         "created_at": "2025-10-16T03:00:00Z",
                         "updated_at": "2025-10-16T03:00:00Z",
                     },
@@ -216,7 +246,7 @@ class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "benefit": "Competitive salary and benefits",
                         "proposed_salary": "2000-3000 USD",
                         "note": "Remote work available",
-                        "attachment": "",
+                        "attachment": None,
                         "created_at": "2025-10-16T03:05:00Z",
                         "updated_at": "2025-10-16T03:05:00Z",
                     },
@@ -237,6 +267,7 @@ class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
         original = self.get_object()
 
         # Create a copy with all fields except id, code, created_at, updated_at
+        # Note: attachment (ForeignKey to FileModel) is not copied, user should upload new file
         copied = JobDescription.objects.create(
             title=original.title,
             responsibility=original.responsibility,
@@ -245,7 +276,6 @@ class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
             benefit=original.benefit,
             proposed_salary=original.proposed_salary,
             note=original.note,
-            attachment=original.attachment,
         )
 
         serializer = self.get_serializer(copied)
