@@ -8,6 +8,7 @@ from libs.serializers import FileConfirmSerializerMixin
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for JobDescription model"""
 
+    file_confirm_fields = ["attachment"]
     attachment = FileSerializer(read_only=True)
 
     class Meta:
