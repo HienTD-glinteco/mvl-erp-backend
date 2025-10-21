@@ -80,8 +80,10 @@ class TestFileConfirmSerializerMixinSchema:
         reason="HRM app not installed",
     )
     def test_mixin_with_job_description_auto_detection(self):
-        """Test that mixin auto-detects file fields from JobDescription model.
+        """Test that mixin falls back to generic dict when no CharField file fields are detected.
 
+        Since JobDescription.attachment is now a ForeignKey (not CharField), auto-detection
+        will not find any file fields and should fall back to a generic DictField.
         This test is skipped if the JobDescription model is not available.
         """
         try:
@@ -103,13 +105,9 @@ class TestFileConfirmSerializerMixinSchema:
         assert "files" in serializer.fields
         files_field = serializer.fields["files"]
 
-        # The files field should have nested fields
-        assert hasattr(files_field, "fields")
-        nested_fields = files_field.fields
-
-        # JobDescription has an 'attachment' field - verify it was detected
-        assert "attachment" in nested_fields
-        assert isinstance(nested_fields["attachment"], serializers.CharField)
+        # Since attachment is now a ForeignKey (not CharField), auto-detection
+        # won't find it, so it should fall back to generic DictField
+        assert isinstance(files_field, serializers.DictField)
 
     @pytest.mark.skipif(
         not apps.is_installed("apps.hrm"),
