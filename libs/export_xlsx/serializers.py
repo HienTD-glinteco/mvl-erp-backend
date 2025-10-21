@@ -20,7 +20,7 @@ class ExportStatusResponseSerializer(serializers.Serializer):
     """Response for export status check."""
 
     task_id = serializers.CharField(help_text="Celery task ID")
-    status = serializers.CharField(help_text="Task status (PENDING, SUCCESS, FAILURE)")
+    status = serializers.CharField(help_text="Task status (PENDING, PROGRESS, SUCCESS, FAILURE)")
     file_url = serializers.CharField(
         required=False,
         allow_null=True,
@@ -35,4 +35,34 @@ class ExportStatusResponseSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         help_text="Error message (available when status is FAILURE)",
+    )
+    percent = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Export progress percentage (0-100, available when status is PROGRESS or SUCCESS)",
+    )
+    processed_rows = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Number of rows processed (available when status is PROGRESS or SUCCESS)",
+    )
+    total_rows = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Total number of rows to process (available when status is PROGRESS or SUCCESS)",
+    )
+    speed_rows_per_sec = serializers.FloatField(
+        required=False,
+        allow_null=True,
+        help_text="Processing speed in rows per second (available when status is PROGRESS)",
+    )
+    eta_seconds = serializers.FloatField(
+        required=False,
+        allow_null=True,
+        help_text="Estimated time to completion in seconds (available when status is PROGRESS)",
+    )
+    updated_at = serializers.CharField(
+        required=False,
+        allow_null=True,
+        help_text="Last progress update timestamp (ISO format)",
     )

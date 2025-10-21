@@ -5,9 +5,11 @@ Storage backends for saving and serving exported files.
 import os
 from datetime import datetime
 
+import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+from django.core.files.storage import FileSystemStorage, default_storage
 
 from .constants import ERROR_INVALID_STORAGE, STORAGE_LOCAL, STORAGE_S3
 
@@ -46,34 +48,44 @@ class StorageBackend:
 class LocalStorageBackend(StorageBackend):
     """
     Local filesystem storage backend.
+    
+    Uses FileSystemStorage to ensure files are saved locally,
+    regardless of default_storage configuration.
     """
 
     def __init__(self):
         """Initialize local storage backend."""
         self.storage_path = getattr(settings, "EXPORTER_LOCAL_STORAGE_PATH", "exports")
+        
+        # Use FileSystemStorage to ensure local file system is used
+        media_root = getattr(settings, "MEDIA_ROOT", "media")
+        location = os.path.join(media_root, self.storage_path)
+        base_url = f"{getattr(settings, 'MEDIA_URL', '/media/')}{self.storage_path}/"
+        
+        self.storage = FileSystemStorage(location=location, base_url=base_url)
 
     def save(self, file_content, filename):
         """
-        Save file to local storage.
+        Save file to local filesystem.
 
         Args:
             file_content: File content (BytesIO or bytes)
             filename: Filename to save
 
         Returns:
-            str: File path relative to MEDIA_ROOT
+            str: File path relative to storage location
         """
-        # Create path with timestamp to avoid collisions
+        # Create filename with timestamp to avoid collisions
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = os.path.join(self.storage_path, f"{timestamp}_{filename}")
+        timestamped_filename = f"{timestamp}_{filename}"
 
-        # Save using Django's default storage
+        # Save using FileSystemStorage
         if hasattr(file_content, "read"):
             content = file_content.read()
         else:
             content = file_content
 
-        saved_path = default_storage.save(file_path, ContentFile(content))
+        saved_path = self.storage.save(timestamped_filename, ContentFile(content))
         return saved_path
 
     def get_url(self, file_path):
@@ -86,12 +98,15 @@ class LocalStorageBackend(StorageBackend):
         Returns:
             str: Accessible URL
         """
-        return default_storage.url(file_path)
+        return self.storage.url(file_path)
 
 
 class S3StorageBackend(StorageBackend):
     """
     AWS S3 storage backend.
+    
+    Uses default_storage for saving files and boto3 for generating signed URLs.
+    This ensures exports are stored in S3 with secure, time-limited access URLs.
     """
 
     def __init__(self):
@@ -101,6 +116,23 @@ class S3StorageBackend(StorageBackend):
 
         if not self.bucket_name:
             self.bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
+        
+        # Use default_storage which should be S3
+        self.storage = default_storage
+        self.storage_path = getattr(settings, "EXPORTER_LOCAL_STORAGE_PATH", "exports")
+        
+        # Initialize boto3 S3 client for signed URL generation
+        self.s3_client = None
+        try:
+            self.s3_client = boto3.client(
+                "s3",
+                aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
+                aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+                region_name=getattr(settings, "AWS_REGION_NAME", None),
+            )
+        except Exception:
+            # If boto3 client initialization fails, signed URLs won't be available
+            pass
 
     def save(self, file_content, filename):
         """
@@ -115,30 +147,50 @@ class S3StorageBackend(StorageBackend):
         """
         # Create path with timestamp to avoid collisions
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        storage_path = getattr(settings, "EXPORTER_LOCAL_STORAGE_PATH", "exports")
-        file_path = f"{storage_path}/{timestamp}_{filename}"
+        file_path = f"{self.storage_path}/{timestamp}_{filename}"
 
-        # Save using Django's default storage (should be S3)
+        # Save using S3 storage
         if hasattr(file_content, "read"):
             content = file_content.read()
         else:
             content = file_content
 
-        saved_path = default_storage.save(file_path, ContentFile(content))
+        saved_path = self.storage.save(file_path, ContentFile(content))
         return saved_path
 
     def get_url(self, file_path):
         """
-        Get signed URL for accessing the file.
+        Get signed URL for accessing the file from S3.
 
         Args:
             file_path: S3 object key
 
         Returns:
-            str: Signed URL
+            str: Signed URL for secure access
         """
-        # Django storage will handle URL generation
-        return default_storage.url(file_path)
+        # Generate signed URL using boto3 for secure access
+        if self.s3_client and self.bucket_name:
+            try:
+                # Add AWS_LOCATION prefix if configured
+                aws_location = getattr(settings, "AWS_LOCATION", "")
+                if aws_location and not file_path.startswith(aws_location):
+                    s3_key = f"{aws_location}/{file_path}"
+                else:
+                    s3_key = file_path
+                
+                # Generate presigned URL
+                signed_url = self.s3_client.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": self.bucket_name, "Key": s3_key},
+                    ExpiresIn=self.signed_url_expire,
+                )
+                return signed_url
+            except ClientError:
+                # If signed URL generation fails, fall back to storage URL
+                pass
+        
+        # Fallback to default storage URL
+        return self.storage.url(file_path)
 
 
 def get_storage_backend(backend_type=None):

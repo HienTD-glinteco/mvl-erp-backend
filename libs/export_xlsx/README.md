@@ -1,6 +1,6 @@
 # XLSX Export Module
 
-Dynamic XLSX exporter for Django REST Framework with support for async processing and multiple storage backends.
+Dynamic XLSX exporter for Django REST Framework with support for async processing, progress tracking, and multiple storage backends.
 
 ## Features
 
@@ -10,6 +10,7 @@ Dynamic XLSX exporter for Django REST Framework with support for async processin
 - ✅ **Merged cells** for grouped data visualization
 - ✅ **Multi-level headers** with grouping
 - ✅ **Async export** via Celery (optional)
+- ✅ **Real-time progress tracking** with percentage, speed, and ETA
 - ✅ **Multiple storage backends** (Local, S3)
 - ✅ **Automatic styling** with sensible defaults
 - ✅ **ViewSet mixin** for zero-config exports
@@ -153,11 +154,131 @@ Settings in `settings/base/export.py`:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `EXPORTER_CELERY_ENABLED` | `False` | Enable async export |
-| `EXPORTER_STORAGE_BACKEND` | `local` | Storage backend |
-| `EXPORTER_S3_BUCKET_NAME` | `""` | S3 bucket name |
-| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | URL expiration (seconds) |
+| `EXPORTER_STORAGE_BACKEND` | `local` | Storage backend (`local` or `s3`) |
+| `EXPORTER_S3_BUCKET_NAME` | `""` | S3 bucket name (optional, uses `AWS_STORAGE_BUCKET_NAME` if not set) |
+| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | Signed URL expiration (seconds) |
 | `EXPORTER_FILE_EXPIRE_DAYS` | `7` | Auto-delete after days |
 | `EXPORTER_LOCAL_STORAGE_PATH` | `exports` | Local storage path |
+| `EXPORTER_PROGRESS_CHUNK_SIZE` | `500` | Progress update frequency (rows) |
+| `EXPORTER_ROW_DELAY_SECONDS` | `0` | Artificial delay per row for testing (0 = disabled) |
+
+### Testing Settings
+
+**EXPORTER_ROW_DELAY_SECONDS**: For testing purposes, you can add an artificial delay after processing each row. This is useful when testing progress tracking with small datasets that would otherwise complete too quickly to observe progress updates.
+
+Example:
+```bash
+# Add 0.1 second delay per row (useful for testing with ~100 rows)
+EXPORTER_ROW_DELAY_SECONDS=0.1
+```
+
+### Storage Backend Details
+
+**Local Storage (`local`)**:
+- Uses `FileSystemStorage` to save files to the local filesystem
+- Files are saved to `MEDIA_ROOT/EXPORTER_LOCAL_STORAGE_PATH/`
+- Independent of Django's `STORAGES` configuration
+- URLs are served via Django's media URL
+
+**S3 Storage (`s3`)**:
+- Uses Django's `default_storage` (should be configured as S3)
+- Generates signed URLs using boto3 for secure, time-limited access
+- Respects `AWS_LOCATION` setting for file path prefix
+- Signed URLs expire after `EXPORTER_S3_SIGNED_URL_EXPIRE` seconds (default: 1 hour)
+- Falls back to standard storage URLs if signed URL generation fails
+
+## Progress Tracking
+
+The export module provides real-time progress tracking for async exports:
+
+### Features
+
+- **Progress percentage** (0-100%)
+- **Rows processed** / **total rows**
+- **Processing speed** (rows/second)
+- **Estimated time to completion** (seconds)
+- **Redis storage** for fast access
+- **Celery task meta** for persistence
+
+### How It Works
+
+1. When an async export starts, it immediately returns a 202 response with a task ID
+2. **Data fetching happens in the background**: The task fetches and processes data asynchronously, so the client doesn't wait
+3. The task calculates the total number of rows and begins processing
+4. As rows are written, progress is updated every N rows (configurable via `EXPORTER_PROGRESS_CHUNK_SIZE`)
+5. Progress is published to:
+   - **Redis** - for fast, real-time access
+   - **Celery task meta** - for persistence and fallback
+6. Clients poll the status endpoint to get progress updates
+
+**Performance Optimization**: Both default exports (auto-generated from models) and custom exports defer all data fetching to the Celery worker. This ensures the initial API call returns immediately without waiting for potentially slow database queries or custom data processing logic, providing true asynchronous behavior for all export types.
+
+### API Usage
+
+Start an async export:
+```bash
+GET /api/my-endpoint/export/?async=true
+```
+
+Response:
+```json
+{
+  "task_id": "abc123...",
+  "status": "PENDING",
+  "message": "Export started. Check status at /api/export/status/?task_id=abc123..."
+}
+```
+
+Check export status with progress:
+```bash
+GET /api/core/export/status/?task_id=abc123...
+```
+
+Response (in progress):
+```json
+{
+  "success": true,
+  "data": {
+    "task_id": "abc123...",
+    "status": "PROGRESS",
+    "percent": 45,
+    "processed_rows": 4500,
+    "total_rows": 10000,
+    "speed_rows_per_sec": 125.5,
+    "eta_seconds": 43.8,
+    "updated_at": "2025-10-20T12:30:00"
+  }
+}
+```
+
+Response (completed):
+```json
+{
+  "success": true,
+  "data": {
+    "task_id": "abc123...",
+    "status": "SUCCESS",
+    "percent": 100,
+    "processed_rows": 10000,
+    "total_rows": 10000,
+    "file_url": "https://example.com/exports/data.xlsx",
+    "file_path": "exports/data.xlsx"
+  }
+}
+```
+
+### Programmatic Access
+
+```python
+from libs.export_xlsx import get_progress
+
+# Get progress for a task
+progress = get_progress(task_id="abc123...")
+if progress:
+    print(f"Progress: {progress['percent']}%")
+    print(f"Rows: {progress['processed_rows']}/{progress['total_rows']}")
+    print(f"Speed: {progress.get('speed_rows_per_sec', 0)} rows/sec")
+```
 
 ## Testing
 

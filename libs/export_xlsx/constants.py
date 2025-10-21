@@ -24,6 +24,17 @@ DEFAULT_DATA_ALIGNMENT = "left"
 STORAGE_LOCAL = "local"
 STORAGE_S3 = "s3"
 
+# Progress tracking
+DEFAULT_PROGRESS_CHUNK_SIZE = 500  # Update progress every N rows
+REDIS_PROGRESS_KEY_PREFIX = "export:progress:"
+REDIS_PROGRESS_EXPIRE_SECONDS = 60 * 60 * 24  # 24 hours
+
+# Celery task states
+TASK_STATE_PENDING = "PENDING"
+TASK_STATE_PROGRESS = "PROGRESS"
+TASK_STATE_SUCCESS = "SUCCESS"
+TASK_STATE_FAILURE = "FAILURE"
+
 # Error messages
 ERROR_INVALID_SCHEMA = "Invalid export schema"
 ERROR_INVALID_STORAGE = "Invalid storage backend"

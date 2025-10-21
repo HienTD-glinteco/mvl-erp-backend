@@ -252,6 +252,9 @@ class StorageBackendTests(TestCase):
         backend = get_storage_backend(STORAGE_LOCAL)
         self.assertIsNotNone(backend)
         self.assertEqual(backend.storage_path, "test_exports")
+        # Verify it uses FileSystemStorage, not default_storage
+        from django.core.files.storage import FileSystemStorage
+        self.assertIsInstance(backend.storage, FileSystemStorage)
 
     def test_get_s3_storage_backend(self):
         """Test getting S3 storage backend."""
@@ -263,11 +266,11 @@ class StorageBackendTests(TestCase):
         with self.assertRaises(ValueError):
             get_storage_backend("invalid")
 
-    @patch("libs.export_xlsx.storage.default_storage.save")
-    @patch("libs.export_xlsx.storage.default_storage.url")
+    @patch("libs.export_xlsx.storage.FileSystemStorage.save")
+    @patch("libs.export_xlsx.storage.FileSystemStorage.url")
     def test_local_storage_save(self, mock_url, mock_save):
-        """Test saving file to local storage."""
-        mock_save.return_value = "test_exports/20250101_120000_test.xlsx"
+        """Test saving file to local storage using FileSystemStorage."""
+        mock_save.return_value = "20250101_120000_test.xlsx"
         mock_url.return_value = "/media/test_exports/20250101_120000_test.xlsx"
 
         backend = get_storage_backend(STORAGE_LOCAL)
