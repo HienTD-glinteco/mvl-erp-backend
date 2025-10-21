@@ -74,7 +74,7 @@ class TestFieldFilteringAutoSchema:
         parameters = schema.get_override_parameters()
 
         # Find the fields parameter - now it's an OpenApiParameter object
-        fields_param = next((p for p in parameters if hasattr(p, 'name') and p.name == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
 
         assert fields_param is not None
         assert fields_param.location == "query"
@@ -86,7 +86,7 @@ class TestFieldFilteringAutoSchema:
         schema = self._create_schema(TestFieldFilteringSerializer, mock_view, mock_request)
         parameters = schema.get_override_parameters()
 
-        fields_param = next((p for p in parameters if hasattr(p, 'name') and p.name == "fields"), None)
+        fields_param = next((p for p in parameters if hasattr(p, "name") and p.name == "fields"), None)
         assert fields_param is not None
 
         description = fields_param.description
@@ -204,4 +204,3 @@ class TestFieldFilteringAutoSchema:
         expected_fields = ["code", "created_at", "description", "id", "name", "updated_at"]
         for field in expected_fields:
             assert f"`{field}`" in description
-

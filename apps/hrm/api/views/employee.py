@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import Employee
@@ -44,9 +44,7 @@ from libs import BaseModelViewSet
 class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
-    queryset = Employee.objects.select_related(
-        "user", "branch", "block", "department"
-    ).all()
+    queryset = Employee.objects.select_related("user", "branch", "block", "department").all()
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

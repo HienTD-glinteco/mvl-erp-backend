@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from apps.audit_logging import AuditLoggingMixin
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchFilterSet,
@@ -78,7 +78,13 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Create branch request",
                 description="Example request to create a new branch",
-                value={"name": "Chi nhánh Đà Nẵng", "address": "789 Trần Phú, Hải Châu, Đà Nẵng", "phone": "0236-1234-567", "email": "danang@example.com", "is_active": True},
+                value={
+                    "name": "Chi nhánh Đà Nẵng",
+                    "address": "789 Trần Phú, Hải Châu, Đà Nẵng",
+                    "phone": "0236-1234-567",
+                    "email": "danang@example.com",
+                    "is_active": True,
+                },
                 request_only=True,
             ),
             OpenApiExample(
@@ -136,7 +142,13 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Update branch request",
                 description="Example request to update a branch",
-                value={"name": "Chi nhánh Hà Nội - Cập nhật", "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội", "phone": "024-3456-7899", "email": "hanoi@example.com", "is_active": True},
+                value={
+                    "name": "Chi nhánh Hà Nội - Cập nhật",
+                    "address": "123 Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+                    "phone": "024-3456-7899",
+                    "email": "hanoi@example.com",
+                    "is_active": True,
+                },
                 request_only=True,
             ),
             OpenApiExample(
