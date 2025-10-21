@@ -188,10 +188,11 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
 
     def test_handler_with_custom_generate_code_function(self):
         """Test handler with custom code generation function."""
+
         # Arrange
         def custom_code_gen(instance):
             return f"{instance.__class__.CODE_PREFIX}{instance.id:05d}"
-        
+
         handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
         mock_instance = MagicMock()
         mock_instance.code = "TEMP_abc123"
@@ -287,7 +288,7 @@ class RegisterAutoCodeSignalTest(unittest.TestCase):
         """Test registering signal with custom code generation function."""
         # Arrange
         mock_model = MagicMock()
-        
+
         def custom_code_gen(instance):
             return f"{instance.__class__.CODE_PREFIX}-{instance.id:04d}"
 

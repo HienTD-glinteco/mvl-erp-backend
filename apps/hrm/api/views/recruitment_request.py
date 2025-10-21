@@ -6,7 +6,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin
-from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import RecruitmentRequestFilterSet
 from apps.hrm.api.serializers import RecruitmentRequestSerializer
 from apps.hrm.models import RecruitmentRequest
@@ -321,7 +320,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RecruitmentRequestViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentRequestViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentRequest model"""
 
     queryset = RecruitmentRequest.objects.select_related(

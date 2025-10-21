@@ -1,5 +1,5 @@
 """
-Tests for HistoryMixin functionality.
+Tests for AuditLoggingMixin history functionality.
 """
 
 from unittest.mock import MagicMock, patch
@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
-from apps.audit_logging.history_mixin import HistoryMixin
+from apps.audit_logging import AuditLoggingMixin
 from libs import BaseModelViewSet
 
 
@@ -27,8 +27,8 @@ class MockModel:
         self.id = pk
 
 
-class TestHistoryViewSet(HistoryMixin, BaseModelViewSet):
-    """Test viewset with HistoryMixin explicitly added"""
+class TestHistoryViewSet(AuditLoggingMixin, BaseModelViewSet):
+    """Test viewset with AuditLoggingMixin explicitly added"""
 
     class MockQuerySet:
         model = MockModel
@@ -44,7 +44,7 @@ class TestHistoryViewSet(HistoryMixin, BaseModelViewSet):
 
 
 class HistoryMixinTestCase(TestCase):
-    """Test HistoryMixin action"""
+    """Test AuditLoggingMixin history actions"""
 
     def setUp(self):
         """Set up test fixtures"""
@@ -199,7 +199,7 @@ class HistoryMixinTestCase(TestCase):
 
 
 class HistoryMixinPermissionRegistrationTestCase(TestCase):
-    """Test that HistoryMixin registers permissions correctly"""
+    """Test that AuditLoggingMixin registers history permissions correctly"""
 
     def test_history_action_is_detected_as_custom_action(self):
         """Test that histories action is detected in custom actions"""
@@ -233,19 +233,19 @@ class HistoryMixinPermissionRegistrationTestCase(TestCase):
 
 @pytest.mark.django_db
 class HistoryMixinIntegrationTestCase(TestCase):
-    """Integration tests for HistoryMixin with real models"""
+    """Integration tests for AuditLoggingMixin with real models"""
 
     def test_history_mixin_works_with_base_model_viewset(self):
-        """Test that HistoryMixin integrates properly with BaseModelViewSet"""
+        """Test that AuditLoggingMixin integrates properly with BaseModelViewSet"""
         # This test verifies that the mixin order is correct when explicitly added
-        # HistoryMixin should be before BaseModelViewSet in the MRO
+        # AuditLoggingMixin should be before BaseModelViewSet in the MRO
 
-        # Act - use TestHistoryViewSet which explicitly includes HistoryMixin
+        # Act - use TestHistoryViewSet which explicitly includes AuditLoggingMixin
         mro = [cls.__name__ for cls in TestHistoryViewSet.__mro__]
 
         # Assert
-        # HistoryMixin should come before ModelViewSet in the MRO
-        self.assertIn("HistoryMixin", mro)
-        history_index = mro.index("HistoryMixin")
+        # AuditLoggingMixin should come before ModelViewSet in the MRO
+        self.assertIn("AuditLoggingMixin", mro)
+        history_index = mro.index("AuditLoggingMixin")
         viewset_index = mro.index("ModelViewSet")
-        self.assertLess(history_index, viewset_index, "HistoryMixin should come before ModelViewSet in MRO")
+        self.assertLess(history_index, viewset_index, "AuditLoggingMixin should come before ModelViewSet in MRO")

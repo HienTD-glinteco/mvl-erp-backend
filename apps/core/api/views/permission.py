@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from apps.audit_logging.history_mixin import HistoryMixin
+from apps.audit_logging import AuditLoggingMixin
 from apps.core.api.filtersets import PermissionFilterSet
 from apps.core.api.serializers.role import PermissionSerializer
 from apps.core.models import Permission
@@ -23,7 +23,7 @@ from libs import BaseReadOnlyModelViewSet
         tags=["Permissions"],
     ),
 )
-class PermissionViewSet(HistoryMixin, BaseReadOnlyModelViewSet):
+class PermissionViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Permission model - Read only"""
 
     queryset = Permission.objects.all()

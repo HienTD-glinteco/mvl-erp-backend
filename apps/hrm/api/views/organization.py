@@ -6,7 +6,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin
-from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchFilterSet,
@@ -220,7 +219,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class BranchViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Branch model"""
 
     queryset = Branch.objects.all()
@@ -269,7 +268,7 @@ class BranchViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
         tags=["Block"],
     ),
 )
-class BlockViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Block model"""
 
     queryset = Block.objects.select_related("branch").all()
@@ -318,7 +317,7 @@ class BlockViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
         tags=["Department"],
     ),
 )
-class DepartmentViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Department model"""
 
     queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
@@ -460,7 +459,7 @@ class DepartmentViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
         tags=["Position"],
     ),
 )
-class PositionViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Position model"""
 
     queryset = Position.objects.all()
@@ -509,7 +508,7 @@ class PositionViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
         tags=["Organization Chart"],
     ),
 )
-class OrganizationChartViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for OrganizationChart model"""
 
     queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()

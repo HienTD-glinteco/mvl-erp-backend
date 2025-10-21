@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from rest_framework.decorators import action
 
-from apps.audit_logging.history_mixin import HistoryMixin
+from apps.audit_logging import AuditLoggingMixin
 from apps.core.models import Permission
 from libs.base_viewset import BaseModelViewSet
 
@@ -23,7 +23,7 @@ class MockModel:
         verbose_name_plural = "Mock Models"
 
 
-class SimpleTestViewSet(HistoryMixin, BaseModelViewSet):
+class SimpleTestViewSet(AuditLoggingMixin, BaseModelViewSet):
     """Simple test viewset with all standard actions"""
 
     class MockQuerySet:
@@ -116,8 +116,8 @@ class BaseModelViewSetTestCase(TestCase):
         self.assertIn("test_item.update", codes)
         self.assertIn("test_item.partial_update", codes)
         self.assertIn("test_item.destroy", codes)
-        self.assertIn("test_item.histories", codes)  # Added by HistoryMixin
-        self.assertIn("test_item.history_detail", codes)  # Added by HistoryMixin
+        self.assertIn("test_item.histories", codes)  # Added by AuditLoggingMixin
+        self.assertIn("test_item.history_detail", codes)  # Added by AuditLoggingMixin
 
     def test_permission_metadata_structure(self):
         """Test permission metadata has correct structure"""

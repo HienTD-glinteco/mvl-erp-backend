@@ -3,7 +3,6 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging import AuditLoggingMixin
-from apps.audit_logging.history_mixin import HistoryMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import Employee
@@ -42,7 +41,7 @@ from libs import BaseModelViewSet
         tags=["Employee"],
     ),
 )
-class EmployeeViewSet(HistoryMixin, AuditLoggingMixin, BaseModelViewSet):
+class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
     queryset = Employee.objects.select_related("user", "branch", "block", "department").all()

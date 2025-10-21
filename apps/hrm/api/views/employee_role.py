@@ -8,7 +8,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import AuditLoggingMixin, LogAction, batch_audit_context
-from apps.audit_logging.history_mixin import HistoryMixin
 from apps.core.models import User
 from apps.hrm.api.filtersets.employee_role import EmployeeRoleFilterSet
 from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
@@ -76,7 +75,7 @@ from libs import BaseReadOnlyModelViewSet
         ],
     ),
 )
-class EmployeeRoleViewSet(HistoryMixin, AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """
     ViewSet for managing employees by role.
 
