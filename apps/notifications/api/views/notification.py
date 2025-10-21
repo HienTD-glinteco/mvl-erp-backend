@@ -192,7 +192,13 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
             OpenApiExample(
                 "Bulk mark as read request",
                 description="Example request to mark multiple notifications as read",
-                value={"notification_ids": ["550e8400-e29b-41d4-a716-446655440001", "550e8400-e29b-41d4-a716-446655440002", "550e8400-e29b-41d4-a716-446655440003"]},
+                value={
+                    "notification_ids": [
+                        "550e8400-e29b-41d4-a716-446655440001",
+                        "550e8400-e29b-41d4-a716-446655440002",
+                        "550e8400-e29b-41d4-a716-446655440003",
+                    ]
+                },
                 request_only=True,
             ),
             OpenApiExample(

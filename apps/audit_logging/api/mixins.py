@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from ..exceptions import AuditLogException
 from ..middleware import audit_context
-from .serializers import AuditLogSearchSerializer
+from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSerializer, AuditLogSerializer
 
 
 class AuditLoggingMixin:
@@ -76,6 +76,7 @@ class AuditLoggingMixin:
         summary="Get object histories",
         description="Retrieve the audit log history for this object, showing all changes made over time",
         tags=["History"],
+        responses={200: AuditLogSearchResponseSerializer},
         parameters=[
             OpenApiParameter(
                 name="id",
@@ -113,10 +114,10 @@ class AuditLoggingMixin:
                 required=False,
             ),
             OpenApiParameter(
-                name="from_offset",
+                name="page",
                 type=int,
                 location=OpenApiParameter.QUERY,
-                description="Offset for pagination (default: 0)",
+                description="Page for pagination (default: 1)",
                 required=False,
             ),
         ],
@@ -164,10 +165,9 @@ class AuditLoggingMixin:
                                 "change_message": "Created new object",
                             },
                         ],
-                        "total": 2,
-                        "page_size": 50,
-                        "from_offset": 0,
-                        "has_next": False,
+                        "count": 2,
+                        "next": 0,
+                        "previous": 0,
                     },
                 },
                 response_only=True,
@@ -215,8 +215,8 @@ class AuditLoggingMixin:
             search_params["action"] = request.query_params["action"]
         if request.query_params.get("page_size"):
             search_params["page_size"] = request.query_params["page_size"]
-        if request.query_params.get("from_offset"):
-            search_params["from_offset"] = request.query_params["from_offset"]
+        if request.query_params.get("page"):
+            search_params["page"] = request.query_params["page"]
 
         # Use the audit log search serializer
         serializer = AuditLogSearchSerializer(data=search_params)
@@ -237,6 +237,9 @@ class AuditLoggingMixin:
         summary="Get history detail",
         description="Retrieve detailed information about a specific audit log entry",
         tags=["History"],
+        responses={
+            200: AuditLogSerializer,
+        },
         parameters=[
             OpenApiParameter(
                 name="id",

@@ -91,8 +91,8 @@ class TestOpenSearchClient(TestCase):
         result = self.client.search_logs(filters=filters)
 
         self.mock_opensearch.search.assert_called_once()
-        self.assertEqual(len(result["items"]), 1)
-        self.assertEqual(result["total"], 1)
+        self.assertEqual(len(result["results"]), 1)
+        self.assertEqual(result["count"], 1)
 
     def test_build_search_query_with_filters(self):
         """Test search query building with various filters."""

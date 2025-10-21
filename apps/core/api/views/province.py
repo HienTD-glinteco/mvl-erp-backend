@@ -3,7 +3,6 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.filtersets.province import ProvinceFilterSet
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import Province
@@ -79,7 +78,7 @@ from apps.core.models import Province
         ],
     ),
 )
-class ProvinceViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
+class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for Province model - read-only with no pagination"""
 
     queryset = Province.objects.all()

@@ -3,7 +3,6 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.filtersets.administrative_unit import AdministrativeUnitFilterSet
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
 from apps.core.models import AdministrativeUnit
@@ -87,7 +86,7 @@ from apps.core.models import AdministrativeUnit
         ],
     ),
 )
-class AdministrativeUnitViewSet(AuditLoggingMixin, viewsets.ReadOnlyModelViewSet):
+class AdministrativeUnitViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for AdministrativeUnit model - read-only with pagination"""
 
     queryset = AdministrativeUnit.objects.select_related("parent_province").all()

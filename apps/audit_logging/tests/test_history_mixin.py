@@ -75,7 +75,7 @@ class HistoryMixinTestCase(TestCase):
             ],
             "total": 1,
             "page_size": 50,
-            "from_offset": 0,
+            "page": 1,
             "has_next": False,
         }
 

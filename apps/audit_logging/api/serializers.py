@@ -107,8 +107,8 @@ class AuditLogSearchSerializer(serializers.Serializer):
     object_type = serializers.CharField(required=False, help_text="Filter by object type")
     object_id = serializers.CharField(required=False, help_text="Filter by object ID")
     search_term = serializers.CharField(required=False, help_text="Free text search")
-    page_size = serializers.IntegerField(required=False, default=50, min_value=1, max_value=100)
-    from_offset = serializers.IntegerField(required=False, default=0, min_value=0)
+    page_size = serializers.IntegerField(required=False, default=25, min_value=1, max_value=100)
+    page = serializers.IntegerField(required=False, default=1, min_value=1)
     sort_order = serializers.ChoiceField(
         choices=[("asc", "Ascending"), ("desc", "Descending")],
         required=False,
@@ -155,7 +155,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
 
         # Pagination parameters
         page_size = self.validated_data.get("page_size", 50)
-        from_offset = self.validated_data.get("from_offset", 0)
+        page = self.validated_data.get("page", 1)
         sort_order = self.validated_data.get("sort_order", "desc")
 
         # Search logs using OpenSearch with summary fields only
@@ -163,19 +163,17 @@ class AuditLogSearchSerializer(serializers.Serializer):
         result = opensearch_client.search_logs(
             filters=filters,
             page_size=page_size,
-            from_offset=from_offset,
+            page=page,
             sort_order=sort_order,
             summary_fields_only=True,  # Return only summary fields
         )
 
         # Format response
         return {
-            "items": result["items"],
-            "total": result["total"],
-            "page_size": page_size,
-            "from_offset": from_offset,
-            "next_offset": result.get("next_offset"),
-            "has_next": result["has_next"],
+            "results": result["results"],
+            "count": result["count"],
+            "next": result.get("next"),
+            "previous": result["previous"],
         }
 
 
@@ -224,9 +222,7 @@ class AuditLogSerializer(serializers.Serializer):
 class AuditLogSearchResponseSerializer(serializers.Serializer):
     """Serializer for audit log search response."""
 
-    items = AuditLogSummarySerializer(many=True)
-    total = serializers.IntegerField()
-    page_size = serializers.IntegerField()
-    from_offset = serializers.IntegerField()
-    next_offset = serializers.IntegerField(required=False, allow_null=True)
-    has_next = serializers.BooleanField()
+    count = serializers.IntegerField()
+    next = serializers.IntegerField(required=False, allow_null=True)
+    previous = serializers.IntegerField(required=False, allow_null=True)
+    results = AuditLogSummarySerializer(many=True)

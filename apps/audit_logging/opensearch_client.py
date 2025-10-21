@@ -190,8 +190,8 @@ class OpenSearchClient:
         self,
         *,
         filters: Dict[str, Any],
-        page_size: int = 50,
-        from_offset: int = 0,
+        page_size: int = 25,
+        page: int = 1,
         sort_order: str = "desc",
         summary_fields_only: bool = False,
     ) -> Dict[str, Any]:
@@ -201,7 +201,7 @@ class OpenSearchClient:
         Args:
             filters: Dictionary of filter criteria
             page_size: Number of results per page
-            from_offset: Offset for pagination
+            page: page number
             sort_order: Sort order ('asc' or 'desc')
             summary_fields_only: If True, return only summary fields (log_id, timestamp, user_id,
                                  username, full_name, employee_code, department_id, department_name,
@@ -219,7 +219,7 @@ class OpenSearchClient:
             "query": query,
             "sort": [{"timestamp": {"order": sort_order}}],
             "size": page_size,
-            "from": from_offset,
+            "from": (page - 1) * page_size,
         }
 
         # If summary fields only, use _source filtering
@@ -246,14 +246,15 @@ class OpenSearchClient:
             logs = [hit["_source"] for hit in hits["hits"]]
             total = hits["total"]["value"] if isinstance(hits["total"], dict) else hits["total"]
 
-            has_next = from_offset + page_size < total
-            next_offset = from_offset + page_size if has_next else None
+            has_next = (page_size * page + 1) < total
+            next_page = (page + 1) if has_next else None
+            previous_page = (page - 1) if page > 1 else None
 
             return {
-                "items": logs,
-                "total": total,
-                "next_offset": next_offset,
-                "has_next": has_next,
+                "count": total,
+                "next_page": next_page,
+                "previous_page": previous_page,
+                "results": logs,
             }
         except OpenSearchException as e:
             logger.error(f"Failed to search logs: {e}")

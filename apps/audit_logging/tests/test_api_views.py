@@ -99,7 +99,7 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [
+            "results": [
                 {
                     "log_id": "test-123",
                     "timestamp": "2023-12-15T10:30:00Z",
@@ -109,28 +109,28 @@ class TestAuditLogViewSet(TestCase):
                     "object_type": "test_object",
                 }
             ],
-            "total": 1,
-            "next_offset": None,
-            "has_next": False,
+            "count": 1,
+            "next": None,
+            "previous": None,
         }
 
         url = "/api/audit-logs/search/"
-        response = self.client.get(url, {"action": "test_action", "page_size": "10", "from_offset": "0"})
+        response = self.client.get(url, {"action": "test_action", "page_size": "10", "page": "1"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
         self.assertTrue(response_data["success"])
         data = response_data["data"]
-        self.assertEqual(len(data["items"]), 1)
-        self.assertEqual(data["total"], 1)
+        self.assertEqual(len(data["results"]), 1)
+        self.assertEqual(data["count"], 1)
         # Verify employee_code is in the response
-        self.assertEqual(data["items"][0]["employee_code"], "EMP001")
+        self.assertEqual(data["results"][0]["employee_code"], "EMP001")
 
         # Verify OpenSearch client was called with correct parameters including summary_fields_only
         mock_client.search_logs.assert_called_once_with(
             filters={"action": "test_action"},
             page_size=10,
-            from_offset=0,
+            page=1,
             sort_order="desc",
             summary_fields_only=True,
         )
@@ -142,7 +142,7 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [
+            "results": [
                 {
                     "log_id": "test-filter-123",
                     "timestamp": "2023-12-15T10:30:00Z",
@@ -152,9 +152,9 @@ class TestAuditLogViewSet(TestCase):
                     "object_type": "test_object",
                 }
             ],
-            "total": 1,
-            "next_offset": None,
-            "has_next": False,
+            "count": 1,
+            "next": None,
+            "previous": None,
         }
 
         url = "/api/audit-logs/search/"
@@ -176,8 +176,8 @@ class TestAuditLogViewSet(TestCase):
         # Verify employee_code is in the response
         response_data = response.json()
         data = response_data["data"]
-        if data["items"]:
-            self.assertEqual(data["items"][0]["employee_code"], "EMP001")
+        if data["results"]:
+            self.assertEqual(data["results"][0]["employee_code"], "EMP001")
 
         # Verify filters were passed correctly
         mock_client.search_logs.assert_called_once()
@@ -397,10 +397,10 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [],
-            "total": 0,
-            "next_offset": None,
-            "has_next": False,
+            "results": [],
+            "count": 0,
+            "next": None,
+            "previous": None,
         }
 
         url = "/api/audit-logs/search/"
@@ -460,10 +460,10 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [],
-            "total": 0,
-            "next_offset": None,
-            "has_next": False,
+            "results": [],
+            "count": 0,
+            "next": None,
+            "previous": None,
         }
 
         url = "/api/audit-logs/search/"
@@ -482,7 +482,7 @@ class TestAuditLogViewSet(TestCase):
         mock_get_client.return_value = mock_client
 
         mock_client.search_logs.return_value = {
-            "items": [
+            "results": [
                 {
                     "log_id": "test-456",
                     "timestamp": "2023-12-15T10:30:00Z",
@@ -493,9 +493,9 @@ class TestAuditLogViewSet(TestCase):
                     "object_type": "test_object",
                 }
             ],
-            "total": 1,
-            "next_offset": None,
-            "has_next": False,
+            "count": 1,
+            "next": None,
+            "previous": False,
         }
 
         url = "/api/audit-logs/search/"
