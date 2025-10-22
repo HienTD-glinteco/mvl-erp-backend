@@ -1,5 +1,7 @@
 from .employee import EmployeeFilterSet
 from .employee_role import EmployeeRoleFilterSet
+from .interview_candidate import InterviewCandidateFilterSet
+from .interview_schedule import InterviewScheduleFilterSet
 from .job_description import JobDescriptionFilterSet
 from .organization import (
     BlockFilterSet,
@@ -30,4 +32,6 @@ __all__ = [
     "RecruitmentCandidateFilterSet",
     "RecruitmentCandidateContactLogFilterSet",
     "RecruitmentExpenseFilterSet",
+    "InterviewScheduleFilterSet",
+    "InterviewCandidateFilterSet",
 ]

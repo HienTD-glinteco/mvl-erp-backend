@@ -1,5 +1,7 @@
 from .employee import EmployeeViewSet
 from .employee_role import EmployeeRoleViewSet
+from .interview_candidate import InterviewCandidateViewSet
+from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
 from .organization import (
     BlockViewSet,
@@ -30,4 +32,6 @@ __all__ = [
     "RecruitmentCandidateViewSet",
     "RecruitmentCandidateContactLogViewSet",
     "RecruitmentExpenseViewSet",
+    "InterviewScheduleViewSet",
+    "InterviewCandidateViewSet",
 ]

@@ -7,6 +7,8 @@ from apps.hrm.api.views import (
     DepartmentViewSet,
     EmployeeRoleViewSet,
     EmployeeViewSet,
+    InterviewCandidateViewSet,
+    InterviewScheduleViewSet,
     JobDescriptionViewSet,
     OrganizationChartViewSet,
     PositionViewSet,
@@ -39,6 +41,8 @@ router.register(
     basename="recruitment-candidate-contact-log",
 )
 router.register(r"recruitment-expenses", RecruitmentExpenseViewSet, basename="recruitment-expense")
+router.register(r"interview-schedules", InterviewScheduleViewSet, basename="interview-schedule")
+router.register(r"interview-candidates", InterviewCandidateViewSet, basename="interview-candidate")
 
 urlpatterns = [
     path("", include(router.urls)),

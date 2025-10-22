@@ -1,4 +1,6 @@
 from .employee import Employee
+from .interview_candidate import InterviewCandidate
+from .interview_schedule import InterviewSchedule
 from .job_description import JobDescription
 from .organization import (
     Block,
@@ -28,4 +30,6 @@ __all__ = [
     "RecruitmentCandidate",
     "RecruitmentCandidateContactLog",
     "RecruitmentExpense",
+    "InterviewSchedule",
+    "InterviewCandidate",
 ]

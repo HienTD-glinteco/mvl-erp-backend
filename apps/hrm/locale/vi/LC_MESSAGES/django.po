@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 16:02+0700\n"
+"POT-Creation-Date: 2025-10-23 00:20+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -282,7 +282,8 @@ msgstr "Phòng ban"
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:25
+#: apps/hrm/models/employee.py:70 apps/hrm/models/interview_schedule.py:31
+#: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:110
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
@@ -313,6 +314,87 @@ msgstr "Phòng ban phải thuộc khối đã chọn."
 #: apps/hrm/models/employee.py:117 apps/hrm/models/recruitment_request.py:125
 msgid "Department must belong to the selected branch."
 msgstr "Phòng ban phải thuộc chi nhánh đã chọn."
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/interview_candidate.py:16
+#: apps/hrm/models/recruitment_candidate_contact_log.py:25
+msgid "Recruitment candidate"
+msgstr "Ứng viên"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/interview_candidate.py:22
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Interview schedule"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/interview_candidate.py:24
+#: apps/hrm/models/interview_schedule.py:30
+msgid "Interview time"
+msgstr ""
+
+#: apps/hrm/models/interview_candidate.py:25
+msgid "Email sent at"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/interview_candidate.py:28
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Interview Candidate"
+msgstr "Kênh tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/interview_candidate.py:29
+#, fuzzy
+#| msgid "Recruitment Candidates"
+msgid "Interview Candidates"
+msgstr "Các ứng viên"
+
+#: apps/hrm/models/interview_schedule.py:13
+msgid "In Person"
+msgstr ""
+
+#: apps/hrm/models/interview_schedule.py:14
+msgid "Online"
+msgstr ""
+
+#: apps/hrm/models/interview_schedule.py:16
+msgid "Title"
+msgstr ""
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/interview_schedule.py:21
+#: apps/hrm/models/recruitment_candidate.py:59
+#: apps/hrm/models/recruitment_expense.py:34
+msgid "Recruitment request"
+msgstr "Yêu cầu tuyển dụng"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/interview_schedule.py:27
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Interview type"
+msgstr "Kênh tuyển dụng"
+
+# models/organization.py:189
+#: apps/hrm/models/interview_schedule.py:29
+#, fuzzy
+#| msgid "Position"
+msgid "Location"
+msgstr "Chức vụ"
+
+#: apps/hrm/models/interview_schedule.py:36
+msgid "Interviewers"
+msgstr ""
+
+#: apps/hrm/models/interview_schedule.py:40
+msgid "Interview Schedule"
+msgstr ""
+
+#: apps/hrm/models/interview_schedule.py:41
+msgid "Interview Schedules"
+msgstr ""
 
 # models/organization.py:183
 #: apps/hrm/models/job_description.py:17
@@ -656,12 +738,6 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-# models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_candidate.py:59
-#: apps/hrm/models/recruitment_expense.py:34
-msgid "Recruitment request"
-msgstr "Yêu cầu tuyển dụng"
-
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:89
 #: apps/hrm/models/recruitment_expense.py:22
@@ -720,11 +796,6 @@ msgstr "Ngày lien hệ"
 #: apps/hrm/models/recruitment_candidate_contact_log.py:19
 msgid "Contact method"
 msgstr ""
-
-# models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate_contact_log.py:25
-msgid "Recruitment candidate"
-msgstr "Ứng viên"
 
 # models/organization.py:63
 #: apps/hrm/models/recruitment_candidate_contact_log.py:29
