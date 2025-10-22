@@ -536,7 +536,7 @@ class FileModelTest(TestCase):
         mock_s3_service_utils.return_value.generate_download_url.return_value = "https://s3.amazonaws.com/download-url"
 
         # Act: Confirm file without related_model and related_object_id
-        url = reverse("files:confirm-multiple")
+        url = reverse("files:confirm")
         data = {
             "files": [
                 {

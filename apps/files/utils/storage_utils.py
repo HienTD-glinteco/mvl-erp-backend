@@ -37,30 +37,37 @@ def get_storage_prefix() -> str:
     return prefix
 
 
-def build_storage_key(*segments: str) -> str:
+def build_storage_key(*segments: str, include_prefix: bool = True) -> str:
     """
-    Build a storage key from path segments, including the storage prefix if configured.
+    Build a storage key from path segments.
 
     This function:
-    1. Gets the storage prefix (e.g., 'media')
-    2. Joins all segments with '/' (stripping individual slashes)
-    3. Prepends the prefix if configured
-    4. Avoids duplicate slashes
+    1. Joins all segments with '/' (stripping individual slashes)
+    2. Optionally prepends the storage prefix if configured
 
     Args:
         *segments: Variable number of path segments to join
+        include_prefix: Whether to include the storage prefix (default: True)
+                       Set to False when building paths for FileModel.file_path
 
     Returns:
-        Full storage key with prefix (if configured)
+        Storage key with or without prefix
 
     Examples:
-        With prefix='media':
+        With prefix='media', include_prefix=True:
             build_storage_key('uploads', 'tmp', 'file.pdf') -> 'media/uploads/tmp/file.pdf'
 
-        Without prefix:
+        With prefix='media', include_prefix=False:
+            build_storage_key('uploads', 'tmp', 'file.pdf', include_prefix=False) -> 'uploads/tmp/file.pdf'
+
+        Without prefix configured:
             build_storage_key('uploads', 'tmp', 'file.pdf') -> 'uploads/tmp/file.pdf'
+
+    Notes:
+        - Use include_prefix=True for direct boto3 S3 operations (presigned URLs, copy, head_object)
+        - Use include_prefix=False for FileModel.file_path (default_storage adds prefix automatically)
     """
-    prefix = get_storage_prefix()
+    prefix = get_storage_prefix() if include_prefix else ""
 
     # Filter out empty segments and strip slashes from each segment
     cleaned_segments = [s.strip("/") for s in segments if s]
@@ -74,7 +81,7 @@ def build_storage_key(*segments: str) -> str:
     else:
         result = path
 
-    logger.debug(f"Built storage key: '{result}' from segments: {segments}")
+    logger.debug(f"Built storage key: '{result}' from segments: {segments} (include_prefix={include_prefix})")
     return result
 
 

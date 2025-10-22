@@ -48,10 +48,12 @@ class S3FileUploadServiceTest(TestCase):
         mock_s3.generate_presigned_url.assert_called_once()
 
     @override_settings(AWS_LOCATION="media")
+    @patch("apps.files.utils.storage_utils.default_storage")
     @patch("boto3.client")
-    def test_generate_presigned_url_with_prefix(self, mock_boto_client):
-        """Test presigned URL generation includes storage prefix in path."""
+    def test_generate_presigned_url_with_prefix(self, mock_boto_client, mock_storage):
+        """Test presigned URL generation: S3 key has prefix, but file_path does not."""
         # Arrange
+        mock_storage.location = None  # So get_storage_prefix uses AWS_LOCATION
         mock_s3 = MagicMock()
         mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/test-url"
         mock_boto_client.return_value = mock_s3
@@ -68,9 +70,16 @@ class S3FileUploadServiceTest(TestCase):
         # Assert
         self.assertIn("upload_url", result)
         self.assertIn("file_path", result)
-        # Path should include prefix
-        self.assertTrue(result["file_path"].startswith("media/uploads/tmp/"))
+        # file_path should NOT include prefix (for default_storage compatibility)
+        self.assertTrue(result["file_path"].startswith("uploads/tmp/"))
+        self.assertNotIn("media/", result["file_path"])
         self.assertIn("test.pdf", result["file_path"])
+        
+        # But the S3 key used in the API call SHOULD include prefix
+        mock_s3.generate_presigned_url.assert_called_once()
+        call_args = mock_s3.generate_presigned_url.call_args
+        s3_key = call_args[1]["Params"]["Key"]
+        self.assertTrue(s3_key.startswith("media/uploads/tmp/"))
 
     @patch("boto3.client")
     def test_generate_presigned_url_failure(self, mock_boto_client):
@@ -327,8 +336,12 @@ class S3FileUploadServiceTest(TestCase):
         self.assertIn("test.csv", result)
 
     @override_settings(AWS_LOCATION="media")
-    def test_generate_permanent_path_with_prefix(self):
-        """Test permanent path generation includes storage prefix."""
+    @patch("apps.files.utils.storage_utils.default_storage")
+    def test_generate_permanent_path_with_prefix(self, mock_storage):
+        """Test permanent path generation does NOT include storage prefix (for default_storage compatibility)."""
+        # Arrange: Mock default_storage to not have location
+        mock_storage.location = None
+        
         # Act
         result = self.service.generate_permanent_path(
             purpose="job_description",
@@ -336,5 +349,5 @@ class S3FileUploadServiceTest(TestCase):
             object_id=42,
         )
 
-        # Assert
-        self.assertEqual(result, "media/uploads/job_description/42/test.pdf")
+        # Assert: Path should NOT include prefix (default_storage will add it)
+        self.assertEqual(result, "uploads/job_description/42/test.pdf")

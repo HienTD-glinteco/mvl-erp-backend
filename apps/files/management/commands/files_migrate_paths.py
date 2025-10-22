@@ -14,11 +14,15 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """
-    Migrate FileModel file_path values to include storage prefix.
+    Migrate FileModel file_path values to REMOVE storage prefix.
 
-    This command scans all FileModel records and updates file_path values
-    that don't include the storage prefix (AWS_LOCATION) when the actual
-    S3 object exists at the prefixed path.
+    This command scans all FileModel records and removes the storage prefix
+    (AWS_LOCATION) from file_path values. The prefix should NOT be stored in
+    the database because default_storage automatically adds it when accessing files.
+
+    This fixes the issue where default_storage.open(file_path) was failing because
+    it was double-prefixing: default_storage adds prefix to "media/uploads/file.pdf"
+    resulting in "media/media/uploads/file.pdf" in S3.
 
     Usage:
         # Dry run (report what would be changed)
@@ -31,7 +35,7 @@ class Command(BaseCommand):
         python manage.py files_migrate_paths --apply --limit 100
     """
 
-    help = "Migrate FileModel file_path values to include storage prefix"
+    help = "Migrate FileModel file_path values to remove storage prefix"
 
     def add_arguments(self, parser):
         """Add command arguments."""
@@ -79,21 +83,26 @@ class Command(BaseCommand):
         if limit:
             self.stdout.write(f"Limit: {limit} records")
         self.stdout.write("")
+        self.stdout.write(
+            "NOTE: This migration REMOVES the prefix from file_path values in the database.\n"
+            "The prefix will be added automatically by default_storage when accessing files."
+        )
+        self.stdout.write("")
 
         # Initialize S3 service
         s3_service = S3FileUploadService()
 
-        # Query FileModel records that don't start with prefix
-        queryset = FileModel.objects.exclude(file_path__startswith=f"{prefix}/")
+        # Query FileModel records that START with prefix (these need to be updated)
+        queryset = FileModel.objects.filter(file_path__startswith=f"{prefix}/")
 
         if limit:
             queryset = queryset[:limit]
 
         total_count = queryset.count()
-        self.stdout.write(f"Found {total_count} records without prefix")
+        self.stdout.write(f"Found {total_count} records with prefix that need updating")
 
         if total_count == 0:
-            self.stdout.write(self.style.SUCCESS("All records already have the prefix. Nothing to do."))
+            self.stdout.write(self.style.SUCCESS("All records already correct. Nothing to do."))
             return
 
         # Process records
@@ -103,37 +112,37 @@ class Command(BaseCommand):
 
         for file_model in queryset:
             original_path = file_model.file_path
-            candidate_path = f"{prefix}/{original_path}"
+            # Remove prefix from path
+            new_path = original_path[len(prefix) + 1:]  # +1 for the slash
 
             try:
-                # Check if object exists at prefixed path
-                if s3_service.check_file_exists(candidate_path):
+                # Check if object exists at the S3 location (using original prefixed path)
+                if s3_service.check_file_exists(original_path):
                     if dry_run:
                         self.stdout.write(
-                            f"Would update: {file_model.id} | {original_path} -> {candidate_path}",
+                            f"Would update: {file_model.id} | {original_path} -> {new_path}",
                         )
                         updated_count += 1
                     else:
                         # Apply the change
                         with transaction.atomic():
-                            file_model.file_path = candidate_path
+                            file_model.file_path = new_path
                             file_model.save(update_fields=["file_path"])
                         self.stdout.write(
-                            self.style.SUCCESS(f"Updated: {file_model.id} | {original_path} -> {candidate_path}")
+                            self.style.SUCCESS(f"Updated: {file_model.id} | {original_path} -> {new_path}")
                         )
                         logger.info(
-                            f"Migrated file path: id={file_model.id}, old={original_path}, new={candidate_path}"
+                            f"Migrated file path (removed prefix): id={file_model.id}, old={original_path}, new={new_path}"
                         )
                         updated_count += 1
                 else:
                     self.stdout.write(
                         self.style.WARNING(
-                            f"Object not found at prefixed path: {file_model.id} | {candidate_path}",
+                            f"Object not found in S3: {file_model.id} | {original_path}",
                         )
                     )
                     logger.warning(
-                        f"S3 object not found during migration: id={file_model.id}, "
-                        f"original={original_path}, candidate={candidate_path}"
+                        f"S3 object not found during migration: id={file_model.id}, path={original_path}"
                     )
                     not_found_count += 1
 
@@ -170,6 +179,6 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.WARNING(
                     f"{not_found_count} records have file_path values where the S3 object "
-                    "was not found at the prefixed location. These may need manual review."
+                    "was not found. These may need manual review."
                 )
             )

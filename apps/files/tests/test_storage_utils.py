@@ -12,8 +12,12 @@ class GetStoragePrefixTest(TestCase):
     """Test cases for get_storage_prefix function."""
 
     @override_settings(AWS_LOCATION="media")
-    def test_get_storage_prefix_from_settings(self):
+    @patch("apps.files.utils.storage_utils.default_storage")
+    def test_get_storage_prefix_from_settings(self, mock_storage):
         """Test getting storage prefix from AWS_LOCATION setting."""
+        # Arrange: Mock default_storage to not have location attribute
+        mock_storage.location = None
+        
         # Act
         result = get_storage_prefix()
 

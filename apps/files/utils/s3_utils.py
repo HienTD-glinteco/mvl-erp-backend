@@ -16,7 +16,7 @@ from apps.files.constants import (
     S3_TMP_PREFIX,
     S3_UPLOADS_PREFIX,
 )
-from apps.files.utils.storage_utils import build_storage_key
+from apps.files.utils.storage_utils import build_storage_key, get_storage_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,11 @@ class S3FileUploadService:
         # Generate unique file token
         file_token = str(uuid.uuid4())
 
-        # Generate unique temporary path with storage prefix
-        temp_path = build_storage_key(S3_TMP_PREFIX, file_token, file_name)
+        # Generate S3 key for presigned URL (includes prefix for boto3)
+        s3_key = build_storage_key(S3_TMP_PREFIX, file_token, file_name, include_prefix=True)
+        
+        # Generate file_path for cache/database (without prefix for default_storage)
+        file_path = build_storage_key(S3_TMP_PREFIX, file_token, file_name, include_prefix=False)
 
         try:
             # Generate presigned URL for PUT operation
@@ -69,17 +72,17 @@ class S3FileUploadService:
                 "put_object",
                 Params={
                     "Bucket": self.bucket_name,
-                    "Key": temp_path,
+                    "Key": s3_key,  # Use full S3 key with prefix
                     "ContentType": file_type,
                 },
                 ExpiresIn=expiration,
             )
 
-            logger.info(f"Generated presigned URL for upload: key={temp_path}, purpose={purpose}")
+            logger.info(f"Generated presigned URL for upload: s3_key={s3_key}, file_path={file_path}, purpose={purpose}")
 
             return {
                 "upload_url": presigned_url,
-                "file_path": temp_path,
+                "file_path": file_path,  # Return path without prefix for storage in cache/DB
                 "file_token": file_token,
             }
 
@@ -87,18 +90,34 @@ class S3FileUploadService:
             logger.error(f"Failed to generate presigned URL: {e}")
             raise Exception(_("Failed to generate presigned URL: {error}").format(error=str(e)))
 
+    def _get_s3_key(self, file_path: str) -> str:
+        """
+        Convert a file_path (without prefix) to full S3 key (with prefix).
+
+        Args:
+            file_path: File path as stored in FileModel (without prefix)
+
+        Returns:
+            Full S3 key with prefix for boto3 operations
+        """
+        prefix = get_storage_prefix()
+        if prefix and not file_path.startswith(f"{prefix}/"):
+            return f"{prefix}/{file_path}"
+        return file_path
+
     def check_file_exists(self, file_path: str) -> bool:
         """
         Check if a file exists in S3.
 
         Args:
-            file_path: S3 key/path to check
+            file_path: File path (with or without prefix)
 
         Returns:
             True if file exists, False otherwise
         """
+        s3_key = self._get_s3_key(file_path)
         try:
-            self.s3_client.head_object(Bucket=self.bucket_name, Key=file_path)
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=s3_key)
             return True
         except ClientError:
             return False
@@ -108,8 +127,8 @@ class S3FileUploadService:
         Move a file from source to destination in S3 with retry logic.
 
         Args:
-            source_path: Source S3 key
-            destination_path: Destination S3 key
+            source_path: Source file path (with or without prefix)
+            destination_path: Destination file path (with or without prefix)
             max_retries: Maximum number of retry attempts (default: 3)
 
         Returns:
@@ -118,18 +137,22 @@ class S3FileUploadService:
         Raises:
             Exception: If move operation fails after all retries
         """
+        # Convert to full S3 keys with prefix
+        source_key = self._get_s3_key(source_path)
+        dest_key = self._get_s3_key(destination_path)
+        
         retry_delay = 1  # Initial delay in seconds
 
         for attempt in range(max_retries):
             try:
                 # Copy object to new location
-                copy_source = {"Bucket": self.bucket_name, "Key": source_path}
-                self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=destination_path)
+                copy_source = {"Bucket": self.bucket_name, "Key": source_key}
+                self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key)
 
                 # Delete original object
-                self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_path)
+                self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_key)
 
-                logger.info(f"Successfully moved file: {source_path} -> {destination_path}")
+                logger.info(f"Successfully moved file: {source_path} -> {destination_path} (S3: {source_key} -> {dest_key})")
                 return True
 
             except ClientError as e:
@@ -151,13 +174,14 @@ class S3FileUploadService:
         Get metadata for a file in S3.
 
         Args:
-            file_path: S3 key/path
+            file_path: File path (with or without prefix)
 
         Returns:
             Dictionary containing file metadata or None if not found
         """
+        s3_key = self._get_s3_key(file_path)
         try:
-            response = self.s3_client.head_object(Bucket=self.bucket_name, Key=file_path)
+            response = self.s3_client.head_object(Bucket=self.bucket_name, Key=s3_key)
             return {
                 "size": response.get("ContentLength"),
                 "etag": response.get("ETag", "").strip('"'),
@@ -172,16 +196,17 @@ class S3FileUploadService:
         Delete a file from S3.
 
         Args:
-            file_path: S3 key/path to delete
+            file_path: File path to delete (with or without prefix)
 
         Returns:
-            True if successful, False otherwise
+            True if successful
 
         Raises:
             Exception: If delete operation fails
         """
+        s3_key = self._get_s3_key(file_path)
         try:
-            self.s3_client.delete_object(Bucket=self.bucket_name, Key=file_path)
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=s3_key)
             return True
         except ClientError as e:
             raise Exception(_("Failed to delete file from S3: {error}").format(error=str(e)))
@@ -197,7 +222,7 @@ class S3FileUploadService:
         Generate a presigned URL for viewing or downloading a file from S3.
 
         Args:
-            file_path: S3 key/path of the file
+            file_path: File path (with or without prefix)
             expiration: URL expiration time in seconds (default: 1 hour)
             as_attachment: If True, forces download. If False, allows inline viewing
             file_name: Optional filename for Content-Disposition header
@@ -208,10 +233,11 @@ class S3FileUploadService:
         Raises:
             Exception: If presigned URL generation fails
         """
+        s3_key = self._get_s3_key(file_path)
         try:
             params = {
                 "Bucket": self.bucket_name,
-                "Key": file_path,
+                "Key": s3_key,
             }
 
             # Add Content-Disposition header if needed
@@ -266,6 +292,9 @@ class S3FileUploadService:
         """
         Generate permanent path for a confirmed file.
 
+        This returns a path WITHOUT the storage prefix, suitable for storing in FileModel.file_path.
+        The prefix will be added automatically by default_storage methods.
+
         Args:
             purpose: File purpose/category
             file_name: Original file name
@@ -273,24 +302,29 @@ class S3FileUploadService:
             related_model: Related model name (optional, e.g., 'JobDescription')
 
         Returns:
-            Permanent S3 path with storage prefix
+            Permanent file path WITHOUT storage prefix (for use with default_storage)
 
         Examples:
             With related object:
                 generate_permanent_path('job_description', 'file.pdf', object_id=15)
-                -> 'media/uploads/job_description/15/file.pdf' (with prefix='media')
+                -> 'uploads/job_description/15/file.pdf' (NO prefix)
 
             Without related object:
                 generate_permanent_path('import_data', 'file.csv')
-                -> 'media/uploads/import_data/unrelated/{uuid}/file.csv' (with prefix='media')
+                -> 'uploads/import_data/unrelated/{uuid}/file.csv' (NO prefix)
+
+        Note:
+            The returned path does NOT include the storage prefix (AWS_LOCATION).
+            This is intentional because default_storage.url() and default_storage.open()
+            automatically prepend the prefix.
         """
         if object_id is not None:
-            # Path with related object ID
-            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, str(object_id), file_name)
+            # Path with related object ID (without prefix)
+            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, str(object_id), file_name, include_prefix=False)
         else:
-            # Path for unrelated files - use UUID to avoid collisions
+            # Path for unrelated files - use UUID to avoid collisions (without prefix)
             unique_id = str(uuid.uuid4())
-            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, "unrelated", unique_id, file_name)
+            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, "unrelated", unique_id, file_name, include_prefix=False)
 
         logger.debug(f"Generated permanent path: {path} (purpose={purpose}, object_id={object_id})")
         return path
