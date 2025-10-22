@@ -58,6 +58,8 @@ def my_import_handler(row_index, row, import_job_id, options):
 
 ### 2. Add Mixin to ViewSet
 
+**Option A: Using a separate handler module (recommended for reusable handlers)**
+
 ```python
 # apps/myapp/api/views.py
 
@@ -76,6 +78,54 @@ class MyModelViewSet(AsyncImportProgressMixin, ModelViewSet):
     # Specify the import handler
     import_row_handler = "apps.myapp.import_handlers.my_import_handler"
 ```
+
+**Option B: Define handler method directly in ViewSet (convenient for simple cases)**
+
+```python
+# apps/myapp/api/views.py
+
+from rest_framework.viewsets import ModelViewSet
+from apps.imports.api.mixins import AsyncImportProgressMixin
+from apps.myapp.models import MyModel
+from apps.myapp.api.serializers import MyModelSerializer
+
+
+class MyModelViewSet(AsyncImportProgressMixin, ModelViewSet):
+    """ViewSet with import capability."""
+    
+    queryset = MyModel.objects.all()
+    serializer_class = MyModelSerializer
+    
+    # Define handler directly in the ViewSet
+    def _process_import_data_row(self, row_index, row, import_job_id, options):
+        """
+        Process a single row from the import file.
+        
+        This method is automatically detected and used if defined.
+        No need to set import_row_handler attribute.
+        """
+        try:
+            # Parse row data
+            name = row[0]
+            email = row[1]
+            
+            # Validate
+            if not email:
+                return {"ok": False, "error": "Email is required"}
+            
+            # Process (create/update records)
+            obj, created = MyModel.objects.update_or_create(
+                email=email,
+                defaults={'name': name}
+            )
+            
+            return {"ok": True, "result": {"id": obj.id}}
+            
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+```
+
+**Note**: If you define `_process_import_data_row` method in your ViewSet, it takes precedence over the `import_row_handler` attribute. This is useful for keeping import logic close to the ViewSet when it's simple or specific to that ViewSet.
 
 ### 3. Use the Import API
 

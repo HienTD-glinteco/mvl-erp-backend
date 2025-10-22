@@ -92,16 +92,42 @@ def import_job_task(self, import_job_id: str) -> dict:
         if not file_obj.is_confirmed:
             raise ValueError("File is not confirmed")
 
-        # Get handler path from options
-        handler_path = job.options.get("handler_path") if job.options else None
-        if not handler_path:
-            raise ValueError(ERROR_MISSING_HANDLER)
-
-        # Resolve handler
-        handler = resolve_handler(handler_path)
+        # Get handler from options
+        handler = None
+        options = job.options or {}
+        
+        # Check if using ViewSet method handler
+        if options.get("use_viewset_method"):
+            viewset_class_path = options.get("viewset_class_path")
+            if not viewset_class_path:
+                raise ValueError("ViewSet class path not found for method handler")
+            
+            # Resolve ViewSet class and instantiate it
+            try:
+                module_path, class_name = viewset_class_path.rsplit(".", 1)
+                module = importlib.import_module(module_path)
+                viewset_class = getattr(module, class_name)
+                
+                # Create a minimal ViewSet instance (without request context)
+                viewset_instance = viewset_class()
+                
+                # Get the method handler
+                if hasattr(viewset_instance, '_process_import_data_row'):
+                    handler = viewset_instance._process_import_data_row
+                else:
+                    raise ValueError(f"ViewSet {viewset_class_path} does not have _process_import_data_row method")
+            except (ValueError, ImportError, AttributeError) as e:
+                raise ImportError(f"Failed to resolve ViewSet method handler: {viewset_class_path}") from e
+        else:
+            # Use traditional handler path
+            handler_path = options.get("handler_path")
+            if not handler_path:
+                raise ValueError(ERROR_MISSING_HANDLER)
+            
+            # Resolve handler
+            handler = resolve_handler(handler_path)
 
         # Get import options
-        options = job.options or {}
         batch_size = options.get("batch_size", getattr(settings, "IMPORT_DEFAULT_BATCH_SIZE", 500))
         count_total_first = options.get("count_total_first", True)
         header_rows = options.get("header_rows", 1)

@@ -1,9 +1,15 @@
 """
-Example import handler for AsyncImportProgressMixin.
+Example import handlers for AsyncImportProgressMixin.
 
-This file demonstrates how to create an import handler that processes
-rows from a CSV or XLSX file during an asynchronous import job.
+This file demonstrates two approaches for creating import handlers:
+1. Standalone handler function (can be used across multiple ViewSets)
+2. ViewSet method handler (keeps logic close to the ViewSet)
 """
+
+
+# APPROACH 1: Standalone Handler Function
+# =========================================
+# This can be reused across multiple ViewSets by referencing the dotted path
 
 
 def example_import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:
@@ -179,3 +185,101 @@ def parse_date(date_str: str, formats: list = None) -> str:
             continue
 
     return None
+
+
+# APPROACH 2: ViewSet Method Handler
+# ===================================
+# This approach keeps the import logic in the ViewSet itself
+
+
+"""
+Example ViewSet with _process_import_data_row method:
+
+from rest_framework.viewsets import ModelViewSet
+from apps.imports.api.mixins import AsyncImportProgressMixin
+
+
+class ProductViewSet(AsyncImportProgressMixin, ModelViewSet):
+    '''ViewSet with inline import handler method.'''
+    
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    
+    def _process_import_data_row(self, row_index: int, row: list, import_job_id: str, options: dict) -> dict:
+        '''
+        Process a single row from product import file.
+        
+        This method is automatically detected and used by AsyncImportProgressMixin.
+        No need to set import_row_handler attribute.
+        
+        Expected CSV format:
+            sku, name, price, category
+        
+        Args:
+            row_index: 1-based row number
+            row: List of cell values
+            import_job_id: UUID of the import job
+            options: Import options from the request
+            
+        Returns:
+            {"ok": True, "result": {...}} on success
+            {"ok": False, "error": "..."} on failure
+        '''
+        try:
+            # Parse row
+            sku = row[0] if len(row) > 0 else None
+            name = row[1] if len(row) > 1 else None
+            price_str = row[2] if len(row) > 2 else None
+            category = row[3] if len(row) > 3 else None
+            
+            # Validate
+            if not sku:
+                return {"ok": False, "error": "SKU is required"}
+            if not name:
+                return {"ok": False, "error": "Name is required"}
+            
+            # Parse price
+            from decimal import Decimal, InvalidOperation
+            try:
+                price = Decimal(price_str) if price_str else None
+            except InvalidOperation:
+                return {"ok": False, "error": f"Invalid price: {price_str}"}
+            
+            # Create or update product
+            from apps.products.models import Product
+            product, created = Product.objects.update_or_create(
+                sku=sku,
+                defaults={
+                    'name': name,
+                    'price': price,
+                    'category': category,
+                }
+            )
+            
+            return {
+                "ok": True,
+                "result": {
+                    "id": product.id,
+                    "action": "created" if created else "updated"
+                }
+            }
+            
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+
+# COMPARISON OF APPROACHES
+# ========================
+
+# Use Standalone Handler Function when:
+# - Handler logic is complex and needs to be tested independently
+# - Same handler is used across multiple ViewSets
+# - You want to keep ViewSet code clean and focused on API logic
+# - Handler needs to be shared or reused in other contexts
+
+# Use ViewSet Method Handler when:
+# - Import logic is simple and specific to one ViewSet
+# - You want to keep all related code in one place
+# - Handler needs access to ViewSet state or methods
+# - You prefer inline definition for simplicity
+"""
