@@ -1,6 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from apps.imports.api.views import ImportStatusView
+
 from .api.views import (
     AdministrativeUnitViewSet,
     ConstantsView,
@@ -52,4 +54,6 @@ urlpatterns = [
     path("constants/", ConstantsView.as_view(), name="constants"),
     # Export status endpoint
     path("export/status/", ExportStatusView.as_view(), name="export_status"),
+    # Import status endpoint
+    path("import/status/", ImportStatusView.as_view(), name="import_status"),
 ]
