@@ -503,3 +503,65 @@ class FileModelTest(TestCase):
         # Assert
         self.assertEqual(url, "https://s3.amazonaws.com/download-url")
         mock_instance.generate_download_url.assert_called_once_with("uploads/test/1/test.pdf", "test.pdf")
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    @patch("apps.files.api.views.file_views.S3FileUploadService")
+    def test_confirm_file_without_related_object(self, mock_s3_service_views, mock_s3_service_utils):
+        """Test successful confirmation of file without related object (for import jobs)."""
+        # Arrange: Set up cache for file token
+        file_token = "test-token-unrelated"
+        cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
+        cache_data = {
+            "file_name": "import_data.csv",
+            "file_type": "text/csv",
+            "purpose": "import_data",
+            "file_path": "uploads/tmp/test-token-unrelated/import_data.csv",
+        }
+        cache.set(cache_key, json.dumps(cache_data), 3600)
+
+        # Mock S3 service in views
+        mock_instance = mock_s3_service_views.return_value
+        mock_instance.check_file_exists.return_value = True
+        mock_instance.generate_permanent_path.return_value = "uploads/import_data/unrelated/uuid-123/import_data.csv"
+        mock_instance.move_file.return_value = True
+
+        # Mock get_file_metadata calls
+        mock_instance.get_file_metadata.side_effect = [
+            {"size": 56789, "content_type": "text/csv", "etag": "xyz789"},
+            {"size": 56789, "etag": "xyz789"},
+        ]
+
+        # Mock S3 service in utils (for properties in serializer)
+        mock_s3_service_utils.return_value.generate_view_url.return_value = "https://s3.amazonaws.com/view-url"
+        mock_s3_service_utils.return_value.generate_download_url.return_value = "https://s3.amazonaws.com/download-url"
+
+        # Act: Confirm file without related_model and related_object_id
+        url = reverse("files:confirm-multiple")
+        data = {
+            "files": [
+                {
+                    "file_token": file_token,
+                    "purpose": "import_data",
+                }
+            ]
+        }
+        response = self.client.post(url, data, format="json")
+
+        # Assert: Check response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+
+        self.assertIn("confirmed_files", response_data)
+        self.assertEqual(len(response_data["confirmed_files"]), 1)
+
+        confirmed_file = response_data["confirmed_files"][0]
+        self.assertEqual(confirmed_file["purpose"], "import_data")
+        self.assertEqual(confirmed_file["file_name"], "import_data.csv")
+        self.assertIn("unrelated", confirmed_file["file_path"])
+        self.assertTrue(confirmed_file["is_confirmed"])
+
+        # Assert: Check FileModel was created without related object
+        file_record = FileModel.objects.get(file_name="import_data.csv")
+        self.assertIsNone(file_record.content_type)
+        self.assertIsNone(file_record.object_id)
+        self.assertEqual(file_record.uploaded_by, self.user)
