@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Callable
 
 from celery import shared_task
-from celery.exceptions import Revoked
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -32,6 +31,13 @@ from apps.imports.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class ImportCancelled(Exception):
+    """Exception raised when import job is cancelled."""
+
+    pass
+
 
 
 def resolve_handler(handler_path: str) -> Callable:
@@ -186,7 +192,7 @@ def import_job_task(self, import_job_id: str) -> dict:
                 job.refresh_from_db()
                 if job.status == STATUS_CANCELLED:
                     logger.info(f"Import job {import_job_id} was cancelled")
-                    raise Revoked()
+                    raise ImportCancelled()
 
                 # Invoke handler
                 try:
@@ -301,7 +307,7 @@ def import_job_task(self, import_job_id: str) -> dict:
             "failure_count": job.failure_count,
         }
 
-    except Revoked:
+    except ImportCancelled:
         # Task was cancelled
         if job:
             job.status = STATUS_CANCELLED
