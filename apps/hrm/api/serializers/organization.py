@@ -97,7 +97,7 @@ class BlockSerializer(serializers.ModelSerializer):
         ]
 
 
-class DepartmentNestedSerializer(serializers.ModelSerializer):
+class OrganizationDepartmentNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested department references"""
 
     class Meta:
@@ -117,11 +117,11 @@ class DepartmentSerializer(serializers.ModelSerializer):
     block_id = serializers.PrimaryKeyRelatedField(
         queryset=Block.objects.all(), source="block", write_only=True, required=True
     )
-    parent_department = DepartmentNestedSerializer(read_only=True)
+    parent_department = OrganizationDepartmentNestedSerializer(read_only=True)
     parent_department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(), source="parent_department", write_only=True, required=False, allow_null=True
     )
-    management_department = DepartmentNestedSerializer(read_only=True)
+    management_department = OrganizationDepartmentNestedSerializer(read_only=True)
     management_department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
         source="management_department",
@@ -273,7 +273,7 @@ class PositionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]
 
 
-class EmployeeNestedSerializer(serializers.ModelSerializer):
+class OrganizationEmployeeNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested employee references"""
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
@@ -293,7 +293,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
         required=True,
         write_only=True,
     )
-    employee = EmployeeNestedSerializer(read_only=True)
+    employee = OrganizationEmployeeNestedSerializer(read_only=True)
     position_id = serializers.PrimaryKeyRelatedField(
         source="position",
         queryset=Position.objects.all(),
@@ -307,7 +307,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
         required=True,
         write_only=True,
     )
-    department = DepartmentNestedSerializer(read_only=True)
+    department = OrganizationDepartmentNestedSerializer(read_only=True)
 
     class Meta:
         model = OrganizationChart

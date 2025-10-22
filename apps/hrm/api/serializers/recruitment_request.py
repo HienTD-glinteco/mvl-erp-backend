@@ -12,7 +12,7 @@ from apps.hrm.models import (
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
-class JobDescriptionNestedSerializer(serializers.ModelSerializer):
+class RecruitmentRequestJobDescriptionNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested job description references"""
 
     class Meta:
@@ -21,7 +21,7 @@ class JobDescriptionNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "title", "requirement", "benefit"]
 
 
-class EmployeeNestedSerializer(serializers.ModelSerializer):
+class RecruitmentRequestEmployeeNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested employee references"""
 
     class Meta:
@@ -30,7 +30,7 @@ class EmployeeNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "fullname"]
 
 
-class BranchNestedSerializer(serializers.ModelSerializer):
+class RecruitmentRequestBranchNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested branch references"""
 
     class Meta:
@@ -39,7 +39,7 @@ class BranchNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "code"]
 
 
-class BlockNestedSerializer(serializers.ModelSerializer):
+class RecruitmentRequestBlockNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested block references"""
 
     class Meta:
@@ -48,7 +48,7 @@ class BlockNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "code"]
 
 
-class DepartmentNestedSerializer(serializers.ModelSerializer):
+class RecruitmentRequestDepartmentNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested department references"""
 
     class Meta:
@@ -72,11 +72,11 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
     """
 
     # Nested read-only serializers for full object representation
-    job_description = JobDescriptionNestedSerializer(read_only=True)
-    branch = BranchNestedSerializer(read_only=True)
-    block = BlockNestedSerializer(read_only=True)
-    department = DepartmentNestedSerializer(read_only=True)
-    proposer = EmployeeNestedSerializer(read_only=True)
+    job_description = RecruitmentRequestJobDescriptionNestedSerializer(read_only=True)
+    branch = RecruitmentRequestBranchNestedSerializer(read_only=True)
+    block = RecruitmentRequestBlockNestedSerializer(read_only=True)
+    department = RecruitmentRequestDepartmentNestedSerializer(read_only=True)
+    proposer = RecruitmentRequestEmployeeNestedSerializer(read_only=True)
 
     # Colored value fields
     colored_status = ColoredValueSerializer(read_only=True)

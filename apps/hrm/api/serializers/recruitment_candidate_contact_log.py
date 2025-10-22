@@ -4,7 +4,7 @@ from apps.hrm.models import Employee, RecruitmentCandidate, RecruitmentCandidate
 from libs import FieldFilteringSerializerMixin
 
 
-class EmployeeNestedSerializer(serializers.ModelSerializer):
+class RecruitmentCandidateContactLogEmployeeNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested employee references"""
 
     class Meta:
@@ -13,7 +13,7 @@ class EmployeeNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "fullname"]
 
 
-class RecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
+class RecruitmentCandidateContactLogRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested recruitment candidate references"""
 
     class Meta:
@@ -34,8 +34,8 @@ class RecruitmentCandidateContactLogSerializer(FieldFilteringSerializerMixin, se
     """
 
     # Nested read-only serializers for full object representation
-    employee = EmployeeNestedSerializer(read_only=True)
-    recruitment_candidate = RecruitmentCandidateNestedSerializer(read_only=True)
+    employee = RecruitmentCandidateContactLogEmployeeNestedSerializer(read_only=True)
+    recruitment_candidate = RecruitmentCandidateContactLogRecruitmentCandidateNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     employee_id = serializers.PrimaryKeyRelatedField(
