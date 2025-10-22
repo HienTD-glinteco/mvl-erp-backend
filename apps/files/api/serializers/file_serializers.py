@@ -90,7 +90,7 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 class FileConfirmationSerializer(serializers.Serializer):
-    """Serializer for individual file confirmation with related object."""
+    """Serializer for individual file confirmation with optional related object."""
 
     file_token = serializers.CharField(
         help_text=_("Token returned by presign endpoint"),
@@ -99,11 +99,15 @@ class FileConfirmationSerializer(serializers.Serializer):
         help_text=_("File purpose (e.g., 'job_description', 'invoice')"),
     )
     related_model = serializers.CharField(
-        help_text=_("Django model label (e.g., 'hrm.JobDescription')"),
+        required=False,
+        allow_null=True,
+        help_text=_("Optional Django model label (e.g., 'hrm.JobDescription')"),
     )
     related_object_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
         min_value=1,
-        help_text=_("Related object ID"),
+        help_text=_("Optional related object ID"),
     )
     related_field = serializers.CharField(
         required=False,
@@ -115,7 +119,10 @@ class FileConfirmationSerializer(serializers.Serializer):
     )
 
     def validate_related_model(self, value):
-        """Validate that the model exists."""
+        """Validate that the model exists if provided."""
+        if value is None:
+            return value
+
         try:
             apps.get_model(value)
         except (LookupError, ValueError):
@@ -123,18 +130,26 @@ class FileConfirmationSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
-        """Validate that the related object exists."""
-        related_model = attrs["related_model"]
-        related_object_id = attrs["related_object_id"]
+        """Validate that both related_model and related_object_id are provided together."""
+        related_model = attrs.get("related_model")
+        related_object_id = attrs.get("related_object_id")
 
-        try:
-            model_class = apps.get_model(related_model)
-            if not model_class.objects.filter(pk=related_object_id).exists():
-                raise serializers.ValidationError(
-                    {"related_object_id": _("Object with ID {id} not found").format(id=related_object_id)}
-                )
-        except (LookupError, ValueError):
-            raise serializers.ValidationError({"related_model": _("Invalid model")})
+        # If one is provided, both must be provided
+        if (related_model is None) != (related_object_id is None):
+            raise serializers.ValidationError(
+                _("Both related_model and related_object_id must be provided together, or both omitted")
+            )
+
+        # If both are provided, validate that the object exists
+        if related_model and related_object_id:
+            try:
+                model_class = apps.get_model(related_model)
+                if not model_class.objects.filter(pk=related_object_id).exists():
+                    raise serializers.ValidationError(
+                        {"related_object_id": _("Object with ID {id} not found").format(id=related_object_id)}
+                    )
+            except (LookupError, ValueError):
+                raise serializers.ValidationError({"related_model": _("Invalid model")})
 
         return attrs
 

@@ -13,6 +13,7 @@ from apps.files.utils import S3FileUploadService
     AWS_SECRET_ACCESS_KEY="test-secret",
     AWS_REGION_NAME="us-east-1",
     AWS_STORAGE_BUCKET_NAME="test-bucket",
+    AWS_LOCATION="",  # No prefix for most tests
 )
 class S3FileUploadServiceTest(TestCase):
     """Test cases for S3FileUploadService."""
@@ -45,6 +46,31 @@ class S3FileUploadServiceTest(TestCase):
         self.assertIn("file_token", result)
         self.assertIn("uploads/tmp/", result["file_path"])
         mock_s3.generate_presigned_url.assert_called_once()
+
+    @override_settings(AWS_LOCATION="media")
+    @patch("boto3.client")
+    def test_generate_presigned_url_with_prefix(self, mock_boto_client):
+        """Test presigned URL generation includes storage prefix in path."""
+        # Arrange
+        mock_s3 = MagicMock()
+        mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/test-url"
+        mock_boto_client.return_value = mock_s3
+
+        service = S3FileUploadService()
+
+        # Act
+        result = service.generate_presigned_url(
+            file_name="test.pdf",
+            file_type="application/pdf",
+            purpose="test_purpose",
+        )
+
+        # Assert
+        self.assertIn("upload_url", result)
+        self.assertIn("file_path", result)
+        # Path should include prefix
+        self.assertTrue(result["file_path"].startswith("media/uploads/tmp/"))
+        self.assertIn("test.pdf", result["file_path"])
 
     @patch("boto3.client")
     def test_generate_presigned_url_failure(self, mock_boto_client):
@@ -276,14 +302,39 @@ class S3FileUploadServiceTest(TestCase):
         with self.assertRaises(Exception):
             service.generate_view_url("uploads/test/file.pdf")
 
-    def test_generate_permanent_path(self):
-        """Test permanent path generation."""
+    def test_generate_permanent_path_with_object_id(self):
+        """Test permanent path generation with object ID."""
         # Act
         result = self.service.generate_permanent_path(
             purpose="job_description",
-            object_id=42,
             file_name="test.pdf",
+            object_id=42,
         )
 
         # Assert
         self.assertEqual(result, "uploads/job_description/42/test.pdf")
+
+    def test_generate_permanent_path_without_object_id(self):
+        """Test permanent path generation without object ID (unrelated files)."""
+        # Act
+        result = self.service.generate_permanent_path(
+            purpose="import_data",
+            file_name="test.csv",
+        )
+
+        # Assert
+        self.assertIn("uploads/import_data/unrelated/", result)
+        self.assertIn("test.csv", result)
+
+    @override_settings(AWS_LOCATION="media")
+    def test_generate_permanent_path_with_prefix(self):
+        """Test permanent path generation includes storage prefix."""
+        # Act
+        result = self.service.generate_permanent_path(
+            purpose="job_description",
+            file_name="test.pdf",
+            object_id=42,
+        )
+
+        # Assert
+        self.assertEqual(result, "media/uploads/job_description/42/test.pdf")

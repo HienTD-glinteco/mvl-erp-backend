@@ -1,5 +1,7 @@
 """S3 utilities for file upload management."""
 
+import logging
+import time
 import uuid
 from typing import Optional
 
@@ -14,6 +16,9 @@ from apps.files.constants import (
     S3_TMP_PREFIX,
     S3_UPLOADS_PREFIX,
 )
+from apps.files.utils.storage_utils import build_storage_key
+
+logger = logging.getLogger(__name__)
 
 
 class S3FileUploadService:
@@ -54,8 +59,8 @@ class S3FileUploadService:
         # Generate unique file token
         file_token = str(uuid.uuid4())
 
-        # Generate unique temporary path
-        temp_path = f"{S3_TMP_PREFIX}{file_token}/{file_name}"
+        # Generate unique temporary path with storage prefix
+        temp_path = build_storage_key(S3_TMP_PREFIX, file_token, file_name)
 
         try:
             # Generate presigned URL for PUT operation
@@ -70,6 +75,8 @@ class S3FileUploadService:
                 ExpiresIn=expiration,
             )
 
+            logger.info(f"Generated presigned URL for upload: key={temp_path}, purpose={purpose}")
+
             return {
                 "upload_url": presigned_url,
                 "file_path": temp_path,
@@ -77,6 +84,7 @@ class S3FileUploadService:
             }
 
         except ClientError as e:
+            logger.error(f"Failed to generate presigned URL: {e}")
             raise Exception(_("Failed to generate presigned URL: {error}").format(error=str(e)))
 
     def check_file_exists(self, file_path: str) -> bool:
@@ -95,32 +103,48 @@ class S3FileUploadService:
         except ClientError:
             return False
 
-    def move_file(self, source_path: str, destination_path: str) -> bool:
+    def move_file(self, source_path: str, destination_path: str, max_retries: int = 3) -> bool:
         """
-        Move a file from source to destination in S3.
+        Move a file from source to destination in S3 with retry logic.
 
         Args:
             source_path: Source S3 key
             destination_path: Destination S3 key
+            max_retries: Maximum number of retry attempts (default: 3)
 
         Returns:
-            True if successful, False otherwise
+            True if successful
 
         Raises:
-            Exception: If move operation fails
+            Exception: If move operation fails after all retries
         """
-        try:
-            # Copy object to new location
-            copy_source = {"Bucket": self.bucket_name, "Key": source_path}
-            self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=destination_path)
+        retry_delay = 1  # Initial delay in seconds
 
-            # Delete original object
-            self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_path)
+        for attempt in range(max_retries):
+            try:
+                # Copy object to new location
+                copy_source = {"Bucket": self.bucket_name, "Key": source_path}
+                self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=destination_path)
 
-            return True
+                # Delete original object
+                self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_path)
 
-        except ClientError as e:
-            raise Exception(_("Failed to move file in S3: {error}").format(error=str(e)))
+                logger.info(f"Successfully moved file: {source_path} -> {destination_path}")
+                return True
+
+            except ClientError as e:
+                logger.warning(
+                    f"Failed to move file (attempt {attempt + 1}/{max_retries}): {source_path} -> {destination_path}, error: {e}"
+                )
+
+                if attempt < max_retries - 1:
+                    # Exponential backoff
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    # Final attempt failed
+                    logger.error(f"Failed to move file after {max_retries} attempts: {source_path} -> {destination_path}")
+                    raise Exception(_("Failed to move file in S3: {error}").format(error=str(e)))
 
     def get_file_metadata(self, file_path: str) -> Optional[dict]:
         """
@@ -236,16 +260,37 @@ class S3FileUploadService:
         """
         return self.generate_presigned_get_url(file_path, expiration, as_attachment=True, file_name=file_name)
 
-    def generate_permanent_path(self, purpose: str, object_id: int, file_name: str) -> str:
+    def generate_permanent_path(
+        self, purpose: str, file_name: str, object_id: Optional[int] = None, related_model: Optional[str] = None
+    ) -> str:
         """
         Generate permanent path for a confirmed file.
 
         Args:
             purpose: File purpose/category
-            object_id: Related object ID
             file_name: Original file name
+            object_id: Related object ID (optional)
+            related_model: Related model name (optional, e.g., 'JobDescription')
 
         Returns:
-            Permanent S3 path
+            Permanent S3 path with storage prefix
+
+        Examples:
+            With related object:
+                generate_permanent_path('job_description', 'file.pdf', object_id=15)
+                -> 'media/uploads/job_description/15/file.pdf' (with prefix='media')
+
+            Without related object:
+                generate_permanent_path('import_data', 'file.csv')
+                -> 'media/uploads/import_data/unrelated/{uuid}/file.csv' (with prefix='media')
         """
-        return f"{S3_UPLOADS_PREFIX}{purpose}/{object_id}/{file_name}"
+        if object_id is not None:
+            # Path with related object ID
+            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, str(object_id), file_name)
+        else:
+            # Path for unrelated files - use UUID to avoid collisions
+            unique_id = str(uuid.uuid4())
+            path = build_storage_key(S3_UPLOADS_PREFIX, purpose, "unrelated", unique_id, file_name)
+
+        logger.debug(f"Generated permanent path: {path} (purpose={purpose}, object_id={object_id})")
+        return path
