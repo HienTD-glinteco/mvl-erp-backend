@@ -48,12 +48,12 @@ class S3FileUploadServiceTest(TestCase):
         mock_s3.generate_presigned_url.assert_called_once()
 
     @override_settings(AWS_LOCATION="media")
-    @patch("apps.files.utils.storage_utils.default_storage")
+    @patch("apps.files.utils.s3_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_generate_presigned_url_with_prefix(self, mock_boto_client, mock_storage):
+    def test_generate_presigned_url_with_prefix(self, mock_boto_client, mock_get_prefix):
         """Test presigned URL generation: S3 key has prefix, but file_path does not."""
         # Arrange
-        mock_storage.location = None  # So get_storage_prefix uses AWS_LOCATION
+        mock_get_prefix.return_value = "media"  # Mock the prefix function
         mock_s3 = MagicMock()
         mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/test-url"
         mock_boto_client.return_value = mock_s3

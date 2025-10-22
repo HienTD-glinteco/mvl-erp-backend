@@ -401,16 +401,23 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class FileModelTest(TestCase):
+class FileModelTest(TestCase, APITestMixin):
     """Test cases for FileModel."""
 
     def setUp(self):
         """Set up test data."""
+        cache.clear()
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def tearDown(self):
+        """Clean up after tests."""
+        cache.clear()
 
     def test_create_file_model(self):
         """Test creating a FileModel instance."""
