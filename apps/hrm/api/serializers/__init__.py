@@ -58,7 +58,6 @@ __all__ = [
     "RecruitmentChannelReportSerializer",
     "RecruitmentCostReportSerializer",
     "HiredCandidateReportSerializer",
-    "ReferralCostReportSerializer",
     "DashboardRealtimeDataSerializer",
     "DashboardChartDataSerializer",
 ]

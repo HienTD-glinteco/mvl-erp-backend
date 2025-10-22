@@ -5,7 +5,6 @@ from apps.hrm.models import (
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
-    ReferralCostReport,
     StaffGrowthReport,
 )
 
@@ -22,7 +21,6 @@ class StaffGrowthReportSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "report_date",
-            "period_type",
             "branch",
             "branch_name",
             "block",
@@ -53,7 +51,6 @@ class RecruitmentSourceReportSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "report_date",
-            "period_type",
             "branch",
             "branch_name",
             "block",
@@ -62,8 +59,6 @@ class RecruitmentSourceReportSerializer(serializers.ModelSerializer):
             "department_name",
             "recruitment_source",
             "source_name",
-            "org_unit_name",
-            "org_unit_type",
             "num_hires",
             "created_at",
             "updated_at",
@@ -84,7 +79,6 @@ class RecruitmentChannelReportSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "report_date",
-            "period_type",
             "branch",
             "branch_name",
             "block",
@@ -93,8 +87,6 @@ class RecruitmentChannelReportSerializer(serializers.ModelSerializer):
             "department_name",
             "recruitment_channel",
             "channel_name",
-            "org_unit_name",
-            "org_unit_type",
             "num_hires",
             "created_at",
             "updated_at",
@@ -116,7 +108,6 @@ class RecruitmentCostReportSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "report_date",
-            "period_type",
             "branch",
             "branch_name",
             "block",
@@ -150,7 +141,6 @@ class HiredCandidateReportSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "report_date",
-            "period_type",
             "branch",
             "branch_name",
             "block",
@@ -162,32 +152,6 @@ class HiredCandidateReportSerializer(serializers.ModelSerializer):
             "employee_name",
             "employee_code",
             "num_candidates_hired",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["id", "created_at", "updated_at"]
-
-
-class ReferralCostReportSerializer(serializers.ModelSerializer):
-    """Serializer for ReferralCostReport model."""
-
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    employee_name = serializers.CharField(source="employee.fullname", read_only=True, allow_null=True)
-    employee_code = serializers.CharField(source="employee.code", read_only=True, allow_null=True)
-
-    class Meta:
-        model = ReferralCostReport
-        fields = [
-            "id",
-            "report_date",
-            "period_type",
-            "department",
-            "department_name",
-            "employee",
-            "employee_name",
-            "employee_code",
-            "total_referral_cost",
-            "num_referrals",
             "created_at",
             "updated_at",
         ]

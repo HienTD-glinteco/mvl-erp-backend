@@ -50,7 +50,6 @@ __all__ = [
     "RecruitmentChannelReportViewSet",
     "RecruitmentCostReportViewSet",
     "HiredCandidateReportViewSet",
-    "ReferralCostReportViewSet",
     "dashboard_realtime_data",
     "dashboard_chart_data",
 ]

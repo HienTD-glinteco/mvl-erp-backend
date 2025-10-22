@@ -8,7 +8,6 @@ from apps.hrm.api.filtersets.recruitment_reports import (
     RecruitmentChannelReportFilterSet,
     RecruitmentCostReportFilterSet,
     RecruitmentSourceReportFilterSet,
-    ReferralCostReportFilterSet,
     StaffGrowthReportFilterSet,
 )
 from apps.hrm.api.serializers.recruitment_reports import (
@@ -16,7 +15,6 @@ from apps.hrm.api.serializers.recruitment_reports import (
     RecruitmentChannelReportSerializer,
     RecruitmentCostReportSerializer,
     RecruitmentSourceReportSerializer,
-    ReferralCostReportSerializer,
     StaffGrowthReportSerializer,
 )
 from apps.hrm.models import (
@@ -24,7 +22,6 @@ from apps.hrm.models import (
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
-    ReferralCostReport,
     StaffGrowthReport,
 )
 from libs import BaseModelViewSet
@@ -476,108 +473,6 @@ class HiredCandidateReportViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = HiredCandidateReport.objects.select_related("branch", "block", "department", "employee").all()
     serializer_class = HiredCandidateReportSerializer
     filterset_class = HiredCandidateReportFilterSet
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["report_date", "created_at"]
-    ordering = ["-report_date"]
-
-
-@extend_schema_view(
-    list=extend_schema(
-        summary="List referral cost reports",
-        description="Retrieve referral cost summary and detailed breakdown by department and employee. "
-        "Summary records have no employee (employee=null), detail records include employee information.",
-        tags=["Recruitment Reports"],
-        examples=[
-            OpenApiExample(
-                "Success - Summary and Detail Records",
-                value={
-                    "success": True,
-                    "data": {
-                        "count": 3,
-                        "next": None,
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "report_date": "2025-10-01",
-                                "period_type": "monthly",
-                                "department": 3,
-                                "department_name": "Sales Department",
-                                "employee": None,
-                                "employee_name": None,
-                                "employee_code": None,
-                                "total_referral_cost": "15000.00",
-                                "num_referrals": 5,
-                                "created_at": "2025-10-15T10:00:00Z",
-                                "updated_at": "2025-10-15T10:00:00Z",
-                            },
-                            {
-                                "id": 2,
-                                "report_date": "2025-10-01",
-                                "period_type": "monthly",
-                                "department": 3,
-                                "department_name": "Sales Department",
-                                "employee": 5,
-                                "employee_name": "John Doe",
-                                "employee_code": "MV001",
-                                "total_referral_cost": "9000.00",
-                                "num_referrals": 3,
-                                "created_at": "2025-10-15T10:00:00Z",
-                                "updated_at": "2025-10-15T10:00:00Z",
-                            },
-                            {
-                                "id": 3,
-                                "report_date": "2025-10-01",
-                                "period_type": "monthly",
-                                "department": 3,
-                                "department_name": "Sales Department",
-                                "employee": 8,
-                                "employee_name": "Jane Smith",
-                                "employee_code": "MV002",
-                                "total_referral_cost": "6000.00",
-                                "num_referrals": 2,
-                                "created_at": "2025-10-15T10:00:00Z",
-                                "updated_at": "2025-10-15T10:00:00Z",
-                            },
-                        ],
-                    },
-                },
-                response_only=True,
-            )
-        ],
-    ),
-    retrieve=extend_schema(
-        summary="Retrieve a referral cost report",
-        description="Get detailed information about a specific referral cost report.",
-        tags=["Recruitment Reports"],
-    ),
-    create=extend_schema(
-        summary="Create a referral cost report",
-        description="Create a new referral cost report record.",
-        tags=["Recruitment Reports"],
-    ),
-    update=extend_schema(
-        summary="Update a referral cost report",
-        description="Update an existing referral cost report.",
-        tags=["Recruitment Reports"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update a referral cost report",
-        description="Partially update an existing referral cost report.",
-        tags=["Recruitment Reports"],
-    ),
-    destroy=extend_schema(
-        summary="Delete a referral cost report",
-        description="Delete a referral cost report.",
-        tags=["Recruitment Reports"],
-    ),
-)
-class ReferralCostReportViewSet(AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for ReferralCostReport model."""
-
-    queryset = ReferralCostReport.objects.select_related("department", "employee").all()
-    serializer_class = ReferralCostReportSerializer
-    filterset_class = ReferralCostReportFilterSet
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["report_date", "created_at"]
     ordering = ["-report_date"]

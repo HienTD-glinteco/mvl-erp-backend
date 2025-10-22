@@ -60,7 +60,6 @@ router.register(r"reports/recruitment-source", RecruitmentSourceReportViewSet, b
 router.register(r"reports/recruitment-channel", RecruitmentChannelReportViewSet, basename="recruitment-channel-report")
 router.register(r"reports/recruitment-cost", RecruitmentCostReportViewSet, basename="recruitment-cost-report")
 router.register(r"reports/hired-candidate", HiredCandidateReportViewSet, basename="hired-candidate-report")
-router.register(r"reports/referral-cost", ReferralCostReportViewSet, basename="referral-cost-report")
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -47,5 +47,4 @@ __all__ = [
     "RecruitmentChannelReport",
     "RecruitmentCostReport",
     "HiredCandidateReport",
-    "ReferralCostReport",
 ]

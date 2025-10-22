@@ -47,5 +47,4 @@ __all__ = [
     "RecruitmentChannelReportFilterSet",
     "RecruitmentCostReportFilterSet",
     "HiredCandidateReportFilterSet",
-    "ReferralCostReportFilterSet",
 ]
