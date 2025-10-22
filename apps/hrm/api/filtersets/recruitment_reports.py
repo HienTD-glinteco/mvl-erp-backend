@@ -37,7 +37,6 @@ class RecruitmentSourceReportFilterSet(django_filters.FilterSet):
     branch = django_filters.NumberFilter(field_name="branch")
     block = django_filters.NumberFilter(field_name="block")
     department = django_filters.NumberFilter(field_name="department")
-    recruitment_source = django_filters.NumberFilter(field_name="recruitment_source")
 
     class Meta:
         model = RecruitmentSourceReport
@@ -47,7 +46,6 @@ class RecruitmentSourceReportFilterSet(django_filters.FilterSet):
             "branch",
             "block",
             "department",
-            "recruitment_source",
         ]
 
 
@@ -59,7 +57,6 @@ class RecruitmentChannelReportFilterSet(django_filters.FilterSet):
     branch = django_filters.NumberFilter(field_name="branch")
     block = django_filters.NumberFilter(field_name="block")
     department = django_filters.NumberFilter(field_name="department")
-    recruitment_channel = django_filters.NumberFilter(field_name="recruitment_channel")
 
     class Meta:
         model = RecruitmentChannelReport
@@ -69,7 +66,6 @@ class RecruitmentChannelReportFilterSet(django_filters.FilterSet):
             "branch",
             "block",
             "department",
-            "recruitment_channel",
         ]
 
 
@@ -81,8 +77,6 @@ class RecruitmentCostReportFilterSet(django_filters.FilterSet):
     branch = django_filters.NumberFilter(field_name="branch")
     block = django_filters.NumberFilter(field_name="block")
     department = django_filters.NumberFilter(field_name="department")
-    recruitment_source = django_filters.NumberFilter(field_name="recruitment_source")
-    recruitment_channel = django_filters.NumberFilter(field_name="recruitment_channel")
 
     class Meta:
         model = RecruitmentCostReport
@@ -92,8 +86,6 @@ class RecruitmentCostReportFilterSet(django_filters.FilterSet):
             "branch",
             "block",
             "department",
-            "recruitment_source",
-            "recruitment_channel",
         ]
 
 
@@ -106,7 +98,6 @@ class HiredCandidateReportFilterSet(django_filters.FilterSet):
     block = django_filters.NumberFilter(field_name="block")
     department = django_filters.NumberFilter(field_name="department")
     source_type = django_filters.CharFilter(field_name="source_type")
-    employee = django_filters.NumberFilter(field_name="employee")
 
     class Meta:
         model = HiredCandidateReport
@@ -117,5 +108,4 @@ class HiredCandidateReportFilterSet(django_filters.FilterSet):
             "block",
             "department",
             "source_type",
-            "employee",
         ]

@@ -10,7 +10,6 @@ from apps.hrm.models import (
     Department,
     Employee,
     HiredCandidateReport,
-    ReferralCostReport,
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
@@ -332,84 +331,3 @@ class HiredCandidateReportModelTest(TestCase):
         self.assertEqual(report.source_type, "recruitment")
         self.assertIsNone(report.employee)
         self.assertEqual(report.num_candidates_hired, 15)
-
-
-class ReferralCostReportModelTest(TestCase):
-    """Test cases for ReferralCostReport model"""
-
-    def setUp(self):
-        """Set up test data"""
-        # Create organizational structure
-        self.province = Province.objects.create(
-            code="01",
-            name="Hanoi",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Ba Dinh District",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Hanoi Branch",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-
-        self.block = Block.objects.create(
-            name="Business Block",
-            code="BB",
-            block_type=Block.BlockType.BUSINESS,
-            branch=self.branch,
-        )
-
-        self.department = Department.objects.create(
-            name="HR Department",
-            code="HR",
-            branch=self.branch,
-            block=self.block,
-        )
-
-        self.employee = Employee.objects.create(
-            fullname="Nguyen Van A",
-            username="nguyenvana",
-            email="nguyenvana@example.com",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-        )
-
-    def test_create_referral_cost_report_summary(self):
-        """Test creating a summary referral cost report (no employee)"""
-        report = ReferralCostReport.objects.create(
-            report_date=date(2025, 10, 1),
-            period_type="monthly",
-            department=self.department,
-            total_referral_cost=Decimal("15000.00"),
-            num_referrals=5,
-        )
-
-        self.assertIsNone(report.employee)
-        self.assertEqual(report.total_referral_cost, Decimal("15000.00"))
-        self.assertEqual(report.num_referrals, 5)
-
-    def test_create_referral_cost_report_detail(self):
-        """Test creating a detail referral cost report (with employee)"""
-        report = ReferralCostReport.objects.create(
-            report_date=date(2025, 10, 1),
-            period_type="monthly",
-            department=self.department,
-            employee=self.employee,
-            total_referral_cost=Decimal("9000.00"),
-            num_referrals=3,
-        )
-
-        self.assertEqual(report.employee, self.employee)
-        self.assertEqual(report.total_referral_cost, Decimal("9000.00"))
-        self.assertEqual(report.num_referrals, 3)
