@@ -14,6 +14,14 @@ from .recruitment_candidate import RecruitmentCandidateFilterSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogFilterSet
 from .recruitment_channel import RecruitmentChannelFilterSet
 from .recruitment_expense import RecruitmentExpenseFilterSet
+from .recruitment_reports import (
+    HiredCandidateReportFilterSet,
+    RecruitmentChannelReportFilterSet,
+    RecruitmentCostReportFilterSet,
+    RecruitmentSourceReportFilterSet,
+    ReferralCostReportFilterSet,
+    StaffGrowthReportFilterSet,
+)
 from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
 
@@ -34,4 +42,10 @@ __all__ = [
     "RecruitmentExpenseFilterSet",
     "InterviewScheduleFilterSet",
     "InterviewCandidateFilterSet",
+    "StaffGrowthReportFilterSet",
+    "RecruitmentSourceReportFilterSet",
+    "RecruitmentChannelReportFilterSet",
+    "RecruitmentCostReportFilterSet",
+    "HiredCandidateReportFilterSet",
+    "ReferralCostReportFilterSet",
 ]

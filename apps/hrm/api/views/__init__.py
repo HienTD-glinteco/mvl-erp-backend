@@ -14,7 +14,16 @@ from .organization import (
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
+from .recruitment_dashboard import dashboard_chart_data, dashboard_realtime_data
 from .recruitment_expense import RecruitmentExpenseViewSet
+from .recruitment_reports import (
+    HiredCandidateReportViewSet,
+    RecruitmentChannelReportViewSet,
+    RecruitmentCostReportViewSet,
+    RecruitmentSourceReportViewSet,
+    ReferralCostReportViewSet,
+    StaffGrowthReportViewSet,
+)
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
 
@@ -36,4 +45,12 @@ __all__ = [
     "RecruitmentExpenseViewSet",
     "InterviewScheduleViewSet",
     "InterviewCandidateViewSet",
+    "StaffGrowthReportViewSet",
+    "RecruitmentSourceReportViewSet",
+    "RecruitmentChannelReportViewSet",
+    "RecruitmentCostReportViewSet",
+    "HiredCandidateReportViewSet",
+    "ReferralCostReportViewSet",
+    "dashboard_realtime_data",
+    "dashboard_chart_data",
 ]
