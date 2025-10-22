@@ -394,6 +394,13 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertIsNotNone(response_data["referrer"])
         self.assertEqual(response_data["referrer"]["id"], self.employee.id)
+        self.assertEqual(response_data["referrer"]["code"], self.employee.code)
+
+        # Verify department is included as nested serializer
+        self.assertIn("department", response_data["referrer"])
+        self.assertIsNotNone(response_data["referrer"]["department"])
+        self.assertEqual(response_data["referrer"]["department"]["id"], self.department.id)
+        self.assertEqual(response_data["referrer"]["department"]["code"], self.department.code)
 
         # Verify in database
         candidate.refresh_from_db()
