@@ -269,8 +269,8 @@ class ConfirmMultipleFilesView(APIView):
         for file_config in files_config:
             file_token = file_config["file_token"]
             purpose = file_config["purpose"]
-            related_model = file_config["related_model"]
-            related_object_id = file_config["related_object_id"]
+            related_model = file_config.get("related_model")
+            related_object_id = file_config.get("related_object_id")
             related_field = file_config.get("related_field")
 
             cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
