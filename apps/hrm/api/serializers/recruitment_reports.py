@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from apps.hrm.models import (
     HiredCandidateReport,
-    ReferralCostReport,
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
+    ReferralCostReport,
     StaffGrowthReport,
 )
 

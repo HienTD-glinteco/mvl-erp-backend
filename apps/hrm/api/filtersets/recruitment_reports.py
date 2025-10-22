@@ -2,10 +2,10 @@ import django_filters
 
 from apps.hrm.models import (
     HiredCandidateReport,
-    ReferralCostReport,
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
+    ReferralCostReport,
     StaffGrowthReport,
 )
 

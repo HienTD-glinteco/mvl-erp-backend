@@ -1,8 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from django.db import models as django_models
-from django.db.models import Avg, Count, F, Sum
+from django.db.models import Count, F, Sum
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -14,7 +13,6 @@ from apps.hrm.api.serializers.recruitment_dashboard import (
 )
 from apps.hrm.models import (
     RecruitmentCandidate,
-    RecruitmentCostReport,
     RecruitmentExpense,
     RecruitmentRequest,
 )
@@ -45,7 +43,7 @@ from apps.hrm.models import (
 @api_view(["GET"])
 def dashboard_realtime_data(request):
     """Get realtime KPI data for recruitment dashboard.
-    
+
     Returns:
         - open_positions: Number of recruitment requests with status OPEN
         - applicants_today: Number of candidates submitted today
@@ -117,8 +115,16 @@ def dashboard_realtime_data(request):
                         {"branch_name": "Ho Chi Minh Branch", "count": 90},
                     ],
                     "cost_breakdown": [
-                        {"source_or_channel_name": "LinkedIn", "total_cost": "50000.00", "avg_cost_per_hire": "5000.00"},
-                        {"source_or_channel_name": "Job Portal", "total_cost": "30000.00", "avg_cost_per_hire": "3000.00"},
+                        {
+                            "source_or_channel_name": "LinkedIn",
+                            "total_cost": "50000.00",
+                            "avg_cost_per_hire": "5000.00",
+                        },
+                        {
+                            "source_or_channel_name": "Job Portal",
+                            "total_cost": "30000.00",
+                            "avg_cost_per_hire": "3000.00",
+                        },
                     ],
                     "hire_ratio": {"total_applicants": 500, "total_hires": 210, "hire_ratio": 0.42},
                 },
@@ -130,7 +136,7 @@ def dashboard_realtime_data(request):
 @api_view(["GET"])
 def dashboard_chart_data(request):
     """Get chart data for recruitment dashboard.
-    
+
     Returns comprehensive breakdown data including:
     - Experience level breakdown
     - Source breakdown

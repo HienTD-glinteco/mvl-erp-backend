@@ -8,7 +8,7 @@ from libs.models import BaseModel
 @audit_logging_register
 class StaffGrowthReport(BaseModel):
     """Daily/weekly/monthly staff growth statistics report.
-    
+
     Stores data about staff changes including introductions, returns,
     new hires, transfers, and resignations for a specific date and organizational unit.
     """
@@ -68,7 +68,7 @@ class StaffGrowthReport(BaseModel):
 @audit_logging_register
 class RecruitmentSourceReport(BaseModel):
     """Nested hire statistics by recruitment source.
-    
+
     Stores hire statistics organized by source with nested organizational structure:
     branch > block > department. Structure allows sources as columns with nested org units as rows.
     """
@@ -139,7 +139,7 @@ class RecruitmentSourceReport(BaseModel):
 @audit_logging_register
 class RecruitmentChannelReport(BaseModel):
     """Nested hire statistics by recruitment channel.
-    
+
     Stores hire statistics organized by channel with nested organizational structure:
     branch > block > department. Structure allows channels as columns with nested org units as rows.
     """
@@ -210,7 +210,7 @@ class RecruitmentChannelReport(BaseModel):
 @audit_logging_register
 class RecruitmentCostReport(BaseModel):
     """Flat cost data per source/channel with cost metrics.
-    
+
     Stores recruitment cost statistics including total cost, count, and average
     cost per hire for a specific source/channel and organizational unit.
     """
@@ -294,7 +294,7 @@ class RecruitmentCostReport(BaseModel):
 @audit_logging_register
 class HiredCandidateReport(BaseModel):
     """Statistics of candidates who accepted offers.
-    
+
     Stores hire statistics separated by 3 sources: introduction, recruitment, return.
     For 'introduction' source, includes employee-level details. For others, only summary stats.
     """
@@ -366,7 +366,7 @@ class HiredCandidateReport(BaseModel):
 @audit_logging_register
 class ReferralCostReport(BaseModel):
     """Referral cost summary and detail data.
-    
+
     Stores summary and detailed breakdown of referral costs by department and employee.
     Includes both summary totals and per-employee breakdown.
     """
