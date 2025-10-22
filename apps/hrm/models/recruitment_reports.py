@@ -68,8 +68,9 @@ class StaffGrowthReport(BaseReportDepartmentModel):
 class RecruitmentSourceReport(BaseReportDepartmentModel):
     """Daily hire statistics by recruitment source.
 
-    Stores hire statistics organized by source with organizational structure:
-    branch > block > department. Each record represents data for one day.
+    Stores daily hire counts for each recruitment source within an organizational unit.
+    Data is aggregated by API views to provide weekly/monthly reports with sources
+    as columns and organizational units as rows.
     """
 
     recruitment_source = models.ForeignKey(
@@ -112,11 +113,11 @@ class RecruitmentChannelReport(BaseReportDepartmentModel):
 
 
 class RecruitmentCostReport(BaseReportDepartmentModel):
-    """Daily cost data per source/channel with cost metrics.
+    """Daily recruitment cost data by source type.
 
-    Stores recruitment cost statistics including total cost, count, and average
-    cost per hire for a specific source/channel and organizational unit.
-    Each record represents data for one day.
+    Stores daily cost metrics for each recruitment source type within an organizational unit.
+    Source types are categorized based on recruitment source/channel flags.
+    Data is aggregated by API views to provide weekly/monthly cost reports.
     """
 
     class SourceType(models.TextChoices):
@@ -150,8 +151,7 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
         verbose_name_plural = _("Recruitment Cost Reports")
 
     def __str__(self):
-        source_or_channel = self.recruitment_source or self.recruitment_channel
-        return f"Cost Report - {source_or_channel} - {self.report_date}"
+        return f"Cost Report - {self.source_type} - {self.report_date}"
 
 
 class HiredCandidateReport(BaseReportDepartmentModel):
