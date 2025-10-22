@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from libs.spectacular.ordering import AutoDocOrderingFilterExtension
+from libs.drf.spectacular.ordering import AutoDocOrderingFilterExtension
 
 
 def test_extension_returns_empty_when_no_fields():

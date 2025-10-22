@@ -10,7 +10,7 @@ from drf_spectacular.extensions import OpenApiSerializerExtension
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import OpenApiParameter
 
-from libs.serializers.mixins import FieldFilteringSerializerMixin
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
 
 
 class EnhancedAutoSchema(AutoSchema):
@@ -123,7 +123,7 @@ class FieldFilteringSerializerExtension(OpenApiSerializerExtension):
     FieldFilteringSerializerMixin have dynamic fields based on request parameters.
     """
 
-    target_class = "libs.serializers.mixins.FieldFilteringSerializerMixin"
+    target_class = "libs.drf.serializers.mixins.FieldFilteringSerializerMixin"
 
     def map_serializer(self, auto_schema, direction):
         """

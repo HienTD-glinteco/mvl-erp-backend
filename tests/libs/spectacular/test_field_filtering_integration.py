@@ -11,8 +11,8 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Role
-from libs.serializers.mixins import FieldFilteringSerializerMixin
-from libs.spectacular.field_filtering import FieldFilteringAutoSchema
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
+from libs.drf.spectacular.field_filtering import FieldFilteringAutoSchema
 
 
 class TestRoleSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):

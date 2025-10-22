@@ -154,7 +154,7 @@ class Command(BaseCommand):
 
     def _collect_from_base_viewsets(self):
         """Collect permissions from all BaseModelViewSet and BaseReadOnlyModelViewSet subclasses"""
-        from libs.base_viewset import PermissionRegistrationMixin
+        from libs.drf.mixin.permission import PermissionRegistrationMixin
 
         permissions = []
 

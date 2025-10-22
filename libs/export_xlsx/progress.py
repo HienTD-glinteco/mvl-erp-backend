@@ -4,7 +4,7 @@ Progress tracking utilities for XLSX export.
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from django.core.cache import cache
 
@@ -31,7 +31,7 @@ class ExportProgressTracker:
         self.redis_key = f"{REDIS_PROGRESS_KEY_PREFIX}{task_id}"
         self.total_rows = 0
         self.processed_rows = 0
-        self.start_time = None
+        self.start_time: datetime | None = None
 
     def set_total(self, total_rows: int) -> None:
         """
@@ -55,7 +55,7 @@ class ExportProgressTracker:
         self.processed_rows += rows_processed
         self._publish_progress()
 
-    def set_completed(self, file_url: str = None, file_path: str = None) -> None:
+    def set_completed(self, file_url: str | None = None, file_path: str | None = None) -> None:
         """
         Mark export as completed.
 

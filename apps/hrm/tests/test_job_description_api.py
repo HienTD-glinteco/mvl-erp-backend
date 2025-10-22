@@ -334,7 +334,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         cache.clear()
 
         with (
-            patch("libs.serializers.mixins.cache") as mock_cache,
+            patch("libs.drf.serializers.mixins.cache") as mock_cache,
             patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
             patch("apps.files.utils.s3_utils.S3FileUploadService") as mock_s3_service_model,
         ):

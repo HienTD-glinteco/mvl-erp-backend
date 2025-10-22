@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 14:13+0700\n"
+"POT-Creation-Date: 2025-10-22 16:02+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -282,7 +282,7 @@ msgstr "Phòng ban"
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:24
+#: apps/hrm/models/employee.py:70 apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:110
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
@@ -323,38 +323,45 @@ msgstr "Mã mô tả công việc"
 msgid "Job title"
 msgstr "Tiêu đề công việc"
 
+# models/organization.py:182
 #: apps/hrm/models/job_description.py:19
+#, fuzzy
+#| msgid "Position name"
+msgid "Position title"
+msgstr "Tên chức vụ"
+
+#: apps/hrm/models/job_description.py:20
 msgid "Responsibility"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:20
+#: apps/hrm/models/job_description.py:21
 msgid "Requirement"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:21
+#: apps/hrm/models/job_description.py:22
 msgid "Preferred criteria"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:22
+#: apps/hrm/models/job_description.py:23
 msgid "Benefit"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:23
+#: apps/hrm/models/job_description.py:24
 #: apps/hrm/models/recruitment_request.py:91
 msgid "Proposed salary"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:25
+#: apps/hrm/models/job_description.py:32
 msgid "Attachment"
 msgstr ""
 
 # models/organization.py:39
-#: apps/hrm/models/job_description.py:28
+#: apps/hrm/models/job_description.py:36
 msgid "Job Description"
 msgstr "Mô tả công việc"
 
 # models/organization.py:39
-#: apps/hrm/models/job_description.py:29
+#: apps/hrm/models/job_description.py:37
 msgid "Job Descriptions"
 msgstr "Các mô tả công việc"
 

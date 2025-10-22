@@ -11,8 +11,8 @@ import pytest
 from rest_framework import serializers
 
 from apps.core.models import Role
-from libs.serializers.mixins import FieldFilteringSerializerMixin
-from libs.spectacular.field_filtering import FieldFilteringAutoSchema
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
+from libs.drf.spectacular.field_filtering import FieldFilteringAutoSchema
 
 
 class TestFieldFilteringSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
