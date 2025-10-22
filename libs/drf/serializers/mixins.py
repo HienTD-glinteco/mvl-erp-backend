@@ -340,7 +340,7 @@ class FileConfirmSerializerMixin:
                 remote = getattr(getattr(field, "remote_field", None), "model", None)
                 if remote:
                     # Direct match to FileModel if available
-                    if FileModel and remote == FileModel:
+                    if FileModel is not None and remote == FileModel:
                         file_field_names.append(field_name)
                         continue
                     # Fallback: related class name contains 'file'

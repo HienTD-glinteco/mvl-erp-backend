@@ -11,7 +11,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import Role
-from libs.base_viewset import BaseModelViewSet
+from libs.drf.base_viewset import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
 User = get_user_model()

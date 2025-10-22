@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 17:56+0700\n"
+"POT-Creation-Date: 2025-10-22 16:05+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -191,71 +191,99 @@ msgstr ""
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr ""
 
-#: libs/base_viewset.py:32 libs/base_viewset.py:219
+#: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24
 #, python-brace-format
 msgid "List {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:33 libs/base_viewset.py:220
+#: libs/drf/base_viewset.py:63 libs/drf/mixin/permission.py:25
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:36 libs/base_viewset.py:223
+#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "View {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:37 libs/base_viewset.py:224
+#: libs/drf/base_viewset.py:67 libs/drf/mixin/permission.py:29
 #, python-brace-format
 msgid "View details of a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:40
+#: libs/drf/mixin/permission.py:32
 #, python-brace-format
 msgid "Create {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:41
+#: libs/drf/mixin/permission.py:33
 #, python-brace-format
 msgid "Create a new {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:44
+#: libs/drf/mixin/permission.py:36
 #, python-brace-format
 msgid "Update {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:45
+#: libs/drf/mixin/permission.py:37
 #, python-brace-format
 msgid "Update a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:48
+#: libs/drf/mixin/permission.py:40
 #, python-brace-format
 msgid "Partially update {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:49
+#: libs/drf/mixin/permission.py:41
 #, python-brace-format
 msgid "Partially update a {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:52
+#: libs/drf/mixin/permission.py:44
 #, python-brace-format
 msgid "Delete {model_name}"
 msgstr ""
 
-#: libs/base_viewset.py:53
+#: libs/drf/mixin/permission.py:45
 #, python-brace-format
 msgid "Delete a {model_name}"
+msgstr ""
+
+#: libs/drf/mixin/protected_delete.py:117
+#, python-brace-format
+msgid ""
+"Cannot delete this {model_name} because it is referenced by: {relationships}"
+msgstr "Không thể xóa {model_name} vì đang được sử dụng bởi: {relationships}"
+
+#: libs/drf/mixin/protected_delete.py:121
+#, python-brace-format
+msgid "Cannot delete this {model_name} because it has protected relationships"
+msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo vệ."
+
+#: libs/drf/serializers/mixins.py:236
+#, python-brace-format
+msgid "File token for {field}"
+msgstr ""
+
+#: libs/drf/serializers/mixins.py:245
+msgid ""
+"File tokens for uploading files. Each key corresponds to a file field on the "
+"model."
+msgstr ""
+
+#: libs/drf/serializers/mixins.py:253
+msgid ""
+"Dictionary mapping field names to file tokens (e.g., {'attachment': "
+"'token123'})"
 msgstr ""
 
 #: libs/export_xlsx/mixins.py:82
 msgid "Async export is not enabled"
 msgstr ""
 
-#: libs/export_xlsx/mixins.py:101
+#: libs/export_xlsx/mixins.py:140
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
 msgstr ""
@@ -270,23 +298,6 @@ msgstr ""
 
 #: libs/import_xlsx/utils.py:193
 msgid "This field is required"
-msgstr ""
-
-#: libs/serializers/mixins.py:223
-#, python-brace-format
-msgid "File token for {field}"
-msgstr ""
-
-#: libs/serializers/mixins.py:232
-msgid ""
-"File tokens for uploading files. Each key corresponds to a file field on the "
-"model."
-msgstr ""
-
-#: libs/serializers/mixins.py:240
-msgid ""
-"Dictionary mapping field names to file tokens (e.g., {'attachment': "
-"'token123'})"
 msgstr ""
 
 #: templates/emails/base_email.html:6

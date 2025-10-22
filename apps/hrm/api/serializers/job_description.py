@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import JobDescription
-from libs.serializers import FileConfirmSerializerMixin
+from libs.drf.serializers import FileConfirmSerializerMixin
 
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):

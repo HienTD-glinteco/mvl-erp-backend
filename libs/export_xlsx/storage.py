@@ -48,7 +48,7 @@ class StorageBackend:
 class LocalStorageBackend(StorageBackend):
     """
     Local filesystem storage backend.
-    
+
     Uses FileSystemStorage to ensure files are saved locally,
     regardless of default_storage configuration.
     """
@@ -56,12 +56,12 @@ class LocalStorageBackend(StorageBackend):
     def __init__(self):
         """Initialize local storage backend."""
         self.storage_path = getattr(settings, "EXPORTER_LOCAL_STORAGE_PATH", "exports")
-        
+
         # Use FileSystemStorage to ensure local file system is used
         media_root = getattr(settings, "MEDIA_ROOT", "media")
         location = os.path.join(media_root, self.storage_path)
         base_url = f"{getattr(settings, 'MEDIA_URL', '/media/')}{self.storage_path}/"
-        
+
         self.storage = FileSystemStorage(location=location, base_url=base_url)
 
     def save(self, file_content, filename):
@@ -104,7 +104,7 @@ class LocalStorageBackend(StorageBackend):
 class S3StorageBackend(StorageBackend):
     """
     AWS S3 storage backend.
-    
+
     Uses default_storage for saving files and boto3 for generating signed URLs.
     This ensures exports are stored in S3 with secure, time-limited access URLs.
     """
@@ -116,23 +116,18 @@ class S3StorageBackend(StorageBackend):
 
         if not self.bucket_name:
             self.bucket_name = getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
-        
+
         # Use default_storage which should be S3
         self.storage = default_storage
         self.storage_path = getattr(settings, "EXPORTER_LOCAL_STORAGE_PATH", "exports")
-        
+
         # Initialize boto3 S3 client for signed URL generation
-        self.s3_client = None
-        try:
-            self.s3_client = boto3.client(
-                "s3",
-                aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
-                aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
-                region_name=getattr(settings, "AWS_REGION_NAME", None),
-            )
-        except Exception:
-            # If boto3 client initialization fails, signed URLs won't be available
-            pass
+        self.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=getattr(settings, "AWS_ACCESS_KEY_ID", None),
+            aws_secret_access_key=getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+            region_name=getattr(settings, "AWS_REGION_NAME", None),
+        )
 
     def save(self, file_content, filename):
         """
@@ -177,7 +172,7 @@ class S3StorageBackend(StorageBackend):
                     s3_key = f"{aws_location}/{file_path}"
                 else:
                     s3_key = file_path
-                
+
                 # Generate presigned URL
                 signed_url = self.s3_client.generate_presigned_url(
                     "get_object",
@@ -188,7 +183,7 @@ class S3StorageBackend(StorageBackend):
             except ClientError:
                 # If signed URL generation fails, fall back to storage URL
                 pass
-        
+
         # Fallback to default storage URL
         return self.storage.url(file_path)
 

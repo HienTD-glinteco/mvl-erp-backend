@@ -11,7 +11,7 @@ from rest_framework.decorators import action
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.models import Permission
-from libs.base_viewset import BaseModelViewSet
+from libs.drf.base_viewset import BaseModelViewSet
 
 
 # Test fixtures - Mock ViewSets for testing
@@ -275,7 +275,7 @@ class BaseReadOnlyModelViewSetTestCase(TestCase):
     def test_readonly_viewset_only_generates_read_permissions(self):
         """Test that ReadOnlyModelViewSet only generates list and retrieve permissions"""
         # Import BaseReadOnlyModelViewSet
-        from libs.base_viewset import BaseReadOnlyModelViewSet
+        from libs.drf.base_viewset import BaseReadOnlyModelViewSet
 
         # Create a test readonly viewset
         class TestReadOnlyViewSet(BaseReadOnlyModelViewSet):
@@ -302,7 +302,7 @@ class BaseReadOnlyModelViewSetTestCase(TestCase):
 
     def test_readonly_viewset_with_custom_actions(self):
         """Test that ReadOnlyModelViewSet supports custom actions"""
-        from libs.base_viewset import BaseReadOnlyModelViewSet
+        from libs.drf.base_viewset import BaseReadOnlyModelViewSet
 
         class TestReadOnlyViewSetWithAction(BaseReadOnlyModelViewSet):
             class MockQuerySet:

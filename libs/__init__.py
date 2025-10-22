@@ -1,10 +1,14 @@
-from .base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .code_generation import (
     create_auto_code_signal_handler,
     generate_model_code,
     register_auto_code_signal,
 )
 from .constants import ColorVariant
+from .drf.base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
+from .drf.pagination import PageNumberWithSizePagination
+from .drf.serializers import ColoredValueSerializer
+from .drf.serializers.mixins import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
+from .drf.spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 from .export_xlsx import (
     ExportXLSXMixin,
     SchemaBuilder,
@@ -14,10 +18,6 @@ from .export_xlsx import (
 )
 from .import_xlsx import ImportXLSXMixin
 from .models import AutoCodeMixin, BaseModel, ColoredValueMixin, create_dummy_model
-from .pagination import PageNumberWithSizePagination
-from .serializers.mixins import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
-from .serializers import ColoredValueSerializer
-from .spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 
 __all__ = [
     "AutoCodeMixin",

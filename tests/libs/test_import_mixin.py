@@ -13,7 +13,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from libs import ImportXLSXMixin
-from libs.base_viewset import BaseModelViewSet
+from libs.drf.base_viewset import BaseModelViewSet
 
 
 # Test fixtures - Mock model and ViewSet

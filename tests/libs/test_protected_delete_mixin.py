@@ -13,7 +13,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Branch
-from libs import ProtectedDeleteMixin
+from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
 
 User = get_user_model()
 

@@ -6,7 +6,7 @@ import pytest
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
-from libs.pagination import PageNumberWithSizePagination
+from libs.drf.pagination import PageNumberWithSizePagination
 
 
 @pytest.fixture

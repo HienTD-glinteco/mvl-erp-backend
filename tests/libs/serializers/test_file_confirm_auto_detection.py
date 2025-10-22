@@ -12,7 +12,7 @@ from django.db import models
 from django.test import TestCase
 from rest_framework import serializers
 
-from libs.serializers.mixins import FileConfirmSerializerMixin
+from libs.drf.serializers.mixins import FileConfirmSerializerMixin
 
 
 # Mock models for testing
