@@ -1,16 +1,15 @@
 """DRF ViewSet mixin for async import functionality."""
 
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.files.models import FileModel
 from apps.imports.constants import (
-    API_MESSAGE_CANNOT_CANCEL,
     API_MESSAGE_CANCELLED_SUCCESS,
-    API_MESSAGE_IMPORT_STARTED,
+    API_MESSAGE_CANNOT_CANCEL,
     ERROR_MISSING_HANDLER,
     STATUS_CANCELLED,
     STATUS_QUEUED,

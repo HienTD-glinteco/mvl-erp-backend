@@ -2,11 +2,9 @@
 
 import importlib
 import logging
-import os
 import traceback
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable
 
 from celery import shared_task
 from celery.exceptions import Revoked
@@ -14,10 +12,8 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.files.models import FileModel
 from apps.imports.constants import (
     ERROR_HANDLER_NOT_FOUND,
-    ERROR_INVALID_HANDLER,
     ERROR_MISSING_HANDLER,
     FILE_PURPOSE_IMPORT_FAILED,
     FILE_PURPOSE_IMPORT_SUCCESS,

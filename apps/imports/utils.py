@@ -5,11 +5,9 @@ import io
 import logging
 import os
 import tempfile
-from pathlib import Path
 from typing import Iterator, Optional
 
 import openpyxl
-from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
