@@ -138,11 +138,18 @@ def import_job_task(self, import_job_id: str) -> dict:
         # Get file extension
         file_extension = Path(file_obj.file_name).suffix
 
+        # Get the correct file path for storage backend
+        # If AWS_LOCATION is set, file_path may already include it, so strip it to avoid duplication
+        file_path = file_obj.file_path
+        aws_location = getattr(settings, 'AWS_LOCATION', None)
+        if aws_location and file_path.startswith(f"{aws_location}/"):
+            file_path = file_path[len(aws_location) + 1:]
+
         # Count total rows if requested
         total_rows = None
         if count_total_first:
             logger.info(f"Counting total rows for import job {import_job_id}")
-            total_rows = count_total_rows(file_obj.file_path, file_extension, skip_rows=header_rows)
+            total_rows = count_total_rows(file_path, file_extension, skip_rows=header_rows)
             job.total_rows = total_rows
             job.save(update_fields=["total_rows"])
             progress_tracker.set_total(total_rows)
@@ -165,7 +172,7 @@ def import_job_task(self, import_job_id: str) -> dict:
         )
 
         # Process rows
-        reader = get_streaming_reader(file_obj.file_path, file_extension)
+        reader = get_streaming_reader(file_path, file_extension)
         batch_count = 0
 
         with reader, success_writer, failed_writer:
@@ -175,15 +182,11 @@ def import_job_task(self, import_job_id: str) -> dict:
 
             for row_index, row in enumerate(reader.read_rows(skip_rows=header_rows), start=1):
                 # Check for cancellation
-                if job.status == STATUS_CANCELLED or self.request.called_directly is False:
-                    try:
-                        # Check if task was revoked
-                        if self.is_aborted():
-                            logger.info(f"Import job {import_job_id} was revoked")
-                            raise Revoked()
-                    except Revoked:
-                        logger.info(f"Import job {import_job_id} was cancelled")
-                        raise
+                # Reload job from DB to check if it was cancelled
+                job.refresh_from_db()
+                if job.status == STATUS_CANCELLED:
+                    logger.info(f"Import job {import_job_id} was cancelled")
+                    raise Revoked()
 
                 # Invoke handler
                 try:
