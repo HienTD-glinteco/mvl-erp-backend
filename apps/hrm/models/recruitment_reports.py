@@ -1,21 +1,9 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.models import BaseModel
+from libs.models import BaseReportModel
 
-
-class BaseReportModel(BaseModel):
-    """Base model for all report models.
-
-    Provides common fields and behavior for report models including
-    report_date and standard ordering by report_date descending.
-    """
-
-    report_date = models.DateField(verbose_name=_("Report date"))
-
-    class Meta:
-        abstract = True
-        ordering = ["-report_date"]
+from .organization import Block, Branch, Department
 
 
 class BaseReportDepartmentModel(BaseReportModel):
@@ -26,7 +14,7 @@ class BaseReportDepartmentModel(BaseReportModel):
     """
 
     branch = models.ForeignKey(
-        "Branch",
+        Branch,
         on_delete=models.PROTECT,
         related_name="%(class)s_reports",
         verbose_name=_("Branch"),
@@ -34,7 +22,7 @@ class BaseReportDepartmentModel(BaseReportModel):
         blank=True,
     )
     block = models.ForeignKey(
-        "Block",
+        Block,
         on_delete=models.PROTECT,
         related_name="%(class)s_reports",
         verbose_name=_("Block"),
@@ -42,7 +30,7 @@ class BaseReportDepartmentModel(BaseReportModel):
         blank=True,
     )
     department = models.ForeignKey(
-        "Department",
+        Department,
         on_delete=models.PROTECT,
         related_name="%(class)s_reports",
         verbose_name=_("Department"),
@@ -72,7 +60,6 @@ class StaffGrowthReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Staff Growth Report")
         verbose_name_plural = _("Staff Growth Reports")
-        db_table = "hrm_staff_growth_report"
 
     def __str__(self):
         return f"Staff Growth Report - {self.report_date}"
@@ -96,7 +83,6 @@ class RecruitmentSourceReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Recruitment Source Report")
         verbose_name_plural = _("Recruitment Source Reports")
-        db_table = "hrm_recruitment_source_report"
 
     def __str__(self):
         return f"Source Report - {self.recruitment_source.name} - {self.report_date}"
@@ -120,7 +106,6 @@ class RecruitmentChannelReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Recruitment Channel Report")
         verbose_name_plural = _("Recruitment Channel Reports")
-        db_table = "hrm_recruitment_channel_report"
 
     def __str__(self):
         return f"Channel Report - {self.recruitment_channel.name} - {self.report_date}"
@@ -134,21 +119,17 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
     Each record represents data for one day.
     """
 
-    recruitment_source = models.ForeignKey(
-        "RecruitmentSource",
-        on_delete=models.PROTECT,
-        related_name="cost_reports",
-        verbose_name=_("Recruitment source"),
-        null=True,
-        blank=True,
-    )
-    recruitment_channel = models.ForeignKey(
-        "RecruitmentChannel",
-        on_delete=models.PROTECT,
-        related_name="cost_reports",
-        verbose_name=_("Recruitment channel"),
-        null=True,
-        blank=True,
+    class SourceType(models.TextChoices):
+        REFERRAL_SOURCE = "referral_source", _("Referral Source")
+        MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")
+        JOB_WEBSITE_CHANNEL = "job_website_channel", _("Job Website Channel")
+        RECRUITMENT_DEPARTMENT_SOURCE = "recruitment_department_source", _("Recruitment Department Source")
+        RETURNING_EMPLOYEE = "returning_employee", _("Returning Employee")
+
+    source_type = models.CharField(
+        max_length=50,
+        choices=SourceType.choices,
+        verbose_name=_("Source type"),
     )
     total_cost = models.DecimalField(
         max_digits=15,
@@ -167,7 +148,6 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Recruitment Cost Report")
         verbose_name_plural = _("Recruitment Cost Reports")
-        db_table = "hrm_recruitment_cost_report"
 
     def __str__(self):
         source_or_channel = self.recruitment_source or self.recruitment_channel
@@ -190,8 +170,6 @@ class HiredCandidateReport(BaseReportDepartmentModel):
 
     class SourceType(models.TextChoices):
         REFERRAL_SOURCE = "referral_source", _("Referral Source")
-        MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")
-        JOB_WEBSITE_CHANNEL = "job_website_channel", _("Job Website Channel")
         RECRUITMENT_DEPARTMENT_SOURCE = "recruitment_department_source", _("Recruitment Department Source")
         RETURNING_EMPLOYEE = "returning_employee", _("Returning Employee")
 
@@ -214,7 +192,6 @@ class HiredCandidateReport(BaseReportDepartmentModel):
     class Meta:
         verbose_name = _("Hired Candidate Report")
         verbose_name_plural = _("Hired Candidate Reports")
-        db_table = "hrm_hired_candidate_report"
 
     def __str__(self):
         return f"Hired Candidate Report - {self.source_type} - {self.report_date}"
