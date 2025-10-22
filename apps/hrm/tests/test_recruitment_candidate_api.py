@@ -524,3 +524,138 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             colored_status = response_data["colored_status"]
             self.assertEqual(colored_status["value"], status_value)
             self.assertEqual(colored_status["variant"], expected_variant)
+
+    def test_filter_by_multiple_statuses(self):
+        """Test filtering candidates by multiple status values"""
+        # Create candidates with different statuses
+        RecruitmentCandidate.objects.create(
+            name="Candidate 1",
+            citizen_id="123456789012",
+            email="candidate1@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=5,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.CONTACTED,
+        )
+
+        RecruitmentCandidate.objects.create(
+            name="Candidate 2",
+            citizen_id="123456789013",
+            email="candidate2@example.com",
+            phone="0987654321",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=3,
+            submitted_date=date(2025, 10, 16),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        RecruitmentCandidate.objects.create(
+            name="Candidate 3",
+            citizen_id="123456789014",
+            email="candidate3@example.com",
+            phone="0912345678",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=4,
+            submitted_date=date(2025, 10, 17),
+            status=RecruitmentCandidate.Status.REJECTED,
+        )
+
+        url = reverse("hrm:recruitment-candidate-list")
+        # Filter by multiple statuses: HIRED and REJECTED
+        response = self.client.get(url, {"status": ["HIRED", "REJECTED"]})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 2)
+        statuses = [item["colored_status"]["value"] for item in data]
+        self.assertIn("HIRED", statuses)
+        self.assertIn("REJECTED", statuses)
+        self.assertNotIn("CONTACTED", statuses)
+
+    def test_filter_by_multiple_recruitment_requests(self):
+        """Test filtering candidates by multiple recruitment_request values"""
+        # Create a second recruitment request
+        recruitment_request_2 = RecruitmentRequest.objects.create(
+            name="Frontend Developer Position",
+            job_description=self.job_description,
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="1500-2500 USD",
+            number_of_positions=1,
+        )
+
+        # Create candidates for different recruitment requests
+        candidate1 = RecruitmentCandidate.objects.create(
+            name="Backend Candidate",
+            citizen_id="123456789012",
+            email="backend@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=5,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.CONTACTED,
+        )
+
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Frontend Candidate",
+            citizen_id="123456789013",
+            email="frontend@example.com",
+            phone="0987654321",
+            recruitment_request=recruitment_request_2,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=3,
+            submitted_date=date(2025, 10, 16),
+            status=RecruitmentCandidate.Status.CONTACTED,
+        )
+
+        # Create a third recruitment request for testing
+        recruitment_request_3 = RecruitmentRequest.objects.create(
+            name="DevOps Position",
+            job_description=self.job_description,
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="2500-3500 USD",
+            number_of_positions=1,
+        )
+
+        candidate3 = RecruitmentCandidate.objects.create(
+            name="DevOps Candidate",
+            citizen_id="123456789014",
+            email="devops@example.com",
+            phone="0912345678",
+            recruitment_request=recruitment_request_3,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=4,
+            submitted_date=date(2025, 10, 17),
+            status=RecruitmentCandidate.Status.CONTACTED,
+        )
+
+        url = reverse("hrm:recruitment-candidate-list")
+        # Filter by multiple recruitment requests using comma-separated values
+        response = self.client.get(
+            url, {"recruitment_request": f"{self.recruitment_request.id},{recruitment_request_2.id}"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 2)
+        emails = [item["email"] for item in data]
+        self.assertIn("backend@example.com", emails)
+        self.assertIn("frontend@example.com", emails)
+        self.assertNotIn("devops@example.com", emails)

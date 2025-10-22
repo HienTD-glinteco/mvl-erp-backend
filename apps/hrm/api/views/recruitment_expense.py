@@ -326,7 +326,7 @@ class RecruitmentExpenseViewSet(AuditLoggingMixin, BaseModelViewSet):
     serializer_class = RecruitmentExpenseSerializer
     filterset_class = RecruitmentExpenseFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["code", "activity", "note"]
+    search_fields = ["activity", "note"]
     ordering_fields = ["date", "total_cost", "created_at"]
     ordering = ["-created_at"]
 

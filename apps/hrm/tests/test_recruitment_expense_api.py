@@ -548,3 +548,47 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("code", referrer)
         self.assertIn("fullname", referrer)
         self.assertEqual(referrer["id"], self.referrer.id)
+
+    def test_search_by_activity(self):
+        """Test searching expenses by activity field"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create expenses with different activities
+        data1 = self.expense_data.copy()
+        data1["activity"] = "LinkedIn advertising campaign"
+        data1["date"] = "2025-10-10"
+        self.client.post(url, data1, format="json")
+
+        data2 = self.expense_data.copy()
+        data2["activity"] = "Employee referral program"
+        data2["date"] = "2025-10-15"
+        self.client.post(url, data2, format="json")
+
+        # Search for "LinkedIn"
+        response = self.client.get(url, {"search": "LinkedIn"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertIn("LinkedIn", response_data[0]["activity"])
+
+    def test_search_by_note(self):
+        """Test searching expenses by note field"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create expenses with different notes
+        data1 = self.expense_data.copy()
+        data1["note"] = "High quality candidates"
+        data1["date"] = "2025-10-10"
+        self.client.post(url, data1, format="json")
+
+        data2 = self.expense_data.copy()
+        data2["note"] = "Low response rate"
+        data2["date"] = "2025-10-15"
+        self.client.post(url, data2, format="json")
+
+        # Search for "quality"
+        response = self.client.get(url, {"search": "quality"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertIn("quality", response_data[0]["note"])
