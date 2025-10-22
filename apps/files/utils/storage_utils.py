@@ -108,6 +108,14 @@ def resolve_actual_storage_key(db_file_path: str, s3_client=None, bucket_name: s
         prefix='', db_file_path='uploads/file.pdf'
             -> returns 'uploads/file.pdf' (no prefix configured)
     """
+    # Handle empty or invalid paths
+    if not db_file_path:
+        logger.warning("Empty file path provided to resolve_actual_storage_key")
+        return db_file_path
+
+    # Strip leading slashes to avoid double slashes
+    db_file_path = db_file_path.lstrip("/")
+
     prefix = get_storage_prefix()
 
     # If no prefix configured, return original path

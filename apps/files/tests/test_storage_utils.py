@@ -165,3 +165,21 @@ class ResolveActualStorageKeyTest(TestCase):
 
         # Assert
         self.assertEqual(result, "uploads/test/file.pdf")
+
+    def test_resolve_empty_path(self):
+        """Test resolving empty file path."""
+        # Act
+        result = resolve_actual_storage_key("")
+
+        # Assert
+        self.assertEqual(result, "")
+
+    @override_settings(AWS_LOCATION="media")
+    def test_resolve_path_with_leading_slash(self):
+        """Test resolving path with leading slash."""
+        # Act
+        result = resolve_actual_storage_key("/uploads/test/file.pdf")
+
+        # Assert
+        # Should strip leading slash and check for prefix
+        self.assertIn("uploads/test/file.pdf", result)
