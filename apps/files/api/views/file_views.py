@@ -132,7 +132,7 @@ class PresignURLView(APIView):
     examples=[
         OpenApiExample(
             "Confirm multiple files request",
-            description="Example request to confirm multiple file uploads",
+            description="Example request to confirm multiple file uploads with related objects",
             value={
                 "files": [
                     {
@@ -148,6 +148,19 @@ class PresignURLView(APIView):
                         "related_model": "hrm.JobDescription",
                         "related_object_id": 15,
                     },
+                ]
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            "Confirm file without related object",
+            description="Example request to confirm file upload without related object (e.g., for import jobs)",
+            value={
+                "files": [
+                    {
+                        "file_token": "b3c6e9f2-d54a-4e8d-9cf4-8e9f3a7b8c32",
+                        "purpose": "import_data",
+                    }
                 ]
             },
             request_only=True,
@@ -256,8 +269,8 @@ class ConfirmMultipleFilesView(APIView):
         for file_config in files_config:
             file_token = file_config["file_token"]
             purpose = file_config["purpose"]
-            related_model = file_config["related_model"]
-            related_object_id = file_config["related_object_id"]
+            related_model = file_config.get("related_model")
+            related_object_id = file_config.get("related_object_id")
             related_field = file_config.get("related_field")
 
             cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
@@ -313,9 +326,12 @@ class ConfirmMultipleFilesView(APIView):
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
-            # Get model class and content type
-            model_class = apps.get_model(related_model)
-            content_type = ContentType.objects.get_for_model(model_class)
+            # Get model class and content type (if related model is provided)
+            model_class = None
+            content_type = None
+            if related_model:
+                model_class = apps.get_model(related_model)
+                content_type = ContentType.objects.get_for_model(model_class)
 
             files_to_confirm.append(
                 {
@@ -338,11 +354,11 @@ class ConfirmMultipleFilesView(APIView):
         confirmed_files = []
         with transaction.atomic():
             for file_info in files_to_confirm:
-                # Generate permanent path
+                # Generate permanent path (with or without related object)
                 permanent_path = s3_service.generate_permanent_path(
                     purpose=file_info["purpose"],
-                    object_id=file_info["object_id"],
                     file_name=file_info["file_name"],
+                    object_id=file_info["object_id"],
                 )
 
                 # Move file from temp to permanent location

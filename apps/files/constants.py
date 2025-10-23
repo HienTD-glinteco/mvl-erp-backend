@@ -24,6 +24,7 @@ ERROR_CONTENT_TYPE_MISMATCH = "Uploaded file content type does not match expecte
 ERROR_FILE_ALREADY_CONFIRMED = "File has already been confirmed"
 ERROR_NO_FILES_TO_CONFIRM = "No file tokens provided"
 ERROR_RELATED_OBJECT_NOT_FOUND = "Related object does not exist"
+ERROR_RELATED_FIELDS_MISMATCH = "Both related_model and related_object_id must be provided together, or both omitted"
 
 # Cache Keys
 CACHE_KEY_PREFIX = "file_upload:"
