@@ -23,3 +23,4 @@ from .templates import *
 from .static import *
 from .export import *
 from .import_xlsx import *
+from .imports import *
