@@ -132,6 +132,12 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
         choices=SourceType.choices,
         verbose_name=_("Source type"),
     )
+    month_key = models.CharField(
+        max_length=7,
+        verbose_name=_("Month key"),
+        help_text=_("Format: YYYY-MM for monthly aggregation"),
+        db_index=True,
+    )
     total_cost = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -188,6 +194,11 @@ class HiredCandidateReport(BaseReportDepartmentModel):
         help_text=_("Only applicable for 'referral_source' type"),
     )
     num_candidates_hired = models.PositiveIntegerField(default=0, verbose_name=_("Number of candidates hired"))
+    num_experienced = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Number of experienced candidates"),
+        help_text=_("Candidates with prior work experience"),
+    )
 
     class Meta:
         verbose_name = _("Hired Candidate Report")
