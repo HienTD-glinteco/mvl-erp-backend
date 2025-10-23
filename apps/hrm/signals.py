@@ -53,6 +53,7 @@ def create_user_for_employee(sender, instance, created, **kwargs):
             email=instance.email,
             first_name=instance.fullname.split()[0] if instance.fullname else "",
             last_name=" ".join(instance.fullname.split()[1:]) if len(instance.fullname.split()) > 1 else "",
+            phone_number=instance.phone,
         )
         # Update the employee with the created user
         instance.user = user

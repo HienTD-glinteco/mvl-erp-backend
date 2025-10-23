@@ -52,6 +52,11 @@ class RecruitmentRequestModelTest(TransactionTestCase):
             username="nguyenvana",
             email="nguyenvana@example.com",
             branch=self.branch,
+            phone="0123456789",
+            attendance_code="EMP001",
+            date_of_birth="1990-01-01",
+            personal_email="emp.personal@example.com",
+            start_date="2024-01-01",
             block=self.block,
             department=self.department,
         )

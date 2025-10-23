@@ -71,6 +71,11 @@ class RecruitmentExpenseModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            phone="0123456789",
+            attendance_code="NGUYENVANA",
+            date_of_birth="1990-01-01",
+            personal_email="nguyenvana.personal@example.com",
+            start_date="2024-01-01",
         )
 
         self.employee2 = Employee.objects.create(
@@ -80,6 +85,11 @@ class RecruitmentExpenseModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            phone="0123456789",
+            attendance_code="TRANTHIB",
+            date_of_birth="1990-01-01",
+            personal_email="tranthib.personal@example.com",
+            start_date="2024-01-01",
         )
 
         # Create job description

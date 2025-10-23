@@ -1,3 +1,4 @@
+from .contract_type import ContractType
 from .employee import Employee
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
@@ -23,6 +24,7 @@ __all__ = [
     "Position",
     "OrganizationChart",
     "Employee",
+    "ContractType",
     "RecruitmentChannel",
     "RecruitmentSource",
     "JobDescription",

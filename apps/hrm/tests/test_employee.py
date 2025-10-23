@@ -79,7 +79,11 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
-            phone="1234567890",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -99,6 +103,11 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -111,6 +120,11 @@ class EmployeeModelTest(TestCase):
                 fullname="Jane Doe",
                 username="janedoe",
                 email="jane@example.com",
+                phone="0987654321",
+                attendance_code="54321",
+                date_of_birth="1991-01-01",
+                personal_email="jane.personal@example.com",
+                start_date="2024-01-01",
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
@@ -122,6 +136,11 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -132,6 +151,11 @@ class EmployeeModelTest(TestCase):
                 fullname="Jane Doe",
                 username="johndoe",
                 email="jane@example.com",
+                phone="0987654321",
+                attendance_code="54321",
+                date_of_birth="1991-01-01",
+                personal_email="jane.personal@example.com",
+                start_date="2024-01-01",
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
@@ -143,6 +167,11 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -153,6 +182,11 @@ class EmployeeModelTest(TestCase):
                 fullname="Jane Doe",
                 username="janedoe",
                 email="john@example.com",
+                phone="0987654321",
+                attendance_code="54321",
+                date_of_birth="1991-01-01",
+                personal_email="jane.personal@example.com",
+                start_date="2024-01-01",
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
@@ -171,13 +205,19 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=branch2,
             block=self.block,  # This block belongs to self.branch, not branch2
             department=self.department,
         )
 
-        with self.assertRaises(Exception):
-            employee.clean()
+        employee.save()
+        self.assertNotEqual(employee.branch, branch2)
+        self.assertEqual(employee.branch, self.department.branch)
 
     def test_employee_validation_department_block(self):
         """Test validation that department must belong to block"""
@@ -192,13 +232,19 @@ class EmployeeModelTest(TestCase):
             fullname="John Doe",
             username="johndoe",
             email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=block2,
             department=self.department,  # This department belongs to self.block, not block2
         )
 
-        with self.assertRaises(Exception):
-            employee.clean()
+        employee.save()
+        self.assertNotEqual(employee.block, block2)
+        self.assertEqual(employee.block, self.department.block)
 
     def test_employee_auto_assign_branch_block_from_department(self):
         """Test that branch and block are auto-assigned from department on save"""
@@ -207,6 +253,11 @@ class EmployeeModelTest(TestCase):
             fullname="Auto Assign Test",
             username="autotest",
             email="autotest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="autotest.personal@example.com",
+            start_date="2024-01-01",
             department=self.department,
         )
 
@@ -243,6 +294,11 @@ class EmployeeModelTest(TestCase):
             fullname="Transfer Test",
             username="transfertest",
             email="transfertest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="transfertest.personal@example.com",
+            start_date="2024-01-01",
             department=self.department,
         )
 
@@ -258,6 +314,137 @@ class EmployeeModelTest(TestCase):
         self.assertEqual(employee.branch, branch2)
         self.assertEqual(employee.block, block2)
         self.assertEqual(employee.department, department2)
+
+    def test_employee_resignation_validation_requires_date(self):
+        """Test that resignation_date is required when status is Resigned"""
+        from django.core.exceptions import ValidationError
+
+        employee = Employee(
+            fullname="Resigned Employee",
+            username="resignedtest",
+            email="resignedtest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="resigned.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            status=Employee.Status.RESIGNED,
+            resignation_reason=Employee.ResignationReason.CAREER_CHANGE,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            employee.save()
+
+        self.assertIn("resignation_date", context.exception.message_dict)
+
+    def test_employee_resignation_validation_requires_reason(self):
+        """Test that resignation_reason is required when status is Resigned"""
+        from django.core.exceptions import ValidationError
+
+        employee = Employee(
+            fullname="Resigned Employee",
+            username="resignedtest",
+            email="resignedtest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="resigned.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            status=Employee.Status.RESIGNED,
+            resignation_date="2024-12-31",
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            employee.save()
+
+        self.assertIn("resignation_reason", context.exception.message_dict)
+
+    def test_employee_resignation_validation_both_fields_required(self):
+        """Test that both resignation_date and resignation_reason are required when status is Resigned"""
+        from django.core.exceptions import ValidationError
+
+        employee = Employee(
+            fullname="Resigned Employee",
+            username="resignedtest",
+            email="resignedtest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="resigned.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            status=Employee.Status.RESIGNED,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            employee.save()
+
+        self.assertIn("resignation_date", context.exception.message_dict)
+
+    def test_employee_resignation_valid(self):
+        """Test that employee with Resigned status and both fields is valid"""
+        employee = Employee.objects.create(
+            fullname="Resigned Employee",
+            username="resignedtest",
+            email="resignedtest@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="resigned.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            status=Employee.Status.RESIGNED,
+            resignation_date="2024-12-31",
+            resignation_reason=Employee.ResignationReason.CAREER_CHANGE,
+        )
+
+        self.assertEqual(employee.status, Employee.Status.RESIGNED)
+        self.assertEqual(employee.resignation_date, "2024-12-31")
+        self.assertEqual(employee.resignation_reason, Employee.ResignationReason.CAREER_CHANGE)
+
+    def test_employee_colored_code_type_property(self):
+        """Test that colored_code_type property returns correct format"""
+        employee = Employee.objects.create(
+            fullname="Test Employee",
+            username="testcolor",
+            email="testcolor@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testcolor.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            code_type=Employee.CodeType.MV,
+        )
+
+        colored_value = employee.colored_code_type
+        self.assertIsNotNone(colored_value)
+        self.assertIn("value", colored_value)
+        self.assertIn("variant", colored_value)
+        self.assertEqual(colored_value["value"], "MV")
+
+    def test_employee_colored_status_property(self):
+        """Test that colored_status property returns correct format"""
+        employee = Employee.objects.create(
+            fullname="Test Employee",
+            username="testcolor",
+            email="testcolor@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testcolor.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            status=Employee.Status.ACTIVE,
+        )
+
+        colored_value = employee.colored_status
+        self.assertIsNotNone(colored_value)
+        self.assertIn("value", colored_value)
+        self.assertIn("variant", colored_value)
+        self.assertEqual(colored_value["value"], "Active")
 
 
 class EmployeeAPITest(TestCase, APITestMixin):
@@ -309,6 +496,10 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp001",
             email="emp1@example.com",
             phone="1234567890",
+            attendance_code="EMP001",
+            date_of_birth="1990-01-01",
+            personal_email="emp1.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -319,6 +510,10 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp002",
             email="emp2@example.com",
             phone="2234567890",
+            attendance_code="EMP002",
+            date_of_birth="1991-01-01",
+            personal_email="emp2.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -329,6 +524,10 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp003",
             email="emp3@example.com",
             phone="3234567890",
+            attendance_code="EMP003",
+            date_of_birth="1992-01-01",
+            personal_email="emp3.personal@example.com",
+            start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -415,6 +614,10 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "username": "emp004",
             "email": "emp4@example.com",
             "phone": "4234567890",
+            "attendance_code": "58607083146091314660",
+            "date_of_birth": "1993-01-01",
+            "personal_email": "emp4.personal@example.com",
+            "start_date": "2024-01-01",
             "department_id": self.department.id,
             "note": "Test note",
         }
@@ -444,6 +647,10 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "username": "emp001",
             "email": "emp1@example.com",
             "phone": "9999999999",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1990-01-01",
+            "personal_email": "emp1.personal@example.com",
+            "start_date": "2024-01-01",
             "department_id": self.department.id,
         }
         response = self.client.put(url, payload, format="json")
@@ -505,6 +712,11 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "fullname": "Test Employee",
             "username": "testuser",
             "email": "testuser@example.com",
+            "phone": "5555555555",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1994-01-01",
+            "personal_email": "testuser.personal@example.com",
+            "start_date": "2024-01-01",
             "department_id": department2.id,
         }
         response = self.client.post(url, payload, format="json")
@@ -517,3 +729,206 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(employee.branch, branch2)
         self.assertEqual(employee.block, block2)
         self.assertEqual(employee.department, department2)
+
+    def test_create_employee_resigned_without_date_fails(self):
+        """Test that creating employee with Resigned status without resignation_date fails"""
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Resigned Employee",
+            "username": "resigned001",
+            "email": "resigned001@example.com",
+            "phone": "5555555555",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1994-01-01",
+            "personal_email": "resigned001.personal@example.com",
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "status": "Resigned",
+            "resignation_reason": "Career Change",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertIn("error", content)
+
+    def test_create_employee_resigned_without_reason_fails(self):
+        """Test that creating employee with Resigned status without resignation_reason fails"""
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Resigned Employee",
+            "username": "resigned001",
+            "email": "resigned001@example.com",
+            "phone": "5555555555",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1994-01-01",
+            "personal_email": "resigned001.personal@example.com",
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "status": "Resigned",
+            "resignation_date": "2024-12-31",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertIn("error", content)
+
+    def test_create_employee_resigned_with_both_fields_succeeds(self):
+        """Test that creating employee with Resigned status with both fields succeeds"""
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Resigned Employee",
+            "username": "resigned001",
+            "email": "resigned001@example.com",
+            "phone": "5555555555",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1994-01-01",
+            "personal_email": "resigned001.personal@example.com",
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "status": "Resigned",
+            "resignation_date": "2024-12-31",
+            "resignation_reason": "Career Change",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+        employee = Employee.objects.get(username="resigned001")
+        self.assertEqual(employee.status, "Resigned")
+        self.assertEqual(employee.resignation_date.isoformat(), "2024-12-31")
+        self.assertEqual(employee.resignation_reason, "Career Change")
+
+    def test_update_employee_to_resigned_without_fields_fails(self):
+        """Test that updating employee status to Resigned without required fields fails"""
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        payload = {
+            "fullname": self.employee1.fullname,
+            "username": self.employee1.username,
+            "email": self.employee1.email,
+            "phone": self.employee1.phone,
+            "attendance_code": self.employee1.attendance_code,
+            "date_of_birth": "1990-01-01",
+            "personal_email": self.employee1.personal_email,
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "status": "Resigned",
+        }
+        response = self.client.put(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertIn("error", content)
+
+    def test_retrieve_employee_includes_colored_values(self):
+        """Test that retrieving employee includes colored_code_type and colored_status"""
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Check colored_code_type
+        self.assertIn("colored_code_type", data)
+        self.assertIsNotNone(data["colored_code_type"])
+        self.assertIn("value", data["colored_code_type"])
+        self.assertIn("variant", data["colored_code_type"])
+
+        # Check colored_status
+        self.assertIn("colored_status", data)
+        self.assertIsNotNone(data["colored_status"])
+        self.assertIn("value", data["colored_status"])
+        self.assertIn("variant", data["colored_status"])
+
+    def test_list_employees_includes_colored_values(self):
+        """Test that listing employees includes colored values"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertGreater(count, 0)
+        for item in results:
+            self.assertIn("colored_code_type", item)
+            self.assertIn("colored_status", item)
+
+    def test_create_employee_with_position_and_contract_type(self):
+        """Test creating employee with optional position_id and contract_type_id"""
+        from apps.hrm.models import ContractType, Position
+
+        position = Position.objects.create(code="POS001", name="Test Position")
+        contract_type = ContractType.objects.create(name="Full-time")
+
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Employee With Position",
+            "username": "emp_with_pos",
+            "email": "emp_with_pos@example.com",
+            "phone": "6666666666",
+            "attendance_code": "586070831460",
+            "date_of_birth": "1995-01-01",
+            "personal_email": "emp_with_pos.personal@example.com",
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "position_id": position.id,
+            "contract_type_id": contract_type.id,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+
+        # Verify nested objects are returned in response
+        self.assertIn("position", data)
+        self.assertIsNotNone(data["position"])
+        self.assertEqual(data["position"]["id"], position.id)
+        self.assertEqual(data["position"]["name"], "Test Position")
+
+        self.assertIn("contract_type", data)
+        self.assertIsNotNone(data["contract_type"])
+        self.assertEqual(data["contract_type"]["id"], contract_type.id)
+        self.assertEqual(data["contract_type"]["name"], "Full-time")
+
+        # Verify in database
+        employee = Employee.objects.get(username="emp_with_pos")
+        self.assertEqual(employee.position.id, position.id)
+        self.assertEqual(employee.contract_type.id, contract_type.id)
+
+    def test_serializer_returns_nested_objects_for_read(self):
+        """Test that serializer returns full nested objects for branch, block, department"""
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Branch should be nested object with id, name, code
+        self.assertIn("branch", data)
+        self.assertIsInstance(data["branch"], dict)
+        self.assertIn("id", data["branch"])
+        self.assertIn("name", data["branch"])
+        self.assertIn("code", data["branch"])
+        self.assertEqual(data["branch"]["id"], self.branch.id)
+
+        # Block should be nested object
+        self.assertIn("block", data)
+        self.assertIsInstance(data["block"], dict)
+        self.assertIn("id", data["block"])
+        self.assertIn("name", data["block"])
+        self.assertIn("code", data["block"])
+        self.assertEqual(data["block"]["id"], self.block.id)
+
+        # Department should be nested object
+        self.assertIn("department", data)
+        self.assertIsInstance(data["department"], dict)
+        self.assertIn("id", data["department"])
+        self.assertIn("name", data["department"])
+        self.assertIn("code", data["department"])
+        self.assertEqual(data["department"]["id"], self.department.id)
+
+        # User should be nested object
+        self.assertIn("user", data)
+        self.assertIsInstance(data["user"], dict)

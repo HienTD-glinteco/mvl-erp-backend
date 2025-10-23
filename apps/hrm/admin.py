@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     Block,
     Branch,
+    ContractType,
     Department,
     Employee,
     JobDescription,
@@ -24,6 +25,7 @@ admin.site.register(Position)
 admin.site.register(RecruitmentChannel)
 admin.site.register(RecruitmentSource)
 admin.site.register(Employee)
+admin.site.register(ContractType)
 admin.site.register(JobDescription)
 admin.site.register(RecruitmentRequest)
 admin.site.register(RecruitmentCandidate)

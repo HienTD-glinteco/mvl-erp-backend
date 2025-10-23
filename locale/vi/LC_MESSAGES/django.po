@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 16:05+0700\n"
+"POT-Creation-Date: 2025-10-23 16:02+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,40 +62,46 @@ msgstr ""
 msgid "File purpose (e.g., 'job_description', 'invoice')"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:102
-msgid "Django model label (e.g., 'hrm.JobDescription')"
+#: apps/files/api/serializers/file_serializers.py:104
+msgid "Optional Django model label (e.g., 'hrm.JobDescription')"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:106
-msgid "Related object ID"
+#: apps/files/api/serializers/file_serializers.py:110
+msgid "Optional related object ID"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:112
+#: apps/files/api/serializers/file_serializers.py:116
 #, python-brace-format
 msgid ""
 "Optional field name on related model to set as ForeignKey to this file. If "
 "provided, related_object.{related_field} = file_model"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:122
+#: apps/files/api/serializers/file_serializers.py:129
 #, python-brace-format
 msgid "Invalid model label: {model}"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:134
+#: apps/files/api/serializers/file_serializers.py:140
+msgid ""
+"Both related_model and related_object_id must be provided together, or both "
+"omitted"
+msgstr ""
+
+#: apps/files/api/serializers/file_serializers.py:149
 #, python-brace-format
 msgid "Object with ID {id} not found"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:137
+#: apps/files/api/serializers/file_serializers.py:152
 msgid "Invalid model"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:147
+#: apps/files/api/serializers/file_serializers.py:162
 msgid "List of confirmed files with metadata"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:157
+#: apps/files/api/serializers/file_serializers.py:172
 msgid "List of file configurations with tokens and related objects"
 msgstr ""
 
@@ -163,7 +169,7 @@ msgstr ""
 msgid "Object ID"
 msgstr ""
 
-#: apps/files/models.py:77
+#: apps/files/models.py:77 apps/imports/models.py:28
 msgid "File"
 msgstr ""
 
@@ -171,24 +177,220 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:80
+#: apps/files/utils/s3_utils.py:91
 #, python-brace-format
 msgid "Failed to generate presigned URL: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:123
+#: apps/files/utils/s3_utils.py:170
 #, python-brace-format
 msgid "Failed to move file in S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:163
+#: apps/files/utils/s3_utils.py:212
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:208
+#: apps/files/utils/s3_utils.py:258
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
+msgstr ""
+
+#: apps/imports/api/mixins.py:121
+msgid "File not found"
+msgstr ""
+
+#: apps/imports/api/mixins.py:199 apps/imports/api/views.py:93
+msgid "Import job not found"
+msgstr ""
+
+#: apps/imports/api/serializers.py:19
+msgid "ID of the confirmed FileModel to import"
+msgstr ""
+
+#: apps/imports/api/serializers.py:24
+msgid "Import options including batch_size, handler_path, etc."
+msgstr ""
+
+#: apps/imports/api/serializers.py:30
+msgid "Whether to process import asynchronously (always true for imports)"
+msgstr ""
+
+#: apps/imports/api/serializers.py:92
+msgid "UUID of the created import job"
+msgstr ""
+
+#: apps/imports/api/serializers.py:95
+msgid "Celery task ID for tracking"
+msgstr ""
+
+#: apps/imports/api/serializers.py:98
+msgid "Initial status of the import job"
+msgstr ""
+
+#: apps/imports/api/serializers.py:101
+msgid "Timestamp when the job was created"
+msgstr ""
+
+#: apps/imports/api/serializers.py:109
+msgid "Cancellation result message"
+msgstr ""
+
+#: apps/imports/api/serializers.py:112 apps/imports/models.py:52
+msgid "Current status of the import job"
+msgstr ""
+
+#: apps/imports/api/views.py:49
+msgid "Check import status"
+msgstr ""
+
+#: apps/imports/models.py:22
+msgid "ID"
+msgstr ""
+
+#: apps/imports/models.py:29
+msgid "Source file for import"
+msgstr ""
+
+#: apps/imports/models.py:37
+msgid "Created by"
+msgstr ""
+
+#: apps/imports/models.py:38
+msgid "User who initiated the import"
+msgstr ""
+
+#: apps/imports/models.py:44
+msgid "Celery task ID"
+msgstr ""
+
+#: apps/imports/models.py:45
+msgid "Celery task ID for tracking the background job"
+msgstr ""
+
+#: apps/imports/models.py:51
+msgid "Status"
+msgstr ""
+
+#: apps/imports/models.py:57
+msgid "Total rows"
+msgstr ""
+
+#: apps/imports/models.py:58
+msgid "Total number of rows to process"
+msgstr ""
+
+#: apps/imports/models.py:62
+msgid "Processed rows"
+msgstr ""
+
+#: apps/imports/models.py:63
+msgid "Number of rows processed"
+msgstr ""
+
+#: apps/imports/models.py:67
+msgid "Success count"
+msgstr ""
+
+#: apps/imports/models.py:68
+msgid "Number of rows processed successfully"
+msgstr ""
+
+#: apps/imports/models.py:72
+msgid "Failure count"
+msgstr ""
+
+#: apps/imports/models.py:73
+msgid "Number of rows that failed processing"
+msgstr ""
+
+#: apps/imports/models.py:78
+msgid "Percentage"
+msgstr ""
+
+#: apps/imports/models.py:79
+msgid "Percentage of completion (0-100)"
+msgstr ""
+
+#: apps/imports/models.py:84
+msgid "Options"
+msgstr ""
+
+#: apps/imports/models.py:85
+msgid "Import options including handler path and other settings"
+msgstr ""
+
+#: apps/imports/models.py:91
+msgid "Success result S3 path"
+msgstr ""
+
+#: apps/imports/models.py:92
+msgid "S3 path for successfully processed rows file"
+msgstr ""
+
+#: apps/imports/models.py:98
+msgid "Failed result S3 path"
+msgstr ""
+
+#: apps/imports/models.py:99
+msgid "S3 path for failed rows file"
+msgstr ""
+
+#: apps/imports/models.py:107
+msgid "Success result file"
+msgstr ""
+
+#: apps/imports/models.py:108
+msgid "FileModel record for successfully processed rows"
+msgstr ""
+
+#: apps/imports/models.py:116
+msgid "Failed result file"
+msgstr ""
+
+#: apps/imports/models.py:117
+msgid "FileModel record for failed rows"
+msgstr ""
+
+#: apps/imports/models.py:122
+msgid "Error message"
+msgstr ""
+
+#: apps/imports/models.py:123
+msgid "Error message if the import failed"
+msgstr ""
+
+#: apps/imports/models.py:127
+msgid "Created at"
+msgstr ""
+
+#: apps/imports/models.py:128
+msgid "Date and time when the import job was created"
+msgstr ""
+
+#: apps/imports/models.py:133
+msgid "Started at"
+msgstr ""
+
+#: apps/imports/models.py:134
+msgid "Date and time when the import job started processing"
+msgstr ""
+
+#: apps/imports/models.py:139
+msgid "Finished at"
+msgstr ""
+
+#: apps/imports/models.py:140
+msgid "Date and time when the import job finished"
+msgstr ""
+
+#: apps/imports/models.py:145
+msgid "Import Job"
+msgstr ""
+
+#: apps/imports/models.py:146
+msgid "Import Jobs"
 msgstr ""
 
 #: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24

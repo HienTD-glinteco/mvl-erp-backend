@@ -69,6 +69,11 @@ class TestPrepareUserInfo(TestCase):
             fullname="Test User Full Name",
             username="testuser_emp",
             email="testuser_emp@example.com",
+            personal_email="testuser_personal@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            start_date="2024-01-01",
             department=department,
         )
 

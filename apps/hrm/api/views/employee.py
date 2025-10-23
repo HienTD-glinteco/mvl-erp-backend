@@ -44,12 +44,14 @@ from libs import BaseModelViewSet
 class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
-    queryset = Employee.objects.select_related("user", "branch", "block", "department").all()
+    queryset = Employee.objects.select_related(
+        "user", "branch", "block", "department", "position", "contract_type", "nationality", "avatar"
+    ).all()
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["code", "fullname", "username", "email"]
-    ordering_fields = ["code", "fullname", "created_at"]
+    search_fields = ["code", "fullname", "username", "email", "attendance_code", "phone"]
+    ordering_fields = ["code", "fullname", "start_date", "created_at"]
     ordering = ["code"]
 
     # Permission registration attributes

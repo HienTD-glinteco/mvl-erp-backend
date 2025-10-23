@@ -1,8 +1,9 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
-from apps.hrm.models import Block, Branch, Department, Employee
-from libs import FieldFilteringSerializerMixin
+from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
+from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class EmployeeBranchNestedSerializer(serializers.ModelSerializer):
@@ -32,14 +33,33 @@ class EmployeeDepartmentNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "code"]
 
 
+class EmployeePositionNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested position references"""
+
+    class Meta:
+        model = Position
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id", "name", "code"]
+
+
+class EmployeeContractTypeNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested contract type references"""
+
+    class Meta:
+        model = ContractType
+        fields = ["id", "name"]
+        read_only_fields = ["id", "name"]
+
+
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model.
 
     This serializer provides nested object representation for read operations
     and accepts ID fields for write operations.
 
-    Read operations return full nested objects for branch, block, department, and user.
-    Write operations (POST/PUT/PATCH) only require department_id.
+    Read operations return full nested objects for branch, block, department,
+    position, contract_type, and user.
+    Write operations (POST/PUT/PATCH) only require department_id and other writable fields.
     Branch and block are automatically set based on the department's organizational structure.
     """
 
@@ -47,46 +67,80 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     branch = EmployeeBranchNestedSerializer(read_only=True)
     block = EmployeeBlockNestedSerializer(read_only=True)
     department = EmployeeDepartmentNestedSerializer(read_only=True)
+    position = EmployeePositionNestedSerializer(read_only=True)
+    contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
 
-    # Write-only field for POST/PUT/PATCH operations
+    # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
         source="department",
         write_only=True,
         required=True,
     )
+    position_id = serializers.PrimaryKeyRelatedField(
+        queryset=Position.objects.all(),
+        source="position",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    contract_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=ContractType.objects.all(),
+        source="contract_type",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
 
-    default_fields = [
-        "id",
-        "code",
-        "fullname",
-        "username",
-        "email",
-        "phone",
-        "branch",
-        "block",
-        "department",
-        "department_id",
-        "user",
-        "note",
-    ]
+    # Colored value properties
+    colored_code_type = ColoredValueSerializer(read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = Employee
         fields = [
             "id",
+            "code_type",
+            "colored_code_type",
             "code",
+            "avatar",
             "fullname",
+            "attendance_code",
             "username",
             "email",
-            "phone",
             "branch",
             "block",
             "department",
             "department_id",
-            "user",
+            "position",
+            "position_id",
+            "contract_type",
+            "contract_type_id",
+            "start_date",
+            "status",
+            "colored_status",
+            "resignation_date",
+            "resignation_reason",
             "note",
+            "date_of_birth",
+            "gender",
+            "marital_status",
+            "nationality",
+            "ethnicity",
+            "religion",
+            "citizen_id",
+            "citizen_id_issued_date",
+            "citizen_id_issued_place",
+            "phone",
+            "personal_email",
+            "tax_code",
+            "place_of_birth",
+            "residential_address",
+            "permanent_address",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "user",
             "created_at",
             "updated_at",
         ]
@@ -96,7 +150,43 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "branch",
             "block",
             "department",
+            "position",
+            "contract_type",
+            "avatar",
+            "nationality",
             "user",
+            "colored_code_type",
+            "colored_status",
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "status": {"write_only": True},
+            "code_type": {"write_only": True},
+        }
+
+    def validate(self, attrs):
+        """Validate recruitment candidate data by delegating to model's clean() method
+
+        Note: Field-level validators (e.g., RegexValidator on citizen_id) are automatically
+        run by DRF before this method is called, so we only need to call clean() here
+        for business logic validation.
+        """
+        # Create a temporary instance with the provided data for validation
+        instance = self.instance or Employee()
+
+        # Apply attrs to the instance
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        # Call model's clean() method to perform business logic validation
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
+
+        return attrs
