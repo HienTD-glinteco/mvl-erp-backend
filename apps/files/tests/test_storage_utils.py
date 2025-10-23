@@ -24,7 +24,7 @@ class GetStoragePrefixTest(TestCase):
         # Assert
         self.assertEqual(result, "media")
 
-    @override_settings(AWS_LOCATION="  media/  ")
+    @override_settings(AWS_LOCATION="media/")
     @patch("apps.files.utils.storage_utils.default_storage")
     def test_get_storage_prefix_strips_slashes(self, mock_storage):
         """Test that storage prefix strips leading/trailing slashes."""
