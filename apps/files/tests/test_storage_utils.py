@@ -76,9 +76,11 @@ class BuildStorageKeyTest(TestCase):
         self.assertEqual(result, "media/uploads/tmp/file.pdf")
 
     @override_settings(AWS_LOCATION="")
-    def test_build_storage_key_without_prefix(self):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_build_storage_key_without_prefix(self, mock_get_prefix):
         """Test building storage key without prefix."""
         # Act
+        mock_get_prefix.return_value = ""
         result = build_storage_key("uploads", "tmp", "file.pdf")
 
         # Assert
@@ -111,11 +113,11 @@ class BuildStorageKeyTest(TestCase):
         self.assertEqual(result, "media/file.pdf")
 
     @override_settings(AWS_LOCATION="")
-    @patch("apps.files.utils.storage_utils.default_storage")
-    def test_build_storage_key_empty_segments_filtered(self, mock_storage):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_build_storage_key_empty_segments_filtered(self, mock_get_prefix):
         """Test that empty segments are filtered out."""
         # Act
-        del mock_storage.location
+        mock_get_prefix.return_value = ""
         result = build_storage_key("uploads", "", "tmp", None, "file.pdf")
 
         # Assert
@@ -156,8 +158,9 @@ class ResolveActualStorageKeyTest(TestCase):
         AWS_REGION_NAME="us-east-1",
         AWS_STORAGE_BUCKET_NAME="test-bucket",
     )
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_resolve_with_prefix_not_exists(self, mock_boto_client):
+    def test_resolve_with_prefix_not_exists(self, mock_boto_client, mock_get_prefix):
         """Test resolving key when prefixed path doesn't exist in S3."""
         # Arrange
         mock_s3 = MagicMock()
@@ -165,6 +168,7 @@ class ResolveActualStorageKeyTest(TestCase):
             {"Error": {"Code": "404", "Message": "Not Found"}}, "head_object"
         )
         mock_boto_client.return_value = mock_s3
+        mock_get_prefix.return_value = None
 
         # Act
         result = resolve_actual_storage_key("uploads/test/file.pdf", s3_client=mock_s3, bucket_name="test-bucket")
@@ -173,35 +177,43 @@ class ResolveActualStorageKeyTest(TestCase):
         self.assertEqual(result, "uploads/test/file.pdf")  # Falls back to original
 
     @override_settings(AWS_LOCATION="media")
-    def test_resolve_already_has_prefix(self):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_resolve_already_has_prefix(self, mock_get_prefix):
         """Test resolving key that already has prefix."""
         # Act
+        mock_get_prefix.return_value = "media"
         result = resolve_actual_storage_key("media/uploads/test/file.pdf")
 
         # Assert
         self.assertEqual(result, "media/uploads/test/file.pdf")
 
     @override_settings(AWS_LOCATION="")
-    def test_resolve_no_prefix_configured(self):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_resolve_no_prefix_configured(self, mock_get_prefix):
         """Test resolving key when no prefix is configured."""
         # Act
+        mock_get_prefix.return_value = ""
         result = resolve_actual_storage_key("uploads/test/file.pdf")
 
         # Assert
         self.assertEqual(result, "uploads/test/file.pdf")
 
-    def test_resolve_empty_path(self):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_resolve_empty_path(self, mock_get_prefix):
         """Test resolving empty file path."""
         # Act
+        mock_get_prefix.return_value = ""
         result = resolve_actual_storage_key("")
 
         # Assert
         self.assertEqual(result, "")
 
     @override_settings(AWS_LOCATION="media")
-    def test_resolve_path_with_leading_slash(self):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_resolve_path_with_leading_slash(self, mock_get_prefix):
         """Test resolving path with leading slash."""
         # Act
+        mock_get_prefix.return_value = "media"
         result = resolve_actual_storage_key("/uploads/test/file.pdf")
 
         # Assert
