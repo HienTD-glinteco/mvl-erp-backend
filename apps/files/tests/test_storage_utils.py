@@ -111,9 +111,11 @@ class BuildStorageKeyTest(TestCase):
         self.assertEqual(result, "media/file.pdf")
 
     @override_settings(AWS_LOCATION="")
-    def test_build_storage_key_empty_segments_filtered(self):
+    @patch("apps.files.utils.storage_utils.default_storage")
+    def test_build_storage_key_empty_segments_filtered(self, mock_storage):
         """Test that empty segments are filtered out."""
         # Act
+        del mock_storage.location
         result = build_storage_key("uploads", "", "tmp", None, "file.pdf")
 
         # Assert
