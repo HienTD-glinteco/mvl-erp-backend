@@ -8,7 +8,6 @@ from apps.hrm.api.views import (
     DepartmentViewSet,
     EmployeeRoleViewSet,
     EmployeeViewSet,
-    HiredCandidateReportViewSet,
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
@@ -16,17 +15,12 @@ from apps.hrm.api.views import (
     PositionViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
-    RecruitmentChannelReportViewSet,
     RecruitmentChannelViewSet,
-    RecruitmentCostReportViewSet,
+    RecruitmentDashboardViewSet,
     RecruitmentExpenseViewSet,
+    RecruitmentReportsViewSet,
     RecruitmentRequestViewSet,
-    RecruitmentSourceReportViewSet,
     RecruitmentSourceViewSet,
-    ReferralCostReportViewSet,
-    StaffGrowthReportViewSet,
-    dashboard_chart_data,
-    dashboard_realtime_data,
 )
 
 app_name = "hrm"
@@ -54,16 +48,12 @@ router.register(r"recruitment-expenses", RecruitmentExpenseViewSet, basename="re
 router.register(r"interview-schedules", InterviewScheduleViewSet, basename="interview-schedule")
 router.register(r"interview-candidates", InterviewCandidateViewSet, basename="interview-candidate")
 
-# Report endpoints
-router.register(r"reports/staff-growth", StaffGrowthReportViewSet, basename="staff-growth-report")
-router.register(r"reports/recruitment-source", RecruitmentSourceReportViewSet, basename="recruitment-source-report")
-router.register(r"reports/recruitment-channel", RecruitmentChannelReportViewSet, basename="recruitment-channel-report")
-router.register(r"reports/recruitment-cost", RecruitmentCostReportViewSet, basename="recruitment-cost-report")
-router.register(r"reports/hired-candidate", HiredCandidateReportViewSet, basename="hired-candidate-report")
+# Report endpoints (single ViewSet with custom actions)
+router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-reports")
+
+# Dashboard endpoints (single ViewSet with custom actions)
+router.register(r"dashboard", RecruitmentDashboardViewSet, basename="recruitment-dashboard")
 
 urlpatterns = [
     path("", include(router.urls)),
-    # Dashboard endpoints
-    path("dashboard/realtime/", dashboard_realtime_data, name="dashboard-realtime"),
-    path("dashboard/charts/", dashboard_chart_data, name="dashboard-charts"),
 ]
