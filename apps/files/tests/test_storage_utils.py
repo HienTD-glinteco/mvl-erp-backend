@@ -15,8 +15,8 @@ class GetStoragePrefixTest(TestCase):
     @patch("apps.files.utils.storage_utils.default_storage")
     def test_get_storage_prefix_from_settings(self, mock_storage):
         """Test getting storage prefix from AWS_LOCATION setting."""
-        # Arrange: Mock default_storage to not have location attribute
-        mock_storage.location = None
+        # Arrange: Make default_storage not have location attribute
+        del mock_storage.location
         
         # Act
         result = get_storage_prefix()
@@ -28,8 +28,8 @@ class GetStoragePrefixTest(TestCase):
     @patch("apps.files.utils.storage_utils.default_storage")
     def test_get_storage_prefix_strips_slashes(self, mock_storage):
         """Test that storage prefix strips leading/trailing slashes."""
-        # Arrange: Mock default_storage to not have location attribute
-        mock_storage.location = None
+        # Arrange: Make default_storage not have location attribute
+        del mock_storage.location
         
         # Act
         result = get_storage_prefix()
@@ -63,11 +63,11 @@ class BuildStorageKeyTest(TestCase):
     """Test cases for build_storage_key function."""
 
     @override_settings(AWS_LOCATION="media")
-    @patch("apps.files.utils.storage_utils.default_storage")
-    def test_build_storage_key_with_prefix(self, mock_storage):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_build_storage_key_with_prefix(self, mock_get_prefix):
         """Test building storage key with prefix."""
-        # Arrange: Mock default_storage to not have location
-        mock_storage.location = None
+        # Arrange: Mock get_storage_prefix to return "media"
+        mock_get_prefix.return_value = "media"
         
         # Act
         result = build_storage_key("uploads", "tmp", "file.pdf")
@@ -85,11 +85,11 @@ class BuildStorageKeyTest(TestCase):
         self.assertEqual(result, "uploads/tmp/file.pdf")
 
     @override_settings(AWS_LOCATION="media")
-    @patch("apps.files.utils.storage_utils.default_storage")
-    def test_build_storage_key_strips_slashes(self, mock_storage):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_build_storage_key_strips_slashes(self, mock_get_prefix):
         """Test that build_storage_key strips slashes from segments."""
-        # Arrange: Mock default_storage to not have location
-        mock_storage.location = None
+        # Arrange: Mock get_storage_prefix to return "media"
+        mock_get_prefix.return_value = "media"
         
         # Act
         result = build_storage_key("/uploads/", "/tmp/", "/file.pdf")
@@ -98,11 +98,11 @@ class BuildStorageKeyTest(TestCase):
         self.assertEqual(result, "media/uploads/tmp/file.pdf")
 
     @override_settings(AWS_LOCATION="media")
-    @patch("apps.files.utils.storage_utils.default_storage")
-    def test_build_storage_key_single_segment(self, mock_storage):
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    def test_build_storage_key_single_segment(self, mock_get_prefix):
         """Test building storage key with single segment."""
-        # Arrange: Mock default_storage to not have location
-        mock_storage.location = None
+        # Arrange: Mock get_storage_prefix to return "media"
+        mock_get_prefix.return_value = "media"
         
         # Act
         result = build_storage_key("file.pdf")
@@ -130,12 +130,12 @@ class ResolveActualStorageKeyTest(TestCase):
         AWS_REGION_NAME="us-east-1",
         AWS_STORAGE_BUCKET_NAME="test-bucket",
     )
-    @patch("apps.files.utils.storage_utils.default_storage")
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_resolve_with_prefix_exists(self, mock_boto_client, mock_storage):
+    def test_resolve_with_prefix_exists(self, mock_boto_client, mock_get_prefix):
         """Test resolving key when prefixed path exists in S3."""
         # Arrange
-        mock_storage.location = None  # So get_storage_prefix uses AWS_LOCATION
+        mock_get_prefix.return_value = "media"  # Mock the prefix function
         mock_s3 = MagicMock()
         mock_s3.head_object.return_value = {"ContentLength": 123456}
         mock_boto_client.return_value = mock_s3
