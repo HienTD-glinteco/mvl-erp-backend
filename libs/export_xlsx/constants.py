@@ -25,11 +25,8 @@ STORAGE_LOCAL = "local"
 STORAGE_S3 = "s3"
 
 # Delivery mode constants
-DELIVERY_S3 = "s3"
+DELIVERY_LINK = "link"
 DELIVERY_DIRECT = "direct"
-DELIVERY_LINK = "link"  # Alias for s3
-DELIVERY_FILE = "file"  # Alias for direct
-DELIVERY_DOWNLOAD = "download"  # Alias for direct
 
 # Progress tracking
 DEFAULT_PROGRESS_CHUNK_SIZE = 500  # Update progress every N rows

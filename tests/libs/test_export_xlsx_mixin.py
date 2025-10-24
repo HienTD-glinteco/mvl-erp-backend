@@ -89,38 +89,6 @@ class ExportXLSXMixinTests(TestCase):
         )
         self.assertIn("attachment", response["Content-Disposition"])
 
-    def test_delivery_aliases(self):
-        """Test that delivery aliases work correctly."""
-        # Test 'file' alias for 'direct'
-        request = self.factory.get("/api/test/export/?delivery=file")
-        request.user = self.user
-        drf_request = Request(request)
-
-        viewset = TestExportViewSet()
-        viewset.request = drf_request
-        viewset.format_kwarg = None
-        viewset.filter_queryset = lambda qs: qs
-        viewset.get_queryset = lambda: Role.objects.all()
-
-        response = viewset.export(drf_request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("attachment", response["Content-Disposition"])
-
-        # Test 'download' alias for 'direct'
-        request = self.factory.get("/api/test/export/?delivery=download")
-        request.user = self.user
-        drf_request = Request(request)
-
-        viewset = TestExportViewSet()
-        viewset.request = drf_request
-        viewset.format_kwarg = None
-        viewset.filter_queryset = lambda qs: qs
-        viewset.get_queryset = lambda: Role.objects.all()
-
-        response = viewset.export(drf_request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("attachment", response["Content-Disposition"])
-
     def test_invalid_delivery_parameter(self):
         """Test that invalid delivery parameter returns 400."""
         request = self.factory.get("/api/test/export/?delivery=invalid")
@@ -137,8 +105,8 @@ class ExportXLSXMixinTests(TestCase):
         self.assertIn("error", response.data)
 
     @patch("libs.export_xlsx.mixins.get_storage_backend")
-    def test_synchronous_export_s3_delivery(self, mock_get_storage):
-        """Test synchronous export with S3 delivery returns presigned URL."""
+    def test_synchronous_export_link_delivery(self, mock_get_storage):
+        """Test synchronous export with Link delivery returns presigned URL."""
         # Mock S3 storage backend
         mock_storage = MagicMock()
         mock_storage.save.return_value = "exports/20250101_120000_roles_export.xlsx"
@@ -146,7 +114,7 @@ class ExportXLSXMixinTests(TestCase):
         mock_storage.get_file_size.return_value = 12345
         mock_get_storage.return_value = mock_storage
 
-        request = self.factory.get("/api/test/export/?delivery=s3")
+        request = self.factory.get("/api/test/export/?delivery=link")
         request.user = self.user
         drf_request = Request(request)
 
@@ -168,8 +136,8 @@ class ExportXLSXMixinTests(TestCase):
         self.assertEqual(response.data["size_bytes"], 12345)
 
     @patch("libs.export_xlsx.mixins.get_storage_backend")
-    def test_synchronous_export_s3_default(self, mock_get_storage):
-        """Test synchronous export defaults to S3 delivery."""
+    def test_synchronous_export_link_default(self, mock_get_storage):
+        """Test synchronous export defaults to Link delivery."""
         # Mock S3 storage backend
         mock_storage = MagicMock()
         mock_storage.save.return_value = "exports/20250101_120000_roles_export.xlsx"
@@ -194,8 +162,8 @@ class ExportXLSXMixinTests(TestCase):
         self.assertEqual(response.data["storage_backend"], "s3")
 
     @patch("libs.export_xlsx.mixins.get_storage_backend")
-    def test_s3_delivery_link_alias(self, mock_get_storage):
-        """Test that 'link' alias works for S3 delivery."""
+    def test_link_delivery_link_alias(self, mock_get_storage):
+        """Test that 'link' alias works for Link delivery."""
         # Mock S3 storage backend
         mock_storage = MagicMock()
         mock_storage.save.return_value = "exports/20250101_120000_roles_export.xlsx"
@@ -219,14 +187,14 @@ class ExportXLSXMixinTests(TestCase):
         self.assertIn("url", response.data)
 
     @patch("libs.export_xlsx.mixins.get_storage_backend")
-    def test_s3_delivery_upload_error(self, mock_get_storage):
-        """Test S3 delivery handles upload errors gracefully."""
+    def test_link_delivery_upload_error(self, mock_get_storage):
+        """Test Link delivery handles upload errors gracefully."""
         # Mock S3 storage backend that raises an error
         mock_storage = MagicMock()
         mock_storage.save.side_effect = Exception("S3 upload failed")
         mock_get_storage.return_value = mock_storage
 
-        request = self.factory.get("/api/test/export/?delivery=s3")
+        request = self.factory.get("/api/test/export/?delivery=link")
         request.user = self.user
         drf_request = Request(request)
 
@@ -289,11 +257,11 @@ class ExportXLSXMixinTests(TestCase):
 
     @override_settings(EXPORTER_CELERY_ENABLED=True)
     @patch("libs.export_xlsx.mixins.generate_xlsx_from_queryset_task.delay")
-    def test_async_export_with_delivery_s3(self, mock_task):
-        """Test async export with delivery=s3 uses S3 backend."""
+    def test_async_export_with_delivery_link(self, mock_task):
+        """Test async export with delivery=link uses S3 backend."""
         mock_task.return_value.id = "test-task-id-789"
 
-        request = self.factory.get("/api/test/export/?async=true&delivery=s3")
+        request = self.factory.get("/api/test/export/?async=true&delivery=link")
         request.user = self.user
         drf_request = Request(request)
 
@@ -452,8 +420,8 @@ class ExportXLSXMixinTests(TestCase):
 
     @override_settings(EXPORTER_PRESIGNED_URL_EXPIRES=7200)
     @patch("libs.export_xlsx.mixins.get_storage_backend")
-    def test_s3_delivery_custom_expiration(self, mock_get_storage):
-        """Test S3 delivery respects custom expiration setting."""
+    def test_link_delivery_custom_expiration(self, mock_get_storage):
+        """Test Link delivery respects custom expiration setting."""
         # Mock S3 storage backend
         mock_storage = MagicMock()
         mock_storage.save.return_value = "exports/20250101_120000_roles_export.xlsx"
@@ -461,7 +429,7 @@ class ExportXLSXMixinTests(TestCase):
         mock_storage.get_file_size.return_value = 12345
         mock_get_storage.return_value = mock_storage
 
-        request = self.factory.get("/api/test/export/?delivery=s3")
+        request = self.factory.get("/api/test/export/?delivery=link")
         request.user = self.user
         drf_request = Request(request)
 

@@ -3,7 +3,7 @@ from .base import config
 # Export settings
 EXPORTER_CELERY_ENABLED = config("EXPORTER_CELERY_ENABLED", default=False, cast=bool)
 EXPORTER_STORAGE_BACKEND = config("EXPORTER_STORAGE_BACKEND", default="local")  # 'local' or 's3'
-EXPORTER_DEFAULT_DELIVERY = config("EXPORTER_DEFAULT_DELIVERY", default="s3")  # 's3' or 'direct'
+EXPORTER_DEFAULT_DELIVERY = config("EXPORTER_DEFAULT_DELIVERY", default="link")  # 'link' or 'direct'
 EXPORTER_S3_BUCKET_NAME = config("EXPORTER_S3_BUCKET_NAME", default="")
 EXPORTER_S3_SIGNED_URL_EXPIRE = config("EXPORTER_S3_SIGNED_URL_EXPIRE", default=3600, cast=int)
 EXPORTER_PRESIGNED_URL_EXPIRES = config("EXPORTER_PRESIGNED_URL_EXPIRES", default=3600, cast=int)

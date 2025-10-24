@@ -12,17 +12,14 @@ from rest_framework.response import Response
 
 from .constants import (
     DELIVERY_DIRECT,
-    DELIVERY_DOWNLOAD,
-    DELIVERY_FILE,
     DELIVERY_LINK,
-    DELIVERY_S3,
     ERROR_MISSING_MODEL,
     ERROR_MISSING_QUERYSET,
     STORAGE_S3,
 )
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
-from .serializers import ExportAsyncResponseSerializer, ExportS3DeliveryResponseSerializer
+from .serializers import ExportAsyncResponseSerializer
 from .storage import get_storage_backend
 from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_from_viewset_task
 
@@ -64,18 +61,17 @@ class ExportXLSXMixin:
             OpenApiParameter(
                 name="delivery",
                 description="Delivery mode for synchronous export. "
-                "'s3' (default) returns a presigned S3 link; "
+                "'link' (default) returns a presigned S3 link; "
                 "'direct' returns the file as an HTTP attachment.",
                 required=False,
                 type=str,
-                enum=["s3", "direct", "link", "file", "download"],
+                enum=["link", "direct"],
             ),
         ],
         responses={
-            200: {
-                "application/json": ExportS3DeliveryResponseSerializer,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": bytes,
-            },
+            200: OpenApiResponse(
+                description="Export result (JSON with S3 link for delivery=link, or binary file for delivery=direct)",
+            ),
             202: ExportAsyncResponseSerializer,
             400: OpenApiResponse(description="Bad request (invalid parameters or S3 not configured)"),
             500: OpenApiResponse(description="Internal server error (generation or upload failure)"),
@@ -89,10 +85,10 @@ class ExportXLSXMixin:
 
         Query parameters:
             async: If 'true', process in background (requires Celery)
-            delivery: Delivery mode ('s3' for presigned URL, 'direct' for file download)
+            delivery: Delivery mode ('link' for presigned URL, 'direct' for file download)
 
         Returns:
-            - Synchronous S3 (200): JSON with presigned URL and metadata
+            - Synchronous link (200): JSON with presigned URL and metadata
             - Synchronous direct (200): XLSX file download
             - Asynchronous (202): Task ID and status information
         """
@@ -107,18 +103,12 @@ class ExportXLSXMixin:
             )
 
         # Get delivery mode (only relevant for synchronous exports)
-        delivery = request.query_params.get("delivery", getattr(settings, "EXPORTER_DEFAULT_DELIVERY", "s3")).lower()
-
-        # Normalize delivery parameter (handle aliases)
-        if delivery in (DELIVERY_LINK,):
-            delivery = DELIVERY_S3
-        elif delivery in (DELIVERY_FILE, DELIVERY_DOWNLOAD):
-            delivery = DELIVERY_DIRECT
+        delivery = request.query_params.get("delivery", getattr(settings, "EXPORTER_DEFAULT_DELIVERY", "link")).lower()
 
         # Validate delivery parameter
-        if delivery not in (DELIVERY_S3, DELIVERY_DIRECT):
+        if delivery not in (DELIVERY_LINK, DELIVERY_DIRECT):
             return Response(
-                {"error": _("Invalid delivery parameter; allowed: s3, direct")},
+                {"error": _("Invalid delivery parameter; allowed: link, direct")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -185,13 +175,13 @@ class ExportXLSXMixin:
             status=status.HTTP_202_ACCEPTED,
         )
 
-    def _sync_export(self, schema, delivery=DELIVERY_S3):
+    def _sync_export(self, schema, delivery=DELIVERY_LINK):
         """
         Handle synchronous export.
 
         Args:
             schema: Export schema
-            delivery: Delivery mode ('s3' or 'direct')
+            delivery: Delivery mode ('link' or 'direct')
 
         Returns:
             Response: JSON response with S3 link or HttpResponse with file
@@ -207,7 +197,7 @@ class ExportXLSXMixin:
             # Direct download - return file as HTTP response
             return self._direct_file_response(file_content, filename)
         else:
-            # S3 delivery - upload and return presigned URL
+            # Link delivery - upload and return presigned URL
             return self._s3_delivery_response(file_content, filename)
 
     def _direct_file_response(self, file_content, filename):
@@ -284,7 +274,7 @@ class ExportXLSXMixin:
         Determine storage backend from delivery mode.
 
         Args:
-            delivery: Delivery mode ('s3' or 'direct')
+            delivery: Delivery mode ('link' or 'direct')
 
         Returns:
             str: Storage backend type ('s3' or 'local')
@@ -293,7 +283,7 @@ class ExportXLSXMixin:
         # Only use configured EXPORTER_STORAGE_BACKEND if no delivery parameter provided
         # Otherwise, delivery parameter takes precedence
         if delivery is not None:
-            if delivery == DELIVERY_S3:
+            if delivery == DELIVERY_LINK:
                 return STORAGE_S3
             elif delivery == DELIVERY_DIRECT:
                 return "local"
