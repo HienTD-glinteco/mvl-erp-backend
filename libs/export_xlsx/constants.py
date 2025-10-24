@@ -24,6 +24,10 @@ DEFAULT_DATA_ALIGNMENT = "left"
 STORAGE_LOCAL = "local"
 STORAGE_S3 = "s3"
 
+# Delivery mode constants
+DELIVERY_LINK = "link"
+DELIVERY_DIRECT = "direct"
+
 # Progress tracking
 DEFAULT_PROGRESS_CHUNK_SIZE = 500  # Update progress every N rows
 REDIS_PROGRESS_KEY_PREFIX = "export:progress:"

@@ -70,7 +70,7 @@ class XLSXGenerator:
 
         # Calculate total rows for progress tracking
         total_rows = self._calculate_total_rows(schema)
-        
+
         # Create each sheet
         for sheet_def in schema["sheets"]:
             self._create_sheet(sheet_def)
@@ -254,14 +254,12 @@ class XLSXGenerator:
             self.total_rows_processed += 1
             if self.progress_callback and self.total_rows_processed % self.chunk_size == 0:
                 self.progress_callback(self.chunk_size)
-            
+
             # Artificial per-row delay for testing queue behavior.
             # Controlled by EXPORTER_ROW_DELAY_SECONDS env var (0 = disabled).
             row_delay = getattr(settings, "EXPORTER_ROW_DELAY_SECONDS", 0)
             if row_delay and row_delay > 0:
-                logger.debug(
-                    f"Delaying {row_delay}s after writing row {self.total_rows_processed} (test mode)"
-                )
+                logger.debug(f"Delaying {row_delay}s after writing row {self.total_rows_processed} (test mode)")
                 time.sleep(row_delay)
 
     def _track_merge_value(self, field_name, current_value, current_row, col, merge_ranges, prev_values, merge_start):
