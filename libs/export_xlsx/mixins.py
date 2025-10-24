@@ -24,7 +24,7 @@ from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
 from .serializers import ExportAsyncResponseSerializer, ExportS3DeliveryResponseSerializer
 from .storage import get_storage_backend
-from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_from_viewset_task, generate_xlsx_task
+from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_from_viewset_task
 
 
 class ExportXLSXMixin:
@@ -107,9 +107,7 @@ class ExportXLSXMixin:
             )
 
         # Get delivery mode (only relevant for synchronous exports)
-        delivery = request.query_params.get(
-            "delivery", getattr(settings, "EXPORTER_DEFAULT_DELIVERY", "s3")
-        ).lower()
+        delivery = request.query_params.get("delivery", getattr(settings, "EXPORTER_DEFAULT_DELIVERY", "s3")).lower()
 
         # Normalize delivery parameter (handle aliases)
         if delivery in (DELIVERY_LINK,):
@@ -291,19 +289,22 @@ class ExportXLSXMixin:
         Returns:
             str: Storage backend type ('s3' or 'local')
         """
-        # Check if explicit storage backend is configured
+        # Map delivery mode to storage backend
+        # Only use configured EXPORTER_STORAGE_BACKEND if no delivery parameter provided
+        # Otherwise, delivery parameter takes precedence
+        if delivery is not None:
+            if delivery == DELIVERY_S3:
+                return STORAGE_S3
+            elif delivery == DELIVERY_DIRECT:
+                return "local"
+
+        # Fallback to configured storage backend
         configured_backend = getattr(settings, "EXPORTER_STORAGE_BACKEND", None)
         if configured_backend:
             return configured_backend
 
-        # Map delivery mode to storage backend
-        if delivery == DELIVERY_S3:
-            return STORAGE_S3
-        elif delivery == DELIVERY_DIRECT:
-            return "local"
-        else:
-            # Default to s3
-            return STORAGE_S3
+        # Default to s3
+        return STORAGE_S3
 
     def _uses_default_export(self):
         """

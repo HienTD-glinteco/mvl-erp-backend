@@ -153,9 +153,7 @@ def generate_xlsx_from_queryset_task(
 
 
 @shared_task(bind=True, name="export_xlsx.generate_file_from_viewset")
-def generate_xlsx_from_viewset_task(
-    self, viewset_class_path, request_data, filename=None, storage_backend=None
-):
+def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, filename=None, storage_backend=None):
     """
     Background task to generate XLSX file by calling ViewSet's get_export_data method.
 
