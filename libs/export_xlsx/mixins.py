@@ -19,7 +19,7 @@ from .constants import (
 )
 from .generator import XLSXGenerator
 from .schema_builder import SchemaBuilder
-from .serializers import ExportAsyncResponseSerializer
+from .serializers import ExportAsyncResponseSerializer, ExportS3DeliveryResponseSerializer
 from .storage import get_storage_backend
 from .tasks import generate_xlsx_from_queryset_task, generate_xlsx_from_viewset_task
 
@@ -69,10 +69,9 @@ class ExportXLSXMixin:
             ),
         ],
         responses={
-            200: OpenApiResponse(
-                description="Export result (JSON with S3 link for delivery=link, or binary file for delivery=direct)",
-            ),
+            200: ExportS3DeliveryResponseSerializer,
             202: ExportAsyncResponseSerializer,
+            206: OpenApiResponse(description="returns the file as an HTTP attachment."),
             400: OpenApiResponse(description="Bad request (invalid parameters or S3 not configured)"),
             500: OpenApiResponse(description="Internal server error (generation or upload failure)"),
         },
@@ -214,6 +213,7 @@ class ExportXLSXMixin:
         response = HttpResponse(
             file_content.read(),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            status=status.HTTP_206_PARTIAL_CONTENT,
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
