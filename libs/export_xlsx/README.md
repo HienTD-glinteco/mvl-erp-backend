@@ -39,11 +39,41 @@ class MyViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
 ### 2. Use the API
 
 ```bash
-# Synchronous export
+# Synchronous export with S3 delivery (default)
 GET /api/my-endpoint/export/
+
+# Synchronous export with direct download
+GET /api/my-endpoint/export/?delivery=direct
 
 # Asynchronous export (requires Celery)
 GET /api/my-endpoint/export/?async=true
+```
+
+### 3. Delivery Modes
+
+The export API supports two delivery modes for synchronous exports:
+
+**S3 Delivery (Default)**:
+- Returns a JSON response with a presigned S3 URL
+- The file is uploaded to S3 and a time-limited download URL is provided
+- Recommended for large files and production environments
+- URL expires after `EXPORTER_PRESIGNED_URL_EXPIRES` seconds (default: 1 hour)
+
+**Direct Download**:
+- Returns the Excel file directly in the HTTP response
+- No cloud storage required
+- Useful for testing or when S3 is not configured
+- Use `?delivery=direct` (or `file` or `download` as aliases)
+
+Response for S3 delivery:
+```json
+{
+  "url": "https://s3.amazonaws.com/bucket/exports/file.xlsx?signature=...",
+  "filename": "export.xlsx",
+  "expires_in": 3600,
+  "storage_backend": "s3",
+  "size_bytes": 12345
+}
 ```
 
 ## Module Structure
@@ -154,9 +184,11 @@ Settings in `settings/base/export.py`:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `EXPORTER_CELERY_ENABLED` | `False` | Enable async export |
+| `EXPORTER_DEFAULT_DELIVERY` | `s3` | Default delivery mode (`s3` or `direct`) |
 | `EXPORTER_STORAGE_BACKEND` | `local` | Storage backend (`local` or `s3`) |
+| `EXPORTER_PRESIGNED_URL_EXPIRES` | `3600` | Presigned URL expiration for S3 delivery (seconds) |
 | `EXPORTER_S3_BUCKET_NAME` | `""` | S3 bucket name (optional, uses `AWS_STORAGE_BUCKET_NAME` if not set) |
-| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | Signed URL expiration (seconds) |
+| `EXPORTER_S3_SIGNED_URL_EXPIRE` | `3600` | Signed URL expiration (seconds) - legacy setting |
 | `EXPORTER_FILE_EXPIRE_DAYS` | `7` | Auto-delete after days |
 | `EXPORTER_LOCAL_STORAGE_PATH` | `exports` | Local storage path |
 | `EXPORTER_PROGRESS_CHUNK_SIZE` | `500` | Progress update frequency (rows) |
