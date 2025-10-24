@@ -16,6 +16,7 @@ from apps.hrm.models import (
     InterviewCandidate,
     InterviewSchedule,
     JobDescription,
+    Position,
     RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentRequest,
@@ -95,6 +96,13 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             function=Department.DepartmentFunction.BUSINESS,
         )
 
+        # Create position
+        self.position = Position.objects.create(
+            name="Senior Developer",
+            code="SD001",
+            description="Senior software developer position",
+        )
+
         # Create employees
         self.employee1 = Employee.objects.create(
             fullname="Nguyen Van A",
@@ -103,6 +111,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             phone="0123456789",
             attendance_code="NGUYENVANA",
             date_of_birth="1990-01-01",
@@ -117,6 +126,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             phone="0123456789",
             attendance_code="LETHID",
             date_of_birth="1990-01-01",
@@ -127,6 +137,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
         # Create job description
         self.job_description = JobDescription.objects.create(
             title="Senior Python Developer",
+            position_title="Senior Python Developer",
             responsibility="Develop backend services",
             requirement="5+ years experience",
             benefit="Competitive salary",
@@ -203,6 +214,11 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data["location"], "Office Meeting Room A")
         self.assertEqual(response_data["number_of_candidates"], 0)
 
+        # Verify position_title field is included
+        self.assertIn("recruitment_request", response_data)
+        self.assertIn("position_title", response_data["recruitment_request"])
+        self.assertEqual(response_data["recruitment_request"]["position_title"], "Senior Python Developer")
+
     def test_update_interviewers(self):
         """Test updating interviewers in interview schedule"""
         schedule = InterviewSchedule.objects.create(
@@ -224,6 +240,11 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data["interviewers"]), 2)
+
+        # Verify position_name field is included
+        for interviewer in response_data["interviewers"]:
+            self.assertIn("position_name", interviewer)
+            self.assertEqual(interviewer["position_name"], "Senior Developer")
 
         # Verify database was updated
         schedule.refresh_from_db()
@@ -285,6 +306,13 @@ class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
             function=Department.DepartmentFunction.BUSINESS,
         )
 
+        # Create position
+        self.position = Position.objects.create(
+            name="Senior Developer",
+            code="SD001",
+            description="Senior software developer position",
+        )
+
         # Create employee
         self.employee = Employee.objects.create(
             fullname="Nguyen Van A",
@@ -293,6 +321,7 @@ class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             phone="0123456789",
             attendance_code="NGUYENVANA",
             date_of_birth="1990-01-01",
@@ -303,6 +332,7 @@ class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
         # Create job description
         self.job_description = JobDescription.objects.create(
             title="Senior Python Developer",
+            position_title="Senior Python Developer",
             responsibility="Develop backend services",
             requirement="5+ years experience",
             benefit="Competitive salary",

@@ -7,10 +7,12 @@ from libs import FieldFilteringSerializerMixin
 class InterviewScheduleRecruitmentRequestNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested recruitment request references in InterviewSchedule"""
 
+    position_title = serializers.CharField(source="job_description.position_title", read_only=True)
+
     class Meta:
         model = RecruitmentRequest
-        fields = ["id", "code", "name"]
-        read_only_fields = ["id", "code", "name"]
+        fields = ["id", "code", "name", "position_title"]
+        read_only_fields = ["id", "code", "name", "position_title"]
 
 
 class InterviewScheduleRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
@@ -28,11 +30,12 @@ class InterviewScheduleEmployeeNestedSerializer(serializers.ModelSerializer):
     branch_name = serializers.CharField(source="branch.name", read_only=True)
     block_name = serializers.CharField(source="block.name", read_only=True)
     department_name = serializers.CharField(source="department.name", read_only=True)
+    position_name = serializers.CharField(source="position.name", read_only=True)
 
     class Meta:
         model = Employee
-        fields = ["id", "code", "fullname", "branch_name", "block_name", "department_name"]
-        read_only_fields = ["id", "code", "fullname", "branch_name", "block_name", "department_name"]
+        fields = ["id", "code", "fullname", "branch_name", "block_name", "department_name", "position_name"]
+        read_only_fields = ["id", "code", "fullname", "branch_name", "block_name", "department_name", "position_name"]
 
 
 class InterviewScheduleSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
