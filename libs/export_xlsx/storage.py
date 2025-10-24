@@ -100,6 +100,21 @@ class LocalStorageBackend(StorageBackend):
         """
         return self.storage.url(file_path)
 
+    def get_file_size(self, file_path):
+        """
+        Get file size in bytes.
+
+        Args:
+            file_path: File path in storage
+
+        Returns:
+            int: File size in bytes, or None if unavailable
+        """
+        try:
+            return self.storage.size(file_path)
+        except Exception:
+            return None
+
 
 class S3StorageBackend(StorageBackend):
     """
@@ -152,6 +167,32 @@ class S3StorageBackend(StorageBackend):
 
         saved_path = self.storage.save(file_path, ContentFile(content))
         return saved_path
+
+    def get_file_size(self, file_path):
+        """
+        Get file size in bytes.
+
+        Args:
+            file_path: S3 object key
+
+        Returns:
+            int: File size in bytes, or None if unavailable
+        """
+        try:
+            # Add AWS_LOCATION prefix if configured
+            aws_location = getattr(settings, "AWS_LOCATION", "")
+            if aws_location and not file_path.startswith(aws_location):
+                s3_key = f"{aws_location}/{file_path}"
+            else:
+                s3_key = file_path
+
+            # Get object metadata
+            if self.s3_client and self.bucket_name:
+                response = self.s3_client.head_object(Bucket=self.bucket_name, Key=s3_key)
+                return response.get("ContentLength")
+        except (ClientError, Exception):
+            pass
+        return None
 
     def get_url(self, file_path):
         """

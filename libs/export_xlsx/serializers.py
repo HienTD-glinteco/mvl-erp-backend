@@ -8,6 +8,20 @@ API documentation. They are not used for actual serialization/validation.
 from rest_framework import serializers
 
 
+class ExportS3DeliveryResponseSerializer(serializers.Serializer):
+    """Response for S3 delivery mode export."""
+
+    url = serializers.URLField(help_text="Presigned S3 URL for downloading the file")
+    filename = serializers.CharField(help_text="Name of the exported file")
+    expires_in = serializers.IntegerField(help_text="Time in seconds until the presigned URL expires")
+    storage_backend = serializers.CharField(help_text="Storage backend used (always 's3' for this response)")
+    size_bytes = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Size of the exported file in bytes (if available)",
+    )
+
+
 class ExportAsyncResponseSerializer(serializers.Serializer):
     """Response for async export request."""
 
