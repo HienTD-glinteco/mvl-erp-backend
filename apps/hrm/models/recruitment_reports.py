@@ -16,7 +16,7 @@ class BaseReportDepartmentModel(BaseReportModel):
 
     branch = models.ForeignKey(
         Branch,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="%(class)s_reports",
         verbose_name=_("Branch"),
         null=True,
@@ -24,7 +24,7 @@ class BaseReportDepartmentModel(BaseReportModel):
     )
     block = models.ForeignKey(
         Block,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="%(class)s_reports",
         verbose_name=_("Block"),
         null=True,
@@ -32,7 +32,7 @@ class BaseReportDepartmentModel(BaseReportModel):
     )
     department = models.ForeignKey(
         Department,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="%(class)s_reports",
         verbose_name=_("Department"),
         null=True,
@@ -76,7 +76,7 @@ class RecruitmentSourceReport(BaseReportDepartmentModel):
 
     recruitment_source = models.ForeignKey(
         "RecruitmentSource",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="source_reports",
         verbose_name=_("Recruitment source"),
     )
@@ -99,7 +99,7 @@ class RecruitmentChannelReport(BaseReportDepartmentModel):
 
     recruitment_channel = models.ForeignKey(
         "RecruitmentChannel",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="channel_reports",
         verbose_name=_("Recruitment channel"),
     )
@@ -181,7 +181,7 @@ class HiredCandidateReport(BaseReportDepartmentModel):
     )
     employee = models.ForeignKey(
         "Employee",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="hired_candidate_reports",
         verbose_name=_("Employee"),
         null=True,
