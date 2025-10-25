@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -23,14 +23,13 @@ from ..serializers.recruitment_reports import (
     RecruitmentChannelReportAggregatedSerializer,
     RecruitmentCostReportAggregatedSerializer,
     RecruitmentSourceReportAggregatedSerializer,
-    ReferralCostSummarySerializer,
     StaffGrowthReportAggregatedSerializer,
 )
 
 
 class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     """ViewSet for recruitment reports with aggregated data.
-    
+
     All reports aggregate daily flat model data by week/month periods.
     No pagination except for referral cost report.
     Default period: current month if no date range specified.
@@ -41,8 +40,12 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate staff changes (introductions, returns, new hires, transfers, resignations) by period.",
         parameters=[
             OpenApiParameter("period", str, description="Period type: 'week' or 'month' (default: month)"),
-            OpenApiParameter("from_date", str, description="Start date (YYYY-MM-DD). Default: first day of current month/week"),
-            OpenApiParameter("to_date", str, description="End date (YYYY-MM-DD). Default: last day of current month/week"),
+            OpenApiParameter(
+                "from_date", str, description="Start date (YYYY-MM-DD). Default: first day of current month/week"
+            ),
+            OpenApiParameter(
+                "to_date", str, description="End date (YYYY-MM-DD). Default: last day of current month/week"
+            ),
             OpenApiParameter("branch", int, description="Filter by branch ID"),
             OpenApiParameter("block", int, description="Filter by block ID"),
             OpenApiParameter("department", int, description="Filter by department ID"),
@@ -178,9 +181,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
         # Get unique sources
         sources = (
-            queryset.values("recruitment_source", "recruitment_source__name")
-            .distinct()
-            .order_by("recruitment_source")
+            queryset.values("recruitment_source", "recruitment_source__name").distinct().order_by("recruitment_source")
         )
         sources_list = [{"id": s["recruitment_source"], "name": s["recruitment_source__name"]} for s in sources]
 
@@ -279,7 +280,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             OpenApiParameter("branch", int, description="Filter by branch ID"),
             OpenApiParameter("block", int, description="Filter by block ID"),
             OpenApiParameter("department", int, description="Filter by department ID"),
-            OpenApiParameter("category", str, description="Filter by category (referral_source, marketing_channel, etc.)"),
+            OpenApiParameter(
+                "category", str, description="Filter by category (referral_source, marketing_channel, etc.)"
+            ),
         ],
         responses={200: RecruitmentCostReportAggregatedSerializer(many=True)},
         examples=[
@@ -505,9 +508,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         parameters=[
             OpenApiParameter("month", str, description="Month in YYYY-MM format (default: current month)"),
         ],
-        responses={200: ReferralCostSummarySerializer(many=True)},
+        responses={200: ReferralCostSummarySerializer(many=True)},  # TODO: change to correct serializer
         examples=[
-            OpenApiExample(
+            OpenApiExample(  # TODO: update the example
                 "Success",
                 value={
                     "success": True,
@@ -562,7 +565,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         # Group by department
         departments = {}
         for expense in expenses:
-            dept_name = expense.employee.department.name if expense.employee and expense.employee.department else _("No Department")
+            dept_name = (
+                expense.employee.department.name
+                if expense.employee and expense.employee.department
+                else _("No Department")
+            )
             emp_code = expense.employee.code if expense.employee else _("No Employee")
             emp_name = expense.employee.fullname if expense.employee else _("No Employee")
 
@@ -597,7 +604,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             dept_data["details"] = list(dept_data["details"].values())
             results.append(dept_data)
 
-        serializer = ReferralCostSummarySerializer(results, many=True)
+        serializer = ReferralCostSummarySerializer(
+            results, many=True
+        )  # TODO: update logic prepare report data, then change this serializer to ReferralCostReportAggregatedSerializer
         return Response(serializer.data)
 
     def _get_period_params(self, request):
@@ -643,13 +652,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         """Build nested organizational structure for source/channel reports."""
         # This is a simplified implementation - in production, you'd want to
         # properly handle the full branch > block > department hierarchy
-        
+
         # Get all branches
-        branches = (
-            queryset.values("branch", "branch__name")
-            .distinct()
-            .order_by("branch")
-        )
+        branches = queryset.values("branch", "branch__name").distinct().order_by("branch")
 
         data = []
         for branch in branches:
@@ -667,13 +672,19 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             # Calculate hires for each source/channel in this branch
             for item in sources_or_channels:
                 item_id = item["id"]
-                source_field = "recruitment_source" if "recruitment_source" in queryset.model._meta.get_fields() else "recruitment_channel"
-                
-                total = queryset.filter(
-                    branch=branch["branch"],
-                    **{source_field: item_id}
-                ).aggregate(total=Sum(value_field))["total"] or 0
-                
+                source_field = (
+                    "recruitment_source"
+                    if "recruitment_source" in queryset.model._meta.get_fields()
+                    else "recruitment_channel"
+                )
+
+                total = (
+                    queryset.filter(branch=branch["branch"], **{source_field: item_id}).aggregate(
+                        total=Sum(value_field)
+                    )["total"]
+                    or 0
+                )
+
                 branch_data["hires"].append(total)
 
             data.append(branch_data)

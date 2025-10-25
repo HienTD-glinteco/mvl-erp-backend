@@ -18,12 +18,14 @@ from .organization import (
 from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSerializer
 from .recruitment_channel import RecruitmentChannelSerializer
-from .recruitment_dashboard import ChartDataSerializer, RealtimeDataSerializer
+from .recruitment_dashboard import (
+    DashboardChartDataSerializer,
+    DashboardChartFilterSerializer,
+    DashboardRealtimeDataSerializer,
+)
 from .recruitment_expense import RecruitmentExpenseSerializer
 from .recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
-    ReferralCostDetailSerializer,
-    ReferralCostSummarySerializer,
     RecruitmentChannelReportAggregatedSerializer,
     RecruitmentCostReportAggregatedSerializer,
     RecruitmentSourceReportAggregatedSerializer,
@@ -59,8 +61,7 @@ __all__ = [
     "RecruitmentChannelReportAggregatedSerializer",
     "RecruitmentCostReportAggregatedSerializer",
     "HiredCandidateReportAggregatedSerializer",
-    "ReferralCostSummarySerializer",
-    "ReferralCostDetailSerializer",
-    "RealtimeDataSerializer",
-    "ChartDataSerializer",
+    "DashboardRealtimeDataSerializer",
+    "DashboardChartDataSerializer",
+    "DashboardChartFilterSerializer",
 ]

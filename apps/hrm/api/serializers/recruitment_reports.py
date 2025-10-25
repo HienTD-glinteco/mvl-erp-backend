@@ -1,26 +1,23 @@
 from rest_framework import serializers
 
-from apps.hrm.models import (
-    HiredCandidateReport,
-    RecruitmentChannelReport,
-    RecruitmentCostReport,
-    RecruitmentSourceReport,
-    StaffGrowthReport,
-)
+from apps.hrm.constants import ReportPeriodType
+
+from .employee import EmployeeSerializer
+from .recruitment_expense import RecruitmentExpenseSerializer
 
 
 class StaffGrowthReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated staff growth report data (week/month periods)."""
 
-    period_type = serializers.CharField(read_only=True, help_text="Period type: week or month")
-    start_date = serializers.DateField(read_only=True)
-    end_date = serializers.DateField(read_only=True)
-    branch = serializers.IntegerField(read_only=True, allow_null=True)
-    branch_name = serializers.CharField(read_only=True, allow_null=True)
-    block = serializers.IntegerField(read_only=True, allow_null=True)
-    block_name = serializers.CharField(read_only=True, allow_null=True)
-    department = serializers.IntegerField(read_only=True, allow_null=True)
-    department_name = serializers.CharField(read_only=True, allow_null=True)
+    period_type = serializers.ChoiceField(read_only=True, choices=ReportPeriodType.choices)
+    label = serializers.CharField(
+        read_only=True,
+        help_text=(
+            "Period label.\n"
+            "For week: (DD/MM - DD/MM), where the first day is Monday and the last day is Sunday (e.g., 12/05 - 18/05).\n"
+            "For month: 'Month MM/YYYY' (e.g., Month 05/2025)."
+        ),
+    )
     num_introductions = serializers.IntegerField(read_only=True)
     num_returns = serializers.IntegerField(read_only=True)
     num_new_hires = serializers.IntegerField(read_only=True)
@@ -28,81 +25,76 @@ class StaffGrowthReportAggregatedSerializer(serializers.Serializer):
     num_resignations = serializers.IntegerField(read_only=True)
 
 
+class BaseRecruitmentReportStatisticsSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    name = serializers.CharField()
+    statistics = serializers.ListField(child=serializers.IntegerField())
+
+
+class RecruitmentReportBlockItemSerializer(BaseRecruitmentReportStatisticsSerializer):
+    children = serializers.ListField(child=BaseRecruitmentReportStatisticsSerializer())
+
+
+class RecruitmentReportBranchItemSerializer(BaseRecruitmentReportStatisticsSerializer):
+    children = serializers.ListField(child=RecruitmentReportBlockItemSerializer())
+
+
 class RecruitmentSourceReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated recruitment source report data (nested format)."""
 
-    period_type = serializers.CharField(read_only=True)
-    start_date = serializers.DateField(read_only=True)
-    end_date = serializers.DateField(read_only=True)
-    sources = serializers.ListField(child=serializers.DictField(), read_only=True)
-    data = serializers.ListField(child=serializers.DictField(), read_only=True)
+    sources = serializers.ListField(child=serializers.CharField(), read_only=True, help_text="A list of source names")
+    data = serializers.ListField(child=RecruitmentReportBranchItemSerializer(), read_only=True)
 
 
 class RecruitmentChannelReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated recruitment channel report data (nested format)."""
 
-    period_type = serializers.CharField(read_only=True)
-    start_date = serializers.DateField(read_only=True)
-    end_date = serializers.DateField(read_only=True)
-    channels = serializers.ListField(child=serializers.DictField(), read_only=True)
-    data = serializers.ListField(child=serializers.DictField(), read_only=True)
+    sources = serializers.ListField(child=serializers.CharField(), read_only=True, help_text="A list of channel names")
+    data = serializers.ListField(child=RecruitmentReportBranchItemSerializer(), read_only=True)
+
+
+class RecruitmentCostSourceMonthSerializer(serializers.Serializer):
+    total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    count = serializers.IntegerField(read_only=True)
+    avg = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
+
+class RecruitmentCostSourceSerializer(serializers.Serializer):
+    source_type = serializers.CharField(read_only=True)
+    months = serializers.ListField(child=RecruitmentCostSourceMonthSerializer())
 
 
 class RecruitmentCostReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated recruitment cost report data (week/month periods)."""
 
-    period_type = serializers.CharField(read_only=True)
-    start_date = serializers.DateField(read_only=True)
-    end_date = serializers.DateField(read_only=True)
-    branch = serializers.IntegerField(read_only=True, allow_null=True)
-    branch_name = serializers.CharField(read_only=True, allow_null=True)
-    block = serializers.IntegerField(read_only=True, allow_null=True)
-    block_name = serializers.CharField(read_only=True, allow_null=True)
-    department = serializers.IntegerField(read_only=True, allow_null=True)
-    department_name = serializers.CharField(read_only=True, allow_null=True)
-    category = serializers.CharField(read_only=True)
-    category_display = serializers.CharField(read_only=True)
-    total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    num_hired = serializers.IntegerField(read_only=True)
-    avg_cost_per_hire = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    months = serializers.ListField(child=serializers.CharField(), help_text="A list of months including Total.")
+    data = serializers.ListField(child=RecruitmentCostSourceSerializer())
+
+
+class HiredCandidateSourceTypeSerializer(BaseRecruitmentReportStatisticsSerializer):
+    children = serializers.ListField(child=BaseRecruitmentReportStatisticsSerializer())
 
 
 class HiredCandidateReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated hired candidate report data (week/month periods)."""
 
-    period_type = serializers.CharField(read_only=True)
-    start_date = serializers.DateField(read_only=True)
-    end_date = serializers.DateField(read_only=True)
-    branch = serializers.IntegerField(read_only=True, allow_null=True)
-    branch_name = serializers.CharField(read_only=True, allow_null=True)
-    block = serializers.IntegerField(read_only=True, allow_null=True)
-    block_name = serializers.CharField(read_only=True, allow_null=True)
-    department = serializers.IntegerField(read_only=True, allow_null=True)
-    department_name = serializers.CharField(read_only=True, allow_null=True)
-    source_type = serializers.CharField(read_only=True)
-    source_type_display = serializers.CharField(read_only=True)
-    num_candidates_hired = serializers.IntegerField(read_only=True)
-    num_experienced = serializers.IntegerField(read_only=True)
-    num_no_experience = serializers.IntegerField(read_only=True)
-    children = serializers.ListField(child=serializers.DictField(), read_only=True, required=False)
+    period_type = serializers.ChoiceField(read_only=True, choices=ReportPeriodType.choices)
+    sources = serializers.ListField(child=serializers.CharField(), read_only=True, help_text="A list of source names")
+    data = serializers.ListField(child=HiredCandidateSourceTypeSerializer(), read_only=True)
 
 
-class ReferralCostDetailSerializer(serializers.Serializer):
-    """Serializer for referral cost detail report data."""
-
-    month = serializers.CharField(read_only=True)
-    department_name = serializers.CharField(read_only=True)
-    employee_code = serializers.CharField(read_only=True)
-    employee_name = serializers.CharField(read_only=True)
-    num_referrals = serializers.IntegerField(read_only=True)
-    total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+class ReferralCostEmployeeSerializer(RecruitmentExpenseSerializer):
+    referee = EmployeeSerializer(read_only=True)
+    referrer = EmployeeSerializer(read_only=True)
 
 
-class ReferralCostSummarySerializer(serializers.Serializer):
-    """Serializer for referral cost summary report data."""
+class ReferralCostDepartmentSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    items = serializers.ListField(child=ReferralCostEmployeeSerializer())
 
-    month = serializers.CharField(read_only=True)
-    department_name = serializers.CharField(read_only=True)
-    total_referrals = serializers.IntegerField(read_only=True)
-    total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    details = ReferralCostDetailSerializer(many=True, read_only=True)
+
+class ReferralCostReportAggregatedSerializer(serializers.Serializer):
+    """Serializer for aggregated referral cost report data."""
+
+    data = serializers.ListField(child=ReferralCostDepartmentSerializer())
+    summary_total = serializers.DecimalField(max_digits=15, decimal_places=0)

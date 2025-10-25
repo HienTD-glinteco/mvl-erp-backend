@@ -19,7 +19,6 @@ from .recruitment_reports import (
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentSourceReport,
-    ReferralCostReport,
     StaffGrowthReport,
 )
 from .recruitment_request import RecruitmentRequest

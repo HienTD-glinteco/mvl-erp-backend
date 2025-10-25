@@ -16,7 +16,7 @@ def get_experience_category(years_of_experience):
     """
     if years_of_experience is None:
         return _("Unknown")
-    
+
     if years_of_experience < 1:
         return _("0-1 years")
     elif years_of_experience < 3:
@@ -35,13 +35,13 @@ def get_current_month_range():
     """
     today = date.today()
     first_day = date(today.year, today.month, 1)
-    
+
     # Get last day of month
     if today.month == 12:
         last_day = date(today.year + 1, 1, 1) - timedelta(days=1)
     else:
         last_day = date(today.year, today.month + 1, 1) - timedelta(days=1)
-    
+
     return first_day, last_day
 
 
@@ -55,5 +55,30 @@ def get_current_week_range():
     # Monday is 0, Sunday is 6
     monday = today - timedelta(days=today.weekday())
     sunday = monday + timedelta(days=6)
-    
+
     return monday, sunday
+
+
+def get_last_6_months_range():
+    """
+    Get the first day of the month 6 months ago and the last day of the current month.
+
+    Returns:
+        tuple: (first_day, last_day) covering the last 6 full months up to the end of this month.
+    """
+    today = date.today()
+    # Calculate the first day of the month 6 months ago
+    year = today.year
+    month = today.month - 5  # include current month as the 6th
+    if month <= 0:
+        year -= 1
+        month += 12
+    first_day = date(year, month, 1)
+
+    # Calculate the last day of the current month
+    if today.month == 12:
+        last_day = date(today.year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day = date(today.year, today.month + 1, 1) - timedelta(days=1)
+
+    return first_day, last_day

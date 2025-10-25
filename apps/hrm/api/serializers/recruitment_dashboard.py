@@ -13,22 +13,9 @@ class DashboardRealtimeDataSerializer(serializers.Serializer):
 class ExperienceBreakdownSerializer(serializers.Serializer):
     """Serializer for experience level breakdown."""
 
-    experience_range = serializers.CharField(help_text="Experience range (e.g., '0-1 years', '1-3 years')")
-    count = serializers.IntegerField(help_text="Number of candidates in this experience range")
-
-
-class SourceBreakdownSerializer(serializers.Serializer):
-    """Serializer for recruitment source breakdown."""
-
-    source_name = serializers.CharField(help_text="Recruitment source name")
-    count = serializers.IntegerField(help_text="Number of candidates from this source")
-
-
-class ChannelBreakdownSerializer(serializers.Serializer):
-    """Serializer for recruitment channel breakdown."""
-
-    channel_name = serializers.CharField(help_text="Recruitment channel name")
-    count = serializers.IntegerField(help_text="Number of candidates from this channel")
+    label = serializers.CharField(help_text="Experience type label (e.g., Has experience, No experience)")
+    count = serializers.IntegerField(help_text="Number of candidates in this experience type")
+    percentage = serializers.FloatField(help_text="Percent of candidates in this experience type")
 
 
 class BranchBreakdownSerializer(serializers.Serializer):
@@ -36,30 +23,59 @@ class BranchBreakdownSerializer(serializers.Serializer):
 
     branch_name = serializers.CharField(help_text="Branch name")
     count = serializers.IntegerField(help_text="Number of hires for this branch")
+    percentage = serializers.FloatField(help_text="Percent of hires for this branch")
 
 
 class CostBreakdownSerializer(serializers.Serializer):
-    """Serializer for cost breakdown by source/channel."""
+    """Serializer for cost breakdown by source type."""
 
-    source_or_channel_name = serializers.CharField(help_text="Source or channel name")
+    source_type = serializers.CharField(help_text="Source type")
     total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, help_text="Total cost")
-    avg_cost_per_hire = serializers.DecimalField(max_digits=15, decimal_places=2, help_text="Average cost per hire")
+    percentage = serializers.FloatField(help_text="Percent of cost per hire")
 
 
-class HireRatioSerializer(serializers.Serializer):
-    """Serializer for hire ratio statistics."""
+class SourceTypeBreakdownSerializer(serializers.Serializer):
+    """Serializer for recruitment source breakdown."""
 
-    total_applicants = serializers.IntegerField(help_text="Total number of applicants")
-    total_hires = serializers.IntegerField(help_text="Total number of hires")
-    hire_ratio = serializers.FloatField(help_text="Hire ratio (hires/applicants)")
+    source_type = serializers.CharField(help_text="Source type")
+    count = serializers.IntegerField(help_text="Number of candidates from this source type")
+    percentage = serializers.FloatField(help_text="Percent of candidates from this source type")
+
+
+class SourceTypesMonthlyTrendsSerializer(serializers.Serializer):
+    """
+    Serializer for monthly trends of candidate sources.
+
+    Represents the number of candidates from each recruitment source type for a specific month.
+    """
+
+    month = serializers.CharField(help_text="Month in MM/YYYY format (e.g., 10/2025)")
+    referral_source = serializers.IntegerField(
+        help_text="Number of candidates referred by employees (referral program)"
+    )
+    marketing_channel = serializers.IntegerField(
+        help_text="Number of candidates from marketing channels (ads, social media, etc.)"
+    )
+    job_website_channel = serializers.IntegerField(help_text="Number of candidates from job websites/portals")
+    recruitment_department_source = serializers.IntegerField(
+        help_text="Number of candidates sourced directly by the recruitment department"
+    )
+    returning_employee = serializers.IntegerField(help_text="Number of candidates who are returning employees")
 
 
 class DashboardChartDataSerializer(serializers.Serializer):
     """Serializer for dashboard chart data."""
 
     experience_breakdown = ExperienceBreakdownSerializer(many=True, help_text="Breakdown by experience level")
-    source_breakdown = SourceBreakdownSerializer(many=True, help_text="Breakdown by recruitment source")
-    channel_breakdown = ChannelBreakdownSerializer(many=True, help_text="Breakdown by recruitment channel")
     branch_breakdown = BranchBreakdownSerializer(many=True, help_text="Breakdown by branch")
-    cost_breakdown = CostBreakdownSerializer(many=True, help_text="Cost breakdown by source/channel")
-    hire_ratio = HireRatioSerializer(help_text="Overall hire ratio statistics")
+    cost_breakdown = CostBreakdownSerializer(many=True, help_text="Cost breakdown by source type")
+    source_type_breakdown = SourceTypeBreakdownSerializer(many=True, help_text="Source type breakdown")
+    monthly_trends = SourceTypesMonthlyTrendsSerializer(
+        many=True,
+        help_text="Monthly trends showing the number of candidates from each recruitment source type for every month",
+    )
+
+
+class DashboardChartFilterSerializer(serializers.Serializer):
+    from_date = serializers.DateField(required=False)
+    to_date = serializers.DateField(required=False)

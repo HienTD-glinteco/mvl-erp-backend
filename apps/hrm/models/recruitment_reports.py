@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from libs.models import BaseReportModel
 
+from ..constants import RecruitmentSourceType
 from .organization import Block, Branch, Department
 
 
@@ -117,19 +118,19 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
 
     Stores daily cost metrics for each recruitment source type within an organizational unit.
     Source types are categorized based on recruitment source/channel flags.
+    1. referral_source: recruitment sources with allow_referral=True
+    2. marketing_channel: recruitment channels with belong_to='marketing'
+    3. job_website_channel: recruitment channels with belong_to='job_website'
+    4. recruitment_department_source: recruitment sources with allow_referral=False
+    5. returning_employee: former employees returning to the company
+
+    Note: recruitment_department_source and returning_employee have no cost, only count.
     Data is aggregated by API views to provide weekly/monthly cost reports.
     """
 
-    class SourceType(models.TextChoices):
-        REFERRAL_SOURCE = "referral_source", _("Referral Source")
-        MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")
-        JOB_WEBSITE_CHANNEL = "job_website_channel", _("Job Website Channel")
-        RECRUITMENT_DEPARTMENT_SOURCE = "recruitment_department_source", _("Recruitment Department Source")
-        RETURNING_EMPLOYEE = "returning_employee", _("Returning Employee")
-
     source_type = models.CharField(
         max_length=50,
-        choices=SourceType.choices,
+        choices=RecruitmentSourceType.choices,
         verbose_name=_("Source type"),
     )
     month_key = models.CharField(
@@ -170,18 +171,12 @@ class HiredCandidateReport(BaseReportDepartmentModel):
     4. recruitment_department_source: recruitment sources with allow_referral=False
     5. returning_employee: former employees returning to the company
 
-    Note: recruitment_department_source and returning_employee have no cost, only count.
     Each record represents data for one day.
     """
 
-    class SourceType(models.TextChoices):
-        REFERRAL_SOURCE = "referral_source", _("Referral Source")
-        RECRUITMENT_DEPARTMENT_SOURCE = "recruitment_department_source", _("Recruitment Department Source")
-        RETURNING_EMPLOYEE = "returning_employee", _("Returning Employee")
-
     source_type = models.CharField(
         max_length=50,
-        choices=SourceType.choices,
+        choices=RecruitmentSourceType.choices,
         verbose_name=_("Source type"),
     )
     employee = models.ForeignKey(

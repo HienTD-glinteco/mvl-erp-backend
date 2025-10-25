@@ -19,7 +19,6 @@ from .recruitment_reports import (
     RecruitmentChannelReportFilterSet,
     RecruitmentCostReportFilterSet,
     RecruitmentSourceReportFilterSet,
-    ReferralCostReportFilterSet,
     StaffGrowthReportFilterSet,
 )
 from .recruitment_request import RecruitmentRequestFilterSet
