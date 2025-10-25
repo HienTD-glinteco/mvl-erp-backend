@@ -218,9 +218,9 @@ class PositionModelTest(TestCase):
         ceo = Position.objects.create(name="Tổng Giám đốc", code="TGD")
 
         positions = list(Position.objects.all())
-        self.assertEqual(positions[0], director)  # "Giám đốc" alphabetically first
-        self.assertEqual(positions[1], staff)  # "Nhân viên" second
-        self.assertEqual(positions[2], ceo)  # "Tổng Giám đốc" last
+        self.assertEqual(positions[0], director)  # "Giám đốc" (Director) alphabetically first
+        self.assertEqual(positions[1], staff)  # "Nhân viên" (Employee) second
+        self.assertEqual(positions[2], ceo)  # "Tổng Giám đốc" (General Director) last
 
 
 class OrganizationChartModelTest(TestCase):

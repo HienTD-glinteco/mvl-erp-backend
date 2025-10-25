@@ -309,7 +309,7 @@ class FixedPositionAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        # Should be ordered by name alphabetically (Giám đốc, Nhân viên, Tổng Giám đốc)
+        # Should be ordered by name alphabetically (Director, Employee, General Director)
         self.assertEqual(response_data[0]["code"], "GD")
         self.assertEqual(response_data[1]["code"], "NV")
         self.assertEqual(response_data[2]["code"], "TGD")

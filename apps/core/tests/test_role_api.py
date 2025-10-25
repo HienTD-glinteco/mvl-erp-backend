@@ -228,7 +228,7 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         Role.objects.create(code="VT003", name="Quản trị viên", description="Test")
         Role.objects.create(code="VT004", name="Nhân viên", description="Test")
 
-        # Search for "Quản trị" - should find the role
+        # Search for "Quản trị" (Administrator) - should find the role
         url = reverse("core:role-list")
         response = self.client.get(url, {"search": "Quản trị"})
 
@@ -243,7 +243,7 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         Role.objects.create(code="VT003", name="Quản trị viên", description="Test")
         Role.objects.create(code="VT004", name="Nhân viên", description="Test")
 
-        # Filter by name containing "quản" (lowercase)
+        # Filter by name containing "quản" (administrator in lowercase)
         url = reverse("core:role-list")
         response = self.client.get(url, {"name": "quản"})
 

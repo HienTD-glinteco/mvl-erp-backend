@@ -245,7 +245,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
 
-        # Should find employee1 (Nguyễn Văn A)
+        # Should find employee1 (Nguyen Van A)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["employee_code"], "NV001")
 
@@ -404,6 +404,6 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
 
-        # Should find employee1 (Nguyễn Văn A with Staff role)
+        # Should find employee1 (Nguyen Van A with Staff role)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["employee_code"], "NV001")
