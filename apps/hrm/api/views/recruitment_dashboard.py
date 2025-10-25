@@ -8,7 +8,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.hrm.constants import RecruitmentSourceType
-from apps.hrm.models import HiredCandidateReport, RecruitmentCostReport
+from apps.hrm.models import (
+    HiredCandidateReport,
+    InterviewSchedule,
+    JobDescription,
+    RecruitmentCandidate,
+    RecruitmentCostReport,
+)
 from apps.hrm.utils import get_current_month_range, get_last_6_months_range
 
 from ..serializers import (
@@ -88,17 +94,14 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     def _get_open_positions(self):
         """Get number of open positions."""
-        from apps.hrm.models import JobDescription
         return JobDescription.objects.filter(status="open").count()
 
     def _get_applicants_today(self, today):
         """Get number of applicants today."""
-        from apps.hrm.models import RecruitmentCandidate
         return RecruitmentCandidate.objects.filter(created_at__date=today).count()
 
     def _get_interviews_today(self, today):
         """Get number of interviews today."""
-        from apps.hrm.models import InterviewSchedule
         return InterviewSchedule.objects.filter(interview_date=today).count()
 
     def _get_experience_breakdown(self, from_date, to_date):

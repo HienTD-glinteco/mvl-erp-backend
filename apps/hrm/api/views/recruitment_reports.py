@@ -21,20 +21,26 @@ from apps.hrm.utils import get_current_month_range, get_current_week_range
 
 from ..serializers.recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
+    HiredCandidateReportParametersSerializer,
     RecruitmentChannelReportAggregatedSerializer,
+    RecruitmentChannelReportParametersSerializer,
     RecruitmentCostReportAggregatedSerializer,
+    RecruitmentCostReportParametersSerializer,
     RecruitmentSourceReportAggregatedSerializer,
+    RecruitmentSourceReportParametersSerializer,
     ReferralCostReportAggregatedSerializer,
+    ReferralCostReportParametersSerializer,
     StaffGrowthReportAggregatedSerializer,
+    StaffGrowthReportParametersSerializer,
 )
 
 
 class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     """ViewSet for recruitment reports with aggregated data.
 
-    All reports aggregate daily flat model data by week/month periods.
+    Only staff_growth and hired_candidate reports aggregate by week/month periods.
+    Other reports aggregate by organizational hierarchy or source type.
     No pagination - returns full aggregated datasets.
-    Default period: current month if no date range specified.
     """
 
     @extend_schema(

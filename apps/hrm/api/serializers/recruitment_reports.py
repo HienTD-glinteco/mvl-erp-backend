@@ -6,6 +6,79 @@ from .employee import EmployeeSerializer
 from .recruitment_expense import RecruitmentExpenseSerializer
 
 
+# Parameter Serializers for input validation and OpenAPI documentation
+
+
+class StaffGrowthReportParametersSerializer(serializers.Serializer):
+    """Parameters for staff growth report."""
+
+    period = serializers.ChoiceField(
+        choices=[("week", "Week"), ("month", "Month")],
+        default="month",
+        help_text="Period type: 'week' or 'month'",
+    )
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    branch = serializers.IntegerField(required=False, help_text="Filter by branch ID")
+    block = serializers.IntegerField(required=False, help_text="Filter by block ID")
+    department = serializers.IntegerField(required=False, help_text="Filter by department ID")
+
+
+class RecruitmentSourceReportParametersSerializer(serializers.Serializer):
+    """Parameters for recruitment source report."""
+
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    branch = serializers.IntegerField(required=False, help_text="Filter by branch ID")
+    block = serializers.IntegerField(required=False, help_text="Filter by block ID")
+    department = serializers.IntegerField(required=False, help_text="Filter by department ID")
+
+
+class RecruitmentChannelReportParametersSerializer(serializers.Serializer):
+    """Parameters for recruitment channel report."""
+
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    branch = serializers.IntegerField(required=False, help_text="Filter by branch ID")
+    block = serializers.IntegerField(required=False, help_text="Filter by block ID")
+    department = serializers.IntegerField(required=False, help_text="Filter by department ID")
+
+
+class RecruitmentCostReportParametersSerializer(serializers.Serializer):
+    """Parameters for recruitment cost report."""
+
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    branch = serializers.IntegerField(required=False, help_text="Filter by branch ID")
+    block = serializers.IntegerField(required=False, help_text="Filter by block ID")
+    department = serializers.IntegerField(required=False, help_text="Filter by department ID")
+
+
+class HiredCandidateReportParametersSerializer(serializers.Serializer):
+    """Parameters for hired candidate report."""
+
+    period = serializers.ChoiceField(
+        choices=[("week", "Week"), ("month", "Month")],
+        default="month",
+        help_text="Period type: 'week' or 'month'",
+    )
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    branch = serializers.IntegerField(required=False, help_text="Filter by branch ID")
+    block = serializers.IntegerField(required=False, help_text="Filter by block ID")
+    department = serializers.IntegerField(required=False, help_text="Filter by department ID")
+
+
+class ReferralCostReportParametersSerializer(serializers.Serializer):
+    """Parameters for referral cost report - always restricted to single month."""
+
+    month = serializers.RegexField(
+        regex=r'^\d{4}-\d{2}$',
+        required=False,
+        help_text="Month in YYYY-MM format (default: current month)",
+    )
+
+
 class StaffGrowthReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated staff growth report data (week/month periods)."""
 
