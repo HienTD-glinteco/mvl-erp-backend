@@ -45,28 +45,38 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Staff Growth Report",
-        description="Aggregate staff changes (introductions, returns, new hires, transfers, resignations) by period.",
-        parameters=[
-            OpenApiParameter("period", str, description="Period type: 'week' or 'month' (default: month)"),
-            OpenApiParameter(
-                "from_date", str, description="Start date (YYYY-MM-DD). Default: first day of current month/week"
-            ),
-            OpenApiParameter(
-                "to_date", str, description="End date (YYYY-MM-DD). Default: last day of current month/week"
-            ),
-            OpenApiParameter("branch", int, description="Filter by branch ID"),
-            OpenApiParameter("block", int, description="Filter by block ID"),
-            OpenApiParameter("department", int, description="Filter by department ID"),
-        ],
+        description="Aggregate staff changes (introductions, returns, new hires, transfers, resignations) by period (week/month).",
+        request=StaffGrowthReportParametersSerializer,
         responses={200: StaffGrowthReportAggregatedSerializer(many=True)},
     )
     @action(detail=False, methods=["get"], url_path="staff-growth")
     def staff_growth(self, request):
-        """Aggregate staff growth data by period."""
-        period_type, start_date, end_date = self._get_period_params(request)
+        """Aggregate staff growth data by week or month period."""
+        param_serializer = StaffGrowthReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        period_type = params.get("period", "month")
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+        
+        if from_date and to_date:
+            start_date, end_date = from_date, to_date
+        else:
+            if period_type == "week":
+                start_date, end_date = get_current_week_range()
+            else:
+                start_date, end_date = get_current_month_range()
 
         queryset = StaffGrowthReport.objects.filter(report_date__range=[start_date, end_date])
-        queryset = self._apply_org_filters(queryset, request)
+        
+        # Apply organizational filters
+        if params.get("branch"):
+            queryset = queryset.filter(branch_id=params["branch"])
+        if params.get("block"):
+            queryset = queryset.filter(block_id=params["block"])
+        if params.get("department"):
+            queryset = queryset.filter(department_id=params["department"])
 
         aggregated = (
             queryset.values("branch", "branch__name", "block", "block__name", "department", "department__name")
@@ -98,23 +108,35 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Recruitment Source Report",
-        description="Aggregate hire statistics by recruitment source in nested format.",
-        parameters=[
-            OpenApiParameter("from_date", str, description="Start date (YYYY-MM-DD)"),
-            OpenApiParameter("to_date", str, description="End date (YYYY-MM-DD)"),
-            OpenApiParameter("branch", int, description="Filter by branch ID"),
-            OpenApiParameter("block", int, description="Filter by block ID"),
-            OpenApiParameter("department", int, description="Filter by department ID"),
-        ],
+        description="Aggregate hire statistics by recruitment source in nested organizational format (no period aggregation).",
+        request=RecruitmentSourceReportParametersSerializer,
         responses={200: RecruitmentSourceReportAggregatedSerializer},
     )
     @action(detail=False, methods=["get"], url_path="recruitment-source")
     def recruitment_source(self, request):
-        """Aggregate recruitment source data in nested format."""
-        _, start_date, end_date = self._get_period_params(request)
+        """Aggregate recruitment source data in nested format (branch > block > department)."""
+        param_serializer = RecruitmentSourceReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+        
+        if from_date and to_date:
+            start_date, end_date = from_date, to_date
+        else:
+            start_date, end_date = get_current_month_range()
 
         queryset = RecruitmentSourceReport.objects.filter(report_date__range=[start_date, end_date])
-        queryset = self._apply_org_filters(queryset, request)
+        
+        # Apply organizational filters
+        if params.get("branch"):
+            queryset = queryset.filter(branch_id=params["branch"])
+        if params.get("block"):
+            queryset = queryset.filter(block_id=params["block"])
+        if params.get("department"):
+            queryset = queryset.filter(department_id=params["department"])
+            
         queryset = queryset.select_related("recruitment_source", "branch", "block", "department")
 
         sources = list(queryset.values_list("recruitment_source__name", flat=True).distinct().order_by("recruitment_source__name"))
@@ -131,23 +153,35 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Recruitment Channel Report",
-        description="Aggregate hire statistics by recruitment channel in nested format.",
-        parameters=[
-            OpenApiParameter("from_date", str, description="Start date (YYYY-MM-DD)"),
-            OpenApiParameter("to_date", str, description="End date (YYYY-MM-DD)"),
-            OpenApiParameter("branch", int, description="Filter by branch ID"),
-            OpenApiParameter("block", int, description="Filter by block ID"),
-            OpenApiParameter("department", int, description="Filter by department ID"),
-        ],
+        description="Aggregate hire statistics by recruitment channel in nested organizational format (no period aggregation).",
+        request=RecruitmentChannelReportParametersSerializer,
         responses={200: RecruitmentChannelReportAggregatedSerializer},
     )
     @action(detail=False, methods=["get"], url_path="recruitment-channel")
     def recruitment_channel(self, request):
-        """Aggregate recruitment channel data in nested format."""
-        _, start_date, end_date = self._get_period_params(request)
+        """Aggregate recruitment channel data in nested format (branch > block > department)."""
+        param_serializer = RecruitmentChannelReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+        
+        if from_date and to_date:
+            start_date, end_date = from_date, to_date
+        else:
+            start_date, end_date = get_current_month_range()
 
         queryset = RecruitmentChannelReport.objects.filter(report_date__range=[start_date, end_date])
-        queryset = self._apply_org_filters(queryset, request)
+        
+        # Apply organizational filters
+        if params.get("branch"):
+            queryset = queryset.filter(branch_id=params["branch"])
+        if params.get("block"):
+            queryset = queryset.filter(block_id=params["block"])
+        if params.get("department"):
+            queryset = queryset.filter(department_id=params["department"])
+            
         queryset = queryset.select_related("recruitment_channel", "branch", "block", "department")
 
         sources = list(queryset.values_list("recruitment_channel__name", flat=True).distinct().order_by("recruitment_channel__name"))
@@ -164,23 +198,34 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Recruitment Cost Report",
-        description="Aggregate recruitment cost data by source type and months.",
-        parameters=[
-            OpenApiParameter("from_date", str, description="Start date (YYYY-MM-DD)"),
-            OpenApiParameter("to_date", str, description="End date (YYYY-MM-DD)"),
-            OpenApiParameter("branch", int, description="Filter by branch ID"),
-            OpenApiParameter("block", int, description="Filter by block ID"),
-            OpenApiParameter("department", int, description="Filter by department ID"),
-        ],
+        description="Aggregate recruitment cost data by source type and months (no period aggregation).",
+        request=RecruitmentCostReportParametersSerializer,
         responses={200: RecruitmentCostReportAggregatedSerializer},
     )
     @action(detail=False, methods=["get"], url_path="recruitment-cost")
     def recruitment_cost(self, request):
         """Aggregate recruitment cost data by source type and months."""
-        _, start_date, end_date = self._get_period_params(request)
+        param_serializer = RecruitmentCostReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+        
+        if from_date and to_date:
+            start_date, end_date = from_date, to_date
+        else:
+            start_date, end_date = get_current_month_range()
 
         queryset = RecruitmentCostReport.objects.filter(report_date__range=[start_date, end_date])
-        queryset = self._apply_org_filters(queryset, request)
+        
+        # Apply organizational filters
+        if params.get("branch"):
+            queryset = queryset.filter(branch_id=params["branch"])
+        if params.get("block"):
+            queryset = queryset.filter(block_id=params["block"])
+        if params.get("department"):
+            queryset = queryset.filter(department_id=params["department"])
 
         month_stats = queryset.values("month_key", "source_type").annotate(
             total=Sum("total_cost"),
@@ -241,24 +286,38 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Hired Candidate Report",
-        description="Aggregate hired candidate statistics by source type with conditional employee details.",
-        parameters=[
-            OpenApiParameter("period", str, description="Period type: 'week' or 'month' (default: month)"),
-            OpenApiParameter("from_date", str, description="Start date (YYYY-MM-DD)"),
-            OpenApiParameter("to_date", str, description="End date (YYYY-MM-DD)"),
-            OpenApiParameter("branch", int, description="Filter by branch ID"),
-            OpenApiParameter("block", int, description="Filter by block ID"),
-            OpenApiParameter("department", int, description="Filter by department ID"),
-        ],
+        description="Aggregate hired candidate statistics by source type with period aggregation (week/month) and conditional employee details.",
+        request=HiredCandidateReportParametersSerializer,
         responses={200: HiredCandidateReportAggregatedSerializer},
     )
     @action(detail=False, methods=["get"], url_path="hired-candidate")
     def hired_candidate(self, request):
-        """Aggregate hired candidate data by source type with conditional employee details."""
-        period_type, start_date, end_date = self._get_period_params(request)
+        """Aggregate hired candidate data by source type with conditional employee details for referral_source."""
+        param_serializer = HiredCandidateReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        period_type = params.get("period", "month")
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+        
+        if from_date and to_date:
+            start_date, end_date = from_date, to_date
+        else:
+            if period_type == "week":
+                start_date, end_date = get_current_week_range()
+            else:
+                start_date, end_date = get_current_month_range()
 
         queryset = HiredCandidateReport.objects.filter(report_date__range=[start_date, end_date])
-        queryset = self._apply_org_filters(queryset, request)
+        
+        # Apply organizational filters
+        if params.get("branch"):
+            queryset = queryset.filter(branch_id=params["branch"])
+        if params.get("block"):
+            queryset = queryset.filter(block_id=params["block"])
+        if params.get("department"):
+            queryset = queryset.filter(department_id=params["department"])
 
         sources = list(RecruitmentSourceType.labels)
 
@@ -321,16 +380,18 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Referral Cost Report",
-        description="Referral cost report with department summary and employee details.",
-        parameters=[
-            OpenApiParameter("month", str, description="Month in YYYY-MM format (default: current month)"),
-        ],
+        description="Referral cost report with department summary and employee details (always restricted to single month).",
+        request=ReferralCostReportParametersSerializer,
         responses={200: ReferralCostReportAggregatedSerializer},
     )
     @action(detail=False, methods=["get"], url_path="referral-cost")
     def referral_cost(self, request):
-        """Generate referral cost report from RecruitmentExpense."""
-        month_param = request.query_params.get("month")
+        """Generate referral cost report from RecruitmentExpense for a single month."""
+        param_serializer = ReferralCostReportParametersSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+        
+        month_param = params.get("month")
         if month_param:
             try:
                 year, month = map(int, month_param.split("-"))
@@ -375,45 +436,6 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
         serializer = ReferralCostReportAggregatedSerializer(result)
         return Response(serializer.data)
-
-    def _get_period_params(self, request):
-        """Extract and validate period parameters from request."""
-        period = request.query_params.get("period", "month")
-        from_date = request.query_params.get("from_date")
-        to_date = request.query_params.get("to_date")
-
-        if from_date and to_date:
-            try:
-                start_date = datetime.strptime(from_date, "%Y-%m-%d").date()
-                end_date = datetime.strptime(to_date, "%Y-%m-%d").date()
-            except ValueError:
-                if period == "week":
-                    start_date, end_date = get_current_week_range()
-                else:
-                    start_date, end_date = get_current_month_range()
-        else:
-            if period == "week":
-                start_date, end_date = get_current_week_range()
-            else:
-                start_date, end_date = get_current_month_range()
-
-        return period, start_date, end_date
-
-    def _apply_org_filters(self, queryset, request):
-        """Apply organizational unit filters to queryset."""
-        branch = request.query_params.get("branch")
-        if branch:
-            queryset = queryset.filter(branch_id=branch)
-
-        block = request.query_params.get("block")
-        if block:
-            queryset = queryset.filter(block_id=block)
-
-        department = request.query_params.get("department")
-        if department:
-            queryset = queryset.filter(department_id=department)
-
-        return queryset
 
     def _generate_period_label(self, period_type, start_date, end_date):
         """Generate period label based on period type."""
