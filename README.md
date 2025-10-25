@@ -137,10 +137,6 @@ This project includes an **optimized CI/CD pipeline** using GitHub Actions with 
 ### Documentation
 
 - 📖 [CICD.md](docs/CICD.md) - Complete CI/CD documentation
-- 🚀 [CI Quick Reference](docs/CI_QUICK_REFERENCE.md) - Quick troubleshooting guide
-- 📊 [CI Optimization Summary](docs/CI_OPTIMIZATION_SUMMARY.md) - Performance improvements
-- 📈 [Workflow Comparison](docs/CI_WORKFLOW_COMPARISON.md) - Before/after visualization
-- 🤖 [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) - Agent performance guide
 - 🔐 [Auto Permission Registration](docs/AUTO_PERMISSION_REGISTRATION.md) - Automatic permission generation for ViewSets
 
 ### Workflow
@@ -176,7 +172,6 @@ The agent follows an **incremental validation strategy**:
 
 **Important documentation**:
 - 📋 [Copilot Instructions](.github/copilot-instructions.md) - **MUST READ** before any task
-- ⚡ [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) - Performance guidelines
 
 ### Code Quality Standards
 

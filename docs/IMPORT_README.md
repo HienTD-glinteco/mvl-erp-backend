@@ -306,7 +306,6 @@ class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
 ## Documentation Files
 
 - **IMPORT_XLSX_COMPREHENSIVE.md** - Complete guide with all features
-- **IMPORT_FEATURE_SUMMARY.md** - High-level implementation overview
 - **IMPORT_NEW_FEATURES.md** - Detailed feature descriptions
 - **examples/role_import_example.md** - Practical examples
 
