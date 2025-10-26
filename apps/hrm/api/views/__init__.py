@@ -14,7 +14,9 @@ from .organization import (
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
+from .recruitment_dashboard import RecruitmentDashboardViewSet
 from .recruitment_expense import RecruitmentExpenseViewSet
+from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
 
@@ -36,4 +38,6 @@ __all__ = [
     "RecruitmentExpenseViewSet",
     "InterviewScheduleViewSet",
     "InterviewCandidateViewSet",
+    "RecruitmentReportsViewSet",
+    "RecruitmentDashboardViewSet",
 ]
