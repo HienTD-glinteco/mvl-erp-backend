@@ -445,26 +445,28 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
     def test_referral_cost_report_single_month(self):
         """Test referral cost report for a single month"""
         # Arrange: Create test data with referral expenses
+        test_request = RecruitmentRequest.objects.create(
+            name="Test Request",
+            job_description=JobDescription.objects.create(
+                title="Test Job",
+                responsibility="Test",
+                requirement="Test",
+                benefit="Test",
+                proposed_salary="1000 USD",
+            ),
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.OPEN,
+            proposed_salary="1000 USD",
+            number_of_positions=1,
+        )
+        
         RecruitmentExpense.objects.create(
             date=self.first_day_month,
             recruitment_source=self.source_referral,
             recruitment_channel=self.channel_marketing,
-            recruitment_request=RecruitmentRequest.objects.create(
-                name="Test Request",
-                job_description=JobDescription.objects.create(
-                    title="Test Job",
-                    responsibility="Test",
-                    requirement="Test",
-                    benefit="Test",
-                    proposed_salary="1000 USD",
-                ),
-                department=self.department,
-                proposer=self.employee,
-                recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
-                status=RecruitmentRequest.Status.OPEN,
-                proposed_salary="1000 USD",
-                number_of_positions=1,
-            ),
+            recruitment_request=test_request,
             referee=self.employee2,
             referrer=self.employee,
             total_cost=Decimal("500000.00"),
@@ -475,7 +477,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             date=self.first_day_month + timedelta(days=5),
             recruitment_source=self.source_referral,
             recruitment_channel=self.channel_marketing,
-            recruitment_request=RecruitmentRequest.objects.first(),
+            recruitment_request=test_request,
             referee=self.employee2,
             referrer=self.employee,
             total_cost=Decimal("300000.00"),

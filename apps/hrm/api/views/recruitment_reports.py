@@ -662,6 +662,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         for item in raw_stats:
             if item["month_key"]:
                 months_set.add(item["month_key"])
+        
         if period_type == ReportPeriodType.MONTH.value:
             months = []
             cur = start_date.replace(day=1)
@@ -672,8 +673,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 else:
                     cur = cur.replace(month=cur.month + 1)
         else:
+            # For week period, use sorted months from raw_stats
             months = sorted(months_set)
-        months = sorted((m for m in months_set))
+        
         months_labels = months + [_("Total")]
         return months, months_labels
 

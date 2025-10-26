@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -210,7 +210,6 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Interviews today
-        from datetime import datetime, time
         interview_time = datetime.combine(self.today, time(10, 0))
         InterviewSchedule.objects.create(
             recruitment_request=RecruitmentRequest.objects.create(
@@ -242,7 +241,8 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("hires_today", data)
         self.assertIn("interviews_today", data)
 
-        self.assertEqual(data["open_positions"], 4)  # 2 + 1 for candidate + 1 for interview
+        # We created 2 job descriptions + 1 for candidate + 1 for interview = 4 total
+        self.assertEqual(data["open_positions"], 4)
         self.assertEqual(data["applicants_today"], 1)
         self.assertEqual(data["hires_today"], 3)
         self.assertEqual(data["interviews_today"], 1)
