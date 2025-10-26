@@ -63,7 +63,6 @@ class StaffGrowthReportModelTest(TestCase):
         """Test creating a staff growth report"""
         report = StaffGrowthReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -85,7 +84,6 @@ class StaffGrowthReportModelTest(TestCase):
         """Test unique constraint on report_date, period_type, and organizational units"""
         StaffGrowthReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -96,7 +94,6 @@ class StaffGrowthReportModelTest(TestCase):
         with self.assertRaises(Exception):
             StaffGrowthReport.objects.create(
                 report_date=date(2025, 10, 1),
-                period_type="monthly",
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
@@ -140,17 +137,13 @@ class RecruitmentSourceReportModelTest(TestCase):
         """Test creating a recruitment source report"""
         report = RecruitmentSourceReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             recruitment_source=self.source,
-            org_unit_name="Hanoi Branch",
-            org_unit_type="branch",
             num_hires=15,
         )
 
         self.assertEqual(report.num_hires, 15)
-        self.assertEqual(report.org_unit_type, "branch")
-        self.assertEqual(report.org_unit_name, "Hanoi Branch")
+        self.assertEqual(report.recruitment_source, self.source)
 
 
 class RecruitmentChannelReportModelTest(TestCase):
@@ -189,16 +182,13 @@ class RecruitmentChannelReportModelTest(TestCase):
         """Test creating a recruitment channel report"""
         report = RecruitmentChannelReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             recruitment_channel=self.channel,
-            org_unit_name="Hanoi Branch",
-            org_unit_type="branch",
             num_hires=20,
         )
 
         self.assertEqual(report.num_hires, 20)
-        self.assertEqual(report.org_unit_type, "branch")
+        self.assertEqual(report.recruitment_channel, self.channel)
 
 
 class RecruitmentCostReportModelTest(TestCase):
@@ -237,9 +227,9 @@ class RecruitmentCostReportModelTest(TestCase):
         """Test creating a recruitment cost report"""
         report = RecruitmentCostReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
+            month_key="2025-10",
+            source_type="referral_source",
             branch=self.branch,
-            recruitment_source=self.source,
             total_cost=Decimal("50000.00"),
             num_hires=10,
             avg_cost_per_hire=Decimal("5000.00"),
@@ -305,7 +295,7 @@ class HiredCandidateReportModelTest(TestCase):
         """Test creating a hired candidate report with employee (introduction source)"""
         report = HiredCandidateReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
+            month_key="10/2025",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -322,7 +312,7 @@ class HiredCandidateReportModelTest(TestCase):
         """Test creating a hired candidate report without employee (recruitment/return source)"""
         report = HiredCandidateReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
+            month_key="10/2025",
             branch=self.branch,
             source_type="recruitment",
             num_candidates_hired=15,
