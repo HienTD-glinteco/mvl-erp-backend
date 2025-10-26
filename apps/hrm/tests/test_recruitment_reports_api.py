@@ -94,7 +94,6 @@ class StaffGrowthReportAPITest(TransactionTestCase, APITestMixin):
         # Create test reports
         StaffGrowthReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             block=self.block,
             department=self.department,
@@ -142,13 +141,11 @@ class StaffGrowthReportAPITest(TransactionTestCase, APITestMixin):
         """Test filtering staff growth reports by date range"""
         StaffGrowthReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             num_introductions=5,
         )
         StaffGrowthReport.objects.create(
             report_date=date(2025, 11, 1),
-            period_type="monthly",
             branch=self.branch,
             num_introductions=7,
         )
@@ -201,11 +198,8 @@ class RecruitmentSourceReportAPITest(TransactionTestCase, APITestMixin):
         """Test listing recruitment source reports"""
         RecruitmentSourceReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             recruitment_source=self.source,
-            org_unit_name="Hanoi Branch",
-            org_unit_type="branch",
             num_hires=15,
         )
 
@@ -216,7 +210,6 @@ class RecruitmentSourceReportAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["num_hires"], 15)
-        self.assertEqual(data[0]["org_unit_type"], "branch")
 
     def test_create_recruitment_source_report(self):
         """Test creating a recruitment source report"""
@@ -276,11 +269,8 @@ class RecruitmentChannelReportAPITest(TransactionTestCase, APITestMixin):
         """Test listing recruitment channel reports"""
         RecruitmentChannelReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
             branch=self.branch,
             recruitment_channel=self.channel,
-            org_unit_name="Hanoi Branch",
-            org_unit_type="branch",
             num_hires=25,
         )
 
@@ -332,9 +322,9 @@ class RecruitmentCostReportAPITest(TransactionTestCase, APITestMixin):
         """Test listing recruitment cost reports"""
         RecruitmentCostReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
+            month_key="2025-10",
+            source_type="referral_source",
             branch=self.branch,
-            recruitment_source=self.source,
             total_cost=Decimal("50000.00"),
             num_hires=10,
             avg_cost_per_hire=Decimal("5000.00"),
@@ -411,7 +401,7 @@ class HiredCandidateReportAPITest(TransactionTestCase, APITestMixin):
         """Test listing hired candidate reports"""
         HiredCandidateReport.objects.create(
             report_date=date(2025, 10, 1),
-            period_type="monthly",
+            month_key="10/2025",
             branch=self.branch,
             source_type="introduction",
             employee=self.employee,
