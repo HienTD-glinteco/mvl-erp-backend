@@ -507,13 +507,13 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             for item in raw_stats:
                 item["key"] = item.pop("month_key")
 
-        months, months_labels = self._get_months_and_labels(period_type, start_date, end_date, raw_stats)
+        periods, period_labels = self._get_periods_and_labels(period_type, start_date, end_date, raw_stats)
         stats, emp_stats, emp_code_to_name = self._aggregate_hired_candidate_stats(raw_stats)
-        data = self._format_hired_candidate_result(months, stats, emp_stats, emp_code_to_name)
+        data = self._format_hired_candidate_result(periods, stats, emp_stats, emp_code_to_name)
 
         result = {
             "period_type": period_type,
-            "labels": months_labels,
+            "labels": period_labels,
             "data": data,
         }
 
@@ -630,27 +630,34 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         months_list = months_set + [_("Total")]
         return months_set, months_list
 
-    def _get_months_and_labels(self, period_type, start_date, end_date, raw_stats):
-        months_set = set()
+    def _get_periods_and_labels(self, period_type, start_date, end_date, raw_stats):
+        periods_set = set()
         for item in raw_stats:
             if item["key"]:
-                months_set.add(item["key"])
+                periods_set.add(item["key"])
         
         if period_type == ReportPeriodType.MONTH.value:
-            months = []
+            periods = []
             cur = start_date.replace(day=1)
             while cur <= end_date:
-                months.append(f"{cur.month:02d}/{cur.year}")
+                periods.append(f"{cur.month:02d}/{cur.year}")
                 if cur.month == 12:
                     cur = cur.replace(year=cur.year + 1, month=1)
                 else:
                     cur = cur.replace(month=cur.month + 1)
         else:
-            # For week period, use sorted months from raw_stats
-            months = sorted(months_set)
+            # For week period, translate week keys from English to current language
+            periods = []
+            for key in sorted(periods_set):
+                # Replace "Week" with translated version
+                if key.startswith("Week "):
+                    translated_key = key.replace("Week ", f"{_('Week')} ", 1)
+                    periods.append(translated_key)
+                else:
+                    periods.append(key)
         
-        months_labels = months + [_("Total")]
-        return months, months_labels
+        period_labels = periods + [_("Total")]
+        return periods, period_labels
 
     def _aggregate_hired_candidate_stats(self, raw_stats):
         stats = defaultdict(lambda: defaultdict(int))
@@ -668,14 +675,14 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 emp_code_to_name[employee_code] = employee_fullname
         return stats, emp_stats, emp_code_to_name
 
-    def _format_hired_candidate_result(self, months, stats, emp_stats, emp_code_to_name):
+    def _format_hired_candidate_result(self, periods, stats, emp_stats, emp_code_to_name):
         data = []
         for source_type_value in RecruitmentSourceType.values:
             source_type_label = RecruitmentSourceType.get_label(source_type_value)
             statistics = []
             total_hired_sum = 0
-            for m in months:
-                hired = stats[source_type_value][m] if m in stats[source_type_value] else 0
+            for period in periods:
+                hired = stats[source_type_value][period] if period in stats[source_type_value] else 0
                 statistics.append(hired)
                 total_hired_sum += hired
             statistics.append(total_hired_sum)
@@ -688,8 +695,8 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                         continue
                     emp_statistics = []
                     emp_total_hired = 0
-                    for m in months:
-                        hired = emp_source_dict[source_type_value][m] if m in emp_source_dict[source_type_value] else 0
+                    for period in periods:
+                        hired = emp_source_dict[source_type_value][period] if period in emp_source_dict[source_type_value] else 0
                         emp_statistics.append(hired)
                         emp_total_hired += hired
                     emp_statistics.append(emp_total_hired)
