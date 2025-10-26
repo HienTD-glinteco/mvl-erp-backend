@@ -346,6 +346,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         """Test hired candidate report with monthly aggregation"""
         # Arrange: Create test data
         month_key = self.first_day_month.strftime("%m/%Y")
+        week_key = get_week_key_from_date(self.first_day_month)
 
         HiredCandidateReport.objects.create(
             report_date=self.first_day_month,
@@ -354,11 +355,13 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             department=self.department,
             source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
             month_key=month_key,
+            week_key=week_key,
             employee=self.employee,
             num_candidates_hired=5,
             num_experienced=3,
         )
 
+        week_key2 = get_week_key_from_date(self.first_day_month + timedelta(days=1))
         HiredCandidateReport.objects.create(
             report_date=self.first_day_month + timedelta(days=1),
             branch=self.branch,
@@ -366,6 +369,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             department=self.department,
             source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
             month_key=month_key,
+            week_key=week_key2,
             num_candidates_hired=10,
             num_experienced=7,
         )
@@ -402,6 +406,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         # Arrange: Create test data for a week
         monday = self.today - timedelta(days=self.today.weekday())
         week_key = get_week_key_from_date(monday)
+        month_key = self.first_day_month.strftime("%m/%Y")
 
         HiredCandidateReport.objects.create(
             report_date=monday,
@@ -409,19 +414,22 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
-            month_key=self.first_day_month.strftime("%m/%Y"),  # Month key still stored
+            month_key=month_key,
+            week_key=week_key,
             employee=self.employee,
             num_candidates_hired=3,
             num_experienced=2,
         )
 
+        week_key2 = get_week_key_from_date(monday + timedelta(days=2))
         HiredCandidateReport.objects.create(
             report_date=monday + timedelta(days=2),
             branch=self.branch,
             block=self.block,
             department=self.department,
             source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
-            month_key=self.first_day_month.strftime("%m/%Y"),
+            month_key=month_key,
+            week_key=week_key2,
             num_candidates_hired=5,
             num_experienced=3,
         )

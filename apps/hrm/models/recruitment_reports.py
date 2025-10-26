@@ -185,6 +185,14 @@ class HiredCandidateReport(BaseReportDepartmentModel):
         help_text=_("Format: MM/YYYY for monthly aggregation"),
         db_index=True,
     )
+    week_key = models.CharField(
+        max_length=20,
+        verbose_name=_("Week key"),
+        help_text=_("Format: Week W - MM/YYYY for weekly aggregation"),
+        db_index=True,
+        null=True,
+        blank=True,
+    )
     employee = models.ForeignKey(
         "Employee",
         on_delete=models.CASCADE,

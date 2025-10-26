@@ -1,9 +1,7 @@
 from collections import defaultdict
-from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Q, Sum
-from django.db.models.functions import ExtractWeekDay
+from django.db.models import Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import viewsets
@@ -19,7 +17,7 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
     StaffGrowthReport,
 )
-from apps.hrm.utils import get_current_month_range, get_current_week_range, get_week_key_from_date
+from apps.hrm.utils import get_current_month_range, get_current_week_range
 
 from ..serializers.recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
@@ -489,43 +487,15 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
         # Aggregate by week or month based on period_type
         if period_type == ReportPeriodType.WEEK.value:
-            # For week aggregation, we need to compute week keys from report_date
-            # Get all records and compute week keys in Python
-            records = queryset.select_related("employee").values(
-                "report_date", "source_type", "employee__code", "employee__fullname", "num_candidates_hired"
+            # Week aggregation using database week_key field
+            raw_stats = list(
+                queryset.values("week_key", "source_type", "employee__code", "employee__fullname")
+                .annotate(total_hired=Sum("num_candidates_hired"))
+                .order_by("source_type", "employee__fullname", "week_key")
             )
-
-            # Group by week_key
-            week_aggregated = defaultdict(lambda: defaultdict(int))
-            for record in records:
-                key = get_week_key_from_date(record["report_date"])
-                source_type = record["source_type"]
-                emp_code = record.get("employee__code")
-                emp_fullname = record.get("employee__fullname")
-                total_hired = record["num_candidates_hired"] or 0
-
-                # Create a composite key for grouping
-                if emp_code:
-                    composite_key = (key, source_type, emp_code, emp_fullname)
-                else:
-                    composite_key = (key, source_type, None, None)
-
-                week_aggregated[composite_key]["total_hired"] = (
-                    week_aggregated[composite_key].get("total_hired", 0) + total_hired
-                )
-
-            # Convert to format compatible with existing logic
-            raw_stats = [
-                {
-                    "key": key,
-                    "source_type": source_type,
-                    "employee__code": emp_code,
-                    "employee__fullname": emp_fullname,
-                    "total_hired": data["total_hired"],
-                }
-                for (key, source_type, emp_code, emp_fullname), data in week_aggregated.items()
-            ]
-            raw_stats.sort(key=lambda x: (x["source_type"], x["employee__fullname"] or "", x["key"]))
+            # Rename week_key to key for consistency
+            for item in raw_stats:
+                item["key"] = item.pop("week_key")
         else:
             # Month aggregation (existing logic)
             raw_stats = list(
