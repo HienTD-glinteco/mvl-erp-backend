@@ -35,6 +35,23 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
         summary="Realtime Dashboard KPIs",
         description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today.",
         responses={200: DashboardRealtimeDataSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Realtime KPIs",
+                value={
+                    "success": True,
+                    "data": {
+                        "open_positions": 15,
+                        "applicants_today": 8,
+                        "hires_today": 3,
+                        "interviews_today": 5,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"])
     def realtime(self, request):
@@ -61,6 +78,72 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
         description="Get aggregated data for dashboard charts.",
         parameters=[DashboardChartFilterSerializer],
         responses={200: DashboardChartDataSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Chart Data",
+                value={
+                    "success": True,
+                    "data": {
+                        "experience_breakdown": [
+                            {"label": "Experienced", "count": 45, "percentage": 60.0},
+                            {"label": "Inexperienced", "count": 30, "percentage": 40.0},
+                        ],
+                        "branch_breakdown": [
+                            {"branch_name": "Hanoi Branch", "count": 40, "percentage": 53.3},
+                            {"branch_name": "HCMC Branch", "count": 35, "percentage": 46.7},
+                        ],
+                        "cost_breakdown": [
+                            {
+                                "source_type": "referral_source",
+                                "total_cost": 50000000.0,
+                                "percentage": 35.7,
+                            },
+                            {
+                                "source_type": "marketing_channel",
+                                "total_cost": 90000000.0,
+                                "percentage": 64.3,
+                            },
+                        ],
+                        "source_type_breakdown": [
+                            {"source_type": "referral_source", "count": 25, "percentage": 33.3},
+                            {"source_type": "marketing_channel", "count": 30, "percentage": 40.0},
+                            {"source_type": "job_website_channel", "count": 20, "percentage": 26.7},
+                        ],
+                        "monthly_trends": [
+                            {
+                                "month": "09/2025",
+                                "referral_source": 8,
+                                "marketing_channel": 10,
+                                "job_website_channel": 7,
+                                "recruitment_department_source": 5,
+                                "returning_employee": 2,
+                            },
+                            {
+                                "month": "10/2025",
+                                "referral_source": 10,
+                                "marketing_channel": 12,
+                                "job_website_channel": 8,
+                                "recruitment_department_source": 6,
+                                "returning_employee": 3,
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"])
     def charts(self, request):

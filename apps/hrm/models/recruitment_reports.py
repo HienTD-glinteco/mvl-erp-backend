@@ -179,6 +179,12 @@ class HiredCandidateReport(BaseReportDepartmentModel):
         choices=RecruitmentSourceType.choices,
         verbose_name=_("Source type"),
     )
+    month_key = models.CharField(
+        max_length=7,
+        verbose_name=_("Month key"),
+        help_text=_("Format: MM/YYYY for monthly aggregation"),
+        db_index=True,
+    )
     employee = models.ForeignKey(
         "Employee",
         on_delete=models.CASCADE,

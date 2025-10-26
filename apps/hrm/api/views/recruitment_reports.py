@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.db.models import Sum
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -50,6 +50,34 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate staff changes (introductions, returns, new hires, transfers, resignations) by period (week/month).",
         parameters=[StaffGrowthReportParametersSerializer],
         responses={200: StaffGrowthReportAggregatedSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                "Success - Monthly Report",
+                value={
+                    "success": True,
+                    "data": [
+                        {
+                            "period_type": "month",
+                            "label": "Month 10/2025",
+                            "num_introductions": 5,
+                            "num_returns": 2,
+                            "num_new_hires": 10,
+                            "num_transfers": 3,
+                            "num_resignations": 1,
+                        }
+                    ],
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={"success": False, "data": None, "error": {"from_date": ["Invalid date format"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="staff-growth")
     def staff_growth(self, request):
@@ -96,6 +124,47 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate hire statistics by recruitment source in nested organizational format (no period aggregation).",
         parameters=[RecruitmentSourceReportParametersSerializer],
         responses={200: RecruitmentSourceReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Nested Organization Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "sources": ["LinkedIn", "Job Fair", "Employee Referral"],
+                        "data": [
+                            {
+                                "type": "branch",
+                                "name": "Hanoi Branch",
+                                "statistics": [15, 8, 12],
+                                "children": [
+                                    {
+                                        "type": "block",
+                                        "name": "Business Block",
+                                        "statistics": [10, 5, 8],
+                                        "children": [
+                                            {
+                                                "type": "department",
+                                                "name": "Sales Department",
+                                                "statistics": [5, 3, 4],
+                                            }
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Filter",
+                value={"success": False, "data": None, "error": {"branch": ["Invalid branch ID"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="recruitment-source")
     def recruitment_source(self, request):
@@ -129,6 +198,47 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate hire statistics by recruitment channel in nested organizational format (no period aggregation).",
         parameters=[RecruitmentChannelReportParametersSerializer],
         responses={200: RecruitmentChannelReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Channel Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "channels": ["Facebook", "LinkedIn", "Job Website"],
+                        "data": [
+                            {
+                                "type": "branch",
+                                "name": "Hanoi Branch",
+                                "statistics": [20, 15, 25],
+                                "children": [
+                                    {
+                                        "type": "block",
+                                        "name": "Business Block",
+                                        "statistics": [12, 10, 18],
+                                        "children": [
+                                            {
+                                                "type": "department",
+                                                "name": "Marketing Department",
+                                                "statistics": [8, 5, 10],
+                                            }
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date",
+                value={"success": False, "data": None, "error": {"from_date": ["Date must be in YYYY-MM-DD format"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="recruitment-channel")
     def recruitment_channel(self, request):
@@ -164,6 +274,44 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate recruitment cost data by source type and months (no period aggregation).",
         parameters=[RecruitmentCostReportParametersSerializer],
         responses={200: RecruitmentCostReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Cost Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "months": ["10/2025", "11/2025", "Total"],
+                        "data": [
+                            {
+                                "source_type": "referral_source",
+                                "months": [
+                                    {"total": 5000000.0, "count": 10, "avg": 500000.0},
+                                    {"total": 6000000.0, "count": 12, "avg": 500000.0},
+                                    {"total": 11000000.0, "count": 22, "avg": 500000.0},
+                                ],
+                            },
+                            {
+                                "source_type": "marketing_channel",
+                                "months": [
+                                    {"total": 8000000.0, "count": 15, "avg": 533333.33},
+                                    {"total": 7500000.0, "count": 14, "avg": 535714.29},
+                                    {"total": 15500000.0, "count": 29, "avg": 534482.76},
+                                ],
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Parameters",
+                value={"success": False, "data": None, "error": {"department": ["Invalid department ID"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="recruitment-cost")
     def recruitment_cost(self, request):
@@ -226,6 +374,53 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Aggregate hired candidate statistics by source type with period aggregation (week/month) and conditional employee details.",
         parameters=[HiredCandidateReportParametersSerializer],
         responses={200: HiredCandidateReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Hired Candidate Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "period_type": "month",
+                        "months": ["10/2025", "11/2025", "Total"],
+                        "sources": ["Total Hired"],
+                        "data": [
+                            {
+                                "type": "source_type",
+                                "name": "Referral Source",
+                                "statistics": [[10], [12], [22]],
+                                "children": [
+                                    {
+                                        "type": "employee",
+                                        "name": "Nguyen Van A",
+                                        "statistics": [[5], [6], [11]],
+                                    },
+                                    {
+                                        "type": "employee",
+                                        "name": "Tran Thi B",
+                                        "statistics": [[5], [6], [11]],
+                                    },
+                                ],
+                            },
+                            {
+                                "type": "source_type",
+                                "name": "Marketing Channel",
+                                "statistics": [[15], [18], [33]],
+                                "children": [],
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Period Type",
+                value={"success": False, "data": None, "error": {"period_type": ["Invalid choice"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="hired-candidate")
     def hired_candidate(self, request):
@@ -264,6 +459,58 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         description="Referral cost report with department summary and employee details (always restricted to single month).",
         parameters=[ReferralCostReportParametersSerializer],
         responses={200: ReferralCostReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Referral Cost Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "data": [
+                            {
+                                "name": "IT Department",
+                                "items": [
+                                    {
+                                        "id": 1,
+                                        "expense_date": "2025-10-15",
+                                        "amount": 500000.0,
+                                        "recruitment_source": {"id": 1, "name": "Employee Referral"},
+                                        "employee": {
+                                            "id": 1,
+                                            "fullname": "Nguyen Van A",
+                                            "code": "NV001",
+                                        },
+                                        "referee": {
+                                            "id": 2,
+                                            "fullname": "Tran Thi B",
+                                            "code": "NV002",
+                                        },
+                                        "referrer": {
+                                            "id": 1,
+                                            "fullname": "Nguyen Van A",
+                                            "code": "NV001",
+                                        },
+                                    }
+                                ],
+                            }
+                        ],
+                        "summary_total": 500000.0,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Month Format",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"month": ["Invalid month format. Use MM/YYYY."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     )
     @action(detail=False, methods=["get"], url_path="referral-cost")
     def referral_cost(self, request):
