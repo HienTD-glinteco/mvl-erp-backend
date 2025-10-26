@@ -16,10 +16,12 @@ from apps.hrm.models import (
     Department,
     Employee,
     HiredCandidateReport,
+    JobDescription,
     RecruitmentChannel,
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentExpense,
+    RecruitmentRequest,
     RecruitmentSource,
     RecruitmentSourceReport,
     StaffGrowthReport,
@@ -109,6 +111,21 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             attendance_code="EMP001",
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+
+        # Create another employee for referral tests
+        self.employee2 = Employee.objects.create(
+            fullname="Tran Van B",
+            username="tranvanb",
+            email="tranvanb@example.com",
+            phone="0987654321",
+            attendance_code="EMP002",
+            date_of_birth="1991-01-01",
+            personal_email="tranvanb.personal@example.com",
             start_date="2024-01-01",
             branch=self.branch,
             block=self.block,
@@ -431,20 +448,37 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
         RecruitmentExpense.objects.create(
             date=self.first_day_month,
             recruitment_source=self.source_referral,
-            employee=self.employee,
-            referee=self.employee,
+            recruitment_channel=self.channel_marketing,
+            recruitment_request=RecruitmentRequest.objects.create(
+                name="Test Request",
+                job_description=JobDescription.objects.create(
+                    title="Test Job",
+                    responsibility="Test",
+                    requirement="Test",
+                    benefit="Test",
+                    proposed_salary="1000 USD",
+                ),
+                department=self.department,
+                proposer=self.employee,
+                recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+                status=RecruitmentRequest.Status.OPEN,
+                proposed_salary="1000 USD",
+                number_of_positions=1,
+            ),
+            referee=self.employee2,
             referrer=self.employee,
-            amount=Decimal("500000.00"),
+            total_cost=Decimal("500000.00"),
             activity="Referral bonus",
         )
 
         RecruitmentExpense.objects.create(
             date=self.first_day_month + timedelta(days=5),
             recruitment_source=self.source_referral,
-            employee=self.employee,
-            referee=self.employee,
+            recruitment_channel=self.channel_marketing,
+            recruitment_request=RecruitmentRequest.objects.first(),
+            referee=self.employee2,
             referrer=self.employee,
-            amount=Decimal("300000.00"),
+            total_cost=Decimal("300000.00"),
             activity="Referral bonus",
         )
 

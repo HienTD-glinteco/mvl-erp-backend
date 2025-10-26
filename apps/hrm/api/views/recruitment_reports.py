@@ -94,6 +94,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             request,
             StaffGrowthReportParametersSerializer,
             StaffGrowthReport,
+            period_param="period_type",
         )
 
         aggregated = (
@@ -483,6 +484,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             request,
             HiredCandidateReportParametersSerializer,
             HiredCandidateReport,
+            period_param="period_type",
         )
 
         # Aggregate by week or month based on period_type
@@ -616,11 +618,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             ReferralCostReportParametersSerializer,
             RecruitmentExpense,
             period_param="month",  # Referral cost uses 'month' param
-            date_field="expense_date",
+            date_field="date",
         )
         queryset = queryset.filter(recruitment_source__allow_referral=True)
         queryset = queryset.select_related(
-            "employee", "employee__department", "referee", "referrer", "recruitment_source"
+            "referee", "referee__department", "referrer", "recruitment_source"
         )
 
         departments = {}
@@ -628,8 +630,8 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
         for expense in queryset:
             dept_name = (
-                expense.employee.department.name
-                if expense.employee and expense.employee.department
+                expense.referee.department.name
+                if expense.referee and expense.referee.department
                 else _("No Department")
             )
 
@@ -640,7 +642,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 }
 
             departments[dept_name]["items"].append(expense)
-            summary_total += expense.amount
+            summary_total += expense.total_cost
 
         result = {
             "data": list(departments.values()),
@@ -699,9 +701,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             total_hired_sum = 0
             for m in months:
                 hired = stats[source_type_value][m] if m in stats[source_type_value] else 0
-                statistics.append([hired])
+                statistics.append(hired)
                 total_hired_sum += hired
-            statistics.append([total_hired_sum])
+            statistics.append(total_hired_sum)
 
             children = []
             if source_type_value == RecruitmentSourceType.REFERRAL_SOURCE.value:
@@ -713,9 +715,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                     emp_total_hired = 0
                     for m in months:
                         hired = emp_source_dict[source_type_value][m] if m in emp_source_dict[source_type_value] else 0
-                        emp_statistics.append([hired])
+                        emp_statistics.append(hired)
                         emp_total_hired += hired
-                    emp_statistics.append([emp_total_hired])
+                    emp_statistics.append(emp_total_hired)
                     children.append(
                         {
                             "type": "employee",

@@ -181,6 +181,7 @@ class HiredCandidateReportAggregatedSerializer(serializers.Serializer):
     """Serializer for aggregated hired candidate report data (week/month periods)."""
 
     period_type = serializers.ChoiceField(read_only=True, choices=ReportPeriodType.choices)
+    labels = serializers.ListField(child=serializers.CharField(), read_only=True, help_text="Period labels")
     data = serializers.ListField(child=HiredCandidateSourceTypeSerializer(), read_only=True)
 
 
