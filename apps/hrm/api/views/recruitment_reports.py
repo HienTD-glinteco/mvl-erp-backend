@@ -517,7 +517,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             # Convert to format compatible with existing logic
             raw_stats = [
                 {
-                    "month_key": key,
+                    "key": key,
                     "source_type": source_type,
                     "employee__code": emp_code,
                     "employee__fullname": emp_fullname,
@@ -525,7 +525,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 }
                 for (key, source_type, emp_code, emp_fullname), data in week_aggregated.items()
             ]
-            raw_stats.sort(key=lambda x: (x["source_type"], x["employee__fullname"] or "", x["month_key"]))
+            raw_stats.sort(key=lambda x: (x["source_type"], x["employee__fullname"] or "", x["key"]))
         else:
             # Month aggregation (existing logic)
             raw_stats = list(
@@ -533,6 +533,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 .annotate(total_hired=Sum("num_candidates_hired"))
                 .order_by("source_type", "employee__fullname", "month_key")
             )
+            # Rename month_key to key for consistency
+            for item in raw_stats:
+                item["key"] = item.pop("month_key")
 
         months, months_labels = self._get_months_and_labels(period_type, start_date, end_date, raw_stats)
         stats, emp_stats, emp_code_to_name = self._aggregate_hired_candidate_stats(raw_stats)
@@ -660,8 +663,8 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     def _get_months_and_labels(self, period_type, start_date, end_date, raw_stats):
         months_set = set()
         for item in raw_stats:
-            if item["month_key"]:
-                months_set.add(item["month_key"])
+            if item["key"]:
+                months_set.add(item["key"])
         
         if period_type == ReportPeriodType.MONTH.value:
             months = []
@@ -685,13 +688,13 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         emp_code_to_name = {}
         for item in raw_stats:
             source_type = item["source_type"]
-            month_key = item["month_key"]
+            key = item["key"]
             total_hired = item["total_hired"] or 0
             employee_code = item.get("employee__code")
             employee_fullname = item.get("employee__fullname")
-            stats[source_type][month_key] += total_hired
+            stats[source_type][key] += total_hired
             if source_type == RecruitmentSourceType.REFERRAL_SOURCE.value and employee_code:
-                emp_stats[employee_code][source_type][month_key] += total_hired
+                emp_stats[employee_code][source_type][key] += total_hired
                 emp_code_to_name[employee_code] = employee_fullname
         return stats, emp_stats, emp_code_to_name
 
