@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.crypto import get_random_string
+from django.utils.translation import gettext_lazy as _
 
 
 class BaseModel(models.Model):
@@ -47,3 +48,18 @@ class AutoCodeMixin(models.Model):
             temp_prefix = getattr(self.__class__, "TEMP_CODE_PREFIX", "TEMP_")
             self.code = f"{temp_prefix}{get_random_string(20)}"
         super().save(*args, **kwargs)
+
+
+class BaseReportModel(BaseModel):
+    """Base model for all report models.
+
+    Provides common fields and behavior for report models including
+    report_date and standard ordering by report_date descending.
+    """
+
+    report_date = models.DateField(verbose_name=_("Report date"))
+
+    class Meta:
+        abstract = True
+        ordering = ["-report_date"]
+
