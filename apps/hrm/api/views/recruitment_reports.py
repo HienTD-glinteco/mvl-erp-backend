@@ -498,7 +498,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             # Group by week_key
             week_aggregated = defaultdict(lambda: defaultdict(int))
             for record in records:
-                week_key = get_week_key_from_date(record["report_date"])
+                key = get_week_key_from_date(record["report_date"])
                 source_type = record["source_type"]
                 emp_code = record.get("employee__code")
                 emp_fullname = record.get("employee__fullname")
@@ -506,9 +506,9 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
                 # Create a composite key for grouping
                 if emp_code:
-                    composite_key = (week_key, source_type, emp_code, emp_fullname)
+                    composite_key = (key, source_type, emp_code, emp_fullname)
                 else:
-                    composite_key = (week_key, source_type, None, None)
+                    composite_key = (key, source_type, None, None)
 
                 week_aggregated[composite_key]["total_hired"] = (
                     week_aggregated[composite_key].get("total_hired", 0) + total_hired
@@ -517,13 +517,13 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             # Convert to format compatible with existing logic
             raw_stats = [
                 {
-                    "month_key": week_key,
+                    "month_key": key,
                     "source_type": source_type,
                     "employee__code": emp_code,
                     "employee__fullname": emp_fullname,
                     "total_hired": data["total_hired"],
                 }
-                for (week_key, source_type, emp_code, emp_fullname), data in week_aggregated.items()
+                for (key, source_type, emp_code, emp_fullname), data in week_aggregated.items()
             ]
             raw_stats.sort(key=lambda x: (x["source_type"], x["employee__fullname"] or "", x["month_key"]))
         else:
