@@ -125,7 +125,7 @@ def get_week_key_from_date(report_date):
     week_diff = (monday - first_monday).days
     week_number = (week_diff // 7) + 1
 
-    return f"Tuần {week_number} - {monday.month:02d}/{monday.year}"
+    return f"{_('Week')} {week_number} - {monday.month:02d}/{monday.year}"
 
 
 def get_week_label_from_date_range(start_date, end_date):

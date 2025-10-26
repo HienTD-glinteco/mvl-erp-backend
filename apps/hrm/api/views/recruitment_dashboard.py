@@ -14,6 +14,7 @@ from apps.hrm.models import (
     JobDescription,
     RecruitmentCandidate,
     RecruitmentCostReport,
+    RecruitmentRequest,
 )
 from apps.hrm.utils import get_current_month_range, get_last_6_months_range
 
@@ -177,8 +178,6 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     def _get_open_positions(self):
         """Get number of open positions."""
-        from apps.hrm.models import RecruitmentRequest
-        
         return RecruitmentRequest.objects.filter(status=RecruitmentRequest.Status.OPEN).count()
 
     def _get_applicants_today(self, today):

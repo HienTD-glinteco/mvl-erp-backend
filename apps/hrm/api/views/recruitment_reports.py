@@ -517,7 +517,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             # Convert to format compatible with existing logic
             raw_stats = [
                 {
-                    "month_key": week_key,  # Reuse month_key field name for consistency
+                    "month_key": week_key,
                     "source_type": source_type,
                     "employee__code": emp_code,
                     "employee__fullname": emp_fullname,
