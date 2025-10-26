@@ -125,8 +125,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     @extend_schema(
         summary="Recruitment Source Report",
         description=(
-            "Aggregate hire statistics by recruitment source in nested organizational format "
-            "(no period aggregation)."
+            "Aggregate hire statistics by recruitment source in nested organizational format (no period aggregation)."
         ),
         parameters=[RecruitmentSourceReportParametersSerializer],
         responses={200: RecruitmentSourceReportAggregatedSerializer},
@@ -202,8 +201,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     @extend_schema(
         summary="Recruitment Channel Report",
         description=(
-            "Aggregate hire statistics by recruitment channel in nested organizational format "
-            "(no period aggregation)."
+            "Aggregate hire statistics by recruitment channel in nested organizational format (no period aggregation)."
         ),
         parameters=[RecruitmentChannelReportParametersSerializer],
         responses={200: RecruitmentChannelReportAggregatedSerializer},
@@ -393,31 +391,68 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                     "success": True,
                     "data": {
                         "period_type": "month",
-                        "months": ["10/2025", "11/2025", "Total"],
-                        "sources": ["Total Hired"],
+                        "headers": ["10/2025", "11/2025", "Total"],
                         "data": [
                             {
                                 "type": "source_type",
                                 "name": "Referral Source",
-                                "statistics": [[10], [12], [22]],
+                                "statistics": [10, 12, 22],
                                 "children": [
                                     {
                                         "type": "employee",
                                         "name": "Nguyen Van A",
-                                        "statistics": [[5], [6], [11]],
+                                        "statistics": [5, 6, 11],
                                     },
                                     {
                                         "type": "employee",
                                         "name": "Tran Thi B",
-                                        "statistics": [[5], [6], [11]],
+                                        "statistics": [5, 6, 11],
                                     },
                                 ],
                             },
                             {
                                 "type": "source_type",
                                 "name": "Marketing Channel",
-                                "statistics": [[15], [18], [33]],
-                                "children": [],
+                                "statistics": [15, 18, 33],
+                                "children": None,
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Success - Hired Candidate Report",
+                value={
+                    "success": True,
+                    "data": {
+                        "period_type": "week",
+                        "headers": ["Tuần 1 - 10/2025", "Tuần 2 - 10/2025", "Total"],
+                        "data": [
+                            {
+                                "type": "source_type",
+                                "name": "Referral Source",
+                                "statistics": [10, 12, 22],
+                                "children": [
+                                    {
+                                        "type": "employee",
+                                        "name": "Nguyen Van A",
+                                        "statistics": [5, 6, 11],
+                                    },
+                                    {
+                                        "type": "employee",
+                                        "name": "Tran Thi B",
+                                        "statistics": [5, 6, 11],
+                                    },
+                                ],
+                            },
+                            {
+                                "type": "source_type",
+                                "name": "Marketing Channel",
+                                "statistics": [15, 18, 33],
+                                "children": None,
                             },
                         ],
                     },
@@ -448,20 +483,21 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             HiredCandidateReport,
         )
 
+        # TODO: add support for period type is week. the label will be like this: `Tuần 1 - 07/2025`
+        # If period type is week, annotate week key from report date
+        # Then aggregate the data by week key instead of month key
         raw_stats = list(
             queryset.values("month_key", "source_type", "employee__code", "employee__fullname")
             .annotate(total_hired=Sum("num_candidates_hired"))
             .order_by("source_type", "employee__fullname", "month_key")
         )
-
         months, months_labels = self._get_months_and_labels(period_type, start_date, end_date, raw_stats)
         stats, emp_stats, emp_code_to_name = self._aggregate_hired_candidate_stats(raw_stats)
         data = self._format_hired_candidate_result(months, stats, emp_stats, emp_code_to_name)
 
         result = {
             "period_type": period_type,
-            "months": months_labels,
-            "sources": [_("Total Hired")],
+            "labels": months_labels,
             "data": data,
         }
 
@@ -471,8 +507,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     @extend_schema(
         summary="Referral Cost Report",
         description=(
-            "Referral cost report with department summary and employee details "
-            "(always restricted to single month)."
+            "Referral cost report with department summary and employee details (always restricted to single month)."
         ),
         parameters=[ReferralCostReportParametersSerializer],
         responses={200: ReferralCostReportAggregatedSerializer},
