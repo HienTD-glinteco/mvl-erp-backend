@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-23 23:57+0700\n"
+"POT-Creation-Date: 2025-10-26 10:16+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -54,30 +54,31 @@ msgid "Update successful"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/api/views/recruitment_dashboard.py:151
+#: apps/hrm/api/views/recruitment_dashboard.py:122
 #, fuzzy
 #| msgid "Expense date"
 msgid "Experienced"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:156
+#: apps/hrm/api/views/recruitment_dashboard.py:127
 msgid "Inexperienced"
 msgstr ""
 
+#: apps/hrm/api/views/recruitment_reports.py:255
+msgid "Total Hired"
+msgstr ""
+
 # models/organization.py:102
-#: apps/hrm/api/views/recruitment_reports.py:572
+#: apps/hrm/api/views/recruitment_reports.py:293
 #, fuzzy
 #| msgid "Department"
 msgid "No Department"
 msgstr "Phòng ban"
 
-# models/organization.py:205
-#: apps/hrm/api/views/recruitment_reports.py:574
-#: apps/hrm/api/views/recruitment_reports.py:575
-#, fuzzy
-#| msgid "Employee"
-msgid "No Employee"
-msgstr "Nhân viên"
+#: apps/hrm/api/views/recruitment_reports.py:315
+#: apps/hrm/api/views/recruitment_reports.py:335
+msgid "Total"
+msgstr ""
 
 #: apps/hrm/api/views/recruitment_request.py:397
 msgid ""
