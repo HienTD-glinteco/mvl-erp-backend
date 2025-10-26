@@ -436,11 +436,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["get"], url_path="hired-candidate")
     def hired_candidate(self, request):
-        """Aggregate hired candidate data by source type with monthly statistics.
+        """Aggregate hired candidate data by source type with period-based statistics.
 
         Includes conditional employee details for referral_source.
-        Returns a list of source types with statistics per period and, for referral_source,
-        a breakdown by employee.
+        Returns a list of source types with statistics per period (week/month) and,
+        for referral_source, a breakdown by employee.
         """
         queryset, _, start_date, end_date, period_type = self._prepare_report_queryset(
             request,
