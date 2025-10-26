@@ -14,6 +14,7 @@ from apps.hrm.models import (
     JobDescription,
     RecruitmentCandidate,
     RecruitmentCostReport,
+    RecruitmentRequest,
 )
 from apps.hrm.utils import get_current_month_range, get_last_6_months_range
 
@@ -177,7 +178,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     def _get_open_positions(self):
         """Get number of open positions."""
-        return JobDescription.objects.filter(status="open").count()
+        return RecruitmentRequest.objects.filter(status=RecruitmentRequest.Status.OPEN).count()
 
     def _get_applicants_today(self, today):
         """Get number of applicants today."""
@@ -185,7 +186,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     def _get_interviews_today(self, today):
         """Get number of interviews today."""
-        return InterviewSchedule.objects.filter(interview_date=today).count()
+        return InterviewSchedule.objects.filter(time__date=today).count()
 
     def _get_experience_breakdown(self, from_date, to_date):
         """Get experience breakdown from HiredCandidateReport."""

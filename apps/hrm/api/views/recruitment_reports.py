@@ -92,6 +92,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             request,
             StaffGrowthReportParametersSerializer,
             StaffGrowthReport,
+            period_param="period_type",
         )
 
         aggregated = (
@@ -481,23 +482,38 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             request,
             HiredCandidateReportParametersSerializer,
             HiredCandidateReport,
+            period_param="period_type",
         )
 
-        # TODO: add support for period type is week. the label will be like this: `Tuần 1 - 07/2025`
-        # If period type is week, annotate week key from report date
-        # Then aggregate the data by week key instead of month key
-        raw_stats = list(
-            queryset.values("month_key", "source_type", "employee__code", "employee__fullname")
-            .annotate(total_hired=Sum("num_candidates_hired"))
-            .order_by("source_type", "employee__fullname", "month_key")
-        )
-        months, months_labels = self._get_months_and_labels(period_type, start_date, end_date, raw_stats)
+        # Aggregate by week or month based on period_type
+        if period_type == ReportPeriodType.WEEK.value:
+            # Week aggregation using database week_key field
+            raw_stats = list(
+                queryset.values("week_key", "source_type", "employee__code", "employee__fullname")
+                .annotate(total_hired=Sum("num_candidates_hired"))
+                .order_by("source_type", "employee__fullname", "week_key")
+            )
+            # Rename week_key to key for consistency
+            for item in raw_stats:
+                item["key"] = item.pop("week_key")
+        else:
+            # Month aggregation (existing logic)
+            raw_stats = list(
+                queryset.values("month_key", "source_type", "employee__code", "employee__fullname")
+                .annotate(total_hired=Sum("num_candidates_hired"))
+                .order_by("source_type", "employee__fullname", "month_key")
+            )
+            # Rename month_key to key for consistency
+            for item in raw_stats:
+                item["key"] = item.pop("month_key")
+
+        periods, period_labels = self._get_periods_and_labels(period_type, start_date, end_date, raw_stats)
         stats, emp_stats, emp_code_to_name = self._aggregate_hired_candidate_stats(raw_stats)
-        data = self._format_hired_candidate_result(months, stats, emp_stats, emp_code_to_name)
+        data = self._format_hired_candidate_result(periods, stats, emp_stats, emp_code_to_name)
 
         result = {
             "period_type": period_type,
-            "labels": months_labels,
+            "labels": period_labels,
             "data": data,
         }
 
@@ -575,11 +591,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             ReferralCostReportParametersSerializer,
             RecruitmentExpense,
             period_param="month",  # Referral cost uses 'month' param
-            date_field="expense_date",
+            date_field="date",
         )
         queryset = queryset.filter(recruitment_source__allow_referral=True)
         queryset = queryset.select_related(
-            "employee", "employee__department", "referee", "referrer", "recruitment_source"
+            "referee", "referee__department", "referrer", "recruitment_source"
         )
 
         departments = {}
@@ -587,8 +603,8 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
         for expense in queryset:
             dept_name = (
-                expense.employee.department.name
-                if expense.employee and expense.employee.department
+                expense.referee.department.name
+                if expense.referee and expense.referee.department
                 else _("No Department")
             )
 
@@ -599,7 +615,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                 }
 
             departments[dept_name]["items"].append(expense)
-            summary_total += expense.amount
+            summary_total += expense.total_cost
 
         result = {
             "data": list(departments.values()),
@@ -614,25 +630,34 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         months_list = months_set + [_("Total")]
         return months_set, months_list
 
-    def _get_months_and_labels(self, period_type, start_date, end_date, raw_stats):
-        months_set = set()
+    def _get_periods_and_labels(self, period_type, start_date, end_date, raw_stats):
+        periods_set = set()
         for item in raw_stats:
-            if item["month_key"]:
-                months_set.add(item["month_key"])
+            if item["key"]:
+                periods_set.add(item["key"])
+        
         if period_type == ReportPeriodType.MONTH.value:
-            months = []
+            periods = []
             cur = start_date.replace(day=1)
             while cur <= end_date:
-                months.append(f"{cur.month:02d}/{cur.year}")
+                periods.append(f"{cur.month:02d}/{cur.year}")
                 if cur.month == 12:
                     cur = cur.replace(year=cur.year + 1, month=1)
                 else:
                     cur = cur.replace(month=cur.month + 1)
         else:
-            months = sorted(months_set)
-        months = sorted((m for m in months_set))
-        months_labels = months + [_("Total")]
-        return months, months_labels
+            # For week period, translate week keys from English to current language
+            periods = []
+            for key in sorted(periods_set):
+                # Replace "Week" with translated version
+                if key.startswith("Week "):
+                    translated_key = key.replace("Week ", f"{_('Week')} ", 1)
+                    periods.append(translated_key)
+                else:
+                    periods.append(key)
+        
+        period_labels = periods + [_("Total")]
+        return periods, period_labels
 
     def _aggregate_hired_candidate_stats(self, raw_stats):
         stats = defaultdict(lambda: defaultdict(int))
@@ -640,27 +665,27 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
         emp_code_to_name = {}
         for item in raw_stats:
             source_type = item["source_type"]
-            month_key = item["month_key"]
+            key = item["key"]
             total_hired = item["total_hired"] or 0
             employee_code = item.get("employee__code")
             employee_fullname = item.get("employee__fullname")
-            stats[source_type][month_key] += total_hired
+            stats[source_type][key] += total_hired
             if source_type == RecruitmentSourceType.REFERRAL_SOURCE.value and employee_code:
-                emp_stats[employee_code][source_type][month_key] += total_hired
+                emp_stats[employee_code][source_type][key] += total_hired
                 emp_code_to_name[employee_code] = employee_fullname
         return stats, emp_stats, emp_code_to_name
 
-    def _format_hired_candidate_result(self, months, stats, emp_stats, emp_code_to_name):
+    def _format_hired_candidate_result(self, periods, stats, emp_stats, emp_code_to_name):
         data = []
         for source_type_value in RecruitmentSourceType.values:
             source_type_label = RecruitmentSourceType.get_label(source_type_value)
             statistics = []
             total_hired_sum = 0
-            for m in months:
-                hired = stats[source_type_value][m] if m in stats[source_type_value] else 0
-                statistics.append([hired])
+            for period in periods:
+                hired = stats[source_type_value][period] if period in stats[source_type_value] else 0
+                statistics.append(hired)
                 total_hired_sum += hired
-            statistics.append([total_hired_sum])
+            statistics.append(total_hired_sum)
 
             children = []
             if source_type_value == RecruitmentSourceType.REFERRAL_SOURCE.value:
@@ -670,11 +695,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
                         continue
                     emp_statistics = []
                     emp_total_hired = 0
-                    for m in months:
-                        hired = emp_source_dict[source_type_value][m] if m in emp_source_dict[source_type_value] else 0
-                        emp_statistics.append([hired])
+                    for period in periods:
+                        hired = emp_source_dict[source_type_value][period] if period in emp_source_dict[source_type_value] else 0
+                        emp_statistics.append(hired)
                         emp_total_hired += hired
-                    emp_statistics.append([emp_total_hired])
+                    emp_statistics.append(emp_total_hired)
                     children.append(
                         {
                             "type": "employee",

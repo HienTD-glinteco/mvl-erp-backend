@@ -82,3 +82,60 @@ def get_last_6_months_range():
         last_day = date(today.year, today.month + 1, 1) - timedelta(days=1)
 
     return first_day, last_day
+
+
+def get_week_key_from_date(report_date):
+    """Generate week key from a date.
+
+    Week key format: "Tuần W - MM/YYYY" where W is the week number in the month.
+
+    Args:
+        report_date: A date object
+
+    Returns:
+        str: Week key in format "Tuần W - MM/YYYY" (e.g., "Tuần 1 - 07/2025")
+    """
+    # Get the Monday of the week containing report_date
+    monday = report_date - timedelta(days=report_date.weekday())
+
+    # Calculate week number within the month
+    # Week 1 starts on the first Monday of the month
+    first_day_of_month = date(monday.year, monday.month, 1)
+    first_monday = first_day_of_month
+    while first_monday.weekday() != 0:  # 0 is Monday
+        first_monday += timedelta(days=1)
+
+    # Calculate week number
+    if monday < first_monday:
+        # This week spans the previous month
+        # Use the previous month and its last week
+        if monday.month == 1:
+            prev_month = 12
+            prev_year = monday.year - 1
+        else:
+            prev_month = monday.month - 1
+            prev_year = monday.year
+
+        # Get the last day of previous month
+        last_day_prev_month = first_day_of_month - timedelta(days=1)
+        # Get its Monday
+        prev_monday = last_day_prev_month - timedelta(days=last_day_prev_month.weekday())
+        return get_week_key_from_date(prev_monday)
+
+    week_diff = (monday - first_monday).days
+    week_number = (week_diff // 7) + 1
+
+    return f"{_('Week')} {week_number} - {monday.month:02d}/{monday.year}"
+
+
+def get_week_label_from_date_range(start_date, end_date):
+    """Generate week label from date range.
+
+    Args:
+        start_date: Monday of the week
+        end_date: Sunday of the week
+
+    Returns:
+        str: Week label in format "DD/MM - DD/MM" (e.g., "12/05 - 18/05")
+    """
+    return f"{start_date.strftime('%d/%m')} - {end_date.strftime('%d/%m')}"
