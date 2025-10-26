@@ -57,7 +57,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
     def realtime(self, request):
         """Get real-time recruitment KPIs (no filters supported)."""
         today = datetime.now().date()
-        
+
         hires_today = self._get_hires_today(today)
         open_positions = self._get_open_positions()
         applicants_today = self._get_applicants_today(today)

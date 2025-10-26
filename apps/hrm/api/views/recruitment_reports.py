@@ -47,7 +47,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Staff Growth Report",
-        description="Aggregate staff changes (introductions, returns, new hires, transfers, resignations) by period (week/month).",
+        description=(
+            "Aggregate staff changes (introductions, returns, new hires, transfers, resignations) "
+            "by period (week/month)."
+        ),
         parameters=[StaffGrowthReportParametersSerializer],
         responses={200: StaffGrowthReportAggregatedSerializer(many=True)},
         examples=[
@@ -121,7 +124,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Recruitment Source Report",
-        description="Aggregate hire statistics by recruitment source in nested organizational format (no period aggregation).",
+        description=(
+            "Aggregate hire statistics by recruitment source in nested organizational format "
+            "(no period aggregation)."
+        ),
         parameters=[RecruitmentSourceReportParametersSerializer],
         responses={200: RecruitmentSourceReportAggregatedSerializer},
         examples=[
@@ -195,7 +201,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Recruitment Channel Report",
-        description="Aggregate hire statistics by recruitment channel in nested organizational format (no period aggregation).",
+        description=(
+            "Aggregate hire statistics by recruitment channel in nested organizational format "
+            "(no period aggregation)."
+        ),
         parameters=[RecruitmentChannelReportParametersSerializer],
         responses={200: RecruitmentChannelReportAggregatedSerializer},
         examples=[
@@ -371,7 +380,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Hired Candidate Report",
-        description="Aggregate hired candidate statistics by source type with period aggregation (week/month) and conditional employee details.",
+        description=(
+            "Aggregate hired candidate statistics by source type with period aggregation "
+            "(week/month) and conditional employee details."
+        ),
         parameters=[HiredCandidateReportParametersSerializer],
         responses={200: HiredCandidateReportAggregatedSerializer},
         examples=[
@@ -424,9 +436,11 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     )
     @action(detail=False, methods=["get"], url_path="hired-candidate")
     def hired_candidate(self, request):
-        """
-        Aggregate hired candidate data by source type with monthly statistics and conditional employee details for referral_source.
-        Returns a list of source types, each with statistics per period and, for referral_source, a breakdown by employee.
+        """Aggregate hired candidate data by source type with monthly statistics.
+
+        Includes conditional employee details for referral_source.
+        Returns a list of source types with statistics per period and, for referral_source,
+        a breakdown by employee.
         """
         queryset, _, start_date, end_date, period_type = self._prepare_report_queryset(
             request,
@@ -456,7 +470,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         summary="Referral Cost Report",
-        description="Referral cost report with department summary and employee details (always restricted to single month).",
+        description=(
+            "Referral cost report with department summary and employee details "
+            "(always restricted to single month)."
+        ),
         parameters=[ReferralCostReportParametersSerializer],
         responses={200: ReferralCostReportAggregatedSerializer},
         examples=[
