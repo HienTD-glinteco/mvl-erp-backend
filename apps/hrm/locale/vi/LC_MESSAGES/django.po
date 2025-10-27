@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 10:47+0700\n"
+"POT-Creation-Date: 2025-10-27 11:31+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -62,6 +62,11 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
+#: apps/hrm/api/views/recruitment_reports.py:125
+#: apps/hrm/api/views/recruitment_reports.py:797 apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
+
 # models/organization.py:102
 #: apps/hrm/api/views/recruitment_reports.py:619
 msgid "No Department"
@@ -71,6 +76,11 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:674
 msgid "Total"
 msgstr "Tổng"
+
+#: apps/hrm/api/views/recruitment_reports.py:669 apps/hrm/constants.py:39
+#: apps/hrm/utils.py:128
+msgid "Week"
+msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:397
 msgid ""
@@ -101,14 +111,6 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
-
-#: apps/hrm/constants.py:39
-msgid "Week"
-msgstr "Tuần"
-
-#: apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
 
 # management/commands/setup_default_org_data.py:8
 #: apps/hrm/management/commands/setup_default_org_data.py:8
@@ -307,7 +309,7 @@ msgstr ""
 #: apps/hrm/models/employee.py:68 apps/hrm/models/organization.py:36
 #: apps/hrm/models/organization.py:68 apps/hrm/models/organization.py:130
 #: apps/hrm/models/organization.py:254 apps/hrm/models/organization.py:291
-#: apps/hrm/models/recruitment_channel.py:31
+#: apps/hrm/models/recruitment_channel.py:33
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -728,7 +730,7 @@ msgstr "Đơn vị hành chính"
 # models/organization.py:39
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:67
 #: apps/hrm/models/organization.py:129 apps/hrm/models/organization.py:253
-#: apps/hrm/models/recruitment_channel.py:30
+#: apps/hrm/models/recruitment_channel.py:32
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
@@ -1040,28 +1042,36 @@ msgstr "Các lịch sử liên hệ ứng viên"
 msgid "Job Website"
 msgstr "Web việc làm"
 
+#: apps/hrm/models/recruitment_channel.py:20
+msgid "Hunt"
+msgstr ""
+
+#: apps/hrm/models/recruitment_channel.py:21
+msgid "School"
+msgstr ""
+
 # models/organization.py:9
 # models/recruitment_channel.py:12
-#: apps/hrm/models/recruitment_channel.py:21
+#: apps/hrm/models/recruitment_channel.py:23
 msgid "Channel name"
 msgstr "Tên kênh"
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/recruitment_channel.py:22
+#: apps/hrm/models/recruitment_channel.py:24
 msgid "Channel code"
 msgstr "Mã kênh"
 
-#: apps/hrm/models/recruitment_channel.py:28
+#: apps/hrm/models/recruitment_channel.py:30
 msgid "Belong to"
 msgstr "Thuộc"
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_channel.py:34
+#: apps/hrm/models/recruitment_channel.py:36
 msgid "Recruitment Channel"
 msgstr "Kênh tuyển dụng"
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_channel.py:35
+#: apps/hrm/models/recruitment_channel.py:37
 msgid "Recruitment Channels"
 msgstr "Kênh tuyển dụng"
 

@@ -17,6 +17,8 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
     class BelongTo(models.TextChoices):
         JOB_WEBSITE = "job_website", _("Job Website")
         MARKETING = "marketing", _("Marketing")
+        HUNT = "hunt", _("Hunt")
+        SCHOOL = "school", _("School")
 
     name = models.CharField(max_length=200, verbose_name=_("Channel name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Channel code"))

@@ -176,3 +176,47 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         # Verify in database
         channel = RecruitmentChannel.objects.first()
         self.assertEqual(channel.description, channel_data["description"])
+
+    def test_channel_with_hunt_belong_to(self):
+        """Test creating a channel with HUNT belong_to option."""
+        # Arrange
+        channel_data = {
+            "name": "LinkedIn Recruiter",
+            "belong_to": "hunt",
+            "description": "Headhunting channel",
+        }
+
+        # Act
+        url = reverse("hrm:recruitment-channel-list")
+        response = self.client.post(url, channel_data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["belong_to"], "hunt")
+
+        # Verify in database
+        channel = RecruitmentChannel.objects.get(belong_to="hunt")
+        self.assertEqual(channel.name, "LinkedIn Recruiter")
+
+    def test_channel_with_school_belong_to(self):
+        """Test creating a channel with SCHOOL belong_to option."""
+        # Arrange
+        channel_data = {
+            "name": "University Job Fair",
+            "belong_to": "school",
+            "description": "University recruitment channel",
+        }
+
+        # Act
+        url = reverse("hrm:recruitment-channel-list")
+        response = self.client.post(url, channel_data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["belong_to"], "school")
+
+        # Verify in database
+        channel = RecruitmentChannel.objects.get(belong_to="school")
+        self.assertEqual(channel.name, "University Job Fair")

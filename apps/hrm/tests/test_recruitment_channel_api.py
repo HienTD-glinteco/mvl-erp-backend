@@ -237,3 +237,57 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[0]["name"], "Third Channel")
         self.assertEqual(response_data[1]["name"], "Second Channel")
         self.assertEqual(response_data[2]["name"], "First Channel")
+
+    def test_create_channel_with_hunt_belong_to(self):
+        """Test creating a recruitment channel with HUNT belong_to option"""
+        url = reverse("hrm:recruitment-channel-list")
+        channel_data = {
+            "name": "LinkedIn Recruiter",
+            "belong_to": "hunt",
+            "description": "Headhunting via LinkedIn",
+        }
+        response = self.client.post(url, channel_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["belong_to"], "hunt")
+        self.assertEqual(response_data["name"], "LinkedIn Recruiter")
+
+    def test_create_channel_with_school_belong_to(self):
+        """Test creating a recruitment channel with SCHOOL belong_to option"""
+        url = reverse("hrm:recruitment-channel-list")
+        channel_data = {
+            "name": "University Job Fair",
+            "belong_to": "school",
+            "description": "Recruiting from universities",
+        }
+        response = self.client.post(url, channel_data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["belong_to"], "school")
+        self.assertEqual(response_data["name"], "University Job Fair")
+
+    def test_filter_channels_by_belong_to(self):
+        """Test filtering recruitment channels by belong_to option"""
+        url = reverse("hrm:recruitment-channel-list")
+
+        # Create channels with different belong_to values
+        self.client.post(url, {"name": "Indeed", "belong_to": "job_website"}, format="json")
+        self.client.post(url, {"name": "Facebook Ads", "belong_to": "marketing"}, format="json")
+        self.client.post(url, {"name": "LinkedIn Recruiter", "belong_to": "hunt"}, format="json")
+        self.client.post(url, {"name": "University Fair", "belong_to": "school"}, format="json")
+
+        # Filter by hunt
+        response = self.client.get(url, {"belong_to": "hunt"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], "LinkedIn Recruiter")
+
+        # Filter by school
+        response = self.client.get(url, {"belong_to": "school"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], "University Fair")
