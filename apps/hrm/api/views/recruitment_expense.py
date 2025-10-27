@@ -4,9 +4,10 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentExpenseFilterSet
-from apps.hrm.api.serializers import RecruitmentExpenseSerializer
+from apps.hrm.api.serializers import RecruitmentExpenseExportSerializer, RecruitmentExpenseSerializer
 from apps.hrm.models import RecruitmentExpense
 from libs import BaseModelViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -319,10 +320,13 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RecruitmentExpenseViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentExpense model"""
 
-    queryset = RecruitmentExpense.objects.all()
+    queryset = RecruitmentExpense.objects.select_related(
+        "recruitment_source",
+        "recruitment_channel",
+    ).all()
     serializer_class = RecruitmentExpenseSerializer
     filterset_class = RecruitmentExpenseFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -334,3 +338,46 @@ class RecruitmentExpenseViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "recruitment_expense"
+
+    def get_export_data(self, request):
+        """Custom export data for RecruitmentExpense.
+
+        Exports the following fields:
+        - date
+        - recruitment_source__name
+        - recruitment_channel__name
+        - num_candidates_participated
+        - total_cost
+        - num_candidates_hired
+        - avg_cost
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = RecruitmentExpenseExportSerializer(queryset, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Recruitment Expenses",
+                    "headers": [
+                        "Date",
+                        "Recruitment Source",
+                        "Recruitment Channel",
+                        "Candidates Participated",
+                        "Total Cost",
+                        "Candidates Hired",
+                        "Average Cost",
+                    ],
+                    "field_names": [
+                        "date",
+                        "recruitment_source__name",
+                        "recruitment_channel__name",
+                        "num_candidates_participated",
+                        "total_cost",
+                        "num_candidates_hired",
+                        "avg_cost",
+                    ],
+                    "data": data,
+                }
+            ]
+        }

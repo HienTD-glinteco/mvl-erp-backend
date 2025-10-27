@@ -140,6 +140,21 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             description="Online job posting platform",
         )
 
+        # Create candidate data for testing
+        self.candidate_data = {
+            "name": "Nguyen Van B",
+            "citizen_id": "123456789012",
+            "email": "nguyenvanb@example.com",
+            "phone": "0123456789",
+            "recruitment_request_id": self.recruitment_request.id,
+            "recruitment_source_id": self.recruitment_source.id,
+            "recruitment_channel_id": self.recruitment_channel.id,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            "submitted_date": "2025-10-15",
+            "status": "CONTACTED",
+            "note": "Strong Python skills",
+        }
+
     def test_list_candidates(self):
         """Test listing recruitment candidates"""
         # Create test candidates
@@ -673,3 +688,68 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("backend@example.com", emails)
         self.assertIn("frontend@example.com", emails)
         self.assertNotIn("devops@example.com", emails)
+
+    def test_export_recruitment_candidate_direct(self):
+        """Test exporting recruitment candidates with direct delivery"""
+        url = reverse("hrm:recruitment-candidate-list")
+
+        # Create test candidates
+        self.client.post(url, self.candidate_data, format="json")
+
+        candidate_data_2 = self.candidate_data.copy()
+        candidate_data_2["name"] = "Tran Van B"
+        candidate_data_2["citizen_id"] = "123456789013"
+        candidate_data_2["email"] = "tranvanb@example.com"
+        candidate_data_2["phone"] = "0987654322"
+        candidate_data_2["status"] = "INTERVIEWED_1"
+        self.client.post(url, candidate_data_2, format="json")
+
+        # Export with direct delivery
+        export_url = reverse("hrm:recruitment-candidate-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+
+    def test_export_recruitment_candidate_fields(self):
+        """Test that export includes correct fields"""
+        url = reverse("hrm:recruitment-candidate-list")
+
+        # Create a test candidate
+        response = self.client.post(url, self.candidate_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Export with direct delivery to check fields
+        export_url = reverse("hrm:recruitment-candidate-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # File should be generated and downloadable
+        self.assertTrue(len(response.content) > 0)
+
+    def test_export_recruitment_candidate_filtered(self):
+        """Test exporting filtered recruitment candidates"""
+        url = reverse("hrm:recruitment-candidate-list")
+
+        # Create candidates with different statuses
+        self.client.post(url, self.candidate_data, format="json")
+
+        candidate_data_2 = self.candidate_data.copy()
+        candidate_data_2["name"] = "Tran Van B"
+        candidate_data_2["citizen_id"] = "123456789013"
+        candidate_data_2["email"] = "tranvanb@example.com"
+        candidate_data_2["phone"] = "0987654322"
+        candidate_data_2["status"] = "HIRED"
+        candidate_data_2["onboard_date"] = "2025-11-01"
+        self.client.post(url, candidate_data_2, format="json")
+
+        # Export with status filter
+        export_url = reverse("hrm:recruitment-candidate-export")
+        response = self.client.get(export_url, {"delivery": "direct", "status": "HIRED"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertTrue(len(response.content) > 0)

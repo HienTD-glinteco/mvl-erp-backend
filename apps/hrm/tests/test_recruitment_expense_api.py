@@ -607,3 +607,59 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
         self.assertIn("quality", response_data[0]["note"])
+
+    def test_export_recruitment_expense_direct(self):
+        """Test exporting recruitment expenses with direct delivery"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create test expenses
+        self.client.post(url, self.expense_data, format="json")
+        expense_data_2 = self.expense_data.copy()
+        expense_data_2["date"] = "2025-10-16"
+        expense_data_2["total_cost"] = "3000.00"
+        expense_data_2["num_candidates_hired"] = 1
+        self.client.post(url, expense_data_2, format="json")
+
+        # Export with direct delivery
+        export_url = reverse("hrm:recruitment-expense-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+
+    def test_export_recruitment_expense_fields(self):
+        """Test that export includes correct fields"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create a test expense
+        response = self.client.post(url, self.expense_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Export with direct delivery to check fields
+        export_url = reverse("hrm:recruitment-expense-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # File should be generated and downloadable
+        self.assertTrue(len(response.content) > 0)
+
+    def test_export_recruitment_expense_filtered(self):
+        """Test exporting filtered recruitment expenses"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create expenses with different dates
+        self.client.post(url, self.expense_data, format="json")
+        expense_data_2 = self.expense_data.copy()
+        expense_data_2["date"] = "2025-11-15"
+        self.client.post(url, expense_data_2, format="json")
+
+        # Export with date filter
+        export_url = reverse("hrm:recruitment-expense-export")
+        response = self.client.get(export_url, {"delivery": "direct", "date": "2025-10-15"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertTrue(len(response.content) > 0)

@@ -7,9 +7,14 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentCandidateFilterSet
-from apps.hrm.api.serializers import RecruitmentCandidateSerializer, UpdateReferrerSerializer
+from apps.hrm.api.serializers import (
+    RecruitmentCandidateExportSerializer,
+    RecruitmentCandidateSerializer,
+    UpdateReferrerSerializer,
+)
 from apps.hrm.models import RecruitmentCandidate
 from libs import BaseModelViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -390,7 +395,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RecruitmentCandidateViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentCandidate model"""
 
     queryset = RecruitmentCandidate.objects.select_related(
@@ -413,6 +418,49 @@ class RecruitmentCandidateViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "recruitment_candidate"
+
+    def get_export_data(self, request):
+        """Custom export data for RecruitmentCandidate.
+
+        Exports the following fields:
+        - code
+        - name
+        - recruitment_request__name
+        - recruitment_source__name
+        - recruitment_channel__name
+        - phone
+        - status
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = RecruitmentCandidateExportSerializer(queryset, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Recruitment Candidates",
+                    "headers": [
+                        "Code",
+                        "Name",
+                        "Recruitment Request",
+                        "Recruitment Source",
+                        "Recruitment Channel",
+                        "Phone",
+                        "Status",
+                    ],
+                    "field_names": [
+                        "code",
+                        "name",
+                        "recruitment_request__name",
+                        "recruitment_source__name",
+                        "recruitment_channel__name",
+                        "phone",
+                        "status",
+                    ],
+                    "data": data,
+                }
+            ]
+        }
 
     @extend_schema(
         summary="Update candidate referrer",
