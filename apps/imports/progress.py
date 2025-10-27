@@ -32,7 +32,7 @@ class ImportProgressTracker:
         self.processed_rows = 0
         self.success_count = 0
         self.failure_count = 0
-        self.start_time = None
+        self.start_time = datetime.now()
 
     def set_total(self, total_rows: int) -> None:
         """
@@ -102,7 +102,7 @@ class ImportProgressTracker:
         # Calculate percentage if total is known
         if self.total_rows and self.total_rows > 0:
             percentage = (self.processed_rows / self.total_rows) * 100.0
-            progress_data["percentage"] = round(percentage, 2)
+            progress_data["percentage"] = round(percentage, 2)  # type: ignore[assignment]
 
         return progress_data
 

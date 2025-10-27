@@ -3,6 +3,7 @@ import json
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -260,12 +261,12 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
         url = reverse("core:role-detail", kwargs={"pk": system_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], "System")
+        self.assertEqual(response_data["created_by"], _("System"))
 
         url = reverse("core:role-detail", kwargs={"pk": user_role.pk})
         response = self.client.get(url)
         response_data = self.get_response_data(response)
-        self.assertEqual(response_data["created_by"], "User")
+        self.assertEqual(response_data["created_by"], _("User"))
 
     def test_code_auto_increment(self):
         """Test that role codes are auto-incremented"""

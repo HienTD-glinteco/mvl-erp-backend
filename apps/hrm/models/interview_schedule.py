@@ -34,7 +34,7 @@ class InterviewSchedule(BaseModel):
         related_name="interview_schedules",
         blank=True,
         verbose_name=_("Interviewers"),
-    )
+    )  # type: ignore[var-annotated]
 
     class Meta:
         verbose_name = _("Interview Schedule")
