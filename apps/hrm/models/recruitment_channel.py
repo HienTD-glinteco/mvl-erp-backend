@@ -19,6 +19,7 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
         MARKETING = "marketing", _("Marketing")
         HUNT = "hunt", _("Hunt")
         SCHOOL = "school", _("School")
+        OTHER = "other", _("Other")
 
     name = models.CharField(max_length=200, verbose_name=_("Channel name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Channel code"))

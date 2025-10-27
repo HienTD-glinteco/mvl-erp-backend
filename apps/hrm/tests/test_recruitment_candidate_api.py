@@ -151,7 +151,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -185,7 +185,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             "recruitment_request_id": self.recruitment_request.id,
             "recruitment_source_id": self.recruitment_source.id,
             "recruitment_channel_id": self.recruitment_channel.id,
-            "years_of_experience": 5,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             "submitted_date": "2025-10-15",
             "status": "CONTACTED",
             "note": "Strong Python skills",
@@ -217,7 +217,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             "recruitment_request_id": self.recruitment_request.id,
             "recruitment_source_id": self.recruitment_source.id,
             "recruitment_channel_id": self.recruitment_channel.id,
-            "years_of_experience": 5,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             "submitted_date": "2025-10-15",
         }
 
@@ -236,7 +236,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             "recruitment_request_id": self.recruitment_request.id,
             "recruitment_source_id": self.recruitment_source.id,
             "recruitment_channel_id": self.recruitment_channel.id,
-            "years_of_experience": 5,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             "submitted_date": "2025-10-15",
             "status": "HIRED",
         }
@@ -256,7 +256,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             "recruitment_request_id": self.recruitment_request.id,
             "recruitment_source_id": self.recruitment_source.id,
             "recruitment_channel_id": self.recruitment_channel.id,
-            "years_of_experience": 5,
+            "years_of_experience": RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             "submitted_date": "2025-10-15",
             "status": "HIRED",
             "onboard_date": "2025-11-01",
@@ -279,7 +279,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -301,7 +301,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -314,7 +314,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             "recruitment_request_id": self.recruitment_request.id,
             "recruitment_source_id": self.recruitment_source.id,
             "recruitment_channel_id": self.recruitment_channel.id,
-            "years_of_experience": 6,
+            "years_of_experience": "THREE_TO_FIVE_YEARS",
             "submitted_date": "2025-10-15",
             "status": "INTERVIEWED_1",
         }
@@ -324,7 +324,9 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["name"], "Nguyen Van B Updated")
-        self.assertEqual(response_data["years_of_experience"], 6)
+        self.assertEqual(
+            response_data["years_of_experience"], RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS
+        )
         self.assertEqual(response_data["colored_status"]["value"], "INTERVIEWED_1")
 
     def test_partial_update_candidate(self):
@@ -337,7 +339,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -364,7 +366,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -386,7 +388,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -421,7 +423,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.CONTACTED,
         )
@@ -458,7 +460,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -481,7 +483,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -522,7 +524,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
                 recruitment_request=self.recruitment_request,
                 recruitment_source=self.recruitment_source,
                 recruitment_channel=self.recruitment_channel,
-                years_of_experience=5,
+                years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
                 submitted_date=date(2025, 10, 15),
                 status=status_value,
                 onboard_date=date(2025, 11, 1) if status_value == "HIRED" else None,
@@ -548,7 +550,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.CONTACTED,
         )
@@ -615,7 +617,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.CONTACTED,
         )

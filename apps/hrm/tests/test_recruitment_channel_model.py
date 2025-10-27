@@ -9,13 +9,13 @@ class RecruitmentChannelModelTest(TestCase):
     def test_belong_to_choices_include_all_options(self):
         """Test that BelongTo choices include all expected options"""
         # Arrange
-        expected_choices = ["job_website", "marketing", "hunt", "school"]
+        expected_choices = ["job_website", "marketing", "hunt", "school", "other"]
 
         # Act
         actual_choices = [choice[0] for choice in RecruitmentChannel.BelongTo.choices]
 
         # Assert
-        self.assertEqual(len(actual_choices), 4)
+        self.assertEqual(len(actual_choices), 5)
         for expected in expected_choices:
             self.assertIn(expected, actual_choices)
 
@@ -88,6 +88,21 @@ class RecruitmentChannelModelTest(TestCase):
         self.assertIsNotNone(channel.id)
         self.assertEqual(channel.belong_to, "")
 
+    def test_create_channel_with_other_belong_to(self):
+        """Test creating a recruitment channel with OTHER belong_to option"""
+        # Arrange & Act
+        channel = RecruitmentChannel.objects.create(
+            name="Employee Referral",
+            code="EMP-REF",
+            belong_to=RecruitmentChannel.BelongTo.OTHER,
+            description="Referrals from current employees",
+        )
+
+        # Assert
+        self.assertIsNotNone(channel.id)
+        self.assertEqual(channel.belong_to, "other")
+        self.assertEqual(channel.name, "Employee Referral")
+
     def test_belong_to_enum_values(self):
         """Test that BelongTo enum has correct values"""
         # Assert
@@ -95,3 +110,4 @@ class RecruitmentChannelModelTest(TestCase):
         self.assertEqual(RecruitmentChannel.BelongTo.MARKETING, "marketing")
         self.assertEqual(RecruitmentChannel.BelongTo.HUNT, "hunt")
         self.assertEqual(RecruitmentChannel.BelongTo.SCHOOL, "school")
+        self.assertEqual(RecruitmentChannel.BelongTo.OTHER, "other")

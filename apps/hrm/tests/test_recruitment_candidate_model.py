@@ -109,7 +109,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.CONTACTED,
             note="Strong Python skills",
@@ -121,7 +121,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         self.assertEqual(candidate.email, "nguyenvanb@example.com")
         self.assertEqual(candidate.phone, "0123456789")
         self.assertEqual(candidate.recruitment_request, self.recruitment_request)
-        self.assertEqual(candidate.years_of_experience, 5)
+        self.assertEqual(candidate.years_of_experience, RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS)
         self.assertEqual(candidate.status, RecruitmentCandidate.Status.CONTACTED)
 
     def test_auto_code_generation(self):
@@ -134,7 +134,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -151,7 +151,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -167,7 +166,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -183,7 +181,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -199,7 +196,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -215,7 +211,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -232,7 +227,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -251,7 +245,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -270,7 +263,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.HIRED,
             onboard_date=None,
@@ -291,7 +283,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.INTERVIEWED_1,
             onboard_date=None,
@@ -310,7 +301,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.HIRED,
             onboard_date=date(2025, 11, 1),
@@ -340,7 +330,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
                 recruitment_request=self.recruitment_request,
                 recruitment_source=self.recruitment_source,
                 recruitment_channel=self.recruitment_channel,
-                years_of_experience=5,
                 submitted_date=date(2025, 10, 15),
                 status=status,
             )
@@ -356,7 +345,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             referrer=None,
         )
@@ -374,7 +362,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             referrer=self.employee,
         )
@@ -392,7 +379,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -404,7 +390,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=3,
             submitted_date=date(2025, 10, 16),
         )
 
@@ -420,7 +405,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
         )
 
@@ -432,7 +416,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=3,
             submitted_date=date(2025, 10, 16),
         )
 
@@ -450,7 +433,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             recruitment_request=self.recruitment_request,
             recruitment_source=self.recruitment_source,
             recruitment_channel=self.recruitment_channel,
-            years_of_experience=5,
             submitted_date=date(2025, 10, 15),
             status=RecruitmentCandidate.Status.HIRED,
             onboard_date=date(2025, 11, 1),
@@ -481,7 +463,6 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
                 recruitment_request=self.recruitment_request,
                 recruitment_source=self.recruitment_source,
                 recruitment_channel=self.recruitment_channel,
-                years_of_experience=5,
                 submitted_date=date(2025, 10, 15),
                 status=status,
                 onboard_date=date(2025, 11, 1) if status == RecruitmentCandidate.Status.HIRED else None,
@@ -490,3 +471,61 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
             colored_status = candidate.colored_status
             self.assertEqual(colored_status["value"], status)
             self.assertEqual(colored_status["variant"], expected_variant)
+
+    def test_years_of_experience_choices(self):
+        """Test that YearsOfExperience has all expected choices"""
+        # Arrange
+        expected_choices = [
+            "NO_EXPERIENCE",
+            "LESS_THAN_ONE_YEAR",
+            "ONE_TO_THREE_YEARS",
+            "THREE_TO_FIVE_YEARS",
+            "MORE_THAN_FIVE_YEARS",
+        ]
+
+        # Act
+        actual_choices = [choice[0] for choice in RecruitmentCandidate.YearsOfExperience.choices]
+
+        # Assert
+        self.assertEqual(len(actual_choices), 5)
+        for expected in expected_choices:
+            self.assertIn(expected, actual_choices)
+
+    def test_default_years_of_experience_is_no_experience(self):
+        """Test that default years_of_experience is NO_EXPERIENCE"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van B",
+            citizen_id="123456789012",
+            email="nguyenvanb@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        self.assertEqual(candidate.years_of_experience, RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE)
+
+    def test_create_candidate_with_all_experience_levels(self):
+        """Test creating candidates with different years of experience levels"""
+        experience_levels = [
+            RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE,
+            RecruitmentCandidate.YearsOfExperience.LESS_THAN_ONE_YEAR,
+            RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS,
+            RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+        ]
+
+        for idx, exp_level in enumerate(experience_levels):
+            candidate = RecruitmentCandidate.objects.create(
+                name=f"Candidate {idx}",
+                citizen_id=f"{123456789100 + idx:012d}",
+                email=f"candidate_exp_{idx}@example.com",
+                phone="0123456789",
+                recruitment_request=self.recruitment_request,
+                recruitment_source=self.recruitment_source,
+                recruitment_channel=self.recruitment_channel,
+                years_of_experience=exp_level,
+                submitted_date=date(2025, 10, 15),
+            )
+            self.assertEqual(candidate.years_of_experience, exp_level)

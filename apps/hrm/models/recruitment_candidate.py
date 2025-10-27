@@ -26,6 +26,13 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         HIRED = "HIRED", _("Hired")
         REJECTED = "REJECTED", _("Rejected")
 
+    class YearsOfExperience(models.TextChoices):
+        NO_EXPERIENCE = "NO_EXPERIENCE", _("No Experience")
+        LESS_THAN_ONE_YEAR = "LESS_THAN_ONE_YEAR", _("Less Than One Year")
+        ONE_TO_THREE_YEARS = "ONE_TO_THREE_YEARS", _("1-3 Years")
+        THREE_TO_FIVE_YEARS = "THREE_TO_FIVE_YEARS", _("3-5 Years")
+        MORE_THAN_FIVE_YEARS = "MORE_THAN_FIVE_YEARS", _("More Than 5 Years")
+
     VARIANT_MAPPING = {
         "status": {
             Status.CONTACTED: ColorVariant.GREY,
@@ -94,7 +101,12 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="candidates",
         verbose_name=_("Recruitment channel"),
     )
-    years_of_experience = models.PositiveIntegerField(verbose_name=_("Years of experience"), null=True, blank=True)
+    years_of_experience = models.CharField(
+        max_length=30,
+        choices=YearsOfExperience.choices,
+        default=YearsOfExperience.NO_EXPERIENCE,
+        verbose_name=_("Years of experience"),
+    )
     submitted_date = models.DateField(verbose_name=_("Submitted date"))
     status = models.CharField(
         max_length=30,
