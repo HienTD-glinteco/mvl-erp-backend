@@ -59,7 +59,7 @@ class ExportXLSXMixinTests(TestCase):
 
         response = viewset.export(drf_request)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
         self.assertEqual(
             response["Content-Type"],
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -82,7 +82,7 @@ class ExportXLSXMixinTests(TestCase):
 
         response = viewset.export(drf_request)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
         self.assertEqual(
             response["Content-Type"],
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

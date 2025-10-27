@@ -5,7 +5,7 @@ import io
 import logging
 import os
 import tempfile
-from typing import Iterator, Optional
+from typing import Iterator, Optional, TextIO
 
 import openpyxl
 from django.core.files.base import ContentFile
@@ -66,6 +66,9 @@ class CSVStreamingReader(StreamingReader):
             list: Row data as list
         """
         # Wrap binary stream in TextIOWrapper for csv.reader
+        if self.file_stream is None:
+            raise ValueError("file_stream is not initialized")
+
         text_stream = io.TextIOWrapper(self.file_stream, encoding="utf-8-sig")
         reader = csv.reader(text_stream)
 
@@ -124,8 +127,8 @@ class StreamingWriter:
             temp_dir: Temporary directory for file (None = system temp)
         """
         self.temp_dir = temp_dir or tempfile.gettempdir()
-        self.temp_file = None
-        self.file_path = None
+        self.temp_file: Optional[TextIO] = None
+        self.file_path: Optional[str] = None
 
     def __enter__(self):
         """Create temporary file."""
@@ -164,6 +167,8 @@ class StreamingWriter:
         Returns:
             str: Path to temporary file
         """
+        if self.file_path is None:
+            raise ValueError("file_path must be set before calling get_file_path()")
         return self.file_path
 
 

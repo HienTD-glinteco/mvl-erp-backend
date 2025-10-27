@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-23 16:02+0700\n"
+"POT-Creation-Date: 2025-10-27 10:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,31 +177,31 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:91
+#: apps/files/utils/s3_utils.py:93
 #, python-brace-format
 msgid "Failed to generate presigned URL: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:170
+#: apps/files/utils/s3_utils.py:176
 #, python-brace-format
 msgid "Failed to move file in S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:212
+#: apps/files/utils/s3_utils.py:220
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:258
+#: apps/files/utils/s3_utils.py:266
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr ""
 
-#: apps/imports/api/mixins.py:121
+#: apps/imports/api/mixins.py:123
 msgid "File not found"
 msgstr ""
 
-#: apps/imports/api/mixins.py:199 apps/imports/api/views.py:93
+#: apps/imports/api/mixins.py:201 apps/imports/api/views.py:93
 msgid "Import job not found"
 msgstr ""
 
@@ -481,13 +481,22 @@ msgid ""
 "'token123'})"
 msgstr ""
 
-#: libs/export_xlsx/mixins.py:82
+#: libs/export_xlsx/mixins.py:100
 msgid "Async export is not enabled"
 msgstr ""
 
-#: libs/export_xlsx/mixins.py:140
+#: libs/export_xlsx/mixins.py:110
+msgid "Invalid delivery parameter; allowed: link, direct"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:170
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:268
+#, python-brace-format
+msgid "Failed to upload file to S3: {error}"
 msgstr ""
 
 #: libs/import_xlsx/import_mixin.py:377
