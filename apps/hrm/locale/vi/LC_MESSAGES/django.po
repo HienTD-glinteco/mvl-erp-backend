@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-23 23:57+0700\n"
+"POT-Creation-Date: 2025-10-27 10:47+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -53,11 +53,62 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
+# models/organization.py:218
+#: apps/hrm/api/views/recruitment_dashboard.py:204
+msgid "Experienced"
+msgstr "Có kinh nghiệm"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:209
+msgid "Inexperienced"
+msgstr "Chưa có kinh nghiệm"
+
+# models/organization.py:102
+#: apps/hrm/api/views/recruitment_reports.py:619
+msgid "No Department"
+msgstr "Không có phòng ban"
+
+#: apps/hrm/api/views/recruitment_reports.py:645
+#: apps/hrm/api/views/recruitment_reports.py:674
+msgid "Total"
+msgstr "Tổng"
+
 #: apps/hrm/api/views/recruitment_request.py:397
 msgid ""
 "Cannot delete recruitment request. Only requests with DRAFT status can be "
 "deleted."
 msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/constants.py:23
+msgid "Referral Source"
+msgstr "Nguồn giới thiệu"
+
+# models/organization.py:64
+#: apps/hrm/constants.py:24
+msgid "Marketing Channel"
+msgstr "Kênh Marketing"
+
+#: apps/hrm/constants.py:25
+msgid "Job Website Channel"
+msgstr "Kênh Web việc làm"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/constants.py:26
+msgid "Recruitment Department Source"
+msgstr "Nguồn Phòng tuyển dụng"
+
+# models/organization.py:205
+#: apps/hrm/constants.py:27
+msgid "Returning Employee"
+msgstr "Nhân viên quay lại"
+
+#: apps/hrm/constants.py:39
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
 
 # management/commands/setup_default_org_data.py:8
 #: apps/hrm/management/commands/setup_default_org_data.py:8
@@ -231,24 +282,18 @@ msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
 # models/organization.py:217
 #: apps/hrm/models/contract_type.py:15
-#, fuzzy
-#| msgid "Contact date"
 msgid "Contract type name"
-msgstr "Ngày lien hệ"
+msgstr "Tên loại liên hệ"
 
 # models/organization.py:217
 #: apps/hrm/models/contract_type.py:19 apps/hrm/models/employee.py:167
-#, fuzzy
-#| msgid "Contact date"
 msgid "Contract type"
-msgstr "Ngày lien hệ"
+msgstr "Loại liên hệ"
 
 # models/organization.py:217
 #: apps/hrm/models/contract_type.py:20
-#, fuzzy
-#| msgid "Contact date"
 msgid "Contract types"
-msgstr "Ngày lien hệ"
+msgstr "Các loại liên hệ"
 
 #: apps/hrm/models/employee.py:64
 msgid "MV"
@@ -268,10 +313,8 @@ msgstr "Hoạt động"
 
 # models/organization.py:218
 #: apps/hrm/models/employee.py:69
-#, fuzzy
-#| msgid "Onboard date"
 msgid "Onboarding"
-msgstr "Ngày nhận việc"
+msgstr "Nhận việc"
 
 #: apps/hrm/models/employee.py:70
 msgid "Resigned"
@@ -335,10 +378,8 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:114
-#, fuzzy
-#| msgid "Employee code"
 msgid "Employee type"
-msgstr "Mã nhân viên"
+msgstr "Loại nhân viên"
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:116
@@ -360,10 +401,8 @@ msgstr ""
 
 # models/recruitment_channel.py:13
 #: apps/hrm/models/employee.py:129
-#, fuzzy
-#| msgid "Candidate code"
 msgid "Attendance code"
-msgstr "Mã ứng viên"
+msgstr "Mã điểm danh"
 
 #: apps/hrm/models/employee.py:131
 msgid "Username"
@@ -379,6 +418,7 @@ msgstr "Email"
 #: apps/hrm/models/employee.py:139 apps/hrm/models/organization.py:39
 #: apps/hrm/models/organization.py:65 apps/hrm/models/organization.py:103
 #: apps/hrm/models/recruitment_candidate.py:65
+#: apps/hrm/models/recruitment_reports.py:21
 #: apps/hrm/models/recruitment_request.py:54
 msgid "Branch"
 msgstr "Chi nhánh"
@@ -387,6 +427,7 @@ msgstr "Chi nhánh"
 #: apps/hrm/models/employee.py:145 apps/hrm/models/organization.py:71
 #: apps/hrm/models/organization.py:104
 #: apps/hrm/models/recruitment_candidate.py:73
+#: apps/hrm/models/recruitment_reports.py:29
 #: apps/hrm/models/recruitment_request.py:62
 msgid "Block"
 msgstr "Khối"
@@ -395,6 +436,7 @@ msgstr "Khối"
 #: apps/hrm/models/employee.py:151 apps/hrm/models/organization.py:133
 #: apps/hrm/models/organization.py:286
 #: apps/hrm/models/recruitment_candidate.py:81
+#: apps/hrm/models/recruitment_reports.py:37
 #: apps/hrm/models/recruitment_request.py:70
 msgid "Department"
 msgstr "Phòng ban"
@@ -417,14 +459,12 @@ msgstr ""
 
 # models/organization.py:182
 #: apps/hrm/models/employee.py:181
-#, fuzzy
-#| msgid "Position name"
 msgid "Resignation date"
-msgstr "Tên chức vụ"
+msgstr "Tên nghỉ việc"
 
 #: apps/hrm/models/employee.py:188
 msgid "Resignation reason"
-msgstr ""
+msgstr "Lý do nghỉ việc"
 
 #: apps/hrm/models/employee.py:190 apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
@@ -476,10 +516,8 @@ msgstr ""
 
 # models/organization.py:10
 #: apps/hrm/models/employee.py:245
-#, fuzzy
-#| msgid "Branch code"
 msgid "Tax code"
-msgstr "Mã chi nhánh"
+msgstr "Mã số thuế"
 
 #: apps/hrm/models/employee.py:251
 msgid "Phone number must be exactly 10 digits"
@@ -504,10 +542,8 @@ msgstr ""
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/employee.py:274
-#, fuzzy
-#| msgid "Recruitment Candidates"
 msgid "Permanent address"
-msgstr "Các ứng viên"
+msgstr "Địa chỉ thường trú"
 
 #: apps/hrm/models/employee.py:281
 msgid "Emergency contact name"
@@ -528,6 +564,7 @@ msgstr ""
 # models/organization.py:205
 #: apps/hrm/models/employee.py:301 apps/hrm/models/organization.py:274
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
+#: apps/hrm/models/recruitment_reports.py:214
 msgid "Employee"
 msgstr "Nhân viên"
 
@@ -552,10 +589,8 @@ msgstr "Ứng viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/interview_candidate.py:22
-#, fuzzy
-#| msgid "Recruitment type"
 msgid "Interview schedule"
-msgstr "Kênh tuyển dụng"
+msgstr "Lịch phỏng vấn"
 
 #: apps/hrm/models/interview_candidate.py:24
 #: apps/hrm/models/interview_schedule.py:30
@@ -568,17 +603,13 @@ msgstr ""
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/interview_candidate.py:28
-#, fuzzy
-#| msgid "Recruitment type"
 msgid "Interview Candidate"
-msgstr "Kênh tuyển dụng"
+msgstr "Ứng viên phỏng vấn"
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/interview_candidate.py:29
-#, fuzzy
-#| msgid "Recruitment Candidates"
 msgid "Interview Candidates"
-msgstr "Các ứng viên"
+msgstr "Các ứng viên phỏng vấn"
 
 #: apps/hrm/models/interview_schedule.py:13
 msgid "In Person"
@@ -601,17 +632,13 @@ msgstr "Yêu cầu tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/interview_schedule.py:27
-#, fuzzy
-#| msgid "Recruitment type"
 msgid "Interview type"
-msgstr "Kênh tuyển dụng"
+msgstr "Loại phỏng vấn"
 
 # models/organization.py:189
 #: apps/hrm/models/interview_schedule.py:29
-#, fuzzy
-#| msgid "Position"
 msgid "Location"
-msgstr "Chức vụ"
+msgstr "Địa điểm"
 
 #: apps/hrm/models/interview_schedule.py:36
 msgid "Interviewers"
@@ -636,10 +663,8 @@ msgstr "Tiêu đề công việc"
 
 # models/organization.py:182
 #: apps/hrm/models/job_description.py:19
-#, fuzzy
-#| msgid "Position name"
 msgid "Position title"
-msgstr "Tên chức vụ"
+msgstr "Tiêu đề chức vụ"
 
 #: apps/hrm/models/job_description.py:20
 msgid "Responsibility"
@@ -948,12 +973,14 @@ msgstr ""
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:89
 #: apps/hrm/models/recruitment_expense.py:22
+#: apps/hrm/models/recruitment_reports.py:95
 msgid "Recruitment source"
 msgstr "Nguồn tuyển dụng"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:95
 #: apps/hrm/models/recruitment_expense.py:28
+#: apps/hrm/models/recruitment_reports.py:118
 msgid "Recruitment channel"
 msgstr "Kênh tuyển dụng"
 
@@ -1048,10 +1075,12 @@ msgid "Number of candidates participated"
 msgstr ""
 
 #: apps/hrm/models/recruitment_expense.py:43
+#: apps/hrm/models/recruitment_reports.py:160
 msgid "Total cost"
 msgstr ""
 
 #: apps/hrm/models/recruitment_expense.py:47
+#: apps/hrm/models/recruitment_reports.py:219
 msgid "Number of candidates hired"
 msgstr ""
 
@@ -1099,6 +1128,131 @@ msgstr ""
 #: apps/hrm/models/recruitment_expense.py:129
 msgid "Referrer and referee cannot be the same person."
 msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:57
+#: apps/hrm/models/recruitment_reports.py:152
+#: apps/hrm/models/recruitment_reports.py:198
+msgid "Month key"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:58
+#: apps/hrm/models/recruitment_reports.py:199
+msgid "Format: MM/YYYY for monthly aggregation"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:63
+#: apps/hrm/models/recruitment_reports.py:204
+#, fuzzy
+#| msgid "Week"
+msgid "Week key"
+msgstr "Tuần"
+
+#: apps/hrm/models/recruitment_reports.py:64
+#: apps/hrm/models/recruitment_reports.py:205
+msgid "Format: Week W - MM/YYYY for weekly aggregation"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:69
+msgid "Number of introductions"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:70
+msgid "Number of returns"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_reports.py:71
+#, fuzzy
+#| msgid "Recruitment source"
+msgid "Number of new recruitment source"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/models/recruitment_reports.py:72
+msgid "Number of transfers"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:73
+msgid "Number of resignations"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:76
+msgid "Staff Growth Report"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:77
+msgid "Staff Growth Reports"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:97
+#: apps/hrm/models/recruitment_reports.py:120
+#: apps/hrm/models/recruitment_reports.py:162
+msgid "Number of hires"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_reports.py:100
+msgid "Recruitment Source Report"
+msgstr "Báo cáo Nguồn tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_reports.py:101
+msgid "Recruitment Source Reports"
+msgstr "Các báo cáo nguồn tuyển dụng"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_reports.py:123
+msgid "Recruitment Channel Report"
+msgstr "Báo cáo Kênh tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_reports.py:124
+msgid "Recruitment Channel Reports"
+msgstr "Các báo cáo Kênh tuyển dụng"
+
+# models/organization.py:32
+#: apps/hrm/models/recruitment_reports.py:148
+#: apps/hrm/models/recruitment_reports.py:194
+msgid "Source type"
+msgstr "Loại nguồn"
+
+#: apps/hrm/models/recruitment_reports.py:153
+msgid "Format: YYYY-MM for monthly aggregation"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:167
+msgid "Average cost per hire"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/recruitment_reports.py:171
+msgid "Recruitment Cost Report"
+msgstr "Báo cáo chi phí tuyển dụng"
+
+# models/recruitment_channel.py:19
+#: apps/hrm/models/recruitment_reports.py:172
+msgid "Recruitment Cost Reports"
+msgstr "Các báo cáo chi phí tuyển dụng"
+
+#: apps/hrm/models/recruitment_reports.py:217
+msgid "Only applicable for 'referral_source' type"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:222
+msgid "Number of experienced candidates"
+msgstr ""
+
+#: apps/hrm/models/recruitment_reports.py:223
+msgid "Candidates with prior work experience"
+msgstr ""
+
+# models/recruitment_channel.py:13
+#: apps/hrm/models/recruitment_reports.py:227
+msgid "Hired Candidate Report"
+msgstr "Báo cáo ứng viên nhận việc"
+
+#: apps/hrm/models/recruitment_reports.py:228
+msgid "Hired Candidate Reports"
+msgstr "Các báo cáo ứng viên nhận việc"
 
 #: apps/hrm/models/recruitment_request.py:20
 msgid "New Hire"
@@ -1207,3 +1361,23 @@ msgstr "Nguồn tuyển dụng"
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
 msgstr "Các nguồn tuyển dụng"
+
+#: apps/hrm/utils.py:18
+msgid "Unknown"
+msgstr ""
+
+#: apps/hrm/utils.py:21
+msgid "0-1 years"
+msgstr ""
+
+#: apps/hrm/utils.py:23
+msgid "1-3 years"
+msgstr ""
+
+#: apps/hrm/utils.py:25
+msgid "3-5 years"
+msgstr ""
+
+#: apps/hrm/utils.py:27
+msgid "5+ years"
+msgstr ""

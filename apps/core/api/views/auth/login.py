@@ -43,7 +43,7 @@ class LoginView(APIView):
             OpenApiExample(
                 "Login request",
                 description="Example login request",
-                value={"username": "admin@example.com", "password": "SecurePassword123!"},
+                value={"username": "admin", "password": "SecurePassword123!"},
                 request_only=True,
             ),
             OpenApiExample(
@@ -53,7 +53,7 @@ class LoginView(APIView):
                     "success": True,
                     "data": {
                         "message": "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login.",
-                        "username": "admin@example.com",
+                        "username": "admin",
                         "email_hint": "adm***@example.com",
                     },
                 },

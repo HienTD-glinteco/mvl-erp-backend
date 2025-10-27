@@ -511,6 +511,10 @@ msgstr ""
 msgid "This field is required"
 msgstr ""
 
+#: libs/models/base_model_mixin.py:60
+msgid "Report date"
+msgstr ""
+
 #: templates/emails/base_email.html:6
 msgid "MaiVietLand"
 msgstr ""
