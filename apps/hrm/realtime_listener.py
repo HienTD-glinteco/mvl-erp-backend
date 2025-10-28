@@ -7,8 +7,7 @@ devices and capture attendance events in realtime using PyZK's live_capture feat
 import asyncio
 import logging
 import time
-from datetime import datetime
-from datetime import timezone as dt_timezone
+from datetime import datetime, timezone as dt_timezone
 
 from django.utils import timezone
 from zk import ZK
@@ -142,6 +141,8 @@ class RealtimeAttendanceListener:
         last_device_info_update = 0
         first_failure_time = None  # Track when failures started
 
+        zk_conn = None
+
         while self._running:
             try:
                 logger.info(f"Connecting to device: {device.name} at {device.ip_address}:{device.port}")
@@ -204,7 +205,7 @@ class RealtimeAttendanceListener:
 
             finally:
                 # Clean up connection if it exists
-                if "zk_conn" in locals() and zk_conn:
+                if zk_conn:
                     await self._disconnect_device(device, zk_conn)
 
             # Wait before reconnecting (exponential backoff)
