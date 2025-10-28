@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import Nationality
-from apps.hrm.models import Branch, Block, ContractType, Department, Employee, Position
+from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
 
 User = get_user_model()
 
@@ -42,19 +42,37 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
         ContractType.objects.all().delete()
         Position.objects.all().delete()
 
+        from apps.core.models import AdministrativeUnit, Province
+
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        # Create organizational structure
-        self.branch = Branch.objects.create(name="Main Branch", code="BR001")
-        self.block = Block.objects.create(name="Block A", code="BL001", branch=self.branch)
-        self.department = Department.objects.create(name="IT Department", code="IT001", block=self.block)
+        # Create organizational structure with all required fields
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        self.branch = Branch.objects.create(
+            name="Main Branch",
+            code="BR001",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            name="Block A", code="BL001", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
+        self.department = Department.objects.create(
+            name="IT Department", code="IT001", branch=self.branch, block=self.block
+        )
         self.position = Position.objects.create(name="Developer", code="DEV001")
         self.contract_type = ContractType.objects.create(name="Full-time")
 
         # Create nationality if needed
-        self.nationality = Nationality.objects.create(name="Vietnamese", code="VN")
+        self.nationality = Nationality.objects.create(name="Vietnamese")
 
         self.employee_data = {
             "code_type": "MV",

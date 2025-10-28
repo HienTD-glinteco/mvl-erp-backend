@@ -297,7 +297,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
             AttendanceRecord.objects.create(
                 device=self.device1,
                 attendance_code=f"{i:03d}",
-                timestamp=datetime(2025, 10, 28, 12 + i, 0, 0, tzinfo=timezone.utc),
+                timestamp=datetime(2025, 10, 28, 10, i, 0, tzinfo=timezone.utc),
             )
 
         # Act

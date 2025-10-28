@@ -6,7 +6,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.models import AttendanceRecord
-from libs import BaseModelViewSet
 
 
 @extend_schema_view(
