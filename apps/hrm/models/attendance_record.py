@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.models import BaseModel
+from libs.models import BaseModel, SafeTextField
 
 
 class AttendanceRecord(BaseModel):
@@ -58,7 +58,7 @@ class AttendanceRecord(BaseModel):
         verbose_name=_("Is valid"),
         help_text=_("Whether this attendance record is valid"),
     )
-    notes = models.TextField(
+    notes = SafeTextField(
         blank=True,
         verbose_name=_("Notes"),
         help_text=_("Additional notes or comments about this attendance record"),

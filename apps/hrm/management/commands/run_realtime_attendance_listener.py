@@ -37,14 +37,14 @@ class Command(BaseCommand):
         log_level = options["log_level"]
         logging.getLogger("apps.hrm.realtime_listener").setLevel(getattr(logging, log_level))
 
-        self.stdout.write(self.style.SUCCESS(_("Starting realtime attendance listener...")))
+        logger.info("Starting realtime attendance listener...")
 
         # Create listener instance
         listener = RealtimeAttendanceListener()
 
         # Set up signal handlers for graceful shutdown
         def signal_handler(signum, frame):
-            self.stdout.write(self.style.WARNING(_("\nShutdown signal received, stopping listener...")))
+            logger.warning("\nShutdown signal received, stopping listener...")
             asyncio.create_task(listener.stop())
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -53,10 +53,10 @@ class Command(BaseCommand):
         # Run the listener
         try:
             asyncio.run(listener.start())
-            self.stdout.write(self.style.SUCCESS(_("Realtime attendance listener stopped")))
+            logger.info("Realtime attendance listener stopped")
         except KeyboardInterrupt:
-            self.stdout.write(self.style.WARNING(_("\nListener interrupted by user")))
+            logger.warning("\nListener interrupted by user")
         except Exception as e:
-            self.stdout.write(self.style.ERROR(_("Error running listener: %(error)s") % {"error": str(e)}))
+            logger.error(f"Error running listener: {str(e)}")
             logger.exception("Fatal error in realtime attendance listener")
             raise

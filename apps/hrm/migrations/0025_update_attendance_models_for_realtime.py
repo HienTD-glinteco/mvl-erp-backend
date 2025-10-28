@@ -13,15 +13,15 @@ class Migration(migrations.Migration):
         # Add new fields to AttendanceDevice
         migrations.AddField(
             model_name="attendancedevice",
-            name="branch_block",
+            name="block",
             field=models.ForeignKey(
                 blank=True,
-                help_text="Branch and block where device is installed",
+                help_text="Block where device is installed",
                 null=True,
-                on_delete=django.db.models.deletion.PROTECT,
+                on_delete=django.db.models.deletion.CASCADE,
                 related_name="attendance_devices",
                 to="hrm.block",
-                verbose_name="Branch - Block",
+                verbose_name="Block",
             ),
         ),
         migrations.AddField(

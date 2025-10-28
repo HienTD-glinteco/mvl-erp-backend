@@ -7,9 +7,10 @@ devices and capture attendance events in realtime using PyZK's live_capture feat
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
+from datetime import timezone as dt_timezone
 
-from django.db import transaction
+from django.utils import timezone
 from zk import ZK
 from zk.attendance import Attendance
 from zk.exception import ZKErrorConnection, ZKErrorResponse
@@ -26,6 +27,7 @@ RECONNECT_BACKOFF_MULTIPLIER = 2
 MAX_CONSECUTIVE_FAILURES = 5
 MAX_RETRY_DURATION = 86400  # 1 day in seconds (stop retrying after this)
 DEVICE_INFO_UPDATE_INTERVAL = 300  # Update device info every 5 minutes
+DEVICE_CHECK_INTERVAL = 60  # Check for new/enabled devices every 60 seconds
 
 
 class RealtimeAttendanceListener:
@@ -46,23 +48,62 @@ class RealtimeAttendanceListener:
         self._shutdown_event = asyncio.Event()
 
     async def start(self):
-        """Start the realtime listener for all enabled devices."""
+        """Start the realtime listener for all enabled devices.
+
+        Continuously monitors for new devices and starts listeners for them dynamically.
+        """
         logger.info("Starting realtime attendance listener")
         self._running = True
         self._shutdown_event.clear()
 
-        # Get all enabled devices
-        devices = await self._get_enabled_devices()
-        logger.info(f"Found {len(devices)} enabled device(s) for realtime monitoring")
+        # Start initial devices
+        await self._check_and_start_devices()
 
-        # Start listener task for each device
-        for device in devices:
-            task = asyncio.create_task(self._device_listener_loop(device))
-            self._device_tasks[device.id] = task
-            logger.info(f"Started listener task for device: {device.name} (ID: {device.id})")
+        # Create a background task to periodically check for new devices
+        device_checker_task = asyncio.create_task(self._periodic_device_checker())
 
         # Wait for shutdown signal
         await self._shutdown_event.wait()
+
+        # Cancel the device checker task
+        device_checker_task.cancel()
+        try:
+            await device_checker_task
+        except asyncio.CancelledError:
+            pass
+
+    async def _periodic_device_checker(self):
+        """Periodically check for new or re-enabled devices and start listeners for them."""
+        while self._running:
+            try:
+                await asyncio.sleep(DEVICE_CHECK_INTERVAL)
+                if self._running:
+                    await self._check_and_start_devices()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in periodic device checker: {str(e)}")
+
+    async def _check_and_start_devices(self):
+        """Check for enabled devices and start listeners for any that aren't already running."""
+        # Get all enabled devices
+        devices = await self._get_enabled_devices()
+
+        # Find devices that need listeners started
+        for device in devices:
+            # Skip if already has a running task
+            if device.id in self._device_tasks:
+                task = self._device_tasks[device.id]
+                # Check if task is still running
+                if not task.done():
+                    continue
+                # Task finished (likely disabled), remove it
+                del self._device_tasks[device.id]
+
+            # Start new listener task for this device
+            task = asyncio.create_task(self._device_listener_loop(device))
+            self._device_tasks[device.id] = task
+            logger.info(f"Started listener task for device: {device.name} (ID: {device.id})")
 
     async def stop(self):
         """Stop all device listeners and clean up."""
@@ -85,9 +126,10 @@ class RealtimeAttendanceListener:
 
     async def _get_enabled_devices(self) -> list[AttendanceDevice]:
         """Get all enabled attendance devices with realtime enabled from database."""
-        return await asyncio.to_thread(
-            lambda: list(AttendanceDevice.objects.filter(is_enabled=True, realtime_enabled=True))
-        )
+        devices = []
+        async for device in AttendanceDevice.objects.filter(is_enabled=True, realtime_enabled=True).aiterator():
+            devices.append(device)
+        return devices
 
     async def _device_listener_loop(self, device: AttendanceDevice):
         """Main loop for a single device listener with retry logic.
@@ -323,41 +365,34 @@ class RealtimeAttendanceListener:
             attendance: Attendance object from PyZK
             timestamp: Timezone-aware timestamp
         """
+        # Check if record already exists
+        existing = await AttendanceRecord.objects.filter(
+            device=device, attendance_code=attendance.user_id, timestamp=timestamp
+        ).aexists()
 
-        def _do_store():
-            # Check if record already exists
-            existing = AttendanceRecord.objects.filter(
-                device=device, attendance_code=attendance.user_id, timestamp=timestamp
-            ).exists()
-
-            if existing:
-                logger.debug(
-                    f"Attendance record already exists - Device: {device.name}, "
-                    f"User: {attendance.user_id}, Time: {timestamp}"
-                )
-                return False
-
-            # Create raw data
-            raw_data = {
-                "uid": attendance.uid,
-                "user_id": attendance.user_id,
-                "timestamp": timestamp.isoformat(),
-                "status": attendance.status,
-                "punch": attendance.punch,
-            }
-
-            # Create new record
-            with transaction.atomic():
-                AttendanceRecord.objects.create(
-                    device=device, attendance_code=attendance.user_id, timestamp=timestamp, raw_data=raw_data
-                )
-
-            logger.info(
-                f"Stored attendance record - Device: {device.name}, User: {attendance.user_id}, Time: {timestamp}"
+        if existing:
+            logger.debug(
+                f"Attendance record already exists - Device: {device.name}, "
+                f"User: {attendance.user_id}, Time: {timestamp}"
             )
-            return True
+            return False
 
-        await asyncio.to_thread(_do_store)
+        # Create raw data
+        raw_data = {
+            "uid": attendance.uid,
+            "user_id": attendance.user_id,
+            "timestamp": timestamp.isoformat(),
+            "status": attendance.status,
+            "punch": attendance.punch,
+        }
+
+        # Create new record
+        await AttendanceRecord.objects.acreate(
+            device=device, attendance_code=attendance.user_id, timestamp=timestamp, raw_data=raw_data
+        )
+
+        logger.info(f"Stored attendance record - Device: {device.name}, User: {attendance.user_id}, Time: {timestamp}")
+        return True
 
     async def _update_device_info(self, device: AttendanceDevice, zk_conn: ZK):
         """Update device information fields from connected device.
@@ -366,30 +401,26 @@ class RealtimeAttendanceListener:
             device: AttendanceDevice instance
             zk_conn: Connected ZK instance
         """
+        try:
+            # Get device serial number (run in thread as it's blocking I/O)
+            serial = await asyncio.to_thread(zk_conn.get_serialnumber)
+            if serial:
+                device.serial_number = serial
 
-        def _do_update():
-            try:
-                # Get device serial number
-                serial = zk_conn.get_serialnumber()
-                if serial:
-                    device.serial_number = serial
+            # Get device platform (can be used as registration number)
+            platform = await asyncio.to_thread(zk_conn.get_platform)
+            if platform:
+                device.registration_number = platform
 
-                # Get device platform (can be used as registration number)
-                platform = zk_conn.get_platform()
-                if platform:
-                    device.registration_number = platform
+            # Save updates
+            await device.asave(update_fields=["serial_number", "registration_number", "updated_at"])
 
-                # Save updates
-                device.save(update_fields=["serial_number", "registration_number", "updated_at"])
-
-                logger.debug(
-                    f"Updated device info - Device: {device.name}, "
-                    f"Serial: {device.serial_number}, Platform: {device.registration_number}"
-                )
-            except Exception as e:
-                logger.warning(f"Failed to update device info for {device.name}: {str(e)}")
-
-        await asyncio.to_thread(_do_update)
+            logger.debug(
+                f"Updated device info - Device: {device.name}, "
+                f"Serial: {device.serial_number}, Platform: {device.registration_number}"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to update device info for {device.name}: {str(e)}")
 
     async def _mark_device_connected(self, device: AttendanceDevice):
         """Mark device as connected in database and re-enable realtime if disabled.
@@ -397,18 +428,14 @@ class RealtimeAttendanceListener:
         Args:
             device: AttendanceDevice instance
         """
-
-        def _do_mark():
-            device.is_connected = True
-            # Re-enable realtime if it was disabled
-            if not device.realtime_enabled:
-                device.realtime_enabled = True
-                device.realtime_disabled_at = None
-                logger.info(f"Re-enabled realtime for device {device.name} after successful connection")
-            device.save(update_fields=["is_connected", "realtime_enabled", "realtime_disabled_at", "updated_at"])
-            logger.info(f"Device {device.name} marked as connected")
-
-        await asyncio.to_thread(_do_mark)
+        device.is_connected = True
+        # Re-enable realtime if it was disabled
+        if not device.realtime_enabled:
+            device.realtime_enabled = True
+            device.realtime_disabled_at = None
+            logger.info(f"Re-enabled realtime for device {device.name} after successful connection")
+        await device.asave(update_fields=["is_connected", "realtime_enabled", "realtime_disabled_at", "updated_at"])
+        logger.info(f"Device {device.name} marked as connected")
 
     async def _mark_device_disconnected(self, device: AttendanceDevice):
         """Mark device as disconnected in database.
@@ -416,13 +443,9 @@ class RealtimeAttendanceListener:
         Args:
             device: AttendanceDevice instance
         """
-
-        def _do_mark():
-            device.is_connected = False
-            device.save(update_fields=["is_connected", "updated_at"])
-            logger.info(f"Device {device.name} marked as disconnected")
-
-        await asyncio.to_thread(_do_mark)
+        device.is_connected = False
+        await device.asave(update_fields=["is_connected", "updated_at"])
+        logger.info(f"Device {device.name} marked as disconnected")
 
     async def _disable_realtime_for_device(self, device: AttendanceDevice):
         """Disable realtime listener for device after extended failures.
@@ -430,20 +453,14 @@ class RealtimeAttendanceListener:
         Args:
             device: AttendanceDevice instance
         """
-
-        def _do_disable():
-            from django.utils import timezone
-
-            device.realtime_enabled = False
-            device.realtime_disabled_at = timezone.now()
-            device.is_connected = False
-            device.save(update_fields=["realtime_enabled", "realtime_disabled_at", "is_connected", "updated_at"])
-            logger.critical(
-                f"DISABLED realtime listener for device {device.name} (ID: {device.id}) "
-                f"after 24 hours of connection failures. Use reconnect action to re-enable."
-            )
-
-        await asyncio.to_thread(_do_disable)
+        device.realtime_enabled = False
+        device.realtime_disabled_at = timezone.now()
+        device.is_connected = False
+        await device.asave(update_fields=["realtime_enabled", "realtime_disabled_at", "is_connected", "updated_at"])
+        logger.critical(
+            f"DISABLED realtime listener for device {device.name} (ID: {device.id}) "
+            f"after 24 hours of connection failures. Use reconnect action to re-enable."
+        )
 
     async def _notify_admin_device_offline(self, device: AttendanceDevice, error_msg: str):
         """Notify admin about device being offline after repeated failures.

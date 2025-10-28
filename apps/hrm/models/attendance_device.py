@@ -39,12 +39,12 @@ class AttendanceDevice(BaseModel):
         verbose_name=_("Device name"),
         help_text=_("Human-readable name for the device"),
     )
-    branch_block = models.ForeignKey(
+    block = models.ForeignKey(
         "Block",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="attendance_devices",
-        verbose_name=_("Branch - Block"),
-        help_text=_("Branch and block where device is installed"),
+        verbose_name=_("Block"),
+        help_text=_("Block where device is installed"),
         null=True,
         blank=True,
     )
@@ -105,9 +105,7 @@ class AttendanceDevice(BaseModel):
     )
 
     def __str__(self):
-        """Return string representation showing device name and branch-block."""
-        if self.branch_block:
-            return f"{self.name} ({self.branch_block})"
+        """Return string representation showing device name."""
         return self.name
 
     def get_sync_start_time(self, lookback_days: int = 1):

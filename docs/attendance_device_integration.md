@@ -85,7 +85,7 @@ Stores configuration for physical attendance devices.
 
 **Key Fields:**
 - `name`: Human-readable device identifier
-- `branch_block`: ForeignKey to Block (branch and block location)
+- `block`: ForeignKey to Block (device location)
 - `ip_address`: Device network address
 - `port`: Network port (default: 4370)
 - `password`: Device authentication password
@@ -254,7 +254,18 @@ RECONNECT_BACKOFF_MULTIPLIER = 2       # Exponential backoff multiplier
 MAX_CONSECUTIVE_FAILURES = 5           # Alert threshold
 MAX_RETRY_DURATION = 86400             # Stop retrying after 1 day (24 hours)
 DEVICE_INFO_UPDATE_INTERVAL = 300      # Update device info every 5 minutes
+DEVICE_CHECK_INTERVAL = 60             # Check for new/enabled devices every 60 seconds
 ```
+
+**Dynamic Device Management:**
+
+The realtime listener supports adding and enabling devices dynamically without requiring a restart:
+
+1. **New device added**: Automatically detected and listener started within 60 seconds
+2. **Device re-enabled**: If a disabled device is enabled again, listener automatically starts
+3. **Reconnected device**: If realtime was disabled and is re-enabled (via admin or polling), listener automatically starts
+
+The listener checks every 60 seconds for new or newly-enabled devices and starts monitoring them automatically.
 
 **Automatic Realtime Disable/Re-enable:**
 
