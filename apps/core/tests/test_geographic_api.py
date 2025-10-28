@@ -286,3 +286,87 @@ class AdministrativeUnitAPITest(TransactionTestCase, APITestMixin):
             self.assertEqual(item["province_code"], "01")
             self.assertEqual(item["level"], AdministrativeUnit.UnitLevel.DISTRICT)
             self.assertTrue(item["enabled"])
+
+
+class NationalityAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for Nationality API endpoints"""
+
+    def setUp(self):
+        # Import here to avoid circular import
+        from apps.core.models import Nationality
+
+        # Clear all existing data for clean tests
+        Nationality.objects.all().delete()
+        User.objects.all().delete()
+
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        # Create test nationalities
+        self.nationality1 = Nationality.objects.create(name="Vietnamese")
+        self.nationality2 = Nationality.objects.create(name="American")
+        self.nationality3 = Nationality.objects.create(name="Japanese")
+
+    def test_list_nationalities(self):
+        """Test listing nationalities via API"""
+        url = reverse("core:nationality-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 3)
+
+    def test_list_nationalities_no_pagination(self):
+        """Test that nationality list has no pagination"""
+        url = reverse("core:nationality-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        # Response should be a list, not a paginated object
+        self.assertIsInstance(response_data, list)
+        self.assertNotIn("count", response_data if isinstance(response_data, dict) else {})
+
+    def test_search_nationalities(self):
+        """Test searching nationalities by name"""
+        url = reverse("core:nationality-list")
+        response = self.client.get(url, {"search": "Vietnamese"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], "Vietnamese")
+
+    def test_filter_nationalities_by_name(self):
+        """Test filtering nationalities by name (case-insensitive)"""
+        url = reverse("core:nationality-list")
+        response = self.client.get(url, {"name": "american"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["name"], "American")
+
+    def test_nationality_retrieve(self):
+        """Test retrieving a single nationality"""
+        url = reverse("core:nationality-detail", kwargs={"pk": self.nationality1.id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["name"], "Vietnamese")
+        self.assertIn("id", response_data)
+        self.assertIn("created_at", response_data)
+        self.assertIn("updated_at", response_data)
+
+    def test_nationality_ordering(self):
+        """Test that nationalities are ordered by name by default"""
+        url = reverse("core:nationality-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        # Check ordering (alphabetical by name)
+        names = [item["name"] for item in response_data]
+        self.assertEqual(names, ["American", "Japanese", "Vietnamese"])

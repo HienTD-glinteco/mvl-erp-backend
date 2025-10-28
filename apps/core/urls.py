@@ -8,6 +8,7 @@ from .api.views import (
     ConstantsView,
     ExportStatusView,
     LoginView,
+    NationalityViewSet,
     OTPVerificationView,
     PasswordChangeView,
     PasswordResetChangePasswordView,
@@ -26,6 +27,7 @@ router.register(r"roles", RoleViewSet, basename="role")
 router.register(r"permissions", PermissionViewSet, basename="permission")
 router.register(r"provinces", ProvinceViewSet, basename="province")
 router.register(r"administrative-units", AdministrativeUnitViewSet, basename="administrative-unit")
+router.register(r"nationalities", NationalityViewSet, basename="nationality")
 
 urlpatterns = [
     # Authentication endpoints
