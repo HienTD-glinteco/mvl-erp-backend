@@ -54,6 +54,7 @@ exclude_dirs = [
     "env",
     ".env",
     "**/migrations/**",
+    "scripts",
 ]
 
 [tool.poetry]

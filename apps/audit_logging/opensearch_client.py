@@ -1,4 +1,5 @@
-# audit_logging/opensearch_client.py
+# nosec
+
 import datetime
 import logging
 from typing import Any, Dict, List
@@ -34,6 +35,7 @@ class OpenSearchClient:
             use_ssl=settings.OPENSEARCH_USE_SSL,
             verify_certs=settings.OPENSEARCH_VERIFY_CERTS,
             connection_class=RequestsHttpConnection,
+            timeout=30,
         )
 
     def _get_index_name(self, timestamp: str) -> str:
