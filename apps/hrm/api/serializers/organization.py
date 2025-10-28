@@ -259,18 +259,23 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     """Serializer for Position model"""
 
+    data_scope_display = serializers.CharField(source="get_data_scope_display", read_only=True)
+
     class Meta:
         model = Position
         fields = [
             "id",
             "name",
             "code",
+            "data_scope",
+            "data_scope_display",
+            "is_leadership",
             "description",
             "is_active",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "code", "is_active", "created_at", "updated_at"]
+        read_only_fields = ["id", "code", "data_scope_display", "is_active", "created_at", "updated_at"]
 
 
 class OrganizationEmployeeNestedSerializer(serializers.ModelSerializer):
@@ -304,10 +309,27 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
     department_id = serializers.PrimaryKeyRelatedField(
         source="department",
         queryset=Department.objects.all(),
-        required=True,
+        required=False,
+        allow_null=True,
         write_only=True,
     )
     department = OrganizationDepartmentNestedSerializer(read_only=True)
+    block_id = serializers.PrimaryKeyRelatedField(
+        source="block",
+        queryset=Block.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
+    block = BlockSerializer(read_only=True)
+    branch_id = serializers.PrimaryKeyRelatedField(
+        source="branch",
+        queryset=Branch.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
+    branch = BranchSerializer(read_only=True)
 
     class Meta:
         model = OrganizationChart
@@ -319,6 +341,10 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
             "position",
             "department_id",
             "department",
+            "block_id",
+            "block",
+            "branch_id",
+            "branch",
             "start_date",
             "end_date",
             "is_primary",
@@ -333,11 +359,34 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
             "employee",
             "position",
             "department",
+            "block",
+            "branch",
             "is_active",
         ]
 
     def validate(self, attrs):
         """Custom validation for organization chart"""
+        # At least one of department, block, or branch must be specified
+        if not any([attrs.get("department"), attrs.get("block"), attrs.get("branch")]):
+            raise serializers.ValidationError(
+                _("At least one of department, block, or branch must be specified.")
+            )
+
+        # Validate consistency between department, block, and branch
+        department = attrs.get("department")
+        block = attrs.get("block")
+        branch = attrs.get("branch")
+
+        if department:
+            if block and block != department.block:
+                raise serializers.ValidationError({"block": _("Block must match the department's block.")})
+            if branch and branch != department.block.branch:
+                raise serializers.ValidationError({"branch": _("Branch must match the department's branch.")})
+
+        if block and not department:
+            if branch and branch != block.branch:
+                raise serializers.ValidationError({"branch": _("Branch must match the block's branch.")})
+
         # Ensure end_date is after start_date
         if attrs.get("end_date") and attrs.get("start_date"):
             if attrs["end_date"] <= attrs["start_date"]:
@@ -352,6 +401,8 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
     employee = serializers.SerializerMethodField()
     position = PositionSerializer(read_only=True)
     department = serializers.SerializerMethodField()
+    block = serializers.SerializerMethodField()
+    branch = serializers.SerializerMethodField()
 
     @extend_schema_field(serializers.DictField())
     def get_employee(self, obj):
@@ -366,6 +417,8 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
     @extend_schema_field(serializers.DictField())
     def get_department(self, obj):
         """Get department with block info"""
+        if not obj.department:
+            return None
         return {
             "id": obj.department.id,
             "name": obj.department.name,
@@ -382,4 +435,32 @@ class OrganizationChartDetailSerializer(OrganizationChartSerializer):
                     "code": obj.department.block.branch.code,
                 },
             },
+        }
+
+    @extend_schema_field(serializers.DictField())
+    def get_block(self, obj):
+        """Get block info"""
+        if not obj.block:
+            return None
+        return {
+            "id": obj.block.id,
+            "name": obj.block.name,
+            "code": obj.block.code,
+            "block_type": obj.block.block_type,
+            "branch": {
+                "id": obj.block.branch.id,
+                "name": obj.block.branch.name,
+                "code": obj.block.branch.code,
+            },
+        }
+
+    @extend_schema_field(serializers.DictField())
+    def get_branch(self, obj):
+        """Get branch info"""
+        if not obj.branch:
+            return None
+        return {
+            "id": obj.branch.id,
+            "name": obj.branch.name,
+            "code": obj.branch.code,
         }
