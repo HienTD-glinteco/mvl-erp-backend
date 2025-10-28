@@ -15,6 +15,9 @@ class EmployeeFilterSet(django_filters.FilterSet):
         field_name="status",
         choices=Employee.Status.choices,
     )
+    position__is_leadership = django_filters.BooleanFilter()
+    is_onboarding_email_sent = django_filters.BooleanFilter()
+    date_of_birth__month = django_filters.NumberFilter(field_name="date_of_birth", lookup_expr="month")
 
     class Meta:
         model = Employee
@@ -34,4 +37,7 @@ class EmployeeFilterSet(django_filters.FilterSet):
             "statuses",
             "gender",
             "marital_status",
+            "position__is_leadership",
+            "is_onboarding_email_sent",
+            "date_of_birth__month",
         ]

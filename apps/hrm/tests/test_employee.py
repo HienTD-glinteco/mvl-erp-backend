@@ -1054,3 +1054,251 @@ class EmployeeAPITest(TestCase, APITestMixin):
         # Verify the update persisted
         employee.refresh_from_db()
         self.assertTrue(employee.is_onboarding_email_sent)
+
+
+class EmployeeFilterTest(TestCase, APITestMixin):
+    """Test cases for Employee API filters"""
+
+    def setUp(self):
+        """Set up test data"""
+        from datetime import date
+
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Position
+
+        self.admin_user = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="testpass123",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin_user)
+
+        # Create test organizational structure
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Test Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001",
+            name="Test Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        self.department = Department.objects.create(
+            code="PB001",
+            name="Test Department",
+            branch=self.branch,
+            block=self.block,
+        )
+
+        # Create positions with different is_leadership values
+        self.leadership_position = Position.objects.create(
+            name="Manager",
+            code="MGR",
+            is_leadership=True,
+        )
+        self.regular_position = Position.objects.create(
+            name="Staff",
+            code="STF",
+            is_leadership=False,
+        )
+
+        # Create employees with different positions and attributes
+        self.leader_employee = Employee.objects.create(
+            fullname="Leader One",
+            username="leader001",
+            email="leader1@example.com",
+            phone="1111111111",
+            attendance_code="LDR001",
+            date_of_birth=date(1985, 3, 15),
+            start_date=date(2020, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.leadership_position,
+            is_onboarding_email_sent=True,
+        )
+
+        self.staff_employee = Employee.objects.create(
+            fullname="Staff One",
+            username="staff001",
+            email="staff1@example.com",
+            phone="2222222222",
+            attendance_code="STF001",
+            date_of_birth=date(1990, 3, 20),
+            start_date=date(2021, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.regular_position,
+            is_onboarding_email_sent=False,
+        )
+
+        self.onboarding_employee = Employee.objects.create(
+            fullname="Onboarding Employee",
+            username="onboarding001",
+            email="onboarding1@example.com",
+            phone="3333333333",
+            attendance_code="ONB001",
+            date_of_birth=date(1992, 6, 10),
+            start_date=date(2024, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.regular_position,
+            is_onboarding_email_sent=True,
+        )
+
+        self.march_birthday_employee = Employee.objects.create(
+            fullname="March Birthday",
+            username="march001",
+            email="march1@example.com",
+            phone="4444444444",
+            attendance_code="MAR001",
+            date_of_birth=date(1988, 3, 5),
+            start_date=date(2019, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.leadership_position,
+            is_onboarding_email_sent=False,
+        )
+
+    def test_filter_by_position_is_leadership_true(self):
+        """Test filtering employees by leadership positions"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"position__is_leadership": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 2)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+
+    def test_filter_by_position_is_leadership_false(self):
+        """Test filtering employees by non-leadership positions"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"position__is_leadership": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 2)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_filter_by_is_onboarding_email_sent_true(self):
+        """Test filtering employees who received onboarding email"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"is_onboarding_email_sent": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 2)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_filter_by_is_onboarding_email_sent_false(self):
+        """Test filtering employees who did not receive onboarding email"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"is_onboarding_email_sent": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 2)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+
+    def test_filter_by_date_of_birth_month_march(self):
+        """Test filtering employees born in March (month 3)"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"date_of_birth__month": "3"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 3)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+
+    def test_filter_by_date_of_birth_month_june(self):
+        """Test filtering employees born in June (month 6)"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"date_of_birth__month": "6"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 1)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_combined_filter_leadership_and_onboarding(self):
+        """Test combining leadership and onboarding email filters"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"position__is_leadership": "true", "is_onboarding_email_sent": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 1)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_combined_filter_leadership_and_birth_month(self):
+        """Test combining leadership and birth month filters"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"position__is_leadership": "true", "date_of_birth__month": "3"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 2)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
