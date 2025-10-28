@@ -30,10 +30,10 @@ class AttendanceDeviceService:
 
     Attributes:
         device: AttendanceDevice model instance
-        timeout: Connection timeout in seconds (default: 5)
+        timeout: Connection timeout in seconds (default: 60)
     """
 
-    def __init__(self, device: AttendanceDevice, timeout: int = 5):
+    def __init__(self, device: AttendanceDevice, timeout: int = 60):
         """Initialize service with device instance.
 
         Args:

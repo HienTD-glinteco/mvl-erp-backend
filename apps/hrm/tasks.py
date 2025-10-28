@@ -13,9 +13,10 @@ from apps.hrm.services import AttendanceDeviceConnectionError, AttendanceDeviceS
 logger = logging.getLogger(__name__)
 
 # Constants
-SYNC_RETRY_DELAY = 600  # 10 minutes
+SYNC_RETRY_DELAY = 300  # 5 minutes
 SYNC_MAX_RETRIES = 3
 SYNC_DEFAULT_LOOKBACK_DAYS = 1  # Default to sync last 1 day of logs
+BULK_CREATE_BATCH_SIZE = 1000  # Number of records to create in each batch
 
 
 @shared_task(bind=True, max_retries=SYNC_MAX_RETRIES)
@@ -93,15 +94,16 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, any]:
                     # Group logs by attendance_code for efficient querying
                     attendance_codes = {log["user_id"] for log in today_logs}
 
-                    # Fetch all existing records for these attendance codes today
-                    existing_records = AttendanceRecord.objects.filter(
+                    # Fetch existing records using iterator to avoid loading all into memory
+                    # This prevents issues when dealing with large datasets (e.g., 50k records)
+                    existing_records_query = AttendanceRecord.objects.filter(
                         device=device,
                         attendance_code__in=attendance_codes,
                         timestamp__gte=today_start,
                     ).values_list("attendance_code", "timestamp")
-
-                    # Create set of (attendance_code, timestamp) tuples for fast lookup
-                    existing_set = {(code, ts) for code, ts in existing_records}
+                    
+                    # Use iterator to fetch records in chunks, reducing memory usage
+                    existing_set = {(code, ts) for code, ts in existing_records_query.iterator(chunk_size=1000)}
 
                     # Determine which logs are missing
                     records_to_create = []
@@ -122,9 +124,9 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, any]:
                                 )
                             )
 
-                    # Bulk create all missing records
+                    # Bulk create all missing records in batches
                     if records_to_create:
-                        AttendanceRecord.objects.bulk_create(records_to_create)
+                        AttendanceRecord.objects.bulk_create(records_to_create, batch_size=BULK_CREATE_BATCH_SIZE)
                         logs_synced = len(records_to_create)
                         logger.info(f"Created {logs_synced} new attendance records for device {device.name}")
                     else:
@@ -209,8 +211,8 @@ def sync_all_attendance_devices() -> dict[str, any]:
     logger.info("Starting periodic attendance log sync for all devices")
 
     # Get all enabled devices
-    devices = AttendanceDevice.objects.filter(is_enabled=True)
-    total_devices = devices.count()
+    devices = list(AttendanceDevice.objects.filter(is_enabled=True))
+    total_devices = len(devices)
 
     logger.info(f"Found {total_devices} enabled attendance device(s) to sync")
 

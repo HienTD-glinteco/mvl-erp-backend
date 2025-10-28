@@ -182,7 +182,7 @@ CELERY_BEAT_SCHEDULE = {
 Use the provided manual test script:
 
 ```bash
-poetry run python -m apps.hrm.manual_test_attendance_sync
+poetry run python scripts/manual_test_attendance_sync.py
 ```
 
 **Features:**

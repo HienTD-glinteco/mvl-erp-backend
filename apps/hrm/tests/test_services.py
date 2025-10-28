@@ -56,7 +56,7 @@ class TestAttendanceDeviceService(TestCase):
         mock_zk_class.assert_called_once_with(
             "192.168.1.100",
             port=4370,
-            timeout=5,
+            timeout=60,
             password="admin123",
             ommit_ping=False,
         )
@@ -371,7 +371,7 @@ class TestAttendanceDeviceService(TestCase):
         mock_zk_class.assert_called_once_with(
             "192.168.1.101",
             port=4370,
-            timeout=5,
+            timeout=60,
             password=0,
             ommit_ping=False,
         )
