@@ -105,7 +105,7 @@ fastexcel = "^0.16.0"
 nh3 = "^0.3.1"
 
 # Attendance device integration
-pyzk = "^0.9.1"
+pyzk = "^0.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

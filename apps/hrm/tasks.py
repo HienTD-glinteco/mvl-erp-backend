@@ -1,12 +1,12 @@
 """Celery tasks for HRM attendance synchronization."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from celery import shared_task
+from celery.exceptions import Retry
 from django.db import transaction
 from django.utils import timezone as django_timezone
-from django.utils.translation import gettext as _
 
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
 from apps.hrm.services import AttendanceDeviceConnectionError, AttendanceDeviceService
@@ -98,11 +98,15 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, any]:
                         ).exists()
 
                         if not existing:
+                            # Convert datetime to ISO format for JSON storage
+                            raw_data = log.copy()
+                            raw_data["timestamp"] = log["timestamp"].isoformat()
+
                             AttendanceRecord.objects.create(
                                 device=device,
                                 attendance_code=log["user_id"],
                                 timestamp=log["timestamp"],
-                                raw_data=log,
+                                raw_data=raw_data,
                             )
                             logs_synced += 1
                         else:
@@ -147,6 +151,10 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, any]:
             )
 
             raise self.retry(exc=e, countdown=retry_countdown)
+
+    except Retry:
+        # Re-raise Retry exceptions so they propagate correctly
+        raise
 
     except Exception as e:
         # Unexpected error - log and return failure

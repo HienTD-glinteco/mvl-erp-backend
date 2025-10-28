@@ -1,11 +1,10 @@
 """Tests for HRM attendance device service."""
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from django.test import TestCase
-from django.utils.translation import gettext as _
 
 from apps.hrm.models import AttendanceDevice
 from apps.hrm.services import AttendanceDeviceConnectionError, AttendanceDeviceService
