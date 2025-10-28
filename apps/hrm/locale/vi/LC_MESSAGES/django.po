@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 14:59+0700\n"
+"POT-Creation-Date: 2025-10-28 17:52+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -254,82 +254,98 @@ msgstr "Tên nguồn"
 msgid "Human-readable name for the device"
 msgstr ""
 
-# models/organization.py:189
-#: apps/hrm/models/attendance_device.py:45
-#: apps/hrm/models/interview_schedule.py:29
-#, fuzzy
-#| msgid "Position"
-msgid "Location"
-msgstr "Chức vụ"
+# models/organization.py:45
+#: apps/hrm/models/attendance_device.py:46 apps/hrm/models/employee.py:145
+#: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
+#: apps/hrm/models/recruitment_candidate.py:73
+#: apps/hrm/models/recruitment_request.py:62
+msgid "Block"
+msgstr "Khối"
 
-#: apps/hrm/models/attendance_device.py:46
-msgid "Physical location where device is installed"
+#: apps/hrm/models/attendance_device.py:47
+msgid "Block where device is installed"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:50
+#: apps/hrm/models/attendance_device.py:53
 msgid "IP address or domain"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:51
+#: apps/hrm/models/attendance_device.py:54
 msgid "Network address for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:55
+#: apps/hrm/models/attendance_device.py:58
 msgid "Port"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:56
+#: apps/hrm/models/attendance_device.py:59
 msgid "Network port for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:61
+#: apps/hrm/models/attendance_device.py:64
 msgid "Password"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:62
+#: apps/hrm/models/attendance_device.py:65
 msgid "Authentication password for device access"
 msgstr ""
 
 # models/organization.py:12
-#: apps/hrm/models/attendance_device.py:67
+#: apps/hrm/models/attendance_device.py:70
 #, fuzzy
 #| msgid "Phone number"
 msgid "Serial number"
 msgstr "Số điện thoại"
 
-#: apps/hrm/models/attendance_device.py:68
+#: apps/hrm/models/attendance_device.py:71
 msgid "Manufacturer's device serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:73
+#: apps/hrm/models/attendance_device.py:76
 msgid "Registration number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:74
+#: apps/hrm/models/attendance_device.py:77
 msgid "Device registration or license number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:78
+#: apps/hrm/models/attendance_device.py:81
 msgid "Is enabled"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:79
+#: apps/hrm/models/attendance_device.py:82
 msgid "Whether the device is enabled for automatic synchronization"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:83
+#: apps/hrm/models/attendance_device.py:86
 msgid "Connection status"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:84
+#: apps/hrm/models/attendance_device.py:87
 msgid "Whether the device is currently online and reachable"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:89
+#: apps/hrm/models/attendance_device.py:91
+msgid "Realtime enabled"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:92
+msgid "Whether realtime listener is enabled for this device"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:97
+msgid "Realtime disabled at"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:98
+msgid "Timestamp when realtime was disabled due to connection failures"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:103
 msgid "Last polling sync"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:90
+#: apps/hrm/models/attendance_device.py:104
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
@@ -374,11 +390,27 @@ msgstr ""
 msgid "Date and time when attendance was recorded"
 msgstr ""
 
+#: apps/hrm/models/attendance_record.py:58
+msgid "Is valid"
+msgstr ""
+
 #: apps/hrm/models/attendance_record.py:59
+msgid "Whether this attendance record is valid"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:63
+msgid "Notes"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:64
+msgid "Additional notes or comments about this attendance record"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:69
 msgid "Raw data"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:60
+#: apps/hrm/models/attendance_record.py:70
 msgid "Complete raw data from device for debugging purposes"
 msgstr ""
 
@@ -528,14 +560,6 @@ msgstr "Email"
 #: apps/hrm/models/recruitment_request.py:54
 msgid "Branch"
 msgstr "Chi nhánh"
-
-# models/organization.py:45
-#: apps/hrm/models/employee.py:145 apps/hrm/models/organization.py:71
-#: apps/hrm/models/organization.py:104
-#: apps/hrm/models/recruitment_candidate.py:73
-#: apps/hrm/models/recruitment_request.py:62
-msgid "Block"
-msgstr "Khối"
 
 # models/organization.py:102
 #: apps/hrm/models/employee.py:151 apps/hrm/models/organization.py:133
@@ -751,6 +775,13 @@ msgstr "Yêu cầu tuyển dụng"
 #| msgid "Recruitment type"
 msgid "Interview type"
 msgstr "Kênh tuyển dụng"
+
+# models/organization.py:189
+#: apps/hrm/models/interview_schedule.py:29
+#, fuzzy
+#| msgid "Position"
+msgid "Location"
+msgstr "Chức vụ"
 
 #: apps/hrm/models/interview_schedule.py:36
 msgid "Interviewers"

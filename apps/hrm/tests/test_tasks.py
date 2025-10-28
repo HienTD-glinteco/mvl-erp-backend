@@ -21,12 +21,11 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         """Set up test data."""
         self.device = AttendanceDevice.objects.create(
             name="Test Device",
-            location="Main Office",
             ip_address="192.168.1.100",
             port=4370,
         )
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_success_with_new_logs(self, mock_service_class):
         """Test successful sync with new logs."""
         # Arrange
@@ -74,7 +73,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         self.assertTrue(self.device.is_connected)
         self.assertIsNotNone(self.device.polling_synced_at)
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_skips_duplicates(self, mock_service_class):
         """Test that duplicate records are not created."""
         # Arrange
@@ -113,7 +112,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         self.assertEqual(result["logs_synced"], 0)  # No new logs synced
         self.assertEqual(AttendanceRecord.objects.count(), 1)  # Still only 1 record
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_filters_current_day_only(self, mock_service_class):
         """Test that only current day logs are synced."""
         # Arrange
@@ -153,7 +152,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         self.assertEqual(AttendanceRecord.objects.count(), 1)
         self.assertEqual(AttendanceRecord.objects.first().attendance_code, "100")
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_uses_last_sync_time(self, mock_service_class):
         """Test that sync uses last polling_synced_at time."""
         # Arrange
@@ -176,7 +175,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         call_args = mock_service.get_attendance_logs.call_args
         self.assertEqual(call_args[1]["start_datetime"], last_sync)
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_uses_default_lookback_when_no_last_sync(self, mock_service_class):
         """Test that sync uses default lookback when no last sync time."""
         # Arrange
@@ -204,7 +203,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         delta = abs((start_dt - expected).total_seconds())
         self.assertLess(delta, 5)  # Within 5 seconds
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_connection_error_updates_status(self, mock_service_class):
         """Test that connection error updates device status to disconnected."""
         # Arrange
@@ -229,7 +228,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         self.device.refresh_from_db()
         self.assertFalse(self.device.is_connected)
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_saves_raw_data(self, mock_service_class):
         """Test that raw_data is saved with attendance record."""
         # Arrange
@@ -270,7 +269,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         self.assertEqual(result["device_id"], 99999)
         self.assertIn("does not exist", result["error"])
 
-    @patch("apps.hrm.tasks.AttendanceDeviceService")
+    @patch("apps.hrm.tasks.attendances.AttendanceDeviceService")
     def test_sync_empty_logs(self, mock_service_class):
         """Test sync with no logs from device."""
         # Arrange
@@ -309,7 +308,7 @@ class TestSyncAllAttendanceDevices(TestCase):
             ip_address="192.168.1.101",
         )
 
-    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_triggers_individual_tasks(self, mock_sync_task):
         """Test that sync_all triggers individual sync tasks."""
         # Arrange
@@ -327,7 +326,7 @@ class TestSyncAllAttendanceDevices(TestCase):
         # Verify delay was called for each device
         self.assertEqual(mock_sync_task.delay.call_count, 2)
 
-    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_with_no_devices(self, mock_sync_task):
         """Test sync_all when no devices exist."""
         # Arrange
@@ -342,7 +341,7 @@ class TestSyncAllAttendanceDevices(TestCase):
         self.assertEqual(result["device_ids"], [])
         mock_sync_task.delay.assert_not_called()
 
-    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_handles_task_trigger_error(self, mock_sync_task):
         """Test that sync_all handles errors when triggering individual tasks."""
         # Arrange
@@ -359,7 +358,7 @@ class TestSyncAllAttendanceDevices(TestCase):
         self.assertEqual(result["tasks_triggered"], 1)  # Only one succeeded
         self.assertEqual(len(result["device_ids"]), 1)
 
-    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_with_single_device(self, mock_sync_task):
         """Test sync_all with single device."""
         # Arrange
@@ -374,7 +373,7 @@ class TestSyncAllAttendanceDevices(TestCase):
         self.assertEqual(result["tasks_triggered"], 1)
         mock_sync_task.delay.assert_called_once_with(self.device1.id)
 
-    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")
     def test_sync_all_filters_disabled_devices(self, mock_sync_task):
         """Test that sync_all only processes enabled devices."""
         # Arrange

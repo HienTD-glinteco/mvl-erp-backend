@@ -39,11 +39,14 @@ class AttendanceDevice(BaseModel):
         verbose_name=_("Device name"),
         help_text=_("Human-readable name for the device"),
     )
-    location = models.CharField(
-        max_length=255,
+    block = models.ForeignKey(
+        "Block",
+        on_delete=models.CASCADE,
+        related_name="attendance_devices",
+        verbose_name=_("Block"),
+        help_text=_("Block where device is installed"),
+        null=True,
         blank=True,
-        verbose_name=_("Location"),
-        help_text=_("Physical location where device is installed"),
     )
     ip_address = models.CharField(
         max_length=255,
@@ -83,6 +86,17 @@ class AttendanceDevice(BaseModel):
         verbose_name=_("Connection status"),
         help_text=_("Whether the device is currently online and reachable"),
     )
+    realtime_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_("Realtime enabled"),
+        help_text=_("Whether realtime listener is enabled for this device"),
+    )
+    realtime_disabled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Realtime disabled at"),
+        help_text=_("Timestamp when realtime was disabled due to connection failures"),
+    )
     polling_synced_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -91,9 +105,7 @@ class AttendanceDevice(BaseModel):
     )
 
     def __str__(self):
-        """Return string representation showing device name and location."""
-        if self.location:
-            return f"{self.name} ({self.location})"
+        """Return string representation showing device name."""
         return self.name
 
     def get_sync_start_time(self, lookback_days: int = 1):
@@ -110,7 +122,20 @@ class AttendanceDevice(BaseModel):
         """Update device status after successful sync."""
         self.is_connected = True
         self.polling_synced_at = timezone.now()
-        self.save(update_fields=["is_connected", "polling_synced_at", "updated_at"])
+        # Re-enable realtime if it was disabled
+        if not self.realtime_enabled:
+            self.realtime_enabled = True
+            self.realtime_disabled_at = None
+            logger.info(f"Re-enabled realtime for device {self.name} after successful polling sync")
+        self.save(
+            update_fields=[
+                "is_connected",
+                "polling_synced_at",
+                "realtime_enabled",
+                "realtime_disabled_at",
+                "updated_at",
+            ]
+        )
 
     def mark_sync_failed(self):
         """Update device status after failed connection."""
