@@ -96,9 +96,13 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(AttendanceDevice.objects.count(), 0)
 
-        # Check error message
+        # Check generic error message is returned (not the detailed one)
         content = json.loads(response.content.decode())
         self.assertIn("error", content)
+        # The error message should be generic, not exposing stack traces
+        error_data = content.get("error", {})
+        if "ip_address" in error_data:
+            self.assertIn("Unable to connect", str(error_data["ip_address"]))
 
     @patch("apps.hrm.api.serializers.attendance_device.AttendanceDeviceService")
     def test_list_attendance_devices(self, mock_service):

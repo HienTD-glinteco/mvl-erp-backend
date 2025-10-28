@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import AttendanceDevice
@@ -73,7 +74,9 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         is_connected, message = service.test_connection()
 
         if not is_connected:
-            raise serializers.ValidationError({"ip_address": message})
+            # Don't expose detailed error messages that might contain stack traces
+            error_msg = _("Unable to connect to device. Please check IP address, port, and password.")
+            raise serializers.ValidationError({"ip_address": error_msg})
 
         # If connection successful, get device details
         try:
