@@ -2,7 +2,6 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q, QuerySet
@@ -35,7 +34,7 @@ class AllowedUnits:
             self.employees = set()
 
 
-def collect_allowed_units(user: User) -> AllowedUnits:
+def collect_allowed_units(user: User) -> AllowedUnits:  # noqa: C901
     """
     Collect allowed organizational units based on user's positions and their data scopes.
 
@@ -51,9 +50,9 @@ def collect_allowed_units(user: User) -> AllowedUnits:
     allowed = AllowedUnits()
 
     # Get all active assignments for the user
-    assignments = user.organization_positions.filter(
-        is_active=True, end_date__isnull=True
-    ).select_related("position", "department__block__branch", "block__branch", "branch")
+    assignments = user.organization_positions.filter(is_active=True, end_date__isnull=True).select_related(
+        "position", "department__block__branch", "block__branch", "branch"
+    )
 
     for assignment in assignments:
         position = assignment.position
@@ -132,7 +131,7 @@ def collect_allowed_units(user: User) -> AllowedUnits:
     return allowed
 
 
-def filter_queryset_by_data_scope(
+def filter_queryset_by_data_scope(  # noqa: C901
     queryset: QuerySet, user: User, org_field: str = "department"
 ) -> QuerySet:
     """
@@ -226,9 +225,7 @@ def filter_queryset_by_data_scope(
                 continue
 
     if not q_filter:
-        logger.error(
-            "Failed to build filter for org_field=%s - returning empty queryset", org_field
-        )
+        logger.error("Failed to build filter for org_field=%s - returning empty queryset", org_field)
         return queryset.none()
 
     filtered_qs = queryset.filter(q_filter).distinct()

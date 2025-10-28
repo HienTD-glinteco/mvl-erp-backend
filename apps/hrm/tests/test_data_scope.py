@@ -25,9 +25,7 @@ class PositionDataScopeTest(TestCase):
 
     def test_create_position_with_custom_data_scope(self):
         """Test creating a position with custom data scope"""
-        position = Position.objects.create(
-            name="CEO", code="CEO", data_scope=DataScope.ALL, is_leadership=True
-        )
+        position = Position.objects.create(name="CEO", code="CEO", data_scope=DataScope.ALL, is_leadership=True)
         self.assertEqual(position.data_scope, DataScope.ALL)
         self.assertTrue(position.is_leadership)
 
@@ -242,9 +240,7 @@ class DataScopeFilteringTest(TestCase):
 
         # Positions with different data scopes
         self.pos_all = Position.objects.create(name="CEO", code="CEO", data_scope=DataScope.ALL)
-        self.pos_branch = Position.objects.create(
-            name="Branch Director", code="BD", data_scope=DataScope.BRANCH
-        )
+        self.pos_branch = Position.objects.create(name="Branch Director", code="BD", data_scope=DataScope.BRANCH)
         self.pos_block = Position.objects.create(name="Block Head", code="BH", data_scope=DataScope.BLOCK)
         self.pos_dept = Position.objects.create(name="Dept Manager", code="DM", data_scope=DataScope.DEPARTMENT)
         self.pos_self = Position.objects.create(name="Employee", code="EMP", data_scope=DataScope.SELF)
@@ -361,9 +357,11 @@ class DataScopeFilteringTest(TestCase):
         filtered = filter_queryset_by_data_scope(qs, self.user_bd1, org_field="department")
 
         # Should see all assignments in branch1
-        branch1_assignments = filtered.filter(
-            department__block__branch=self.branch1
-        ).count() + filtered.filter(block__branch=self.branch1).count() + filtered.filter(branch=self.branch1).count()
+        branch1_assignments = (
+            filtered.filter(department__block__branch=self.branch1).count()
+            + filtered.filter(block__branch=self.branch1).count()
+            + filtered.filter(branch=self.branch1).count()
+        )
         self.assertGreater(branch1_assignments, 0)
 
     def test_superuser_bypasses_filtering(self):

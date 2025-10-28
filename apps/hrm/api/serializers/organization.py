@@ -203,7 +203,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             ]
         return []
 
-    def validate(self, attrs):
+    def validate(self, attrs):  # noqa: C901
         """
         Delegate validation to model's clean() method to avoid duplication.
         This ensures consistent validation across all entry points.
@@ -368,9 +368,7 @@ class OrganizationChartSerializer(serializers.ModelSerializer):
         """Custom validation for organization chart"""
         # At least one of department, block, or branch must be specified
         if not any([attrs.get("department"), attrs.get("block"), attrs.get("branch")]):
-            raise serializers.ValidationError(
-                _("At least one of department, block, or branch must be specified.")
-            )
+            raise serializers.ValidationError(_("At least one of department, block, or branch must be specified."))
 
         # Validate consistency between department, block, and branch
         department = attrs.get("department")
