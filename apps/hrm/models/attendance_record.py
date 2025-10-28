@@ -23,7 +23,6 @@ class AttendanceRecord(BaseModel):
         device: Foreign key to AttendanceDevice that captured this record
         attendance_code: User ID from device (matches Employee.attendance_code)
         timestamp: Date and time when attendance was recorded
-        status: Authentication status code from device
         raw_data: JSON field storing complete raw data from device for debugging
     """
 
@@ -53,10 +52,6 @@ class AttendanceRecord(BaseModel):
     timestamp = models.DateTimeField(
         verbose_name=_("Timestamp"),
         help_text=_("Date and time when attendance was recorded"),
-    )
-    status = models.IntegerField(
-        verbose_name=_("Authentication status"),
-        help_text=_("Authentication status code from device"),
     )
     raw_data = models.JSONField(
         null=True,

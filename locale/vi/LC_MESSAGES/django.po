@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-23 16:02+0700\n"
+"POT-Creation-Date: 2025-10-28 13:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -481,13 +481,22 @@ msgid ""
 "'token123'})"
 msgstr ""
 
-#: libs/export_xlsx/mixins.py:82
+#: libs/export_xlsx/mixins.py:100
 msgid "Async export is not enabled"
 msgstr ""
 
-#: libs/export_xlsx/mixins.py:140
+#: libs/export_xlsx/mixins.py:110
+msgid "Invalid delivery parameter; allowed: link, direct"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:170
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
+msgstr ""
+
+#: libs/export_xlsx/mixins.py:268
+#, python-brace-format
+msgid "Failed to upload file to S3: {error}"
 msgstr ""
 
 #: libs/import_xlsx/import_mixin.py:377
