@@ -1,7 +1,6 @@
 """Storage utilities for handling S3 paths with storage prefix support."""
 
 import logging
-from typing import Optional
 
 from django.conf import settings
 from django.core.files.storage import default_storage

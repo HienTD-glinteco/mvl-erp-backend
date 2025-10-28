@@ -96,9 +96,9 @@ class AsyncImportProgressMixin:
 
         # Get handler path
         handler_path = options.get("handler_path") or self.get_import_handler_path()
-        
+
         # Check if using ViewSet method handler
-        if handler_path is None and hasattr(self, '_process_import_data_row'):
+        if handler_path is None and hasattr(self, "_process_import_data_row"):
             # Store ViewSet class path and method name for worker to reconstruct
             viewset_class_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
             options["handler_path"] = None
@@ -150,7 +150,7 @@ class AsyncImportProgressMixin:
         Get the import handler path.
 
         Override this method to provide dynamic handler path.
-        
+
         If the ViewSet defines a _process_import_data_row method, it will be used
         automatically. Otherwise, falls back to the import_row_handler attribute.
 
@@ -158,11 +158,11 @@ class AsyncImportProgressMixin:
             str: Dotted path to import handler function, or None if using method handler
         """
         # Check if ViewSet has _process_import_data_row method defined
-        if hasattr(self, '_process_import_data_row') and callable(getattr(self, '_process_import_data_row')):
+        if hasattr(self, "_process_import_data_row") and callable(self._process_import_data_row):
             # Return None to signal that we'll use the method directly
             # The actual method will be stored differently
             return None
-        
+
         return self.import_row_handler
 
 

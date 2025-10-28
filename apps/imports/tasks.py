@@ -39,7 +39,6 @@ class ImportCancelled(Exception):
     pass
 
 
-
 def resolve_handler(handler_path: str) -> Callable:
     """
     Resolve handler function from dotted path.
@@ -101,24 +100,24 @@ def import_job_task(self, import_job_id: str) -> dict:
         # Get handler from options
         handler = None
         options = job.options or {}
-        
+
         # Check if using ViewSet method handler
         if options.get("use_viewset_method"):
             viewset_class_path = options.get("viewset_class_path")
             if not viewset_class_path:
                 raise ValueError("ViewSet class path not found for method handler")
-            
+
             # Resolve ViewSet class and instantiate it
             try:
                 module_path, class_name = viewset_class_path.rsplit(".", 1)
                 module = importlib.import_module(module_path)
                 viewset_class = getattr(module, class_name)
-                
+
                 # Create a minimal ViewSet instance (without request context)
                 viewset_instance = viewset_class()
-                
+
                 # Get the method handler
-                if hasattr(viewset_instance, '_process_import_data_row'):
+                if hasattr(viewset_instance, "_process_import_data_row"):
                     handler = viewset_instance._process_import_data_row
                 else:
                     raise ValueError(f"ViewSet {viewset_class_path} does not have _process_import_data_row method")
@@ -129,7 +128,7 @@ def import_job_task(self, import_job_id: str) -> dict:
             handler_path = options.get("handler_path")
             if not handler_path:
                 raise ValueError(ERROR_MISSING_HANDLER)
-            
+
             # Resolve handler
             handler = resolve_handler(handler_path)
 
@@ -147,9 +146,9 @@ def import_job_task(self, import_job_id: str) -> dict:
         # Get the correct file path for storage backend
         # If AWS_LOCATION is set, file_path may already include it, so strip it to avoid duplication
         file_path = file_obj.file_path
-        aws_location = getattr(settings, 'AWS_LOCATION', None)
+        aws_location = getattr(settings, "AWS_LOCATION", None)
         if aws_location and file_path.startswith(f"{aws_location}/"):
-            file_path = file_path[len(aws_location) + 1:]
+            file_path = file_path[len(aws_location) + 1 :]
 
         # Count total rows if requested
         total_rows = None

@@ -201,43 +201,43 @@ class TestImportMixinWithMethodHandler:
     def test_viewset_method_handler_detection(self):
         """Test that ViewSet method handler is detected."""
         from apps.imports.api.mixins import AsyncImportProgressMixin
-        
+
         # Create a test ViewSet with method handler
         class TestViewSet(AsyncImportProgressMixin):
             def _process_import_data_row(self, row_index, row, import_job_id, options):
                 return {"ok": True, "result": {"id": row_index}}
-        
+
         viewset = TestViewSet()
-        
+
         # Should return None when method is defined
         assert viewset.get_import_handler_path() is None
-        
+
         # Should have the method
-        assert hasattr(viewset, '_process_import_data_row')
+        assert hasattr(viewset, "_process_import_data_row")
         assert callable(viewset._process_import_data_row)
 
     def test_viewset_method_handler_storage_in_options(self):
         """Test that ViewSet method handler info is stored in options."""
         from apps.imports.api.mixins import AsyncImportProgressMixin
-        
+
         # Create a test ViewSet with method handler
         class TestViewSet(AsyncImportProgressMixin):
             def _process_import_data_row(self, row_index, row, import_job_id, options):
                 return {"ok": True, "result": {"id": row_index}}
-        
+
         viewset = TestViewSet()
-        
+
         # Simulate the logic from start_import
         options = {}
         handler_path = viewset.get_import_handler_path()
-        
+
         # Check if using ViewSet method handler
-        if handler_path is None and hasattr(viewset, '_process_import_data_row'):
+        if handler_path is None and hasattr(viewset, "_process_import_data_row"):
             viewset_class_path = f"{viewset.__class__.__module__}.{viewset.__class__.__name__}"
             options["handler_path"] = None
             options["viewset_class_path"] = viewset_class_path
             options["use_viewset_method"] = True
-        
+
         # Verify options were set correctly
         assert options.get("use_viewset_method") is True
         assert options.get("viewset_class_path") is not None
