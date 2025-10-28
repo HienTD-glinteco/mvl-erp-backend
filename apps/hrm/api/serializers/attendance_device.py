@@ -18,7 +18,7 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         fields = [
             "id",
             "name",
-            "location",
+            "block",
             "ip_address",
             "port",
             "password",
@@ -26,6 +26,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "registration_number",
             "is_enabled",
             "is_connected",
+            "realtime_enabled",
+            "realtime_disabled_at",
             "polling_synced_at",
             "created_at",
             "updated_at",
@@ -35,6 +37,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "serial_number",
             "registration_number",
             "is_connected",
+            "realtime_enabled",
+            "realtime_disabled_at",
             "polling_synced_at",
             "created_at",
             "updated_at",
@@ -61,8 +65,6 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             password = password or self.instance.password
 
         # Create temporary device object for connection testing
-        from apps.hrm.models import AttendanceDevice
-
         temp_device = AttendanceDevice(
             ip_address=ip_address,
             port=port,
@@ -74,28 +76,27 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         is_connected, message = service.test_connection()
 
         if not is_connected:
-            # Don't expose detailed error messages that might contain stack traces
-            error_msg = _("Unable to connect to device. Please check IP address, port, and password.")
-            raise serializers.ValidationError({"ip_address": error_msg})
+            # Device not ready, just set is_connected to False
+            attrs["is_connected"] = False
+        else:
+            # If connection successful, get device details
+            try:
+                with service:
+                    if service._zk_connection:
+                        # Get serial number and registration number from device
+                        serial = service._zk_connection.get_serialnumber()
+                        if serial:
+                            attrs["serial_number"] = serial
 
-        # If connection successful, get device details
-        try:
-            with service:
-                if service._zk_connection:
-                    # Get serial number and registration number from device
-                    serial = service._zk_connection.get_serialnumber()
-                    if serial:
-                        attrs["serial_number"] = serial
+                        # Get device name/registration as registration_number
+                        device_name = service._zk_connection.get_device_name()
+                        if device_name:
+                            attrs["registration_number"] = device_name
 
-                    # Get device name/registration as registration_number
-                    device_name = service._zk_connection.get_device_name()
-                    if device_name:
-                        attrs["registration_number"] = device_name
-
-                    # Mark as connected
-                    attrs["is_connected"] = True
-        except Exception as e:
-            # If we can't get details, just mark as connected since test passed
-            attrs["is_connected"] = True
+                        # Mark as connected
+                        attrs["is_connected"] = True
+            except Exception:
+                # If we can't get details, just mark as connected since test passed
+                attrs["is_connected"] = True
 
         return attrs

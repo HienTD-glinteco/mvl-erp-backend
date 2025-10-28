@@ -1,17 +1,18 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework import mixins, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
+from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.models import AttendanceRecord
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
     list=extend_schema(
         summary="List attendance records",
-        description="Retrieve a paginated list of attendance records with support for filtering by device, attendance code, date/time range. Attendance records are read-only and created automatically via device polling.",
+        description="Retrieve a paginated list of attendance records with support for filtering by device, attendance code, date/time range.",
         tags=["Attendance Record"],
         examples=[
             OpenApiExample(
@@ -25,31 +26,21 @@ from apps.hrm.models import AttendanceRecord
                         "results": [
                             {
                                 "id": 2,
-                                "device": {"id": 1, "name": "Main Entrance Device", "location": "Building A - Main Entrance"},
+                                "device": {"id": 1, "name": "Main Entrance Device"},
                                 "attendance_code": "531",
                                 "timestamp": "2025-10-28T11:49:38Z",
-                                "raw_data": {
-                                    "uid": 3525,
-                                    "user_id": "531",
-                                    "timestamp": "2025-10-28T11:49:38",
-                                    "status": 1,
-                                    "punch": 0,
-                                },
+                                "is_valid": True,
+                                "notes": "",
                                 "created_at": "2025-10-28T11:50:00Z",
                                 "updated_at": "2025-10-28T11:50:00Z",
                             },
                             {
                                 "id": 1,
-                                "device": {"id": 1, "name": "Main Entrance Device", "location": "Building A - Main Entrance"},
+                                "device": {"id": 1, "name": "Main Entrance Device"},
                                 "attendance_code": "531",
                                 "timestamp": "2025-10-28T08:30:15Z",
-                                "raw_data": {
-                                    "uid": 3525,
-                                    "user_id": "531",
-                                    "timestamp": "2025-10-28T08:30:15",
-                                    "status": 1,
-                                    "punch": 0,
-                                },
+                                "is_valid": True,
+                                "notes": "",
                                 "created_at": "2025-10-28T08:31:00Z",
                                 "updated_at": "2025-10-28T08:31:00Z",
                             },
@@ -72,16 +63,11 @@ from apps.hrm.models import AttendanceRecord
                     "success": True,
                     "data": {
                         "id": 1,
-                        "device": {"id": 1, "name": "Main Entrance Device", "location": "Building A - Main Entrance"},
+                        "device": {"id": 1, "name": "Main Entrance Device"},
                         "attendance_code": "531",
                         "timestamp": "2025-10-28T08:30:15Z",
-                        "raw_data": {
-                            "uid": 3525,
-                            "user_id": "531",
-                            "timestamp": "2025-10-28T08:30:15",
-                            "status": 1,
-                            "punch": 0,
-                        },
+                        "is_valid": True,
+                        "notes": "",
                         "created_at": "2025-10-28T08:31:00Z",
                         "updated_at": "2025-10-28T08:31:00Z",
                     },
@@ -91,13 +77,22 @@ from apps.hrm.models import AttendanceRecord
             ),
         ],
     ),
+    update=extend_schema(
+        summary="Update attendance record",
+        description="Update attendance record. Only timestamp, is_valid, and notes can be modified.",
+        tags=["Attendance Record"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update attendance record",
+        description="Partially update attendance record. Only timestamp, is_valid, and notes can be modified.",
+        tags=["Attendance Record"],
+    ),
 )
-class AttendanceRecordViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class AttendanceRecordViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for AttendanceRecord model.
 
-    Provides read-only access to attendance records.
-    Attendance records are created automatically via device polling and
-    should not be manually created or modified through the API.
+    Provides access to attendance records with editing capabilities.
+    Only timestamp, is_valid status, and notes can be modified.
     """
 
     queryset = AttendanceRecord.objects.select_related("device").all()
@@ -107,3 +102,9 @@ class AttendanceRecordViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, 
     search_fields = ["attendance_code"]
     ordering_fields = ["timestamp", "created_at"]
     ordering = ["-timestamp"]
+    http_method_names = ["get", "put", "patch", "head", "options"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Attendance Record Management"
+    permission_prefix = "attendance_record"

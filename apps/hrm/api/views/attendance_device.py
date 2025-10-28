@@ -179,8 +179,8 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     serializer_class = AttendanceDeviceSerializer
     filterset_class = AttendanceDeviceFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["name", "location", "ip_address", "serial_number", "registration_number"]
-    ordering_fields = ["name", "location", "created_at", "polling_synced_at"]
+    search_fields = ["name"]
+    ordering_fields = ["name", "created_at", "polling_synced_at"]
     ordering = ["name"]
 
     # Permission registration attributes

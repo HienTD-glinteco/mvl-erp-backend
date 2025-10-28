@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.hrm.models import AttendanceRecord
+from apps.hrm.models import AttendanceDevice, AttendanceRecord
 from libs import FieldFilteringSerializerMixin
 
 
@@ -8,19 +8,16 @@ class AttendanceDeviceNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested device references in attendance records."""
 
     class Meta:
-        from apps.hrm.models import AttendanceDevice
-
         model = AttendanceDevice
-        fields = ["id", "name", "location"]
-        read_only_fields = ["id", "name", "location"]
+        fields = ["id", "name"]
+        read_only_fields = ["id", "name"]
 
 
 class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for AttendanceRecord model.
 
-    Provides read-only access to attendance records with nested device information.
-    Attendance records are created automatically via device polling and should not
-    be manually created or modified through the API.
+    Provides access to attendance records with nested device information.
+    Allows editing of timestamp, is_valid status, and notes.
     """
 
     device = AttendanceDeviceNestedSerializer(read_only=True)
@@ -32,7 +29,8 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "device",
             "attendance_code",
             "timestamp",
-            "raw_data",
+            "is_valid",
+            "notes",
             "created_at",
             "updated_at",
         ]
@@ -40,8 +38,6 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "id",
             "device",
             "attendance_code",
-            "timestamp",
-            "raw_data",
             "created_at",
             "updated_at",
         ]
