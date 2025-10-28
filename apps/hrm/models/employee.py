@@ -190,7 +190,11 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     note = SafeTextField(blank=True, verbose_name=_("Note"))
 
     # Personal information
-    date_of_birth = models.DateField(verbose_name=_("Date of birth"))
+    date_of_birth = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Date of birth"),
+    )
     gender = models.CharField(
         max_length=10,
         choices=Gender.choices,
@@ -253,7 +257,8 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
     personal_email = models.EmailField(
         max_length=100,
-        unique=True,
+        null=True,
+        blank=True,
         verbose_name=_("Personal email"),
     )
 
@@ -295,6 +300,10 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         related_name="employee",
         verbose_name=_("User"),
+    )
+    is_onboarding_email_sent = models.BooleanField(
+        default=False,
+        verbose_name=_("Is onboarding email sent"),
     )
 
     class Meta:

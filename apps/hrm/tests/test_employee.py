@@ -932,3 +932,125 @@ class EmployeeAPITest(TestCase, APITestMixin):
         # User should be nested object
         self.assertIn("user", data)
         self.assertIsInstance(data["user"], dict)
+
+    def test_create_employee_without_date_of_birth(self):
+        """Test creating an employee without date_of_birth (should be optional now)"""
+        employee = Employee.objects.create(
+            fullname="Jane Doe",
+            username="janedoe",
+            email="jane@example.com",
+            phone="0123456788",
+            attendance_code="12346",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+        self.assertIsNone(employee.date_of_birth)
+        self.assertEqual(employee.fullname, "Jane Doe")
+        self.assertEqual(employee.email, "jane@example.com")
+
+    def test_create_employee_without_personal_email(self):
+        """Test creating an employee without personal_email (should be optional now)"""
+        employee = Employee.objects.create(
+            fullname="Bob Smith",
+            username="bobsmith",
+            email="bob@example.com",
+            phone="0123456787",
+            attendance_code="12347",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+        self.assertIsNone(employee.personal_email)
+        self.assertEqual(employee.fullname, "Bob Smith")
+        self.assertEqual(employee.email, "bob@example.com")
+
+    def test_create_employee_with_optional_fields(self):
+        """Test creating an employee with optional fields"""
+        employee = Employee.objects.create(
+            fullname="Alice Johnson",
+            username="alicejohnson",
+            email="alice@example.com",
+            phone="0123456786",
+            attendance_code="12348",
+            date_of_birth="1995-05-15",
+            personal_email="alice.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+        self.assertEqual(str(employee.date_of_birth), "1995-05-15")
+        self.assertEqual(employee.personal_email, "alice.personal@example.com")
+        self.assertEqual(employee.fullname, "Alice Johnson")
+
+    def test_create_multiple_employees_without_personal_email(self):
+        """Test creating multiple employees without personal_email (no unique constraint)"""
+        employee1 = Employee.objects.create(
+            fullname="Charlie Brown",
+            username="charliebrown",
+            email="charlie@example.com",
+            phone="0123456785",
+            attendance_code="12349",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+
+        employee2 = Employee.objects.create(
+            fullname="David Green",
+            username="davidgreen",
+            email="david@example.com",
+            phone="0123456784",
+            attendance_code="12350",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+
+        self.assertIsNone(employee1.personal_email)
+        self.assertIsNone(employee2.personal_email)
+        # Both should have been created successfully
+        self.assertEqual(Employee.objects.filter(personal_email__isnull=True).count(), 2)
+
+    def test_is_onboarding_email_sent_default(self):
+        """Test that is_onboarding_email_sent defaults to False"""
+        employee = Employee.objects.create(
+            fullname="Emily White",
+            username="emilywhite",
+            email="emily@example.com",
+            phone="0123456783",
+            attendance_code="12351",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+        self.assertFalse(employee.is_onboarding_email_sent)
+
+    def test_is_onboarding_email_sent_can_be_updated(self):
+        """Test that is_onboarding_email_sent can be updated"""
+        employee = Employee.objects.create(
+            fullname="Frank Black",
+            username="frankblack",
+            email="frank@example.com",
+            phone="0123456782",
+            attendance_code="12352",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+        self.assertFalse(employee.is_onboarding_email_sent)
+
+        # Update the field
+        employee.is_onboarding_email_sent = True
+        employee.save()
+
+        # Verify the update persisted
+        employee.refresh_from_db()
+        self.assertTrue(employee.is_onboarding_email_sent)

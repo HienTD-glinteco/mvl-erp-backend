@@ -1,3 +1,5 @@
+from datetime import date
+
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -8,11 +10,12 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentCandidateFilterSet
 from apps.hrm.api.serializers import (
+    EmployeeSerializer,
     RecruitmentCandidateExportSerializer,
     RecruitmentCandidateSerializer,
     UpdateReferrerSerializer,
 )
-from apps.hrm.models import RecruitmentCandidate
+from apps.hrm.models import Employee, RecruitmentCandidate
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -549,5 +552,97 @@ class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
             instance.referrer = referrer
             instance.save()
             return Response(self.get_serializer(instance).data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        summary="Convert candidate to employee",
+        description="Convert a recruitment candidate to an employee. Copies shared fields, sets start_date to today, generates random attendance_code, and sets username to email.",
+        tags=["Recruitment Candidate"],
+        request=None,
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code_type": "MV",
+                        "code": "MV0001",
+                        "fullname": "Nguyen Van B",
+                        "attendance_code": "123456",
+                        "username": "nguyenvanb@example.com",
+                        "email": "nguyenvanb@example.com",
+                        "branch": {
+                            "id": 1,
+                            "name": "Hanoi Branch",
+                            "code": "CN001",
+                        },
+                        "block": {
+                            "id": 1,
+                            "name": "Business Block",
+                            "code": "KH001",
+                        },
+                        "department": {
+                            "id": 1,
+                            "name": "IT Department",
+                            "code": "PB001",
+                        },
+                        "position": None,
+                        "contract_type": None,
+                        "start_date": "2025-10-28",
+                        "status": "Onboarding",
+                        "date_of_birth": None,
+                        "gender": "MALE",
+                        "marital_status": "SINGLE",
+                        "citizen_id": "123456789012",
+                        "phone": "0123456789",
+                        "personal_email": None,
+                        "is_onboarding_email_sent": False,
+                        "created_at": "2025-10-28T10:30:00Z",
+                        "updated_at": "2025-10-28T10:30:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Validation Failed",
+                value={
+                    "success": False,
+                    "error": {"citizen_id": ["Citizen ID must contain only digits"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="to-employee")
+    def to_employee(self, request, pk=None):
+        """Convert recruitment candidate to employee"""
+        import random
+
+        candidate = self.get_object()
+
+        # Generate random 6-digit attendance code
+        attendance_code = str(random.randint(100000, 999999))
+
+        # Prepare employee data from candidate
+        employee_data = {
+            "fullname": candidate.name,
+            "username": candidate.email,
+            "email": candidate.email,
+            "department_id": candidate.department_id,
+            "start_date": date.today(),
+            "attendance_code": attendance_code,
+            "status": Employee.Status.ONBOARDING,
+            "citizen_id": candidate.citizen_id,
+            "phone": candidate.phone,
+        }
+
+        # Create employee using serializer
+        serializer = EmployeeSerializer(data=employee_data)
+        if serializer.is_valid():
+            employee = serializer.save()
+            return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

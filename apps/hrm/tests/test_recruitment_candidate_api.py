@@ -753,3 +753,141 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
         self.assertTrue(len(response.content) > 0)
+
+    def test_convert_candidate_to_employee_success(self):
+        """Test successfully converting a recruitment candidate to employee"""
+        # Create a candidate
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van D",
+            citizen_id="123456789014",
+            email="nguyenvand@example.com",
+            phone="0123456790",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+
+        # Verify employee was created with correct data
+        self.assertEqual(response_data["fullname"], "Nguyen Van D")
+        self.assertEqual(response_data["username"], "nguyenvand@example.com")
+        self.assertEqual(response_data["email"], "nguyenvand@example.com")
+        self.assertEqual(response_data["citizen_id"], "123456789014")
+        self.assertEqual(response_data["phone"], "0123456790")
+        self.assertEqual(response_data["start_date"], str(date.today()))
+        self.assertIsNotNone(response_data["attendance_code"])
+        self.assertEqual(len(response_data["attendance_code"]), 6)
+        self.assertEqual(response_data["is_onboarding_email_sent"], False)
+
+        # Verify department, branch, block were copied
+        self.assertEqual(response_data["department"]["id"], self.department.id)
+        self.assertEqual(response_data["branch"]["id"], self.branch.id)
+        self.assertEqual(response_data["block"]["id"], self.block.id)
+
+        # Verify employee exists in database with correct status
+        employee = Employee.objects.get(email="nguyenvand@example.com")
+        self.assertEqual(employee.fullname, "Nguyen Van D")
+        self.assertEqual(employee.username, "nguyenvand@example.com")
+        self.assertEqual(employee.citizen_id, "123456789014")
+        self.assertEqual(employee.phone, "0123456790")
+        self.assertEqual(employee.status, Employee.Status.ONBOARDING)
+
+    def test_convert_candidate_to_employee_duplicate_email(self):
+        """Test converting candidate when email already exists as employee"""
+        # Create an employee with the same email first
+        Employee.objects.create(
+            fullname="Existing Employee",
+            username="existingemp",
+            email="existing@example.com",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            phone="0123456792",
+            attendance_code="EMP002",
+            start_date=date(2024, 1, 1),
+        )
+
+        # Create candidate with same email
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van F",
+            citizen_id="123456789015",
+            email="existing@example.com",
+            phone="0123456793",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(url, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        # Should get an error about duplicate email or username
+        self.assertTrue("email" in response_data["error"] or "username" in response_data["error"])
+
+    def test_convert_candidate_generates_unique_attendance_code(self):
+        """Test that converting multiple candidates generates unique attendance codes"""
+        candidate1 = RecruitmentCandidate.objects.create(
+            name="Nguyen Van G",
+            citizen_id="123456789016",
+            email="nguyenvang@example.com",
+            phone="0123456794",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        candidate2 = RecruitmentCandidate.objects.create(
+            name="Nguyen Van H",
+            citizen_id="123456789017",
+            email="nguyenvanh@example.com",
+            phone="0123456795",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        url1 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate1.pk})
+        url2 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate2.pk})
+
+        response1 = self.client.post(url1, format="json")
+        response2 = self.client.post(url2, format="json")
+
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
+
+        data1 = self.get_response_data(response1)
+        data2 = self.get_response_data(response2)
+
+        # Both should have attendance codes
+        self.assertIsNotNone(data1["attendance_code"])
+        self.assertIsNotNone(data2["attendance_code"])
+
+        # Verify employees exist in database
+        employee1 = Employee.objects.get(email="nguyenvang@example.com")
+        employee2 = Employee.objects.get(email="nguyenvanh@example.com")
+
+        self.assertIsNotNone(employee1.attendance_code)
+        self.assertIsNotNone(employee2.attendance_code)

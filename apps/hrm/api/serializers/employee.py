@@ -141,6 +141,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "emergency_contact_name",
             "emergency_contact_phone",
             "user",
+            "is_onboarding_email_sent",
             "created_at",
             "updated_at",
         ]
@@ -157,6 +158,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "user",
             "colored_code_type",
             "colored_status",
+            "is_onboarding_email_sent",
             "created_at",
             "updated_at",
         ]
