@@ -1,9 +1,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel, SafeTextField
 
 
+@audit_logging_register
 class AttendanceRecord(BaseModel):
     """Attendance record model for storing employee clock-in/out logs from devices.
 

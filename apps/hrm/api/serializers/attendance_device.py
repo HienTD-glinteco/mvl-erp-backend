@@ -43,9 +43,6 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "created_at",
             "updated_at",
         ]
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
 
     def validate(self, attrs):
         """Validate device connection on create/update.
@@ -82,21 +79,20 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             # If connection successful, get device details
             try:
                 with service:
-                    if service._zk_connection:
-                        # Get serial number and registration number from device
-                        serial = service._zk_connection.get_serialnumber()
-                        if serial:
-                            attrs["serial_number"] = serial
+                    # Get serial number and registration number from device
+                    serial = service._zk_connection.get_serialnumber()
+                    if serial:
+                        attrs["serial_number"] = serial
 
-                        # Get device name/registration as registration_number
-                        device_name = service._zk_connection.get_device_name()
-                        if device_name:
-                            attrs["registration_number"] = device_name
+                    # Get device name/registration as registration_number
+                    device_name = service._zk_connection.get_device_name()
+                    if device_name:
+                        attrs["registration_number"] = device_name
 
-                        # Mark as connected
-                        attrs["is_connected"] = True
+                    # Mark as connected
+                    attrs["is_connected"] = True
             except Exception:
-                # If we can't get details, just mark as connected since test passed
-                attrs["is_connected"] = True
+                # If we can't get details, default is_connected to False
+                attrs["is_connected"] = False
 
         return attrs

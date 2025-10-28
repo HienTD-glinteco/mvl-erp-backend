@@ -5,11 +5,13 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
 
 logger = logging.getLogger(__name__)
 
 
+@audit_logging_register
 class AttendanceDevice(BaseModel):
     """Attendance device model for managing biometric time attendance devices.
 
