@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 13:09+0700\n"
+"POT-Creation-Date: 2025-10-28 14:59+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -230,98 +230,106 @@ msgid "Successfully set up default organizational data!"
 msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/attendance_device.py:26
+#: apps/hrm/models/attendance_device.py:32
 #, fuzzy
 #| msgid "Candidate code"
 msgid "Attendance Device"
 msgstr "Mã ứng viên"
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/attendance_device.py:27
+#: apps/hrm/models/attendance_device.py:33
 #, fuzzy
 #| msgid "Candidate code"
 msgid "Attendance Devices"
 msgstr "Mã ứng viên"
 
 # models/organization.py:32
-#: apps/hrm/models/attendance_device.py:33
+#: apps/hrm/models/attendance_device.py:39
 #, fuzzy
 #| msgid "Source name"
 msgid "Device name"
 msgstr "Tên nguồn"
 
-#: apps/hrm/models/attendance_device.py:34
+#: apps/hrm/models/attendance_device.py:40
 msgid "Human-readable name for the device"
 msgstr ""
 
 # models/organization.py:189
-#: apps/hrm/models/attendance_device.py:39
+#: apps/hrm/models/attendance_device.py:45
 #: apps/hrm/models/interview_schedule.py:29
 #, fuzzy
 #| msgid "Position"
 msgid "Location"
 msgstr "Chức vụ"
 
-#: apps/hrm/models/attendance_device.py:40
+#: apps/hrm/models/attendance_device.py:46
 msgid "Physical location where device is installed"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:44
+#: apps/hrm/models/attendance_device.py:50
 msgid "IP address or domain"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:45
+#: apps/hrm/models/attendance_device.py:51
 msgid "Network address for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:49
+#: apps/hrm/models/attendance_device.py:55
 msgid "Port"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:50
+#: apps/hrm/models/attendance_device.py:56
 msgid "Network port for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:55
+#: apps/hrm/models/attendance_device.py:61
 msgid "Password"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:56
+#: apps/hrm/models/attendance_device.py:62
 msgid "Authentication password for device access"
 msgstr ""
 
 # models/organization.py:12
-#: apps/hrm/models/attendance_device.py:61
+#: apps/hrm/models/attendance_device.py:67
 #, fuzzy
 #| msgid "Phone number"
 msgid "Serial number"
 msgstr "Số điện thoại"
 
-#: apps/hrm/models/attendance_device.py:62
+#: apps/hrm/models/attendance_device.py:68
 msgid "Manufacturer's device serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:67
+#: apps/hrm/models/attendance_device.py:73
 msgid "Registration number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:68
+#: apps/hrm/models/attendance_device.py:74
 msgid "Device registration or license number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:72
-msgid "Connection status"
-msgstr ""
-
-#: apps/hrm/models/attendance_device.py:73
-msgid "Whether the device is currently online and reachable"
-msgstr ""
-
 #: apps/hrm/models/attendance_device.py:78
-msgid "Last polling sync"
+msgid "Is enabled"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:79
+msgid "Whether the device is enabled for automatic synchronization"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:83
+msgid "Connection status"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:84
+msgid "Whether the device is currently online and reachable"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:89
+msgid "Last polling sync"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:90
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
@@ -1338,3 +1346,40 @@ msgstr "Nguồn tuyển dụng"
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
 msgstr "Các nguồn tuyển dụng"
+
+#: apps/hrm/services.py:83
+msgid "Failed to establish connection to device"
+msgstr ""
+
+#: apps/hrm/services.py:91
+#, python-format
+msgid "Network connection error: %(error)s"
+msgstr ""
+
+#: apps/hrm/services.py:96
+#, python-format
+msgid "Device response error: %(error)s"
+msgstr ""
+
+#: apps/hrm/services.py:101 apps/hrm/services.py:140
+#, python-format
+msgid "Unexpected error: %(error)s"
+msgstr ""
+
+#: apps/hrm/services.py:128
+#, python-format
+msgid "Connection successful. Firmware: %(firmware)s"
+msgstr ""
+
+#: apps/hrm/services.py:132
+msgid "Connection object is None"
+msgstr ""
+
+#: apps/hrm/services.py:160
+msgid "Device not connected. Call connect() first."
+msgstr ""
+
+#: apps/hrm/services.py:198
+#, python-format
+msgid "Failed to fetch attendance logs: %(error)s"
+msgstr ""

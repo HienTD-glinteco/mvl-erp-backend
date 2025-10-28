@@ -1,7 +1,13 @@
+import logging
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from libs.models import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class AttendanceDevice(BaseModel):
@@ -89,3 +95,24 @@ class AttendanceDevice(BaseModel):
         if self.location:
             return f"{self.name} ({self.location})"
         return self.name
+
+    def get_sync_start_time(self, lookback_days: int = 1):
+        """Determine start time for log fetching based on device sync history."""
+        start_datetime = self.polling_synced_at
+        if not start_datetime:
+            start_datetime = timezone.now() - timedelta(days=lookback_days)
+            logger.info(f"No previous sync time for device {self.name}. Fetching logs from {lookback_days} day(s) ago")
+        else:
+            logger.info(f"Fetching logs for device {self.name} since last sync at {start_datetime}")
+        return start_datetime
+
+    def mark_sync_success(self):
+        """Update device status after successful sync."""
+        self.is_connected = True
+        self.polling_synced_at = timezone.now()
+        self.save(update_fields=["is_connected", "polling_synced_at", "updated_at"])
+
+    def mark_sync_failed(self):
+        """Update device status after failed connection."""
+        self.is_connected = False
+        self.save(update_fields=["is_connected", "updated_at"])
