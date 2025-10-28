@@ -31,9 +31,9 @@ CELERY_BEAT_SCHEDULE = {
 }
 """
 CELERY_BEAT_SCHEDULE: dict[str, dict] = {
-    # Sync attendance logs from all devices every 5 minutes
+    # Sync attendance logs from all devices once a day at midnight
     "sync_all_attendance_devices": {
         "task": "apps.hrm.tasks.sync_all_attendance_devices",
-        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
     },
 }

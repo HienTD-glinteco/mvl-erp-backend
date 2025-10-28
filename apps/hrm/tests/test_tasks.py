@@ -373,3 +373,22 @@ class TestSyncAllAttendanceDevices(TestCase):
         self.assertEqual(result["total_devices"], 1)
         self.assertEqual(result["tasks_triggered"], 1)
         mock_sync_task.delay.assert_called_once_with(self.device1.id)
+
+    @patch("apps.hrm.tasks.sync_attendance_logs_for_device")
+    def test_sync_all_filters_disabled_devices(self, mock_sync_task):
+        """Test that sync_all only processes enabled devices."""
+        # Arrange
+        # Disable device2
+        self.device2.is_enabled = False
+        self.device2.save()
+        mock_sync_task.delay = Mock()
+
+        # Act
+        result = sync_all_attendance_devices()
+
+        # Assert
+        self.assertEqual(result["total_devices"], 1)  # Only device1 is enabled
+        self.assertEqual(result["tasks_triggered"], 1)
+        mock_sync_task.delay.assert_called_once_with(self.device1.id)
+        self.assertIn(self.device1.id, result["device_ids"])
+        self.assertNotIn(self.device2.id, result["device_ids"])

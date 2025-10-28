@@ -5,7 +5,6 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.exceptions import Retry
-from django.db import transaction
 from django.utils import timezone as django_timezone
 
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
@@ -14,7 +13,7 @@ from apps.hrm.services import AttendanceDeviceConnectionError, AttendanceDeviceS
 logger = logging.getLogger(__name__)
 
 # Constants
-SYNC_RETRY_DELAY = 300  # 5 minutes
+SYNC_RETRY_DELAY = 600  # 10 minutes
 SYNC_MAX_RETRIES = 3
 SYNC_DEFAULT_LOOKBACK_DAYS = 1  # Default to sync last 1 day of logs
 
@@ -86,39 +85,56 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, any]:
                     f"{len(today_logs)} from today ({today_start.date()})"
                 )
 
-                # Save logs to database
-                with transaction.atomic():
-                    for log in today_logs:
-                        # Check if record already exists to avoid duplicates
-                        # Use attendance_code, timestamp, and device as unique constraint
-                        existing = AttendanceRecord.objects.filter(
-                            device=device,
-                            attendance_code=log["user_id"],
-                            timestamp=log["timestamp"],
-                        ).exists()
+                # Save logs to database using bulk operations
+                if not today_logs:
+                    logger.info(f"No logs from today for device {device.name}")
+                    logs_synced = 0
+                else:
+                    # Group logs by attendance_code for efficient querying
+                    attendance_codes = {log["user_id"] for log in today_logs}
 
-                        if not existing:
+                    # Fetch all existing records for these attendance codes today
+                    existing_records = AttendanceRecord.objects.filter(
+                        device=device,
+                        attendance_code__in=attendance_codes,
+                        timestamp__gte=today_start,
+                    ).values_list("attendance_code", "timestamp")
+
+                    # Create set of (attendance_code, timestamp) tuples for fast lookup
+                    existing_set = {(code, ts) for code, ts in existing_records}
+
+                    # Determine which logs are missing
+                    records_to_create = []
+                    for log in today_logs:
+                        # Check if this specific log already exists
+                        key = (log["user_id"], log["timestamp"])
+                        if key not in existing_set:
                             # Convert datetime to ISO format for JSON storage
                             raw_data = log.copy()
                             raw_data["timestamp"] = log["timestamp"].isoformat()
 
-                            AttendanceRecord.objects.create(
-                                device=device,
-                                attendance_code=log["user_id"],
-                                timestamp=log["timestamp"],
-                                raw_data=raw_data,
-                            )
-                            logs_synced += 1
-                        else:
-                            logger.debug(
-                                f"Skipping duplicate record for {log['user_id']} at {log['timestamp']} "
-                                f"on device {device.name}"
+                            records_to_create.append(
+                                AttendanceRecord(
+                                    device=device,
+                                    attendance_code=log["user_id"],
+                                    timestamp=log["timestamp"],
+                                    raw_data=raw_data,
+                                )
                             )
 
-                    # Update device status on success
-                    device.is_connected = True
-                    device.polling_synced_at = django_timezone.now()
-                    device.save(update_fields=["is_connected", "polling_synced_at", "updated_at"])
+                    # Bulk create all missing records
+                    if records_to_create:
+                        AttendanceRecord.objects.bulk_create(records_to_create)
+                        logs_synced = len(records_to_create)
+                        logger.info(f"Created {logs_synced} new attendance records for device {device.name}")
+                    else:
+                        logs_synced = 0
+                        logger.info(f"All logs already exist for device {device.name}, no new records created")
+
+                # Update device status on success
+                device.is_connected = True
+                device.polling_synced_at = django_timezone.now()
+                device.save(update_fields=["is_connected", "polling_synced_at", "updated_at"])
 
                 logger.info(
                     f"Successfully synced {logs_synced} new attendance logs for device {device.name} "
@@ -192,11 +208,11 @@ def sync_all_attendance_devices() -> dict[str, any]:
     """
     logger.info("Starting periodic attendance log sync for all devices")
 
-    # Get all devices
-    devices = AttendanceDevice.objects.all()
+    # Get all enabled devices
+    devices = AttendanceDevice.objects.filter(is_enabled=True)
     total_devices = devices.count()
 
-    logger.info(f"Found {total_devices} attendance device(s) to sync")
+    logger.info(f"Found {total_devices} enabled attendance device(s) to sync")
 
     # Trigger individual sync tasks for each device
     tasks_triggered = 0

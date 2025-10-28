@@ -67,6 +67,11 @@ class AttendanceDevice(BaseModel):
         verbose_name=_("Registration number"),
         help_text=_("Device registration or license number"),
     )
+    is_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_("Is enabled"),
+        help_text=_("Whether the device is enabled for automatic synchronization"),
+    )
     is_connected = models.BooleanField(
         default=False,
         verbose_name=_("Connection status"),
