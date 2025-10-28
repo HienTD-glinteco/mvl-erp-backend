@@ -1,3 +1,5 @@
+from celery.schedules import crontab
+
 from .base import config
 from .internationalization import TIME_ZONE
 
@@ -28,4 +30,10 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 """
-CELERY_BEAT_SCHEDULE: dict[str, dict] = {}
+CELERY_BEAT_SCHEDULE: dict[str, dict] = {
+    # Sync attendance logs from all devices every 5 minutes
+    "sync_all_attendance_devices": {
+        "task": "apps.hrm.tasks.sync_all_attendance_devices",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
+}
