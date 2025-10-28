@@ -1,3 +1,5 @@
+from .attendance_device import AttendanceDevice
+from .attendance_record import AttendanceRecord
 from .contract_type import ContractType
 from .employee import Employee
 from .interview_candidate import InterviewCandidate
@@ -18,6 +20,8 @@ from .recruitment_request import RecruitmentRequest
 from .recruitment_source import RecruitmentSource
 
 __all__ = [
+    "AttendanceDevice",
+    "AttendanceRecord",
     "Branch",
     "Block",
     "Department",
