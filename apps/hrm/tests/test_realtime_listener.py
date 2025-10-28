@@ -35,7 +35,6 @@ class TestRealtimeAttendanceListener:
         """Set up test data."""
         self.device = AttendanceDevice.objects.create(
             name="Test Device",
-            location="Main Office",
             ip_address="192.168.1.100",
             port=4370,
             is_enabled=True,

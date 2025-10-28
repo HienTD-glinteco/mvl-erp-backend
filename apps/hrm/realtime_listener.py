@@ -24,6 +24,7 @@ RECONNECT_BASE_DELAY = 5
 RECONNECT_MAX_DELAY = 300
 RECONNECT_BACKOFF_MULTIPLIER = 2
 MAX_CONSECUTIVE_FAILURES = 5
+MAX_RETRY_DURATION = 86400  # 1 day in seconds (stop retrying after this)
 DEVICE_INFO_UPDATE_INTERVAL = 300  # Update device info every 5 minutes
 
 
@@ -83,8 +84,10 @@ class RealtimeAttendanceListener:
         logger.info("Realtime attendance listener stopped")
 
     async def _get_enabled_devices(self) -> list[AttendanceDevice]:
-        """Get all enabled attendance devices from database."""
-        return await asyncio.to_thread(lambda: list(AttendanceDevice.objects.filter(is_enabled=True)))
+        """Get all enabled attendance devices with realtime enabled from database."""
+        return await asyncio.to_thread(
+            lambda: list(AttendanceDevice.objects.filter(is_enabled=True, realtime_enabled=True))
+        )
 
     async def _device_listener_loop(self, device: AttendanceDevice):
         """Main loop for a single device listener with retry logic.
@@ -95,6 +98,7 @@ class RealtimeAttendanceListener:
         consecutive_failures = 0
         reconnect_delay = RECONNECT_BASE_DELAY
         last_device_info_update = 0
+        first_failure_time = None  # Track when failures started
 
         while self._running:
             try:
@@ -109,8 +113,9 @@ class RealtimeAttendanceListener:
                 await self._mark_device_connected(device)
                 last_device_info_update = current_time
 
-                # Reset failure counter on successful connection
+                # Reset failure counter and timer on successful connection
                 consecutive_failures = 0
+                first_failure_time = None
                 reconnect_delay = RECONNECT_BASE_DELAY
 
                 logger.info(f"Successfully connected to device: {device.name}, starting live capture")
@@ -121,7 +126,26 @@ class RealtimeAttendanceListener:
             except (ZKErrorConnection, ZKErrorResponse, ConnectionError) as e:
                 consecutive_failures += 1
                 error_msg = f"Connection error for device {device.name}: {str(e)}"
-                logger.warning(f"{error_msg} (failure {consecutive_failures}/{MAX_CONSECUTIVE_FAILURES})")
+
+                # Track first failure time
+                if first_failure_time is None:
+                    first_failure_time = time.time()
+
+                # Check if we've been retrying for more than MAX_RETRY_DURATION (1 day)
+                time_since_first_failure = time.time() - first_failure_time
+                if time_since_first_failure >= MAX_RETRY_DURATION:
+                    logger.critical(
+                        f"Device {device.name} has been offline for {time_since_first_failure / 3600:.1f} hours. "
+                        f"Disabling realtime listener for this device."
+                    )
+                    await self._disable_realtime_for_device(device)
+                    # Exit the loop for this device
+                    break
+
+                logger.warning(
+                    f"{error_msg} (failure {consecutive_failures}/{MAX_CONSECUTIVE_FAILURES}, "
+                    f"retrying for {time_since_first_failure / 3600:.1f} hours)"
+                )
 
                 # Mark device as disconnected
                 await self._mark_device_disconnected(device)
@@ -368,7 +392,7 @@ class RealtimeAttendanceListener:
         await asyncio.to_thread(_do_update)
 
     async def _mark_device_connected(self, device: AttendanceDevice):
-        """Mark device as connected in database.
+        """Mark device as connected in database and re-enable realtime if disabled.
 
         Args:
             device: AttendanceDevice instance
@@ -376,7 +400,12 @@ class RealtimeAttendanceListener:
 
         def _do_mark():
             device.is_connected = True
-            device.save(update_fields=["is_connected", "updated_at"])
+            # Re-enable realtime if it was disabled
+            if not device.realtime_enabled:
+                device.realtime_enabled = True
+                device.realtime_disabled_at = None
+                logger.info(f"Re-enabled realtime for device {device.name} after successful connection")
+            device.save(update_fields=["is_connected", "realtime_enabled", "realtime_disabled_at", "updated_at"])
             logger.info(f"Device {device.name} marked as connected")
 
         await asyncio.to_thread(_do_mark)
@@ -394,6 +423,27 @@ class RealtimeAttendanceListener:
             logger.info(f"Device {device.name} marked as disconnected")
 
         await asyncio.to_thread(_do_mark)
+
+    async def _disable_realtime_for_device(self, device: AttendanceDevice):
+        """Disable realtime listener for device after extended failures.
+
+        Args:
+            device: AttendanceDevice instance
+        """
+
+        def _do_disable():
+            from django.utils import timezone
+
+            device.realtime_enabled = False
+            device.realtime_disabled_at = timezone.now()
+            device.is_connected = False
+            device.save(update_fields=["realtime_enabled", "realtime_disabled_at", "is_connected", "updated_at"])
+            logger.critical(
+                f"DISABLED realtime listener for device {device.name} (ID: {device.id}) "
+                f"after 24 hours of connection failures. Use reconnect action to re-enable."
+            )
+
+        await asyncio.to_thread(_do_disable)
 
     async def _notify_admin_device_offline(self, device: AttendanceDevice, error_msg: str):
         """Notify admin about device being offline after repeated failures.

@@ -53,6 +53,16 @@ class AttendanceRecord(BaseModel):
         verbose_name=_("Timestamp"),
         help_text=_("Date and time when attendance was recorded"),
     )
+    is_valid = models.BooleanField(
+        default=True,
+        verbose_name=_("Is valid"),
+        help_text=_("Whether this attendance record is valid"),
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name=_("Notes"),
+        help_text=_("Additional notes or comments about this attendance record"),
+    )
     raw_data = models.JSONField(
         null=True,
         blank=True,

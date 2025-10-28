@@ -85,6 +85,7 @@ Stores configuration for physical attendance devices.
 
 **Key Fields:**
 - `name`: Human-readable device identifier
+- `branch_block`: ForeignKey to Block (branch and block location)
 - `ip_address`: Device network address
 - `port`: Network port (default: 4370)
 - `password`: Device authentication password
@@ -92,6 +93,8 @@ Stores configuration for physical attendance devices.
 - `registration_number`: Device registration/platform info (auto-populated by realtime listener)
 - `is_enabled`: Whether device is enabled for automatic sync
 - `is_connected`: Current connection status (updated by both polling and realtime)
+- `realtime_enabled`: Whether realtime listener is enabled for this device
+- `realtime_disabled_at`: Timestamp when realtime was disabled due to failures
 - `polling_synced_at`: Last successful polling sync timestamp
 
 ### AttendanceRecord
@@ -102,6 +105,8 @@ Stores individual attendance clock-in/out records from devices.
 - `device`: Foreign key to AttendanceDevice
 - `attendance_code`: User ID from device (matches Employee.attendance_code)
 - `timestamp`: Date/time of attendance event
+- `is_valid`: Boolean indicating if record is valid
+- `notes`: Additional notes or comments about the record
 - `raw_data`: JSON field with complete device data for debugging
 
 **Indexes:**
@@ -244,11 +249,24 @@ Located in `apps/hrm/realtime_listener.py`:
 ```python
 DEFAULT_LIVE_CAPTURE_TIMEOUT = 60      # Timeout for live_capture in seconds
 RECONNECT_BASE_DELAY = 5               # Initial reconnect delay
-RECONNECT_MAX_DELAY = 300              # Maximum reconnect delay
+RECONNECT_MAX_DELAY = 300              # Maximum reconnect delay (5 minutes)
 RECONNECT_BACKOFF_MULTIPLIER = 2       # Exponential backoff multiplier
 MAX_CONSECUTIVE_FAILURES = 5           # Alert threshold
+MAX_RETRY_DURATION = 86400             # Stop retrying after 1 day (24 hours)
 DEVICE_INFO_UPDATE_INTERVAL = 300      # Update device info every 5 minutes
 ```
+
+**Automatic Realtime Disable/Re-enable:**
+
+The realtime listener includes intelligent management of device connections:
+
+1. **Auto-disable after 24 hours**: If a device fails to connect for 24 hours continuously, the realtime listener will automatically disable itself for that device by setting `realtime_enabled=False` and recording the time in `realtime_disabled_at`.
+
+2. **Auto-enable on success**: When any of the following succeed, realtime is automatically re-enabled:
+   - Successful realtime connection
+   - Successful polling sync (via `mark_sync_success()`)
+   
+3. **Manual reconnect**: Devices with disabled realtime can be manually reconnected using the admin interface or API.
 
 **Graceful Shutdown:**
 
