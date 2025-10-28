@@ -1,6 +1,6 @@
 # Attendance Device Integration with PyZK
 
-This document describes the PyZK integration and polling-based attendance log synchronization system.
+This document describes the PyZK integration for attendance log synchronization, including both polling-based and realtime capture systems.
 
 ## Overview
 
@@ -8,10 +8,13 @@ The system integrates with ZKTeco (and compatible) attendance devices using the 
 
 - **Service Layer**: Reusable connection and data fetching logic
 - **Polling Tasks**: Automatic periodic synchronization via Celery
+- **Realtime Listener**: Continuous event capture via asyncio
 - **Error Handling**: Robust retry logic with exponential backoff
 - **Data Storage**: Attendance records stored in PostgreSQL with timestamp indexing
 
 ## Architecture
+
+### Polling Architecture (Celery-based)
 
 ```
 ┌─────────────────────┐
@@ -44,6 +47,36 @@ The system integrates with ZKTeco (and compatible) attendance devices using the 
 └──────────────────────────────────────┘
 ```
 
+### Realtime Architecture (Asyncio-based)
+
+```
+┌────────────────────────────────────┐
+│  RealtimeAttendanceListener        │
+│  (Asyncio event loop)              │
+└──────────┬─────────────────────────┘
+           │
+           ├─────────────────────────────────┐
+           │                                 │
+           ▼                                 ▼
+┌──────────────────────────┐   ┌──────────────────────────┐
+│  Device 1 Listener       │   │  Device 2 Listener       │
+│  (Concurrent task)       │   │  (Concurrent task)       │
+└──────────┬───────────────┘   └──────────┬───────────────┘
+           │                              │
+           ▼                              ▼
+┌──────────────────────────┐   ┌──────────────────────────┐
+│  PyZK live_capture()     │   │  PyZK live_capture()     │
+│  (Real-time events)      │   │  (Real-time events)      │
+└──────────┬───────────────┘   └──────────┬───────────────┘
+           │                              │
+           └──────────────┬───────────────┘
+                          ▼
+           ┌──────────────────────────────┐
+           │  AttendanceRecord Model      │
+           │  (PostgreSQL storage)        │
+           └──────────────────────────────┘
+```
+
 ## Models
 
 ### AttendanceDevice
@@ -55,8 +88,11 @@ Stores configuration for physical attendance devices.
 - `ip_address`: Device network address
 - `port`: Network port (default: 4370)
 - `password`: Device authentication password
-- `is_connected`: Current connection status
-- `polling_synced_at`: Last successful sync timestamp
+- `serial_number`: Device serial number (auto-populated by realtime listener)
+- `registration_number`: Device registration/platform info (auto-populated by realtime listener)
+- `is_enabled`: Whether device is enabled for automatic sync
+- `is_connected`: Current connection status (updated by both polling and realtime)
+- `polling_synced_at`: Last successful polling sync timestamp
 
 ### AttendanceRecord
 
@@ -156,6 +192,129 @@ Trigger sync for all configured devices.
     "device_ids": list[int]
 }
 ```
+
+## Realtime Listener
+
+### RealtimeAttendanceListener
+
+New asyncio-based service that maintains persistent connections to attendance devices for realtime event capture.
+
+**Features:**
+- Concurrent monitoring of multiple devices using asyncio
+- Live event capture via PyZK's `live_capture()` method
+- Automatic reconnection with exponential backoff on connection loss
+- Device status tracking and updates
+- Duplicate event prevention
+- Periodic device info updates (serial number, registration number)
+- Admin notifications on repeated failures
+
+**Usage:**
+
+Run as a standalone process using the management command:
+
+```bash
+poetry run python manage.py run_realtime_attendance_listener
+
+# With custom log level
+poetry run python manage.py run_realtime_attendance_listener --log-level DEBUG
+```
+
+**How It Works:**
+
+1. **Initialization**: Listener queries all enabled devices (`is_enabled=True`)
+2. **Connection**: Establishes asyncio task for each device
+3. **Live Capture**: Uses PyZK's `live_capture(new_timeout=60)` to receive realtime events
+4. **Event Processing**: 
+   - Converts naive timestamps to UTC
+   - Checks for duplicates (by device + code + timestamp)
+   - Stores in AttendanceRecord with raw_data
+5. **Status Updates**:
+   - Marks device as connected on successful connection
+   - Updates `serial_number` and `registration_number` every 5 minutes
+   - Marks device as disconnected on connection loss
+6. **Reconnection**:
+   - Implements exponential backoff (5s → 10s → 20s ... up to 300s)
+   - Tracks consecutive failures
+   - Logs critical admin alert after 5 consecutive failures
+
+**Configuration Constants:**
+
+Located in `apps/hrm/realtime_listener.py`:
+
+```python
+DEFAULT_LIVE_CAPTURE_TIMEOUT = 60      # Timeout for live_capture in seconds
+RECONNECT_BASE_DELAY = 5               # Initial reconnect delay
+RECONNECT_MAX_DELAY = 300              # Maximum reconnect delay
+RECONNECT_BACKOFF_MULTIPLIER = 2       # Exponential backoff multiplier
+MAX_CONSECUTIVE_FAILURES = 5           # Alert threshold
+DEVICE_INFO_UPDATE_INTERVAL = 300      # Update device info every 5 minutes
+```
+
+**Graceful Shutdown:**
+
+The listener handles SIGINT and SIGTERM signals for graceful shutdown:
+
+```bash
+# Stop with Ctrl+C
+^C
+
+# Or send SIGTERM
+kill -TERM <pid>
+```
+
+**Deployment:**
+
+For production deployment, run the listener as a systemd service:
+
+```ini
+[Unit]
+Description=Attendance Realtime Listener
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/backend
+Environment="PATH=/path/to/.venv/bin"
+ExecStart=/path/to/.venv/bin/python manage.py run_realtime_attendance_listener
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Monitoring:**
+
+Check listener logs for connection status and events:
+
+```bash
+# If running in foreground
+poetry run python manage.py run_realtime_attendance_listener
+
+# If running as systemd service
+journalctl -u attendance-listener -f
+
+# Filter for specific events
+journalctl -u attendance-listener -f | grep "Captured attendance event"
+journalctl -u attendance-listener -f | grep "ADMIN ALERT"
+```
+
+**When to Use Realtime vs Polling:**
+
+| Use Case | Realtime Listener | Polling (Celery) |
+|----------|------------------|------------------|
+| Immediate event capture | ✓ Yes | ✗ No (5-min delay) |
+| Low network latency required | ✓ Yes | ~ Acceptable |
+| Multiple devices | ✓ Concurrent | ✓ Sequential |
+| Resource usage | Higher (persistent connections) | Lower (periodic) |
+| Complexity | Higher (async management) | Lower (task-based) |
+| Reliability | Requires process monitoring | Built-in with Celery |
+| Historical data sync | ✗ No | ✓ Yes |
+
+**Recommendation:** Use both systems:
+- **Realtime Listener**: For immediate event capture during business hours
+- **Polling Tasks**: As a backup for missed events and historical sync
 
 ## Configuration
 
@@ -311,13 +470,19 @@ duplicates = AttendanceRecord.objects.values(
 
 ## Future Enhancements
 
-**Not implemented yet (out of scope for this task):**
-- Real-time log synchronization (push-based)
+**Implemented:**
+- ✓ Real-time log synchronization via asyncio listener
+- ✓ Device status monitoring and updates
+- ✓ Exponential backoff retry logic
+- ✓ Admin alerts on repeated failures
+
+**Not implemented yet:**
 - Employee matching based on attendance_code
 - Attendance analytics and reporting
 - Web UI for device management
 - Device health monitoring dashboard
 - Historical data migration
+- Email/SMS notifications for admin alerts (currently logs only)
 
 ## Testing
 
@@ -327,9 +492,13 @@ duplicates = AttendanceRecord.objects.values(
 # Run all attendance-related tests
 poetry run pytest apps/hrm/tests/test_services.py -v
 poetry run pytest apps/hrm/tests/test_tasks.py -v
+poetry run pytest apps/hrm/tests/test_realtime_listener.py -v
 
 # Run specific test
 poetry run pytest apps/hrm/tests/test_services.py::TestAttendanceDeviceService::test_connect_success -v
+
+# Run realtime listener tests
+poetry run pytest apps/hrm/tests/test_realtime_listener.py -v
 ```
 
 ### Integration Tests
