@@ -167,62 +167,123 @@ def filter_queryset_by_data_scope(  # noqa: C901
     # Build filter query
     q_filter = Q()
 
-    # Add branch filter
+    # Add branch filter - try all possible paths and combine with OR
     if allowed.branches:
-        # Try multiple field patterns
-        branch_fields = [
-            f"{org_field}__block__branch__in",
-            f"{org_field}__branch__in",
-            "branch__in",
-        ]
-        for field in branch_fields:
+        branch_q = Q()
+        # Path 1: through department -> block -> branch (for records with department)
+        try:
+            test_q = Q(**{f"{org_field}__block__branch__in": allowed.branches})
+            # Test if this field path is valid by attempting to build it
+            queryset.filter(test_q).query  # noqa: B018
+            branch_q |= test_q
+        except Exception:
+            pass
+        # Path 2: direct branch on the related model (for branch-level assignments)
+        # Remove the last part of org_field (e.g., "department") and add "branch"
+        if "__" in org_field:
             try:
-                q_filter |= Q(**{field: allowed.branches})
-                break
+                base_field = org_field.rsplit("__", 1)[0]
+                test_q = Q(**{f"{base_field}__branch__in": allowed.branches})
+                queryset.filter(test_q).query  # noqa: B018
+                branch_q |= test_q
             except Exception:
-                continue
+                pass
+        # Path 3: direct branch field on the model (for OrganizationChart, etc.)
+        try:
+            test_q = Q(**{"branch__in": allowed.branches})
+            queryset.filter(test_q).query  # noqa: B018
+            branch_q |= test_q
+        except Exception:
+            pass
 
-    # Add block filter
+        if branch_q:
+            q_filter |= branch_q
+
+    # Add block filter - try all possible paths and combine with OR
     if allowed.blocks:
-        block_fields = [
-            f"{org_field}__block__in",
-            "block__in",
-        ]
-        for field in block_fields:
+        block_q = Q()
+        # Path 1: through org_field -> block
+        try:
+            test_q = Q(**{f"{org_field}__block__in": allowed.blocks})
+            queryset.filter(test_q).query  # noqa: B018
+            block_q |= test_q
+        except Exception:
+            pass
+        # Path 2: direct block relationship
+        if "__" in org_field:
             try:
-                q_filter |= Q(**{field: allowed.blocks})
-                break
+                base_field = org_field.rsplit("__", 1)[0]
+                test_q = Q(**{f"{base_field}__block__in": allowed.blocks})
+                queryset.filter(test_q).query  # noqa: B018
+                block_q |= test_q
             except Exception:
-                continue
+                pass
+        # Path 3: direct block field on the model
+        try:
+            test_q = Q(**{"block__in": allowed.blocks})
+            queryset.filter(test_q).query  # noqa: B018
+            block_q |= test_q
+        except Exception:
+            pass
+
+        if block_q:
+            q_filter |= block_q
 
     # Add department filter
     if allowed.departments:
-        department_fields = [
-            f"{org_field}__in",
-            f"{org_field}__id__in",
-            "department__in",
-            "department__id__in",
-        ]
-        for field in department_fields:
-            try:
-                q_filter |= Q(**{field: allowed.departments})
-                break
-            except Exception:
-                continue
+        department_q = Q()
+        try:
+            test_q = Q(**{f"{org_field}__in": allowed.departments})
+            queryset.filter(test_q).query  # noqa: B018
+            department_q |= test_q
+        except Exception:
+            pass
+        try:
+            test_q = Q(**{f"{org_field}__id__in": allowed.departments})
+            queryset.filter(test_q).query  # noqa: B018
+            department_q |= test_q
+        except Exception:
+            pass
+        try:
+            test_q = Q(**{"department__in": allowed.departments})
+            queryset.filter(test_q).query  # noqa: B018
+            department_q |= test_q
+        except Exception:
+            pass
+        try:
+            test_q = Q(**{"department__id__in": allowed.departments})
+            queryset.filter(test_q).query  # noqa: B018
+            department_q |= test_q
+        except Exception:
+            pass
+
+        if department_q:
+            q_filter |= department_q
 
     # Add employee filter (for self scope)
     if allowed.employees:
-        employee_fields = [
-            "employee__in",
-            "employee__id__in",
-            "id__in",  # If the model itself is User
-        ]
-        for field in employee_fields:
-            try:
-                q_filter |= Q(**{field: allowed.employees})
-                break
-            except Exception:
-                continue
+        employee_q = Q()
+        try:
+            test_q = Q(**{"employee__in": allowed.employees})
+            queryset.filter(test_q).query  # noqa: B018
+            employee_q |= test_q
+        except Exception:
+            pass
+        try:
+            test_q = Q(**{"employee__id__in": allowed.employees})
+            queryset.filter(test_q).query  # noqa: B018
+            employee_q |= test_q
+        except Exception:
+            pass
+        try:
+            test_q = Q(**{"id__in": allowed.employees})  # If the model itself is User
+            queryset.filter(test_q).query  # noqa: B018
+            employee_q |= test_q
+        except Exception:
+            pass
+
+        if employee_q:
+            q_filter |= employee_q
 
     if not q_filter:
         logger.error("Failed to build filter for org_field=%s - returning empty queryset", org_field)

@@ -448,3 +448,341 @@ class LeadershipFilteringTest(TestCase):
         filtered = filter_by_leadership(qs, leadership_only=False)
 
         self.assertEqual(filtered.count(), qs.count())
+
+
+class BranchDirectorDataScopeTest(TestCase):
+    """Test branch director with branch-only assignment can see all child department employees"""
+
+    def setUp(self):
+        """Set up organizational hierarchy with branch director"""
+        # Create base data
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        # Create branch
+        self.branch = Branch.objects.create(
+            name="Branch Hanoi", code="HN", province=self.province, administrative_unit=self.administrative_unit
+        )
+
+        # Create multiple blocks in the branch
+        self.block1 = Block.objects.create(
+            name="Block Support", code="SUP", block_type=Block.BlockType.SUPPORT, branch=self.branch
+        )
+        self.block2 = Block.objects.create(
+            name="Block Business", code="BIZ", block_type=Block.BlockType.BUSINESS, branch=self.branch
+        )
+
+        # Create multiple departments under blocks
+        self.dept1 = Department.objects.create(name="HR Department", code="HR", block=self.block1, branch=self.branch)
+        self.dept2 = Department.objects.create(
+            name="Finance Department", code="FIN", block=self.block1, branch=self.branch
+        )
+        self.dept3 = Department.objects.create(
+            name="Sales Department", code="SALES", block=self.block2, branch=self.branch
+        )
+
+        # Create positions
+        self.pos_branch_director = Position.objects.create(
+            name="Branch Director", code="BRDIR", data_scope=DataScope.BRANCH, is_leadership=True
+        )
+        self.pos_employee = Position.objects.create(
+            name="Employee", code="EMP", data_scope=DataScope.SELF, is_leadership=False
+        )
+
+        # Create users
+        self.branch_director = User.objects.create_user(
+            username="branch_director", email="director@branch.com", first_name="Branch", last_name="Director"
+        )
+        self.emp_dept1 = User.objects.create_user(
+            username="emp_dept1", email="emp1@branch.com", first_name="Employee", last_name="One"
+        )
+        self.emp_dept2 = User.objects.create_user(
+            username="emp_dept2", email="emp2@branch.com", first_name="Employee", last_name="Two"
+        )
+        self.emp_dept3 = User.objects.create_user(
+            username="emp_dept3", email="emp3@branch.com", first_name="Employee", last_name="Three"
+        )
+
+        # Create assignments
+        # Branch director: assigned to branch only (no department)
+        OrganizationChart.objects.create(
+            employee=self.branch_director,
+            position=self.pos_branch_director,
+            branch=self.branch,  # Only branch set, no department
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        # Employees assigned to different departments
+        OrganizationChart.objects.create(
+            employee=self.emp_dept1,
+            position=self.pos_employee,
+            department=self.dept1,
+            start_date=date.today(),
+            is_active=True,
+        )
+        OrganizationChart.objects.create(
+            employee=self.emp_dept2,
+            position=self.pos_employee,
+            department=self.dept2,
+            start_date=date.today(),
+            is_active=True,
+        )
+        OrganizationChart.objects.create(
+            employee=self.emp_dept3,
+            position=self.pos_employee,
+            department=self.dept3,
+            start_date=date.today(),
+            is_active=True,
+        )
+
+    def test_branch_director_sees_all_child_department_employees(self):
+        """Test branch director with branch-only assignment can see employees in all child departments"""
+        # Filter employees by branch director's scope
+        qs = User.objects.filter(organization_positions__isnull=False)
+        filtered = filter_queryset_by_data_scope(
+            qs, self.branch_director, org_field="organization_positions__department"
+        )
+
+        # Branch director should see all employees in the branch
+        self.assertIn(self.emp_dept1, filtered)
+        self.assertIn(self.emp_dept2, filtered)
+        self.assertIn(self.emp_dept3, filtered)
+        self.assertIn(self.branch_director, filtered)  # Should also see themselves
+
+        # Verify count (4 users with assignments)
+        self.assertEqual(filtered.distinct().count(), 4)
+
+    def test_branch_director_sees_all_department_org_charts(self):
+        """Test branch director can see all OrganizationChart records in their branch"""
+        # Filter OrganizationChart records
+        qs = OrganizationChart.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.branch_director, org_field="department")
+
+        # Should see all 4 assignments (1 branch-level + 3 department-level)
+        self.assertEqual(filtered.count(), 4)
+
+        # Verify specific departments are visible
+        dept1_assignments = filtered.filter(department=self.dept1).count()
+        dept2_assignments = filtered.filter(department=self.dept2).count()
+        dept3_assignments = filtered.filter(department=self.dept3).count()
+        branch_assignments = filtered.filter(branch=self.branch, department__isnull=True).count()
+
+        self.assertEqual(dept1_assignments, 1)
+        self.assertEqual(dept2_assignments, 1)
+        self.assertEqual(dept3_assignments, 1)
+        self.assertEqual(branch_assignments, 1)
+
+    def test_branch_director_allowed_units_includes_branch(self):
+        """Test that branch director's allowed units correctly includes branch ID"""
+        allowed = collect_allowed_units(self.branch_director)
+
+        self.assertFalse(allowed.has_all)
+        self.assertIn(self.branch.id, allowed.branches)
+        self.assertEqual(len(allowed.branches), 1)
+        # Should not have block or department level access
+        self.assertEqual(len(allowed.blocks), 0)
+        self.assertEqual(len(allowed.departments), 0)
+
+
+class BlockHeadDataScopeTest(TestCase):
+    """Test block head with block-only assignment can see all child department employees"""
+
+    def setUp(self):
+        """Set up organizational hierarchy with block head"""
+        # Create base data
+        self.province = Province.objects.create(
+            code="02",
+            name="Thành phố Hồ Chí Minh",
+            english_name="Ho Chi Minh",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="002",
+            name="Quận 1",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        # Create branch and block
+        self.branch = Branch.objects.create(
+            name="Branch HCMC", code="HCM", province=self.province, administrative_unit=self.administrative_unit
+        )
+        self.block = Block.objects.create(
+            name="Support Block", code="SUPP", block_type=Block.BlockType.SUPPORT, branch=self.branch
+        )
+
+        # Create multiple departments under the block
+        self.dept1 = Department.objects.create(name="IT Department", code="IT", block=self.block, branch=self.branch)
+        self.dept2 = Department.objects.create(
+            name="Admin Department", code="ADM", block=self.block, branch=self.branch
+        )
+        self.dept3 = Department.objects.create(
+            name="Facilities Department", code="FAC", block=self.block, branch=self.branch
+        )
+
+        # Create another block in same branch for negative testing
+        self.other_block = Block.objects.create(
+            name="Business Block", code="BUS", block_type=Block.BlockType.BUSINESS, branch=self.branch
+        )
+        self.other_dept = Department.objects.create(
+            name="Sales Department", code="SAL", block=self.other_block, branch=self.branch
+        )
+
+        # Create positions
+        self.pos_block_head = Position.objects.create(
+            name="Block Head", code="BLKHD", data_scope=DataScope.BLOCK, is_leadership=True
+        )
+        self.pos_employee = Position.objects.create(
+            name="Staff", code="STF", data_scope=DataScope.SELF, is_leadership=False
+        )
+
+        # Create users
+        self.block_head = User.objects.create_user(
+            username="block_head", email="head@block.com", first_name="Block", last_name="Head"
+        )
+        self.emp_dept1 = User.objects.create_user(
+            username="emp_it", email="emp_it@block.com", first_name="IT", last_name="Employee"
+        )
+        self.emp_dept2 = User.objects.create_user(
+            username="emp_admin", email="emp_admin@block.com", first_name="Admin", last_name="Employee"
+        )
+        self.emp_dept3 = User.objects.create_user(
+            username="emp_fac", email="emp_fac@block.com", first_name="Facilities", last_name="Employee"
+        )
+        self.emp_other_block = User.objects.create_user(
+            username="emp_sales", email="emp_sales@block.com", first_name="Sales", last_name="Employee"
+        )
+
+        # Create assignments
+        # Block head: assigned to block only (no department)
+        OrganizationChart.objects.create(
+            employee=self.block_head,
+            position=self.pos_block_head,
+            block=self.block,  # Only block set, no department
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        # Employees in block head's block
+        OrganizationChart.objects.create(
+            employee=self.emp_dept1,
+            position=self.pos_employee,
+            department=self.dept1,
+            start_date=date.today(),
+            is_active=True,
+        )
+        OrganizationChart.objects.create(
+            employee=self.emp_dept2,
+            position=self.pos_employee,
+            department=self.dept2,
+            start_date=date.today(),
+            is_active=True,
+        )
+        OrganizationChart.objects.create(
+            employee=self.emp_dept3,
+            position=self.pos_employee,
+            department=self.dept3,
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        # Employee in different block (should not be visible)
+        OrganizationChart.objects.create(
+            employee=self.emp_other_block,
+            position=self.pos_employee,
+            department=self.other_dept,
+            start_date=date.today(),
+            is_active=True,
+        )
+
+    def test_block_head_sees_all_child_department_employees(self):
+        """Test block head with block-only assignment can see employees in all child departments"""
+        # Filter employees by block head's scope
+        qs = User.objects.filter(organization_positions__isnull=False)
+        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="organization_positions__department")
+
+        # Block head should see employees in their block
+        self.assertIn(self.emp_dept1, filtered)
+        self.assertIn(self.emp_dept2, filtered)
+        self.assertIn(self.emp_dept3, filtered)
+        self.assertIn(self.block_head, filtered)  # Should see themselves
+
+        # Should NOT see employee from other block
+        self.assertNotIn(self.emp_other_block, filtered)
+
+        # Verify count (4 users in the block)
+        self.assertEqual(filtered.distinct().count(), 4)
+
+    def test_block_head_sees_all_department_org_charts_in_block(self):
+        """Test block head can see all OrganizationChart records in their block only"""
+        # Filter OrganizationChart records
+        qs = OrganizationChart.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="department")
+
+        # Should see 4 assignments in their block (1 block-level + 3 department-level)
+        self.assertEqual(filtered.count(), 4)
+
+        # Verify specific departments in the block are visible
+        dept1_assignments = filtered.filter(department=self.dept1).count()
+        dept2_assignments = filtered.filter(department=self.dept2).count()
+        dept3_assignments = filtered.filter(department=self.dept3).count()
+        block_assignments = filtered.filter(block=self.block, department__isnull=True).count()
+
+        self.assertEqual(dept1_assignments, 1)
+        self.assertEqual(dept2_assignments, 1)
+        self.assertEqual(dept3_assignments, 1)
+        self.assertEqual(block_assignments, 1)
+
+        # Should NOT see other block's department
+        other_dept_assignments = filtered.filter(department=self.other_dept).count()
+        self.assertEqual(other_dept_assignments, 0)
+
+    def test_block_head_allowed_units_includes_block(self):
+        """Test that block head's allowed units correctly includes block ID"""
+        allowed = collect_allowed_units(self.block_head)
+
+        self.assertFalse(allowed.has_all)
+        self.assertIn(self.block.id, allowed.blocks)
+        self.assertEqual(len(allowed.blocks), 1)
+        # Should not have branch or department level access
+        self.assertEqual(len(allowed.branches), 0)
+        self.assertEqual(len(allowed.departments), 0)
+
+    def test_block_head_does_not_see_other_blocks_in_same_branch(self):
+        """Test block head cannot see employees from other blocks in the same branch"""
+        # Create another block head for the other block
+        other_block_head = User.objects.create_user(
+            username="other_block_head", email="other@block.com", first_name="Other", last_name="Head"
+        )
+        pos_other_block_head = Position.objects.create(
+            name="Business Block Head", code="BBHD", data_scope=DataScope.BLOCK, is_leadership=True
+        )
+        OrganizationChart.objects.create(
+            employee=other_block_head,
+            position=pos_other_block_head,
+            block=self.other_block,
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        # Original block head should not see the other block head
+        qs = User.objects.filter(organization_positions__isnull=False)
+        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="organization_positions__department")
+
+        self.assertNotIn(other_block_head, filtered)
+        self.assertNotIn(self.emp_other_block, filtered)

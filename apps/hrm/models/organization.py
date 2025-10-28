@@ -326,7 +326,16 @@ class OrganizationChart(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.employee.get_full_name()} - {self.position.name} at {self.department.name}"
+        org_unit = (
+            self.department.name
+            if self.department
+            else self.block.name
+            if self.block
+            else self.branch.name
+            if self.branch
+            else "No unit"
+        )
+        return f"{self.employee.get_full_name()} - {self.position.name} at {org_unit}"
 
     def clean(self):
         """Validate organization chart entry"""
