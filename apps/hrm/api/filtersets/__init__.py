@@ -1,3 +1,5 @@
+from .attendance_device import AttendanceDeviceFilterSet
+from .attendance_record import AttendanceRecordFilterSet
 from .employee import EmployeeFilterSet
 from .employee_role import EmployeeRoleFilterSet
 from .interview_candidate import InterviewCandidateFilterSet
@@ -18,6 +20,8 @@ from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
 
 __all__ = [
+    "AttendanceDeviceFilterSet",
+    "AttendanceRecordFilterSet",
     "BranchFilterSet",
     "BlockFilterSet",
     "DepartmentFilterSet",

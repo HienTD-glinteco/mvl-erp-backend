@@ -1,3 +1,5 @@
+from .attendance_device import AttendanceDeviceViewSet
+from .attendance_record import AttendanceRecordViewSet
 from .contract_type import ContractTypeViewSet
 from .employee import EmployeeViewSet
 from .employee_role import EmployeeRoleViewSet
@@ -19,6 +21,8 @@ from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
 
 __all__ = [
+    "AttendanceDeviceViewSet",
+    "AttendanceRecordViewSet",
     "BranchViewSet",
     "BlockViewSet",
     "DepartmentViewSet",

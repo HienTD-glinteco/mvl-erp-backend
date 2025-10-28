@@ -2,6 +2,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from apps.hrm.api.views import (
+    AttendanceDeviceViewSet,
+    AttendanceRecordViewSet,
     BlockViewSet,
     BranchViewSet,
     ContractTypeViewSet,
@@ -45,6 +47,8 @@ router.register(
 router.register(r"recruitment-expenses", RecruitmentExpenseViewSet, basename="recruitment-expense")
 router.register(r"interview-schedules", InterviewScheduleViewSet, basename="interview-schedule")
 router.register(r"interview-candidates", InterviewCandidateViewSet, basename="interview-candidate")
+router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attendance-device")
+router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
 
 urlpatterns = [
     path("", include(router.urls)),
