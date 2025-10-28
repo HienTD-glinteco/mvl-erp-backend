@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0011_province_administrativeunit'),
+        ("core", "0011_province_administrativeunit"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Nationality',
+            name="Nationality",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Nationality name')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=100, unique=True, verbose_name="Nationality name")),
             ],
             options={
-                'verbose_name': 'Nationality',
-                'verbose_name_plural': 'Nationalities',
-                'db_table': 'core_nationality',
-                'ordering': ['name'],
+                "verbose_name": "Nationality",
+                "verbose_name_plural": "Nationalities",
+                "db_table": "core_nationality",
+                "ordering": ["name"],
             },
         ),
     ]

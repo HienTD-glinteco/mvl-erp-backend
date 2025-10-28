@@ -113,7 +113,7 @@ class Command(BaseCommand):
         for file_model in queryset:
             original_path = file_model.file_path
             # Remove prefix from path
-            new_path = original_path[len(prefix) + 1:]  # +1 for the slash
+            new_path = original_path[len(prefix) + 1 :]  # +1 for the slash
 
             try:
                 # Check if object exists at the S3 location (using original prefixed path)
@@ -141,9 +141,7 @@ class Command(BaseCommand):
                             f"Object not found in S3: {file_model.id} | {original_path}",
                         )
                     )
-                    logger.warning(
-                        f"S3 object not found during migration: id={file_model.id}, path={original_path}"
-                    )
+                    logger.warning(f"S3 object not found during migration: id={file_model.id}, path={original_path}")
                     not_found_count += 1
 
             except Exception as e:

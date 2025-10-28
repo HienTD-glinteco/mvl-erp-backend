@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-28 13:09+0700\n"
+"POT-Creation-Date: 2025-10-28 14:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -177,22 +177,22 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:91
+#: apps/files/utils/s3_utils.py:93
 #, python-brace-format
 msgid "Failed to generate presigned URL: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:170
+#: apps/files/utils/s3_utils.py:176
 #, python-brace-format
 msgid "Failed to move file in S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:212
+#: apps/files/utils/s3_utils.py:218
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr ""
 
-#: apps/files/utils/s3_utils.py:258
+#: apps/files/utils/s3_utils.py:264
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr ""

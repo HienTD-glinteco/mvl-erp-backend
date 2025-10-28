@@ -30,6 +30,7 @@ class AttendanceDeviceModelTest(TestCase):
         self.assertEqual(device.location, self.device_data["location"])
         self.assertEqual(device.ip_address, self.device_data["ip_address"])
         self.assertEqual(device.port, 4370)
+        self.assertTrue(device.is_enabled)  # Default value
         self.assertFalse(device.is_connected)
         self.assertIsNone(device.polling_synced_at)
         self.assertIsNotNone(device.created_at)
@@ -49,6 +50,7 @@ class AttendanceDeviceModelTest(TestCase):
         self.assertEqual(device.port, 4370)  # Default value
         self.assertEqual(device.location, "")
         self.assertEqual(device.password, "")
+        self.assertTrue(device.is_enabled)  # Default value
         self.assertFalse(device.is_connected)
 
     def test_attendance_device_str_with_location(self):
@@ -110,6 +112,33 @@ class AttendanceDeviceModelTest(TestCase):
         self.assertEqual(devices[0], device_a)
         self.assertEqual(devices[1], device_b)
         self.assertEqual(devices[2], device_c)
+
+    def test_is_enabled_default_value(self):
+        """Test that is_enabled defaults to True."""
+        # Arrange & Act
+        device = AttendanceDevice.objects.create(
+            name="Test Device",
+            ip_address="192.168.1.100",
+        )
+
+        # Assert
+        self.assertTrue(device.is_enabled)
+
+    def test_disable_device(self):
+        """Test disabling a device."""
+        # Arrange
+        device = AttendanceDevice.objects.create(
+            name="Test Device",
+            ip_address="192.168.1.100",
+        )
+
+        # Act
+        device.is_enabled = False
+        device.save()
+
+        # Assert
+        device.refresh_from_db()
+        self.assertFalse(device.is_enabled)
 
 
 class AttendanceRecordModelTest(TestCase):

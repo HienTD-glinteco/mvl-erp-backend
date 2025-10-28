@@ -71,9 +71,7 @@ class TestFCMService:
     @patch("apps.notifications.fcm_service.messaging.send")
     @patch("apps.notifications.fcm_service.initialize_firebase")
     @patch("apps.notifications.fcm_service.settings")
-    def test_send_notification_success(
-        self, mock_settings, mock_init, mock_send, notification
-    ):
+    def test_send_notification_success(self, mock_settings, mock_init, mock_send, notification):
         """Test successful notification sending."""
         # Arrange
         mock_settings.FCM_ENABLED = True
@@ -109,9 +107,7 @@ class TestFCMService:
 
     @patch("apps.notifications.fcm_service.initialize_firebase")
     @patch("apps.notifications.fcm_service.settings")
-    def test_send_notification_inactive_device(
-        self, mock_settings, mock_init, actor, recipient_with_device
-    ):
+    def test_send_notification_inactive_device(self, mock_settings, mock_init, actor, recipient_with_device):
         """Test send_notification when device is inactive."""
         # Arrange
         mock_settings.FCM_ENABLED = True
@@ -136,9 +132,7 @@ class TestFCMService:
 
     @patch("apps.notifications.fcm_service.initialize_firebase")
     @patch("apps.notifications.fcm_service.settings")
-    def test_send_notification_no_fcm_token(
-        self, mock_settings, mock_init, actor, recipient
-    ):
+    def test_send_notification_no_fcm_token(self, mock_settings, mock_init, actor, recipient):
         """Test send_notification when device has no FCM token."""
         # Arrange
         mock_settings.FCM_ENABLED = True
@@ -186,9 +180,7 @@ class TestFCMService:
         custom_data = {"custom_key": "custom_value"}
 
         # Act
-        payload = FCMService._build_payload(
-            notification, title=custom_title, body=custom_body, data=custom_data
-        )
+        payload = FCMService._build_payload(notification, title=custom_title, body=custom_body, data=custom_data)
 
         # Assert
         assert payload["notification"]["title"] == custom_title

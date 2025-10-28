@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0018_change_job_description_attachment_to_foreignkey'),
+        ("hrm", "0018_change_job_description_attachment_to_foreignkey"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='jobdescription',
-            name='position_title',
-            field=models.CharField(default='', max_length=255, verbose_name='Position title'),
+            model_name="jobdescription",
+            name="position_title",
+            field=models.CharField(default="", max_length=255, verbose_name="Position title"),
         ),
     ]
