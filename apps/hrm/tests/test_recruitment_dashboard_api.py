@@ -186,7 +186,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
             proposed_salary="2000 USD",
             number_of_positions=1,
         )
-        
+
         RecruitmentCandidate.objects.create(
             name="Test Candidate 1",
             email="candidate1@example.com",

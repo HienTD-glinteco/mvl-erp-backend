@@ -6,29 +6,29 @@ from django.db import migrations
 def backfill_org_chart_block_branch(apps, schema_editor):
     """Backfill block and branch fields from department"""
     OrganizationChart = apps.get_model("hrm", "OrganizationChart")
-    
+
     # Get all org charts with department but missing block/branch
     org_charts = OrganizationChart.objects.filter(department__isnull=False).select_related(
         "department__block__branch"
     )
-    
+
     updated_count = 0
     for org_chart in org_charts:
         if org_chart.department:
             needs_update = False
-            
+
             if not org_chart.block and org_chart.department.block:
                 org_chart.block = org_chart.department.block
                 needs_update = True
-            
+
             if not org_chart.branch and org_chart.department.block and org_chart.department.block.branch:
                 org_chart.branch = org_chart.department.block.branch
                 needs_update = True
-            
+
             if needs_update:
                 org_chart.save(update_fields=["block", "branch"])
                 updated_count += 1
-    
+
     if updated_count > 0:
         print(f"Backfilled {updated_count} OrganizationChart records with block and branch")
 
