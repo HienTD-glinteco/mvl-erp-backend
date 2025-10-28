@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 15:13+0700\n"
+"POT-Creation-Date: 2025-10-28 09:35+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -62,25 +62,15 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:125
-#: apps/hrm/api/views/recruitment_reports.py:797 apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
-
 # models/organization.py:102
-#: apps/hrm/api/views/recruitment_reports.py:619
+#: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:645
-#: apps/hrm/api/views/recruitment_reports.py:674
+#: apps/hrm/api/views/recruitment_reports.py:646
+#: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr "Tổng"
-
-#: apps/hrm/api/views/recruitment_reports.py:669 apps/hrm/constants.py:39
-#: apps/hrm/utils.py:128
-msgid "Week"
-msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:397
 msgid ""
@@ -111,6 +101,14 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
+
+#: apps/hrm/constants.py:39
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
 
 # management/commands/setup_default_org_data.py:8
 #: apps/hrm/management/commands/setup_default_org_data.py:8
@@ -955,10 +953,8 @@ msgstr ""
 
 # models/organization.py:218
 #: apps/hrm/models/recruitment_candidate.py:30
-#, fuzzy
-#| msgid "Experienced"
 msgid "No Experience"
-msgstr "Có kinh nghiệm"
+msgstr "Không có kinh nghiệm"
 
 #: apps/hrm/models/recruitment_candidate.py:31
 msgid "Less Than One Year"
@@ -1179,10 +1175,8 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_reports.py:63
 #: apps/hrm/models/recruitment_reports.py:204
-#, fuzzy
-#| msgid "Week"
 msgid "Week key"
-msgstr "Tuần"
+msgstr "Key Tuần"
 
 #: apps/hrm/models/recruitment_reports.py:64
 #: apps/hrm/models/recruitment_reports.py:205
@@ -1199,10 +1193,8 @@ msgstr ""
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_reports.py:71
-#, fuzzy
-#| msgid "Recruitment source"
 msgid "Number of new recruitment source"
-msgstr "Nguồn tuyển dụng"
+msgstr "Số lượng nguồn tuyển dụng mới"
 
 #: apps/hrm/models/recruitment_reports.py:72
 msgid "Number of transfers"

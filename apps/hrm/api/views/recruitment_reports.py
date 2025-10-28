@@ -48,6 +48,7 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     pagination_class = None
 
     @extend_schema(
+        operation_id="hrm_reports_staff_growth_retrieve",
         summary="Staff Growth Report",
         description=(
             "Aggregate staff changes (introductions, returns, new hires, transfers, resignations) "
