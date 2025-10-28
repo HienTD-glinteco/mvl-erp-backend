@@ -38,3 +38,13 @@ class RecruitmentSourceType(models.TextChoices):
 class ReportPeriodType(models.TextChoices):
     WEEK = "week", _("Week")
     MONTH = "month", _("Month")
+
+
+class DataScope(models.TextChoices):
+    """Data scope levels for position-based access control"""
+
+    ALL = "all", _("All data")
+    BRANCH = "branch", _("Branch level")
+    BLOCK = "block", _("Block level")
+    DEPARTMENT = "department", _("Department level")
+    SELF = "self", _("Self only")

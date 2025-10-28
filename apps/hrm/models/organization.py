@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
-from ..constants import TEMP_CODE_PREFIX
+from ..constants import TEMP_CODE_PREFIX, DataScope
 
 
 @audit_logging_register
@@ -250,6 +250,13 @@ class Position(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Position name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
+    data_scope = models.CharField(
+        max_length=20,
+        choices=DataScope.choices,
+        default=DataScope.DEPARTMENT,
+        verbose_name=_("Data scope"),
+    )
+    is_leadership = models.BooleanField(default=False, verbose_name=_("Leadership position"))
     description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
@@ -282,8 +289,26 @@ class OrganizationChart(BaseModel):
     department = models.ForeignKey(
         Department,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="organization_positions",
         verbose_name=_("Department"),
+    )
+    block = models.ForeignKey(
+        Block,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="organization_positions_by_block",
+        verbose_name=_("Block"),
+    )
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="organization_positions_by_branch",
+        verbose_name=_("Branch"),
     )
     start_date = models.DateField(verbose_name=_("Start date"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("End date"))
@@ -295,14 +320,45 @@ class OrganizationChart(BaseModel):
         verbose_name_plural = _("Organization Charts")
         db_table = "hrm_organization_chart"
         unique_together = [["employee", "position", "department", "start_date"]]
+        indexes = [
+            models.Index(fields=["block"]),
+            models.Index(fields=["branch"]),
+        ]
 
     def __str__(self):
-        return f"{self.employee.get_full_name()} - {self.position.name} at {self.department.name}"
+        org_unit = (
+            self.department.name
+            if self.department
+            else self.block.name
+            if self.block
+            else self.branch.name
+            if self.branch
+            else "No unit"
+        )
+        return f"{self.employee.get_full_name()} - {self.position.name} at {org_unit}"
 
     def clean(self):
         """Validate organization chart entry"""
+        errors = {}
+
+        # At least one of department, block, or branch must be set
+        if not any([self.department, self.block, self.branch]):
+            errors["__all__"] = _("At least one of department, block, or branch must be specified.")
+
+        # Validate and auto-fill based on department
+        if self.department:
+            if self.block and self.block != self.department.block:
+                errors["block"] = _("Block must match the department's block.")
+            if self.branch and self.branch != self.department.block.branch:
+                errors["branch"] = _("Branch must match the department's branch.")
+
+        # Validate and auto-fill based on block
+        if self.block and not self.department:
+            if self.branch and self.branch != self.block.branch:
+                errors["branch"] = _("Branch must match the block's branch.")
+
         # Ensure employee can only have one primary position per department at a time
-        if self.is_primary and self.is_active:
+        if self.is_primary and self.is_active and self.department:
             existing = OrganizationChart.objects.filter(
                 employee=self.employee,
                 department=self.department,
@@ -312,4 +368,23 @@ class OrganizationChart(BaseModel):
             ).exclude(id=self.id)
 
             if existing.exists():
-                raise ValidationError(_("Employee can only have one primary position in a department at a time."))
+                errors["is_primary"] = _("Employee can only have one primary position in a department at a time.")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Auto-fill block and branch based on department/block"""
+        # Auto-fill from department
+        if self.department:
+            if not self.block:
+                self.block = self.department.block
+            if not self.branch:
+                self.branch = self.department.block.branch
+
+        # Auto-fill from block
+        if self.block and not self.branch:
+            self.branch = self.block.branch
+
+        self.clean()
+        super().save(*args, **kwargs)
