@@ -41,7 +41,7 @@ class OrganizationChartAdmin(admin.ModelAdmin):
     list_display = ["employee", "position", "department", "block", "branch", "start_date", "is_primary", "is_active"]
     list_filter = ["is_primary", "is_active", "position__is_leadership"]
     search_fields = ["employee__username", "employee__email", "position__name"]
-    autocomplete_fields = ["employee", "position", "department", "block", "branch"]
+    raw_id_fields = ["employee", "position", "department", "block", "branch"]
     readonly_fields = ["created_at", "updated_at"]
     date_hierarchy = "start_date"
     fieldsets = [
