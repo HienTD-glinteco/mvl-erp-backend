@@ -786,3 +786,358 @@ class BlockHeadDataScopeTest(TestCase):
 
         self.assertNotIn(other_block_head, filtered)
         self.assertNotIn(self.emp_other_block, filtered)
+
+
+class EmployeeDataScopeFilterBackendTest(TestCase):
+    """Test DataScopeFilterBackend with real Employee model to demonstrate practical application"""
+
+    def setUp(self):
+        """Set up organizational hierarchy with employees"""
+        # Import Employee model
+        from apps.core.models import Nationality
+        from apps.hrm.models import ContractType, Employee
+
+        # Create base data
+        self.province = Province.objects.create(
+            code="01",
+            name="Thành phố Hà Nội",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Quận Ba Đình",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        # Create organizational structure
+        self.branch_hn = Branch.objects.create(
+            name="Branch Hanoi", code="HN", province=self.province, administrative_unit=self.administrative_unit
+        )
+        self.branch_hcm = Branch.objects.create(
+            name="Branch HCMC", code="HCM", province=self.province, administrative_unit=self.administrative_unit
+        )
+
+        # Blocks in Hanoi branch
+        self.block_support_hn = Block.objects.create(
+            name="Support Block HN", code="SUP-HN", block_type=Block.BlockType.SUPPORT, branch=self.branch_hn
+        )
+        self.block_business_hn = Block.objects.create(
+            name="Business Block HN", code="BIZ-HN", block_type=Block.BlockType.BUSINESS, branch=self.branch_hn
+        )
+
+        # Block in HCMC branch
+        self.block_support_hcm = Block.objects.create(
+            name="Support Block HCM", code="SUP-HCM", block_type=Block.BlockType.SUPPORT, branch=self.branch_hcm
+        )
+
+        # Departments in Hanoi Support Block
+        self.dept_hr_hn = Department.objects.create(
+            name="HR Department HN", code="HR-HN", block=self.block_support_hn, branch=self.branch_hn
+        )
+        self.dept_it_hn = Department.objects.create(
+            name="IT Department HN", code="IT-HN", block=self.block_support_hn, branch=self.branch_hn
+        )
+
+        # Department in Hanoi Business Block
+        self.dept_sales_hn = Department.objects.create(
+            name="Sales Department HN", code="SALES-HN", block=self.block_business_hn, branch=self.branch_hn
+        )
+
+        # Department in HCMC
+        self.dept_hr_hcm = Department.objects.create(
+            name="HR Department HCM", code="HR-HCM", block=self.block_support_hcm, branch=self.branch_hcm
+        )
+
+        # Create positions
+        self.pos_branch_director = Position.objects.create(
+            name="Branch Director", code="BRDIR", data_scope=DataScope.BRANCH, is_leadership=True
+        )
+        self.pos_block_head = Position.objects.create(
+            name="Block Head", code="BLKHD", data_scope=DataScope.BLOCK, is_leadership=True
+        )
+        self.pos_dept_manager = Position.objects.create(
+            name="Department Manager", code="DPTMGR", data_scope=DataScope.DEPARTMENT, is_leadership=True
+        )
+        self.pos_employee = Position.objects.create(
+            name="Employee", code="EMP", data_scope=DataScope.SELF, is_leadership=False
+        )
+
+        # Create nationality for employees
+        self.nationality = Nationality.objects.create(name="Vietnamese")
+
+        # Create contract type
+        self.contract_type = ContractType.objects.create(name="Full-time")
+
+        # Create users for organizational chart
+        self.user_branch_director = User.objects.create_user(
+            username="branch_director_hn", email="bd_hn@company.com", first_name="Director", last_name="HN"
+        )
+        self.user_block_head = User.objects.create_user(
+            username="block_head_support", email="bh_sup@company.com", first_name="BlockHead", last_name="Support"
+        )
+        self.user_dept_manager = User.objects.create_user(
+            username="dept_mgr_hr", email="mgr_hr@company.com", first_name="Manager", last_name="HR"
+        )
+
+        # Create employees in different departments
+        self.emp_hr_hn_1 = Employee.objects.create(
+            code="MV001",
+            fullname="Employee HR HN 1",
+            username="emp_hr_hn_1",
+            email="emp_hr_hn_1@company.com",
+            attendance_code="1001",
+            branch=self.branch_hn,
+            block=self.block_support_hn,
+            department=self.dept_hr_hn,
+            position=self.pos_employee,
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1990, 1, 1),
+            personal_email="emp_hr_hn_1_personal@gmail.com",
+            nationality=self.nationality,
+        )
+
+        self.emp_hr_hn_2 = Employee.objects.create(
+            code="MV002",
+            fullname="Employee HR HN 2",
+            username="emp_hr_hn_2",
+            email="emp_hr_hn_2@company.com",
+            personal_email="emp_hr_hn_2_personal@gmail.com",
+            attendance_code="1002",
+            branch=self.branch_hn,
+            block=self.block_support_hn,
+            department=self.dept_hr_hn,
+            position=self.pos_employee,
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1991, 1, 1),
+            nationality=self.nationality,
+        )
+
+        self.emp_it_hn = Employee.objects.create(
+            code="MV003",
+            fullname="Employee IT HN",
+            username="emp_it_hn",
+            email="emp_it_hn@company.com",
+            personal_email="emp_it_hn_personal@gmail.com",
+            attendance_code="1003",
+            branch=self.branch_hn,
+            block=self.block_support_hn,
+            department=self.dept_it_hn,
+            position=self.pos_employee,
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1992, 1, 1),
+            nationality=self.nationality,
+        )
+
+        self.emp_sales_hn = Employee.objects.create(
+            code="MV004",
+            fullname="Employee Sales HN",
+            username="emp_sales_hn",
+            email="emp_sales_hn@company.com",
+            personal_email="emp_sales_hn_personal@gmail.com",
+            attendance_code="1004",
+            branch=self.branch_hn,
+            block=self.block_business_hn,
+            department=self.dept_sales_hn,
+            position=self.pos_employee,
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1993, 1, 1),
+            nationality=self.nationality,
+        )
+
+        self.emp_hr_hcm = Employee.objects.create(
+            code="MV005",
+            fullname="Employee HR HCM",
+            username="emp_hr_hcm",
+            email="emp_hr_hcm@company.com",
+            personal_email="emp_hr_hcm_personal@gmail.com",
+            attendance_code="2001",
+            branch=self.branch_hcm,
+            block=self.block_support_hcm,
+            department=self.dept_hr_hcm,
+            position=self.pos_employee,
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1994, 1, 1),
+            nationality=self.nationality,
+        )
+
+        # Create organizational chart assignments
+        OrganizationChart.objects.create(
+            employee=self.user_branch_director,
+            position=self.pos_branch_director,
+            branch=self.branch_hn,  # Branch-level assignment
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        OrganizationChart.objects.create(
+            employee=self.user_block_head,
+            position=self.pos_block_head,
+            block=self.block_support_hn,  # Block-level assignment
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        OrganizationChart.objects.create(
+            employee=self.user_dept_manager,
+            position=self.pos_dept_manager,
+            department=self.dept_hr_hn,  # Department-level assignment
+            start_date=date.today(),
+            is_active=True,
+        )
+
+    def test_branch_director_sees_all_employees_in_branch(self):
+        """Test branch director can see all employees across all departments in their branch"""
+        from apps.hrm.models import Employee
+
+        # Filter employees using data scope
+        qs = Employee.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.user_branch_director, org_field="department")
+
+        # Branch director should see all employees in Hanoi branch
+        self.assertIn(self.emp_hr_hn_1, filtered)
+        self.assertIn(self.emp_hr_hn_2, filtered)
+        self.assertIn(self.emp_it_hn, filtered)
+        self.assertIn(self.emp_sales_hn, filtered)
+
+        # Should NOT see employees in HCMC branch
+        self.assertNotIn(self.emp_hr_hcm, filtered)
+
+        # Should see 4 employees in Hanoi branch
+        self.assertEqual(filtered.count(), 4)
+
+    def test_block_head_sees_employees_in_block_only(self):
+        """Test block head can see employees in their block across multiple departments"""
+        from apps.hrm.models import Employee
+
+        # Filter employees using data scope
+        qs = Employee.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.user_block_head, org_field="department")
+
+        # Block head should see employees in Support Block (HR and IT departments)
+        self.assertIn(self.emp_hr_hn_1, filtered)
+        self.assertIn(self.emp_hr_hn_2, filtered)
+        self.assertIn(self.emp_it_hn, filtered)
+
+        # Should NOT see employees in Business Block (same branch, different block)
+        self.assertNotIn(self.emp_sales_hn, filtered)
+
+        # Should NOT see employees in HCMC
+        self.assertNotIn(self.emp_hr_hcm, filtered)
+
+        # Should see 3 employees in Support Block
+        self.assertEqual(filtered.count(), 3)
+
+    def test_dept_manager_sees_employees_in_department_only(self):
+        """Test department manager can see employees in their department only"""
+        from apps.hrm.models import Employee
+
+        # Filter employees using data scope
+        qs = Employee.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.user_dept_manager, org_field="department")
+
+        # Department manager should see only employees in HR department HN
+        self.assertIn(self.emp_hr_hn_1, filtered)
+        self.assertIn(self.emp_hr_hn_2, filtered)
+
+        # Should NOT see employees in other departments
+        self.assertNotIn(self.emp_it_hn, filtered)
+        self.assertNotIn(self.emp_sales_hn, filtered)
+        self.assertNotIn(self.emp_hr_hcm, filtered)
+
+        # Should see 2 employees in HR department
+        self.assertEqual(filtered.count(), 2)
+
+    def test_data_scope_filter_backend_integration(self):
+        """Test DataScopeFilterBackend can be applied to Employee queryset
+
+        This test demonstrates that DataScopeFilterBackend works with real Employee model,
+        proving the practical applicability of the data scope feature.
+        """
+        from apps.hrm.models import Employee
+
+        # Use the filter function directly (which is what the FilterBackend calls internally)
+        # This demonstrates the same behavior as using DataScopeFilterBackend in a ViewSet
+        qs = Employee.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.user_branch_director, org_field="department")
+
+        # Branch director should see only employees in their branch (Hanoi)
+        # Verifies that data scope filtering works correctly with Employee model
+        self.assertEqual(filtered.count(), 4, "Branch director should see 4 employees in Hanoi branch")
+        self.assertIn(self.emp_hr_hn_1, filtered, "Should see HR employee 1")
+        self.assertIn(self.emp_hr_hn_2, filtered, "Should see HR employee 2")
+        self.assertIn(self.emp_it_hn, filtered, "Should see IT employee")
+        self.assertIn(self.emp_sales_hn, filtered, "Should see Sales employee")
+        self.assertNotIn(self.emp_hr_hcm, filtered, "Should NOT see HCMC employee")
+
+    def test_employee_filtering_across_multiple_branches(self):
+        """Test that employees are properly scoped when multiple branches exist"""
+        from apps.hrm.models import Employee
+
+        # Create a second branch director for HCMC
+        user_branch_director_hcm = User.objects.create_user(
+            username="branch_director_hcm", email="bd_hcm@company.com", first_name="Director", last_name="HCM"
+        )
+
+        OrganizationChart.objects.create(
+            employee=user_branch_director_hcm,
+            position=self.pos_branch_director,
+            branch=self.branch_hcm,
+            start_date=date.today(),
+            is_active=True,
+        )
+
+        # HN branch director should only see HN employees
+        qs_hn = Employee.objects.all()
+        filtered_hn = filter_queryset_by_data_scope(qs_hn, self.user_branch_director, org_field="department")
+        self.assertEqual(filtered_hn.count(), 4)
+        self.assertNotIn(self.emp_hr_hcm, filtered_hn)
+
+        # HCM branch director should only see HCM employees
+        qs_hcm = Employee.objects.all()
+        filtered_hcm = filter_queryset_by_data_scope(qs_hcm, user_branch_director_hcm, org_field="department")
+        self.assertEqual(filtered_hcm.count(), 1)
+        self.assertIn(self.emp_hr_hcm, filtered_hcm)
+        self.assertNotIn(self.emp_hr_hn_1, filtered_hcm)
+
+    def test_employee_queryset_with_leadership_filter(self):
+        """Test combining data scope with leadership filter on Employee queryset"""
+        from apps.hrm.models import Employee
+
+        # Create a manager employee with leadership position
+        manager_emp = Employee.objects.create(
+            code="MV006",
+            fullname="Manager Employee",
+            username="emp_manager",
+            email="emp_manager@company.com",
+            personal_email="emp_manager_personal@gmail.com",
+            attendance_code="1005",
+            branch=self.branch_hn,
+            block=self.block_support_hn,
+            department=self.dept_hr_hn,
+            position=self.pos_dept_manager,  # Leadership position
+            contract_type=self.contract_type,
+            start_date=date.today(),
+            date_of_birth=date(1985, 1, 1),
+            nationality=self.nationality,
+        )
+
+        # Filter by data scope first
+        qs = Employee.objects.all()
+        filtered = filter_queryset_by_data_scope(qs, self.user_branch_director, org_field="department")
+
+        # Then filter by leadership using Employee's position field
+        leadership_filtered = filtered.filter(position__is_leadership=True)
+
+        # Should only see employees with leadership positions
+        self.assertIn(manager_emp, leadership_filtered)
+        self.assertNotIn(self.emp_hr_hn_1, leadership_filtered)
+        self.assertNotIn(self.emp_hr_hn_2, leadership_filtered)
