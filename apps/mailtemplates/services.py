@@ -154,6 +154,7 @@ def sanitize_html_for_storage(html: str) -> str:
     """Sanitize HTML content for safe storage.
 
     Removes dangerous tags and attributes while preserving email-safe HTML.
+    Preserves full HTML structure including head, style tags for email templates.
 
     Args:
         html: Raw HTML content
@@ -161,8 +162,17 @@ def sanitize_html_for_storage(html: str) -> str:
     Returns:
         Sanitized HTML content
     """
-    # Define allowed tags for email templates
+    # Define allowed tags for email templates - comprehensive list for full email support
     allowed_tags = [
+        # Document structure
+        "html",
+        "head",
+        "body",
+        "title",
+        "meta",
+        "style",
+        "link",
+        # Text formatting
         "a",
         "abbr",
         "b",
@@ -170,8 +180,10 @@ def sanitize_html_for_storage(html: str) -> str:
         "br",
         "cite",
         "code",
+        "del",
         "div",
         "em",
+        "font",
         "h1",
         "h2",
         "h3",
@@ -180,39 +192,87 @@ def sanitize_html_for_storage(html: str) -> str:
         "h6",
         "hr",
         "i",
-        "img",
-        "li",
-        "ol",
+        "ins",
+        "mark",
         "p",
         "pre",
+        "q",
+        "s",
+        "samp",
+        "small",
         "span",
+        "strike",
         "strong",
+        "sub",
+        "sup",
+        "u",
+        # Lists
+        "dl",
+        "dt",
+        "dd",
+        "li",
+        "ol",
+        "ul",
+        # Tables
         "table",
+        "caption",
+        "col",
+        "colgroup",
         "tbody",
         "td",
+        "tfoot",
         "th",
         "thead",
         "tr",
-        "u",
-        "ul",
+        # Media
+        "img",
+        # Semantic
+        "article",
+        "aside",
+        "details",
+        "figcaption",
+        "figure",
+        "footer",
+        "header",
+        "main",
+        "nav",
+        "section",
+        "summary",
+        "time",
     ]
 
-    # Define allowed attributes
+    # Define allowed attributes - comprehensive for email styling
     allowed_attributes = {
-        "*": ["class", "id", "style"],
-        "a": ["href", "title", "target"],
-        "img": ["src", "alt", "width", "height", "style"],
-        "table": ["border", "cellpadding", "cellspacing", "width"],
-        "td": ["colspan", "rowspan", "align", "valign"],
-        "th": ["colspan", "rowspan", "align", "valign"],
+        "*": ["class", "id", "style", "lang", "dir"],
+        "a": ["href", "title", "target", "rel", "name"],
+        "img": ["src", "alt", "width", "height", "style", "border", "align"],
+        "table": ["border", "cellpadding", "cellspacing", "width", "align", "bgcolor", "style"],
+        "td": ["colspan", "rowspan", "align", "valign", "width", "height", "bgcolor", "style"],
+        "th": ["colspan", "rowspan", "align", "valign", "width", "height", "bgcolor", "style"],
+        "tr": ["align", "valign", "bgcolor", "style"],
+        "tbody": ["align", "valign", "style"],
+        "thead": ["align", "valign", "style"],
+        "tfoot": ["align", "valign", "style"],
+        "meta": ["charset", "name", "content", "http-equiv"],
+        "link": ["rel", "href", "type"],
+        "font": ["color", "face", "size"],
+        "div": ["align", "style"],
+        "p": ["align", "style"],
+        "span": ["style"],
+        "h1": ["align", "style"],
+        "h2": ["align", "style"],
+        "h3": ["align", "style"],
+        "h4": ["align", "style"],
+        "h5": ["align", "style"],
+        "h6": ["align", "style"],
     }
 
-    # Sanitize HTML
+    # Sanitize HTML - remove only script and dangerous event handlers
     cleaned = bleach.clean(
         html,
         tags=allowed_tags,
         attributes=allowed_attributes,
-        strip=True,
+        strip=False,  # Don't strip tags, just remove disallowed ones
     )
 
     return cleaned
@@ -221,8 +281,7 @@ def sanitize_html_for_storage(html: str) -> str:
 def sanitize_html_for_email(html: str) -> str:
     """Sanitize rendered HTML for email sending.
 
-    More permissive than storage sanitization, focused on removing
-    dangerous content while preserving styling.
+    Preserves all styling and structure while removing dangerous content.
 
     Args:
         html: Rendered HTML content
@@ -230,8 +289,8 @@ def sanitize_html_for_email(html: str) -> str:
     Returns:
         Sanitized HTML safe for email
     """
-    # For email, we're more permissive with styling
-    # but still remove scripts and event handlers
+    # For email, preserve full HTML structure and styling
+    # Only remove scripts and dangerous event handlers
     return sanitize_html_for_storage(html)
 
 
