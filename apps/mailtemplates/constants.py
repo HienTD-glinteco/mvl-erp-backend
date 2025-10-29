@@ -47,10 +47,10 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
         "purpose": "Send to new employees on their first day",
         "variables": [
             {
-                "name": "first_name",
+                "name": "fullname",
                 "type": "string",
                 "required": True,
-                "description": "Employee's first name",
+                "description": "Employee's full name",
             },
             {
                 "name": "start_date",
@@ -72,7 +72,7 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
             },
         ],
         "sample_data": {
-            "first_name": "John",
+            "fullname": "John Doe",
             "start_date": "2025-11-01",
             "position": "Software Engineer",
             "department": "Engineering",
@@ -80,12 +80,12 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
         "variables_schema": {
             "type": "object",
             "properties": {
-                "first_name": {"type": "string"},
+                "fullname": {"type": "string"},
                 "start_date": {"type": "string", "format": "date"},
                 "position": {"type": "string"},
                 "department": {"type": "string"},
             },
-            "required": ["first_name", "start_date"],
+            "required": ["fullname", "start_date"],
         },
     },
     {
