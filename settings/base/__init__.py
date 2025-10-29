@@ -13,6 +13,7 @@ from .firebase import *
 from .health_check import *
 from .internationalization import *
 from .logging import *
+from .mailtemplates import *
 from .middleware import *
 from .password import *
 from .rabbitmq import *

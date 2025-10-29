@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Invitation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px 20px;
+            background-color: #f9f9f9;
+        }
+        .details {
+            background-color: #fff;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        h1 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Interview Invitation</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{ candidate_name }},</p>
+        
+        <p>Thank you for your interest in the <strong>{{ position }}</strong> position at MaiVietLand.</p>
+        
+        <p>We are pleased to invite you for an interview to discuss your qualifications and learn more about you.</p>
+        
+        <div class="details">
+            <p><strong>Interview Details:</strong></p>
+            <ul>
+                <li><strong>Date:</strong> {{ interview_date }}</li>
+                <li><strong>Time:</strong> {{ interview_time }}</li>
+                {% if location %}
+                <li><strong>Location:</strong> {{ location }}</li>
+                {% endif %}
+            </ul>
+        </div>
+        
+        <p>Please confirm your attendance by replying to this email at your earliest convenience.</p>
+        
+        <p>We look forward to meeting you!</p>
+        
+        <p>Best regards,<br>
+        The MaiVietLand Recruitment Team</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 MaiVietLand. All rights reserved.</p>
+    </div>
+</body>
+</html>
