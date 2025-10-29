@@ -50,20 +50,19 @@ MAIL_SEND_MAX_ATTEMPTS = 3  # Max retry attempts per recipient
 
 ### Using TemplateActionMixin in ViewSets
 
-To add email actions to your ViewSet, use the `TemplateActionMixin` and `generate_email_action_methods()`:
+To add email actions to your ViewSet, use the `TemplateActionMixin` and `create_template_actions()` helper:
 
 ```python
-from apps.mailtemplates.view_mixins import TemplateActionMixin, generate_email_action_methods
+from apps.mailtemplates.view_mixins import TemplateActionMixin, create_template_actions
 
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
-    # Define email actions: action_name -> template_slug
-    email_actions = {
-        "send_welcome_email": "welcome",
-        "send_contract": "contract",
-    }
-    
-    # Generate action methods - must be in class body, not __init__
-    locals().update(generate_email_action_methods(email_actions))
+    # Create email actions by assigning them directly in the class body
+    send_welcome_email_preview, send_welcome_email_send = create_template_actions(
+        "send_welcome_email", "welcome"
+    )
+    send_contract_preview, send_contract_send = create_template_actions(
+        "send_contract", "contract"
+    )
     
     # Optionally override data extraction
     def get_template_action_data(self, instance, action_name, template_slug):
@@ -80,7 +79,7 @@ This automatically provides:
 - `POST /api/employees/{pk}/send_contract/preview/`
 - `POST /api/employees/{pk}/send_contract/send/`
 
-**Important**: The `locals().update(generate_email_action_methods(email_actions))` line must be in the class body (at the class level), not in `__init__` or any method. This is how Python allows you to dynamically add methods during class definition.
+The `create_template_actions()` function returns a tuple of two DRF action methods (preview and send) that you assign to your ViewSet as class attributes. This works because the assignment happens during class definition, which is when DRF's router discovers actions.
 
 ### List Templates
 
