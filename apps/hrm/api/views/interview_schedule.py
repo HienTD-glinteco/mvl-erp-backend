@@ -302,8 +302,64 @@ class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, Base
 
     @extend_schema(
         summary="Preview interview invitation email",
-        description="Generate a preview of the interview invitation email for this schedule",
+        description="Generate a preview of the interview invitation email for this schedule using the interview_invite email template",
         tags=["Interview Schedule"],
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "object",
+                        "description": "Optional data overrides for template variables",
+                        "properties": {
+                            "candidate_name": {"type": "string", "description": "Candidate's full name"},
+                            "position": {"type": "string", "description": "Position being interviewed for"},
+                            "interview_date": {"type": "string", "format": "date", "description": "Interview date"},
+                            "interview_time": {"type": "string", "description": "Interview time"},
+                            "location": {"type": "string", "description": "Interview location or meeting link (optional)"},
+                        },
+                    },
+                },
+            }
+        },
+        responses={
+            200: {
+                "description": "Email preview generated successfully",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": True,
+                            "data": {
+                                "html": "<html>...</html>",
+                                "text": "Plain text version of email",
+                            },
+                        }
+                    }
+                },
+            },
+            400: {
+                "description": "Invalid data or template rendering error",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": False,
+                            "error": "Template rendering failed: 'candidate_name' is undefined",
+                        }
+                    }
+                },
+            },
+            404: {
+                "description": "Interview schedule not found",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": False,
+                            "error": "Not found.",
+                        }
+                    }
+                },
+            },
+        },
     )
     @action(detail=True, methods=["post"], url_path="interview_invite/preview")
     def interview_invite_preview(self, request, pk=None):
@@ -312,8 +368,90 @@ class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, Base
 
     @extend_schema(
         summary="Send interview invitation email",
-        description="Send interview invitation email to candidates in this schedule and mark InterviewCandidate.email_sent_at",
+        description="Send interview invitation email to candidates in this schedule. After successful delivery, the InterviewCandidate.email_sent_at field will be updated with the current timestamp",
         tags=["Interview Schedule"],
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "recipients": {
+                        "type": "array",
+                        "description": "Optional list of recipients. If not provided, email is sent to all candidates in the schedule",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "email": {"type": "string", "format": "email"},
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "candidate_name": {"type": "string"},
+                                        "position": {"type": "string"},
+                                        "interview_date": {"type": "string", "format": "date"},
+                                        "interview_time": {"type": "string"},
+                                        "location": {"type": "string"},
+                                    },
+                                    "required": ["candidate_name", "position", "interview_date", "interview_time"],
+                                },
+                            },
+                            "required": ["email", "data"],
+                        },
+                    },
+                    "subject": {
+                        "type": "string",
+                        "description": "Optional email subject (defaults to 'Interview Invitation - MaiVietLand')",
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "Optional data overrides for template variables",
+                        "properties": {
+                            "candidate_name": {"type": "string"},
+                            "position": {"type": "string"},
+                            "interview_date": {"type": "string", "format": "date"},
+                            "interview_time": {"type": "string"},
+                            "location": {"type": "string"},
+                        },
+                    },
+                },
+            }
+        },
+        responses={
+            202: {
+                "description": "Email job created and queued for sending",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": True,
+                            "data": {
+                                "job_id": "550e8400-e29b-41d4-a716-446655440000",
+                                "detail": "Email job created and queued",
+                            },
+                        }
+                    }
+                },
+            },
+            400: {
+                "description": "Invalid request data or template validation error",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": False,
+                            "error": {"recipients": ["This field is required."]},
+                        }
+                    }
+                },
+            },
+            404: {
+                "description": "Interview schedule not found",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "success": False,
+                            "error": "Not found.",
+                        }
+                    }
+                },
+            },
+        },
     )
     @action(detail=True, methods=["post"], url_path="interview_invite/send")
     def interview_invite_send(self, request, pk=None):

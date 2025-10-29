@@ -28,7 +28,7 @@ urlpatterns += [
     path("api/audit-logs/", include("apps.audit_logging.urls")),
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/files/", include("apps.files.urls")),
-    path("api/templates/", include("apps.mailtemplates.urls")),
+    path("api/mailtemplates/", include("apps.mailtemplates.urls")),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -57,9 +57,9 @@ from .tasks import send_email_job_task
                         "purpose": "Send to new employees on their first day",
                         "filename": "welcome.html",
                         "variables": [
-                            {"name": "first_name", "type": "string", "required": True, "description": "Employee's first name"}
+                            {"name": "fullname", "type": "string", "required": True, "description": "Employee's full name"}
                         ],
-                        "sample_data": {"first_name": "John", "start_date": "2025-11-01"},
+                        "sample_data": {"fullname": "John Doe", "start_date": "2025-11-01"},
                     }
                 ],
             },
