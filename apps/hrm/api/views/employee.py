@@ -1,11 +1,15 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
+from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
+from apps.mailtemplates.permissions import CanSendMail
+from apps.mailtemplates.view_mixins import TemplateActionMixin
 from libs import BaseModelViewSet
 
 
@@ -41,7 +45,7 @@ from libs import BaseModelViewSet
         tags=["Employee"],
     ),
 )
-class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
+class EmployeeViewSet(TemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
     queryset = Employee.objects.select_related(
@@ -58,3 +62,33 @@ class EmployeeViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Employee Management"
     permission_prefix = "employee"
+
+    @extend_schema(
+        summary="Preview welcome email for employee",
+        description="Generate a preview of the welcome/onboarding email for this employee",
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
+    def send_welcome_email_preview(self, request, pk=None):
+        """Preview welcome email for this employee."""
+        return self.preview_template_email("welcome", request, pk)
+
+    @extend_schema(
+        summary="Send welcome email to employee",
+        description="Send welcome/onboarding email to this employee and mark is_onboarding_email_sent as True",
+        tags=["Employee"],
+    )
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="send_welcome_email/send",
+        permission_classes=[CanSendMail],
+    )
+    def send_welcome_email_send(self, request, pk=None):
+        """Send welcome email to this employee."""
+        return self.send_template_email(
+            "welcome",
+            request,
+            pk,
+            on_success_callback=mark_employee_onboarding_email_sent,
+        )

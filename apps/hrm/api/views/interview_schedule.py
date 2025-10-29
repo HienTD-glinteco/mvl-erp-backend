@@ -11,7 +11,10 @@ from apps.hrm.api.serializers import (
     InterviewScheduleSerializer,
     UpdateInterviewersSerializer,
 )
+from apps.hrm.callbacks import mark_interview_candidate_email_sent
 from apps.hrm.models import InterviewSchedule
+from apps.mailtemplates.permissions import CanSendMail
+from apps.mailtemplates.view_mixins import TemplateActionMixin
 from libs import BaseModelViewSet
 
 
@@ -273,7 +276,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class InterviewScheduleViewSet(AuditLoggingMixin, BaseModelViewSet):
+class InterviewScheduleViewSet(TemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for InterviewSchedule model"""
 
     queryset = (
@@ -297,6 +300,36 @@ class InterviewScheduleViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "interview_schedule"
+
+    @extend_schema(
+        summary="Preview interview invitation email",
+        description="Generate a preview of the interview invitation email for this schedule",
+        tags=["Interview Schedule"],
+    )
+    @action(detail=True, methods=["post"], url_path="send_interview_invite/preview")
+    def send_interview_invite_preview(self, request, pk=None):
+        """Preview interview invitation email for this schedule."""
+        return self.preview_template_email("interview_invite", request, pk)
+
+    @extend_schema(
+        summary="Send interview invitation email",
+        description="Send interview invitation email to candidates in this schedule and mark InterviewCandidate.email_sent_at",
+        tags=["Interview Schedule"],
+    )
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="send_interview_invite/send",
+        permission_classes=[CanSendMail],
+    )
+    def send_interview_invite_send(self, request, pk=None):
+        """Send interview invitation email to candidates."""
+        return self.send_template_email(
+            "interview_invite",
+            request,
+            pk,
+            on_success_callback=mark_interview_candidate_email_sent,
+        )
 
     @extend_schema(
         summary="Update interviewers in interview schedule",
