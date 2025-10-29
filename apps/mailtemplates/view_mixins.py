@@ -34,9 +34,12 @@ class TemplateActionMixin:
         from apps.mailtemplates.permissions import CanSendMail
         
         # Define callback function (optional)
-        def mark_welcome_email_sent(employee_instance, recipient):
+        def mark_welcome_email_sent(employee_instance, recipient, **kwargs):
+            # kwargs contains any additional params passed via callback_params
+            notification_type = kwargs.get("notification_type", "welcome")
             employee_instance.is_sent_welcome_email = True
-            employee_instance.save(update_fields=["is_sent_welcome_email"])
+            employee_instance.last_notification = notification_type
+            employee_instance.save(update_fields=["is_sent_welcome_email", "last_notification"])
         
         class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
             
@@ -51,7 +54,8 @@ class TemplateActionMixin:
                     "welcome", 
                     request, 
                     pk,
-                    on_success_callback=mark_welcome_email_sent
+                    on_success_callback=mark_welcome_email_sent,
+                    callback_params={"notification_type": "welcome", "source": "api"}
                 )
             
             @action(detail=True, methods=["post"], url_path="send_contract/preview")
@@ -78,8 +82,9 @@ class TemplateActionMixin:
     Callbacks:
     - You can provide an optional callback function via on_success_callback parameter
     - The callback is executed after each successful email send
-    - Callback receives (instance, recipient) as arguments
+    - Callback signature: callback(instance, recipient, **callback_params)
     - Can be a callable or a string path like "apps.hrm.callbacks.my_callback"
+    - Additional parameters can be passed via callback_params dict
     """
 
     def preview_template_email(self, template_slug: str, request, pk=None):
@@ -137,7 +142,7 @@ class TemplateActionMixin:
         except TemplateRenderError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def send_template_email(self, template_slug: str, request, pk=None, on_success_callback=None):
+    def send_template_email(self, template_slug: str, request, pk=None, on_success_callback=None, callback_params=None):
         """Send template email for an object.
         
         Call this from your action methods to send an email.
@@ -148,6 +153,8 @@ class TemplateActionMixin:
             pk: Primary key (optional, uses self.get_object() if not provided)
             on_success_callback: Optional callback path to call after successful send
                                 Format: "app.module.function_name" or callable
+            callback_params: Optional dict of additional parameters to pass to callback
+                           These params will be available to callback in addition to (instance, recipient)
             
         Returns:
             Response with job_id
@@ -203,6 +210,10 @@ class TemplateActionMixin:
                         "model_name": obj.__class__.__name__,
                         "app_label": obj._meta.app_label,
                     }
+                
+                # Add callback params if provided
+                if callback_params:
+                    callback_data["params"] = callback_params
 
             # Create job
             job = EmailSendJob.objects.create(

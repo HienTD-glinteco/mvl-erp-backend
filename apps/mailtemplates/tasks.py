@@ -217,8 +217,11 @@ def execute_callback(callback_data: dict[str, Any], recipient: EmailSendRecipien
             callback_fn = getattr(module, callback_data["function"])
         
         if callback_fn and callable(callback_fn):
-            # Call the callback with instance and recipient
-            callback_fn(instance, recipient)
+            # Get additional params if provided
+            params = callback_data.get("params", {})
+            
+            # Call the callback with instance, recipient, and additional params
+            callback_fn(instance, recipient, **params)
             logger.info(f"Executed callback for {instance} after sending to {recipient.email}")
         else:
             logger.warning("Callback function not found or not callable")

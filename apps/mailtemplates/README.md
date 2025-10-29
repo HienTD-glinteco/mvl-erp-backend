@@ -94,7 +94,7 @@ This provides:
 
 The mixin provides two helper methods:
 - `preview_template_email(template_slug, request, pk)` - Preview email with sample or real data
-- `send_template_email(template_slug, request, pk, on_success_callback=None)` - Send email to recipients
+- `send_template_email(template_slug, request, pk, on_success_callback=None, callback_params=None)` - Send email to recipients with optional callback
 
 ### Using Callbacks for Post-Send Actions
 
@@ -105,29 +105,45 @@ from rest_framework.decorators import action
 from apps.mailtemplates.view_mixins import TemplateActionMixin
 from apps.mailtemplates.permissions import CanSendMail
 
-# Define your callback function
-def mark_welcome_email_sent(employee_instance, recipient):
+# Define your callback function - now accepts **kwargs for additional params
+def mark_welcome_email_sent(employee_instance, recipient, **kwargs):
     """Mark employee as having received welcome email."""
+    notification_type = kwargs.get("notification_type", "welcome")
+    source = kwargs.get("source", "unknown")
+    
     employee_instance.is_sent_welcome_email = True
-    employee_instance.save(update_fields=["is_sent_welcome_email"])
+    employee_instance.last_notification_type = notification_type
+    employee_instance.last_notification_source = source
+    employee_instance.save(update_fields=[
+        "is_sent_welcome_email", 
+        "last_notification_type",
+        "last_notification_source"
+    ])
 
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
     
     @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
             permission_classes=[CanSendMail])
     def send_welcome_email_send(self, request, pk=None):
-        # Pass the callback function
+        # Pass the callback function with additional parameters
         return self.send_template_email(
             "welcome", 
             request, 
             pk,
-            on_success_callback=mark_welcome_email_sent
+            on_success_callback=mark_welcome_email_sent,
+            callback_params={
+                "notification_type": "welcome",
+                "source": "api",
+                "campaign_id": "2025-Q1"
+            }
         )
 ```
 
-The callback function receives two arguments:
-- `instance`: The domain object (e.g., Employee instance)
-- `recipient`: The EmailSendRecipient instance that was successfully sent
+**Callback Signature:**
+- `callback(instance, recipient, **callback_params)`
+  - `instance`: The domain object (e.g., Employee instance)
+  - `recipient`: The EmailSendRecipient instance that was successfully sent
+  - `**callback_params`: Additional parameters passed via `callback_params` dict
 
 **Alternative: Use string path for callback**
 
@@ -141,7 +157,8 @@ def send_welcome_email_send(self, request, pk=None):
         "welcome", 
         request, 
         pk,
-        on_success_callback="apps.hrm.callbacks.mark_welcome_email_sent"
+        on_success_callback="apps.hrm.callbacks.mark_welcome_email_sent",
+        callback_params={"notification_type": "welcome", "source": "api"}
     )
 ```
 
@@ -150,6 +167,7 @@ def send_welcome_email_send(self, request, pk=None):
 - If the callback raises an exception, it's logged but doesn't fail the email send
 - Callbacks are only executed for successfully sent emails, not for failed sends
 - The callback has access to the full recipient data including `recipient.data`, `recipient.email`, etc.
+- Additional parameters via `callback_params` allow you to pass context-specific data to your callback
 
 ### List Templates
 
