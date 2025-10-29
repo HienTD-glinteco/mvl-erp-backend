@@ -123,3 +123,41 @@ class EmailSendJobStatusSerializer(serializers.ModelSerializer):
         if obj.created_by:
             return obj.created_by.email
         return None
+
+
+class TemplateMetadataResponseSerializer(serializers.Serializer):
+    """Response serializer for template metadata."""
+
+    slug = serializers.CharField()
+    filename = serializers.CharField()
+    title = serializers.CharField()
+    description = serializers.CharField()
+    purpose = serializers.CharField(required=False, allow_null=True)
+    variables = serializers.ListField()
+    sample_data = serializers.JSONField()
+    content = serializers.CharField(required=False, help_text="Template HTML content (only when include_content=true)")
+    sample_preview_html = serializers.CharField(required=False, help_text="Sample preview HTML (only when include_preview=true)")
+    sample_preview_text = serializers.CharField(required=False, help_text="Sample preview plain text (only when include_preview=true)")
+
+
+class TemplatePreviewResponseSerializer(serializers.Serializer):
+    """Response serializer for template preview endpoint."""
+
+    html = serializers.CharField(help_text="Rendered HTML content with inlined CSS")
+    text = serializers.CharField(help_text="Plain text version of the email")
+
+
+class TemplateSaveResponseSerializer(serializers.Serializer):
+    """Response serializer for template save endpoint."""
+
+    ok = serializers.BooleanField()
+    slug = serializers.CharField()
+    message = serializers.CharField(required=False)
+
+
+class BulkSendResponseSerializer(serializers.Serializer):
+    """Response serializer for bulk send endpoint."""
+
+    job_id = serializers.UUIDField(help_text="UUID of the created email send job")
+    detail = serializers.CharField(help_text="Human-readable message about the operation")
+    total_recipients = serializers.IntegerField(help_text="Total number of recipients in this job")
