@@ -21,7 +21,7 @@ from .services import (
 from .tasks import send_email_job_task
 
 
-class TemplateActionMixin:
+class EmailTemplateActionMixin:
     """Mixin to add template-based email functionality to ViewSets.
 
     This mixin provides reusable helper methods that you can call from
@@ -30,8 +30,7 @@ class TemplateActionMixin:
     Usage - define actions manually in your ViewSet:
     
         from rest_framework.decorators import action
-        from apps.mailtemplates.view_mixins import TemplateActionMixin
-        from apps.mailtemplates.permissions import CanSendMail
+        from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
         
         # Define callback function (optional)
         def mark_welcome_email_sent(employee_instance, recipient, **kwargs):
@@ -41,15 +40,14 @@ class TemplateActionMixin:
             employee_instance.last_notification = notification_type
             employee_instance.save(update_fields=["is_sent_welcome_email", "last_notification"])
         
-        class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+        class EmployeeViewSet(EmailTemplateActionMixin, BaseModelViewSet):
             
-            @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
-            def send_welcome_email_preview(self, request, pk=None):
+            @action(detail=True, methods=["post"], url_path="welcome_email/preview")
+            def welcome_email_preview(self, request, pk=None):
                 return self.preview_template_email("welcome", request, pk)
             
-            @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
-                    permission_classes=[CanSendMail])
-            def send_welcome_email_send(self, request, pk=None):
+            @action(detail=True, methods=["post"], url_path="welcome_email/send")
+            def welcome_email_send(self, request, pk=None):
                 return self.send_template_email(
                     "welcome", 
                     request, 
@@ -58,13 +56,12 @@ class TemplateActionMixin:
                     callback_params={"notification_type": "welcome", "source": "api"}
                 )
             
-            @action(detail=True, methods=["post"], url_path="send_contract/preview")
-            def send_contract_preview(self, request, pk=None):
+            @action(detail=True, methods=["post"], url_path="contract/preview")
+            def contract_preview(self, request, pk=None):
                 return self.preview_template_email("contract", request, pk)
             
-            @action(detail=True, methods=["post"], url_path="send_contract/send",
-                    permission_classes=[CanSendMail])
-            def send_contract_send(self, request, pk=None):
+            @action(detail=True, methods=["post"], url_path="contract/send")
+            def contract_send(self, request, pk=None):
                 return self.send_template_email("contract", request, pk)
             
             # Optionally override data extraction
@@ -85,6 +82,10 @@ class TemplateActionMixin:
     - Callback signature: callback(instance, recipient, **callback_params)
     - Can be a callable or a string path like "apps.hrm.callbacks.my_callback"
     - Additional parameters can be passed via callback_params dict
+    
+    Permissions:
+    - Email send actions use the ViewSet's role-based permission system
+    - No need to specify custom permission classes on action methods
     """
 
     def preview_template_email(self, template_slug: str, request, pk=None):

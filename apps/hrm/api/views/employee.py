@@ -8,8 +8,7 @@ from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
-from apps.mailtemplates.permissions import CanSendMail
-from apps.mailtemplates.view_mixins import TemplateActionMixin
+from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 
 
@@ -45,7 +44,7 @@ from libs import BaseModelViewSet
         tags=["Employee"],
     ),
 )
-class EmployeeViewSet(TemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
+class EmployeeViewSet(EmailTemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Employee model"""
 
     queryset = Employee.objects.select_related(
@@ -68,8 +67,8 @@ class EmployeeViewSet(TemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
         description="Generate a preview of the welcome/onboarding email for this employee",
         tags=["Employee"],
     )
-    @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
-    def send_welcome_email_preview(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="welcome_email/preview")
+    def welcome_email_preview(self, request, pk=None):
         """Preview welcome email for this employee."""
         return self.preview_template_email("welcome", request, pk)
 
@@ -78,13 +77,8 @@ class EmployeeViewSet(TemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
         description="Send welcome/onboarding email to this employee and mark is_onboarding_email_sent as True",
         tags=["Employee"],
     )
-    @action(
-        detail=True,
-        methods=["post"],
-        url_path="send_welcome_email/send",
-        permission_classes=[CanSendMail],
-    )
-    def send_welcome_email_send(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="welcome_email/send")
+    def welcome_email_send(self, request, pk=None):
         """Send welcome email to this employee."""
         return self.send_template_email(
             "welcome",
