@@ -23,13 +23,67 @@ from .services import (
 from .tasks import send_email_job_task
 
 
+def generate_email_action_methods(email_actions: dict[str, str]) -> dict[str, Any]:
+    """Generate email action methods from email_actions dict.
+    
+    This function is meant to be called in the ViewSet class body to define methods.
+    
+    Args:
+        email_actions: Dictionary mapping action_name -> template_slug
+        
+    Returns:
+        Dictionary of method_name -> method to be added to class namespace
+        
+    Example usage:
+        class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+            email_actions = {
+                "send_welcome_email": "welcome",
+            }
+            
+            # Generate the action methods
+            locals().update(generate_email_action_methods(email_actions))
+    """
+    methods = {}
+    
+    for action_name, template_slug in email_actions.items():
+        # Create preview action
+        def make_preview_method(action_name=action_name, template_slug=template_slug):
+            @action(
+                detail=True,
+                methods=["post"],
+                url_path=f"{action_name}/preview",
+                permission_classes=[IsAuthenticated],
+            )
+            def preview_method(self, request, pk=None):
+                return self._handle_preview(request, pk, action_name, template_slug)
+            preview_method.__name__ = f"{action_name}_preview"
+            return preview_method
+        
+        # Create send action
+        def make_send_method(action_name=action_name, template_slug=template_slug):
+            @action(
+                detail=True,
+                methods=["post"],
+                url_path=f"{action_name}/send",
+                permission_classes=[CanSendMail],
+            )
+            def send_method(self, request, pk=None):
+                return self._handle_send(request, pk, action_name, template_slug)
+            send_method.__name__ = f"{action_name}_send"
+            return send_method
+        
+        methods[f"{action_name}_preview"] = make_preview_method()
+        methods[f"{action_name}_send"] = make_send_method()
+    
+    return methods
+
+
 class TemplateActionMixin:
     """Mixin to add template-based email actions to ViewSets.
 
     This mixin provides preview and send actions for domain objects.
     
-    To use this mixin, add an `email_actions` attribute to your ViewSet
-    that maps action names to template slugs:
+    To use this mixin, define `email_actions` and call `generate_email_action_methods()`:
     
     Example usage:
         class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
@@ -37,6 +91,10 @@ class TemplateActionMixin:
                 "send_welcome_email": "welcome",
                 "send_contract": "contract",
             }
+            
+            # Generate action methods - this must be in the class body
+            locals().update(generate_email_action_methods(email_actions))
+            
             # This will automatically provide:
             # - POST /api/employees/{pk}/send_welcome_email/preview/
             # - POST /api/employees/{pk}/send_welcome_email/send/
@@ -49,51 +107,6 @@ class TemplateActionMixin:
     """
 
     email_actions: dict[str, str] = {}  # Map action_name -> template_slug
-
-    def __init_subclass__(cls, **kwargs):
-        """Automatically create action methods when subclass is created."""
-        super().__init_subclass__(**kwargs)
-        
-        # Only process if this class defines email_actions
-        if hasattr(cls, 'email_actions') and cls.email_actions:
-            for action_name, template_slug in cls.email_actions.items():
-                # Create preview action method
-                preview_method = cls._create_preview_action(action_name, template_slug)
-                setattr(cls, f"{action_name}_preview", preview_method)
-                
-                # Create send action method
-                send_method = cls._create_send_action(action_name, template_slug)
-                setattr(cls, f"{action_name}_send", send_method)
-    
-    @classmethod
-    def _create_preview_action(cls, action_name: str, template_slug: str):
-        """Create a preview action method."""
-        @action(
-            detail=True,
-            methods=["post"],
-            url_path=f"{action_name}/preview",
-            permission_classes=[IsAuthenticated],
-        )
-        def preview_method(self, request, pk=None):
-            return self._handle_preview(request, pk, action_name, template_slug)
-        
-        preview_method.__name__ = f"{action_name}_preview"
-        return preview_method
-    
-    @classmethod
-    def _create_send_action(cls, action_name: str, template_slug: str):
-        """Create a send action method."""
-        @action(
-            detail=True,
-            methods=["post"],
-            url_path=f"{action_name}/send",
-            permission_classes=[CanSendMail],
-        )
-        def send_method(self, request, pk=None):
-            return self._handle_send(request, pk, action_name, template_slug)
-        
-        send_method.__name__ = f"{action_name}_send"
-        return send_method
 
     def get_template_action_data(self, instance: Any, action_name: str, template_slug: str) -> dict[str, Any]:
         """Extract template data from domain object.
