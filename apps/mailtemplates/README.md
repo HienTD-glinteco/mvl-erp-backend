@@ -50,12 +50,11 @@ MAIL_SEND_MAX_ATTEMPTS = 3  # Max retry attempts per recipient
 
 ### Using TemplateActionMixin in ViewSets
 
-To add email actions to your ViewSet, use the `TemplateActionMixin` and `create_email_action_methods` decorator:
+To add email actions to your ViewSet, use the `TemplateActionMixin`:
 
 ```python
-from apps.mailtemplates.view_mixins import TemplateActionMixin, create_email_action_methods
+from apps.mailtemplates.view_mixins import TemplateActionMixin
 
-@create_email_action_methods
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
     # Define email actions: action_name -> template_slug
     email_actions = {

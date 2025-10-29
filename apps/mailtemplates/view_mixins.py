@@ -50,6 +50,51 @@ class TemplateActionMixin:
 
     email_actions: dict[str, str] = {}  # Map action_name -> template_slug
 
+    def __init_subclass__(cls, **kwargs):
+        """Automatically create action methods when subclass is created."""
+        super().__init_subclass__(**kwargs)
+        
+        # Only process if this class defines email_actions
+        if hasattr(cls, 'email_actions') and cls.email_actions:
+            for action_name, template_slug in cls.email_actions.items():
+                # Create preview action method
+                preview_method = cls._create_preview_action(action_name, template_slug)
+                setattr(cls, f"{action_name}_preview", preview_method)
+                
+                # Create send action method
+                send_method = cls._create_send_action(action_name, template_slug)
+                setattr(cls, f"{action_name}_send", send_method)
+    
+    @classmethod
+    def _create_preview_action(cls, action_name: str, template_slug: str):
+        """Create a preview action method."""
+        @action(
+            detail=True,
+            methods=["post"],
+            url_path=f"{action_name}/preview",
+            permission_classes=[IsAuthenticated],
+        )
+        def preview_method(self, request, pk=None):
+            return self._handle_preview(request, pk, action_name, template_slug)
+        
+        preview_method.__name__ = f"{action_name}_preview"
+        return preview_method
+    
+    @classmethod
+    def _create_send_action(cls, action_name: str, template_slug: str):
+        """Create a send action method."""
+        @action(
+            detail=True,
+            methods=["post"],
+            url_path=f"{action_name}/send",
+            permission_classes=[CanSendMail],
+        )
+        def send_method(self, request, pk=None):
+            return self._handle_send(request, pk, action_name, template_slug)
+        
+        send_method.__name__ = f"{action_name}_send"
+        return send_method
+
     def get_template_action_data(self, instance: Any, action_name: str, template_slug: str) -> dict[str, Any]:
         """Extract template data from domain object.
 
@@ -214,52 +259,4 @@ class TemplateActionMixin:
         except TemplateValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-def create_email_action_methods(cls):
-    """Decorator to dynamically create email action methods from email_actions dict.
-    
-    This should be applied to ViewSets that use TemplateActionMixin.
-    
-    Example:
-        @create_email_action_methods
-        class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
-            email_actions = {
-                "send_welcome_email": "welcome",
-            }
-    """
-    if not hasattr(cls, 'email_actions'):
-        return cls
-    
-    for action_name, template_slug in cls.email_actions.items():
-        # Create preview action
-        def make_preview(action_name=action_name, template_slug=template_slug):
-            @action(
-                detail=True,
-                methods=["post"],
-                url_path=f"{action_name}/preview",
-                permission_classes=[IsAuthenticated],
-            )
-            def preview_method(self, request, pk=None):
-                return self._handle_preview(request, pk, action_name, template_slug)
-            preview_method.__name__ = f"{action_name}_preview"
-            return preview_method
-        
-        # Create send action
-        def make_send(action_name=action_name, template_slug=template_slug):
-            @action(
-                detail=True,
-                methods=["post"],
-                url_path=f"{action_name}/send",
-                permission_classes=[CanSendMail],
-            )
-            def send_method(self, request, pk=None):
-                return self._handle_send(request, pk, action_name, template_slug)
-            send_method.__name__ = f"{action_name}_send"
-            return send_method
-        
-        # Add methods to class
-        setattr(cls, f"{action_name}_preview", make_preview())
-        setattr(cls, f"{action_name}_send", make_send())
-    
-    return cls
 

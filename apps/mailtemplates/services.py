@@ -258,8 +258,11 @@ def render_template_content(
         # Create sandboxed Jinja2 environment
         # Note: StrictUndefined is disabled by default to allow {% if variable %}
         # conditionals for optional variables
-        undefined = StrictUndefined if strict else None
-        env = SandboxedEnvironment(undefined=undefined)
+        if strict:
+            env = SandboxedEnvironment(undefined=StrictUndefined)
+        else:
+            env = SandboxedEnvironment()
+        
         template = env.from_string(template_content)
 
         # Render template
