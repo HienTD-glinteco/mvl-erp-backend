@@ -94,7 +94,62 @@ This provides:
 
 The mixin provides two helper methods:
 - `preview_template_email(template_slug, request, pk)` - Preview email with sample or real data
-- `send_template_email(template_slug, request, pk)` - Send email to recipients
+- `send_template_email(template_slug, request, pk, on_success_callback=None)` - Send email to recipients
+
+### Using Callbacks for Post-Send Actions
+
+You can provide a callback function to be executed after each email is successfully sent. This is useful for updating model fields or triggering other actions:
+
+```python
+from rest_framework.decorators import action
+from apps.mailtemplates.view_mixins import TemplateActionMixin
+from apps.mailtemplates.permissions import CanSendMail
+
+# Define your callback function
+def mark_welcome_email_sent(employee_instance, recipient):
+    """Mark employee as having received welcome email."""
+    employee_instance.is_sent_welcome_email = True
+    employee_instance.save(update_fields=["is_sent_welcome_email"])
+
+class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+    
+    @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
+            permission_classes=[CanSendMail])
+    def send_welcome_email_send(self, request, pk=None):
+        # Pass the callback function
+        return self.send_template_email(
+            "welcome", 
+            request, 
+            pk,
+            on_success_callback=mark_welcome_email_sent
+        )
+```
+
+The callback function receives two arguments:
+- `instance`: The domain object (e.g., Employee instance)
+- `recipient`: The EmailSendRecipient instance that was successfully sent
+
+**Alternative: Use string path for callback**
+
+You can also pass a string path to the callback function:
+
+```python
+@action(detail=True, methods=["post"], url_path="send_welcome_email/send",
+        permission_classes=[CanSendMail])
+def send_welcome_email_send(self, request, pk=None):
+    return self.send_template_email(
+        "welcome", 
+        request, 
+        pk,
+        on_success_callback="apps.hrm.callbacks.mark_welcome_email_sent"
+    )
+```
+
+**Important Notes:**
+- Callbacks are executed asynchronously in the Celery worker after successful email delivery
+- If the callback raises an exception, it's logged but doesn't fail the email send
+- Callbacks are only executed for successfully sent emails, not for failed sends
+- The callback has access to the full recipient data including `recipient.data`, `recipient.email`, etc.
 
 ### List Templates
 

@@ -33,6 +33,11 @@ class TemplateActionMixin:
         from apps.mailtemplates.view_mixins import TemplateActionMixin
         from apps.mailtemplates.permissions import CanSendMail
         
+        # Define callback function (optional)
+        def mark_welcome_email_sent(employee_instance, recipient):
+            employee_instance.is_sent_welcome_email = True
+            employee_instance.save(update_fields=["is_sent_welcome_email"])
+        
         class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
             
             @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
@@ -42,7 +47,12 @@ class TemplateActionMixin:
             @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
                     permission_classes=[CanSendMail])
             def send_welcome_email_send(self, request, pk=None):
-                return self.send_template_email("welcome", request, pk)
+                return self.send_template_email(
+                    "welcome", 
+                    request, 
+                    pk,
+                    on_success_callback=mark_welcome_email_sent
+                )
             
             @action(detail=True, methods=["post"], url_path="send_contract/preview")
             def send_contract_preview(self, request, pk=None):
@@ -64,6 +74,12 @@ class TemplateActionMixin:
     The mixin expects the ViewSet to have:
     - get_object() method to retrieve the domain object
     - Domain object should have common attributes (email, first_name, etc.)
+    
+    Callbacks:
+    - You can provide an optional callback function via on_success_callback parameter
+    - The callback is executed after each successful email send
+    - Callback receives (instance, recipient) as arguments
+    - Can be a callable or a string path like "apps.hrm.callbacks.my_callback"
     """
 
     def preview_template_email(self, template_slug: str, request, pk=None):
@@ -121,7 +137,7 @@ class TemplateActionMixin:
         except TemplateRenderError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def send_template_email(self, template_slug: str, request, pk=None):
+    def send_template_email(self, template_slug: str, request, pk=None, on_success_callback=None):
         """Send template email for an object.
         
         Call this from your action methods to send an email.
@@ -130,6 +146,8 @@ class TemplateActionMixin:
             template_slug: Template slug (e.g., "welcome")
             request: DRF request object
             pk: Primary key (optional, uses self.get_object() if not provided)
+            on_success_callback: Optional callback path to call after successful send
+                                Format: "app.module.function_name" or callable
             
         Returns:
             Response with job_id
@@ -164,6 +182,28 @@ class TemplateActionMixin:
             for recipient in recipients_data:
                 validate_template_data(recipient["data"], template_meta)
 
+            # Prepare callback data if callback provided
+            callback_data = None
+            if on_success_callback:
+                # Store callback information with object reference
+                if callable(on_success_callback):
+                    # Store the callable's module and name
+                    callback_data = {
+                        "module": on_success_callback.__module__,
+                        "function": on_success_callback.__name__,
+                        "object_id": obj.pk,
+                        "model_name": obj.__class__.__name__,
+                        "app_label": obj._meta.app_label,
+                    }
+                elif isinstance(on_success_callback, str):
+                    # Store the string path
+                    callback_data = {
+                        "path": on_success_callback,
+                        "object_id": obj.pk,
+                        "model_name": obj.__class__.__name__,
+                        "app_label": obj._meta.app_label,
+                    }
+
             # Create job
             job = EmailSendJob.objects.create(
                 template_slug=template_slug,
@@ -171,6 +211,7 @@ class TemplateActionMixin:
                 sender=sender,
                 total=len(recipients_data),
                 created_by=request.user if request.user.is_authenticated else None,
+                callback_data=callback_data,
             )
 
             # Create recipients

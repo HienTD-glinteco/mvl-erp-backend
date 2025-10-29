@@ -90,6 +90,12 @@ class EmailSendJob(BaseModel):
         verbose_name=_("Finished at"),
         help_text=_("When the job finished processing"),
     )
+    callback_data = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name=_("Callback data"),
+        help_text=_("Callback function and object reference to call after successful send"),
+    )
 
     class Meta:
         verbose_name = _("Email send job")

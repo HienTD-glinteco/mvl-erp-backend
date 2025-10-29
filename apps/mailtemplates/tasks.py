@@ -1,10 +1,12 @@
 """Celery tasks for sending bulk emails."""
 
+import importlib
 import logging
 import time
 from typing import Any
 
 from celery import shared_task
+from django.apps import apps
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils import timezone
@@ -151,6 +153,11 @@ def send_single_email(
             recipient.save(update_fields=["status", "sent_at", "last_error"])
 
             logger.info(f"Email sent to {recipient.email} (attempt {attempt})")
+            
+            # Execute callback if configured
+            if job.callback_data:
+                execute_callback(job.callback_data, recipient)
+            
             return True
 
         except Exception as e:
@@ -174,3 +181,48 @@ def send_single_email(
                 time.sleep(2**attempt)
 
     return False
+
+
+def execute_callback(callback_data: dict[str, Any], recipient: EmailSendRecipient) -> None:
+    """Execute callback function after successful email send.
+    
+    Args:
+        callback_data: Dictionary containing callback information
+        recipient: EmailSendRecipient instance that was successfully sent
+    """
+    try:
+        # Get the object instance
+        app_label = callback_data.get("app_label")
+        model_name = callback_data.get("model_name")
+        object_id = callback_data.get("object_id")
+        
+        if not all([app_label, model_name, object_id]):
+            logger.warning("Callback data missing required fields")
+            return
+        
+        # Get the model and instance
+        model = apps.get_model(app_label, model_name)
+        instance = model.objects.get(pk=object_id)
+        
+        # Get the callback function
+        callback_fn = None
+        if "path" in callback_data:
+            # Import from string path like "apps.hrm.callbacks.welcome_email_sent"
+            module_path, function_name = callback_data["path"].rsplit(".", 1)
+            module = importlib.import_module(module_path)
+            callback_fn = getattr(module, function_name)
+        elif "module" in callback_data and "function" in callback_data:
+            # Import from module and function name
+            module = importlib.import_module(callback_data["module"])
+            callback_fn = getattr(module, callback_data["function"])
+        
+        if callback_fn and callable(callback_fn):
+            # Call the callback with instance and recipient
+            callback_fn(instance, recipient)
+            logger.info(f"Executed callback for {instance} after sending to {recipient.email}")
+        else:
+            logger.warning("Callback function not found or not callable")
+            
+    except Exception as e:
+        # Log error but don't fail the email send
+        logger.error(f"Error executing callback: {e}", exc_info=True)
