@@ -34,7 +34,7 @@ class TemplateAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # Act
-        response = self.client.get("/api/templates/")
+        response = self.client.get("/api/mailtemplates/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -44,7 +44,7 @@ class TemplateAPITestCase(TestCase):
     def test_list_templates_unauthenticated(self):
         """Test listing templates without authentication."""
         # Arrange & Act
-        response = self.client.get("/api/templates/")
+        response = self.client.get("/api/mailtemplates/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -55,7 +55,7 @@ class TemplateAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # Act
-        response = self.client.get("/api/templates/welcome/")
+        response = self.client.get("/api/mailtemplates/welcome/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -68,7 +68,7 @@ class TemplateAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
         # Act
-        response = self.client.get("/api/templates/nonexistent/")
+        response = self.client.get("/api/mailtemplates/nonexistent/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -80,7 +80,7 @@ class TemplateAPITestCase(TestCase):
         data = {"content": "<html>Test</html>"}
 
         # Act
-        response = self.client.put("/api/templates/welcome/save/", data, format="json")
+        response = self.client.put("/api/mailtemplates/welcome/save/", data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -92,7 +92,7 @@ class TemplateAPITestCase(TestCase):
         data = {"data": {"first_name": "John", "start_date": "2025-11-01"}}
 
         # Act
-        response = self.client.post("/api/templates/welcome/preview/", data, format="json")
+        response = self.client.post("/api/mailtemplates/welcome/preview/", data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -107,7 +107,7 @@ class TemplateAPITestCase(TestCase):
         data = {"data": {}}  # Missing required fields
 
         # Act
-        response = self.client.post("/api/templates/welcome/preview/", data, format="json")
+        response = self.client.post("/api/mailtemplates/welcome/preview/", data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -125,7 +125,7 @@ class TemplateAPITestCase(TestCase):
         }
 
         # Act
-        response = self.client.post("/api/templates/welcome/send/", data, format="json")
+        response = self.client.post("/api/mailtemplates/welcome/send/", data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -145,7 +145,7 @@ class TemplateAPITestCase(TestCase):
         }
 
         # Act
-        response = self.client.post("/api/templates/welcome/send/", data, format="json")
+        response = self.client.post("/api/mailtemplates/welcome/send/", data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -176,7 +176,7 @@ class TemplateAPITestCase(TestCase):
         )
 
         # Act
-        response = self.client.get(f"/api/templates/send/{job.id}/status/")
+        response = self.client.get(f"/api/mailtemplates/send/{job.id}/status/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -196,7 +196,7 @@ class TemplateAPITestCase(TestCase):
         )
 
         # Act
-        response = self.client.get(f"/api/templates/send/{job.id}/status/")
+        response = self.client.get(f"/api/mailtemplates/send/{job.id}/status/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

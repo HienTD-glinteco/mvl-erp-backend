@@ -237,7 +237,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         # Verify job created
         job = EmailSendJob.objects.get(id=result["job_id"])
         self.assertEqual(job.template_slug, "welcome")
-        self.assertEqual(job.subject", "Welcome to the team!")
+        self.assertEqual(job.subject, "Welcome to the team!")
         self.assertEqual(job.total, 2)
         self.assertEqual(job.recipients.count(), 2)
 

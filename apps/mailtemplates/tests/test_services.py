@@ -34,7 +34,7 @@ class TemplateServicesTestCase(TestCase):
         # Assert
         self.assertEqual(metadata["slug"], "welcome")
         self.assertEqual(metadata["filename"], "welcome.html")
-        self.assertIn("first_name", [v["name"] for v in metadata["variables"]])
+        self.assertIn("fullname", [v["name"] for v in metadata["variables"]])
 
     def test_get_template_metadata_not_found(self):
         """Test getting non-existent template raises error."""
@@ -110,7 +110,7 @@ class TemplateServicesTestCase(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "first_name": "John",
+            "fullname": "John Doe",
             "start_date": "2025-11-01",
         }
 
@@ -173,7 +173,7 @@ class RenderAndPrepareEmailTestCase(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "first_name": "Jane",
+            "fullname": "Jane Doe",
             "start_date": "2025-12-01",
             "position": "Engineer",
             "department": "IT",
