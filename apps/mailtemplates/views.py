@@ -14,9 +14,13 @@ from .models import EmailSendJob
 from .permissions import CanPreviewRealData, CanSendMail, IsTemplateEditor
 from .serializers import (
     BulkSendRequestSerializer,
+    BulkSendResponseSerializer,
     EmailSendJobStatusSerializer,
+    TemplateMetadataResponseSerializer,
     TemplatePreviewRequestSerializer,
+    TemplatePreviewResponseSerializer,
     TemplateSaveRequestSerializer,
+    TemplateSaveResponseSerializer,
 )
 from .services import (
     TemplateNotFoundError,
@@ -44,6 +48,9 @@ from .tasks import send_email_job_task
             "schema": {"type": "boolean"},
         }
     ],
+    responses={
+        200: TemplateMetadataResponseSerializer(many=True),
+    },
     examples=[
         OpenApiExample(
             "List templates success",
@@ -62,6 +69,7 @@ from .tasks import send_email_job_task
                         "sample_data": {"fullname": "John Doe", "start_date": "2025-11-01"},
                     }
                 ],
+                "error": None,
             },
             response_only=True,
         )
@@ -108,6 +116,13 @@ def list_templates(request):
             "schema": {"type": "boolean"},
         }
     ],
+    responses={
+        200: TemplateMetadataResponseSerializer,
+        404: OpenApiExample(
+            "Template not found",
+            value={"success": False, "data": None, "error": "Template with slug 'invalid' not found"},
+        ),
+    },
     examples=[
         OpenApiExample(
             "Get template success",
@@ -119,14 +134,9 @@ def list_templates(request):
                     "description": "Welcome new employees",
                     "content": "<html>...</html>",
                 },
+                "error": None,
             },
             response_only=True,
-        ),
-        OpenApiExample(
-            "Template not found",
-            value={"success": False, "error": "Template with slug 'invalid' not found"},
-            response_only=True,
-            status_codes=["404"],
         ),
     ],
 )
@@ -161,18 +171,33 @@ def get_template(request, slug):
 
 @extend_schema(
     summary="Save template content",
-    description="Save edited template HTML content with backup",
+    description="Save edited template HTML content with automatic backup",
     tags=["Mail Templates"],
     request=TemplateSaveRequestSerializer,
+    responses={
+        200: TemplateSaveResponseSerializer,
+        400: OpenApiExample(
+            "Invalid request",
+            value={"success": False, "data": None, "error": {"content": ["This field is required."]}},
+        ),
+        403: OpenApiExample(
+            "Permission denied",
+            value={"success": False, "data": None, "error": "You do not have permission to perform this action."},
+        ),
+        404: OpenApiExample(
+            "Template not found",
+            value={"success": False, "data": None, "error": "Template with slug 'invalid' not found"},
+        ),
+    },
     examples=[
         OpenApiExample(
             "Save template request",
-            value={"content": "<html>...</html>", "sample_data": {"first_name": "John"}},
+            value={"content": "<html><body>Welcome {{ fullname }}!</body></html>", "sample_data": {"fullname": "John Doe"}},
             request_only=True,
         ),
         OpenApiExample(
             "Save template success",
-            value={"success": True, "data": {"ok": True, "slug": "welcome"}},
+            value={"success": True, "data": {"ok": True, "slug": "welcome"}, "error": None},
             response_only=True,
         ),
     ],
@@ -226,10 +251,25 @@ def save_template(request, slug):
         }
     ],
     request=TemplatePreviewRequestSerializer,
+    responses={
+        200: TemplatePreviewResponseSerializer,
+        400: OpenApiExample(
+            "Validation error",
+            value={"success": False, "data": None, "error": "Template validation failed: missing required variable 'fullname'"},
+        ),
+        403: OpenApiExample(
+            "Permission denied for real mode",
+            value={"success": False, "data": None, "error": "Real data preview permission required"},
+        ),
+        404: OpenApiExample(
+            "Template not found",
+            value={"success": False, "data": None, "error": "Template with slug 'invalid' not found"},
+        ),
+    },
     examples=[
         OpenApiExample(
             "Preview request with data",
-            value={"data": {"first_name": "Jane", "start_date": "2025-12-01"}},
+            value={"data": {"fullname": "Jane Doe", "start_date": "2025-12-01"}},
             request_only=True,
         ),
         OpenApiExample(
@@ -237,9 +277,10 @@ def save_template(request, slug):
             value={
                 "success": True,
                 "data": {
-                    "html": "<html><body>Welcome Jane!</body></html>",
-                    "text": "Welcome Jane!",
+                    "html": "<html><body>Welcome Jane Doe!</body></html>",
+                    "text": "Welcome Jane Doe!",
                 },
+                "error": None,
             },
             response_only=True,
         ),
@@ -312,15 +353,34 @@ def preview_template(request, slug):
     description="Create a bulk email send job with multiple recipients",
     tags=["Mail Templates"],
     request=BulkSendRequestSerializer,
+    responses={
+        202: BulkSendResponseSerializer,
+        400: OpenApiExample(
+            "Validation error",
+            value={"success": False, "data": None, "error": "Validation error for user@example.com: missing required variable 'fullname'"},
+        ),
+        403: OpenApiExample(
+            "Permission denied",
+            value={"success": False, "data": None, "error": "You do not have permission to perform this action."},
+        ),
+        404: OpenApiExample(
+            "Template not found",
+            value={"success": False, "data": None, "error": "Template with slug 'invalid' not found"},
+        ),
+        409: OpenApiExample(
+            "Duplicate client_request_id",
+            value={"success": False, "data": None, "error": "Job with this client_request_id already exists"},
+        ),
+    },
     examples=[
         OpenApiExample(
             "Bulk send request",
             value={
-                "subject": "Welcome!",
+                "subject": "Welcome to the team!",
                 "sender": "hr@example.com",
                 "recipients": [
-                    {"email": "user1@example.com", "data": {"first_name": "John", "start_date": "2025-11-01"}},
-                    {"email": "user2@example.com", "data": {"first_name": "Jane", "start_date": "2025-11-02"}},
+                    {"email": "user1@example.com", "data": {"fullname": "John Doe", "start_date": "2025-11-01"}},
+                    {"email": "user2@example.com", "data": {"fullname": "Jane Smith", "start_date": "2025-11-02"}},
                 ],
             },
             request_only=True,
@@ -330,9 +390,9 @@ def preview_template(request, slug):
             value={
                 "success": True,
                 "data": {"job_id": "123e4567-e89b-12d3-a456-426614174000", "detail": "Job enqueued"},
+                "error": None,
             },
             response_only=True,
-            status_codes=["202"],
         ),
     ],
 )
