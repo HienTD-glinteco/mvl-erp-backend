@@ -7,7 +7,16 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Employee, InterviewCandidate, InterviewSchedule, RecruitmentRequest
+from apps.hrm.models import (
+    Branch,
+    Block,
+    Department,
+    Employee,
+    InterviewCandidate,
+    InterviewSchedule,
+    Position,
+    RecruitmentRequest,
+)
 
 User = get_user_model()
 
@@ -29,12 +38,24 @@ class EmployeeEmailActionTests(TestCase):
             password="testpass123",
             is_staff=True,
         )
+        
+        # Create organizational hierarchy
+        self.branch = Branch.objects.create(name="Test Branch", code="TB")
+        self.block = Block.objects.create(name="Test Block", code="TBK", branch=self.branch)
+        self.department = Department.objects.create(name="Test Department", code="TD", block=self.block)
+        self.position = Position.objects.create(name="Test Position", code="TP")
+        
         # Create a real employee
         self.employee = Employee.objects.create(
             fullname="John Doe",
             email="john.doe@example.com",
+            username="johndoe",
             start_date=timezone.now().date(),
             is_onboarding_email_sent=False,
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.position,
         )
 
     def test_welcome_email_preview(self):
