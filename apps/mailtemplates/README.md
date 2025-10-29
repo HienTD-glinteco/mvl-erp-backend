@@ -50,36 +50,51 @@ MAIL_SEND_MAX_ATTEMPTS = 3  # Max retry attempts per recipient
 
 ### Using TemplateActionMixin in ViewSets
 
-To add email actions to your ViewSet, use the `TemplateActionMixin` and `create_template_actions()` helper:
+The mixin provides helper methods that you call from manually defined actions:
 
 ```python
-from apps.mailtemplates.view_mixins import TemplateActionMixin, create_template_actions
+from rest_framework.decorators import action
+from apps.mailtemplates.view_mixins import TemplateActionMixin
+from apps.mailtemplates.permissions import CanSendMail
 
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
-    # Create email actions by assigning them directly in the class body
-    send_welcome_email_preview, send_welcome_email_send = create_template_actions(
-        "send_welcome_email", "welcome"
-    )
-    send_contract_preview, send_contract_send = create_template_actions(
-        "send_contract", "contract"
-    )
+    
+    @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
+    def send_welcome_email_preview(self, request, pk=None):
+        return self.preview_template_email("welcome", request, pk)
+    
+    @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
+            permission_classes=[CanSendMail])
+    def send_welcome_email_send(self, request, pk=None):
+        return self.send_template_email("welcome", request, pk)
+    
+    @action(detail=True, methods=["post"], url_path="send_contract/preview")
+    def send_contract_preview(self, request, pk=None):
+        return self.preview_template_email("contract", request, pk)
+    
+    @action(detail=True, methods=["post"], url_path="send_contract/send",
+            permission_classes=[CanSendMail])
+    def send_contract_send(self, request, pk=None):
+        return self.send_template_email("contract", request, pk)
     
     # Optionally override data extraction
-    def get_template_action_data(self, instance, action_name, template_slug):
-        data = super().get_template_action_data(instance, action_name, template_slug)
+    def get_template_action_data(self, instance, template_slug):
+        data = super().get_template_action_data(instance, template_slug)
         # Add custom data extraction logic
-        if action_name == "send_welcome_email":
+        if template_slug == "welcome":
             data["custom_field"] = instance.custom_value
         return data
 ```
 
-This automatically provides:
+This provides:
 - `POST /api/employees/{pk}/send_welcome_email/preview/`
 - `POST /api/employees/{pk}/send_welcome_email/send/`
 - `POST /api/employees/{pk}/send_contract/preview/`
 - `POST /api/employees/{pk}/send_contract/send/`
 
-The `create_template_actions()` function returns a tuple of two DRF action methods (preview and send) that you assign to your ViewSet as class attributes. This works because the assignment happens during class definition, which is when DRF's router discovers actions.
+The mixin provides two helper methods:
+- `preview_template_email(template_slug, request, pk)` - Preview email with sample or real data
+- `send_template_email(template_slug, request, pk)` - Send email to recipients
 
 ### List Templates
 
