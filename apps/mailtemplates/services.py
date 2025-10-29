@@ -238,7 +238,7 @@ def sanitize_html_for_email(html: str) -> str:
 def render_template_content(
     template_content: str,
     data: dict[str, Any],
-    strict: bool = True,
+    strict: bool = False,
 ) -> str:
     """Render template content with Jinja2.
 
@@ -246,6 +246,7 @@ def render_template_content(
         template_content: Jinja2 template string
         data: Template variables
         strict: Whether to use StrictUndefined (raises on missing variables)
+                Default is False to allow optional variables in conditionals
 
     Returns:
         Rendered HTML
@@ -255,6 +256,8 @@ def render_template_content(
     """
     try:
         # Create sandboxed Jinja2 environment
+        # Note: StrictUndefined is disabled by default to allow {% if variable %}
+        # conditionals for optional variables
         undefined = StrictUndefined if strict else None
         env = SandboxedEnvironment(undefined=undefined)
         template = env.from_string(template_content)

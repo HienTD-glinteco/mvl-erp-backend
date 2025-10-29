@@ -11,12 +11,12 @@ from rest_framework.response import Response
 
 from .models import EmailSendJob, EmailSendRecipient
 from .permissions import CanPreviewRealData, CanSendMail
-from .serializers import BulkSendRequestSerializer, TemplatePreviewRequestSerializer
+from .serializers import TemplatePreviewRequestSerializer
 from .services import (
     TemplateNotFoundError,
     TemplateRenderError,
     TemplateValidationError,
-    get_template_by_action,
+    get_template_metadata,
     render_and_prepare_email,
     validate_template_data,
 )
@@ -27,28 +27,38 @@ class TemplateActionMixin:
     """Mixin to add template-based email actions to ViewSets.
 
     This mixin provides preview and send actions for domain objects.
-    Actions are defined by ACTION_TEMPLATE_MAP in constants.py.
-
+    
+    To use this mixin, add an `email_actions` attribute to your ViewSet
+    that maps action names to template slugs:
+    
     Example usage:
         class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+            email_actions = {
+                "send_welcome_email": "welcome",
+                "send_contract": "contract",
+            }
             # This will automatically provide:
             # - POST /api/employees/{pk}/send_welcome_email/preview/
             # - POST /api/employees/{pk}/send_welcome_email/send/
-            pass
+            # - POST /api/employees/{pk}/send_contract/preview/
+            # - POST /api/employees/{pk}/send_contract/send/
 
     The mixin expects the ViewSet to have:
     - get_object() method to retrieve the domain object
     - Domain object should have common attributes or a method to extract template data
     """
 
-    def get_template_action_data(self, instance: Any, action_key: str) -> dict[str, Any]:
+    email_actions: dict[str, str] = {}  # Map action_name -> template_slug
+
+    def get_template_action_data(self, instance: Any, action_name: str, template_slug: str) -> dict[str, Any]:
         """Extract template data from domain object.
 
         Override this method to customize data extraction for specific models.
 
         Args:
             instance: Domain model instance
-            action_key: Action identifier
+            action_name: Action name (e.g., 'send_welcome_email')
+            template_slug: Template slug (e.g., 'welcome')
 
         Returns:
             Dictionary with template variables
@@ -80,14 +90,15 @@ class TemplateActionMixin:
 
         return data
 
-    def get_template_action_email(self, instance: Any, action_key: str) -> str | None:
+    def get_template_action_email(self, instance: Any, action_name: str, template_slug: str) -> str | None:
         """Extract email address from domain object.
 
         Override this method to customize email extraction.
 
         Args:
             instance: Domain model instance
-            action_key: Action identifier
+            action_name: Action name
+            template_slug: Template slug
 
         Returns:
             Email address or None
@@ -96,145 +107,159 @@ class TemplateActionMixin:
             return getattr(instance, "email")
         return None
 
-    def _create_template_action(self, action_key: str):
-        """Create preview and send actions for a specific action key."""
+    def _handle_preview(self, request, pk=None, action_name=None, template_slug=None):
+        """Handle preview request for a template action."""
+        obj = self.get_object()
+        use_real = request.query_params.get("use_real", "0") == "1"
 
-        @action(
-            detail=True,
-            methods=["post"],
-            url_path=f"{action_key}/preview",
-            permission_classes=[IsAuthenticated],
-        )
-        def preview_action(self, request, pk=None):
-            """Preview template for this object."""
-            obj = self.get_object()
-            use_real = request.query_params.get("use_real", "0") == "1"
-
-            # Check permissions for real data
-            if use_real:
-                permission = CanPreviewRealData()
-                if not permission.has_permission(request, self):
-                    return Response(
-                        {"detail": _("Real data preview permission required")},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-
-            serializer = TemplatePreviewRequestSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            try:
-                template_meta, action_config = get_template_by_action(action_key)
-
-                # Determine data to use
-                if use_real or serializer.validated_data.get("data"):
-                    # Use provided data or extract from object
-                    data = serializer.validated_data.get("data")
-                    if not data:
-                        data = self.get_template_action_data(obj, action_key)
-                else:
-                    # Use sample data
-                    data = template_meta["sample_data"]
-
-                # Render template
-                result = render_and_prepare_email(template_meta, data, validate=True)
-
-                return Response(result)
-
-            except TemplateNotFoundError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
-            except TemplateValidationError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-            except TemplateRenderError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        @action(
-            detail=True,
-            methods=["post"],
-            url_path=f"{action_key}/send",
-            permission_classes=[CanSendMail],
-        )
-        def send_action(self, request, pk=None):
-            """Send email for this object."""
-            obj = self.get_object()
-
-            try:
-                template_meta, action_config = get_template_by_action(action_key)
-
-                # Get recipients from request or use object's email
-                recipients_data = request.data.get("recipients")
-
-                if not recipients_data:
-                    # Default to object's email if available
-                    obj_email = self.get_template_action_email(obj, action_key)
-                    if not obj_email:
-                        return Response(
-                            {"detail": _("No email address found for this object")},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
-
-                    # Extract data from object
-                    data = self.get_template_action_data(obj, action_key)
-
-                    recipients_data = [{"email": obj_email, "data": data}]
-
-                # Get subject and sender from request or use defaults
-                subject = request.data.get("subject", action_config.get("default_subject", template_meta["title"]))
-                sender = request.data.get("sender", action_config.get("default_sender") or settings.DEFAULT_FROM_EMAIL)
-
-                # Validate all recipient data
-                for recipient in recipients_data:
-                    validate_template_data(recipient["data"], template_meta)
-
-                # Create job
-                job = EmailSendJob.objects.create(
-                    template_slug=template_meta["slug"],
-                    subject=subject,
-                    sender=sender,
-                    total=len(recipients_data),
-                    created_by=request.user if request.user.is_authenticated else None,
-                )
-
-                # Create recipients
-                for recipient in recipients_data:
-                    EmailSendRecipient.objects.create(
-                        job=job,
-                        email=recipient["email"],
-                        data=recipient["data"],
-                    )
-
-                # Enqueue task
-                send_email_job_task.delay(str(job.id))
-
+        # Check permissions for real data
+        if use_real:
+            permission = CanPreviewRealData()
+            if not permission.has_permission(request, self):
                 return Response(
-                    {
-                        "job_id": str(job.id),
-                        "detail": _("Email send job enqueued"),
-                    },
-                    status=status.HTTP_202_ACCEPTED,
+                    {"detail": _("Real data preview permission required")},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
-            except TemplateNotFoundError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
-            except TemplateValidationError as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = TemplatePreviewRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        # Dynamically set method names to avoid conflicts
-        preview_action.__name__ = f"{action_key}_preview"
-        send_action.__name__ = f"{action_key}_send"
+        try:
+            template_meta = get_template_metadata(template_slug)
 
-        return preview_action, send_action
+            # Determine data to use
+            if use_real or serializer.validated_data.get("data"):
+                # Use provided data or extract from object
+                data = serializer.validated_data.get("data")
+                if not data:
+                    data = self.get_template_action_data(obj, action_name, template_slug)
+            else:
+                # Use sample data
+                data = template_meta["sample_data"]
 
-    def __init__(self, *args, **kwargs):
-        """Initialize mixin and register template actions."""
-        super().__init__(*args, **kwargs)
+            # Render template
+            result = render_and_prepare_email(template_meta, data, validate=True)
 
-        # Import here to avoid circular imports
-        from .constants import ACTION_TEMPLATE_MAP
+            return Response(result)
 
-        # Register all actions from ACTION_TEMPLATE_MAP
-        for action_key in ACTION_TEMPLATE_MAP.keys():
-            preview_func, send_func = self._create_template_action(action_key)
+        except TemplateNotFoundError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except TemplateValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TemplateRenderError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Attach methods to the class instance
-            setattr(self, f"{action_key}_preview", preview_func.__get__(self, self.__class__))
-            setattr(self, f"{action_key}_send", send_func.__get__(self, self.__class__))
+    def _handle_send(self, request, pk=None, action_name=None, template_slug=None):
+        """Handle send request for a template action."""
+        obj = self.get_object()
+
+        try:
+            template_meta = get_template_metadata(template_slug)
+
+            # Get recipients from request or use object's email
+            recipients_data = request.data.get("recipients")
+
+            if not recipients_data:
+                # Default to object's email if available
+                obj_email = self.get_template_action_email(obj, action_name, template_slug)
+                if not obj_email:
+                    return Response(
+                        {"detail": _("No email address found for this object")},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Extract data from object
+                data = self.get_template_action_data(obj, action_name, template_slug)
+
+                recipients_data = [{"email": obj_email, "data": data}]
+
+            # Get subject and sender from request or use defaults
+            subject = request.data.get("subject", template_meta["title"])
+            sender = request.data.get("sender", settings.DEFAULT_FROM_EMAIL)
+
+            # Validate all recipient data
+            for recipient in recipients_data:
+                validate_template_data(recipient["data"], template_meta)
+
+            # Create job
+            job = EmailSendJob.objects.create(
+                template_slug=template_slug,
+                subject=subject,
+                sender=sender,
+                total=len(recipients_data),
+                created_by=request.user if request.user.is_authenticated else None,
+            )
+
+            # Create recipients
+            for recipient in recipients_data:
+                EmailSendRecipient.objects.create(
+                    job=job,
+                    email=recipient["email"],
+                    data=recipient["data"],
+                )
+
+            # Enqueue task
+            send_email_job_task.delay(str(job.id))
+
+            return Response(
+                {
+                    "job_id": str(job.id),
+                    "detail": _("Email send job enqueued"),
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+
+        except TemplateNotFoundError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except TemplateValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def create_email_action_methods(cls):
+    """Decorator to dynamically create email action methods from email_actions dict.
+    
+    This should be applied to ViewSets that use TemplateActionMixin.
+    
+    Example:
+        @create_email_action_methods
+        class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+            email_actions = {
+                "send_welcome_email": "welcome",
+            }
+    """
+    if not hasattr(cls, 'email_actions'):
+        return cls
+    
+    for action_name, template_slug in cls.email_actions.items():
+        # Create preview action
+        def make_preview(action_name=action_name, template_slug=template_slug):
+            @action(
+                detail=True,
+                methods=["post"],
+                url_path=f"{action_name}/preview",
+                permission_classes=[IsAuthenticated],
+            )
+            def preview_method(self, request, pk=None):
+                return self._handle_preview(request, pk, action_name, template_slug)
+            preview_method.__name__ = f"{action_name}_preview"
+            return preview_method
+        
+        # Create send action
+        def make_send(action_name=action_name, template_slug=template_slug):
+            @action(
+                detail=True,
+                methods=["post"],
+                url_path=f"{action_name}/send",
+                permission_classes=[CanSendMail],
+            )
+            def send_method(self, request, pk=None):
+                return self._handle_send(request, pk, action_name, template_slug)
+            send_method.__name__ = f"{action_name}_send"
+            return send_method
+        
+        # Add methods to class
+        setattr(cls, f"{action_name}_preview", make_preview())
+        setattr(cls, f"{action_name}_send", make_send())
+    
+    return cls
+

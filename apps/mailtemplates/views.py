@@ -268,7 +268,8 @@ def preview_template(request, slug):
 
         # Determine data to use
         if mode == "sample":
-            data = serializer.validated_data.get("data", template_meta["sample_data"])
+            # Merge request data with sample_data, prioritizing request data
+            data = {**template_meta["sample_data"], **serializer.validated_data.get("data", {})}
         else:
             # Real mode - use provided data or fetch from ref
             data = serializer.validated_data.get("data")

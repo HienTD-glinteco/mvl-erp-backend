@@ -48,6 +48,36 @@ MAIL_SEND_MAX_ATTEMPTS = 3  # Max retry attempts per recipient
 
 ## Usage Examples
 
+### Using TemplateActionMixin in ViewSets
+
+To add email actions to your ViewSet, use the `TemplateActionMixin` and `create_email_action_methods` decorator:
+
+```python
+from apps.mailtemplates.view_mixins import TemplateActionMixin, create_email_action_methods
+
+@create_email_action_methods
+class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+    # Define email actions: action_name -> template_slug
+    email_actions = {
+        "send_welcome_email": "welcome",
+        "send_contract": "contract",
+    }
+    
+    # Optionally override data extraction
+    def get_template_action_data(self, instance, action_name, template_slug):
+        data = super().get_template_action_data(instance, action_name, template_slug)
+        # Add custom data extraction logic
+        if action_name == "send_welcome_email":
+            data["custom_field"] = instance.custom_value
+        return data
+```
+
+This automatically provides:
+- `POST /api/employees/{pk}/send_welcome_email/preview/`
+- `POST /api/employees/{pk}/send_welcome_email/send/`
+- `POST /api/employees/{pk}/send_contract/preview/`
+- `POST /api/employees/{pk}/send_contract/send/`
+
 ### List Templates
 
 ```bash
