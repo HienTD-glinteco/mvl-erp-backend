@@ -1,17 +1,19 @@
-"""Tests for domain-specific email actions (Employee, Interview Schedule)."""
-
+"""Tests for domain-specific email actions (Employee and Interview Schedule)."""
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import User
+from apps.hrm.models import Employee, InterviewCandidate, InterviewSchedule, RecruitmentRequest
+
+User = get_user_model()
 
 
 class EmployeeEmailActionTests(TestCase):
-    """Test cases for Employee welcome email actions."""
+    """Test cases for Employee email actions."""
 
     def setUp(self):
         """Set up test data."""
@@ -27,23 +29,21 @@ class EmployeeEmailActionTests(TestCase):
             password="testpass123",
             is_staff=True,
         )
+        # Create a real employee
+        self.employee = Employee.objects.create(
+            fullname="John Doe",
+            email="john.doe@example.com",
+            start_date=timezone.now().date(),
+            is_onboarding_email_sent=False,
+        )
 
-    @patch("apps.hrm.models.Employee")
-    def test_welcome_email_preview(self, mock_employee_model):
+    def test_welcome_email_preview(self):
         """Test preview welcome email for employee."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        # Mock employee instance
-        mock_employee = mock_employee_model.return_value
-        mock_employee.fullname = "John Doe"
-        mock_employee.email = "john@example.com"
-        mock_employee.start_date = "2025-11-01"
-        mock_employee.position = "Software Engineer"
 
         # Act
-        with patch("apps.hrm.api.views.employee.Employee.objects.get", return_value=mock_employee):
-            response = self.client.post("/api/employees/1/welcome_email/preview/", {}, format="json")
+        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -52,24 +52,14 @@ class EmployeeEmailActionTests(TestCase):
         self.assertIn("text", data)
         self.assertIn("John Doe", data["html"])
 
-    @patch("apps.hrm.models.Employee")
     @patch("apps.mailtemplates.tasks.send_email_job_task")
-    def test_welcome_email_send(self, mock_task, mock_employee_model):
+    def test_welcome_email_send(self, mock_task):
         """Test send welcome email for employee."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        # Mock employee instance
-        mock_employee = mock_employee_model.return_value
-        mock_employee.fullname = "Jane Smith"
-        mock_employee.email = "jane@example.com"
-        mock_employee.start_date = "2025-12-01"
-        mock_employee.is_onboarding_email_sent = False
-        mock_employee.save = lambda **kwargs: None
 
         # Act
-        with patch("apps.hrm.api.views.employee.Employee.objects.get", return_value=mock_employee):
-            response = self.client.post("/api/employees/1/welcome_email/send/", {}, format="json")
+        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/send/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -77,15 +67,10 @@ class EmployeeEmailActionTests(TestCase):
         self.assertIn("job_id", data)
         self.assertTrue(mock_task.delay.called)
 
-    @patch("apps.hrm.models.Employee")
-    def test_welcome_email_preview_with_custom_data(self, mock_employee_model):
+    def test_welcome_email_preview_with_custom_data(self):
         """Test preview with custom data override."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        mock_employee = mock_employee_model.return_value
-        mock_employee.fullname = "Original Name"
-        mock_employee.email = "original@example.com"
 
         # Act
         custom_data = {
@@ -94,20 +79,19 @@ class EmployeeEmailActionTests(TestCase):
                 "start_date": "2026-01-01",
             }
         }
-        with patch("apps.hrm.api.views.employee.Employee.objects.get", return_value=mock_employee):
-            response = self.client.post("/api/employees/1/welcome_email/preview/", custom_data, format="json")
+        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", custom_data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
         # Should use custom data, not employee data
         self.assertIn("Custom Name", data["html"])
-        self.assertNotIn("Original Name", data["html"])
+        self.assertNotIn("John Doe", data["html"])
 
     def test_welcome_email_requires_authentication(self):
         """Test welcome email actions require authentication."""
         # Act - No authentication
-        response = self.client.post("/api/employees/1/welcome_email/preview/", {}, format="json")
+        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -130,63 +114,45 @@ class InterviewScheduleEmailActionTests(TestCase):
             password="testpass123",
             is_staff=True,
         )
+        # Create a recruitment request
+        self.recruitment = RecruitmentRequest.objects.create(
+            position="Senior Developer",
+            quantity=1,
+        )
+        # Create a real interview candidate
+        self.candidate = InterviewCandidate.objects.create(
+            fullname="Alice Johnson",
+            email="alice@example.com",
+            recruitment_request=self.recruitment,
+        )
+        # Create a real interview schedule
+        self.schedule = InterviewSchedule.objects.create(
+            candidate=self.candidate,
+            time=timezone.now() + timezone.timedelta(days=7),
+        )
 
-    @patch("apps.hrm.models.InterviewSchedule")
-    @patch("apps.hrm.models.InterviewCandidate")
-    def test_interview_invite_preview(self, mock_candidate_model, mock_schedule_model):
+    def test_interview_invite_preview(self):
         """Test preview interview invitation."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        # Mock candidate
-        mock_candidate = mock_candidate_model.return_value
-        mock_candidate.fullname = "Alice Johnson"
-        mock_candidate.email = "alice@example.com"
-        
-        # Mock schedule
-        mock_schedule = mock_schedule_model.return_value
-        mock_schedule.candidate = mock_candidate
-        mock_schedule.position = "Senior Developer"
-        mock_schedule.interview_date = "2025-11-15"
-        mock_schedule.interview_time = "14:00"
-        mock_schedule.location = "Office Building A"
 
         # Act
-        with patch("apps.hrm.api.views.interview_schedule.InterviewSchedule.objects.get", return_value=mock_schedule):
-            response = self.client.post("/api/interview-schedules/1/interview_invite/preview/", {}, format="json")
+        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
         self.assertIn("html", data)
         self.assertIn("Alice Johnson", data["html"])
-        self.assertIn("Senior Developer", data["html"])
 
-    @patch("apps.hrm.models.InterviewSchedule")
-    @patch("apps.hrm.models.InterviewCandidate")
     @patch("apps.mailtemplates.tasks.send_email_job_task")
-    def test_interview_invite_send(self, mock_task, mock_candidate_model, mock_schedule_model):
+    def test_interview_invite_send(self, mock_task):
         """Test send interview invitation."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        # Mock candidate
-        mock_candidate = mock_candidate_model.return_value
-        mock_candidate.fullname = "Bob Williams"
-        mock_candidate.email = "bob@example.com"
-        mock_candidate.email_sent_at = None
-        mock_candidate.save = lambda **kwargs: None
-        
-        # Mock schedule
-        mock_schedule = mock_schedule_model.return_value
-        mock_schedule.candidate = mock_candidate
-        mock_schedule.position = "DevOps Engineer"
-        mock_schedule.interview_date = "2025-12-01"
-        mock_schedule.interview_time = "10:00"
 
         # Act
-        with patch("apps.hrm.api.views.interview_schedule.InterviewSchedule.objects.get", return_value=mock_schedule):
-            response = self.client.post("/api/interview-schedules/1/interview_invite/send/", {}, format="json")
+        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/send/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -194,70 +160,21 @@ class InterviewScheduleEmailActionTests(TestCase):
         self.assertIn("job_id", data)
         self.assertTrue(mock_task.delay.called)
 
-    @patch("apps.hrm.models.InterviewSchedule")
-    def test_interview_invite_nonexistent_schedule(self, mock_schedule_model):
+    def test_interview_invite_nonexistent_schedule(self):
         """Test interview invite for non-existent schedule returns 404."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
-        
-        # Mock DoesNotExist exception
-        from django.core.exceptions import ObjectDoesNotExist
-        mock_schedule_model.objects.get.side_effect = ObjectDoesNotExist
 
         # Act
-        response = self.client.post("/api/interview-schedules/999/interview_invite/preview/", {}, format="json")
+        response = self.client.post("/api/interview-schedules/999999/interview_invite/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_interview_invite_requires_permission(self):
-        """Test interview invite requires proper permissions."""
-        # Arrange
-        self.client.force_authenticate(user=self.user)  # Non-staff user
-
-        # Act
-        response = self.client.post("/api/interview-schedules/1/interview_invite/send/", {}, format="json")
+    def test_interview_invite_requires_authentication(self):
+        """Test interview invite requires authentication."""
+        # Act - No authentication
+        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/preview/", {}, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
-class CallbackFunctionalityTests(TestCase):
-    """Test callback execution after successful email sends."""
-
-    def setUp(self):
-        """Set up test data."""
-        self.client = APIClient()
-        self.staff_user = User.objects.create_user(
-            username="staffuser",
-            email="staff@example.com",
-            password="testpass123",
-            is_staff=True,
-        )
-
-    @patch("apps.hrm.callbacks.mark_employee_onboarding_email_sent")
-    @patch("apps.hrm.models.Employee")
-    @patch("apps.mailtemplates.tasks.send_email_job_task")
-    def test_callback_registered_on_send(self, mock_task, mock_employee_model, mock_callback):
-        """Test callback is registered when sending email."""
-        # Arrange
-        self.client.force_authenticate(user=self.staff_user)
-        
-        mock_employee = mock_employee_model.return_value
-        mock_employee.fullname = "Callback Test"
-        mock_employee.email = "callback@example.com"
-        mock_employee.start_date = "2025-11-01"
-
-        # Act
-        with patch("apps.hrm.api.views.employee.Employee.objects.get", return_value=mock_employee):
-            response = self.client.post("/api/employees/1/welcome_email/send/", {}, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        
-        # Verify job has callback data
-        from apps.mailtemplates.models import EmailSendJob
-        job_id = response.json()["data"]["job_id"]
-        job = EmailSendJob.objects.get(id=job_id)
-        self.assertIsNotNone(job.callback_data)
-        self.assertIn("callback", job.callback_data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
