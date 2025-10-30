@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to MaiVietLand</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0066cc;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px 20px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        h1 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to MaiVietLand!</h1>
+    </div>
+    <div class="content">
+        <p>Dear {{ fullname }},</p>
+        
+        <p>We are thrilled to welcome you to the MaiVietLand team! Your journey with us begins on <strong>{{ start_date }}</strong>.</p>
+        
+        {% if position %}
+        <p>As our new <strong>{{ position }}</strong>{% if department %} in the {{ department }} department{% endif %}, you will play a vital role in our organization's success.</p>
+        {% endif %}
+        
+        <p>We look forward to working with you and seeing you grow with our company.</p>
+        
+        <p>If you have any questions before your start date, please don't hesitate to reach out.</p>
+        
+        <p>Best regards,<br>
+        The MaiVietLand HR Team</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 MaiVietLand. All rights reserved.</p>
+    </div>
+</body>
+</html>

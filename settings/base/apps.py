@@ -29,6 +29,7 @@ INTERNAL_APPS = [
     "apps.notifications",
     "apps.files",
     "apps.imports",
+    "apps.mailtemplates",
 ]
 
 INSTALLED_APPS = DJANGO_APPs + EXTERNAL_APPS + INTERNAL_APPS
