@@ -264,14 +264,14 @@ class EmailTemplateActionMixin:
 
         Default behavior:
             Maps common attribute names to template variables.
-            For Employee: first_name, start_date, position, department
+            For Employee: fullname, start_date, position, department
         """
         # Default simple attribute mapping
         data: dict[str, Any] = {}
 
         # Common employee attributes
-        if hasattr(instance, "first_name"):
-            data["first_name"] = getattr(instance, "first_name", "")
+        if hasattr(instance, "fullname"):
+            data["fullname"] = getattr(instance, "fullname", "")
         if hasattr(instance, "fullname"):
             data["candidate_name"] = getattr(instance, "fullname", "")
 

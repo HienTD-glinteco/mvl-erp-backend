@@ -161,7 +161,7 @@ class TemplateServicesTestCase(TestCase):
         from django.conf import settings
 
         template_dir = Path(settings.MAIL_TEMPLATE_DIR)
-        backup_files = list(template_dir.glob(f"{filename}.bak.*"))
+        backup_files = list(template_dir.glob(f"test_backup.bak.*"))
         self.assertGreater(len(backup_files), 0)
 
 

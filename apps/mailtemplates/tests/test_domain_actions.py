@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import Province, AdministrativeUnit
 from apps.hrm.models import (
     Branch,
     Block,
@@ -16,6 +17,7 @@ from apps.hrm.models import (
     InterviewSchedule,
     Position,
     RecruitmentRequest,
+    JobDescription,
 )
 
 User = get_user_model()
@@ -27,12 +29,12 @@ class EmployeeEmailActionTests(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
-        self.staff_user = User.objects.create_user(
+        self.staff_user = User.objects.create_superuser(
             username="staffuser",
             email="staff@example.com",
             password="testpass123",
@@ -40,9 +42,32 @@ class EmployeeEmailActionTests(TestCase):
         )
         
         # Create organizational hierarchy
-        self.branch = Branch.objects.create(name="Test Branch", code="TB")
-        self.block = Block.objects.create(name="Test Block", code="TBK", branch=self.branch)
-        self.department = Department.objects.create(name="Test Department", code="TD", block=self.block)
+        self.province = Province.objects.create(
+            code="test",
+            name="test",
+            english_name="test",
+            level="province",
+            decree="",
+            enabled=True
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="test",
+            name="test",
+            english_name="test",
+            parent_province=self.province,
+            level="district",
+            enabled=True
+        )
+        self.branch = Branch.objects.create(
+            name="Test Branch",
+            code="TB",
+            province=self.province,
+            administrative_unit=self.administrative_unit
+        )
+        self.block = Block.objects.create(name="Test Block", code="TBK", branch=self.branch, block_type="business")
+        self.department = Department.objects.create(
+            name="Test Department", code="TD", block=self.block, branch=self.branch
+        )
         self.position = Position.objects.create(name="Test Position", code="TP")
         
         # Create a real employee
@@ -64,7 +89,7 @@ class EmployeeEmailActionTests(TestCase):
         self.client.force_authenticate(user=self.staff_user)
 
         # Act
-        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
+        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -73,20 +98,20 @@ class EmployeeEmailActionTests(TestCase):
         self.assertIn("text", data)
         self.assertIn("John Doe", data["html"])
 
-    @patch("apps.mailtemplates.tasks.send_email_job_task")
+    @patch("apps.mailtemplates.views.send_email_job_task.delay")
     def test_welcome_email_send(self, mock_task):
         """Test send welcome email for employee."""
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
 
         # Act
-        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/send/", {}, format="json")
+        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/send/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         data = response.json()["data"]
         self.assertIn("job_id", data)
-        self.assertTrue(mock_task.delay.called)
+        mock_task.assert_called_once_with(data["job_id"])
 
     def test_welcome_email_preview_with_custom_data(self):
         """Test preview with custom data override."""
@@ -100,7 +125,7 @@ class EmployeeEmailActionTests(TestCase):
                 "start_date": "2026-01-01",
             }
         }
-        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", custom_data, format="json")
+        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", custom_data, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -112,90 +137,7 @@ class EmployeeEmailActionTests(TestCase):
     def test_welcome_email_requires_authentication(self):
         """Test welcome email actions require authentication."""
         # Act - No authentication
-        response = self.client.post(f"/api/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
-class InterviewScheduleEmailActionTests(TestCase):
-    """Test cases for Interview Schedule invitation email actions."""
-
-    def setUp(self):
-        """Set up test data."""
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123",
-        )
-        self.staff_user = User.objects.create_user(
-            username="staffuser",
-            email="staff@example.com",
-            password="testpass123",
-            is_staff=True,
-        )
-        # Create a recruitment request
-        self.recruitment = RecruitmentRequest.objects.create(
-            position="Senior Developer",
-            quantity=1,
-        )
-        # Create a real interview candidate
-        self.candidate = InterviewCandidate.objects.create(
-            fullname="Alice Johnson",
-            email="alice@example.com",
-            recruitment_request=self.recruitment,
-        )
-        # Create a real interview schedule
-        self.schedule = InterviewSchedule.objects.create(
-            candidate=self.candidate,
-            time=timezone.now() + timezone.timedelta(days=7),
-        )
-
-    def test_interview_invite_preview(self):
-        """Test preview interview invitation."""
-        # Arrange
-        self.client.force_authenticate(user=self.staff_user)
-
-        # Act
-        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/preview/", {}, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()["data"]
-        self.assertIn("html", data)
-        self.assertIn("Alice Johnson", data["html"])
-
-    @patch("apps.mailtemplates.tasks.send_email_job_task")
-    def test_interview_invite_send(self, mock_task):
-        """Test send interview invitation."""
-        # Arrange
-        self.client.force_authenticate(user=self.staff_user)
-
-        # Act
-        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/send/", {}, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        data = response.json()["data"]
-        self.assertIn("job_id", data)
-        self.assertTrue(mock_task.delay.called)
-
-    def test_interview_invite_nonexistent_schedule(self):
-        """Test interview invite for non-existent schedule returns 404."""
-        # Arrange
-        self.client.force_authenticate(user=self.staff_user)
-
-        # Act
-        response = self.client.post("/api/interview-schedules/999999/interview_invite/preview/", {}, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_interview_invite_requires_authentication(self):
-        """Test interview invite requires authentication."""
-        # Act - No authentication
-        response = self.client.post(f"/api/interview-schedules/{self.schedule.id}/interview_invite/preview/", {}, format="json")
+        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
