@@ -38,11 +38,11 @@ Override `get_export_data()` to customize the export structure:
 class ProjectViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    
+
     def get_export_data(self, request):
         """Custom export with multiple sheets and grouped data."""
         queryset = self.filter_queryset(self.get_queryset())
-        
+
         return {
             "sheets": [
                 {
@@ -72,7 +72,7 @@ For hierarchical data (e.g., Projects → Tasks → Materials):
 def get_export_data(self, request):
     """Export with nested structure and merged cells."""
     projects = self.filter_queryset(self.get_queryset())
-    
+
     # Flatten nested data
     rows = []
     for project in projects:
@@ -87,7 +87,7 @@ def get_export_data(self, request):
                     "unit": material.unit,
                     "cost": float(material.cost),
                 })
-    
+
     return {
         "sheets": [
             {
@@ -360,7 +360,7 @@ from apps.project.api.serializers import ProjectSerializer
 class ProjectViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
     """
     Project management ViewSet with XLSX export.
-    
+
     Endpoints:
         GET /api/projects/ - List projects
         GET /api/projects/{id}/ - Retrieve project
@@ -370,16 +370,16 @@ class ProjectViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
         GET /api/projects/export/ - Export to XLSX
         GET /api/projects/export/?async=true - Async export
     """
-    
+
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     filterset_fields = ["status", "start_date"]
     search_fields = ["name", "description"]
-    
+
     def get_export_data(self, request):
         """Export projects with custom formatting."""
         queryset = self.filter_queryset(self.get_queryset())
-        
+
         data = []
         for project in queryset.select_related("manager"):
             data.append({
@@ -390,7 +390,7 @@ class ProjectViewSet(ExportXLSXMixin, viewsets.ModelViewSet):
                 "budget": float(project.budget),
                 "status": project.get_status_display(),
             })
-        
+
         return {
             "sheets": [
                 {

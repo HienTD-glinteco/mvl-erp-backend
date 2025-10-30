@@ -114,20 +114,20 @@ Create `/etc/nginx/sites-available/backend-test`:
 server {
     listen 80;
     server_name your-test-domain.com;
-    
+
     # Static files
     location /static/ {
         alias /var/www/backend/static/;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
-    
+
     # Media files
     location /media/ {
         alias /var/www/backend/media/;
         expires 30d;
     }
-    
+
     # Reverse proxy to gunicorn
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -135,13 +135,13 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # Timeout settings
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
-    
+
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
@@ -251,7 +251,7 @@ Copy the appropriate environment example file to `.env` in your application dire
 cd /home/ubuntu/maivietland/backend
 cp config/env/test.env.example .env
 
-# For staging environment  
+# For staging environment
 cp config/env/staging.env.example .env
 ```
 

@@ -4,34 +4,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0005_permission_alter_user_options_and_more'),
+        ("core", "0005_permission_alter_user_options_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='permission',
-            options={'verbose_name': 'Permission', 'verbose_name_plural': 'Permissions'},
+            name="permission",
+            options={"verbose_name": "Permission", "verbose_name_plural": "Permissions"},
         ),
         migrations.AddField(
-            model_name='permission',
-            name='module',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Module'),
+            model_name="permission",
+            name="module",
+            field=models.CharField(blank=True, max_length=100, verbose_name="Module"),
         ),
         migrations.AddField(
-            model_name='permission',
-            name='submodule',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Submodule'),
+            model_name="permission",
+            name="submodule",
+            field=models.CharField(blank=True, max_length=100, verbose_name="Submodule"),
         ),
         migrations.AlterField(
-            model_name='permission',
-            name='code',
-            field=models.CharField(max_length=100, unique=True, verbose_name='Permission code'),
+            model_name="permission",
+            name="code",
+            field=models.CharField(max_length=100, unique=True, verbose_name="Permission code"),
         ),
         migrations.AlterField(
-            model_name='permission',
-            name='description',
-            field=models.CharField(blank=True, max_length=255, verbose_name='Description'),
+            model_name="permission",
+            name="description",
+            field=models.CharField(blank=True, max_length=255, verbose_name="Description"),
         ),
     ]

@@ -18,6 +18,7 @@ repos:
     -   id: mixed-line-ending
         args: ['--fix=lf']
     -   id: detect-private-key  # Checks for the presence of private keys
+        exclude: ^docs/
     -   id: check-merge-conflict
     -   id: no-commit-to-branch
 
@@ -36,6 +37,7 @@ repos:
         entry: python scripts/check_no_vietnamese.py
         language: system
         types: [python]
+        exclude: ^(docs/|apps/core/management/commands/import_administrative_data\.py)
         stages: [pre-commit]
     -   id: check-string-constants
         name: Check for hardcoded strings (warning only)

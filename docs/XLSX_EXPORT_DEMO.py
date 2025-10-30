@@ -6,9 +6,7 @@ Run this script to see how the export system works.
 
 Usage:
     python docs/XLSX_EXPORT_DEMO.py
-"""
 
-"""
 NOTE: This demo requires a full Django environment with all dependencies installed.
 For a quick verification that openpyxl is working, see the standalone test below.
 
@@ -28,11 +26,9 @@ from io import BytesIO
 # Uncomment these lines when running in a full Django environment:
 # sys.path.insert(0, "/home/runner/work/mvl-backend/mvl-backend")
 # from libs.export_xlsx import XLSXGenerator
-
 # For standalone demonstration, we'll use openpyxl directly
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
 
 
 class SimpleXLSXGenerator:
@@ -160,7 +156,7 @@ def demo_grouped_headers():
     generator = XLSXGenerator()
     file_content = generator.generate(schema)
 
-    print(f"✓ Generated XLSX with grouped headers")
+    print("✓ Generated XLSX with grouped headers")
     print(f"✓ Groups: {len(schema['sheets'][0]['groups'])}")
     print(f"✓ File size: {len(file_content.getvalue())} bytes")
 
@@ -224,7 +220,7 @@ def demo_nested_with_merging():
     generator = XLSXGenerator()
     file_content = generator.generate(schema)
 
-    print(f"✓ Generated XLSX with merged cells")
+    print("✓ Generated XLSX with merged cells")
     print(f"✓ Merge rules: {schema['sheets'][0]['merge_rules']}")
     print(f"✓ Total rows: {len(schema['sheets'][0]['data'])}")
     print(f"✓ File size: {len(file_content.getvalue())} bytes")
@@ -277,7 +273,7 @@ def demo_multiple_sheets():
     generator = XLSXGenerator()
     file_content = generator.generate(schema)
 
-    print(f"✓ Generated XLSX with multiple sheets")
+    print("✓ Generated XLSX with multiple sheets")
     print(f"✓ Number of sheets: {len(schema['sheets'])}")
     for sheet in schema["sheets"]:
         print(f"  - {sheet['name']}: {len(sheet['data'])} rows")
@@ -373,12 +369,12 @@ def demo_complex_report():
     generator = XLSXGenerator()
     file_content = generator.generate(schema)
 
-    print(f"✓ Generated complex report successfully")
-    print(f"✓ Features used:")
+    print("✓ Generated complex report successfully")
+    print("✓ Features used:")
     print(f"  - Multiple sheets: {len(schema['sheets'])}")
-    print(f"  - Grouped headers: Yes")
-    print(f"  - Merged cells: Yes")
-    print(f"  - Custom formatting: Yes")
+    print("  - Grouped headers: Yes")
+    print("  - Merged cells: Yes")
+    print("  - Custom formatting: Yes")
     print(f"✓ Total file size: {len(file_content.getvalue())} bytes")
 
     return file_content
@@ -410,9 +406,7 @@ def main():
         print("  - Multiple sheets in one workbook")
         print("  - Complex reports with all features combined")
         print("\n✓ Total generated files: 5")
-        print(
-            f"✓ Total data size: {sum([len(f.getvalue()) for f in [file1, file2, file3, file4, file5]])} bytes"
-        )
+        print(f"✓ Total data size: {sum([len(f.getvalue()) for f in [file1, file2, file3, file4, file5]])} bytes")
 
         print("\n" + "=" * 70)
         print("NEXT STEPS:")

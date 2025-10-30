@@ -1,19 +1,16 @@
 """Tests for mail template services."""
 
-import os
 import tempfile
 from pathlib import Path
 
 from django.test import TestCase, override_settings
 
-from apps.mailtemplates.constants import TEMPLATE_REGISTRY
 from apps.mailtemplates.services import (
     TemplateNotFoundError,
     TemplateRenderError,
     TemplateValidationError,
     get_template_metadata,
     html_to_text,
-    inline_css,
     load_template_content,
     render_and_prepare_email,
     render_template_content,
@@ -161,7 +158,7 @@ class TemplateServicesTestCase(TestCase):
         from django.conf import settings
 
         template_dir = Path(settings.MAIL_TEMPLATE_DIR)
-        backup_files = list(template_dir.glob(f"test_backup.bak.*"))
+        backup_files = list(template_dir.glob("test_backup.bak.*"))
         self.assertGreater(len(backup_files), 0)
 
 

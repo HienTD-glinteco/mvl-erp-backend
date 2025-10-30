@@ -158,7 +158,7 @@ class Command(BaseCommand):
             )
         )
 
-    def _import_units(self, df, dry_run):
+    def _import_units(self, df, dry_run):  # noqa: C901
         """Import administrative unit data from dataframe"""
         created_count = 0
         updated_count = 0

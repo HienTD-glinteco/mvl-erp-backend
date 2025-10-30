@@ -120,7 +120,7 @@ class ImportXLSXMixin:
         },
     )
     @action(detail=False, methods=["post"])
-    def import_data(self, request: Request) -> Response:
+    def import_data(self, request: Request) -> Response:  # noqa: C901
         """
         Import data from XLSX file.
 

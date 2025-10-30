@@ -119,9 +119,7 @@ class TemplateAPITestCase(TestCase):
         self.client.force_authenticate(user=self.user)
         data = {
             "subject": "Test",
-            "recipients": [
-                {"email": "test@example.com", "data": {"first_name": "John", "start_date": "2025-11-01"}}
-            ],
+            "recipients": [{"email": "test@example.com", "data": {"first_name": "John", "start_date": "2025-11-01"}}],
         }
 
         # Act

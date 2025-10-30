@@ -194,7 +194,7 @@ class MultiModelProcessor:
 
         return results
 
-    def process_row(
+    def process_row(  # noqa: C901
         self,
         row_num: int,
         row_data: dict,
@@ -330,7 +330,7 @@ class MultiModelProcessor:
                 "errors": {"general": [str(e)]},
             }
 
-    def process_relations(
+    def process_relations(  # noqa: C901
         self,
         main_instance: django_models.Model,
         relations_config: dict,

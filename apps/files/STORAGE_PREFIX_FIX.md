@@ -12,7 +12,7 @@ file_path = "media/uploads/job_description/15/file.pdf"  # Stored in DB
 
 # When accessing:
 default_storage.open(file_path)
-# S3Boto3Storage adds location: "media/" + "media/uploads/..." 
+# S3Boto3Storage adds location: "media/" + "media/uploads/..."
 # Result: "media/media/uploads/..." ❌ FILE NOT FOUND
 ```
 
@@ -109,7 +109,7 @@ def generate_permanent_path(self, purpose, file_name, object_id=None):
     # Always returns path WITHOUT prefix
     if object_id is not None:
         path = build_storage_key(
-            S3_UPLOADS_PREFIX, purpose, str(object_id), file_name, 
+            S3_UPLOADS_PREFIX, purpose, str(object_id), file_name,
             include_prefix=False  # For database storage
         )
     else:

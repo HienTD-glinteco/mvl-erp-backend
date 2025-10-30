@@ -74,10 +74,23 @@ class EmployeeViewSet(EmailTemplateActionMixin, AuditLoggingMixin, BaseModelView
                         "type": "object",
                         "description": "Optional data overrides for template variables",
                         "properties": {
-                            "fullname": {"type": "string", "description": "Employee's full name (defaults to employee.fullname)"},
-                            "start_date": {"type": "string", "format": "date", "description": "Employment start date (defaults to employee.start_date)"},
-                            "position": {"type": "string", "description": "Job position (optional, defaults to employee.position.name)"},
-                            "department": {"type": "string", "description": "Department name (optional, defaults to employee.department.name)"},
+                            "fullname": {
+                                "type": "string",
+                                "description": "Employee's full name (defaults to employee.fullname)",
+                            },
+                            "start_date": {
+                                "type": "string",
+                                "format": "date",
+                                "description": "Employment start date (defaults to employee.start_date)",
+                            },
+                            "position": {
+                                "type": "string",
+                                "description": "Job position (optional, defaults to employee.position.name)",
+                            },
+                            "department": {
+                                "type": "string",
+                                "description": "Department name (optional, defaults to employee.department.name)",
+                            },
                         },
                     },
                 },

@@ -201,26 +201,26 @@ from apps.imports.api.mixins import AsyncImportProgressMixin
 
 class ProductViewSet(AsyncImportProgressMixin, ModelViewSet):
     '''ViewSet with inline import handler method.'''
-    
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    
+
     def _process_import_data_row(self, row_index: int, row: list, import_job_id: str, options: dict) -> dict:
         '''
         Process a single row from product import file.
-        
+
         This method is automatically detected and used by AsyncImportProgressMixin.
         No need to set import_row_handler attribute.
-        
+
         Expected CSV format:
             sku, name, price, category
-        
+
         Args:
             row_index: 1-based row number
             row: List of cell values
             import_job_id: UUID of the import job
             options: Import options from the request
-            
+
         Returns:
             {"ok": True, "result": {...}} on success
             {"ok": False, "error": "..."} on failure
@@ -231,20 +231,20 @@ class ProductViewSet(AsyncImportProgressMixin, ModelViewSet):
             name = row[1] if len(row) > 1 else None
             price_str = row[2] if len(row) > 2 else None
             category = row[3] if len(row) > 3 else None
-            
+
             # Validate
             if not sku:
                 return {"ok": False, "error": "SKU is required"}
             if not name:
                 return {"ok": False, "error": "Name is required"}
-            
+
             # Parse price
             from decimal import Decimal, InvalidOperation
             try:
                 price = Decimal(price_str) if price_str else None
             except InvalidOperation:
                 return {"ok": False, "error": f"Invalid price: {price_str}"}
-            
+
             # Create or update product
             from apps.products.models import Product
             product, created = Product.objects.update_or_create(
@@ -255,7 +255,7 @@ class ProductViewSet(AsyncImportProgressMixin, ModelViewSet):
                     'category': category,
                 }
             )
-            
+
             return {
                 "ok": True,
                 "result": {
@@ -263,7 +263,7 @@ class ProductViewSet(AsyncImportProgressMixin, ModelViewSet):
                     "action": "created" if created else "updated"
                 }
             }
-            
+
         except Exception as e:
             return {"ok": False, "error": str(e)}
 

@@ -17,7 +17,7 @@ class GetStoragePrefixTest(TestCase):
         """Test getting storage prefix from AWS_LOCATION setting."""
         # Arrange: Make default_storage not have location attribute
         del mock_storage.location
-        
+
         # Act
         result = get_storage_prefix()
 
@@ -30,7 +30,7 @@ class GetStoragePrefixTest(TestCase):
         """Test that storage prefix strips leading/trailing slashes."""
         # Arrange: Make default_storage not have location attribute
         del mock_storage.location
-        
+
         # Act
         result = get_storage_prefix()
 
@@ -68,7 +68,7 @@ class BuildStorageKeyTest(TestCase):
         """Test building storage key with prefix."""
         # Arrange: Mock get_storage_prefix to return "media"
         mock_get_prefix.return_value = "media"
-        
+
         # Act
         result = build_storage_key("uploads", "tmp", "file.pdf")
 
@@ -92,7 +92,7 @@ class BuildStorageKeyTest(TestCase):
         """Test that build_storage_key strips slashes from segments."""
         # Arrange: Mock get_storage_prefix to return "media"
         mock_get_prefix.return_value = "media"
-        
+
         # Act
         result = build_storage_key("/uploads/", "/tmp/", "/file.pdf")
 
@@ -105,7 +105,7 @@ class BuildStorageKeyTest(TestCase):
         """Test building storage key with single segment."""
         # Arrange: Mock get_storage_prefix to return "media"
         mock_get_prefix.return_value = "media"
-        
+
         # Act
         result = build_storage_key("file.pdf")
 

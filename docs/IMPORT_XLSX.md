@@ -165,7 +165,7 @@ class RoleImportSerializer(serializers.ModelSerializer):
 class RoleViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer  # Used for CRUD
-    
+
     def get_import_serializer_class(self):
         return RoleImportSerializer  # Used for imports only
 ```
@@ -396,12 +396,12 @@ Override resolution logic for specific fields:
 class ProjectViewSet(ImportXLSXMixin, BaseModelViewSet):
     def get_import_schema(self, request, file):
         schema = super().get_import_schema(request, file)
-        
+
         # Add custom field resolver
         schema["resolvers"] = {
             "department": lambda value: Department.objects.get(code=value)
         }
-        
+
         return schema
 ```
 
@@ -417,16 +417,16 @@ def create_test_xlsx(data, headers):
     """Helper to create test XLSX file"""
     workbook = Workbook()
     sheet = workbook.active
-    
+
     # Add headers
     for col_idx, header in enumerate(headers, start=1):
         sheet.cell(row=1, column=col_idx, value=header)
-    
+
     # Add data
     for row_idx, row_data in enumerate(data, start=2):
         for col_idx, value in enumerate(row_data, start=1):
             sheet.cell(row=row_idx, column=col_idx, value=value)
-    
+
     output = io.BytesIO()
     workbook.save(output)
     output.seek(0)
@@ -442,10 +442,10 @@ def test_import_projects():
         ],
         headers=["name", "start_date", "budget"]
     )
-    
+
     # Test import
     response = client.post("/api/projects/import/", {"file": file}, format="multipart")
-    
+
     assert response.status_code == 200
     assert response.data["success_count"] == 2
     assert response.data["error_count"] == 0

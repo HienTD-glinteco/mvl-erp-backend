@@ -1,4 +1,5 @@
 """Tests for domain-specific email actions (Employee and Interview Schedule)."""
+
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -7,17 +8,13 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import Province, AdministrativeUnit
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
-    Branch,
     Block,
+    Branch,
     Department,
     Employee,
-    InterviewCandidate,
-    InterviewSchedule,
     Position,
-    RecruitmentRequest,
-    JobDescription,
 )
 
 User = get_user_model()
@@ -40,15 +37,10 @@ class EmployeeEmailActionTests(TestCase):
             password="testpass123",
             is_staff=True,
         )
-        
+
         # Create organizational hierarchy
         self.province = Province.objects.create(
-            code="test",
-            name="test",
-            english_name="test",
-            level="province",
-            decree="",
-            enabled=True
+            code="test", name="test", english_name="test", level="province", decree="", enabled=True
         )
         self.administrative_unit = AdministrativeUnit.objects.create(
             code="test",
@@ -56,20 +48,17 @@ class EmployeeEmailActionTests(TestCase):
             english_name="test",
             parent_province=self.province,
             level="district",
-            enabled=True
+            enabled=True,
         )
         self.branch = Branch.objects.create(
-            name="Test Branch",
-            code="TB",
-            province=self.province,
-            administrative_unit=self.administrative_unit
+            name="Test Branch", code="TB", province=self.province, administrative_unit=self.administrative_unit
         )
         self.block = Block.objects.create(name="Test Block", code="TBK", branch=self.branch, block_type="business")
         self.department = Department.objects.create(
             name="Test Department", code="TD", block=self.block, branch=self.branch
         )
         self.position = Position.objects.create(name="Test Position", code="TP")
-        
+
         # Create a real employee
         self.employee = Employee.objects.create(
             fullname="John Doe",
@@ -125,7 +114,9 @@ class EmployeeEmailActionTests(TestCase):
                 "start_date": "2026-01-01",
             }
         }
-        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", custom_data, format="json")
+        response = self.client.post(
+            f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", custom_data, format="json"
+        )
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)

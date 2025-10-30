@@ -4,13 +4,13 @@ A reusable Django REST Framework mixin that enables dynamic field selection in A
 
 ## Features
 
-✅ **Frontend Control**: Let clients specify which fields to include  
-✅ **Payload Optimization**: Reduce response size by 80-90%  
-✅ **Performance Boost**: Faster serialization with fewer fields  
-✅ **Backward Compatible**: No breaking changes to existing APIs  
-✅ **Zero Configuration**: Works out of the box with DRF ViewSets  
-✅ **Smart Defaults**: Optional `default_fields` for optimized responses  
-✅ **Production Ready**: Comprehensive test coverage (13 tests)  
+✅ **Frontend Control**: Let clients specify which fields to include
+✅ **Payload Optimization**: Reduce response size by 80-90%
+✅ **Performance Boost**: Faster serialization with fewer fields
+✅ **Backward Compatible**: No breaking changes to existing APIs
+✅ **Zero Configuration**: Works out of the box with DRF ViewSets
+✅ **Smart Defaults**: Optional `default_fields` for optimized responses
+✅ **Production Ready**: Comprehensive test coverage (13 tests)
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ from rest_framework import serializers
 class UserSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 
+        fields = ['id', 'username', 'email', 'first_name', 'last_name',
                   'created_at', 'updated_at']
 ```
 
@@ -61,11 +61,11 @@ Optimize list views by defining default fields:
 class ProductSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     # Default fields for list views (fast, small payload)
     default_fields = ['id', 'name', 'price', 'thumbnail']
-    
+
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'stock', 
-                  'thumbnail', 'images', 'category', 'reviews', 
+        fields = ['id', 'name', 'description', 'price', 'stock',
+                  'thumbnail', 'images', 'category', 'reviews',
                   'created_at', 'updated_at']
 ```
 
@@ -242,10 +242,10 @@ GET /api/users/?fields=
 
 ## Backward Compatibility
 
-✅ **No breaking changes**  
-✅ Existing API clients work without modifications  
-✅ Field filtering is opt-in via query parameter  
-✅ Default behavior unchanged (all fields returned)  
+✅ **No breaking changes**
+✅ Existing API clients work without modifications
+✅ Field filtering is opt-in via query parameter
+✅ Default behavior unchanged (all fields returned)
 
 ## Testing
 
@@ -272,11 +272,11 @@ poetry run pytest tests/libs/test_serializer_mixins.py -v
 
 ## Code Quality
 
-✅ **No Vietnamese text** in code  
-✅ **All constants** defined in `libs/serializer_constants.py`  
-✅ **English-only** documentation  
-✅ **PEP 8 compliant** (ruff formatted)  
-✅ **Production ready** with comprehensive tests  
+✅ **No Vietnamese text** in code
+✅ **All constants** defined in `libs/serializer_constants.py`
+✅ **English-only** documentation
+✅ **PEP 8 compliant** (ruff formatted)
+✅ **Production ready** with comprehensive tests
 
 ## Real-World Use Cases
 
@@ -339,7 +339,7 @@ curl "http://localhost:8000/api/mymodel/?fields=id,name"
 ```python
 class MySerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     default_fields = ['id', 'name']  # Optimized default
-    
+
     class Meta:
         model = MyModel
         fields = '__all__'
@@ -372,16 +372,16 @@ const user = await fetchUsers(['id', 'name', 'email', 'profile', 'permissions'])
 
 ## Troubleshooting
 
-**Q: Field filtering not working?**  
+**Q: Field filtering not working?**
 A: Ensure request is passed in serializer context (automatic with DRF ViewSets)
 
-**Q: Default fields not applied?**  
+**Q: Default fields not applied?**
 A: Check `default_fields` is a class attribute, not instance attribute
 
-**Q: Getting empty response?**  
+**Q: Getting empty response?**
 A: Field names are case-sensitive, check spelling
 
-**Q: How to filter nested serializers?**  
+**Q: How to filter nested serializers?**
 A: Nested serializers also need the mixin to support filtering
 
 ## Contributing

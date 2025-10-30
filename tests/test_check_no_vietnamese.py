@@ -13,16 +13,16 @@ from pathlib import Path
 
 def run_check_script(file_content: str) -> tuple[int, str]:
     """Helper to run check_no_vietnamese.py on a temporary file.
-    
+
     Returns:
         tuple: (exit_code, output)
     """
     script_path = Path(__file__).parent.parent / "scripts" / "check_no_vietnamese.py"
-    
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(file_content)
         temp_file = f.name
-    
+
     try:
         result = subprocess.run(
             ["python3", str(script_path), temp_file],
@@ -36,7 +36,7 @@ def run_check_script(file_content: str) -> tuple[int, str]:
 
 def test_vietnamese_in_openapi_example_is_allowed():
     """Vietnamese text inside OpenApiExample value should be allowed."""
-    code = '''
+    code = """
 from drf_spectacular.utils import OpenApiExample, extend_schema
 
 @extend_schema(
@@ -54,7 +54,7 @@ from drf_spectacular.utils import OpenApiExample, extend_schema
 )
 def test_view():
     pass
-'''
+"""
     exit_code, output = run_check_script(code)
     assert exit_code == 0, f"Expected success but got: {output}"
     assert "No Vietnamese text found" in output
@@ -62,9 +62,9 @@ def test_view():
 
 def test_vietnamese_in_variable_is_caught():
     """Vietnamese text in regular variables should be caught."""
-    code = '''
+    code = """
 message = "Đây là thông báo tiếng Việt"
-'''
+"""
     exit_code, output = run_check_script(code)
     assert exit_code == 1, f"Expected failure but got: {output}"
     assert "Vietnamese text found" in output
@@ -72,11 +72,11 @@ message = "Đây là thông báo tiếng Việt"
 
 def test_vietnamese_in_comment_is_caught():
     """Vietnamese text in comments should be caught."""
-    code = '''
+    code = """
 # Đây là comment tiếng Việt
 def test_function():
     pass
-'''
+"""
     exit_code, output = run_check_script(code)
     assert exit_code == 1, f"Expected failure but got: {output}"
     assert "Vietnamese text found" in output
@@ -84,7 +84,7 @@ def test_function():
 
 def test_nested_openapi_example_with_vietnamese():
     """Nested Vietnamese data in OpenApiExample should be allowed."""
-    code = '''
+    code = """
 from drf_spectacular.utils import OpenApiExample, extend_schema_view
 
 @extend_schema_view(
@@ -109,14 +109,14 @@ from drf_spectacular.utils import OpenApiExample, extend_schema_view
 )
 class TestView:
     pass
-'''
+"""
     exit_code, output = run_check_script(code)
     assert exit_code == 0, f"Expected success but got: {output}"
 
 
 def test_vietnamese_outside_openapi_example_is_caught():
     """Vietnamese outside OpenApiExample should still be caught."""
-    code = '''
+    code = """
 from drf_spectacular.utils import OpenApiExample, extend_schema
 
 # This Vietnamese is in OpenApiExample - should be allowed
@@ -133,7 +133,7 @@ def test_view():
 
 # This Vietnamese is NOT in OpenApiExample - should be caught
 error_message = "Lỗi xảy ra"
-'''
+"""
     exit_code, output = run_check_script(code)
     assert exit_code == 1, f"Expected failure but got: {output}"
     assert "Vietnamese text found" in output
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         test_nested_openapi_example_with_vietnamese,
         test_vietnamese_outside_openapi_example_is_caught,
     ]
-    
+
     print("Running tests for check_no_vietnamese.py...")
     for test_func in test_functions:
         try:
@@ -157,5 +157,5 @@ if __name__ == "__main__":
             print(f"✅ {test_func.__name__}")
         except AssertionError as e:
             print(f"❌ {test_func.__name__}: {e}")
-    
+
     print("\nAll tests completed!")

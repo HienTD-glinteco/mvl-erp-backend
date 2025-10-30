@@ -316,7 +316,10 @@ class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, Base
                             "position": {"type": "string", "description": "Position being interviewed for"},
                             "interview_date": {"type": "string", "format": "date", "description": "Interview date"},
                             "interview_time": {"type": "string", "description": "Interview time"},
-                            "location": {"type": "string", "description": "Interview location or meeting link (optional)"},
+                            "location": {
+                                "type": "string",
+                                "description": "Interview location or meeting link (optional)",
+                            },
                         },
                     },
                 },

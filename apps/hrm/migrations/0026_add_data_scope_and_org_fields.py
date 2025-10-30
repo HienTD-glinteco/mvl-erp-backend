@@ -6,44 +6,75 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0025_update_recruitment_models'),
+        ("hrm", "0025_update_recruitment_models"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='organizationchart',
-            name='block',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organization_positions_by_block', to='hrm.block', verbose_name='Block'),
+            model_name="organizationchart",
+            name="block",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organization_positions_by_block",
+                to="hrm.block",
+                verbose_name="Block",
+            ),
         ),
         migrations.AddField(
-            model_name='organizationchart',
-            name='branch',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organization_positions_by_branch', to='hrm.branch', verbose_name='Branch'),
+            model_name="organizationchart",
+            name="branch",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organization_positions_by_branch",
+                to="hrm.branch",
+                verbose_name="Branch",
+            ),
         ),
         migrations.AddField(
-            model_name='position',
-            name='data_scope',
-            field=models.CharField(choices=[('all', 'All data'), ('branch', 'Branch level'), ('block', 'Block level'), ('department', 'Department level'), ('self', 'Self only')], default='department', max_length=20, verbose_name='Data scope'),
+            model_name="position",
+            name="data_scope",
+            field=models.CharField(
+                choices=[
+                    ("all", "All data"),
+                    ("branch", "Branch level"),
+                    ("block", "Block level"),
+                    ("department", "Department level"),
+                    ("self", "Self only"),
+                ],
+                default="department",
+                max_length=20,
+                verbose_name="Data scope",
+            ),
         ),
         migrations.AddField(
-            model_name='position',
-            name='is_leadership',
-            field=models.BooleanField(default=False, verbose_name='Leadership position'),
+            model_name="position",
+            name="is_leadership",
+            field=models.BooleanField(default=False, verbose_name="Leadership position"),
         ),
         migrations.AlterField(
-            model_name='organizationchart',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organization_positions', to='hrm.department', verbose_name='Department'),
+            model_name="organizationchart",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organization_positions",
+                to="hrm.department",
+                verbose_name="Department",
+            ),
         ),
         migrations.AddIndex(
-            model_name='organizationchart',
-            index=models.Index(fields=['block'], name='hrm_organiz_block_i_4bbe76_idx'),
+            model_name="organizationchart",
+            index=models.Index(fields=["block"], name="hrm_organiz_block_i_4bbe76_idx"),
         ),
         migrations.AddIndex(
-            model_name='organizationchart',
-            index=models.Index(fields=['branch'], name='hrm_organiz_branch__54e20b_idx'),
+            model_name="organizationchart",
+            index=models.Index(fields=["branch"], name="hrm_organiz_branch__54e20b_idx"),
         ),
     ]

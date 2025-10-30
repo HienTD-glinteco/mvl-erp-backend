@@ -9,7 +9,7 @@ This document describes the generic file upload system implemented in the `apps/
 - **Direct S3 Upload**: Files are uploaded directly to S3 from the client, bypassing Django for better performance
 - **Generic Relations**: Files can be linked to any Django model using ContentType framework
 - **Two-Phase Upload**: Temporary uploads are only confirmed when parent object is saved
-- **Multiple Confirmation Options**: 
+- **Multiple Confirmation Options**:
   - Manual confirmation via API endpoint for flexibility
   - Automatic confirmation via `FileConfirmSerializerMixin` for simplicity
 - **Batch Operations**: Confirm multiple files in a single transaction
@@ -34,7 +34,7 @@ class FileModel(BaseModel):
     checksum = CharField(max_length=64, null=True, blank=True)  # MD5 checksum (ETag)
     is_confirmed = BooleanField(default=False)   # Confirmation status
     uploaded_by = ForeignKey("core.User", null=True, blank=True)  # User who uploaded
-    
+
     # Generic Foreign Key
     content_type = ForeignKey(ContentType, null=True, blank=True)
     object_id = PositiveIntegerField(null=True, blank=True)
@@ -362,10 +362,10 @@ from apps.files.models import FileModel
 
 class Employee(models.Model):
     # ... your fields ...
-    
+
     # Add this to enable reverse lookup for multiple files
     files = GenericRelation(FileModel)
-    
+
     def get_cv(self):
         """Get employee CV file."""
         return self.files.filter(purpose='employee_cv').first()
@@ -380,7 +380,7 @@ from apps.files.models import FileModel
 
 class Employee(models.Model):
     # ... your fields ...
-    
+
     # Direct ForeignKey to file
     cv_file = models.ForeignKey(
         FileModel,
@@ -389,7 +389,7 @@ class Employee(models.Model):
         on_delete=models.SET_NULL,
         related_name='employee_cv'
     )
-    
+
     profile_picture = models.ForeignKey(
         FileModel,
         null=True,
@@ -428,7 +428,7 @@ from apps.hrm.models import JobDescription
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     # Note: 'files' field is automatically added by the mixin
-    
+
     class Meta:
         model = JobDescription
         fields = [
@@ -450,7 +450,7 @@ from apps.files.models import FileModel
 class JobDescription(models.Model):
     title = models.CharField(max_length=200)
     # ... other fields ...
-    
+
     # ForeignKey to FileModel for direct file access
     attachment = models.ForeignKey(
         FileModel,
@@ -797,7 +797,7 @@ AWS_REGION_NAME=us-east-1
 
 **Problem**: Confirm endpoint reports file not found in S3.
 
-**Solution**: 
+**Solution**:
 1. Ensure client successfully uploaded to presigned URL
 2. Check if upload completed before confirmation
 3. Verify network connectivity to S3

@@ -19,16 +19,16 @@ sequenceDiagram
 
     Celery->>Job: 5. Update status=running
     Celery->>S3: 6. Stream file
-    
+
     loop For each row
         Celery->>Handler: 7. Process row
         Handler-->>Celery: 8. {ok: true/false}
         Celery->>Redis: 9. Update progress
     end
-    
+
     Celery->>S3: 10. Upload result files
     Celery->>Job: 11. Update status=succeeded
-    
+
     loop Poll status
         Client->>API: 12. GET /import/status/?task_id=...
         API->>Job: 13. Read from DB
@@ -205,7 +205,7 @@ def import_handler(
 ) -> dict:
     """
     Process a single row.
-    
+
     Returns:
         Success: {"ok": True, "result": {...}}
         Failure: {"ok": False, "error": "message"}

@@ -23,13 +23,13 @@ Create a handler function that processes individual rows:
 def my_import_handler(row_index, row, import_job_id, options):
     """
     Process a single row from the import file.
-    
+
     Args:
         row_index: 1-based row number
         row: List of cell values
         import_job_id: UUID of the import job
         options: Dict of import options
-        
+
     Returns:
         {"ok": True, "result": {...}} on success
         {"ok": False, "error": "..."} on failure
@@ -38,20 +38,20 @@ def my_import_handler(row_index, row, import_job_id, options):
         # Parse row data
         name = row[0]
         email = row[1]
-        
+
         # Validate
         if not email:
             return {"ok": False, "error": "Email is required"}
-        
+
         # Process (create/update records)
         from apps.myapp.models import MyModel
         obj, created = MyModel.objects.update_or_create(
             email=email,
             defaults={'name': name}
         )
-        
+
         return {"ok": True, "result": {"id": obj.id}}
-        
+
     except Exception as e:
         return {"ok": False, "error": str(e)}
 ```
@@ -71,10 +71,10 @@ from apps.myapp.api.serializers import MyModelSerializer
 
 class MyModelViewSet(AsyncImportProgressMixin, ModelViewSet):
     """ViewSet with import capability."""
-    
+
     queryset = MyModel.objects.all()
     serializer_class = MyModelSerializer
-    
+
     # Specify the import handler
     import_row_handler = "apps.myapp.import_handlers.my_import_handler"
 ```
@@ -92,15 +92,15 @@ from apps.myapp.api.serializers import MyModelSerializer
 
 class MyModelViewSet(AsyncImportProgressMixin, ModelViewSet):
     """ViewSet with import capability."""
-    
+
     queryset = MyModel.objects.all()
     serializer_class = MyModelSerializer
-    
+
     # Define handler directly in the ViewSet
     def _process_import_data_row(self, row_index, row, import_job_id, options):
         """
         Process a single row from the import file.
-        
+
         This method is automatically detected and used if defined.
         No need to set import_row_handler attribute.
         """
@@ -108,19 +108,19 @@ class MyModelViewSet(AsyncImportProgressMixin, ModelViewSet):
             # Parse row data
             name = row[0]
             email = row[1]
-            
+
             # Validate
             if not email:
                 return {"ok": False, "error": "Email is required"}
-            
+
             # Process (create/update records)
             obj, created = MyModel.objects.update_or_create(
                 email=email,
                 defaults={'name': name}
             )
-            
+
             return {"ok": True, "result": {"id": obj.id}}
-            
+
         except Exception as e:
             return {"ok": False, "error": str(e)}
 ```
@@ -378,12 +378,12 @@ def my_handler(row_index, row, import_job_id, options):
     # Check row length
     if len(row) < 3:
         return {"ok": False, "error": "Row has insufficient columns"}
-    
+
     # Validate data
     email = row[2]
     if not email or '@' not in email:
         return {"ok": False, "error": "Invalid email format"}
-    
+
     # Process...
 ```
 
@@ -397,13 +397,13 @@ _batch_cache = []
 
 def my_handler(row_index, row, import_job_id, options):
     global _batch_cache
-    
+
     # Add to batch
     _batch_cache.append({
         'email': row[0],
         'name': row[1]
     })
-    
+
     # Flush batch periodically
     batch_size = options.get('batch_size', 500)
     if len(_batch_cache) >= batch_size:
@@ -411,7 +411,7 @@ def my_handler(row_index, row, import_job_id, options):
             MyModel(**data) for data in _batch_cache
         ])
         _batch_cache.clear()
-    
+
     return {"ok": True, "result": {"cached": True}}
 ```
 
@@ -450,16 +450,16 @@ def test_import_creates_job(api_client, authenticated_user):
         is_confirmed=True,
         uploaded_by=authenticated_user
     )
-    
+
     # Start import
     response = api_client.post('/api/mymodels/import/', {
         'file_id': file_obj.id,
         'options': {'batch_size': 100}
     })
-    
+
     assert response.status_code == 202
     assert 'import_job_id' in response.data
-    
+
     # Check job was created
     job = ImportJob.objects.get(id=response.data['import_job_id'])
     assert job.status == 'queued'

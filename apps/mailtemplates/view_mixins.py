@@ -26,12 +26,14 @@ class EmailTemplateActionMixin:
 
     This mixin provides reusable helper methods that you can call from
     your ViewSet's action methods.
-    
+
+    Note: This mixin expects to be used with a ViewSet that has get_object() method.
+
     Usage - define actions manually in your ViewSet:
-    
+
         from rest_framework.decorators import action
         from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
-        
+
         # Define callback function (optional)
         def mark_welcome_email_sent(employee_instance, recipient, **kwargs):
             # kwargs contains any additional params passed via callback_params
@@ -39,31 +41,31 @@ class EmailTemplateActionMixin:
             employee_instance.is_sent_welcome_email = True
             employee_instance.last_notification = notification_type
             employee_instance.save(update_fields=["is_sent_welcome_email", "last_notification"])
-        
+
         class EmployeeViewSet(EmailTemplateActionMixin, BaseModelViewSet):
-            
+
             @action(detail=True, methods=["post"], url_path="welcome_email/preview")
             def welcome_email_preview(self, request, pk=None):
                 return self.preview_template_email("welcome", request, pk)
-            
+
             @action(detail=True, methods=["post"], url_path="welcome_email/send")
             def welcome_email_send(self, request, pk=None):
                 return self.send_template_email(
-                    "welcome", 
-                    request, 
+                    "welcome",
+                    request,
                     pk,
                     on_success_callback=mark_welcome_email_sent,
                     callback_params={"notification_type": "welcome", "source": "api"}
                 )
-            
+
             @action(detail=True, methods=["post"], url_path="contract/preview")
             def contract_preview(self, request, pk=None):
                 return self.preview_template_email("contract", request, pk)
-            
+
             @action(detail=True, methods=["post"], url_path="contract/send")
             def contract_send(self, request, pk=None):
                 return self.send_template_email("contract", request, pk)
-            
+
             # Optionally override data extraction
             def get_template_action_data(self, instance, template_slug):
                 data = super().get_template_action_data(instance, template_slug)
@@ -75,14 +77,14 @@ class EmailTemplateActionMixin:
     The mixin expects the ViewSet to have:
     - get_object() method to retrieve the domain object
     - Domain object should have common attributes (email, first_name, etc.)
-    
+
     Callbacks:
     - You can provide an optional callback function via on_success_callback parameter
     - The callback is executed after each successful email send
     - Callback signature: callback(instance, recipient, **callback_params)
     - Can be a callable or a string path like "apps.hrm.callbacks.my_callback"
     - Additional parameters can be passed via callback_params dict
-    
+
     Permissions:
     - Email send actions use the ViewSet's role-based permission system
     - No need to specify custom permission classes on action methods
@@ -90,18 +92,18 @@ class EmailTemplateActionMixin:
 
     def preview_template_email(self, template_slug: str, request, pk=None):
         """Preview template email for an object.
-        
+
         Call this from your action methods to preview an email.
-        
+
         Args:
             template_slug: Template slug (e.g., "welcome")
             request: DRF request object
             pk: Primary key (optional, uses self.get_object() if not provided)
-            
+
         Returns:
             Response with rendered HTML and text
         """
-        obj = self.get_object()
+        obj = self.get_object()  # type: ignore[attr-defined]
         use_real = request.query_params.get("use_real", "0") == "1"
 
         # Check permissions for real data
@@ -143,11 +145,13 @@ class EmailTemplateActionMixin:
         except TemplateRenderError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def send_template_email(self, template_slug: str, request, pk=None, on_success_callback=None, callback_params=None):
+    def send_template_email(  # noqa: C901
+        self, template_slug: str, request, pk=None, on_success_callback=None, callback_params=None
+    ):
         """Send template email for an object.
-        
+
         Call this from your action methods to send an email.
-        
+
         Args:
             template_slug: Template slug (e.g., "welcome")
             request: DRF request object
@@ -156,11 +160,11 @@ class EmailTemplateActionMixin:
                                 Format: "app.module.function_name" or callable
             callback_params: Optional dict of additional parameters to pass to callback
                            These params will be available to callback in addition to (instance, recipient)
-            
+
         Returns:
             Response with job_id
         """
-        obj = self.get_object()
+        obj = self.get_object()  # type: ignore[attr-defined]
 
         try:
             template_meta = get_template_metadata(template_slug)
@@ -211,9 +215,9 @@ class EmailTemplateActionMixin:
                         "model_name": obj.__class__.__name__,
                         "app_label": obj._meta.app_label,
                     }
-                
+
                 # Add callback params if provided
-                if callback_params:
+                if callback_params and callback_data is not None:
                     callback_data["params"] = callback_params
 
             # Create job
@@ -276,15 +280,15 @@ class EmailTemplateActionMixin:
             data["candidate_name"] = getattr(instance, "fullname", "")
 
         if hasattr(instance, "start_date"):
-            start_date = getattr(instance, "start_date")
+            start_date = instance.start_date
             data["start_date"] = start_date.isoformat() if start_date else ""
 
         if hasattr(instance, "position"):
-            position = getattr(instance, "position")
+            position = instance.position
             data["position"] = position.name if position and hasattr(position, "name") else ""
 
         if hasattr(instance, "department"):
-            department = getattr(instance, "department")
+            department = instance.department
             data["department"] = department.name if department and hasattr(department, "name") else ""
 
         return data
@@ -302,5 +306,5 @@ class EmailTemplateActionMixin:
             Email address or None
         """
         if hasattr(instance, "email"):
-            return getattr(instance, "email")
+            return instance.email
         return None

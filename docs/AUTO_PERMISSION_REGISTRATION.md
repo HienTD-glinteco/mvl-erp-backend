@@ -15,7 +15,7 @@ graph TB
         A --> B[Inherit from BaseModelViewSet]
         B --> C[Define: module, submodule, permission_prefix]
     end
-    
+
     subgraph "BaseModelViewSet"
         D[get_registered_permissions]
         D --> E[Scan Standard Actions]
@@ -23,7 +23,7 @@ graph TB
         E --> G[Generate Permission Metadata]
         F --> G
     end
-    
+
     subgraph "Management Command"
         H[python manage.py collect_permissions]
         H --> I[Scan All Apps]
@@ -31,17 +31,17 @@ graph TB
         J --> K[Call get_registered_permissions]
         K --> L[Sync to Database]
     end
-    
+
     subgraph "Database"
         M[(Permission Table)]
         L --> M
         M --> N[Permission Records]
         N --> O[code, name, description, module, submodule]
     end
-    
+
     C --> D
     G --> K
-    
+
     style A fill:#e1f5ff
     style B fill:#e1f5ff
     style C fill:#e1f5ff
@@ -60,32 +60,32 @@ sequenceDiagram
     participant Base as BaseModelViewSet
     participant Cmd as collect_permissions
     participant DB as Database
-    
+
     Dev->>VS: Create DocumentViewSet
     Dev->>VS: Set permission_prefix="document"
     Dev->>VS: Set module="HRM"
-    
+
     Note over VS: ViewSet inherits from BaseModelViewSet
-    
+
     Dev->>Cmd: Run collect_permissions
     Cmd->>Cmd: Scan all apps
     Cmd->>VS: Discover DocumentViewSet
     Cmd->>Base: Call get_registered_permissions()
-    
+
     Base->>Base: Check for list action
     Base->>Base: Generate: document.list
     Base->>Base: Check for create action
     Base->>Base: Generate: document.create
     Base->>Base: Check custom actions
     Base->>Base: Generate: document.approve
-    
+
     Base-->>Cmd: Return permissions list
-    
+
     loop For each permission
         Cmd->>DB: update_or_create(code, defaults)
         DB-->>Cmd: Permission created/updated
     end
-    
+
     Cmd-->>Dev: Success: 6 permissions collected
 ```
 
@@ -146,10 +146,10 @@ from apps.core.api.serializers import RoleSerializer
 
 class RoleViewSet(BaseModelViewSet):
     """ViewSet for Role model"""
-    
+
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    
+
     # Permission registration attributes
     module = "Core"
     submodule = "Role Management"
@@ -173,10 +173,10 @@ from apps.core.api.serializers import PermissionSerializer
 
 class PermissionViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for Permission model - Read only"""
-    
+
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
-    
+
     # Permission registration attributes
     module = "Core"
     submodule = "Permission Management"
@@ -196,21 +196,21 @@ from libs import BaseModelViewSet
 
 class DocumentViewSet(BaseModelViewSet):
     """ViewSet for Document model"""
-    
+
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
-    
+
     # Permission registration attributes
     module = "HRM"
     submodule = "Document Management"
     permission_prefix = "document"
-    
+
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a document"""
         # Implementation here
         return Response({"status": "approved"})
-    
+
     @action(detail=False, methods=["get"])
     def statistics(self, request):
         """Get document statistics"""
@@ -351,7 +351,7 @@ from libs import BaseModelViewSet
 class MyViewSet(BaseModelViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
-    
+
     module = "MyModule"
     submodule = "MySubmodule"
     permission_prefix = "mymodel"
@@ -372,11 +372,11 @@ from apps.core.utils import register_permission
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    
+
     @register_permission("role.list", "List roles", module="Core", name="List Roles")
     def list(self, request):
         return super().list(request)
-    
+
     @register_permission("role.create", "Create role", module="Core", name="Create Role")
     def create(self, request):
         return super().create(request)
@@ -389,7 +389,7 @@ from libs import BaseModelViewSet
 class RoleViewSet(BaseModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    
+
     module = "Core"
     submodule = "Role Management"
     permission_prefix = "role"
@@ -452,22 +452,22 @@ If you need to customize the generated permission names, you can override the `g
 class CustomViewSet(BaseModelViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
-    
+
     module = "Custom"
     submodule = "Custom Management"
     permission_prefix = "custom"
-    
+
     @classmethod
     def get_registered_permissions(cls):
         # Get default permissions
         permissions = super().get_registered_permissions()
-        
+
         # Customize specific permission
         for perm in permissions:
             if perm["code"] == "custom.list":
                 perm["name"] = "View All Custom Items"
                 perm["description"] = "Access to view all custom items in the system"
-        
+
         return permissions
 ```
 
@@ -479,11 +479,11 @@ If you want to exclude certain standard actions from permission generation, you 
 class LimitedViewSet(BaseModelViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
-    
+
     module = "Limited"
     submodule = "Limited Management"
     permission_prefix = "limited"
-    
+
     # Remove destroy action
     http_method_names = ['get', 'post', 'put', 'patch', 'head', 'options']
 ```

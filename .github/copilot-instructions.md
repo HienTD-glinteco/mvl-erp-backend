@@ -218,9 +218,9 @@ This project uses `ApiResponseWrapperMiddleware` which wraps all responses. The 
 
 **Formats:**
 
-Success (single item): `{"success": true, "data": {...}, "error": null}`  
-Success (list with pagination): `{"success": true, "data": {"count": N, "next": "...", "previous": null, "results": [...]}, "error": null}`  
-Success (list no pagination): `{"success": true, "data": [...], "error": null}`  
+Success (single item): `{"success": true, "data": {...}, "error": null}`
+Success (list with pagination): `{"success": true, "data": {"count": N, "next": "...", "previous": null, "results": [...]}, "error": null}`
+Success (list no pagination): `{"success": true, "data": [...], "error": null}`
 Error: `{"success": false, "data": null, "error": "..." or {...}}`
 
 **Example:**

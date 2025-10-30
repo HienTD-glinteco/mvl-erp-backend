@@ -53,7 +53,7 @@ For complex multi-model imports:
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {
             "sheets": [{
@@ -296,7 +296,7 @@ class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {...}  # Your config here
 ```
@@ -320,5 +320,5 @@ For questions, issues, or feature requests:
 
 ---
 
-**Last Updated**: 2024-01-13  
+**Last Updated**: 2024-01-13
 **Version**: 2.0 (Config-Driven Multi-Model System)

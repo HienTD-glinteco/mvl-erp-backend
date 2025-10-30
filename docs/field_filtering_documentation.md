@@ -33,7 +33,7 @@ The `EnhancedAutoSchema` extends drf-spectacular's `AutoSchema` class to detect 
        # ... other settings
    }
    ```
-   
+
    Note: `FieldFilteringAutoSchema` is maintained as a backward-compatible alias.
 
 ## Example Output
@@ -43,7 +43,7 @@ For a serializer like this:
 ```python
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     default_fields = ["id", "code", "fullname", "email"]
-    
+
     class Meta:
         model = Employee
         fields = ["id", "code", "fullname", "username", "email", "phone", "branch", ...]
@@ -80,7 +80,7 @@ from rest_framework import serializers
 class MySerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     # Optional: define default fields
     default_fields = ["id", "name"]
-    
+
     class Meta:
         model = MyModel
         fields = "__all__"
@@ -94,11 +94,11 @@ The OpenAPI/Swagger documentation will automatically include the `fields` parame
 
 ## Benefits
 
-✅ **Automatic**: No manual documentation needed  
-✅ **Consistent**: Same format across all APIs  
-✅ **Accurate**: Always in sync with actual serializer fields  
-✅ **Clear**: Includes examples and usage instructions  
-✅ **Comprehensive**: Shows available fields and defaults  
+✅ **Automatic**: No manual documentation needed
+✅ **Consistent**: Same format across all APIs
+✅ **Accurate**: Always in sync with actual serializer fields
+✅ **Clear**: Includes examples and usage instructions
+✅ **Comprehensive**: Shows available fields and defaults
 
 ## Testing
 

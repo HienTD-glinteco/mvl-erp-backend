@@ -27,11 +27,11 @@ class ExportStatusViewTests(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from apps.core.models import User
-        
+
         self.client = APIClient()
         self.url = reverse("core:export_status")
         cache.clear()
-        
+
         # Create and authenticate user
         self.user = User.objects.create_user(
             username="testuser",

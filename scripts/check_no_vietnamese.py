@@ -49,7 +49,7 @@ def should_check_file(filepath: str) -> bool:
 
 class VietnameseTextVisitor(ast.NodeVisitor):
     """AST visitor to find Vietnamese text in code, comments, and docstrings.
-    
+
     This visitor skips Vietnamese text inside OpenApiExample value parameters,
     as those are realistic API documentation examples.
     """
@@ -144,7 +144,7 @@ def check_file_for_vietnamese(filepath: str) -> tuple[bool, list[tuple[int, str]
         for line_num, line in enumerate(source_lines, start=1):
             # Check if line has a comment
             if "#" in line:
-                comment_part = line[line.index("#"):]
+                comment_part = line[line.index("#") :]
                 if VIETNAMESE_PATTERN.search(comment_part):
                     # Check if this violation is already recorded
                     if not any(v[0] == line_num for v in violations):
