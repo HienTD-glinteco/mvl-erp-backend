@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 17:14+0700\n"
+"POT-Creation-Date: 2025-10-31 12:04+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -159,6 +159,30 @@ msgstr "Tên phòng ban"
 
 #: apps/hrm/constants.py:50
 msgid "Self only"
+msgstr ""
+
+#: apps/hrm/constants.py:56
+msgid "Foreign language certificate"
+msgstr ""
+
+#: apps/hrm/constants.py:57
+msgid "Computer certificate"
+msgstr ""
+
+#: apps/hrm/constants.py:58
+msgid "Graduation diploma"
+msgstr ""
+
+#: apps/hrm/constants.py:59 apps/hrm/models/recruitment_channel.py:22
+msgid "Other"
+msgstr ""
+
+#: apps/hrm/constants.py:60
+msgid "Broker training completion"
+msgstr ""
+
+#: apps/hrm/constants.py:61
+msgid "Real estate practice license"
 msgstr ""
 
 # management/commands/setup_default_org_data.py:8
@@ -618,7 +642,8 @@ msgid "Is onboarding email sent"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:310 apps/hrm/models/organization.py:281
+#: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:24
+#: apps/hrm/models/organization.py:281
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214
 msgid "Employee"
@@ -636,6 +661,104 @@ msgstr ""
 #: apps/hrm/models/employee.py:355
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:25
+msgid "Employee who owns this certificate"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/employee_certificate.py:30
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Certificate type"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/employee_certificate.py:31
+msgid "Type of certificate"
+msgstr ""
+
+# models/recruitment_channel.py:13
+#: apps/hrm/models/employee_certificate.py:36
+#, fuzzy
+#| msgid "Candidate code"
+msgid "Certificate code"
+msgstr "Mã ứng viên"
+
+#: apps/hrm/models/employee_certificate.py:37
+msgid "Certificate number or code issued by the certifying organization"
+msgstr ""
+
+# models/organization.py:9
+# models/recruitment_channel.py:12
+#: apps/hrm/models/employee_certificate.py:42
+#, fuzzy
+#| msgid "Candidate name"
+msgid "Certificate name"
+msgstr "Tên ứng viên"
+
+#: apps/hrm/models/employee_certificate.py:43
+msgid "Specific name of the certificate or exam"
+msgstr ""
+
+# models/organization.py:218
+#: apps/hrm/models/employee_certificate.py:48
+#, fuzzy
+#| msgid "Expense date"
+msgid "Issue date"
+msgstr "Ngày chi phí"
+
+#: apps/hrm/models/employee_certificate.py:49
+msgid "Date when the certificate was issued"
+msgstr ""
+
+# models/organization.py:218
+#: apps/hrm/models/employee_certificate.py:54
+#, fuzzy
+#| msgid "Expense date"
+msgid "Expiry date"
+msgstr "Ngày chi phí"
+
+#: apps/hrm/models/employee_certificate.py:55
+msgid "Date when the certificate expires (if applicable)"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:60
+msgid "Issuing organization"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:61
+msgid "Organization that issued the certificate"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:69
+msgid "Certificate file"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:70
+msgid "Uploaded certificate file"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:74
+msgid "Notes"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:75
+msgid "Additional notes about the certificate"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_certificate.py:79
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee certificate"
+msgstr "Mã nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee_certificate.py:80
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee certificates"
+msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/interview_candidate.py:16
@@ -1134,10 +1257,6 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_channel.py:21
 msgid "School"
-msgstr ""
-
-#: apps/hrm/models/recruitment_channel.py:22
-msgid "Other"
 msgstr ""
 
 # models/organization.py:9
