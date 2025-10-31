@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.constants import MAX_ATTACHMENT_SIZE_MB
 from apps.hrm.models import Relationship
 from libs.drf.serializers import FileConfirmSerializerMixin
 

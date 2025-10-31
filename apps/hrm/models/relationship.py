@@ -19,8 +19,8 @@ from ..constants import (
     HELP_TEXT_PHONE,
     HELP_TEXT_RELATION_TYPE,
     HELP_TEXT_RELATIVE_NAME,
-    NATIONAL_ID_LENGTH_12,
     NATIONAL_ID_LENGTH_9,
+    NATIONAL_ID_LENGTH_12,
     RelationType,
 )
 

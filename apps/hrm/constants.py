@@ -64,7 +64,9 @@ class RelationType(models.TextChoices):
 
 # API Documentation Constants for Relationship endpoints
 API_RELATION_LIST_SUMMARY = "List employee relationships"
-API_RELATION_LIST_DESCRIPTION = "Retrieve a paginated list of employee relationships with support for filtering and search"
+API_RELATION_LIST_DESCRIPTION = (
+    "Retrieve a paginated list of employee relationships with support for filtering and search"
+)
 API_RELATION_CREATE_SUMMARY = "Create employee relationship"
 API_RELATION_CREATE_DESCRIPTION = "Create a new employee relationship record with optional file attachment"
 API_RELATION_RETRIEVE_SUMMARY = "Retrieve employee relationship"
