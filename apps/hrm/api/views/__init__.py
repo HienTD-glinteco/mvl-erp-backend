@@ -1,5 +1,7 @@
 from .contract_type import ContractTypeViewSet
 from .employee import EmployeeViewSet
+from .employee_certificate import EmployeeCertificateViewSet
+from .employee_relationship import EmployeeRelationshipViewSet
 from .employee_role import EmployeeRoleViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
@@ -19,7 +21,6 @@ from .recruitment_expense import RecruitmentExpenseViewSet
 from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
-from .employee_relationship import EmployeeRelationshipViewSet
 
 __all__ = [
     "BranchViewSet",
@@ -29,6 +30,7 @@ __all__ = [
     "OrganizationChartViewSet",
     "EmployeeRoleViewSet",
     "EmployeeViewSet",
+    "EmployeeCertificateViewSet",
     "ContractTypeViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",

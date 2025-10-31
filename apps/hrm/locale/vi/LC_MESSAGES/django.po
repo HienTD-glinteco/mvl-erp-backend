@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 17:14+0700\n"
+"POT-Creation-Date: 2025-10-31 14:33+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -159,6 +159,58 @@ msgstr "Tên phòng ban"
 
 #: apps/hrm/constants.py:50
 msgid "Self only"
+msgstr ""
+
+#: apps/hrm/constants.py:56
+msgid "Child"
+msgstr ""
+
+#: apps/hrm/constants.py:57
+msgid "Spouse"
+msgstr ""
+
+#: apps/hrm/constants.py:58
+msgid "Partner"
+msgstr ""
+
+#: apps/hrm/constants.py:59
+msgid "Parent"
+msgstr ""
+
+#: apps/hrm/constants.py:60
+msgid "Sibling"
+msgstr ""
+
+# models/organization.py:80
+#: apps/hrm/constants.py:61
+#, fuzzy
+#| msgid "Parent department"
+msgid "Grandparent"
+msgstr "Phòng ban cha"
+
+#: apps/hrm/constants.py:62 apps/hrm/constants.py:79
+#: apps/hrm/models/recruitment_channel.py:22
+msgid "Other"
+msgstr ""
+
+#: apps/hrm/constants.py:76
+msgid "Foreign language certificate"
+msgstr ""
+
+#: apps/hrm/constants.py:77
+msgid "Computer certificate"
+msgstr ""
+
+#: apps/hrm/constants.py:78
+msgid "Graduation diploma"
+msgstr ""
+
+#: apps/hrm/constants.py:80
+msgid "Broker training completion"
+msgstr ""
+
+#: apps/hrm/constants.py:81
+msgid "Real estate practice license"
 msgstr ""
 
 # management/commands/setup_default_org_data.py:8
@@ -433,7 +485,7 @@ msgid "Employee type"
 msgstr "Loại nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:116
+#: apps/hrm/models/employee.py:116 apps/hrm/models/employee_relationship.py:49
 msgid "Employee code"
 msgstr "Mã nhân viên"
 
@@ -518,7 +570,8 @@ msgstr "Tên nghỉ việc"
 msgid "Resignation reason"
 msgstr "Lý do nghỉ việc"
 
-#: apps/hrm/models/employee.py:190 apps/hrm/models/interview_schedule.py:31
+#: apps/hrm/models/employee.py:190 apps/hrm/models/employee_relationship.py:115
+#: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:122
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
@@ -526,7 +579,7 @@ msgstr "Lý do nghỉ việc"
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:196
+#: apps/hrm/models/employee.py:196 apps/hrm/models/employee_relationship.py:77
 msgid "Date of birth"
 msgstr ""
 
@@ -618,7 +671,9 @@ msgid "Is onboarding email sent"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:310 apps/hrm/models/organization.py:281
+#: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:24
+#: apps/hrm/models/employee_relationship.py:40
+#: apps/hrm/models/organization.py:281
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214
 msgid "Employee"
@@ -636,6 +691,231 @@ msgstr ""
 #: apps/hrm/models/employee.py:355
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:25
+msgid "Employee who owns this certificate"
+msgstr ""
+
+# models/recruitment_channel.py:18
+#: apps/hrm/models/employee_certificate.py:30
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Certificate type"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/employee_certificate.py:31
+msgid "Type of certificate"
+msgstr ""
+
+# models/recruitment_channel.py:13
+#: apps/hrm/models/employee_certificate.py:36
+#, fuzzy
+#| msgid "Candidate code"
+msgid "Certificate code"
+msgstr "Mã ứng viên"
+
+#: apps/hrm/models/employee_certificate.py:37
+msgid "Certificate number or code issued by the certifying organization"
+msgstr ""
+
+# models/organization.py:9
+# models/recruitment_channel.py:12
+#: apps/hrm/models/employee_certificate.py:42
+#, fuzzy
+#| msgid "Candidate name"
+msgid "Certificate name"
+msgstr "Tên ứng viên"
+
+#: apps/hrm/models/employee_certificate.py:43
+msgid "Specific name of the certificate or exam"
+msgstr ""
+
+# models/organization.py:218
+#: apps/hrm/models/employee_certificate.py:48
+#, fuzzy
+#| msgid "Expense date"
+msgid "Issue date"
+msgstr "Ngày chi phí"
+
+#: apps/hrm/models/employee_certificate.py:49
+msgid "Date when the certificate was issued"
+msgstr ""
+
+# models/organization.py:218
+#: apps/hrm/models/employee_certificate.py:54
+#, fuzzy
+#| msgid "Expense date"
+msgid "Expiry date"
+msgstr "Ngày chi phí"
+
+#: apps/hrm/models/employee_certificate.py:55
+msgid "Date when the certificate expires (if applicable)"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:60
+msgid "Issuing organization"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:61
+msgid "Organization that issued the certificate"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:69
+msgid "Certificate file"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:70
+msgid "Uploaded certificate file"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:74
+msgid "Notes"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:75
+msgid "Additional notes about the certificate"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_certificate.py:79
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee certificate"
+msgstr "Mã nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee_certificate.py:80
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee certificates"
+msgstr "Mã nhân viên"
+
+#: apps/hrm/models/employee_relationship.py:41
+msgid "Employee associated with this relationship"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_relationship.py:50
+#, fuzzy
+#| msgid "Employee code"
+msgid "Cached employee code"
+msgstr "Mã nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee_relationship.py:57
+#, fuzzy
+#| msgid "Employee type"
+msgid "Employee name"
+msgstr "Loại nhân viên"
+
+#: apps/hrm/models/employee_relationship.py:58
+msgid "Cached employee name"
+msgstr ""
+
+# models/organization.py:71
+#: apps/hrm/models/employee_relationship.py:63
+#, fuzzy
+#| msgid "Department name"
+msgid "Relative name"
+msgstr "Tên phòng ban"
+
+#: apps/hrm/models/employee_relationship.py:64
+msgid "Full name of the relative"
+msgstr ""
+
+# models/organization.py:182
+#: apps/hrm/models/employee_relationship.py:70
+#, fuzzy
+#| msgid "Resignation date"
+msgid "Relation type"
+msgstr "Tên nghỉ việc"
+
+#: apps/hrm/models/employee_relationship.py:71
+msgid "Type of relationship to the employee"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:78
+msgid "Date of birth of the relative"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:85
+msgid "National ID"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:86
+msgid "National ID (CMND/CCCD) - 9 or 12 digits"
+msgstr ""
+
+# models/organization.py:11
+#: apps/hrm/models/employee_relationship.py:91
+#: apps/hrm/models/organization.py:20
+msgid "Address"
+msgstr "Địa chỉ"
+
+#: apps/hrm/models/employee_relationship.py:92
+msgid "Residential address of the relative"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:99
+#: apps/hrm/models/recruitment_candidate.py:61
+msgid "Phone"
+msgstr ""
+
+# models/organization.py:217
+#: apps/hrm/models/employee_relationship.py:100
+#, fuzzy
+#| msgid "Contract type name"
+msgid "Contact phone number"
+msgstr "Tên loại liên hệ"
+
+#: apps/hrm/models/employee_relationship.py:109
+#: apps/hrm/models/job_description.py:32
+msgid "Attachment"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:110
+msgid "Supporting document or file attachment"
+msgstr ""
+
+#: apps/hrm/models/employee_relationship.py:116
+msgid "Additional notes or information"
+msgstr ""
+
+# models/organization.py:14
+#: apps/hrm/models/employee_relationship.py:121
+#, fuzzy
+#| msgid "Active"
+msgid "Is active"
+msgstr "Hoạt động"
+
+#: apps/hrm/models/employee_relationship.py:122
+msgid "Whether this relationship record is active"
+msgstr ""
+
+# management/commands/setup_default_org_data.py:117
+#: apps/hrm/models/employee_relationship.py:131
+#, fuzzy
+#| msgid "Created block: %s"
+msgid "Created by"
+msgstr "Đã tạo khối: %s"
+
+#: apps/hrm/models/employee_relationship.py:132
+msgid "User who created this record"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_relationship.py:136
+#, fuzzy
+#| msgid "Employee type"
+msgid "Employee Relationship"
+msgstr "Loại nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee_relationship.py:137
+#, fuzzy
+#| msgid "Employee code"
+msgid "Employee Relationships"
+msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/models/interview_candidate.py:16
@@ -743,10 +1023,6 @@ msgstr ""
 msgid "Proposed salary"
 msgstr ""
 
-#: apps/hrm/models/job_description.py:32
-msgid "Attachment"
-msgstr ""
-
 # models/organization.py:39
 #: apps/hrm/models/job_description.py:36
 msgid "Job Description"
@@ -766,11 +1042,6 @@ msgstr "Tên chi nhánh"
 #: apps/hrm/models/organization.py:19
 msgid "Branch code"
 msgstr "Mã chi nhánh"
-
-# models/organization.py:11
-#: apps/hrm/models/organization.py:20
-msgid "Address"
-msgstr "Địa chỉ"
 
 #: apps/hrm/models/organization.py:27
 msgid "Province"
@@ -1054,10 +1325,6 @@ msgstr "Tên ứng viên"
 msgid "Citizen ID must contain exactly 12 digits."
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:61
-msgid "Phone"
-msgstr ""
-
 # models/recruitment_channel.py:18
 #: apps/hrm/models/recruitment_candidate.py:96
 #: apps/hrm/models/recruitment_expense.py:22
@@ -1134,10 +1401,6 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_channel.py:21
 msgid "School"
-msgstr ""
-
-#: apps/hrm/models/recruitment_channel.py:22
-msgid "Other"
 msgstr ""
 
 # models/organization.py:9
@@ -1476,4 +1739,28 @@ msgstr ""
 
 #: apps/hrm/utils/functions.py:27
 msgid "5+ years"
+msgstr ""
+
+#: apps/hrm/utils/validators.py:20
+msgid "National ID must contain only digits."
+msgstr ""
+
+#: apps/hrm/utils/validators.py:22
+msgid "National ID must be exactly 9 or 12 digits."
+msgstr ""
+
+#: apps/hrm/utils/validators.py:33
+msgid "Phone number must contain only digits and optional leading '+'."
+msgstr ""
+
+#: apps/hrm/utils/validators.py:39
+msgid "Phone number with +84 must be followed by 9 digits."
+msgstr ""
+
+#: apps/hrm/utils/validators.py:43
+msgid "Phone number starting with 0 must be exactly 10 digits."
+msgstr ""
+
+#: apps/hrm/utils/validators.py:45
+msgid "Phone number must start with 0 or +84."
 msgstr ""
