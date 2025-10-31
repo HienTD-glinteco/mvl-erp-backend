@@ -1,4 +1,5 @@
 import django_filters
+from django.db.models import Q
 
 from apps.hrm.models import Relationship
 
@@ -21,8 +22,8 @@ class RelationshipFilterSet(django_filters.FilterSet):
             return queryset
 
         return queryset.filter(
-            django_filters.Q(employee_code__icontains=value)
-            | django_filters.Q(employee_name__icontains=value)
-            | django_filters.Q(relative_name__icontains=value)
-            | django_filters.Q(relation_type__icontains=value)
+            Q(employee_code__icontains=value)
+            | Q(employee_name__icontains=value)
+            | Q(relative_name__icontains=value)
+            | Q(relation_type__icontains=value)
         )

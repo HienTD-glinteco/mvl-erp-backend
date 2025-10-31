@@ -39,12 +39,41 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        # Create organizational structure
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department
+
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Main Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
+        self.department = Department.objects.create(
+            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
+        )
+
         # Create test employee
         self.employee = Employee.objects.create(
             fullname="John Doe",
             username="johndoe",
             email="john.doe@example.com",
             code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-01-01",
         )
 
         self.relationship_data = {
@@ -312,6 +341,10 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
             username="alicejohnson",
             email="alice@example.com",
             code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-01-01",
         )
 
         # Create relationships for both employees
