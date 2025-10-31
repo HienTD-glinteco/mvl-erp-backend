@@ -32,8 +32,7 @@ class EmployeeCertificateFilterSet(django_filters.FilterSet):
     def filter_certificate_types(self, queryset, name, value):
         """Filter by multiple certificate types (comma-separated).
 
-        Accepts both internal keys (e.g., 'foreign_language,computer')
-        and certificate codes (e.g., 'CCNN,CCTN').
+        Accepts internal keys (e.g., 'foreign_language,computer').
         """
         if not value:
             return queryset

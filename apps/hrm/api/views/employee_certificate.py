@@ -213,7 +213,7 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
     ordering_fields = ["certificate_code", "issue_date", "expiry_date", "created_at"]
-    ordering = ["certificate_code", "-issue_date"]
+    ordering = ["certificate_code", "-created_at"]
 
     # Permission registration attributes
     module = "HRM"

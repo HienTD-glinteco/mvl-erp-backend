@@ -79,7 +79,7 @@ class EmployeeCertificate(BaseModel):
         verbose_name = _("Employee certificate")
         verbose_name_plural = _("Employee certificates")
         db_table = "hrm_employee_certificate"
-        ordering = ["certificate_code", "-issue_date"]
+        ordering = ["certificate_code", "-created_at"]
         indexes = [
             models.Index(fields=["employee", "certificate_type"]),
             models.Index(fields=["certificate_code"]),
