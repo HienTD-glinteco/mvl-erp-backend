@@ -1,10 +1,15 @@
 from rest_framework import serializers
 
+from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import EmployeeCertificate
+from libs.drf.serializers import FileConfirmSerializerMixin
 
 
-class EmployeeCertificateSerializer(serializers.ModelSerializer):
+class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for EmployeeCertificate model."""
+
+    file_confirm_fields = ["file"]
+    file = FileSerializer(read_only=True)
 
     certificate_type_display = serializers.CharField(
         source="get_certificate_type_display",
@@ -32,6 +37,7 @@ class EmployeeCertificateSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "certificate_type_display",
+            "file",
             "created_at",
             "updated_at",
         ]

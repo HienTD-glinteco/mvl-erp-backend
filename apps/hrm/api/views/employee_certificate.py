@@ -64,7 +64,7 @@ from libs import BaseModelViewSet
     ),
     create=extend_schema(
         summary="Create employee certificate",
-        description="Create a new employee certificate record. The certificate_code is the actual certificate number from the certifying organization",
+        description="Create a new employee certificate record. The certificate_code is the actual certificate number from the certifying organization. Files are uploaded via presigned URLs and confirmed using file tokens.",
         tags=["Employee Certificates"],
         examples=[
             OpenApiExample(
@@ -77,7 +77,7 @@ from libs import BaseModelViewSet
                     "issue_date": "2024-06-01",
                     "expiry_date": "2026-06-01",
                     "issuing_organization": "British Council",
-                    "file": 1,
+                    "files": {"file": "abc123"},
                     "notes": "English proficiency certificate",
                 },
                 request_only=True,
@@ -96,7 +96,16 @@ from libs import BaseModelViewSet
                         "issue_date": "2024-06-01",
                         "expiry_date": "2026-06-01",
                         "issuing_organization": "British Council",
-                        "file": 1,
+                        "file": {
+                            "id": 1,
+                            "purpose": "employee_certificate",
+                            "file_name": "ielts_certificate.pdf",
+                            "file_path": "certificates/ielts_certificate.pdf",
+                            "size": 1024000,
+                            "is_confirmed": True,
+                            "view_url": "https://s3.amazonaws.com/...",
+                            "download_url": "https://s3.amazonaws.com/...",
+                        },
                         "notes": "English proficiency certificate",
                         "created_at": "2024-01-01T00:00:00Z",
                         "updated_at": "2024-01-01T00:00:00Z",
