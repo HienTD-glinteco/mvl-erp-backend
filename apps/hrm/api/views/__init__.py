@@ -1,5 +1,6 @@
 from .contract_type import ContractTypeViewSet
 from .employee import EmployeeViewSet
+from .employee_certificate import EmployeeCertificateViewSet
 from .employee_role import EmployeeRoleViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
@@ -28,6 +29,7 @@ __all__ = [
     "OrganizationChartViewSet",
     "EmployeeRoleViewSet",
     "EmployeeViewSet",
+    "EmployeeCertificateViewSet",
     "ContractTypeViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
