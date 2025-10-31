@@ -7,6 +7,7 @@ from .models import (
     Department,
     Employee,
     EmployeeCertificate,
+    EmployeeDependent,
     EmployeeRelationship,
     JobDescription,
     OrganizationChart,
@@ -88,6 +89,7 @@ admin.site.register(RecruitmentChannel)
 admin.site.register(RecruitmentSource)
 admin.site.register(Employee)
 admin.site.register(EmployeeCertificate)
+admin.site.register(EmployeeDependent)
 admin.site.register(EmployeeRelationship)
 admin.site.register(ContractType)
 admin.site.register(JobDescription)
