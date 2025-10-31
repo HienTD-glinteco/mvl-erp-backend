@@ -52,6 +52,11 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 
 # Use fast password hasher in tests
+# WARNING: MD5PasswordHasher is ONLY for testing! Never use in production.
+# This is safe because:
+# 1. Test settings are only loaded when ENVIRONMENT=test
+# 2. Test data is never used in production
+# 3. Test database is separate and ephemeral
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]

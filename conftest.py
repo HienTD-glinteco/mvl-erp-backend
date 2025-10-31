@@ -90,14 +90,36 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
     - Add markers to slow tests for better filtering
     - Ensure tests are properly distributed across workers
+    - Auto-categorize tests as unit or integration based on patterns
+
+    Note: Tests can override these auto-markers by explicitly using decorators:
+    @pytest.mark.integration, @pytest.mark.unit, @pytest.mark.slow
     """
     for item in items:
-        # Mark tests that interact with external services as slow
-        if any(keyword in item.nodeid for keyword in ["s3_utils", "opensearch", "consumer", "fcm_service"]):
-            item.add_marker(pytest.mark.slow)
+        # Skip if test already has explicit markers
+        marker_names = {marker.name for marker in item.iter_markers()}
 
-        # Mark API tests as integration tests
-        if "test_api" in item.nodeid or "API" in str(item.cls):
-            item.add_marker(pytest.mark.integration)
-        else:
-            item.add_marker(pytest.mark.unit)
+        # Mark tests that interact with external services as slow
+        if "slow" not in marker_names:
+            if any(keyword in item.nodeid for keyword in ["s3_utils", "opensearch", "consumer", "fcm_service"]):
+                item.add_marker(pytest.mark.slow)
+
+        # Auto-categorize as integration or unit tests if not explicitly marked
+        has_test_type = "integration" in marker_names or "unit" in marker_names
+        if not has_test_type:
+            # Integration test patterns:
+            # - API/ViewSet tests (test request/response cycle)
+            # - Tests with "API" in class name
+            # - Tests in api/ directories
+            is_integration = (
+                "test_api" in item.nodeid
+                or "/api/" in item.nodeid
+                or "API" in str(item.cls)
+                or "ViewSet" in str(item.cls)
+            )
+
+            if is_integration:
+                item.add_marker(pytest.mark.integration)
+            else:
+                # Default to unit test for isolated component tests
+                item.add_marker(pytest.mark.unit)
