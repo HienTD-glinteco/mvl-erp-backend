@@ -5,7 +5,7 @@ from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
 from libs.models import BaseModel
 
-from ..constants import CERT_CODE_MAP, CertificateType
+from ..constants import CertificateType
 
 
 @audit_logging_register
@@ -14,7 +14,7 @@ class EmployeeCertificate(BaseModel):
 
     This model manages certificates for employees including foreign language certificates,
     computer certificates, diplomas, broker training completion, and real estate practice licenses.
-    The certificate_code is automatically derived from certificate_type using CERT_CODE_MAP.
+    The certificate_code is the actual certificate number issued by the certifying organization.
     """
 
     employee = models.ForeignKey(
@@ -31,10 +31,10 @@ class EmployeeCertificate(BaseModel):
         help_text=_("Type of certificate"),
     )
     certificate_code = models.CharField(
-        max_length=20,
-        editable=False,
+        max_length=100,
+        blank=True,
         verbose_name=_("Certificate code"),
-        help_text=_("Auto-generated certificate code based on certificate type"),
+        help_text=_("Certificate number or code issued by the certifying organization"),
     )
     certificate_name = models.CharField(
         max_length=255,
@@ -79,7 +79,7 @@ class EmployeeCertificate(BaseModel):
         verbose_name = _("Employee certificate")
         verbose_name_plural = _("Employee certificates")
         db_table = "hrm_employee_certificate"
-        ordering = ["certificate_code", "-created_at"]
+        ordering = ["certificate_type", "-created_at"]
         indexes = [
             models.Index(fields=["employee", "certificate_type"]),
             models.Index(fields=["certificate_code"]),
@@ -89,11 +89,9 @@ class EmployeeCertificate(BaseModel):
 
     def __str__(self):
         if self.certificate_name:
-            return f"{self.certificate_code} - {self.certificate_name}"
-        return f"{self.certificate_code} - {self.get_certificate_type_display()}"
-
-    def save(self, *args, **kwargs):
-        """Override save to auto-generate certificate_code from certificate_type."""
-        if self.certificate_type:
-            self.certificate_code = CERT_CODE_MAP.get(self.certificate_type, "CCK")
-        super().save(*args, **kwargs)
+            if self.certificate_code:
+                return f"{self.certificate_code} - {self.certificate_name}"
+            return self.certificate_name
+        if self.certificate_code:
+            return f"{self.certificate_code} - {self.get_certificate_type_display()}"
+        return self.get_certificate_type_display()

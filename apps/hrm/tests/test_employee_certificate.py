@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.constants import CERT_CODE_MAP, CertificateType
+from apps.hrm.constants import CertificateType
 from apps.hrm.models import Block, Branch, Department, Employee, EmployeeCertificate
 
 User = get_user_model()
@@ -59,100 +59,82 @@ class EmployeeCertificateModelTest(TestCase):
             start_date=date(2020, 1, 1),
         )
 
-    def test_certificate_code_auto_generation_foreign_language(self):
-        """Test certificate_code is auto-generated from certificate_type for foreign language"""
+    def test_create_certificate_with_code(self):
+        """Test creating a certificate with a certificate code"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="IELTS-123456789",
             certificate_name="IELTS 7.0",
             issue_date=date.today(),
         )
-        self.assertEqual(certificate.certificate_code, "CCNN")
+        self.assertEqual(certificate.certificate_code, "IELTS-123456789")
+        self.assertEqual(certificate.certificate_type, CertificateType.FOREIGN_LANGUAGE)
 
-    def test_certificate_code_auto_generation_computer(self):
-        """Test certificate_code is auto-generated for computer certificate"""
+    def test_create_certificate_without_code(self):
+        """Test creating a certificate without a certificate code"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.COMPUTER,
             certificate_name="ICDL",
             issue_date=date.today(),
         )
-        self.assertEqual(certificate.certificate_code, "CCTN")
+        self.assertEqual(certificate.certificate_code, "")
+        self.assertEqual(certificate.certificate_type, CertificateType.COMPUTER)
 
-    def test_certificate_code_auto_generation_diploma(self):
-        """Test certificate_code is auto-generated for diploma"""
+    def test_certificate_type_choices(self):
+        """Test all certificate type choices are valid"""
+        for cert_type, display_name in CertificateType.choices:
+            with self.subTest(cert_type=cert_type):
+                certificate = EmployeeCertificate.objects.create(
+                    employee=self.employee,
+                    certificate_type=cert_type,
+                    certificate_code=f"TEST-{cert_type}",
+                    certificate_name=f"Test {display_name}",
+                    issue_date=date.today(),
+                )
+                self.assertEqual(certificate.certificate_type, cert_type)
+                self.assertEqual(certificate.certificate_code, f"TEST-{cert_type}")
+
+    def test_certificate_str_with_code_and_name(self):
+        """Test string representation with certificate_code and certificate_name"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
-            certificate_type=CertificateType.DIPLOMA,
-            certificate_name="Bachelor's Degree",
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="IELTS-123456",
+            certificate_name="IELTS 7.0",
             issue_date=date.today(),
         )
-        self.assertEqual(certificate.certificate_code, "BTN")
+        self.assertEqual(str(certificate), "IELTS-123456 - IELTS 7.0")
 
-    def test_certificate_code_auto_generation_broker_training(self):
-        """Test certificate_code is auto-generated for broker training completion"""
-        certificate = EmployeeCertificate.objects.create(
-            employee=self.employee,
-            certificate_type=CertificateType.BROKER_TRAINING_COMPLETION,
-            certificate_name="Broker Training Course 2024",
-            issue_date=date.today(),
-        )
-        self.assertEqual(certificate.certificate_code, "CCHMG")
-
-    def test_certificate_code_auto_generation_real_estate_license(self):
-        """Test certificate_code is auto-generated for real estate practice license"""
-        certificate = EmployeeCertificate.objects.create(
-            employee=self.employee,
-            certificate_type=CertificateType.REAL_ESTATE_PRACTICE_LICENSE,
-            certificate_name="Real Estate Broker License",
-            issue_date=date.today(),
-        )
-        self.assertEqual(certificate.certificate_code, "CCBDS")
-
-    def test_certificate_code_auto_generation_other(self):
-        """Test certificate_code is auto-generated for other certificate type"""
-        certificate = EmployeeCertificate.objects.create(
-            employee=self.employee,
-            certificate_type=CertificateType.OTHER,
-            certificate_name="Health Certificate",
-            issue_date=date.today(),
-        )
-        self.assertEqual(certificate.certificate_code, "CCK")
-
-    def test_certificate_code_update_on_type_change(self):
-        """Test certificate_code is updated when certificate_type changes"""
+    def test_certificate_str_with_name_only(self):
+        """Test string representation with certificate_name only"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
             certificate_name="IELTS 7.0",
             issue_date=date.today(),
         )
-        self.assertEqual(certificate.certificate_code, "CCNN")
+        self.assertEqual(str(certificate), "IELTS 7.0")
 
-        # Change certificate type
-        certificate.certificate_type = CertificateType.COMPUTER
-        certificate.save()
-        certificate.refresh_from_db()
-        self.assertEqual(certificate.certificate_code, "CCTN")
-
-    def test_certificate_str_with_name(self):
-        """Test string representation with certificate_name"""
+    def test_certificate_str_with_code_only(self):
+        """Test string representation with certificate_code only"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
-            certificate_name="IELTS 7.0",
+            certificate_code="IELTS-123456",
             issue_date=date.today(),
         )
-        self.assertEqual(str(certificate), "CCNN - IELTS 7.0")
+        self.assertIn("IELTS-123456", str(certificate))
 
-    def test_certificate_str_without_name(self):
-        """Test string representation without certificate_name"""
+    def test_certificate_str_minimal(self):
+        """Test string representation with minimal data"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
             issue_date=date.today(),
         )
-        self.assertIn("CCNN", str(certificate))
+        self.assertIn("Foreign language certificate", str(certificate))
 
 
 class EmployeeCertificateAPITest(TestCase):
@@ -220,8 +202,29 @@ class EmployeeCertificateAPITest(TestCase):
             return data
         return content
 
-    def test_create_certificate_with_valid_type(self):
-        """Test creating a certificate with valid certificate_type"""
+    def test_create_certificate_with_code(self):
+        """Test creating a certificate with certificate code"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_code": "IELTS-123456789",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": "2024-06-01",
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "British Council",
+            "notes": "English proficiency certificate",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["certificate_type"], "foreign_language")
+        self.assertEqual(result_data["certificate_code"], "IELTS-123456789")
+        self.assertEqual(result_data["certificate_name"], "IELTS 7.0")
+
+    def test_create_certificate_without_code(self):
+        """Test creating a certificate without certificate code"""
         url = reverse("hrm:employee-certificate-list")
         data = {
             "employee": self.employee.id,
@@ -237,7 +240,7 @@ class EmployeeCertificateAPITest(TestCase):
 
         result_data = self.get_response_data(response)
         self.assertEqual(result_data["certificate_type"], "foreign_language")
-        self.assertEqual(result_data["certificate_code"], "CCNN")
+        self.assertEqual(result_data["certificate_code"], "")
         self.assertEqual(result_data["certificate_name"], "IELTS 7.0")
 
     def test_create_certificate_with_invalid_type(self):
@@ -368,11 +371,12 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertEqual(len(result_data), 1)
         self.assertEqual(result_data[0]["employee"], self.employee.id)
 
-    def test_update_certificate_type_updates_code(self):
-        """Test updating certificate_type automatically updates certificate_code"""
+    def test_update_certificate_code(self):
+        """Test updating certificate code"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="IELTS-123456",
             certificate_name="IELTS 7.0",
             issue_date=date.today(),
         )
@@ -380,26 +384,28 @@ class EmployeeCertificateAPITest(TestCase):
         url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
         data = {
             "employee": self.employee.id,
-            "certificate_type": "computer",
-            "certificate_name": "ICDL",
+            "certificate_type": "foreign_language",
+            "certificate_code": "IELTS-987654",
+            "certificate_name": "IELTS 8.0",
             "issue_date": "2024-06-01",
         }
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         result_data = self.get_response_data(response)
-        self.assertEqual(result_data["certificate_type"], "computer")
-        self.assertEqual(result_data["certificate_code"], "CCTN")
+        self.assertEqual(result_data["certificate_type"], "foreign_language")
+        self.assertEqual(result_data["certificate_code"], "IELTS-987654")
 
         # Verify in database
         certificate.refresh_from_db()
-        self.assertEqual(certificate.certificate_code, "CCTN")
+        self.assertEqual(certificate.certificate_code, "IELTS-987654")
 
     def test_retrieve_certificate(self):
         """Test retrieving a specific certificate"""
         certificate = EmployeeCertificate.objects.create(
             employee=self.employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="IELTS-123456",
             certificate_name="IELTS 7.0",
             issue_date=date.today(),
         )
@@ -411,7 +417,7 @@ class EmployeeCertificateAPITest(TestCase):
         result_data = self.get_response_data(response)
         self.assertEqual(result_data["id"], certificate.id)
         self.assertEqual(result_data["certificate_type"], "foreign_language")
-        self.assertEqual(result_data["certificate_code"], "CCNN")
+        self.assertEqual(result_data["certificate_code"], "IELTS-123456")
 
     def test_delete_certificate(self):
         """Test deleting a certificate"""
@@ -429,18 +435,23 @@ class EmployeeCertificateAPITest(TestCase):
         # Verify certificate is deleted
         self.assertFalse(EmployeeCertificate.objects.filter(id=certificate.id).exists())
 
-    def test_certificate_type_choices(self):
-        """Test all certificate type choices work correctly"""
+    def test_certificate_type_choices_api(self):
+        """Test all certificate type choices work correctly via API"""
+        url = reverse("hrm:employee-certificate-list")
         for cert_type, display_name in CertificateType.choices:
             with self.subTest(cert_type=cert_type):
-                certificate = EmployeeCertificate.objects.create(
-                    employee=self.employee,
-                    certificate_type=cert_type,
-                    certificate_name=f"Test {display_name}",
-                    issue_date=date.today(),
-                )
-                expected_code = CERT_CODE_MAP.get(cert_type, "CCK")
-                self.assertEqual(certificate.certificate_code, expected_code)
+                data = {
+                    "employee": self.employee.id,
+                    "certificate_type": cert_type,
+                    "certificate_code": f"TEST-{cert_type}",
+                    "certificate_name": f"Test {display_name}",
+                    "issue_date": "2024-06-01",
+                }
+                response = self.client.post(url, data, format="json")
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                result_data = self.get_response_data(response)
+                self.assertEqual(result_data["certificate_type"], cert_type)
+                self.assertEqual(result_data["certificate_code"], f"TEST-{cert_type}")
 
     def test_search_by_certificate_name(self):
         """Test searching certificates by name"""

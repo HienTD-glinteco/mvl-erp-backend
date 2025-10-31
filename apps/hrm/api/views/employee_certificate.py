@@ -29,7 +29,7 @@ from libs import BaseModelViewSet
                                 "employee": 1,
                                 "certificate_type": "foreign_language",
                                 "certificate_type_display": "Foreign language certificate",
-                                "certificate_code": "CCNN",
+                                "certificate_code": "IELTS-123456789",
                                 "certificate_name": "IELTS 7.0",
                                 "issue_date": "2024-06-01",
                                 "expiry_date": "2026-06-01",
@@ -44,7 +44,7 @@ from libs import BaseModelViewSet
                                 "employee": 1,
                                 "certificate_type": "real_estate_practice_license",
                                 "certificate_type_display": "Real estate practice license",
-                                "certificate_code": "CCBDS",
+                                "certificate_code": "BDS-2023-001234",
                                 "certificate_name": "Real Estate Broker License",
                                 "issue_date": "2023-01-15",
                                 "expiry_date": "2028-01-15",
@@ -64,7 +64,7 @@ from libs import BaseModelViewSet
     ),
     create=extend_schema(
         summary="Create employee certificate",
-        description="Create a new employee certificate record. The certificate_code is automatically generated based on certificate_type",
+        description="Create a new employee certificate record. The certificate_code is the actual certificate number from the certifying organization",
         tags=["Employee Certificates"],
         examples=[
             OpenApiExample(
@@ -72,6 +72,7 @@ from libs import BaseModelViewSet
                 value={
                     "employee": 1,
                     "certificate_type": "foreign_language",
+                    "certificate_code": "IELTS-123456789",
                     "certificate_name": "IELTS 7.0",
                     "issue_date": "2024-06-01",
                     "expiry_date": "2026-06-01",
@@ -90,7 +91,7 @@ from libs import BaseModelViewSet
                         "employee": 1,
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
-                        "certificate_code": "CCNN",
+                        "certificate_code": "IELTS-123456789",
                         "certificate_name": "IELTS 7.0",
                         "issue_date": "2024-06-01",
                         "expiry_date": "2026-06-01",
@@ -126,7 +127,7 @@ from libs import BaseModelViewSet
                         "employee": 1,
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
-                        "certificate_code": "CCNN",
+                        "certificate_code": "IELTS-123456789",
                         "certificate_name": "IELTS 7.0",
                         "issue_date": "2024-06-01",
                         "expiry_date": "2026-06-01",
@@ -144,7 +145,7 @@ from libs import BaseModelViewSet
     ),
     update=extend_schema(
         summary="Update certificate",
-        description="Update employee certificate information. The certificate_code is automatically updated based on certificate_type",
+        description="Update employee certificate information including the certificate code from the issuing organization",
         tags=["Employee Certificates"],
         examples=[
             OpenApiExample(
@@ -152,6 +153,7 @@ from libs import BaseModelViewSet
                 value={
                     "employee": 1,
                     "certificate_type": "foreign_language",
+                    "certificate_code": "TOEIC-987654321",
                     "certificate_name": "TOEIC 850",
                     "issue_date": "2024-08-15",
                     "expiry_date": "2026-08-15",
@@ -170,7 +172,7 @@ from libs import BaseModelViewSet
                         "employee": 1,
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
-                        "certificate_code": "CCNN",
+                        "certificate_code": "TOEIC-987654321",
                         "certificate_name": "TOEIC 850",
                         "issue_date": "2024-08-15",
                         "expiry_date": "2026-08-15",
@@ -212,8 +214,8 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     filterset_class = EmployeeCertificateFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
-    ordering_fields = ["certificate_code", "issue_date", "expiry_date", "created_at"]
-    ordering = ["certificate_code", "-created_at"]
+    ordering_fields = ["certificate_type", "certificate_code", "issue_date", "expiry_date", "created_at"]
+    ordering = ["certificate_type", "-created_at"]
 
     # Permission registration attributes
     module = "HRM"

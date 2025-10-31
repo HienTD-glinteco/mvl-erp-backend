@@ -31,7 +31,6 @@ class EmployeeCertificateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "certificate_code",
             "certificate_type_display",
             "created_at",
             "updated_at",

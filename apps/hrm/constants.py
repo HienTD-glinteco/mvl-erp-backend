@@ -67,24 +67,3 @@ class CertificateType(models.TextChoices):
     @classmethod
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
-
-
-# Certificate type to code mapping
-CERT_CODE_MAP = {
-    "foreign_language": "CCNN",
-    "computer": "CCTN",
-    "diploma": "BTN",
-    "other": "CCK",
-    "broker_training_completion": "CCHMG",
-    "real_estate_practice_license": "CCBDS",
-}
-
-# Certificate filter order (for UI display)
-CERT_FILTER_ORDER = [
-    "foreign_language",
-    "computer",
-    "diploma",
-    "other",
-    "broker_training_completion",
-    "real_estate_practice_license",
-]
