@@ -35,6 +35,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
+from .relationship import RelationshipSerializer
 
 __all__ = [
     "BranchSerializer",
@@ -68,4 +69,5 @@ __all__ = [
     "DashboardRealtimeDataSerializer",
     "DashboardChartDataSerializer",
     "DashboardChartFilterSerializer",
+    "RelationshipSerializer",
 ]
