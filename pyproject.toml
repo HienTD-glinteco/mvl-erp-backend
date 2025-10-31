@@ -41,9 +41,22 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "settings"
-ENVIRONMENT = "test"
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
-addopts = ["--tb=short", "-v", "--reuse-db"]
+addopts = [
+    "--tb=short",
+    "-v",
+    "--reuse-db",
+    "--strict-markers",
+    "--strict-config",
+    "--maxfail=10",
+    "-ra",
+]
+# Performance optimization markers
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
 
 [tool.bandit]
 exclude_dirs = [
@@ -126,3 +139,4 @@ bandit = "^1.8.6"
 ruff = "^0.13.2"
 types-requests = "^2.32.4.20250913"
 types-bleach = "^6.2.0"
+pytest-split = "^0.10.0"

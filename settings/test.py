@@ -23,6 +23,13 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
+        # Performance optimizations for testing
+        "OPTIONS": {
+            "timeout": 20,
+        },
+        "TEST": {
+            "NAME": ":memory:",
+        },
     }
 }
 
@@ -39,3 +46,33 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}
 
 LANGUAGE_CODE = "en"
+
+# Performance optimizations for tests
+DEBUG = False
+TEMPLATE_DEBUG = False
+
+# Use fast password hasher in tests
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.MD5PasswordHasher",
+]
+
+# Disable migrations for faster test DB creation
+# Note: Only use this if tests don't depend on custom migrations
+# MIGRATION_MODULES = {app: None for app in INSTALLED_APPS}
+
+# Disable logging in tests to improve performance
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": True,
+    "handlers": {
+        "null": {
+            "class": "logging.NullHandler",
+        },
+    },
+    "root": {
+        "handlers": ["null"],
+    },
+}
+
+# Disable email backend
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

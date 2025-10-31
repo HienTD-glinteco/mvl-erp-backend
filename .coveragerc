@@ -1,5 +1,5 @@
 [run]
-source = .
+source = apps
 concurrency = multiprocessing
 parallel = true
 omit =
@@ -7,6 +7,10 @@ omit =
     logs*
     *migrations*
     tests*
+    */__init__.py
+    */conftest.py
+    */test_*.py
+    */tests/*
 
 [report]
 exclude_lines =
