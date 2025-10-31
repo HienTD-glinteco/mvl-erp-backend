@@ -1,18 +1,18 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.models import Relationship
+from apps.hrm.models import EmployeeRelationship
 from libs.drf.serializers import FileConfirmSerializerMixin
 
 
-class RelationshipSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    """Serializer for Relationship model with file upload support"""
+class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+    """Serializer for EmployeeRelationship model with file upload support"""
 
     file_confirm_fields = ["attachment"]
     attachment = FileSerializer(read_only=True)
 
     class Meta:
-        model = Relationship
+        model = EmployeeRelationship
         fields = [
             "id",
             "employee",

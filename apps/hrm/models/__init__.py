@@ -1,5 +1,6 @@
 from .contract_type import ContractType
 from .employee import Employee
+from .employee_relationship import EmployeeRelationship
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
 from .job_description import JobDescription
@@ -23,7 +24,6 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequest
 from .recruitment_source import RecruitmentSource
-from .relationship import Relationship
 
 __all__ = [
     "Branch",
@@ -47,5 +47,5 @@ __all__ = [
     "RecruitmentChannelReport",
     "RecruitmentCostReport",
     "HiredCandidateReport",
-    "Relationship",
+    "EmployeeRelationship",
 ]

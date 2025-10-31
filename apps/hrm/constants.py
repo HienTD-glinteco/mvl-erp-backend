@@ -62,21 +62,7 @@ class RelationType(models.TextChoices):
     OTHER = "OTHER", _("Other")
 
 
-# API Documentation Constants for Relationship endpoints
-API_RELATION_LIST_SUMMARY = "List employee relationships"
-API_RELATION_LIST_DESCRIPTION = (
-    "Retrieve a paginated list of employee relationships with support for filtering and search"
-)
-API_RELATION_CREATE_SUMMARY = "Create employee relationship"
-API_RELATION_CREATE_DESCRIPTION = "Create a new employee relationship record with optional file attachment"
-API_RELATION_RETRIEVE_SUMMARY = "Retrieve employee relationship"
-API_RELATION_RETRIEVE_DESCRIPTION = "Get detailed information about a specific employee relationship"
-API_RELATION_UPDATE_SUMMARY = "Update employee relationship"
-API_RELATION_UPDATE_DESCRIPTION = "Update an existing employee relationship record"
-API_RELATION_DELETE_SUMMARY = "Delete employee relationship"
-API_RELATION_DELETE_DESCRIPTION = "Soft delete an employee relationship by marking it as inactive"
-
-# Relationship field help text constants
+# Employee Relationship field help text constants
 HELP_TEXT_EMPLOYEE = "Employee associated with this relationship"
 HELP_TEXT_RELATIVE_NAME = "Full name of the relative"
 HELP_TEXT_RELATION_TYPE = "Type of relationship to the employee"

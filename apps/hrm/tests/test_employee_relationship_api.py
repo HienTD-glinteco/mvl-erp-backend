@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Employee, Relationship
+from apps.hrm.models import Employee, EmployeeRelationship
 
 User = get_user_model()
 
@@ -26,12 +26,12 @@ class APITestMixin:
         return content
 
 
-class RelationshipAPITest(TransactionTestCase, APITestMixin):
+class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
     """Test cases for Relationship API endpoints"""
 
     def setUp(self):
         # Clear all existing data for clean tests
-        Relationship.objects.all().delete()
+        EmployeeRelationship.objects.all().delete()
         Employee.objects.all().delete()
         User.objects.all().delete()
 
@@ -89,13 +89,13 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_relationship(self):
         """Test creating a relationship via API"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         response = self.client.post(url, self.relationship_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Relationship.objects.count(), 1)
+        self.assertEqual(EmployeeRelationship.objects.count(), 1)
 
-        relationship = Relationship.objects.first()
+        relationship = EmployeeRelationship.objects.first()
         self.assertEqual(relationship.relative_name, self.relationship_data["relative_name"])
         self.assertEqual(relationship.relation_type, self.relationship_data["relation_type"])
         self.assertEqual(relationship.phone, self.relationship_data["phone"])
@@ -108,7 +108,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_relationship_minimal_fields(self):
         """Test creating a relationship with only required fields"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         minimal_data = {
             "employee": self.employee.id,
             "relative_name": "Bob Smith",
@@ -117,9 +117,9 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, minimal_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Relationship.objects.count(), 1)
+        self.assertEqual(EmployeeRelationship.objects.count(), 1)
 
-        relationship = Relationship.objects.first()
+        relationship = EmployeeRelationship.objects.first()
         self.assertEqual(relationship.relative_name, minimal_data["relative_name"])
         self.assertEqual(relationship.relation_type, minimal_data["relation_type"])
         self.assertEqual(relationship.national_id, "")
@@ -128,7 +128,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_relationship_missing_required_field(self):
         """Test creating a relationship without required fields"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         invalid_data = {
             "relative_name": "Jane Doe",
             # Missing employee and relation_type
@@ -136,11 +136,11 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, invalid_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(Relationship.objects.count(), 0)
+        self.assertEqual(EmployeeRelationship.objects.count(), 0)
 
     def test_validate_national_id_length_9(self):
         """Test national ID validation with 9 digits"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["national_id"] = "123456789"
         response = self.client.post(url, data, format="json")
@@ -149,7 +149,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_national_id_length_12(self):
         """Test national ID validation with 12 digits"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["national_id"] = "123456789012"
         response = self.client.post(url, data, format="json")
@@ -158,7 +158,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_national_id_invalid_length(self):
         """Test national ID validation with invalid length"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["national_id"] = "12345"  # Invalid length
         response = self.client.post(url, data, format="json")
@@ -167,7 +167,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_national_id_non_numeric(self):
         """Test national ID validation with non-numeric characters"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["national_id"] = "12345ABC9"  # Contains letters
         response = self.client.post(url, data, format="json")
@@ -176,7 +176,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_phone_local_format(self):
         """Test Vietnamese phone validation with local format (0xxxxxxxxx)"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["phone"] = "0901234567"
         response = self.client.post(url, data, format="json")
@@ -185,7 +185,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_phone_international_format(self):
         """Test Vietnamese phone validation with international format (+84xxxxxxxxx)"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["phone"] = "+84901234567"
         response = self.client.post(url, data, format="json")
@@ -194,7 +194,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_phone_invalid_format(self):
         """Test phone validation with invalid format"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["phone"] = "12345"  # Invalid format
         response = self.client.post(url, data, format="json")
@@ -203,7 +203,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_validate_phone_invalid_local_length(self):
         """Test phone validation with invalid local length"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
         data["phone"] = "090123456"  # 9 digits instead of 10
         response = self.client.post(url, data, format="json")
@@ -213,7 +213,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
     def test_list_relationships(self):
         """Test listing relationships via API"""
         # Create multiple relationships via API
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         data2 = self.relationship_data.copy()
@@ -229,7 +229,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_list_relationships_default_ordering(self):
         """Test that relationships are ordered by created_at descending by default"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
 
         # Create first relationship
         data1 = self.relationship_data.copy()
@@ -252,12 +252,12 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
     def test_retrieve_relationship(self):
         """Test retrieving a single relationship via API"""
         # Create relationship
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         create_response = self.client.post(url, self.relationship_data, format="json")
         relationship_id = self.get_response_data(create_response)["id"]
 
         # Retrieve relationship
-        detail_url = reverse("hrm:relationship-detail", kwargs={"pk": relationship_id})
+        detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.get(detail_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -268,7 +268,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
     def test_update_relationship(self):
         """Test updating a relationship via API"""
         # Create relationship
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         create_response = self.client.post(url, self.relationship_data, format="json")
         relationship_id = self.get_response_data(create_response)["id"]
 
@@ -278,7 +278,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
         update_data["phone"] = "0909876543"
         update_data["national_id"] = "123456789012"
 
-        detail_url = reverse("hrm:relationship-detail", kwargs={"pk": relationship_id})
+        detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.put(detail_url, update_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -290,7 +290,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
     def test_partial_update_relationship(self):
         """Test partially updating a relationship via API"""
         # Create relationship
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         create_response = self.client.post(url, self.relationship_data, format="json")
         relationship_id = self.get_response_data(create_response)["id"]
 
@@ -300,7 +300,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
             "phone": "+84909876543",
         }
 
-        detail_url = reverse("hrm:relationship-detail", kwargs={"pk": relationship_id})
+        detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.patch(detail_url, partial_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -314,18 +314,18 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
     def test_soft_delete_relationship(self):
         """Test soft deleting a relationship via API"""
         # Create relationship
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         create_response = self.client.post(url, self.relationship_data, format="json")
         relationship_id = self.get_response_data(create_response)["id"]
 
         # Delete relationship
-        detail_url = reverse("hrm:relationship-detail", kwargs={"pk": relationship_id})
+        detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.delete(detail_url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # Verify relationship still exists in DB but is marked inactive
-        relationship = Relationship.objects.get(id=relationship_id)
+        relationship = EmployeeRelationship.objects.get(id=relationship_id)
         self.assertFalse(relationship.is_active)
 
         # Verify it doesn't appear in default list
@@ -348,7 +348,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Create relationships for both employees
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         data2 = self.relationship_data.copy()
@@ -366,7 +366,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_filter_by_relation_type(self):
         """Test filtering relationships by relation type"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
 
         # Create relationships with different types
         self.client.post(url, self.relationship_data, format="json")
@@ -386,14 +386,14 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_filter_by_is_active(self):
         """Test filtering relationships by is_active status"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
 
         # Create active relationship
         create_response = self.client.post(url, self.relationship_data, format="json")
         relationship_id = self.get_response_data(create_response)["id"]
 
         # Soft delete it
-        detail_url = reverse("hrm:relationship-detail", kwargs={"pk": relationship_id})
+        detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         self.client.delete(detail_url)
 
         # Create another active relationship
@@ -415,7 +415,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_employee_code(self):
         """Test searching relationships by employee code"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by employee code
@@ -427,7 +427,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_employee_name(self):
         """Test searching relationships by employee name"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by employee name
@@ -439,7 +439,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_relative_name(self):
         """Test searching relationships by relative name"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by relative name
@@ -451,7 +451,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_relation_type(self):
         """Test searching relationships by relation type"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by relation type
@@ -463,7 +463,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_ordering_by_created_at_ascending(self):
         """Test ordering relationships by created_at ascending"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
 
         # Create multiple relationships
         data1 = self.relationship_data.copy()
@@ -485,7 +485,7 @@ class RelationshipAPITest(TransactionTestCase, APITestMixin):
 
     def test_ordering_by_relative_name(self):
         """Test ordering relationships by relative name"""
-        url = reverse("hrm:relationship-list")
+        url = reverse("hrm:employee-relationship-list")
 
         # Create relationships with different names
         data1 = self.relationship_data.copy()

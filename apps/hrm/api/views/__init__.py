@@ -19,7 +19,7 @@ from .recruitment_expense import RecruitmentExpenseViewSet
 from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
-from .relationship import RelationshipViewSet
+from .employee_relationship import EmployeeRelationshipViewSet
 
 __all__ = [
     "BranchViewSet",
@@ -41,5 +41,5 @@ __all__ = [
     "InterviewCandidateViewSet",
     "RecruitmentReportsViewSet",
     "RecruitmentDashboardViewSet",
-    "RelationshipViewSet",
+    "EmployeeRelationshipViewSet",
 ]

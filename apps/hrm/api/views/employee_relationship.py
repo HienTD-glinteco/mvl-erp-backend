@@ -4,29 +4,17 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets import RelationshipFilterSet
-from apps.hrm.api.serializers import RelationshipSerializer
-from apps.hrm.constants import (
-    API_RELATION_CREATE_DESCRIPTION,
-    API_RELATION_CREATE_SUMMARY,
-    API_RELATION_DELETE_DESCRIPTION,
-    API_RELATION_DELETE_SUMMARY,
-    API_RELATION_LIST_DESCRIPTION,
-    API_RELATION_LIST_SUMMARY,
-    API_RELATION_RETRIEVE_DESCRIPTION,
-    API_RELATION_RETRIEVE_SUMMARY,
-    API_RELATION_UPDATE_DESCRIPTION,
-    API_RELATION_UPDATE_SUMMARY,
-)
-from apps.hrm.models import Relationship
+from apps.hrm.api.filtersets import EmployeeRelationshipFilterSet
+from apps.hrm.api.serializers import EmployeeRelationshipSerializer
+from apps.hrm.models import EmployeeRelationship
 from libs import BaseModelViewSet
 
 
 @extend_schema_view(
     list=extend_schema(
-        summary=API_RELATION_LIST_SUMMARY,
-        description=API_RELATION_LIST_DESCRIPTION,
-        tags=["Relationship"],
+        summary="List employee relationships",
+        description="Retrieve a paginated list of employee relationships with support for filtering and search",
+        tags=["Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -63,9 +51,9 @@ from libs import BaseModelViewSet
         ],
     ),
     create=extend_schema(
-        summary=API_RELATION_CREATE_SUMMARY,
-        description=API_RELATION_CREATE_DESCRIPTION,
-        tags=["Relationship"],
+        summary="Create employee relationship",
+        description="Create a new employee relationship record with optional file attachment",
+        tags=["Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -135,9 +123,9 @@ from libs import BaseModelViewSet
         ],
     ),
     retrieve=extend_schema(
-        summary=API_RELATION_RETRIEVE_SUMMARY,
-        description=API_RELATION_RETRIEVE_DESCRIPTION,
-        tags=["Relationship"],
+        summary="Retrieve employee relationship",
+        description="Get detailed information about a specific employee relationship",
+        tags=["Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -167,9 +155,9 @@ from libs import BaseModelViewSet
         ],
     ),
     update=extend_schema(
-        summary=API_RELATION_UPDATE_SUMMARY,
-        description=API_RELATION_UPDATE_DESCRIPTION,
-        tags=["Relationship"],
+        summary="Update employee relationship",
+        description="Update an existing employee relationship record",
+        tags=["Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -199,14 +187,14 @@ from libs import BaseModelViewSet
         ],
     ),
     partial_update=extend_schema(
-        summary=API_RELATION_UPDATE_SUMMARY,
-        description=API_RELATION_UPDATE_DESCRIPTION,
-        tags=["Relationship"],
+        summary="Update employee relationship",
+        description="Update an existing employee relationship record",
+        tags=["Employee Relationship"],
     ),
     destroy=extend_schema(
-        summary=API_RELATION_DELETE_SUMMARY,
-        description=API_RELATION_DELETE_DESCRIPTION,
-        tags=["Relationship"],
+        summary="Delete employee relationship",
+        description="Soft delete an employee relationship by marking it as inactive",
+        tags=["Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -216,12 +204,12 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
+class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing employee relationships/next-of-kin"""
 
-    queryset = Relationship.objects.select_related("employee", "attachment", "created_by").all()
-    serializer_class = RelationshipSerializer
-    filterset_class = RelationshipFilterSet
+    queryset = EmployeeRelationship.objects.select_related("employee", "attachment", "created_by").all()
+    serializer_class = EmployeeRelationshipSerializer
+    filterset_class = EmployeeRelationshipFilterSet
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     ordering_fields = ["created_at", "updated_at", "relative_name"]
     ordering = ["-created_at"]

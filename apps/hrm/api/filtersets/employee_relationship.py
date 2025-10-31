@@ -1,11 +1,11 @@
 import django_filters
 from django.db.models import Q
 
-from apps.hrm.models import Relationship
+from apps.hrm.models import EmployeeRelationship
 
 
-class RelationshipFilterSet(django_filters.FilterSet):
-    """FilterSet for Relationship model"""
+class EmployeeRelationshipFilterSet(django_filters.FilterSet):
+    """FilterSet for EmployeeRelationship model"""
 
     search = django_filters.CharFilter(method="filter_search")
     employee = django_filters.NumberFilter(field_name="employee__id")
@@ -13,7 +13,7 @@ class RelationshipFilterSet(django_filters.FilterSet):
     is_active = django_filters.BooleanFilter(field_name="is_active")
 
     class Meta:
-        model = Relationship
+        model = EmployeeRelationship
         fields = ["employee", "relation_type", "is_active", "search"]
 
     def filter_search(self, queryset, name, value):

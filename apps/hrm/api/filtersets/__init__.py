@@ -23,7 +23,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
-from .relationship import RelationshipFilterSet
+from .employee_relationship import EmployeeRelationshipFilterSet
 
 __all__ = [
     "BranchFilterSet",
@@ -47,5 +47,5 @@ __all__ = [
     "RecruitmentChannelReportFilterSet",
     "RecruitmentCostReportFilterSet",
     "HiredCandidateReportFilterSet",
-    "RelationshipFilterSet",
+    "EmployeeRelationshipFilterSet",
 ]
