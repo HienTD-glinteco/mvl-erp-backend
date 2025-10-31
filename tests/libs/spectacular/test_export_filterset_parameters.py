@@ -99,7 +99,7 @@ class TestExportFiltersetParameters:
     def test_adds_filterset_parameters_for_export_action(self, auto_schema):
         """Test that filterset parameters are added for export action."""
         # Mock the base class method
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -113,7 +113,7 @@ class TestExportFiltersetParameters:
 
     def test_filter_descriptions_include_lookup_expr(self, auto_schema):
         """Test that filter descriptions include lookup expression info."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -129,7 +129,7 @@ class TestExportFiltersetParameters:
 
     def test_filter_with_different_field_name(self, auto_schema):
         """Test that filters with different field_name are documented correctly."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -141,7 +141,7 @@ class TestExportFiltersetParameters:
 
     def test_boolean_filter_type(self, auto_schema):
         """Test that BooleanFilter parameters have bool type."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -152,7 +152,7 @@ class TestExportFiltersetParameters:
 
     def test_date_filter_type(self, auto_schema):
         """Test that DateFilter parameters have str type."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -169,7 +169,7 @@ class TestExportFiltersetParameters:
         view.action = "export"
         view.filterset_class = TestFilterSetWithChoices
         schema.view = view
-        schema.get_serializer = MagicMock(return_value=TestSerializer())
+        schema._get_serializer = lambda: TestSerializer()
 
         parameters = schema.get_override_parameters()
 
@@ -184,7 +184,7 @@ class TestExportFiltersetParameters:
         schema = EnhancedAutoSchema()
         schema.method = "GET"
         schema.view = mock_view_non_export_action
-        schema.get_serializer = MagicMock(return_value=TestSerializer())
+        schema._get_serializer = lambda: TestSerializer()
 
         parameters = schema.get_override_parameters()
 
@@ -198,7 +198,7 @@ class TestExportFiltersetParameters:
         schema = EnhancedAutoSchema()
         schema.method = "GET"
         schema.view = mock_view_without_filterset
-        schema.get_serializer = MagicMock(return_value=TestSerializer())
+        schema._get_serializer = lambda: TestSerializer()
 
         parameters = schema.get_override_parameters()
 
@@ -213,7 +213,7 @@ class TestExportFiltersetParameters:
         schema = EnhancedAutoSchema()
         schema.method = "POST"
         schema.view = mock_view_with_export_action
-        schema.get_serializer = MagicMock(return_value=TestSerializer())
+        schema._get_serializer = lambda: TestSerializer()
 
         parameters = schema.get_override_parameters()
 
@@ -224,7 +224,7 @@ class TestExportFiltersetParameters:
 
     def test_all_parameters_are_optional(self, auto_schema):
         """Test that all filterset parameters are marked as optional."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
@@ -235,7 +235,7 @@ class TestExportFiltersetParameters:
 
     def test_parameters_are_query_params(self, auto_schema):
         """Test that all filterset parameters are query parameters."""
-        auto_schema.get_serializer = MagicMock(return_value=TestSerializer())
+        auto_schema._get_serializer = lambda: TestSerializer()
 
         parameters = auto_schema.get_override_parameters()
 
