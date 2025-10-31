@@ -50,6 +50,26 @@ class DataScope(models.TextChoices):
     SELF = "self", _("Self only")
 
 
+class RelationType(models.TextChoices):
+    """Employee relationship types for next-of-kin management"""
+
+    CHILD = "CHILD", _("Child")
+    SPOUSE = "SPOUSE", _("Spouse")
+    PARTNER = "PARTNER", _("Partner")
+    PARENT = "PARENT", _("Parent")
+    SIBLING = "SIBLING", _("Sibling")
+    GRANDPARENT = "GRANDPARENT", _("Grandparent")
+    OTHER = "OTHER", _("Other")
+
+
+# Validation constants
+MAX_ATTACHMENT_SIZE_MB = 10
+NATIONAL_ID_LENGTH_9 = 9
+NATIONAL_ID_LENGTH_12 = 12
+PHONE_INTL_LENGTH = 12  # +84 + 9 digits
+PHONE_LOCAL_LENGTH = 10  # 0 + 9 digits
+
+
 class CertificateType(models.TextChoices):
     """Certificate types for employee qualifications"""
 

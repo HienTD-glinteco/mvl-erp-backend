@@ -17,6 +17,14 @@ CELERY_TASK_ALWAYS_EAGER = True
 
 STATIC_ROOT = "staticfiles"
 
+# Use local memory cache for tests to avoid Redis dependency
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "test-cache",
+    },
+}
+
 # Use SMTP:
 EMAIL_BACKEND = config(  # noqa
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
