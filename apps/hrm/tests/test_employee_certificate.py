@@ -499,3 +499,147 @@ class EmployeeCertificateAPITest(TestCase):
         result_data = self.get_response_data(response)
         self.assertEqual(len(result_data), 1)
         self.assertEqual(result_data[0]["certificate_name"], "New Certificate")
+
+    def test_create_certificate_with_file_upload(self):
+        """Test creating a certificate with file upload via FileConfirmSerializerMixin"""
+        from unittest.mock import patch
+
+        from django.core.cache import cache
+
+        from apps.files.constants import CACHE_KEY_PREFIX
+        from apps.files.models import FileModel
+
+        # Arrange: Setup file token and cache data
+        file_token = "test-token-cert-001"
+        cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
+
+        # Clear cache before test
+        cache.clear()
+
+        with (
+            patch("libs.drf.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
+            patch("apps.files.utils.s3_utils.S3FileUploadService") as mock_s3_service_model,
+        ):
+            # Mock cache to return file metadata
+            cache_data = {
+                "file_name": "ielts_certificate.pdf",
+                "file_type": "application/pdf",
+                "purpose": "employee_certificate",
+                "file_path": "uploads/tmp/test-token-cert-001/ielts_certificate.pdf",
+            }
+            mock_cache.get.return_value = json.dumps(cache_data)
+
+            # Mock S3 service for file confirmation
+            mock_instance = mock_s3_service.return_value
+            mock_instance.check_file_exists.return_value = True
+            mock_instance.generate_permanent_path.return_value = "uploads/employee_certificate/1/ielts_certificate.pdf"
+            mock_instance.move_file.return_value = True
+            mock_instance.get_file_metadata.return_value = {
+                "size": 1024000,
+                "content_type": "application/pdf",
+                "etag": "abc123",
+            }
+
+            # Mock S3 service for view/download URLs in FileModel properties
+            mock_instance_model = mock_s3_service_model.return_value
+            mock_instance_model.generate_view_url.return_value = "https://example.com/view/ielts_certificate.pdf"
+            mock_instance_model.generate_download_url.return_value = (
+                "https://example.com/download/ielts_certificate.pdf"
+            )
+
+            # Act: Create certificate with file token
+            url = reverse("hrm:employee-certificate-list")
+            cert_data = {
+                "employee": self.employee.id,
+                "certificate_type": "foreign_language",
+                "certificate_code": "IELTS-123456789",
+                "certificate_name": "IELTS 7.0",
+                "issue_date": "2024-06-01",
+                "expiry_date": "2026-06-01",
+                "issuing_organization": "British Council",
+                "notes": "English proficiency certificate",
+                "files": {"file": file_token},
+            }
+
+            response = self.client.post(url, cert_data, format="json")
+
+            # Assert: Check response
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            response_data = self.get_response_data(response)
+
+            # Check that file is populated with FileModel data
+            self.assertIsNotNone(response_data["file"])
+            self.assertEqual(response_data["file"]["file_name"], "ielts_certificate.pdf")
+            self.assertEqual(response_data["file"]["purpose"], "employee_certificate")
+            self.assertTrue(response_data["file"]["is_confirmed"])
+
+            # Check database
+            certificate = EmployeeCertificate.objects.get(pk=response_data["id"])
+            self.assertIsNotNone(certificate.file)
+            self.assertEqual(certificate.file.file_name, "ielts_certificate.pdf")
+            self.assertEqual(certificate.file.purpose, "employee_certificate")
+            self.assertTrue(certificate.file.is_confirmed)
+
+            # Check FileModel was created
+            self.assertEqual(FileModel.objects.count(), 1)
+            file_record = FileModel.objects.first()
+            self.assertEqual(file_record.file_name, "ielts_certificate.pdf")
+            self.assertEqual(file_record.uploaded_by, self.user)
+
+    def test_create_certificate_with_file_and_no_token(self):
+        """Test creating a certificate without file token still works"""
+        url = reverse("hrm:employee-certificate-list")
+        cert_data = {
+            "employee": self.employee.id,
+            "certificate_type": "computer",
+            "certificate_code": "MOS-987654321",
+            "certificate_name": "Microsoft Office Specialist",
+            "issue_date": "2024-01-15",
+            "issuing_organization": "Microsoft",
+            "notes": "Excel Expert certification",
+        }
+
+        response = self.client.post(url, cert_data, format="json")
+
+        # Assert: Check response
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+
+        # File should be None/null
+        self.assertIsNone(response_data["file"])
+
+        # Check database
+        certificate = EmployeeCertificate.objects.get(pk=response_data["id"])
+        self.assertIsNone(certificate.file)
+
+    def test_create_certificate_with_invalid_file_token(self):
+        """Test creating a certificate with invalid file token"""
+        from unittest.mock import patch
+
+        from django.core.cache import cache
+
+        # Clear cache so token is invalid
+        cache.clear()
+
+        with (
+            patch("libs.drf.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
+        ):
+            # Mock cache to return None (token not found)
+            mock_cache.get.return_value = None
+
+            url = reverse("hrm:employee-certificate-list")
+            cert_data = {
+                "employee": self.employee.id,
+                "certificate_type": "diploma",
+                "certificate_code": "DIPLOMA-111",
+                "certificate_name": "Bachelor Degree",
+                "issue_date": "2024-06-01",
+                "files": {"file": "invalid-token-123"},
+            }
+
+            response = self.client.post(url, cert_data, format="json")
+
+            # Should return 400 Bad Request due to invalid token
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
