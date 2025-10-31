@@ -13,7 +13,7 @@ class ErrorReportGenerator:
     Generate XLSX error reports for import failures.
     """
 
-    def generate(
+    def generate(  # noqa: C901
         self, errors: list[dict], original_data: list[list] | None = None, headers: list[str] | None = None
     ) -> bytes:
         """

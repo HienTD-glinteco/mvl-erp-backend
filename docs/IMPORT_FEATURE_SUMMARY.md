@@ -269,9 +269,9 @@ def test_import_valid_data():
         ["John Doe", "john@example.com"],
         ["Jane Smith", "jane@example.com"],
     ], headers=["name", "email"])
-    
+
     response = client.post("/api/users/import/", {"file": file})
-    
+
     assert response.status_code == 200
     assert response.data["success_count"] == 2
     assert response.data["error_count"] == 0
@@ -285,7 +285,7 @@ def test_import_with_audit_logging():
     """Test that imports are audit logged"""
     # Import data
     response = import_users(file)
-    
+
     # Check audit logs
     logs = AuditLog.objects.filter(action=LogAction.IMPORT)
     assert logs.count() == 2

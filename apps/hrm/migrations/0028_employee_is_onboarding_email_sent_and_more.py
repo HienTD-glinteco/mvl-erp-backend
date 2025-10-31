@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0027_backfill_org_chart_block_branch'),
+        ("hrm", "0027_backfill_org_chart_block_branch"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employee',
-            name='is_onboarding_email_sent',
-            field=models.BooleanField(default=False, verbose_name='Is onboarding email sent'),
+            model_name="employee",
+            name="is_onboarding_email_sent",
+            field=models.BooleanField(default=False, verbose_name="Is onboarding email sent"),
         ),
         migrations.AlterField(
-            model_name='employee',
-            name='date_of_birth',
-            field=models.DateField(blank=True, null=True, verbose_name='Date of birth'),
+            model_name="employee",
+            name="date_of_birth",
+            field=models.DateField(blank=True, null=True, verbose_name="Date of birth"),
         ),
         migrations.AlterField(
-            model_name='employee',
-            name='personal_email',
-            field=models.EmailField(blank=True, max_length=100, null=True, verbose_name='Personal email'),
+            model_name="employee",
+            name="personal_email",
+            field=models.EmailField(blank=True, max_length=100, null=True, verbose_name="Personal email"),
         ),
     ]

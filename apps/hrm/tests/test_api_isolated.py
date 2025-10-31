@@ -279,7 +279,6 @@ class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
         position_data = {
             "name": "Tổng Giám đốc",
             "code": "TGD",
-
         }
 
         url = reverse("hrm:position-list")
@@ -318,7 +317,6 @@ class IsolatedDepartmentAPITest(TransactionTestCase, APITestMixin):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
 
         # Create Province and AdministrativeUnit for Branch
         self.province = Province.objects.create(
@@ -395,7 +393,6 @@ class IsolatedBlockAPITest(TransactionTestCase, APITestMixin):
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
 
         # Create Province and AdministrativeUnit for Branch
         self.province = Province.objects.create(

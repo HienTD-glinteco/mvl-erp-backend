@@ -7,7 +7,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .constants import TEMPLATE_REGISTRY
 from .models import EmailSendJob
@@ -64,7 +63,12 @@ from .tasks import send_email_job_task
                         "purpose": "Send to new employees on their first day",
                         "filename": "welcome.html",
                         "variables": [
-                            {"name": "fullname", "type": "string", "required": True, "description": "Employee's full name"}
+                            {
+                                "name": "fullname",
+                                "type": "string",
+                                "required": True,
+                                "description": "Employee's full name",
+                            }
                         ],
                         "sample_data": {"fullname": "John Doe", "start_date": "2025-11-01"},
                     }
@@ -192,7 +196,10 @@ def get_template(request, slug):
     examples=[
         OpenApiExample(
             "Save template request",
-            value={"content": "<html><body>Welcome {{ fullname }}!</body></html>", "sample_data": {"fullname": "John Doe"}},
+            value={
+                "content": "<html><body>Welcome {{ fullname }}!</body></html>",
+                "sample_data": {"fullname": "John Doe"},
+            },
             request_only=True,
         ),
         OpenApiExample(
@@ -255,7 +262,11 @@ def save_template(request, slug):
         200: TemplatePreviewResponseSerializer,
         400: OpenApiExample(
             "Validation error",
-            value={"success": False, "data": None, "error": "Template validation failed: missing required variable 'fullname'"},
+            value={
+                "success": False,
+                "data": None,
+                "error": "Template validation failed: missing required variable 'fullname'",
+            },
         ),
         403: OpenApiExample(
             "Permission denied for real mode",
@@ -357,7 +368,11 @@ def preview_template(request, slug):
         202: BulkSendResponseSerializer,
         400: OpenApiExample(
             "Validation error",
-            value={"success": False, "data": None, "error": "Validation error for user@example.com: missing required variable 'fullname'"},
+            value={
+                "success": False,
+                "data": None,
+                "error": "Validation error for user@example.com: missing required variable 'fullname'",
+            },
         ),
         403: OpenApiExample(
             "Permission denied",
@@ -490,7 +505,12 @@ def send_bulk_email(request, slug):
                     "sent_count": 2,
                     "failed_count": 0,
                     "recipients_status": [
-                        {"email": "user1@example.com", "status": "sent", "attempts": 1, "sent_at": "2025-10-29T10:30:00Z"}
+                        {
+                            "email": "user1@example.com",
+                            "status": "sent",
+                            "attempts": 1,
+                            "sent_at": "2025-10-29T10:30:00Z",
+                        }
                     ],
                 },
             },

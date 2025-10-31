@@ -254,7 +254,7 @@ class ConfirmMultipleFilesView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request):  # noqa: C901
         """Confirm multiple file uploads and create FileModel records."""
         serializer = ConfirmMultipleFilesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -11,10 +11,9 @@ Copy and adapt these examples to your own ViewSets.
 
 from rest_framework import viewsets
 
-from libs.export_xlsx import ExportXLSXMixin
-
-from apps.core.models import Role
 from apps.core.api.serializers import RoleSerializer
+from apps.core.models import Role
+from libs.export_xlsx import ExportXLSXMixin
 
 
 class RoleViewSet(ExportXLSXMixin, viewsets.ModelViewSet):

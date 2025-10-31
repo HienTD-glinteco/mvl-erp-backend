@@ -44,6 +44,5 @@ def fetch_real_data(template_slug: str, ref: dict[str, Any], user: Any) -> dict[
             raise ValueError(f"Unknown object type: {obj_type}")
     """
     raise NotImplementedError(
-        "fetch_real_data must be implemented by integrators. "
-        "See mailtemplates/hooks.py for documentation."
+        "fetch_real_data must be implemented by integrators. See mailtemplates/hooks.py for documentation."
     )

@@ -126,7 +126,13 @@ class StringLiteralVisitor(ast.NodeVisitor):
 
         # Track if we're in an API documentation call (extend_schema, OpenApiParameter, etc.)
         was_in_api_doc = self.in_api_doc
-        if func_name in ("extend_schema", "extend_schema_view", "OpenApiParameter", "OpenApiResponse", "OpenApiExample"):
+        if func_name in (
+            "extend_schema",
+            "extend_schema_view",
+            "OpenApiParameter",
+            "OpenApiResponse",
+            "OpenApiExample",
+        ):
             self.in_api_doc = True
 
         self.generic_visit(node)

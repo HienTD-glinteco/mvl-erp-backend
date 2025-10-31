@@ -42,12 +42,12 @@ class Branch(AutoCodeMixin, BaseModel):
 ```python
 class Department(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "PB"
-    
+
     def save(self, *args, **kwargs):
         # Custom logic before temp code generation
         if not self.branch and self.block:
             self.branch = self.block.branch
-        
+
         # Call super to handle temp code generation
         super().save(*args, **kwargs)
 ```
@@ -325,7 +325,7 @@ Existing models already using the old signal handlers will continue to work with
 
 - **Code Generation Module:** `libs/code_generation.py`
 - **HRM Signals:** `apps/hrm/signals.py`
-- **Example Models:** 
+- **Example Models:**
   - `apps/hrm/models/organization.py` (Branch, Block, Department)
   - `apps/hrm/models/recruitment_channel.py` (RecruitmentChannel)
 - **Tests:** `tests/libs/test_code_generation.py`

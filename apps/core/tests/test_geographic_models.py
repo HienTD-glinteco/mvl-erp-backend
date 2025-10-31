@@ -66,9 +66,7 @@ class ProvinceModelTest(TestCase):
 
     def test_province_enabled_default(self):
         """Test that enabled defaults to True"""
-        province = Province.objects.create(
-            code="04", name="Test Province", level=Province.ProvinceLevel.PROVINCE
-        )
+        province = Province.objects.create(code="04", name="Test Province", level=Province.ProvinceLevel.PROVINCE)
         self.assertTrue(province.enabled)
 
 

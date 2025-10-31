@@ -23,30 +23,30 @@ This approach was necessary for quality but caused poor developer experience wit
 ```mermaid
 graph TD
     A[Agent Task Starts] --> B{Task Type?}
-    
+
     B -->|Documentation| C1[Phase 1: Read Files]
     B -->|Configuration| C2[Phase 1: Read Files]
     B -->|Code Change| C3[Phase 1: Read Files]
-    
+
     C1 --> D1[Make Changes]
     C2 --> D2[Make Changes]
     C3 --> D3[Analyze Code Structure]
-    
+
     D1 --> E1[Validate Markdown]
     D2 --> E2[Phase 2: Syntax Check]
     D3 --> E3[Phase 2: Install Deps]
-    
+
     E1 --> F1[Commit - Total: 15s]
     E2 --> F2[Phase 2: Run Basic Lint]
     E3 --> F3[Run Targeted Tests]
-    
+
     F2 --> F4[Commit - Total: 30s]
     F3 --> F5{Complex Change?}
-    
+
     F5 -->|No| F6[Commit - Total: 45s]
     F5 -->|Yes| F7[Phase 3: Full Validation]
     F7 --> F8[Commit - Total: 2-3min]
-    
+
     style C1 fill:#90EE90
     style C2 fill:#90EE90
     style C3 fill:#90EE90
@@ -129,7 +129,7 @@ graph LR
     F --> G[Make Changes<br/>Variable]
     G --> H[Re-run Checks<br/>60s]
     H --> I[Commit<br/>5s]
-    
+
     style B fill:#FFB6C1
     style C fill:#FFB6C1
     style D fill:#FFB6C1
@@ -162,7 +162,7 @@ graph LR
     E -->|Code| F2[Install Deps<br/>20s]
     F2 --> G[Targeted Tests<br/>10-30s]
     G --> H[Commit<br/>5s]
-    
+
     style B fill:#90EE90
     style C fill:#90EE90
     style D fill:#FFE4B5

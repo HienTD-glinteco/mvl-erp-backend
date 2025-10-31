@@ -2,18 +2,15 @@
 Tests for export progress tracking functionality.
 """
 
-from datetime import datetime
 from io import BytesIO
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
 from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
 from openpyxl import load_workbook
 
 from libs.export_xlsx import ExportProgressTracker, XLSXGenerator, get_progress
 from libs.export_xlsx.constants import (
-    DEFAULT_PROGRESS_CHUNK_SIZE,
     REDIS_PROGRESS_EXPIRE_SECONDS,
     REDIS_PROGRESS_KEY_PREFIX,
 )
@@ -443,7 +440,7 @@ class GenerateXLSXTaskProgressTests(SimpleTestCase):
 
         # Verify progress tracker was initialized
         self.assertTrue(mock_tracker_class.called)
-        
+
         # Verify progress methods were called
         mock_tracker.set_total.assert_called_once_with(250)
         mock_tracker.set_completed.assert_called_once()
@@ -551,7 +548,7 @@ class GenerateXLSXFromQuerysetTaskTests(TestCase):
 
         # Verify progress tracker was initialized
         self.assertTrue(mock_tracker_class.called)
-        
+
         # Verify set_total was called with row count
         mock_tracker.set_total.assert_called_once_with(2)
         mock_tracker.set_completed.assert_called_once()
@@ -619,6 +616,6 @@ class GenerateXLSXFromViewsetTaskTests(TestCase):
 
         # Verify progress tracker was initialized
         self.assertTrue(mock_tracker_class.called)
-        
+
         # Verify set_completed was called
         mock_tracker.set_completed.assert_called_once()

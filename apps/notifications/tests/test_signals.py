@@ -63,9 +63,7 @@ class TestNotificationSignals:
 
     @patch("apps.notifications.signals.send_push_notification_task")
     @patch("apps.notifications.signals.send_notification_email_task")
-    def test_trigger_send_notification_firebase_only(
-        self, mock_email_task, mock_push_task, notification_firebase
-    ):
+    def test_trigger_send_notification_firebase_only(self, mock_email_task, mock_push_task, notification_firebase):
         """Test that only push notification is sent for firebase delivery method."""
         # Act
         trigger_send_notification(notification_firebase)

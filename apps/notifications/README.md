@@ -319,18 +319,18 @@ The app includes Firebase Cloud Messaging support for sending push notifications
    ```bash
    # Enable FCM
    FCM_ENABLED=true
-   
+
    # Add Firebase credentials as a JSON string
    FCM_CREDENTIALS_JSON='{"type":"service_account","project_id":"your-project",...}'
    ```
-   
+
    **Important**: Never commit the credentials JSON to source control. Use environment variables or a secrets manager.
 
 4. **Update User Device Information**:
    - When users register their devices, store the FCM token:
    ```python
    from apps.core.models import UserDevice
-   
+
    device, created = UserDevice.objects.update_or_create(
        user=user,
        device_id=device_id,

@@ -288,14 +288,14 @@ Override for specific needs:
 class ProjectViewSet(ImportXLSXMixin, BaseModelViewSet):
     def get_import_schema(self, request, file):
         schema = super().get_import_schema(request, file)
-        
+
         # Add custom resolvers
         schema["resolvers"] = {
             "department": lambda value: Department.objects.get(
                 Q(code=value) | Q(name__iexact=value)
             )
         }
-        
+
         return schema
 ```
 

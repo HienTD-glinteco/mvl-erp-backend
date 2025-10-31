@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 10:26+0700\n"
+"POT-Creation-Date: 2025-10-30 19:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -253,7 +253,7 @@ msgstr ""
 msgid "Source file for import"
 msgstr ""
 
-#: apps/imports/models.py:37
+#: apps/imports/models.py:37 apps/mailtemplates/models.py:69
 msgid "Created by"
 msgstr ""
 
@@ -369,7 +369,7 @@ msgstr ""
 msgid "Date and time when the import job was created"
 msgstr ""
 
-#: apps/imports/models.py:133
+#: apps/imports/models.py:133 apps/mailtemplates/models.py:84
 msgid "Started at"
 msgstr ""
 
@@ -377,7 +377,7 @@ msgstr ""
 msgid "Date and time when the import job started processing"
 msgstr ""
 
-#: apps/imports/models.py:139
+#: apps/imports/models.py:139 apps/mailtemplates/models.py:90
 msgid "Finished at"
 msgstr ""
 
@@ -391,6 +391,244 @@ msgstr ""
 
 #: apps/imports/models.py:146
 msgid "Import Jobs"
+msgstr ""
+
+#: apps/mailtemplates/apps.py:8
+msgid "Mail Templates"
+msgstr ""
+
+#: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
+msgid "Pending"
+msgstr ""
+
+#: apps/mailtemplates/models.py:21
+msgid "Running"
+msgstr ""
+
+#: apps/mailtemplates/models.py:22
+msgid "Completed"
+msgstr ""
+
+#: apps/mailtemplates/models.py:23 apps/mailtemplates/models.py:124
+msgid "Failed"
+msgstr ""
+
+#: apps/mailtemplates/models.py:28
+msgid "Template slug"
+msgstr ""
+
+#: apps/mailtemplates/models.py:29
+msgid "Slug of the template used for this job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:34
+msgid "Email subject"
+msgstr ""
+
+#: apps/mailtemplates/models.py:35
+msgid "Subject line for the emails"
+msgstr ""
+
+#: apps/mailtemplates/models.py:38
+msgid "Sender email"
+msgstr ""
+
+#: apps/mailtemplates/models.py:39
+msgid "From email address"
+msgstr ""
+
+#: apps/mailtemplates/models.py:43
+msgid "Total recipients"
+msgstr ""
+
+#: apps/mailtemplates/models.py:44
+msgid "Total number of recipients in this job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:48
+msgid "Sent count"
+msgstr ""
+
+#: apps/mailtemplates/models.py:49
+msgid "Number of successfully sent emails"
+msgstr ""
+
+#: apps/mailtemplates/models.py:53
+msgid "Failed count"
+msgstr ""
+
+#: apps/mailtemplates/models.py:54
+msgid "Number of failed email sends"
+msgstr ""
+
+#: apps/mailtemplates/models.py:60
+msgid "Job status"
+msgstr ""
+
+#: apps/mailtemplates/models.py:61
+msgid "Current status of the send job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:70
+msgid "User who created this send job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:77
+msgid "Client request ID"
+msgstr ""
+
+#: apps/mailtemplates/models.py:78
+msgid "Optional idempotency key provided by client"
+msgstr ""
+
+#: apps/mailtemplates/models.py:85
+msgid "When the job started processing"
+msgstr ""
+
+#: apps/mailtemplates/models.py:91
+msgid "When the job finished processing"
+msgstr ""
+
+#: apps/mailtemplates/models.py:96
+msgid "Callback data"
+msgstr ""
+
+#: apps/mailtemplates/models.py:97
+msgid "Callback function and object reference to call after successful send"
+msgstr ""
+
+#: apps/mailtemplates/models.py:101
+msgid "Email send job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:102
+msgid "Email send jobs"
+msgstr ""
+
+#: apps/mailtemplates/models.py:123
+msgid "Sent"
+msgstr ""
+
+#: apps/mailtemplates/models.py:131
+msgid "Send job"
+msgstr ""
+
+#: apps/mailtemplates/models.py:132
+msgid "The send job this recipient belongs to"
+msgstr ""
+
+#: apps/mailtemplates/models.py:135
+msgid "Recipient email"
+msgstr ""
+
+#: apps/mailtemplates/models.py:136
+msgid "Email address of the recipient"
+msgstr ""
+
+#: apps/mailtemplates/models.py:140
+msgid "Template data"
+msgstr ""
+
+#: apps/mailtemplates/models.py:141
+msgid "Data used to render the template for this recipient"
+msgstr ""
+
+#: apps/mailtemplates/models.py:147
+msgid "Send status"
+msgstr ""
+
+#: apps/mailtemplates/models.py:148
+msgid "Current status of this email"
+msgstr ""
+
+#: apps/mailtemplates/models.py:153
+msgid "Attempt count"
+msgstr ""
+
+#: apps/mailtemplates/models.py:154
+msgid "Number of send attempts"
+msgstr ""
+
+#: apps/mailtemplates/models.py:158
+msgid "Last error"
+msgstr ""
+
+#: apps/mailtemplates/models.py:159
+msgid "Error message from the last failed attempt"
+msgstr ""
+
+#: apps/mailtemplates/models.py:164
+msgid "Message ID"
+msgstr ""
+
+#: apps/mailtemplates/models.py:165
+msgid "Provider message ID for tracking"
+msgstr ""
+
+#: apps/mailtemplates/models.py:170
+msgid "Sent at"
+msgstr ""
+
+#: apps/mailtemplates/models.py:171
+msgid "When the email was successfully sent"
+msgstr ""
+
+#: apps/mailtemplates/models.py:175
+msgid "Email send recipient"
+msgstr ""
+
+#: apps/mailtemplates/models.py:176
+msgid "Email send recipients"
+msgstr ""
+
+#: apps/mailtemplates/permissions.py:18 apps/mailtemplates/permissions.py:39
+#: apps/mailtemplates/permissions.py:60
+msgid "Authentication required"
+msgstr ""
+
+#: apps/mailtemplates/permissions.py:26
+msgid "Template editor permission required"
+msgstr ""
+
+#: apps/mailtemplates/permissions.py:47
+msgid "Mail sending permission required"
+msgstr ""
+
+#: apps/mailtemplates/permissions.py:68 apps/mailtemplates/view_mixins.py:114
+#: apps/mailtemplates/views.py:311
+msgid "Real data preview permission required"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:180
+msgid "No email address found for this object"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:247
+msgid "Email send job enqueued"
+msgstr ""
+
+#: apps/mailtemplates/views.py:242
+msgid "Failed to save template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:331
+msgid "Data or ref required for real mode"
+msgstr ""
+
+#: apps/mailtemplates/views.py:435
+msgid "Job with this client_request_id already exists"
+msgstr ""
+
+#: apps/mailtemplates/views.py:480
+msgid "Job enqueued"
+msgstr ""
+
+#: apps/mailtemplates/views.py:531
+msgid "Not authorized to view this job"
+msgstr ""
+
+#: apps/mailtemplates/views.py:540
+msgid "Job not found"
 msgstr ""
 
 #: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24

@@ -8,7 +8,7 @@ This document provides step-by-step instructions for setting up GitHub environme
 2. Go to **Settings** → **Environments**
 3. Create three environments:
    - `test`
-   - `staging` 
+   - `staging`
    - `production`
 
 ## 2. Configure Environment Protection Rules
@@ -63,7 +63,7 @@ STAGING_APP_URL=http://staging.yourdomain.com
 Environment variables are now managed directly on each server using `.env` files. Use the provided templates:
 
 - **Test Environment**: Copy `config/env/test.env.example` to `.env` and configure
-- **Staging Environment**: Copy `config/env/staging.env.example` to `.env` and configure  
+- **Staging Environment**: Copy `config/env/staging.env.example` to `.env` and configure
 - **Production Environment**: Will be provided when production deployment is implemented
 
 ## 5. Optional Deployment Secrets (Legacy - No Longer Used)

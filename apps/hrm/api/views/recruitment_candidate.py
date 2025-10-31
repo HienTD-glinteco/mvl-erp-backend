@@ -619,12 +619,12 @@ class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     @action(detail=True, methods=["post"], url_path="to-employee")
     def to_employee(self, request, pk=None):
         """Convert recruitment candidate to employee"""
-        import random
+        import secrets
 
         candidate = self.get_object()
 
         # Generate random 6-digit attendance code
-        attendance_code = str(random.randint(100000, 999999))
+        attendance_code = str(secrets.randbelow(900000) + 100000)  # nosec B311
 
         # Prepare employee data from candidate
         employee_data = {

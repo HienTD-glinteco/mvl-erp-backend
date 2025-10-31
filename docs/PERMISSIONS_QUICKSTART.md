@@ -67,11 +67,11 @@ def my_view(request):
 ```python
 class MyView(APIView):
     permission_classes = [RoleBasedPermission]
-    
+
     @register_permission("resource.list", "Xem danh sách")
     def get(self, request):
         pass
-    
+
     @register_permission("resource.create", "Tạo mới")
     def post(self, request):
         pass
@@ -81,11 +81,11 @@ class MyView(APIView):
 ```python
 class MyViewSet(viewsets.ModelViewSet):
     permission_classes = [RoleBasedPermission]
-    
+
     @register_permission("resource.list", "Xem danh sách")
     def list(self, request):
         pass
-    
+
     @action(detail=True, methods=["post"])
     @register_permission("resource.approve", "Phê duyệt")
     def approve(self, request, pk=None):
@@ -153,7 +153,7 @@ from apps.core.models import User
 
 class UserAdmin(BaseUserAdmin):
     filter_horizontal = BaseUserAdmin.filter_horizontal + ("roles",)
-    
+
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Roles & Permissions", {"fields": ("roles",)}),
     )

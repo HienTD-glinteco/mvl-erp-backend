@@ -5,7 +5,7 @@ from django.utils import timezone
 
 def mark_employee_onboarding_email_sent(employee_instance, recipient, **kwargs):
     """Mark employee onboarding email as sent.
-    
+
     Args:
         employee_instance: The Employee instance
         recipient: EmailSendRecipient instance
@@ -17,7 +17,7 @@ def mark_employee_onboarding_email_sent(employee_instance, recipient, **kwargs):
 
 def mark_interview_candidate_email_sent(interview_candidate_instance, recipient, **kwargs):
     """Mark interview candidate email as sent.
-    
+
     Args:
         interview_candidate_instance: The InterviewCandidate instance
         recipient: EmailSendRecipient instance

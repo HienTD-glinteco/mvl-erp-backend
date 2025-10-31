@@ -151,7 +151,7 @@ class ProjectViewSet(ImportXLSXMixin, BaseModelViewSet):
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {
             "sheets": [{
@@ -209,7 +209,7 @@ file: projects.xlsx
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {
             "sheets": [{
@@ -425,7 +425,7 @@ Combine multiple Excel columns into one field:
 
 This creates:
 1. Branch with mapped fields (code, name) - if not exists
-2. Block with Branch reference and mapped fields - if not exists  
+2. Block with Branch reference and mapped fields - if not exists
 3. Parent Department (if specified)
 4. Department with Block reference and mapped fields
 
@@ -614,7 +614,7 @@ class EmployeeImportSerializer(serializers.ModelSerializer):
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer  # Used for CRUD
-    
+
     def get_import_serializer_class(self):
         return EmployeeImportSerializer  # Used for imports
 ```
@@ -771,7 +771,7 @@ class RoleViewSet(ImportXLSXMixin, BaseModelViewSet):
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {
             "sheets": [{
@@ -952,7 +952,7 @@ def test_import_config_validation():
 
 **Cause**: Model name or app_label incorrect
 
-**Solution**: 
+**Solution**:
 ```python
 {
     "model": "Employee",
@@ -1037,7 +1037,7 @@ class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
 class EmployeeViewSet(ImportXLSXMixin, BaseModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     def get_import_config(self, request, file):
         return {
             "sheets": [{

@@ -159,8 +159,8 @@ class RoleViewSet(AuditLoggingMixin, ImportXLSXMixin, BaseModelViewSet):
     def get_import_schema(self, request, file):
         """
         Custom import schema.
-        
-        Excludes is_system_role from import to prevent 
+
+        Excludes is_system_role from import to prevent
         users from creating system roles via import.
         """
         return {
@@ -177,7 +177,7 @@ create a separate import serializer:
 ```python
 class RoleImportSerializer(serializers.ModelSerializer):
     """Serializer specifically for imports"""
-    
+
     class Meta:
         model = Role
         fields = ["code", "name", "description", "is_system_role"]
@@ -187,7 +187,7 @@ class RoleImportSerializer(serializers.ModelSerializer):
 class RoleViewSet(AuditLoggingMixin, ImportXLSXMixin, BaseModelViewSet):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer  # Used for CRUD operations
-    
+
     def get_import_serializer_class(self):
         """Use different serializer for imports"""
         return RoleImportSerializer
@@ -212,21 +212,21 @@ def create_role_import_file():
     """Create test XLSX file for role import"""
     workbook = Workbook()
     sheet = workbook.active
-    
+
     # Headers
     sheet["A1"] = "code"
     sheet["B1"] = "name"
     sheet["C1"] = "description"
-    
+
     # Data
     sheet["A2"] = "ADMIN"
     sheet["B2"] = "Administrator"
     sheet["C2"] = "Full system access"
-    
+
     sheet["A3"] = "USER"
     sheet["B3"] = "Regular User"
     sheet["C3"] = "Standard user permissions"
-    
+
     # Save to bytes
     output = io.BytesIO()
     workbook.save(output)
@@ -245,18 +245,18 @@ def test_import_roles():
     """Test role import functionality"""
     client = APIClient()
     client.login(username="admin", password="password")
-    
+
     # Create test file
     file = create_role_import_file()
-    
+
     # Import
     response = client.post("/api/roles/import/", {"file": file}, format="multipart")
-    
+
     # Validate
     assert response.status_code == 200
     assert response.data["success_count"] == 2
     assert response.data["error_count"] == 0
-    
+
     # Check database
     assert Role.objects.filter(code="ADMIN").exists()
     assert Role.objects.filter(code="USER").exists()
@@ -297,13 +297,13 @@ async function importRoles(file) {
   });
 
   const result = await response.json();
-  
+
   if (result.error_count > 0) {
     console.warn('Import completed with errors:', result.errors);
   } else {
     console.log(`Successfully imported ${result.success_count} roles`);
   }
-  
+
   return result;
 }
 ```
@@ -322,7 +322,7 @@ function RoleImporter() {
     if (!file) return;
 
     setImporting(true);
-    
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -347,15 +347,15 @@ function RoleImporter() {
   return (
     <div>
       <h2>Import Roles</h2>
-      <input 
-        type="file" 
+      <input
+        type="file"
         accept=".xlsx"
         onChange={handleFileUpload}
         disabled={importing}
       />
-      
+
       {importing && <p>Importing...</p>}
-      
+
       {result && (
         <div>
           <p>Success: {result.success_count} roles imported</p>

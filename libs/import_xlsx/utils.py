@@ -130,7 +130,7 @@ def resolve_many_to_many(field, value: Any) -> list:
     return instances
 
 
-def process_row(row: tuple, headers: list[str], field_mapping: dict, schema: dict, model) -> tuple[dict | None, dict]:
+def process_row(row: tuple, headers: list[str], field_mapping: dict, schema: dict, model) -> tuple[dict | None, dict]:  # noqa: C901
     """
     Process a single row of data.
 

@@ -254,6 +254,7 @@ class StorageBackendTests(TestCase):
         self.assertEqual(backend.storage_path, "test_exports")
         # Verify it uses FileSystemStorage, not default_storage
         from django.core.files.storage import FileSystemStorage
+
         self.assertIsInstance(backend.storage, FileSystemStorage)
 
     def test_get_s3_storage_backend(self):

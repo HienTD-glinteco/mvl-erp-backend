@@ -3,7 +3,7 @@
 import importlib
 import logging
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from celery import shared_task
 from django.apps import apps
@@ -13,6 +13,9 @@ from django.utils import timezone
 
 from .models import EmailSendJob, EmailSendRecipient
 from .services import get_template_metadata, render_and_prepare_email
+
+if TYPE_CHECKING:
+    from .constants import TemplateMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +97,7 @@ def send_email_job_task(self, job_id: str) -> dict[str, Any]:
     job.finished_at = timezone.now()
     job.save(update_fields=["status", "finished_at"])
 
-    logger.info(
-        f"Job {job_id} completed: {job.sent_count} sent, {job.failed_count} failed"
-    )
+    logger.info(f"Job {job_id} completed: {job.sent_count} sent, {job.failed_count} failed")
 
     return {
         "job_id": job_id,
@@ -108,7 +109,7 @@ def send_email_job_task(self, job_id: str) -> dict[str, Any]:
 def send_single_email(
     recipient: EmailSendRecipient,
     job: EmailSendJob,
-    template_meta: dict[str, Any],
+    template_meta: "TemplateMetadata",
     max_attempts: int,
 ) -> bool:
     """Send email to a single recipient with retry logic.
@@ -153,11 +154,11 @@ def send_single_email(
             recipient.save(update_fields=["status", "sent_at", "last_error"])
 
             logger.info(f"Email sent to {recipient.email} (attempt {attempt})")
-            
+
             # Execute callback if configured
             if job.callback_data:
                 execute_callback(job.callback_data, recipient)
-            
+
             return True
 
         except Exception as e:
@@ -185,7 +186,7 @@ def send_single_email(
 
 def execute_callback(callback_data: dict[str, Any], recipient: EmailSendRecipient) -> None:
     """Execute callback function after successful email send.
-    
+
     Args:
         callback_data: Dictionary containing callback information
         recipient: EmailSendRecipient instance that was successfully sent
@@ -195,15 +196,18 @@ def execute_callback(callback_data: dict[str, Any], recipient: EmailSendRecipien
         app_label = callback_data.get("app_label")
         model_name = callback_data.get("model_name")
         object_id = callback_data.get("object_id")
-        
+
         if not all([app_label, model_name, object_id]):
             logger.warning("Callback data missing required fields")
             return
-        
+
         # Get the model and instance
+        if app_label is None or model_name is None:
+            logger.warning("app_label or model_name is None")
+            return
         model = apps.get_model(app_label, model_name)
         instance = model.objects.get(pk=object_id)
-        
+
         # Get the callback function
         callback_fn = None
         if "path" in callback_data:
@@ -215,17 +219,17 @@ def execute_callback(callback_data: dict[str, Any], recipient: EmailSendRecipien
             # Import from module and function name
             module = importlib.import_module(callback_data["module"])
             callback_fn = getattr(module, callback_data["function"])
-        
+
         if callback_fn and callable(callback_fn):
             # Get additional params if provided
             params = callback_data.get("params", {})
-            
+
             # Call the callback with instance, recipient, and additional params
             callback_fn(instance, recipient, **params)
             logger.info(f"Executed callback for {instance} after sending to {recipient.email}")
         else:
             logger.warning("Callback function not found or not callable")
-            
+
     except Exception as e:
         # Log error but don't fail the email send
         logger.error(f"Error executing callback: {e}", exc_info=True)

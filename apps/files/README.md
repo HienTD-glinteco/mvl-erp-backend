@@ -115,7 +115,7 @@ from apps.hrm.models import JobDescription
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     # Note: 'files' field is automatically added by the mixin
-    
+
     class Meta:
         model = JobDescription
         fields = [

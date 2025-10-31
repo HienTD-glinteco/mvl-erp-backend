@@ -144,7 +144,7 @@ The system was added in migration `0005_add_permission_and_role_models.py`:
 ```python
 # Creates:
 - core_permission table
-- core_role table  
+- core_role table
 - core_role_permissions (ManyToMany join table)
 - core_user_roles (ManyToMany join table)
 ```
@@ -195,12 +195,12 @@ from apps.core.utils import register_permission
 
 class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [RoleBasedPermission]
-    
+
     @register_permission("document.list", "Xem danh sách tài liệu")
     def list(self, request):
         # Only users with document.list permission can access
         pass
-    
+
     @register_permission("document.create", "Tạo tài liệu")
     def create(self, request):
         # Only users with document.create permission can access
@@ -218,7 +218,7 @@ view_perm = Permission.objects.create(
     description="Xem tài liệu"
 )
 edit_perm = Permission.objects.create(
-    code="document.edit", 
+    code="document.edit",
     description="Sửa tài liệu"
 )
 

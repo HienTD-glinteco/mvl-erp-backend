@@ -8,7 +8,6 @@ This module provides services for:
 - Data validation against JSON schemas
 """
 
-import os
 import time
 from pathlib import Path
 from typing import Any
@@ -74,7 +73,7 @@ def get_template_by_action(action_key: str) -> tuple[TemplateMetadata, dict[str,
         action_key: Action identifier (e.g., 'send_welcome_email')
 
     Returns:
-        Tuple of (template_metadata, action_config)
+        Tuple of (template_metadata, action_config_dict)
 
     Raises:
         TemplateNotFoundError: If action is not found or template doesn't exist
@@ -86,7 +85,7 @@ def get_template_by_action(action_key: str) -> tuple[TemplateMetadata, dict[str,
     template_slug = action_config["template_slug"]
     template_meta = get_template_metadata(template_slug)
 
-    return template_meta, action_config
+    return template_meta, dict(action_config)
 
 
 def get_template_file_path(filename: str) -> Path:
@@ -321,7 +320,7 @@ def render_template_content(
             env = SandboxedEnvironment(undefined=StrictUndefined)
         else:
             env = SandboxedEnvironment()
-        
+
         template = env.from_string(template_content)
 
         # Render template

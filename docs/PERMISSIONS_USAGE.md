@@ -82,12 +82,12 @@ from apps.core.utils import register_permission
 
 class DocumentView(APIView):
     permission_classes = [RoleBasedPermission]
-    
+
     @register_permission("document.list", "Xem danh sách tài liệu")
     def get(self, request):
         # List documents
         return Response({"documents": []})
-    
+
     @register_permission("document.create", "Tạo tài liệu")
     def post(self, request):
         # Create document
@@ -104,15 +104,15 @@ from apps.core.utils import register_permission
 
 class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [RoleBasedPermission]
-    
+
     @register_permission("document.list", "Xem danh sách tài liệu")
     def list(self, request):
         return Response({"documents": []})
-    
+
     @register_permission("document.create", "Tạo tài liệu")
     def create(self, request):
         return Response({"message": "Document created"})
-    
+
     @action(detail=True, methods=["post"])
     @register_permission("document.approve", "Phê duyệt tài liệu")
     def approve(self, request, pk=None):
@@ -237,12 +237,12 @@ class MyViewPermissionTestCase(TestCase):
         )
         self.role = Role.objects.create(name="Editor")
         self.role.permissions.add(self.permission)
-    
+
     def test_user_with_permission_can_access(self):
         self.user.role = self.role
         self.user.save()
         # Test your view here
-        
+
     def test_user_without_permission_cannot_access(self):
         # User has no roles
         # Test that view returns 403

@@ -136,8 +136,12 @@ class TemplateMetadataResponseSerializer(serializers.Serializer):
     variables = serializers.ListField()
     sample_data = serializers.JSONField()
     content = serializers.CharField(required=False, help_text="Template HTML content (only when include_content=true)")
-    sample_preview_html = serializers.CharField(required=False, help_text="Sample preview HTML (only when include_preview=true)")
-    sample_preview_text = serializers.CharField(required=False, help_text="Sample preview plain text (only when include_preview=true)")
+    sample_preview_html = serializers.CharField(
+        required=False, help_text="Sample preview HTML (only when include_preview=true)"
+    )
+    sample_preview_text = serializers.CharField(
+        required=False, help_text="Sample preview plain text (only when include_preview=true)"
+    )
 
 
 class TemplatePreviewResponseSerializer(serializers.Serializer):

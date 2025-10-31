@@ -1,15 +1,14 @@
 """Comprehensive tests for mail templates including domain actions."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from django.test import TestCase
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import User
 from apps.mailtemplates.models import EmailSendJob, EmailSendRecipient
-from apps.mailtemplates.services import render_and_prepare_email, get_template_metadata
+from apps.mailtemplates.services import get_template_metadata, render_and_prepare_email
 
 
 class MailTemplatesComprehensiveTest(TestCase):
@@ -46,7 +45,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.assertTrue(data["success"])
         self.assertIsInstance(data["data"], list)
         self.assertGreater(len(data["data"]), 0)
-        
+
         # Check template structure
         template = data["data"][0]
         self.assertIn("slug", template)
@@ -66,7 +65,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
-        
+
         # Check preview fields are included
         template = data[0]
         self.assertIn("sample_preview_html", template)
@@ -250,9 +249,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.client.force_authenticate(user=self.user)  # Non-staff
         data = {
             "subject": "Test",
-            "recipients": [
-                {"email": "test@example.com", "data": {"fullname": "Test", "start_date": "2025-11-01"}}
-            ],
+            "recipients": [{"email": "test@example.com", "data": {"fullname": "Test", "start_date": "2025-11-01"}}],
         }
 
         # Act

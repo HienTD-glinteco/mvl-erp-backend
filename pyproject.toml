@@ -12,6 +12,7 @@ dynamic = ["dependencies"]
 [tool.ruff]
 line-length = 119
 target-version = "py312"
+exclude = ["docs/"]
 
 [tool.ruff.lint]
 select = [

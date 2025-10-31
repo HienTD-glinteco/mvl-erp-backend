@@ -58,25 +58,25 @@ from apps.mailtemplates.view_mixins import TemplateActionMixin
 from apps.mailtemplates.permissions import CanSendMail
 
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
-    
+
     @action(detail=True, methods=["post"], url_path="send_welcome_email/preview")
     def send_welcome_email_preview(self, request, pk=None):
         return self.preview_template_email("welcome", request, pk)
-    
+
     @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
             permission_classes=[CanSendMail])
     def send_welcome_email_send(self, request, pk=None):
         return self.send_template_email("welcome", request, pk)
-    
+
     @action(detail=True, methods=["post"], url_path="send_contract/preview")
     def send_contract_preview(self, request, pk=None):
         return self.preview_template_email("contract", request, pk)
-    
+
     @action(detail=True, methods=["post"], url_path="send_contract/send",
             permission_classes=[CanSendMail])
     def send_contract_send(self, request, pk=None):
         return self.send_template_email("contract", request, pk)
-    
+
     # Optionally override data extraction
     def get_template_action_data(self, instance, template_slug):
         data = super().get_template_action_data(instance, template_slug)
@@ -110,25 +110,25 @@ def mark_welcome_email_sent(employee_instance, recipient, **kwargs):
     """Mark employee as having received welcome email."""
     notification_type = kwargs.get("notification_type", "welcome")
     source = kwargs.get("source", "unknown")
-    
+
     employee_instance.is_sent_welcome_email = True
     employee_instance.last_notification_type = notification_type
     employee_instance.last_notification_source = source
     employee_instance.save(update_fields=[
-        "is_sent_welcome_email", 
+        "is_sent_welcome_email",
         "last_notification_type",
         "last_notification_source"
     ])
 
 class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
-    
+
     @action(detail=True, methods=["post"], url_path="send_welcome_email/send",
             permission_classes=[CanSendMail])
     def send_welcome_email_send(self, request, pk=None):
         # Pass the callback function with additional parameters
         return self.send_template_email(
-            "welcome", 
-            request, 
+            "welcome",
+            request,
             pk,
             on_success_callback=mark_welcome_email_sent,
             callback_params={
@@ -154,8 +154,8 @@ You can also pass a string path to the callback function:
         permission_classes=[CanSendMail])
 def send_welcome_email_send(self, request, pk=None):
     return self.send_template_email(
-        "welcome", 
-        request, 
+        "welcome",
+        request,
         pk,
         on_success_callback="apps.hrm.callbacks.mark_welcome_email_sent",
         callback_params={"notification_type": "welcome", "source": "api"}

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, name="import_xlsx.import_file")
-def import_xlsx_task(self, app_label, model_name, file_path, schema, user_id=None):
+def import_xlsx_task(self, app_label, model_name, file_path, schema, user_id=None):  # noqa: C901
     """
     Background task to import XLSX file.
 

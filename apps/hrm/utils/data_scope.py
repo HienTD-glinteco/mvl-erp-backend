@@ -1,12 +1,20 @@
 """Data scope filtering utilities for position-based access control."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q, QuerySet
 
 from apps.hrm.constants import DataScope
+
+if TYPE_CHECKING:
+    from apps.core.models import User as UserType
+else:
+    UserType = Any
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -17,12 +25,12 @@ class AllowedUnits:
     """Container for allowed organizational units based on data scope"""
 
     has_all: bool = False
-    branches: set = None
-    blocks: set = None
-    departments: set = None
-    employees: set = None
+    branches: set[int] = None  # type: ignore[assignment]
+    blocks: set[int] = None  # type: ignore[assignment]
+    departments: set[int] = None  # type: ignore[assignment]
+    employees: set[int] = None  # type: ignore[assignment]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize empty sets if None"""
         if self.branches is None:
             self.branches = set()
@@ -34,7 +42,7 @@ class AllowedUnits:
             self.employees = set()
 
 
-def collect_allowed_units(user: User) -> AllowedUnits:  # noqa: C901
+def collect_allowed_units(user: UserType) -> AllowedUnits:  # noqa: C901
     """
     Collect allowed organizational units based on user's positions and their data scopes.
 
@@ -132,7 +140,7 @@ def collect_allowed_units(user: User) -> AllowedUnits:  # noqa: C901
 
 
 def filter_queryset_by_data_scope(  # noqa: C901
-    queryset: QuerySet, user: User, org_field: str = "department"
+    queryset: QuerySet, user: UserType, org_field: str = "department"
 ) -> QuerySet:
     """
     Filter a queryset based on user's position data scopes.
@@ -176,8 +184,8 @@ def filter_queryset_by_data_scope(  # noqa: C901
             # Test if this field path is valid by attempting to build it
             queryset.filter(test_q).query  # noqa: B018
             branch_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Branch filter path not valid for {org_field}: {e}")
         # Path 2: direct branch on the related model (for branch-level assignments)
         # Remove the last part of org_field (e.g., "department") and add "branch"
         if "__" in org_field:
@@ -186,15 +194,15 @@ def filter_queryset_by_data_scope(  # noqa: C901
                 test_q = Q(**{f"{base_field}__branch__in": allowed.branches})
                 queryset.filter(test_q).query  # noqa: B018
                 branch_q |= test_q
-            except Exception:
-                pass
+            except Exception as e:  # noqa: S110
+                logger.debug(f"Branch filter path not valid for {base_field}: {e}")
         # Path 3: direct branch field on the model (for OrganizationChart, etc.)
         try:
             test_q = Q(**{"branch__in": allowed.branches})
             queryset.filter(test_q).query  # noqa: B018
             branch_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Direct branch filter not valid: {e}")
 
         if branch_q:
             q_filter |= branch_q
@@ -207,8 +215,8 @@ def filter_queryset_by_data_scope(  # noqa: C901
             test_q = Q(**{f"{org_field}__block__in": allowed.blocks})
             queryset.filter(test_q).query  # noqa: B018
             block_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Block filter path not valid for {org_field}: {e}")
         # Path 2: direct block relationship
         if "__" in org_field:
             try:
@@ -216,15 +224,15 @@ def filter_queryset_by_data_scope(  # noqa: C901
                 test_q = Q(**{f"{base_field}__block__in": allowed.blocks})
                 queryset.filter(test_q).query  # noqa: B018
                 block_q |= test_q
-            except Exception:
-                pass
+            except Exception as e:  # noqa: S110
+                logger.debug(f"Block filter path not valid for {base_field}: {e}")
         # Path 3: direct block field on the model
         try:
             test_q = Q(**{"block__in": allowed.blocks})
             queryset.filter(test_q).query  # noqa: B018
             block_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Direct block filter not valid: {e}")
 
         if block_q:
             q_filter |= block_q
@@ -236,26 +244,26 @@ def filter_queryset_by_data_scope(  # noqa: C901
             test_q = Q(**{f"{org_field}__in": allowed.departments})
             queryset.filter(test_q).query  # noqa: B018
             department_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Department filter path not valid for {org_field}: {e}")
         try:
             test_q = Q(**{f"{org_field}__id__in": allowed.departments})
             queryset.filter(test_q).query  # noqa: B018
             department_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Department filter path not valid for {org_field}__id: {e}")
         try:
             test_q = Q(**{"department__in": allowed.departments})
             queryset.filter(test_q).query  # noqa: B018
             department_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Direct department filter not valid: {e}")
         try:
             test_q = Q(**{"department__id__in": allowed.departments})
             queryset.filter(test_q).query  # noqa: B018
             department_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Direct department__id filter not valid: {e}")
 
         if department_q:
             q_filter |= department_q
@@ -267,20 +275,20 @@ def filter_queryset_by_data_scope(  # noqa: C901
             test_q = Q(**{"employee__in": allowed.employees})
             queryset.filter(test_q).query  # noqa: B018
             employee_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Employee filter not valid: {e}")
         try:
             test_q = Q(**{"employee__id__in": allowed.employees})
             queryset.filter(test_q).query  # noqa: B018
             employee_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"Employee__id filter not valid: {e}")
         try:
             test_q = Q(**{"id__in": allowed.employees})  # If the model itself is User
             queryset.filter(test_q).query  # noqa: B018
             employee_q |= test_q
-        except Exception:
-            pass
+        except Exception as e:  # noqa: S110
+            logger.debug(f"ID filter not valid: {e}")
 
         if employee_q:
             q_filter |= employee_q

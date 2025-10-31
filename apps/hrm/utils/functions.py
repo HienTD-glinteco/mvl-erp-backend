@@ -87,13 +87,13 @@ def get_last_6_months_range():
 def get_week_key_from_date(report_date):
     """Generate week key from a date.
 
-    Week key format: "Tuần W - MM/YYYY" where W is the week number in the month.
+    Week key format: "Week W - MM/YYYY" where W is the week number in the month.
 
     Args:
         report_date: A date object
 
     Returns:
-        str: Week key in format "Tuần W - MM/YYYY" (e.g., "Tuần 1 - 07/2025")
+        str: Week key in format "Week W - MM/YYYY" (e.g., "Week 1 - 07/2025")
     """
     # Get the Monday of the week containing report_date
     monday = report_date - timedelta(days=report_date.weekday())

@@ -8,9 +8,7 @@ def backfill_org_chart_block_branch(apps, schema_editor):
     OrganizationChart = apps.get_model("hrm", "OrganizationChart")
 
     # Get all org charts with department but missing block/branch
-    org_charts = OrganizationChart.objects.filter(department__isnull=False).select_related(
-        "department__block__branch"
-    )
+    org_charts = OrganizationChart.objects.filter(department__isnull=False).select_related("department__block__branch")
 
     updated_count = 0
     for org_chart in org_charts:
@@ -40,9 +38,8 @@ def reverse_backfill(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0026_add_data_scope_and_org_fields'),
+        ("hrm", "0026_add_data_scope_and_org_fields"),
     ]
 
     operations = [
