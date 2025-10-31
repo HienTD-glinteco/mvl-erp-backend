@@ -92,3 +92,5 @@ HELP_TEXT_IS_ACTIVE = "Whether this relationship record is active"
 MAX_ATTACHMENT_SIZE_MB = 10
 NATIONAL_ID_LENGTH_9 = 9
 NATIONAL_ID_LENGTH_12 = 12
+PHONE_INTL_LENGTH = 12  # +84 + 9 digits
+PHONE_LOCAL_LENGTH = 10  # 0 + 9 digits

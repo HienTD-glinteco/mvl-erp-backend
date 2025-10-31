@@ -230,8 +230,11 @@ class RelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     def get_queryset(self):
         """Filter to show only active relationships by default"""
         queryset = super().get_queryset()
-        # By default, show only active relationships unless explicitly filtered otherwise
-        if "is_active" not in self.request.query_params:
+        # Show only active relationships by default unless is_active filter is explicitly provided
+        # Check if filterset will handle is_active (presence in query params)
+        # If not present, apply default filter
+        request = self.request
+        if request and "is_active" not in request.query_params:
             queryset = queryset.filter(is_active=True)
         return queryset
 

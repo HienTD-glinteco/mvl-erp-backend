@@ -42,12 +42,6 @@ class RelationshipSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
             "updated_at",
         ]
 
-    def validate(self, attrs):
-        """Additional validation for file size"""
-        # File size validation is handled by the FileConfirmSerializerMixin
-        # and the files app, but we can add additional checks here if needed
-        return attrs
-
     def create(self, validated_data):
         """Create relationship with current user as creator"""
         request = self.context.get("request")

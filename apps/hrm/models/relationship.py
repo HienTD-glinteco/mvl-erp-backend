@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -21,6 +20,8 @@ from ..constants import (
     HELP_TEXT_RELATIVE_NAME,
     NATIONAL_ID_LENGTH_9,
     NATIONAL_ID_LENGTH_12,
+    PHONE_INTL_LENGTH,
+    PHONE_LOCAL_LENGTH,
     RelationType,
 )
 
@@ -47,11 +48,11 @@ def validate_phone(value):
         # Vietnamese phone validation
         if cleaned.startswith("+84"):
             # International format: +84 followed by 9 digits
-            if len(cleaned) != 12:  # +84 + 9 digits
+            if len(cleaned) != PHONE_INTL_LENGTH:
                 raise ValidationError(_("Phone number with +84 must be followed by 9 digits."))
         elif cleaned.startswith("0"):
             # Local format: 0 followed by 9 digits (total 10)
-            if len(cleaned) != 10:
+            if len(cleaned) != PHONE_LOCAL_LENGTH:
                 raise ValidationError(_("Phone number starting with 0 must be exactly 10 digits."))
         else:
             raise ValidationError(_("Phone number must start with 0 or +84."))
@@ -128,7 +129,7 @@ class Relationship(BaseModel):
     national_id = models.CharField(
         max_length=12,
         blank=True,
-        validators=[RegexValidator(r"^\d+$", _("National ID must contain only digits.")), validate_national_id],
+        validators=[validate_national_id],
         verbose_name=_("National ID"),
         help_text=HELP_TEXT_NATIONAL_ID,
     )
