@@ -54,11 +54,15 @@ class RelationType(models.TextChoices):
     """Employee relationship types for next-of-kin management"""
 
     CHILD = "CHILD", _("Child")
-    SPOUSE = "SPOUSE", _("Spouse")
-    PARTNER = "PARTNER", _("Partner")
-    PARENT = "PARENT", _("Parent")
+    WIFE = "WIFE", _("Wife")
+    HUSBAND = "HUSBAND", _("Husband")
+    FATHER = "FATHER", _("Father")
+    MONTHER = "MONTHER", _("Monther")
+    BROTHER = "BROTHER", _("Brother")
+    SISTER = "SISTER", _("Sister")
     SIBLING = "SIBLING", _("Sibling")
-    GRANDPARENT = "GRANDPARENT", _("Grandparent")
+    GRANDFATHER = "GRANDFATHER", _("Grandfather")
+    GRANDMOTHER = "GRANDMOTHER", _("Grandmother")
     OTHER = "OTHER", _("Other")
 
 
