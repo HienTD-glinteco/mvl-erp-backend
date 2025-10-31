@@ -1,6 +1,7 @@
 from .contract_type import ContractType
 from .employee import Employee
 from .employee_certificate import EmployeeCertificate
+from .employee_dependent import EmployeeDependent
 from .employee_relationship import EmployeeRelationship
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
@@ -34,6 +35,7 @@ __all__ = [
     "OrganizationChart",
     "Employee",
     "EmployeeCertificate",
+    "EmployeeDependent",
     "ContractType",
     "RecruitmentChannel",
     "RecruitmentSource",
