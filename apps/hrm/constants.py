@@ -48,3 +48,22 @@ class DataScope(models.TextChoices):
     BLOCK = "block", _("Block level")
     DEPARTMENT = "department", _("Department level")
     SELF = "self", _("Self only")
+
+
+class CertificateType(models.TextChoices):
+    """Certificate types for employee qualifications"""
+
+    FOREIGN_LANGUAGE = "foreign_language", _("Foreign language certificate")
+    COMPUTER = "computer", _("Computer certificate")
+    DIPLOMA = "diploma", _("Graduation diploma")
+    OTHER = "other", _("Other")
+    BROKER_TRAINING_COMPLETION = "broker_training_completion", _("Broker training completion")
+    REAL_ESTATE_PRACTICE_LICENSE = "real_estate_practice_license", _("Real estate practice license")
+
+    @classmethod
+    def dict_choices(cls) -> dict:
+        return dict(cls.choices)
+
+    @classmethod
+    def get_label(cls, raw_value: str) -> str:
+        return cls.dict_choices().get(raw_value, raw_value)
