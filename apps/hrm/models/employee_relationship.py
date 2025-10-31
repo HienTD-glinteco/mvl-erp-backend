@@ -6,19 +6,7 @@ from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
 from libs.models import BaseModel
 
-from ..constants import (
-    HELP_TEXT_ADDRESS,
-    HELP_TEXT_ATTACHMENT,
-    HELP_TEXT_DATE_OF_BIRTH,
-    HELP_TEXT_EMPLOYEE,
-    HELP_TEXT_IS_ACTIVE,
-    HELP_TEXT_NATIONAL_ID,
-    HELP_TEXT_NOTE,
-    HELP_TEXT_PHONE,
-    HELP_TEXT_RELATION_TYPE,
-    HELP_TEXT_RELATIVE_NAME,
-    RelationType,
-)
+from ..constants import RelationType
 from ..utils.validators import validate_national_id, validate_phone
 
 
@@ -50,7 +38,7 @@ class EmployeeRelationship(BaseModel):
         on_delete=models.PROTECT,
         related_name="relationships",
         verbose_name=_("Employee"),
-        help_text=HELP_TEXT_EMPLOYEE,
+        help_text=_("Employee associated with this relationship"),
     )
 
     # Cached fields for performance
@@ -73,21 +61,21 @@ class EmployeeRelationship(BaseModel):
     relative_name = models.CharField(
         max_length=255,
         verbose_name=_("Relative name"),
-        help_text=HELP_TEXT_RELATIVE_NAME,
+        help_text=_("Full name of the relative"),
     )
 
     relation_type = models.CharField(
         max_length=20,
         choices=RelationType.choices,
         verbose_name=_("Relation type"),
-        help_text=HELP_TEXT_RELATION_TYPE,
+        help_text=_("Type of relationship to the employee"),
     )
 
     date_of_birth = models.DateField(
         null=True,
         blank=True,
         verbose_name=_("Date of birth"),
-        help_text=HELP_TEXT_DATE_OF_BIRTH,
+        help_text=_("Date of birth of the relative"),
     )
 
     national_id = models.CharField(
@@ -95,13 +83,13 @@ class EmployeeRelationship(BaseModel):
         blank=True,
         validators=[validate_national_id],
         verbose_name=_("National ID"),
-        help_text=HELP_TEXT_NATIONAL_ID,
+        help_text=_("National ID (CMND/CCCD) - 9 or 12 digits"),
     )
 
     address = models.TextField(
         blank=True,
         verbose_name=_("Address"),
-        help_text=HELP_TEXT_ADDRESS,
+        help_text=_("Residential address of the relative"),
     )
 
     phone = models.CharField(
@@ -109,7 +97,7 @@ class EmployeeRelationship(BaseModel):
         blank=True,
         validators=[validate_phone],
         verbose_name=_("Phone"),
-        help_text=HELP_TEXT_PHONE,
+        help_text=_("Contact phone number"),
     )
 
     attachment = models.ForeignKey(
@@ -119,19 +107,19 @@ class EmployeeRelationship(BaseModel):
         blank=True,
         related_name="relationship_attachments",
         verbose_name=_("Attachment"),
-        help_text=HELP_TEXT_ATTACHMENT,
+        help_text=_("Supporting document or file attachment"),
     )
 
     note = models.TextField(
         blank=True,
         verbose_name=_("Note"),
-        help_text=HELP_TEXT_NOTE,
+        help_text=_("Additional notes or information"),
     )
 
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Is active"),
-        help_text=HELP_TEXT_IS_ACTIVE,
+        help_text=_("Whether this relationship record is active"),
     )
 
     created_by = models.ForeignKey(

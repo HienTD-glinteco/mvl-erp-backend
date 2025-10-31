@@ -62,18 +62,6 @@ class RelationType(models.TextChoices):
     OTHER = "OTHER", _("Other")
 
 
-# Employee Relationship field help text constants
-HELP_TEXT_EMPLOYEE = "Employee associated with this relationship"
-HELP_TEXT_RELATIVE_NAME = "Full name of the relative"
-HELP_TEXT_RELATION_TYPE = "Type of relationship to the employee"
-HELP_TEXT_DATE_OF_BIRTH = "Date of birth of the relative"
-HELP_TEXT_NATIONAL_ID = "National ID (CMND/CCCD) - 9 or 12 digits"
-HELP_TEXT_ADDRESS = "Residential address of the relative"
-HELP_TEXT_PHONE = "Contact phone number"
-HELP_TEXT_ATTACHMENT = "Supporting document or file attachment"
-HELP_TEXT_NOTE = "Additional notes or information"
-HELP_TEXT_IS_ACTIVE = "Whether this relationship record is active"
-
 # Validation constants
 MAX_ATTACHMENT_SIZE_MB = 10
 NATIONAL_ID_LENGTH_9 = 9
