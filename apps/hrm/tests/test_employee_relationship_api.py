@@ -79,7 +79,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.relationship_data = {
             "employee": self.employee.id,
             "relative_name": "Jane Doe",
-            "relation_type": "SPOUSE",
+            "relation_type": "WIFE",
             "date_of_birth": "1990-05-15",
             "national_id": "123456789",
             "address": "123 Main Street",
@@ -112,7 +112,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         minimal_data = {
             "employee": self.employee.id,
             "relative_name": "Bob Smith",
-            "relation_type": "PARENT",
+            "relation_type": "FATHER",
         }
         response = self.client.post(url, minimal_data, format="json")
 
@@ -218,7 +218,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
 
         data2 = self.relationship_data.copy()
         data2["relative_name"] = "John Smith"
-        data2["relation_type"] = "PARENT"
+        data2["relation_type"] = "FATHER"
         self.client.post(url, data2, format="json")
 
         # List relationships
@@ -373,16 +373,16 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
 
         data2 = self.relationship_data.copy()
         data2["relative_name"] = "Parent Name"
-        data2["relation_type"] = "PARENT"
+        data2["relation_type"] = "FATHER"
         self.client.post(url, data2, format="json")
 
-        # Filter by SPOUSE
-        response = self.client.get(url, {"relation_type": "SPOUSE"})
+        # Filter by WIFE
+        response = self.client.get(url, {"relation_type": "WIFE"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["relation_type"], "SPOUSE")
+        self.assertEqual(response_data[0]["relation_type"], "WIFE")
 
     def test_filter_by_is_active(self):
         """Test filtering relationships by is_active status"""
@@ -455,7 +455,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.client.post(url, self.relationship_data, format="json")
 
         # Search by relation type
-        response = self.client.get(url, {"search": "SPOUSE"})
+        response = self.client.get(url, {"search": "WIFE"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)

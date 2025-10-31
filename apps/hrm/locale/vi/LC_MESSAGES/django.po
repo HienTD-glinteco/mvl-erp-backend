@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 14:33+0700\n"
+"POT-Creation-Date: 2025-10-31 16:04+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -166,50 +166,68 @@ msgid "Child"
 msgstr ""
 
 #: apps/hrm/constants.py:57
-msgid "Spouse"
+msgid "Wife"
 msgstr ""
 
 #: apps/hrm/constants.py:58
-msgid "Partner"
+msgid "Husband"
 msgstr ""
 
 #: apps/hrm/constants.py:59
-msgid "Parent"
+msgid "Father"
 msgstr ""
 
 #: apps/hrm/constants.py:60
+#, fuzzy
+#| msgid "Month"
+msgid "Monther"
+msgstr "Tháng"
+
+#: apps/hrm/constants.py:61
+msgid "Brother"
+msgstr ""
+
+#: apps/hrm/constants.py:62
+msgid "Sister"
+msgstr ""
+
+#: apps/hrm/constants.py:63
 msgid "Sibling"
 msgstr ""
 
 # models/organization.py:80
-#: apps/hrm/constants.py:61
+#: apps/hrm/constants.py:64
 #, fuzzy
 #| msgid "Parent department"
-msgid "Grandparent"
+msgid "Grandfather"
 msgstr "Phòng ban cha"
 
-#: apps/hrm/constants.py:62 apps/hrm/constants.py:79
+#: apps/hrm/constants.py:65
+msgid "Grandmother"
+msgstr ""
+
+#: apps/hrm/constants.py:66 apps/hrm/constants.py:83
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr ""
 
-#: apps/hrm/constants.py:76
+#: apps/hrm/constants.py:80
 msgid "Foreign language certificate"
 msgstr ""
 
-#: apps/hrm/constants.py:77
+#: apps/hrm/constants.py:81
 msgid "Computer certificate"
 msgstr ""
 
-#: apps/hrm/constants.py:78
+#: apps/hrm/constants.py:82
 msgid "Graduation diploma"
 msgstr ""
 
-#: apps/hrm/constants.py:80
+#: apps/hrm/constants.py:84
 msgid "Broker training completion"
 msgstr ""
 
-#: apps/hrm/constants.py:81
+#: apps/hrm/constants.py:85
 msgid "Real estate practice license"
 msgstr ""
 
