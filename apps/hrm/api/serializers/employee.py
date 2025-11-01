@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
@@ -168,7 +169,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         }
 
     def validate(self, attrs):
-        """Validate recruitment candidate data by delegating to model's clean() method
+        """Validate employee data by delegating to model's clean() method.
 
         Note: Field-level validators (e.g., RegexValidator on citizen_id) are automatically
         run by DRF before this method is called, so we only need to call clean() here
@@ -192,3 +193,15 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
                 raise serializers.ValidationError({"non_field_errors": e.messages})
 
         return attrs
+
+    def validate_attendance_code(self, value):
+        """Validate attendance_code uniqueness."""
+        # Check if attendance_code already exists (excluding current instance on update)
+        queryset = Employee.objects.filter(attendance_code=value)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise serializers.ValidationError(_("An employee with this attendance code already exists."))
+
+        return value
