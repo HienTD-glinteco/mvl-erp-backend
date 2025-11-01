@@ -1,5 +1,5 @@
 [run]
-source = apps
+source = apps,lib
 concurrency = multiprocessing
 parallel = true
 omit =
