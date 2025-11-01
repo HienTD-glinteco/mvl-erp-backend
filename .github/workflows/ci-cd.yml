@@ -189,7 +189,18 @@ jobs:
     - name: Run tests
       run: |
         source .venv/bin/activate
-        ENVIRONMENT=test python -m pytest apps/ -v --tb=short --cov=apps --cov-report=xml -n auto -x
+        # Run tests with optimized settings for CI/CD
+        # --dist=loadgroup: distribute tests by module for better caching
+        # -n auto: use all available CPU cores
+        # --maxfail=10: fail fast after 10 failures
+        ENVIRONMENT=test python -m pytest apps/ \
+          -v \
+          --tb=short \
+          --cov=apps \
+          --cov-report=xml \
+          -n auto \
+          --dist=loadgroup \
+          --maxfail=10
 
     - name: Upload coverage to Codecov
       if: success()
