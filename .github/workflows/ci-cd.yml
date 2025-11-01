@@ -67,7 +67,7 @@ jobs:
 
     - name: Run pre-commit hooks
       env:
-        PRE_COMMIT_SKIP: no-commit-to-branch
+        SKIP: no-commit-to-branch
       run: |
         source .venv/bin/activate
         pre-commit run
