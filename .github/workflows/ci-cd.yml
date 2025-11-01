@@ -65,7 +65,9 @@ jobs:
         source .venv/bin/activate
         ENVIRONMENT=test python manage.py check
 
-    - name: Run pre-commit hooks (venv)
+    - name: Run pre-commit hooks
+      env:
+        PRE_COMMIT_SKIP: no-commit-to-branch
       run: |
         source .venv/bin/activate
         pre-commit run
