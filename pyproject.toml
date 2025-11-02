@@ -125,6 +125,10 @@ bleach = "^6.2.0"
 premailer = "^3.10.0"
 jsonschema = "^4.23.0"
 
+# Document export dependencies
+pypandoc = "^1.13"
+weasyprint = "^62.3"
+
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"
 pytest-django = "^4.10.0"

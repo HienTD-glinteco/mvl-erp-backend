@@ -9,6 +9,7 @@ from .drf.pagination import PageNumberWithSizePagination
 from .drf.serializers import ColoredValueSerializer
 from .drf.serializers.mixins import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
 from .drf.spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
+from .export_document import ExportDocumentMixin, convert_html_to_docx, convert_html_to_pdf
 from .export_xlsx import (
     ExportXLSXMixin,
     SchemaBuilder,
@@ -30,6 +31,9 @@ __all__ = [
     "BaseReadOnlyModelViewSet",
     "PageNumberWithSizePagination",
     "ExportXLSXMixin",
+    "ExportDocumentMixin",
+    "convert_html_to_pdf",
+    "convert_html_to_docx",
     "FieldFilteringSerializerMixin",
     "FileConfirmSerializerMixin",
     "XLSXGenerator",

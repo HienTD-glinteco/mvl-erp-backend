@@ -9,7 +9,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import JobDescriptionFilterSet
 from apps.hrm.api.serializers import JobDescriptionSerializer
 from apps.hrm.models import JobDescription
-from libs import BaseModelViewSet
+from libs import BaseModelViewSet, ExportDocumentMixin
 
 
 @extend_schema_view(
@@ -215,7 +215,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
+class JobDescriptionViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for JobDescription model"""
 
     queryset = JobDescription.objects.all()
@@ -230,6 +230,17 @@ class JobDescriptionViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "job_description"
+
+    # Document export configuration
+    document_template_name = "documents/job_description.html"
+
+    def get_export_context(self, instance):
+        """Prepare context for job description export"""
+        return {"job_description": instance}
+
+    def get_export_filename(self, instance):
+        """Generate filename for job description export"""
+        return f"job_description_{instance.code}"
 
     @extend_schema(
         summary="Copy job description",

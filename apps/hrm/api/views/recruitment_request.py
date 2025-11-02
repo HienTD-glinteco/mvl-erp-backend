@@ -9,7 +9,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentRequestFilterSet
 from apps.hrm.api.serializers import RecruitmentRequestSerializer
 from apps.hrm.models import RecruitmentRequest
-from libs import BaseModelViewSet
+from libs import BaseModelViewSet, ExportDocumentMixin
 
 
 @extend_schema_view(
@@ -370,7 +370,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class RecruitmentRequestViewSet(AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentRequest model"""
 
     queryset = RecruitmentRequest.objects.select_related(
@@ -387,6 +387,17 @@ class RecruitmentRequestViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "recruitment_request"
+
+    # Document export configuration
+    document_template_name = "documents/recruitment_request.html"
+
+    def get_export_context(self, instance):
+        """Prepare context for recruitment request export"""
+        return {"recruitment_request": instance}
+
+    def get_export_filename(self, instance):
+        """Generate filename for recruitment request export"""
+        return f"recruitment_request_{instance.code}"
 
     def destroy(self, request, *args, **kwargs):
         """Delete recruitment request - only allowed for DRAFT status"""

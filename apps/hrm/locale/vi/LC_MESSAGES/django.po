@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 16:04+0700\n"
+"POT-Creation-Date: 2025-11-02 18:08+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -102,7 +102,7 @@ msgstr "Tổng"
 msgid "Week"
 msgstr "Tuần"
 
-#: apps/hrm/api/views/recruitment_request.py:397
+#: apps/hrm/api/views/recruitment_request.py:408
 msgid ""
 "Cannot delete recruitment request. Only requests with DRAFT status can be "
 "deleted."
