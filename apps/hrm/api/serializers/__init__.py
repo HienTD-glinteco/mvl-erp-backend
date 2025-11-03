@@ -13,6 +13,7 @@ from .interview_schedule import (
     InterviewScheduleSerializer,
     UpdateInterviewersSerializer,
 )
+from .interview_schedule_export import InterviewScheduleExportSerializer
 from .job_description import JobDescriptionSerializer
 from .organization import (
     BlockSerializer,
@@ -71,6 +72,7 @@ __all__ = [
     "RecruitmentExpenseSerializer",
     "RecruitmentExpenseExportSerializer",
     "InterviewScheduleSerializer",
+    "InterviewScheduleExportSerializer",
     "InterviewCandidateSerializer",
     "UpdateInterviewersSerializer",
     "StaffGrowthReportAggregatedSerializer",

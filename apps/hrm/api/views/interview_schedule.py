@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import InterviewScheduleFilterSet
 from apps.hrm.api.serializers import (
+    InterviewScheduleExportSerializer,
     InterviewScheduleSerializer,
     UpdateInterviewersSerializer,
 )
@@ -15,6 +16,7 @@ from apps.hrm.callbacks import mark_interview_candidate_email_sent
 from apps.hrm.models import InterviewSchedule
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -275,7 +277,7 @@ from libs import BaseModelViewSet
         ],
     ),
 )
-class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
+class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for InterviewSchedule model"""
 
     queryset = (
@@ -285,6 +287,7 @@ class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, Base
         )
         .select_related(
             "recruitment_request",
+            "recruitment_request__job_description",
         )
         .all()
     )
@@ -541,3 +544,40 @@ class InterviewScheduleViewSet(EmailTemplateActionMixin, AuditLoggingMixin, Base
             return Response(self.get_serializer(instance).data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_export_data(self, request):
+        """Custom export data for InterviewSchedule.
+
+        Exports the following fields:
+        - title
+        - recruitment_request__name
+        - recruitment_request__job_description__position_title
+        - recruitment_request__number_of_positions
+        - time
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = InterviewScheduleExportSerializer(queryset, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Interview Schedules",
+                    "headers": [
+                        "Title",
+                        "Recruitment Request",
+                        "Position Title",
+                        "Number of Positions",
+                        "Interview Time",
+                    ],
+                    "field_names": [
+                        "title",
+                        "recruitment_request__name",
+                        "recruitment_request__job_description__position_title",
+                        "recruitment_request__number_of_positions",
+                        "time",
+                    ],
+                    "data": data,
+                }
+            ]
+        }
