@@ -25,3 +25,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom user model
 AUTH_USER_MODEL = "core.User"
+
+# HRM Module Settings
+HRM_CERTIFICATE_NEAR_EXPIRY_DAYS = config("HRM_CERTIFICATE_NEAR_EXPIRY_DAYS", default=30, cast=int)
