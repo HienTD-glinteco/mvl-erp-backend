@@ -310,8 +310,6 @@ class MePermissionsAPITest(TestCase, APITestMixin):
 
     def test_query_count_optimization(self):
         """Test that the endpoint uses optimal number of queries"""
-        from django.test.utils import override_settings
-
         self.client.force_authenticate(user=self.user_with_role)
         url = reverse("core:me_permissions")
 

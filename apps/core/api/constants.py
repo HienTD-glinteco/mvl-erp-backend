@@ -7,9 +7,7 @@ API_ME_TAG = "User Profile"
 
 # ME Permissions Endpoint
 API_ME_PERMISSIONS_SUMMARY = "Get current user permissions"
-API_ME_PERMISSIONS_DESCRIPTION = (
-    "Retrieve the list of permissions the current user has through their assigned role"
-)
+API_ME_PERMISSIONS_DESCRIPTION = "Retrieve the list of permissions the current user has through their assigned role"
 API_ME_PERMISSIONS_TAG = "User Profile"
 
 # Query Parameter Help Text
