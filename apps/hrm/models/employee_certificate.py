@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 
 from django.conf import settings
 from django.db import models
@@ -77,7 +77,7 @@ class EmployeeCertificate(ColoredValueMixin, BaseModel):
         verbose_name=_("Issuing organization"),
         help_text=_("Organization that issued the certificate"),
     )
-    file = models.ForeignKey(
+    attachment = models.ForeignKey(
         FileModel,
         on_delete=models.SET_NULL,
         null=True,

@@ -9,8 +9,8 @@ from libs.drf.serializers import FileConfirmSerializerMixin
 class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for EmployeeCertificate model."""
 
-    file_confirm_fields = ["file"]
-    file = FileSerializer(read_only=True)
+    file_confirm_fields = ["attachment"]
+    attachment = FileSerializer(read_only=True)
 
     certificate_type_display = serializers.CharField(
         source="get_certificate_type_display",
@@ -36,7 +36,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
             "issue_date",
             "expiry_date",
             "issuing_organization",
-            "file",
+            "attachment",
             "notes",
             "status",
             "status_display",
@@ -47,7 +47,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         read_only_fields = [
             "id",
             "certificate_type_display",
-            "file",
+            "attachment",
             "status",
             "status_display",
             "colored_status",

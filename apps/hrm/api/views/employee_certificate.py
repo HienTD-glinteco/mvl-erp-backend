@@ -34,7 +34,7 @@ from libs import BaseModelViewSet
                                 "issue_date": "2024-06-01",
                                 "expiry_date": "2026-06-01",
                                 "issuing_organization": "British Council",
-                                "file": 1,
+                                "attachment": 1,
                                 "notes": "English proficiency certificate",
                                 "status": "valid",
                                 "status_display": "Valid",
@@ -83,7 +83,7 @@ from libs import BaseModelViewSet
                     "issue_date": "2024-06-01",
                     "expiry_date": "2026-06-01",
                     "issuing_organization": "British Council",
-                    "files": {"file": "abc123"},
+                    "files": {"attachment": "abc123"},
                     "notes": "English proficiency certificate",
                 },
                 request_only=True,
@@ -102,7 +102,7 @@ from libs import BaseModelViewSet
                         "issue_date": "2024-06-01",
                         "expiry_date": "2026-06-01",
                         "issuing_organization": "British Council",
-                        "file": {
+                        "attachment": {
                             "id": 1,
                             "purpose": "employee_certificate",
                             "file_name": "ielts_certificate.pdf",
@@ -150,7 +150,7 @@ from libs import BaseModelViewSet
                         "issue_date": "2024-06-01",
                         "expiry_date": "2026-06-01",
                         "issuing_organization": "British Council",
-                        "file": 1,
+                        "attachment": 1,
                         "notes": "English proficiency certificate",
                         "status": "valid",
                         "status_display": "Valid",
@@ -179,7 +179,7 @@ from libs import BaseModelViewSet
                     "issue_date": "2024-08-15",
                     "expiry_date": "2026-08-15",
                     "issuing_organization": "ETS",
-                    "file": 1,
+                    "attachment": 1,
                     "notes": "Updated certificate information",
                 },
                 request_only=True,
@@ -198,7 +198,7 @@ from libs import BaseModelViewSet
                         "issue_date": "2024-08-15",
                         "expiry_date": "2026-08-15",
                         "issuing_organization": "ETS",
-                        "file": 1,
+                        "attachment": 1,
                         "notes": "Updated certificate information",
                         "status": "valid",
                         "status_display": "Valid",
@@ -233,7 +233,7 @@ from libs import BaseModelViewSet
 class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for EmployeeCertificate model."""
 
-    queryset = EmployeeCertificate.objects.select_related("employee", "file").all()
+    queryset = EmployeeCertificate.objects.select_related("employee", "attachment").all()
     serializer_class = EmployeeCertificateSerializer
     filterset_class = EmployeeCertificateFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
