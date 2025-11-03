@@ -332,7 +332,7 @@ class AuditLoggingMixin:
         try:
             # Execute search
             result = serializer.search()
-            if result.get("total", 0) == 0:
+            if result.get("count", 0) == 0:
                 return Response({"error": "History entry not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Return the first (and only) result

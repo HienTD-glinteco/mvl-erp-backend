@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-02 18:08+0700\n"
+"POT-Creation-Date: 2025-11-03 11:21+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -82,11 +82,6 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
-
 # models/organization.py:102
 #: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
@@ -96,11 +91,6 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr "Tổng"
-
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/utils/functions.py:128
-msgid "Week"
-msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:408
 msgid ""
@@ -131,6 +121,14 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
+
+#: apps/hrm/constants.py:39
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
 
 #: apps/hrm/constants.py:46
 msgid "All data"
