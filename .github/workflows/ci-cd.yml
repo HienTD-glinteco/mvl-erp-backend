@@ -1,5 +1,23 @@
 name: CI Pipeline
 
+# CI/CD Workflow Structure:
+# ==========================
+# This workflow is optimized to avoid redundant dependency installation by using a dedicated
+# preparation job that sets up Poetry and caches dependencies for all subsequent jobs.
+#
+# Workflow Graph:
+#   prepare
+#      ├── django-checks (system checks + linting)
+#      └── test (run tests with coverage, only on PRs)
+#           └── deploy-develop (only on push to master)
+#
+# Benefits:
+# - Reduces repetitive dependency installation, accelerating CI/CD runs
+# - Dependencies are installed once in the 'prepare' job
+# - All other jobs restore from cache only (fail if cache is missing)
+# - Test and check jobs run in parallel after preparation
+# - Consistent and maintainable job structure
+
 on:
   pull_request:
     branches: [ master ]
@@ -10,8 +28,10 @@ env:
   PYTHON_VERSION: "3.12"
 
 jobs:
-  django-checks:
-    name: Django System Checks
+  # Prepare job: Sets up Poetry and installs all dependencies once
+  # This job runs first and caches everything for subsequent jobs
+  prepare:
+    name: Setup Poetry & Install Dependencies
     runs-on: ubuntu-latest
 
     steps:
@@ -50,6 +70,39 @@ jobs:
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
       run: poetry install --no-interaction --no-root
 
+  # Django checks job: Runs system checks and linting
+  # Depends on 'prepare' job and restores cached dependencies
+  django-checks:
+    name: Django System Checks
+    runs-on: ubuntu-latest
+    needs: [prepare]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      id: setup-python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Restore Poetry from cache
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          ~/.local/share/pypoetry
+          ~/.local/bin/poetry
+        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        fail-on-cache-miss: true
+
+    - name: Restore venv from cache
+      uses: actions/cache/restore@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        fail-on-cache-miss: true
+
     - name: Create environment file
       run: |
         cat > .env << 'EOF'
@@ -72,11 +125,14 @@ jobs:
         source .venv/bin/activate
         pre-commit run
 
+  # Test job: Runs the test suite with coverage
+  # Depends on 'prepare' job (runs independently from django-checks)
+  # Restores cached dependencies without reinstalling
   test:
     name: Tests with Coverage
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
-    needs: [django-checks]
+    needs: [prepare]
 
     services:
       postgres:
@@ -113,31 +169,21 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Cache Poetry installation
-      uses: actions/cache@v4
+    - name: Restore Poetry from cache
+      uses: actions/cache/restore@v4
       with:
         path: |
           ~/.local/share/pypoetry
           ~/.local/bin/poetry
         key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        fail-on-cache-miss: true
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
+    - name: Restore venv from cache
+      uses: actions/cache/restore@v4
       with:
         path: .venv
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root
+        fail-on-cache-miss: true
 
     - name: Create environment file
       run: |
@@ -174,6 +220,9 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
+  # Deploy job: Deploys to development environment
+  # Depends on both django-checks and test jobs to ensure all validations pass
+  # Only runs on push to master branch
   deploy-develop:
     name: Deploy to Develop Environment
     runs-on: ubuntu-latest
