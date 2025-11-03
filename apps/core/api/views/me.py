@@ -273,6 +273,7 @@ class MePermissionsView(APIView):
         response_data = {
             "user_id": user.id,
             "username": user.username,
+            "is_superuser": user.is_superuser,
             "role": None,
             "permissions": [],
             "meta": {"count": permissions_qs.count(), "generated_at": timezone.now().isoformat()},

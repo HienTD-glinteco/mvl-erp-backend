@@ -115,6 +115,7 @@ class MePermissionsSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(read_only=True)
     username = serializers.CharField(read_only=True)
     role = RoleSummarySerializer(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
     permissions = PermissionDetailSerializer(many=True, read_only=True)
     meta = serializers.DictField(read_only=True)
     links = serializers.DictField(read_only=True)

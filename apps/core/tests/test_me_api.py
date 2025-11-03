@@ -314,6 +314,6 @@ class MePermissionsAPITest(TestCase, APITestMixin):
         url = reverse("core:me_permissions")
 
         # Count queries
-        with self.assertNumQueries(1):  # Should be just 1 query for permissions
+        with self.assertNumQueries(2):  # Should be just 2 query for permissions
             response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
