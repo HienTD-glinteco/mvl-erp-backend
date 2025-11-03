@@ -24,7 +24,7 @@ class EmployeeRelationship(BaseModel):
         relative_name: Full name of the relative
         relation_type: Type of relationship (child, spouse, parent, etc.)
         date_of_birth: Date of birth of the relative
-        national_id: National ID number (CMND/CCCD) - 9 or 12 digits
+        citizen_id: National ID number (CMND/CCCD) - 9 or 12 digits
         address: Residential address
         phone: Contact phone number
         attachment: File attachment (supporting document)
@@ -78,11 +78,11 @@ class EmployeeRelationship(BaseModel):
         help_text=_("Date of birth of the relative"),
     )
 
-    national_id = models.CharField(
+    citizen_id = models.CharField(
         max_length=12,
         blank=True,
         validators=[validate_national_id],
-        verbose_name=_("National ID"),
+        verbose_name=_("Citizen ID"),
         help_text=_("National ID (CMND/CCCD) - 9 or 12 digits"),
     )
 
@@ -138,7 +138,7 @@ class EmployeeRelationship(BaseModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["employee", "is_active"]),
-            models.Index(fields=["national_id"]),
+            models.Index(fields=["citizen_id"]),
         ]
 
     def __str__(self):

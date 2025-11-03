@@ -21,7 +21,7 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
             "relative_name",
             "relation_type",
             "date_of_birth",
-            "national_id",
+            "citizen_id",
             "address",
             "phone",
             "attachment",

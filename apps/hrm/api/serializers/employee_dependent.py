@@ -27,7 +27,7 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
             "relationship",
             "relationship_display",
             "date_of_birth",
-            "id_number",
+            "citizen_id",
             "attachment",
             "note",
             "is_active",

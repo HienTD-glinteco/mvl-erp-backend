@@ -81,7 +81,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
             "date_of_birth": "2010-05-12",
-            "id_number": "123456789",
+            "citizen_id": "123456789",
             "note": "Primary dependent",
         }
 
@@ -96,7 +96,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         dependent = EmployeeDependent.objects.first()
         self.assertEqual(dependent.dependent_name, self.dependent_data["dependent_name"])
         self.assertEqual(dependent.relationship, self.dependent_data["relationship"])
-        self.assertEqual(dependent.id_number, self.dependent_data["id_number"])
+        self.assertEqual(dependent.citizen_id, self.dependent_data["citizen_id"])
         self.assertEqual(dependent.employee, self.employee)
         self.assertTrue(dependent.is_active)
         self.assertEqual(dependent.created_by, self.user)
@@ -117,7 +117,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         dependent = EmployeeDependent.objects.first()
         self.assertEqual(dependent.dependent_name, minimal_data["dependent_name"])
         self.assertEqual(dependent.relationship, minimal_data["relationship"])
-        self.assertEqual(dependent.id_number, "")
+        self.assertEqual(dependent.citizen_id, "")
         self.assertIsNone(dependent.date_of_birth)
 
     def test_create_dependent_missing_required_field(self):
@@ -132,38 +132,38 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EmployeeDependent.objects.count(), 0)
 
-    def test_validate_id_number_length_9(self):
+    def test_validate_citizen_id_length_9(self):
         """Test ID number validation with 9 digits."""
         url = reverse("hrm:employee-dependent-list")
         data = self.dependent_data.copy()
-        data["id_number"] = "123456789"
+        data["citizen_id"] = "123456789"
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_validate_id_number_length_12(self):
+    def test_validate_citizen_id_length_12(self):
         """Test ID number validation with 12 digits."""
         url = reverse("hrm:employee-dependent-list")
         data = self.dependent_data.copy()
-        data["id_number"] = "123456789012"
+        data["citizen_id"] = "123456789012"
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_validate_id_number_invalid_length(self):
+    def test_validate_citizen_id_invalid_length(self):
         """Test ID number validation with invalid length."""
         url = reverse("hrm:employee-dependent-list")
         data = self.dependent_data.copy()
-        data["id_number"] = "12345"  # Invalid length
+        data["citizen_id"] = "12345"  # Invalid length
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_validate_id_number_non_numeric(self):
+    def test_validate_citizen_id_non_numeric(self):
         """Test ID number validation with non-numeric characters."""
         url = reverse("hrm:employee-dependent-list")
         data = self.dependent_data.copy()
-        data["id_number"] = "12345678A"  # Contains letter
+        data["citizen_id"] = "12345678A"  # Contains letter
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
