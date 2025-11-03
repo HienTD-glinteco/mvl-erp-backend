@@ -8,6 +8,8 @@ from .api.views import (
     ConstantsView,
     ExportStatusView,
     LoginView,
+    MePermissionsView,
+    MeView,
     NationalityViewSet,
     OTPVerificationView,
     PasswordChangeView,
@@ -50,6 +52,9 @@ urlpatterns = [
     # JWT token endpoints
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    # User profile endpoints
+    path("me/", MeView.as_view(), name="me"),
+    path("me/permissions/", MePermissionsView.as_view(), name="me_permissions"),
     # Role management
     path("", include(router.urls)),
     # Constants endpoint

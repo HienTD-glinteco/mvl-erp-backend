@@ -8,6 +8,13 @@ from .auth import (
     PasswordResetSerializer,
 )
 from .constants import ConstantsResponseSerializer
+from .me import (
+    EmployeeSummarySerializer,
+    MePermissionsSerializer,
+    MeSerializer,
+    PermissionDetailSerializer,
+    RoleSummarySerializer,
+)
 from .nationality import NationalitySerializer
 from .province import ProvinceSerializer
 from .role import PermissionSerializer, RoleSerializer
@@ -27,4 +34,9 @@ __all__ = [
     "ConstantsResponseSerializer",
     "SimpleUserSerializer",
     "NationalitySerializer",
+    "MeSerializer",
+    "MePermissionsSerializer",
+    "RoleSummarySerializer",
+    "EmployeeSummarySerializer",
+    "PermissionDetailSerializer",
 ]

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 11:21+0700\n"
+"POT-Creation-Date: 2025-11-03 11:38+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -586,7 +586,8 @@ msgstr "Tên nghỉ việc"
 msgid "Resignation reason"
 msgstr "Lý do nghỉ việc"
 
-#: apps/hrm/models/employee.py:190 apps/hrm/models/employee_relationship.py:115
+#: apps/hrm/models/employee.py:190 apps/hrm/models/employee_dependent.py:80
+#: apps/hrm/models/employee_relationship.py:115
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:122
@@ -595,7 +596,8 @@ msgstr "Lý do nghỉ việc"
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:196 apps/hrm/models/employee_relationship.py:77
+#: apps/hrm/models/employee.py:196 apps/hrm/models/employee_dependent.py:56
+#: apps/hrm/models/employee_relationship.py:77
 msgid "Date of birth"
 msgstr ""
 
@@ -623,7 +625,9 @@ msgstr ""
 msgid "Citizen ID must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:234 apps/hrm/models/recruitment_candidate.py:52
+#: apps/hrm/models/employee.py:234 apps/hrm/models/employee_dependent.py:64
+#: apps/hrm/models/employee_relationship.py:85
+#: apps/hrm/models/recruitment_candidate.py:52
 msgid "Citizen ID"
 msgstr ""
 
@@ -688,6 +692,7 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:24
+#: apps/hrm/models/employee_dependent.py:36
 #: apps/hrm/models/employee_relationship.py:40
 #: apps/hrm/models/organization.py:281
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
@@ -806,6 +811,97 @@ msgstr "Mã nhân viên"
 msgid "Employee certificates"
 msgstr "Mã nhân viên"
 
+#: apps/hrm/models/employee_dependent.py:37
+msgid "Employee associated with this dependent"
+msgstr ""
+
+# models/organization.py:71
+#: apps/hrm/models/employee_dependent.py:42
+#, fuzzy
+#| msgid "Department name"
+msgid "Dependent name"
+msgstr "Tên phòng ban"
+
+#: apps/hrm/models/employee_dependent.py:43
+msgid "Full name of the dependent"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_dependent.py:49
+#, fuzzy
+#| msgid "Employee type"
+msgid "Relationship"
+msgstr "Loại nhân viên"
+
+#: apps/hrm/models/employee_dependent.py:50
+#: apps/hrm/models/employee_relationship.py:71
+msgid "Type of relationship to the employee"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:57
+msgid "Date of birth of the dependent"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:65
+#: apps/hrm/models/employee_relationship.py:86
+msgid "National ID (CMND/CCCD) - 9 or 12 digits"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:74
+#: apps/hrm/models/employee_relationship.py:109
+#: apps/hrm/models/job_description.py:32
+msgid "Attachment"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:75
+#: apps/hrm/models/employee_relationship.py:110
+msgid "Supporting document or file attachment"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:81
+#: apps/hrm/models/employee_relationship.py:116
+msgid "Additional notes or information"
+msgstr ""
+
+# models/organization.py:14
+#: apps/hrm/models/employee_dependent.py:86
+#: apps/hrm/models/employee_relationship.py:121
+#, fuzzy
+#| msgid "Active"
+msgid "Is active"
+msgstr "Hoạt động"
+
+#: apps/hrm/models/employee_dependent.py:87
+msgid "Whether this dependent record is active"
+msgstr ""
+
+# management/commands/setup_default_org_data.py:117
+#: apps/hrm/models/employee_dependent.py:96
+#: apps/hrm/models/employee_relationship.py:131
+#, fuzzy
+#| msgid "Created block: %s"
+msgid "Created by"
+msgstr "Đã tạo khối: %s"
+
+#: apps/hrm/models/employee_dependent.py:97
+#: apps/hrm/models/employee_relationship.py:132
+msgid "User who created this record"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/employee_dependent.py:101
+#, fuzzy
+#| msgid "Employee type"
+msgid "Employee Dependent"
+msgstr "Loại nhân viên"
+
+# models/organization.py:205
+#: apps/hrm/models/employee_dependent.py:102
+#, fuzzy
+#| msgid "Employee type"
+msgid "Employee Dependents"
+msgstr "Loại nhân viên"
+
 #: apps/hrm/models/employee_relationship.py:41
 msgid "Employee associated with this relationship"
 msgstr ""
@@ -846,20 +942,8 @@ msgstr ""
 msgid "Relation type"
 msgstr "Tên nghỉ việc"
 
-#: apps/hrm/models/employee_relationship.py:71
-msgid "Type of relationship to the employee"
-msgstr ""
-
 #: apps/hrm/models/employee_relationship.py:78
 msgid "Date of birth of the relative"
-msgstr ""
-
-#: apps/hrm/models/employee_relationship.py:85
-msgid "National ID"
-msgstr ""
-
-#: apps/hrm/models/employee_relationship.py:86
-msgid "National ID (CMND/CCCD) - 9 or 12 digits"
 msgstr ""
 
 # models/organization.py:11
@@ -884,39 +968,8 @@ msgstr ""
 msgid "Contact phone number"
 msgstr "Tên loại liên hệ"
 
-#: apps/hrm/models/employee_relationship.py:109
-#: apps/hrm/models/job_description.py:32
-msgid "Attachment"
-msgstr ""
-
-#: apps/hrm/models/employee_relationship.py:110
-msgid "Supporting document or file attachment"
-msgstr ""
-
-#: apps/hrm/models/employee_relationship.py:116
-msgid "Additional notes or information"
-msgstr ""
-
-# models/organization.py:14
-#: apps/hrm/models/employee_relationship.py:121
-#, fuzzy
-#| msgid "Active"
-msgid "Is active"
-msgstr "Hoạt động"
-
 #: apps/hrm/models/employee_relationship.py:122
 msgid "Whether this relationship record is active"
-msgstr ""
-
-# management/commands/setup_default_org_data.py:117
-#: apps/hrm/models/employee_relationship.py:131
-#, fuzzy
-#| msgid "Created block: %s"
-msgid "Created by"
-msgstr "Đã tạo khối: %s"
-
-#: apps/hrm/models/employee_relationship.py:132
-msgid "User who created this record"
 msgstr ""
 
 # models/organization.py:205

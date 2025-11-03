@@ -9,6 +9,7 @@ from .auth import (
 )
 from .constants import ConstantsView
 from .export_status import ExportStatusView
+from .me import MePermissionsView, MeView
 from .nationality import NationalityViewSet
 from .permission import PermissionViewSet
 from .province import ProvinceViewSet
@@ -28,4 +29,6 @@ __all__ = [
     "ProvinceViewSet",
     "AdministrativeUnitViewSet",
     "NationalityViewSet",
+    "MeView",
+    "MePermissionsView",
 ]
