@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.devices.zk import ZKDeviceService
@@ -65,6 +66,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         password = attrs.get("password")
         is_enabled = attrs.get("is_enabled")
 
+        self.ensure_unique_device(ip_address, port)
+
         # Get existing values if updating
         if self.instance:
             ip_address = ip_address or self.instance.ip_address
@@ -72,13 +75,26 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             password = password or self.instance.password
 
         if is_enabled:
-            self._fetch_device_info(ip_address, port, password, attrs)
+            self.fetch_device_info(ip_address, port, password, attrs)
         else:
             attrs["is_connected"] = False
 
         return attrs
 
-    def _fetch_device_info(self, ip_address, port, password, attrs: dict):
+    def ensure_unique_device(self, ip_address: str | None = None, port: str | None = None):
+        if not ip_address or not port:
+            return
+
+        qs = AttendanceDevice.objects.filter(ip_address=ip_address, port=port)
+        if self.instance and self.instance.id:
+            qs = qs.exclude(id=self.instance.id)
+
+        if qs.exists():
+            raise serializers.ValidationError(
+                _("A device with IP {ip} and port {port} already exists.".format(ip=ip_address, port=port))
+            )
+
+    def fetch_device_info(self, ip_address, port, password, attrs: dict):
         # Test connection and get device info
         service = ZKDeviceService(
             ip_address=ip_address,

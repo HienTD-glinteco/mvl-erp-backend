@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 14:11+0700\n"
+"POT-Creation-Date: 2025-11-03 14:31+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,6 +14,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/hrm/api/serializers/attendance_device.py:94
+#, python-brace-format
+msgid "A device with IP {ip} and port {port} already exists."
+msgstr ""
 
 #: apps/hrm/api/serializers/employee.py:205
 msgid "An employee with this attendance code already exists."
