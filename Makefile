@@ -25,6 +25,9 @@ celery_worker:
 run_audit_logs_consumer:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(ARGS)
 
+run_realtime_attendance_listener:
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py run_realtime_attendance_listener $(ARGS)
+
 test:
 	ENVIRONMENT=test pytest $(ARGS)
 

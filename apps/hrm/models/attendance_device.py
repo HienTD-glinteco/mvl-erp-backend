@@ -21,7 +21,7 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
 
     Attributes:
         name: Human-readable device name for identification
-        location: Physical location where device is installed
+        block: Organization Block where device is installed
         ip_address: IP address or domain name for device network access
         port: Network port for device communication
         password: Authentication password for device access
@@ -50,7 +50,7 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         on_delete=models.CASCADE,
         related_name="attendance_devices",
         verbose_name=_("Block"),
-        help_text=_("Block where device is installed"),
+        help_text=_("Organization Block where device is installed"),
         null=True,
         blank=True,
     )

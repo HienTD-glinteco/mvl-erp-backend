@@ -8,8 +8,9 @@ from celery import shared_task
 from celery.exceptions import Retry
 from django.utils import timezone
 
+from apps.devices import DeviceConnectionError
+from apps.devices.zk import ZKDeviceService
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
-from apps.hrm.services import AttendanceDeviceConnectionError, AttendanceDeviceService
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,11 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, Any] | No
         start_datetime = device.get_sync_start_time(lookback_days=SYNC_DEFAULT_LOOKBACK_DAYS)
 
         # Connect to device and fetch logs
-        service = AttendanceDeviceService(device)
+        service = ZKDeviceService(
+            ip_address=device.ip_address,
+            port=device.port,
+            password=device.password,
+        )
 
         try:
             with service:
@@ -81,7 +86,7 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, Any] | No
 
                 return _create_success_response(device, logs_synced, len(today_logs))
 
-        except AttendanceDeviceConnectionError as e:
+        except DeviceConnectionError as e:
             # Connection failed - update device status and retry
             error_msg = str(e)
             logger.warning(f"Connection failed for device {device.name}: {error_msg}")

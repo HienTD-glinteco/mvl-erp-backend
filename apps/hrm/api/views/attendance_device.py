@@ -53,7 +53,7 @@ from libs import BaseModelViewSet
                 "Create Request",
                 value={
                     "name": "Main Entrance Device",
-                    "location": "Building A - Main Entrance",
+                    "block": 10,
                     "ip_address": "192.168.1.100",
                     "port": 4370,
                     "password": "admin123",
@@ -68,7 +68,7 @@ from libs import BaseModelViewSet
                     "data": {
                         "id": 1,
                         "name": "Main Entrance Device",
-                        "location": "Building A - Main Entrance",
+                        "block": 10,
                         "ip_address": "192.168.1.100",
                         "port": 4370,
                         "serial_number": "SN123456789",
@@ -107,7 +107,7 @@ from libs import BaseModelViewSet
                     "data": {
                         "id": 1,
                         "name": "Main Entrance Device",
-                        "location": "Building A - Main Entrance",
+                        "block": {},
                         "ip_address": "192.168.1.100",
                         "port": 4370,
                         "serial_number": "SN123456789",
@@ -179,7 +179,9 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     Automatically tests connection and retrieves device information on create/update.
     """
 
-    queryset = AttendanceDevice.objects.select_related("block").all()
+    queryset = AttendanceDevice.objects.select_related(
+        "block__branch__province", "block__branch__administrative_unit"
+    ).all()
     serializer_class = AttendanceDeviceSerializer
     filterset_class = AttendanceDeviceFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

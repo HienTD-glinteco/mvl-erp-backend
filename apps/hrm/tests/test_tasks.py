@@ -8,8 +8,8 @@ from celery.exceptions import Retry
 from django.test import TestCase
 from django.utils import timezone as django_timezone
 
+from apps.devices import DeviceConnectionError
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
-from apps.hrm.services import AttendanceDeviceConnectionError
 from apps.hrm.tasks import sync_all_attendance_devices, sync_attendance_logs_for_device
 
 
@@ -211,7 +211,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
         mock_service_class.return_value = mock_service
 
         # Configure mock to raise error when used as context manager
-        mock_service.__enter__ = Mock(side_effect=AttendanceDeviceConnectionError("Connection failed"))
+        mock_service.__enter__ = Mock(side_effect=DeviceConnectionError("Connection failed"))
         mock_service.__exit__ = Mock(return_value=False)
 
         # Set device as connected initially

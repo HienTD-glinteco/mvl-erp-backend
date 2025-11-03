@@ -10,7 +10,7 @@ import signal
 
 from django.core.management.base import BaseCommand
 
-from apps.hrm.realtime_listener import RealtimeAttendanceListener
+from apps.devices.zk import ZKRealtimeDeviceListener
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         logger.info("Starting realtime attendance listener...")
 
         # Create listener instance
-        listener = RealtimeAttendanceListener()
+        listener = ZKRealtimeDeviceListener()
 
         # Set up signal handlers for graceful shutdown
         def signal_handler(signum, frame):

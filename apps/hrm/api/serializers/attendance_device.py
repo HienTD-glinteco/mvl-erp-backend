@@ -1,9 +1,10 @@
-from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from apps.hrm.models import AttendanceDevice
-from apps.hrm.services import AttendanceDeviceService
+from apps.devices.zk import ZKDeviceService
+from apps.hrm.models import AttendanceDevice, Block
 from libs import FieldFilteringSerializerMixin
+
+from .organization import BlockSerializer
 
 
 class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -14,12 +15,18 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
     """
 
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    # Expose nested block data for reads, and accept block id for writes.
+    block = BlockSerializer(read_only=True)
+    block_id = serializers.PrimaryKeyRelatedField(
+        queryset=Block.objects.all(), source="block", write_only=True, required=False
+    )
 
     class Meta:
         model = AttendanceDevice
         fields = [
             "id",
             "name",
+            "block_id",
             "block",
             "ip_address",
             "port",
@@ -56,6 +63,7 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         ip_address = attrs.get("ip_address")
         port = attrs.get("port")
         password = attrs.get("password")
+        is_enabled = attrs.get("is_enabled")
 
         # Get existing values if updating
         if self.instance:
@@ -63,26 +71,31 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             port = port or self.instance.port
             password = password or self.instance.password
 
-        # Create temporary device object for connection testing
-        temp_device = AttendanceDevice(
+        if is_enabled:
+            self._fetch_device_info(ip_address, port, password, attrs)
+        else:
+            attrs["is_connected"] = False
+
+        return attrs
+
+    def _fetch_device_info(self, ip_address, port, password, attrs: dict):
+        # Test connection and get device info
+        service = ZKDeviceService(
             ip_address=ip_address,
             port=port,
             password=password,
         )
-
-        # Test connection and get device info
-        service = AttendanceDeviceService(temp_device)
-        is_connected, message = service.test_connection()
+        is_connected, __ = service.test_connection()
 
         if not is_connected:
-            # Connection failed, raise validation error
-            raise serializers.ValidationError(
-                {"ip_address": _("Unable to connect to device. Please check the connection details.")}
-            )
+            attrs["is_connected"] = False
         else:
             # If connection successful, get device details
             try:
                 with service:
+                    if not service._zk_connection:
+                        raise Exception("No zk connection set")
+
                     # Get serial number and registration number from device
                     serial = service._zk_connection.get_serialnumber()
                     if serial:
@@ -96,9 +109,4 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
                     # Mark as connected
                     attrs["is_connected"] = True
             except Exception:
-                # If we can't get details, raise validation error
-                raise serializers.ValidationError(
-                    {"ip_address": _("Unable to connect to device. Please check the connection details.")}
-                )
-
-        return attrs
+                attrs["is_connected"] = False

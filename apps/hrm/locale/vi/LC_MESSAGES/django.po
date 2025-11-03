@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 11:45+0700\n"
+"POT-Creation-Date: 2025-11-03 12:45+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,11 +14,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: apps/hrm/api/serializers/attendance_device.py:80
-#: apps/hrm/api/serializers/attendance_device.py:101
-msgid "Unable to connect to device. Please check the connection details."
-msgstr ""
 
 #: apps/hrm/api/serializers/employee.py:205
 msgid "An employee with this attendance code already exists."
@@ -437,7 +432,7 @@ msgid "Block"
 msgstr "Khối"
 
 #: apps/hrm/models/attendance_device.py:53
-msgid "Block where device is installed"
+msgid "Organization Block where device is installed"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:59
@@ -1953,11 +1948,6 @@ msgstr "Nguồn tuyển dụng"
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
 msgstr "Các nguồn tuyển dụng"
-
-#: apps/hrm/services.py:102
-#, python-format
-msgid "Unexpected error: %(error)s"
-msgstr ""
 
 #: apps/hrm/utils/functions.py:18
 msgid "Unknown"
