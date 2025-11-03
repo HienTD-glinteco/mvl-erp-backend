@@ -104,6 +104,7 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            citizen_id="000000020030",
         )
 
         self.referee = Employee.objects.create(
@@ -118,6 +119,7 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            citizen_id="000000020031",
         )
 
         self.referrer = Employee.objects.create(
@@ -132,6 +134,7 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            citizen_id="000000020032",
         )
 
         # Create job description

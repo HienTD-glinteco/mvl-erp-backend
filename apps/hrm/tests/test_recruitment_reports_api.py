@@ -115,6 +115,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            citizen_id="000000020033",
         )
 
         # Create another employee for referral tests
@@ -130,6 +131,7 @@ class RecruitmentReportsAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            citizen_id="000000020034",
         )
 
         # Create recruitment sources and channels

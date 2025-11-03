@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit_logging.decorators import audit_logging_register
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
+from libs.validators import CitizenIdValidator
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -228,9 +229,9 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     # ID and documentation
     citizen_id = models.CharField(
-        max_length=20,
-        blank=True,
-        validators=[RegexValidator(regex=r"^\d*$", message=_("Citizen ID must contain only digits"))],
+        max_length=12,
+        unique=True,
+        validators=[CitizenIdValidator],
         verbose_name=_("Citizen ID"),
     )
     citizen_id_issued_date = models.DateField(
@@ -320,6 +321,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
         db_table = "hrm_employee"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tax_code"],
+                condition=models.Q(tax_code__isnull=False) & ~models.Q(tax_code=""),
+                name="unique_tax_code_when_not_null",
+            )
+        ]
 
     def __str__(self):
         return f"{self.code} - {self.fullname}"

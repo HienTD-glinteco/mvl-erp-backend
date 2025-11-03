@@ -134,6 +134,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             user=self.employee1,
+            citizen_id="000000020022",
         )
 
         Employee.objects.create(
@@ -150,6 +151,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             user=self.employee2,
+            citizen_id="000000020023",
         )
 
         Employee.objects.create(
@@ -166,6 +168,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             user=self.employee3,
+            citizen_id="000000020024",
         )
 
         # Create organization chart entries

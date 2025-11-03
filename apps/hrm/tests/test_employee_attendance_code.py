@@ -90,6 +90,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             "marital_status": "SINGLE",
             "phone": "0123456789",
             "personal_email": "john.personal@example.com",
+            "citizen_id": "100000000001",
         }
 
     def test_create_employee_with_attendance_code(self):
@@ -143,6 +144,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1995, 5, 15),
             phone="0987654321",
             personal_email="jane.personal@example.com",
+            citizen_id="000000020005",
         )
 
         # Act
@@ -171,6 +173,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1992, 3, 20),
             phone="0111222333",
             personal_email="bob.personal@example.com",
+            citizen_id="000000020006",
         )
 
         update_data = {
@@ -189,6 +192,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             "marital_status": "SINGLE",
             "phone": "0111222333",
             "personal_email": "bob.personal@example.com",
+            "citizen_id": "000000020006",
         }
 
         # Act
@@ -220,6 +224,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1993, 7, 10),
             phone="0444555666",
             personal_email="alice.personal@example.com",
+            citizen_id="000000020007",
         )
 
         # Act - Only update attendance_code
@@ -248,6 +253,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1990, 1, 1),
             phone="0123456781",
             personal_email="emp1.personal@example.com",
+            citizen_id="000000020008",
         )
         Employee.objects.create(
             code_type="MV",
@@ -262,6 +268,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1991, 1, 1),
             phone="0123456782",
             personal_email="emp2.personal@example.com",
+            citizen_id="000000020009",
         )
 
         # Act
@@ -291,6 +298,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1990, 1, 1),
             phone="0123456783",
             personal_email="searchable.personal@example.com",
+            citizen_id="000000020010",
         )
         Employee.objects.create(
             code_type="MV",
@@ -305,6 +313,7 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             date_of_birth=date(1991, 1, 1),
             phone="0123456784",
             personal_email="other.personal@example.com",
+            citizen_id="000000020011",
         )
 
         # Act

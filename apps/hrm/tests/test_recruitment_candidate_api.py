@@ -105,6 +105,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="emp.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020028",
         )
 
         # Create job description
@@ -814,6 +815,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
             phone="0123456792",
             attendance_code="EMP002",
             start_date=date(2024, 1, 1),
+            citizen_id="000000020029",
         )
 
         # Create candidate with same email

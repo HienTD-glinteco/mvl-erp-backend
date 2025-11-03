@@ -73,6 +73,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             block=self.block,
             department=self.department,
             start_date="2023-01-01",
+            citizen_id="000000020014",
         )
 
         self.recruitment_request = RecruitmentRequest.objects.create(
@@ -113,6 +114,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
+            citizen_id="000000020015",
         )
 
         self.assertEqual(employee.recruitment_candidate, self.candidate)
@@ -131,6 +133,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             block=self.block,
             department=self.department,
             start_date="2024-01-01",
+            citizen_id="000000020016",
         )
 
         self.assertIsNone(employee.recruitment_candidate)
@@ -149,6 +152,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
+            citizen_id="000000020017",
         )
 
         candidate_id = self.candidate.id
@@ -171,6 +175,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2024-02-01",
             recruitment_candidate=self.candidate,
+            citizen_id="000000020018",
         )
 
         employee2 = Employee.objects.create(
@@ -185,6 +190,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             department=self.department,
             start_date="2024-02-15",
             recruitment_candidate=self.candidate,
+            citizen_id="000000020019",
         )
 
         self.assertEqual(employee1.recruitment_candidate, self.candidate)

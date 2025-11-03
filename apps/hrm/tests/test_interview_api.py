@@ -119,6 +119,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020025",
         )
 
         self.employee2 = Employee.objects.create(
@@ -134,6 +135,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="lethid.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020026",
         )
 
         # Create job description
@@ -394,6 +396,7 @@ class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020027",
         )
 
         # Create job description

@@ -529,3 +529,31 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
                 submitted_date=date(2025, 10, 15),
             )
             self.assertEqual(candidate.years_of_experience, exp_level)
+
+    def test_citizen_id_unique(self):
+        """Test that citizen_id must be unique"""
+        from django.db import IntegrityError
+
+        RecruitmentCandidate.objects.create(
+            name="Candidate A",
+            citizen_id="123456789012",
+            email="candidatea@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            submitted_date=date(2025, 10, 15),
+        )
+
+        # Try to create another candidate with same citizen_id
+        with self.assertRaises(IntegrityError):
+            RecruitmentCandidate.objects.create(
+                name="Candidate B",
+                citizen_id="123456789012",  # Same as first candidate
+                email="candidateb@example.com",
+                phone="0987654321",
+                recruitment_request=self.recruitment_request,
+                recruitment_source=self.recruitment_source,
+                recruitment_channel=self.recruitment_channel,
+                submitted_date=date(2025, 10, 15),
+            )

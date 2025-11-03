@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 15:48+0700\n"
+"POT-Creation-Date: 2025-11-03 23:18+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:215
+#: apps/hrm/api/serializers/employee.py:225
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
@@ -496,10 +496,10 @@ msgid "Name for the device"
 msgstr ""
 
 # models/organization.py:45
-#: apps/hrm/models/attendance_device.py:52 apps/hrm/models/employee.py:145
+#: apps/hrm/models/attendance_device.py:52 apps/hrm/models/employee.py:146
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
 #: apps/hrm/models/organization.py:303
-#: apps/hrm/models/recruitment_candidate.py:80
+#: apps/hrm/models/recruitment_candidate.py:76
 #: apps/hrm/models/recruitment_reports.py:29
 #: apps/hrm/models/recruitment_request.py:62
 msgid "Block"
@@ -609,7 +609,7 @@ msgid "Attendance device that captured this record"
 msgstr ""
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/attendance_record.py:55 apps/hrm/models/employee.py:129
+#: apps/hrm/models/attendance_record.py:55 apps/hrm/models/employee.py:130
 msgid "Attendance code"
 msgstr "Mã điểm danh"
 
@@ -673,7 +673,7 @@ msgid "Banks"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:320
+#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:321
 #: apps/hrm/models/employee_certificate.py:41
 #: apps/hrm/models/employee_dependent.py:36
 #: apps/hrm/models/employee_relationship.py:40
@@ -728,7 +728,7 @@ msgid "Contract type name"
 msgstr "Tên loại liên hệ"
 
 # models/organization.py:217
-#: apps/hrm/models/contract_type.py:19 apps/hrm/models/employee.py:167
+#: apps/hrm/models/contract_type.py:19 apps/hrm/models/employee.py:168
 msgid "Contract type"
 msgstr "Loại liên hệ"
 
@@ -737,16 +737,16 @@ msgstr "Loại liên hệ"
 msgid "Contract types"
 msgstr "Các loại liên hệ"
 
-#: apps/hrm/models/employee.py:64
+#: apps/hrm/models/employee.py:65
 msgid "MV"
 msgstr ""
 
-#: apps/hrm/models/employee.py:65
+#: apps/hrm/models/employee.py:66
 msgid "CTV"
 msgstr ""
 
 # models/organization.py:14
-#: apps/hrm/models/employee.py:68 apps/hrm/models/organization.py:36
+#: apps/hrm/models/employee.py:69 apps/hrm/models/organization.py:36
 #: apps/hrm/models/organization.py:68 apps/hrm/models/organization.py:130
 #: apps/hrm/models/organization.py:261 apps/hrm/models/organization.py:316
 #: apps/hrm/models/recruitment_channel.py:34
@@ -754,267 +754,263 @@ msgid "Active"
 msgstr "Hoạt động"
 
 # models/organization.py:218
-#: apps/hrm/models/employee.py:69
+#: apps/hrm/models/employee.py:70
 msgid "Onboarding"
 msgstr "Nhận việc"
 
-#: apps/hrm/models/employee.py:70
+#: apps/hrm/models/employee.py:71
 msgid "Resigned"
 msgstr ""
 
-#: apps/hrm/models/employee.py:71
+#: apps/hrm/models/employee.py:72
 msgid "Maternity Leave"
 msgstr ""
 
-#: apps/hrm/models/employee.py:72
+#: apps/hrm/models/employee.py:73
 msgid "Unpaid Leave"
 msgstr ""
 
-#: apps/hrm/models/employee.py:75
+#: apps/hrm/models/employee.py:76
 msgid "Male"
 msgstr ""
 
-#: apps/hrm/models/employee.py:76
+#: apps/hrm/models/employee.py:77
 msgid "Female"
 msgstr ""
 
-#: apps/hrm/models/employee.py:79
+#: apps/hrm/models/employee.py:80
 msgid "Single"
 msgstr ""
 
-#: apps/hrm/models/employee.py:80
+#: apps/hrm/models/employee.py:81
 msgid "Married"
 msgstr ""
 
-#: apps/hrm/models/employee.py:81
+#: apps/hrm/models/employee.py:82
 msgid "Divorced"
 msgstr ""
 
-#: apps/hrm/models/employee.py:84
+#: apps/hrm/models/employee.py:85
 msgid "Career Change"
 msgstr ""
 
-#: apps/hrm/models/employee.py:85
+#: apps/hrm/models/employee.py:86
 msgid "Underperforming"
 msgstr ""
 
-#: apps/hrm/models/employee.py:86
+#: apps/hrm/models/employee.py:87
 msgid "Terminated"
 msgstr ""
 
-#: apps/hrm/models/employee.py:87
+#: apps/hrm/models/employee.py:88
 msgid "Personal Issues"
 msgstr ""
 
-#: apps/hrm/models/employee.py:88
+#: apps/hrm/models/employee.py:89
 msgid "Job Abandonment"
 msgstr ""
 
-#: apps/hrm/models/employee.py:89
+#: apps/hrm/models/employee.py:90
 msgid "Not a Good Fit"
 msgstr ""
 
-#: apps/hrm/models/employee.py:90
+#: apps/hrm/models/employee.py:91
 msgid "Health Issues"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:114
+#: apps/hrm/models/employee.py:115
 msgid "Employee type"
 msgstr "Loại nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:116 apps/hrm/models/employee_relationship.py:49
+#: apps/hrm/models/employee.py:117 apps/hrm/models/employee_relationship.py:49
 msgid "Employee code"
 msgstr "Mã nhân viên"
 
-#: apps/hrm/models/employee.py:123
+#: apps/hrm/models/employee.py:124
 msgid "Avatar"
 msgstr ""
 
 # models/organization.py:32
-#: apps/hrm/models/employee.py:125
+#: apps/hrm/models/employee.py:126
 msgid "Full name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/models/employee.py:128
+#: apps/hrm/models/employee.py:129
 msgid "Attendance code must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:131
+#: apps/hrm/models/employee.py:132
 msgid "Username"
 msgstr ""
 
 # models/organization.py:13
-#: apps/hrm/models/employee.py:132 apps/hrm/models/organization.py:22
-#: apps/hrm/models/recruitment_candidate.py:60
+#: apps/hrm/models/employee.py:133 apps/hrm/models/organization.py:22
+#: apps/hrm/models/recruitment_candidate.py:56
 msgid "Email"
 msgstr "Email"
 
 # models/organization.py:17
-#: apps/hrm/models/employee.py:139 apps/hrm/models/organization.py:39
+#: apps/hrm/models/employee.py:140 apps/hrm/models/organization.py:39
 #: apps/hrm/models/organization.py:65 apps/hrm/models/organization.py:103
 #: apps/hrm/models/organization.py:311
-#: apps/hrm/models/recruitment_candidate.py:72
+#: apps/hrm/models/recruitment_candidate.py:68
 #: apps/hrm/models/recruitment_reports.py:21
 #: apps/hrm/models/recruitment_request.py:54
 msgid "Branch"
 msgstr "Chi nhánh"
 
 # models/organization.py:102
-#: apps/hrm/models/employee.py:151 apps/hrm/models/organization.py:133
+#: apps/hrm/models/employee.py:152 apps/hrm/models/organization.py:133
 #: apps/hrm/models/organization.py:295
-#: apps/hrm/models/recruitment_candidate.py:88
+#: apps/hrm/models/recruitment_candidate.py:84
 #: apps/hrm/models/recruitment_reports.py:37
 #: apps/hrm/models/recruitment_request.py:70
 msgid "Department"
 msgstr "Phòng ban"
 
 # models/organization.py:189
-#: apps/hrm/models/employee.py:159 apps/hrm/models/organization.py:264
+#: apps/hrm/models/employee.py:160 apps/hrm/models/organization.py:264
 #: apps/hrm/models/organization.py:287
 msgid "Position"
 msgstr "Chức vụ"
 
 # models/organization.py:217
-#: apps/hrm/models/employee.py:171 apps/hrm/models/organization.py:313
+#: apps/hrm/models/employee.py:172 apps/hrm/models/organization.py:313
 msgid "Start date"
 msgstr "Ngày bắt đầu"
 
-#: apps/hrm/models/employee.py:176 apps/hrm/models/employee_certificate.py:98
-#: apps/hrm/models/recruitment_candidate.py:115
+#: apps/hrm/models/employee.py:177 apps/hrm/models/employee_certificate.py:98
+#: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
 msgstr ""
 
 # models/organization.py:182
-#: apps/hrm/models/employee.py:181
+#: apps/hrm/models/employee.py:182
 msgid "Resignation date"
 msgstr "Tên nghỉ việc"
 
-#: apps/hrm/models/employee.py:188
+#: apps/hrm/models/employee.py:189
 msgid "Resignation reason"
 msgstr "Lý do nghỉ việc"
 
-#: apps/hrm/models/employee.py:190 apps/hrm/models/employee_dependent.py:80
+#: apps/hrm/models/employee.py:191 apps/hrm/models/employee_dependent.py:80
 #: apps/hrm/models/employee_relationship.py:115
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/recruitment_candidate.py:122
+#: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:196 apps/hrm/models/employee_dependent.py:56
+#: apps/hrm/models/employee.py:197 apps/hrm/models/employee_dependent.py:56
 #: apps/hrm/models/employee_relationship.py:77
 msgid "Date of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:202
+#: apps/hrm/models/employee.py:203
 msgid "Gender"
 msgstr ""
 
-#: apps/hrm/models/employee.py:208
+#: apps/hrm/models/employee.py:209
 msgid "Marital status"
 msgstr ""
 
-#: apps/hrm/models/employee.py:216
+#: apps/hrm/models/employee.py:217
 msgid "Nationality"
 msgstr ""
 
-#: apps/hrm/models/employee.py:221
+#: apps/hrm/models/employee.py:222
 msgid "Ethnicity"
 msgstr ""
 
-#: apps/hrm/models/employee.py:226
+#: apps/hrm/models/employee.py:227
 msgid "Religion"
 msgstr ""
 
-#: apps/hrm/models/employee.py:233
-msgid "Citizen ID must contain only digits"
-msgstr ""
-
-#: apps/hrm/models/employee.py:234 apps/hrm/models/employee_dependent.py:64
+#: apps/hrm/models/employee.py:235 apps/hrm/models/employee_dependent.py:64
 #: apps/hrm/models/employee_relationship.py:85
-#: apps/hrm/models/recruitment_candidate.py:52
+#: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr ""
 
-#: apps/hrm/models/employee.py:239
+#: apps/hrm/models/employee.py:240
 msgid "Citizen ID issued date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:244
+#: apps/hrm/models/employee.py:245
 msgid "Citizen ID issued place"
 msgstr ""
 
 # models/organization.py:10
-#: apps/hrm/models/employee.py:249
+#: apps/hrm/models/employee.py:250
 msgid "Tax code"
 msgstr "Mã số thuế"
 
-#: apps/hrm/models/employee.py:255
+#: apps/hrm/models/employee.py:256
 msgid "Phone number must be exactly 10 digits"
 msgstr ""
 
 # models/organization.py:12
-#: apps/hrm/models/employee.py:256 apps/hrm/models/organization.py:21
+#: apps/hrm/models/employee.py:257 apps/hrm/models/organization.py:21
 msgid "Phone number"
 msgstr "Số điện thoại"
 
-#: apps/hrm/models/employee.py:262
+#: apps/hrm/models/employee.py:263
 msgid "Personal email"
 msgstr ""
 
-#: apps/hrm/models/employee.py:269
+#: apps/hrm/models/employee.py:270
 msgid "Place of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:274
+#: apps/hrm/models/employee.py:275
 msgid "Residential address"
 msgstr ""
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/employee.py:279
+#: apps/hrm/models/employee.py:280
 msgid "Permanent address"
 msgstr "Địa chỉ thường trú"
 
-#: apps/hrm/models/employee.py:286
+#: apps/hrm/models/employee.py:287
 msgid "Emergency contact name"
 msgstr ""
 
-#: apps/hrm/models/employee.py:291
+#: apps/hrm/models/employee.py:292
 msgid "Phone number must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:292
+#: apps/hrm/models/employee.py:293
 msgid "Emergency contact phone"
 msgstr ""
 
-#: apps/hrm/models/employee.py:302
+#: apps/hrm/models/employee.py:303
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:306
+#: apps/hrm/models/employee.py:307
 msgid "Is onboarding email sent"
 msgstr ""
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/employee.py:316 apps/hrm/models/recruitment_candidate.py:133
+#: apps/hrm/models/employee.py:317 apps/hrm/models/recruitment_candidate.py:129
 msgid "Recruitment Candidate"
 msgstr "Ứng viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:321
+#: apps/hrm/models/employee.py:322
 msgid "Employees"
 msgstr "Các nhân viên"
 
-#: apps/hrm/models/employee.py:362
+#: apps/hrm/models/employee.py:370
 msgid "Resignation date is required when status is Resigned."
 msgstr ""
 
-#: apps/hrm/models/employee.py:365
+#: apps/hrm/models/employee.py:373
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
@@ -1269,7 +1265,7 @@ msgid "Residential address of the relative"
 msgstr ""
 
 #: apps/hrm/models/employee_relationship.py:99
-#: apps/hrm/models/recruitment_candidate.py:61
+#: apps/hrm/models/recruitment_candidate.py:57
 msgid "Phone"
 msgstr ""
 
@@ -1342,7 +1338,7 @@ msgstr ""
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/interview_schedule.py:21
-#: apps/hrm/models/recruitment_candidate.py:66
+#: apps/hrm/models/recruitment_candidate.py:62
 #: apps/hrm/models/recruitment_expense.py:34
 msgid "Recruitment request"
 msgstr "Yêu cầu tuyển dụng"
@@ -1702,49 +1698,45 @@ msgstr "Mã ứng viên"
 msgid "Candidate name"
 msgstr "Tên ứng viên"
 
-#: apps/hrm/models/recruitment_candidate.py:56
-msgid "Citizen ID must contain exactly 12 digits."
-msgstr ""
-
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:96
+#: apps/hrm/models/recruitment_candidate.py:92
 #: apps/hrm/models/recruitment_expense.py:22
 #: apps/hrm/models/recruitment_reports.py:95
 msgid "Recruitment source"
 msgstr "Nguồn tuyển dụng"
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:102
+#: apps/hrm/models/recruitment_candidate.py:98
 #: apps/hrm/models/recruitment_expense.py:28
 #: apps/hrm/models/recruitment_reports.py:118
 msgid "Recruitment channel"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/recruitment_candidate.py:108
+#: apps/hrm/models/recruitment_candidate.py:104
 msgid "Years of experience"
 msgstr ""
 
 # models/organization.py:217
-#: apps/hrm/models/recruitment_candidate.py:110
+#: apps/hrm/models/recruitment_candidate.py:106
 msgid "Submitted date"
 msgstr "Ngày nộp đơn"
 
 # models/organization.py:218
-#: apps/hrm/models/recruitment_candidate.py:120
+#: apps/hrm/models/recruitment_candidate.py:116
 msgid "Onboard date"
 msgstr "Ngày nhận việc"
 
-#: apps/hrm/models/recruitment_candidate.py:129
+#: apps/hrm/models/recruitment_candidate.py:125
 #: apps/hrm/models/recruitment_expense.py:63
 msgid "Referrer"
 msgstr ""
 
 # models/recruitment_channel.py:19
-#: apps/hrm/models/recruitment_candidate.py:134
+#: apps/hrm/models/recruitment_candidate.py:130
 msgid "Recruitment Candidates"
 msgstr "Các ứng viên"
 
-#: apps/hrm/models/recruitment_candidate.py:153
+#: apps/hrm/models/recruitment_candidate.py:149
 msgid "Onboard date is required when status is HIRED."
 msgstr ""
 

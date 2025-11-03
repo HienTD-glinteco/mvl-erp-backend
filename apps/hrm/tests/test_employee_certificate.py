@@ -57,6 +57,7 @@ class EmployeeCertificateModelTest(TestCase):
             block=self.block,
             department=self.department,
             start_date=date(2020, 1, 1),
+            citizen_id="000000020000",
         )
 
     def test_create_certificate_with_code(self):
@@ -272,6 +273,7 @@ class EmployeeCertificateAPITest(TestCase):
             block=self.block,
             department=self.department,
             start_date=date(2020, 1, 1),
+            citizen_id="000000020001",
         )
 
     def get_response_data(self, response):
@@ -430,6 +432,7 @@ class EmployeeCertificateAPITest(TestCase):
             block=self.block,
             department=self.department,
             start_date=date(2020, 1, 1),
+            citizen_id="000000020002",
         )
 
         # Create certificates for both employees

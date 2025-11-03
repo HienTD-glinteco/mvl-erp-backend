@@ -52,6 +52,15 @@ class EmployeeContractTypeNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name"]
 
 
+class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested branch references"""
+
+    class Meta:
+        model = RecruitmentCandidate
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id", "name", "code"]
+
+
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model.
 
@@ -71,6 +80,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     position = EmployeePositionNestedSerializer(read_only=True)
     contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
+    recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
