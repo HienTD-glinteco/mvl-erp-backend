@@ -8,7 +8,6 @@ is explicitly declared.
 
 import pytest
 from django.test import TestCase
-from drf_spectacular.generators import SchemaGenerator
 from drf_spectacular.openapi import AutoSchema
 from rest_framework import serializers, viewsets
 from rest_framework.request import Request
