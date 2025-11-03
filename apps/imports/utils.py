@@ -353,7 +353,6 @@ def read_headers(file_path: str, file_extension: str, header_row: int = 0) -> li
     """
     headers = []
     
-    # Open file stream
     with default_storage.open(file_path, "rb") as file_stream:
         ext = file_extension.lower()
         

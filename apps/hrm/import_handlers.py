@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.text import slugify
 
-from apps.core.models import Nationality
+from apps.core.models import AdministrativeUnit, Nationality, Province
 from apps.hrm.models import (
     Block,
     Branch,
@@ -133,11 +133,12 @@ def is_section_header_row(row: list, first_col_value: str) -> bool:
         return False
     
     # Check for common section header patterns
+    # More specific patterns with delimiters to avoid false positives
     section_patterns = [
         r"chi\s*nhánh\s*:",
         r"khối\s*:",
         r"phòng\s*ban\s*:",
-        r"phòng\s+[a-zA-Z0-9\s_]+",
+        r"phòng\s+[a-zA-Z0-9\s_]+_",  # Department names with underscore suffix
     ]
     
     first_col_lower = first_col_value.lower()
@@ -309,9 +310,6 @@ def lookup_or_create_branch(name: str) -> tuple[Branch | None, bool]:
     
     if branch:
         return branch, False
-    
-    # Need to get or create a default province and administrative unit
-    from apps.core.models import AdministrativeUnit, Province
     
     # Try to get a default province (first one, or create a placeholder)
     province = Province.objects.first()
@@ -771,17 +769,26 @@ def employee_import_handler(
             email = normalize_value(row_dict.get("email", ""))
             username = normalize_value(row_dict.get("username", ""))
             
+            # Get or initialize existing usernames/emails set from options
+            # This maintains uniqueness across all rows in the import job
+            existing_usernames = options.get("_existing_usernames", set())
+            existing_emails = options.get("_existing_emails", set())
+            
             # Generate username if missing
             if not username:
-                username = generate_username(code, fullname, set())
+                username = generate_username(code, fullname, existing_usernames)
                 warnings.append(f"Generated username: {username}")
+            else:
+                existing_usernames.add(username)
             
             employee_data["username"] = username
             
             # Generate email if missing
             if not email:
-                email = generate_email(username, set())
+                email = generate_email(username, existing_emails)
                 warnings.append(f"Generated email: {email}")
+            else:
+                existing_emails.add(email)
             
             employee_data["email"] = email
             

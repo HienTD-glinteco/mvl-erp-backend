@@ -159,6 +159,11 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         except Exception as e:
             logger.warning(f"Failed to read headers for import job {import_job_id}: {e}")
             options["headers"] = []
+        
+        # Initialize sets for tracking generated usernames/emails across rows
+        # These maintain uniqueness throughout the import job
+        options["_existing_usernames"] = set()
+        options["_existing_emails"] = set()
 
         # Count total rows if requested
         total_rows = None
