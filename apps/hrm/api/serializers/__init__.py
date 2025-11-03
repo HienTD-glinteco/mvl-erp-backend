@@ -1,3 +1,5 @@
+from .attendance_device import AttendanceDeviceSerializer
+from .attendance_record import AttendanceRecordSerializer
 from .contract_type import ContractTypeSerializer
 from .employee import EmployeeSerializer
 from .employee_certificate import EmployeeCertificateSerializer
@@ -40,6 +42,8 @@ from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
 
 __all__ = [
+    "AttendanceDeviceSerializer",
+    "AttendanceRecordSerializer",
     "BranchSerializer",
     "BlockSerializer",
     "DepartmentSerializer",

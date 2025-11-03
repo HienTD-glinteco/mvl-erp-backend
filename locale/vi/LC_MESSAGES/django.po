@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 19:32+0700\n"
+"POT-Creation-Date: 2025-11-03 11:41+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,48 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/devices/zk/service.py:93
+msgid "Failed to establish connection to device"
+msgstr ""
+
+#: apps/devices/zk/service.py:101
+#, python-format
+msgid "Network connection error: %(error)s"
+msgstr ""
+
+#: apps/devices/zk/service.py:106
+#, python-format
+msgid "Device response error: %(error)s"
+msgstr ""
+
+#: apps/devices/zk/service.py:111 apps/devices/zk/service.py:150
+#, python-format
+msgid "Unexpected error: %(error)s"
+msgstr ""
+
+#: apps/devices/zk/service.py:138
+#, python-format
+msgid "Connection successful. Firmware: %(firmware)s"
+msgstr ""
+
+#: apps/devices/zk/service.py:142
+msgid "Connection object is None"
+msgstr ""
+
+#: apps/devices/zk/service.py:170 apps/devices/zk/service.py:222
+msgid "Device not connected. Call connect() first."
+msgstr ""
+
+#: apps/devices/zk/service.py:208
+#, python-format
+msgid "Failed to fetch attendance logs: %(error)s"
+msgstr ""
+
+#: apps/devices/zk/service.py:233
+#, python-format
+msgid "Failed to get device info: %(error)s"
+msgstr ""
 
 #: apps/files/api/serializers/file_serializers.py:16
 msgid "Name of the file being uploaded"
