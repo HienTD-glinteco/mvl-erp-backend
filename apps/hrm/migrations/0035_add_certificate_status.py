@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ('Valid', 'Valid'),
-                    ('Near_expiry', 'Near expiry'),
+                    ('Near Expiry', 'Near Expiry'),
                     ('Expired', 'Expired')
                 ],
                 default='Valid',

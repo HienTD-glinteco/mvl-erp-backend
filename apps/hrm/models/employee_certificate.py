@@ -23,7 +23,7 @@ class EmployeeCertificate(ColoredValueMixin, BaseModel):
 
     class Status(models.TextChoices):
         VALID = "Valid", _("Valid")
-        NEAR_EXPIRY = "Near_expiry", _("Near expiry")
+        NEAR_EXPIRY = "Near Expiry", _("Near Expiry")
         EXPIRED = "Expired", _("Expired")
 
     VARIANT_MAPPING = {
