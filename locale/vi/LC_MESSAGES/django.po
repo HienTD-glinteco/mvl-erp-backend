@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 11:41+0700\n"
+"POT-Creation-Date: 2025-11-03 14:44+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -744,18 +744,18 @@ msgstr "Không thể xóa {model_name} vì đang được sử dụng bởi: {re
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo vệ."
 
-#: libs/drf/serializers/mixins.py:236
+#: libs/drf/serializers/mixins.py:249 libs/drf/serializers/mixins.py:286
 #, python-brace-format
 msgid "File token for {field}"
 msgstr ""
 
-#: libs/drf/serializers/mixins.py:245
+#: libs/drf/serializers/mixins.py:272 libs/drf/serializers/mixins.py:295
 msgid ""
 "File tokens for uploading files. Each key corresponds to a file field on the "
 "model."
 msgstr ""
 
-#: libs/drf/serializers/mixins.py:253
+#: libs/drf/serializers/mixins.py:303
 msgid ""
 "Dictionary mapping field names to file tokens (e.g., {'attachment': "
 "'token123'})"
