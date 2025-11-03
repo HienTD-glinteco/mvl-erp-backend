@@ -1,5 +1,7 @@
 from .attendance_device import AttendanceDevice
 from .attendance_record import AttendanceRecord
+from .bank import Bank
+from .bank_account import BankAccount
 from .contract_type import ContractType
 from .employee import Employee
 from .employee_certificate import EmployeeCertificate
@@ -32,6 +34,8 @@ from .recruitment_source import RecruitmentSource
 __all__ = [
     "AttendanceDevice",
     "AttendanceRecord",
+    "Bank",
+    "BankAccount",
     "Branch",
     "Block",
     "Department",

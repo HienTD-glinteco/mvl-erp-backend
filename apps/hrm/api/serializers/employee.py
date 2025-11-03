@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
-from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
+from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position, RecruitmentCandidate
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
@@ -93,6 +93,13 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         required=False,
         allow_null=True,
     )
+    recruitment_candidate_id = serializers.PrimaryKeyRelatedField(
+        queryset=RecruitmentCandidate.objects.all(),
+        source="recruitment_candidate",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
 
     # Colored value properties
     colored_code_type = ColoredValueSerializer(read_only=True)
@@ -142,6 +149,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "emergency_contact_name",
             "emergency_contact_phone",
             "user",
+            "recruitment_candidate",
+            "recruitment_candidate_id",
             "is_onboarding_email_sent",
             "created_at",
             "updated_at",
@@ -157,6 +166,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "avatar",
             "nationality",
             "user",
+            "recruitment_candidate",
             "colored_code_type",
             "colored_status",
             "is_onboarding_email_sent",

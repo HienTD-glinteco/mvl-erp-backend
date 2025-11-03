@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 14:44+0700\n"
+"POT-Creation-Date: 2025-11-03 15:48+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:205
+#: apps/hrm/api/serializers/employee.py:215
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
@@ -419,14 +419,14 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, fuzzy
+#, fuzzy, python-brace-format
 #| msgid "Employee code"
 msgid "Processing {} certificates..."
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:64
-#, fuzzy
+#, fuzzy, python-brace-format
 #| msgid "Recruitment type"
 msgid "Certificate {}: {} -> {}"
 msgstr "Kênh tuyển dụng"
@@ -437,27 +437,30 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, fuzzy
+#, fuzzy, python-brace-format
 #| msgid "Employee code"
 msgid "Total certificates: {}"
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, fuzzy
+#, fuzzy, python-brace-format
 #| msgid "Recruitment type"
 msgid "Certificates updated: {}"
 msgstr "Kênh tuyển dụng"
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:77
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:78
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -645,6 +648,78 @@ msgstr ""
 
 #: apps/hrm/models/attendance_record.py:76
 msgid "Complete raw data from device for debugging purposes"
+msgstr ""
+
+# models/organization.py:9
+#: apps/hrm/models/bank.py:17
+#, fuzzy
+#| msgid "Branch name"
+msgid "Bank name"
+msgstr "Tên chi nhánh"
+
+# models/organization.py:10
+#: apps/hrm/models/bank.py:18
+#, fuzzy
+#| msgid "Branch code"
+msgid "Bank code"
+msgstr "Mã chi nhánh"
+
+#: apps/hrm/models/bank.py:21 apps/hrm/models/bank_account.py:31
+msgid "Bank"
+msgstr ""
+
+#: apps/hrm/models/bank.py:22
+msgid "Banks"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:320
+#: apps/hrm/models/employee_certificate.py:41
+#: apps/hrm/models/employee_dependent.py:36
+#: apps/hrm/models/employee_relationship.py:40
+#: apps/hrm/models/organization.py:281
+#: apps/hrm/models/recruitment_candidate_contact_log.py:16
+#: apps/hrm/models/recruitment_reports.py:214
+msgid "Employee"
+msgstr "Nhân viên"
+
+# models/organization.py:12
+#: apps/hrm/models/bank_account.py:33
+#, fuzzy
+#| msgid "Phone number"
+msgid "Account number"
+msgstr "Số điện thoại"
+
+# models/organization.py:66
+#: apps/hrm/models/bank_account.py:34
+#, fuzzy
+#| msgid "Accounting"
+msgid "Account name"
+msgstr "Kế toán"
+
+# models/organization.py:219
+#: apps/hrm/models/bank_account.py:35
+#, fuzzy
+#| msgid "Is primary position"
+msgid "Is primary"
+msgstr "Chức vụ chính"
+
+# models/organization.py:66
+#: apps/hrm/models/bank_account.py:38
+#, fuzzy
+#| msgid "Accounting"
+msgid "Bank Account"
+msgstr "Kế toán"
+
+# models/organization.py:66
+#: apps/hrm/models/bank_account.py:39
+#, fuzzy
+#| msgid "Accounting"
+msgid "Bank Accounts"
+msgstr "Kế toán"
+
+#: apps/hrm/models/bank_account.py:62
+msgid "Employee already has a primary bank account. Please unset it first."
 msgstr ""
 
 # models/organization.py:217
@@ -925,26 +1000,21 @@ msgstr ""
 msgid "Is onboarding email sent"
 msgstr ""
 
-# models/organization.py:205
-#: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:41
-#: apps/hrm/models/employee_dependent.py:36
-#: apps/hrm/models/employee_relationship.py:40
-#: apps/hrm/models/organization.py:281
-#: apps/hrm/models/recruitment_candidate_contact_log.py:16
-#: apps/hrm/models/recruitment_reports.py:214
-msgid "Employee"
-msgstr "Nhân viên"
+# models/recruitment_channel.py:18
+#: apps/hrm/models/employee.py:316 apps/hrm/models/recruitment_candidate.py:133
+msgid "Recruitment Candidate"
+msgstr "Ứng viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:311
+#: apps/hrm/models/employee.py:321
 msgid "Employees"
 msgstr "Các nhân viên"
 
-#: apps/hrm/models/employee.py:352
+#: apps/hrm/models/employee.py:362
 msgid "Resignation date is required when status is Resigned."
 msgstr ""
 
-#: apps/hrm/models/employee.py:355
+#: apps/hrm/models/employee.py:365
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
@@ -1668,11 +1738,6 @@ msgstr "Ngày nhận việc"
 #: apps/hrm/models/recruitment_expense.py:63
 msgid "Referrer"
 msgstr ""
-
-# models/recruitment_channel.py:18
-#: apps/hrm/models/recruitment_candidate.py:133
-msgid "Recruitment Candidate"
-msgstr "Ứng viên"
 
 # models/recruitment_channel.py:19
 #: apps/hrm/models/recruitment_candidate.py:134

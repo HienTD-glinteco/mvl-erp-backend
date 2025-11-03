@@ -306,6 +306,16 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Is onboarding email sent"),
     )
 
+    # Recruitment
+    recruitment_candidate = models.ForeignKey(
+        "RecruitmentCandidate",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+        verbose_name=_("Recruitment Candidate"),
+    )
+
     class Meta:
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
