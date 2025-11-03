@@ -1,3 +1,26 @@
+"""Management command to update certificate statuses.
+
+This command updates the status field of all EmployeeCertificate records
+based on their expiry_date values according to these rules:
+
+- No expiry_date → VALID
+- Current date > expiry_date → EXPIRED
+- Current date ≤ expiry_date and diff ≤ threshold → NEAR_EXPIRY
+- Current date ≤ expiry_date and diff > threshold → VALID
+
+The threshold is configured via HRM_CERTIFICATE_NEAR_EXPIRY_DAYS setting (default: 30 days).
+
+Usage:
+    # Dry run to see what would change
+    python manage.py update_certificate_statuses --dry-run
+
+    # Apply changes
+    python manage.py update_certificate_statuses
+
+Recommended crontab entry to run daily at 2 AM:
+    0 2 * * * cd /path/to/project && /path/to/venv/bin/python manage.py update_certificate_statuses
+"""
+
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext as _
 
