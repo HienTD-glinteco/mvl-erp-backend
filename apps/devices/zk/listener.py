@@ -122,6 +122,7 @@ class ZKRealtimeDeviceListener:
         self._on_device_disabled = on_device_disabled
 
         self._device_tasks: dict[int, asyncio.Task] = {}
+        self._registered_device_ids: set[int] = set()  # Track currently registered devices
         self._running = False
         self._shutdown_event = asyncio.Event()
 
@@ -160,9 +161,29 @@ class ZKRealtimeDeviceListener:
                 logger.error(f"Error in periodic device checker: {str(e)}")
 
     async def _check_and_start_devices(self):
-        """Check for enabled devices and start listeners for any that aren't already running."""
+        """Check for enabled devices and start listeners for any that aren't already running.
+
+        Also removes devices that were previously registered but are no longer enabled.
+        """
         # Get all enabled devices via callback
         devices = await asyncio.to_thread(self._get_devices)
+
+        # Build set of currently enabled device IDs
+        enabled_device_ids = {device.device_id for device in devices}
+
+        # Remove devices that are no longer enabled
+        devices_to_remove = self._registered_device_ids - enabled_device_ids
+        for device_id in devices_to_remove:
+            if device_id in self._device_tasks:
+                task = self._device_tasks[device_id]
+                if not task.done():
+                    task.cancel()
+                    logger.info(f"Cancelled listener task for disabled device ID: {device_id}")
+                del self._device_tasks[device_id]
+            logger.info(f"Removed disabled device ID {device_id} from registered devices")
+
+        # Update the registered device IDs
+        self._registered_device_ids = enabled_device_ids.copy()
 
         # Find devices that need listeners started
         for device in devices:
@@ -271,6 +292,14 @@ class ZKRealtimeDeviceListener:
                 # Clean up connection if it exists
                 if zk_conn:
                     await self._disconnect_device(device, zk_conn)
+
+            # Check if device is still registered before retrying
+            if device.device_id not in self._registered_device_ids:
+                logger.info(
+                    f"Device {device.name} (ID: {device.device_id}) is no longer registered. "
+                    f"Stopping retry attempts."
+                )
+                break
 
             # Wait before reconnecting (exponential backoff)
             if self._running:
