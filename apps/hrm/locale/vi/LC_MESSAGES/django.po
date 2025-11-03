@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 11:38+0700\n"
+"POT-Creation-Date: 2025-11-03 13:37+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -82,6 +82,11 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
+#: apps/hrm/api/views/recruitment_reports.py:126
+#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
+
 # models/organization.py:102
 #: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
@@ -91,6 +96,11 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr "Tổng"
+
+#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
+#: apps/hrm/utils/functions.py:128
+msgid "Week"
+msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:408
 msgid ""
@@ -121,14 +131,6 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
-
-#: apps/hrm/constants.py:39
-msgid "Week"
-msgstr "Tuần"
-
-#: apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
 
 #: apps/hrm/constants.py:46
 msgid "All data"
@@ -399,6 +401,70 @@ msgstr "Phòng ban đã tồn tại: %s"
 msgid "Successfully set up default organizational data!"
 msgstr "Thiết lập dữ liệu tổ chức mặc định thành công!"
 
+#: apps/hrm/management/commands/update_certificate_statuses.py:31
+msgid "Update certificate statuses based on expiry dates"
+msgstr ""
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:44
+msgid "DRY RUN MODE - No changes will be made"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, fuzzy
+#| msgid "Employee code"
+msgid "Processing {} certificates..."
+msgstr "Mã nhân viên"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/management/commands/update_certificate_statuses.py:64
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Certificate {}: {} -> {}"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:73
+msgid "Summary:"
+msgstr ""
+
+# models/organization.py:205
+#: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, fuzzy
+#| msgid "Employee code"
+msgid "Total certificates: {}"
+msgstr "Mã nhân viên"
+
+# models/recruitment_channel.py:18
+#: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, fuzzy
+#| msgid "Recruitment type"
+msgid "Certificates updated: {}"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:76
+msgid "  - Changed to VALID: {}"
+msgstr ""
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:77
+msgid "  - Changed to NEAR_EXPIRY: {}"
+msgstr ""
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:78
+msgid "  - Changed to EXPIRED: {}"
+msgstr ""
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:82
+msgid ""
+"\n"
+"No changes made (dry run mode). Run without --dry-run to apply changes."
+msgstr ""
+
+#: apps/hrm/management/commands/update_certificate_statuses.py:85
+msgid ""
+"\n"
+"Certificate statuses updated successfully!"
+msgstr ""
+
 # models/organization.py:217
 #: apps/hrm/models/contract_type.py:15
 msgid "Contract type name"
@@ -572,7 +638,8 @@ msgstr "Chức vụ"
 msgid "Start date"
 msgstr "Ngày bắt đầu"
 
-#: apps/hrm/models/employee.py:176 apps/hrm/models/recruitment_candidate.py:115
+#: apps/hrm/models/employee.py:176 apps/hrm/models/employee_certificate.py:98
+#: apps/hrm/models/recruitment_candidate.py:115
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
 msgstr ""
@@ -691,7 +758,7 @@ msgid "Is onboarding email sent"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:24
+#: apps/hrm/models/employee.py:310 apps/hrm/models/employee_certificate.py:41
 #: apps/hrm/models/employee_dependent.py:36
 #: apps/hrm/models/employee_relationship.py:40
 #: apps/hrm/models/organization.py:281
@@ -714,98 +781,117 @@ msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
 #: apps/hrm/models/employee_certificate.py:25
+msgid "Valid"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:26
+msgid "Near Expiry"
+msgstr ""
+
+# models/organization.py:218
+#: apps/hrm/models/employee_certificate.py:27
+#, fuzzy
+#| msgid "Expense date"
+msgid "Expired"
+msgstr "Ngày chi phí"
+
+#: apps/hrm/models/employee_certificate.py:42
 msgid "Employee who owns this certificate"
 msgstr ""
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/employee_certificate.py:30
+#: apps/hrm/models/employee_certificate.py:47
 #, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificate type"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/employee_certificate.py:31
+#: apps/hrm/models/employee_certificate.py:48
 msgid "Type of certificate"
 msgstr ""
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/employee_certificate.py:36
+#: apps/hrm/models/employee_certificate.py:53
 #, fuzzy
 #| msgid "Candidate code"
 msgid "Certificate code"
 msgstr "Mã ứng viên"
 
-#: apps/hrm/models/employee_certificate.py:37
+#: apps/hrm/models/employee_certificate.py:54
 msgid "Certificate number or code issued by the certifying organization"
 msgstr ""
 
 # models/organization.py:9
 # models/recruitment_channel.py:12
-#: apps/hrm/models/employee_certificate.py:42
+#: apps/hrm/models/employee_certificate.py:59
 #, fuzzy
 #| msgid "Candidate name"
 msgid "Certificate name"
 msgstr "Tên ứng viên"
 
-#: apps/hrm/models/employee_certificate.py:43
+#: apps/hrm/models/employee_certificate.py:60
 msgid "Specific name of the certificate or exam"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_certificate.py:48
+#: apps/hrm/models/employee_certificate.py:65
 #, fuzzy
 #| msgid "Expense date"
 msgid "Issue date"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_certificate.py:49
+#: apps/hrm/models/employee_certificate.py:66
 msgid "Date when the certificate was issued"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_certificate.py:54
+#: apps/hrm/models/employee_certificate.py:71
 #, fuzzy
 #| msgid "Expense date"
 msgid "Expiry date"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_certificate.py:55
+#: apps/hrm/models/employee_certificate.py:72
 msgid "Date when the certificate expires (if applicable)"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:60
+#: apps/hrm/models/employee_certificate.py:77
 msgid "Issuing organization"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:61
+#: apps/hrm/models/employee_certificate.py:78
 msgid "Organization that issued the certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:69
+#: apps/hrm/models/employee_certificate.py:86
 msgid "Certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:70
+#: apps/hrm/models/employee_certificate.py:87
 msgid "Uploaded certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:74
+#: apps/hrm/models/employee_certificate.py:91
 msgid "Notes"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:75
+#: apps/hrm/models/employee_certificate.py:92
 msgid "Additional notes about the certificate"
 msgstr ""
 
+#: apps/hrm/models/employee_certificate.py:99
+msgid "Certificate status based on expiry date"
+msgstr ""
+
 # models/organization.py:205
-#: apps/hrm/models/employee_certificate.py:79
+#: apps/hrm/models/employee_certificate.py:104
 #, fuzzy
 #| msgid "Employee code"
 msgid "Employee certificate"
 msgstr "Mã nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee_certificate.py:80
+#: apps/hrm/models/employee_certificate.py:105
 #, fuzzy
 #| msgid "Employee code"
 msgid "Employee certificates"

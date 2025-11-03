@@ -745,7 +745,7 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertIn("status", result_data)
         self.assertIn("status_display", result_data)
         self.assertIn("colored_status", result_data)
-        self.assertEqual(result_data["status"], "valid")
+        self.assertEqual(result_data["status"], "Valid")
         self.assertEqual(result_data["colored_status"]["variant"], "GREEN")
 
     def test_status_field_is_read_only(self):
@@ -764,7 +764,7 @@ class EmployeeCertificateAPITest(TestCase):
 
         result_data = self.get_response_data(response)
         # Status should be VALID (computed), not EXPIRED (from request)
-        self.assertEqual(result_data["status"], "valid")
+        self.assertEqual(result_data["status"], "Valid")
 
     def test_filter_by_status_valid(self):
         """Test filtering certificates by VALID status"""
@@ -792,7 +792,7 @@ class EmployeeCertificateAPITest(TestCase):
         )
 
         url = reverse("hrm:employee-certificate-list")
-        response = self.client.get(url, {"status": "valid"})
+        response = self.client.get(url, {"status": "Valid"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         result_data = self.get_response_data(response)
@@ -817,7 +817,7 @@ class EmployeeCertificateAPITest(TestCase):
         )
 
         url = reverse("hrm:employee-certificate-list")
-        response = self.client.get(url, {"status": "near_expiry"})
+        response = self.client.get(url, {"status": "Near Expiry"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         result_data = self.get_response_data(response)
@@ -842,7 +842,7 @@ class EmployeeCertificateAPITest(TestCase):
         )
 
         url = reverse("hrm:employee-certificate-list")
-        response = self.client.get(url, {"status": "expired"})
+        response = self.client.get(url, {"status": "Expired"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         result_data = self.get_response_data(response)
