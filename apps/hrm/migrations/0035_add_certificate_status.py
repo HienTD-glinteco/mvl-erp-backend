@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
             name='status',
             field=models.CharField(
                 choices=[
-                    ('valid', 'Valid'),
-                    ('near_expiry', 'Near expiry'),
-                    ('expired', 'Expired')
+                    ('Valid', 'Valid'),
+                    ('Near_expiry', 'Near expiry'),
+                    ('Expired', 'Expired')
                 ],
-                default='valid',
+                default='Valid',
                 help_text='Certificate status based on expiry date',
                 max_length=20,
                 verbose_name='Status',
