@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import EmployeeCertificate
+from libs import ColoredValueSerializer
 from libs.drf.serializers import FileConfirmSerializerMixin
 
 
@@ -16,6 +17,12 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         read_only=True,
         help_text="Human-readable certificate type label",
     )
+    status_display = serializers.CharField(
+        source="get_status_display",
+        read_only=True,
+        help_text="Human-readable status label",
+    )
+    colored_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = EmployeeCertificate
@@ -31,6 +38,9 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
             "issuing_organization",
             "file",
             "notes",
+            "status",
+            "status_display",
+            "colored_status",
             "created_at",
             "updated_at",
         ]
@@ -38,6 +48,9 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
             "id",
             "certificate_type_display",
             "file",
+            "status",
+            "status_display",
+            "colored_status",
             "created_at",
             "updated_at",
         ]

@@ -1,21 +1,38 @@
+from datetime import date, timedelta
+
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
-from libs.models import BaseModel
+from libs import ColorVariant
+from libs.models import BaseModel, ColoredValueMixin
 
 from ..constants import CertificateType
 
 
 @audit_logging_register
-class EmployeeCertificate(BaseModel):
+class EmployeeCertificate(ColoredValueMixin, BaseModel):
     """Employee certificate model for tracking qualifications and certifications.
 
     This model manages certificates for employees including foreign language certificates,
     computer certificates, diplomas, broker training completion, and real estate practice licenses.
     The certificate_code is the actual certificate number issued by the certifying organization.
     """
+
+    class Status(models.TextChoices):
+        VALID = "Valid", _("Valid")
+        NEAR_EXPIRY = "Near Expiry", _("Near Expiry")
+        EXPIRED = "Expired", _("Expired")
+
+    VARIANT_MAPPING = {
+        "status": {
+            Status.VALID: ColorVariant.GREEN,
+            Status.NEAR_EXPIRY: ColorVariant.YELLOW,
+            Status.EXPIRED: ColorVariant.RED,
+        },
+    }
 
     employee = models.ForeignKey(
         "hrm.Employee",
@@ -74,6 +91,14 @@ class EmployeeCertificate(BaseModel):
         verbose_name=_("Notes"),
         help_text=_("Additional notes about the certificate"),
     )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.VALID,
+        verbose_name=_("Status"),
+        help_text=_("Certificate status based on expiry date"),
+        db_index=True,
+    )
 
     class Meta:
         verbose_name = _("Employee certificate")
@@ -85,6 +110,7 @@ class EmployeeCertificate(BaseModel):
             models.Index(fields=["certificate_code"]),
             models.Index(fields=["issue_date"]),
             models.Index(fields=["expiry_date"]),
+            models.Index(fields=["status"]),
         ]
 
     def __str__(self):
@@ -95,3 +121,43 @@ class EmployeeCertificate(BaseModel):
         if self.certificate_code:
             return f"{self.certificate_code} - {self.get_certificate_type_display()}"
         return self.get_certificate_type_display()
+
+    @property
+    def colored_status(self):
+        """Get status with color variant"""
+        return self.get_colored_value("status")
+
+    def compute_status(self):
+        """Compute certificate status based on expiry date.
+
+        Rules:
+        - If no expiry_date: status = VALID
+        - If expiry_date exists:
+            - If current_date > expiry_date: EXPIRED
+            - If current_date <= expiry_date and time_diff <= threshold: NEAR_EXPIRY
+            - If current_date <= expiry_date and time_diff > threshold: VALID
+
+        Returns:
+            str: The computed status value
+        """
+        if not self.expiry_date:
+            return self.Status.VALID
+
+        today = date.today()
+        near_expiry_days = getattr(settings, "HRM_CERTIFICATE_NEAR_EXPIRY_DAYS", 30)
+
+        if today > self.expiry_date:
+            return self.Status.EXPIRED
+        elif (self.expiry_date - today).days <= near_expiry_days:
+            return self.Status.NEAR_EXPIRY
+        else:
+            return self.Status.VALID
+
+    def update_status(self):
+        """Update the status field based on current expiry date"""
+        self.status = self.compute_status()
+
+    def save(self, *args, **kwargs):
+        """Override save to automatically update status"""
+        self.update_status()
+        super().save(*args, **kwargs)

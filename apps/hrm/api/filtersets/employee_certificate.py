@@ -14,6 +14,7 @@ class EmployeeCertificateFilterSet(django_filters.FilterSet):
     issue_date_to = django_filters.DateFilter(field_name="issue_date", lookup_expr="lte")
     expiry_date_from = django_filters.DateFilter(field_name="expiry_date", lookup_expr="gte")
     expiry_date_to = django_filters.DateFilter(field_name="expiry_date", lookup_expr="lte")
+    status = django_filters.ChoiceFilter(choices=EmployeeCertificate.Status.choices)
 
     class Meta:
         model = EmployeeCertificate
@@ -27,6 +28,7 @@ class EmployeeCertificateFilterSet(django_filters.FilterSet):
             "issue_date_to",
             "expiry_date_from",
             "expiry_date_to",
+            "status",
         ]
 
     def filter_certificate_types(self, queryset, name, value):

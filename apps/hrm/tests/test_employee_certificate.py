@@ -136,6 +136,89 @@ class EmployeeCertificateModelTest(TestCase):
         )
         self.assertIn("Foreign language certificate", str(certificate))
 
+    def test_status_valid_no_expiry_date(self):
+        """Test status is VALID when no expiry_date is set"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.VALID)
+
+    def test_status_expired(self):
+        """Test status is EXPIRED when current date > expiry_date"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today() - timedelta(days=100),
+            expiry_date=date.today() - timedelta(days=1),
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.EXPIRED)
+
+    def test_status_near_expiry(self):
+        """Test status is NEAR_EXPIRY when expiry is within threshold"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=15),  # Within 30 days
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.NEAR_EXPIRY)
+
+    def test_status_valid_with_expiry_beyond_threshold(self):
+        """Test status is VALID when expiry is beyond threshold"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),  # More than 30 days
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.VALID)
+
+    def test_status_near_expiry_at_threshold(self):
+        """Test status is NEAR_EXPIRY when exactly at threshold (30 days)"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=30),
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.NEAR_EXPIRY)
+
+    def test_status_updates_on_save(self):
+        """Test status is automatically updated when certificate is saved"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.VALID)
+
+        # Update expiry_date to trigger status change
+        certificate.expiry_date = date.today() - timedelta(days=1)
+        certificate.save()
+        self.assertEqual(certificate.status, EmployeeCertificate.Status.EXPIRED)
+
+    def test_colored_status(self):
+        """Test colored_status property returns correct variant"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        colored = certificate.colored_status
+        self.assertEqual(colored["value"], EmployeeCertificate.Status.VALID)
+        self.assertEqual(colored["variant"], "GREEN")
+
 
 class EmployeeCertificateAPITest(TestCase):
     """Test cases for EmployeeCertificate API"""
@@ -643,3 +726,125 @@ class EmployeeCertificateAPITest(TestCase):
 
             # Should return 400 Bad Request due to invalid token
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_status_field_in_api_response(self):
+        """Test that status field is included in API response"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertIn("status", result_data)
+        self.assertIn("status_display", result_data)
+        self.assertIn("colored_status", result_data)
+        self.assertEqual(result_data["status"], "Valid")
+        self.assertEqual(result_data["colored_status"]["variant"], "GREEN")
+
+    def test_status_field_is_read_only(self):
+        """Test that status field cannot be set via API"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": date.today().strftime("%Y-%m-%d"),
+            "expiry_date": (date.today() + timedelta(days=60)).strftime("%Y-%m-%d"),
+            "status": "expired",  # Try to set status manually
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        # Status should be VALID (computed), not EXPIRED (from request)
+        self.assertEqual(result_data["status"], "Valid")
+
+    def test_filter_by_status_valid(self):
+        """Test filtering certificates by VALID status"""
+        # Create certificates with different statuses
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Valid Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Near Expiry Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=15),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Expired Certificate",
+            issue_date=date.today() - timedelta(days=100),
+            expiry_date=date.today() - timedelta(days=1),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"status": "Valid"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Valid Certificate")
+
+    def test_filter_by_status_near_expiry(self):
+        """Test filtering certificates by NEAR_EXPIRY status"""
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Valid Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Near Expiry Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=15),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"status": "Near Expiry"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Near Expiry Certificate")
+
+    def test_filter_by_status_expired(self):
+        """Test filtering certificates by EXPIRED status"""
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Valid Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Expired Certificate",
+            issue_date=date.today() - timedelta(days=100),
+            expiry_date=date.today() - timedelta(days=1),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"status": "Expired"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Expired Certificate")

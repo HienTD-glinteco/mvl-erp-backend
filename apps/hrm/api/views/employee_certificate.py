@@ -36,6 +36,9 @@ from libs import BaseModelViewSet
                                 "issuing_organization": "British Council",
                                 "file": 1,
                                 "notes": "English proficiency certificate",
+                                "status": "valid",
+                                "status_display": "Valid",
+                                "colored_status": {"value": "valid", "variant": "GREEN"},
                                 "created_at": "2024-01-01T00:00:00Z",
                                 "updated_at": "2024-01-01T00:00:00Z",
                             },
@@ -51,6 +54,9 @@ from libs import BaseModelViewSet
                                 "issuing_organization": "Ministry of Construction",
                                 "file": 2,
                                 "notes": "Official broker license",
+                                "status": "valid",
+                                "status_display": "Valid",
+                                "colored_status": {"value": "valid", "variant": "GREEN"},
                                 "created_at": "2024-01-01T00:00:00Z",
                                 "updated_at": "2024-01-01T00:00:00Z",
                             },
@@ -107,6 +113,9 @@ from libs import BaseModelViewSet
                             "download_url": "https://s3.amazonaws.com/...",
                         },
                         "notes": "English proficiency certificate",
+                        "status": "valid",
+                        "status_display": "Valid",
+                        "colored_status": {"value": "valid", "variant": "GREEN"},
                         "created_at": "2024-01-01T00:00:00Z",
                         "updated_at": "2024-01-01T00:00:00Z",
                     },
@@ -143,6 +152,9 @@ from libs import BaseModelViewSet
                         "issuing_organization": "British Council",
                         "file": 1,
                         "notes": "English proficiency certificate",
+                        "status": "valid",
+                        "status_display": "Valid",
+                        "colored_status": {"value": "valid", "variant": "GREEN"},
                         "created_at": "2024-01-01T00:00:00Z",
                         "updated_at": "2024-01-01T00:00:00Z",
                     },
@@ -188,6 +200,9 @@ from libs import BaseModelViewSet
                         "issuing_organization": "ETS",
                         "file": 1,
                         "notes": "Updated certificate information",
+                        "status": "valid",
+                        "status_display": "Valid",
+                        "colored_status": {"value": "valid", "variant": "GREEN"},
                         "created_at": "2024-01-01T00:00:00Z",
                         "updated_at": "2024-08-15T10:30:00Z",
                     },
@@ -223,7 +238,7 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     filterset_class = EmployeeCertificateFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
-    ordering_fields = ["certificate_type", "certificate_code", "issue_date", "expiry_date", "created_at"]
+    ordering_fields = ["certificate_type", "certificate_code", "issue_date", "expiry_date", "status", "created_at"]
     ordering = ["certificate_type", "-created_at"]
 
     # Permission registration attributes
