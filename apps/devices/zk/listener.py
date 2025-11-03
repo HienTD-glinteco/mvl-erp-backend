@@ -296,8 +296,7 @@ class ZKRealtimeDeviceListener:
             # Check if device is still registered before retrying
             if device.device_id not in self._registered_device_ids:
                 logger.info(
-                    f"Device {device.name} (ID: {device.device_id}) is no longer registered. "
-                    f"Stopping retry attempts."
+                    f"Device {device.name} (ID: {device.device_id}) is no longer registered. Stopping retry attempts."
                 )
                 break
 

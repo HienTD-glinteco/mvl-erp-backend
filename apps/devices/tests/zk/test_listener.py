@@ -80,9 +80,7 @@ class TestZKRealtimeDeviceListener:
         assert listener._registered_device_ids == {1, 2}
         assert len(listener._device_tasks) == 2
 
-    async def test_check_and_start_devices_removes_disabled_devices(
-        self, mock_device_1, mock_device_2, mock_device_3
-    ):
+    async def test_check_and_start_devices_removes_disabled_devices(self, mock_device_1, mock_device_2, mock_device_3):
         """Test that disabled devices are removed from tracking and tasks cancelled."""
         # Initial setup with 3 devices
         initial_devices = [mock_device_1, mock_device_2, mock_device_3]
@@ -231,9 +229,7 @@ class TestZKRealtimeDeviceListener:
                 # Note: With the delay, we may not get multiple attempts in test time
                 assert len(connect_attempts) >= 1
 
-    async def test_multiple_devices_tracked_and_removed_correctly(
-        self, mock_device_1, mock_device_2, mock_device_3
-    ):
+    async def test_multiple_devices_tracked_and_removed_correctly(self, mock_device_1, mock_device_2, mock_device_3):
         """Test that multiple devices can be added and removed correctly."""
         # Start with device 1
         get_devices_mock = MagicMock(return_value=[mock_device_1])
