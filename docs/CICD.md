@@ -36,53 +36,81 @@ The CI/CD pipeline is implemented using GitHub Actions and supports the followin
 ### 1. CI/CD Pipeline (`ci-cd.yml`)
 **Trigger**: Pull requests to `master` branch, Push to `master` branch
 
-**Jobs** (run in parallel for faster feedback):
+**Workflow Structure** (optimized to avoid redundant dependency installation):
 
-#### Lint Job - Code Quality Checks
+```
+prepare
+   ├── django-checks (system checks + linting)
+   └── test (run tests with coverage, only on PRs)
+        └── deploy-develop (only on push to master)
+```
+
+#### Prepare Job - Setup Poetry & Install Dependencies
+**Purpose**: Centralizes dependency installation and caching for all subsequent jobs
+
 **Steps**:
 - Code checkout
-- Python and Poetry setup with caching
-- Dependency installation (cached)
-- MyPy type checking (project files only: apps/, libs/, settings/)
+- Python setup
+- Cache Poetry installation
+- Install Poetry
+- Cache virtual environment (.venv)
+- Install dependencies (only on cache miss)
+
+**Benefits**:
+- Dependencies installed only once per workflow run
+- All subsequent jobs restore from cache (fail-on-cache-miss: true)
+- Eliminates redundant dependency installation
+- Faster CI/CD runs (especially on cache hits)
 
 #### Django Checks Job - Django System Validation
+**Depends on**: `prepare` job
 **Steps**:
 - Code checkout
-- Python and Poetry setup with caching
-- Dependency installation (cached)
+- Python setup
+- Restore Poetry from cache (read-only)
+- Restore virtual environment from cache (read-only)
 - Environment configuration (SQLite for faster execution)
 - Django system checks
+- Pre-commit hooks (linting, formatting, type checking)
+
+**Note**: This job does NOT install dependencies - it only restores them from cache.
 
 #### Test Job - Unit Tests with Coverage
+**Trigger**: Only runs on pull requests
+**Depends on**: `prepare` job (runs in parallel with django-checks)
+
 **Steps**:
 - Code checkout
-- Python and Poetry setup with caching
-- Dependency installation (cached)
+- Python setup
 - Database services (PostgreSQL, Redis)
+- Restore Poetry from cache (read-only)
+- Restore virtual environment from cache (read-only)
 - Environment configuration
-- Database migrations
 - Unit tests with coverage
-- Coverage reporting
+- Coverage reporting to Codecov
 
-#### Test Deployment Job - Deploy to Test Environment
-**Trigger**: Only runs on push to `master` branch (not on pull requests) **AND** only after all CI jobs pass successfully
-**Depends on**: lint, django-checks, and test jobs must complete successfully
+**Note**: This job does NOT install dependencies - it only restores them from cache. It runs independently from django-checks.
+
+#### Deploy-Develop Job - Deploy to Test Environment
+**Trigger**: Only runs on push to `master` branch (not on pull requests)
+**Depends on**: `django-checks` job must complete successfully
 
 **Steps**:
 - Deploy to EC2 test server via SSH
 - Auto-update API documentation version with ISO timestamp
+- Install production dependencies on server
 - Database migrations
 - Application restart (supervisor)
 - Web server reload (nginx)
 - Health checks
-- Notifications
+- Slack notifications
 
 **Performance Optimizations**:
-- Parallel job execution reduces CI time by ~40-50%
+- Centralized dependency setup reduces CI time by ~40-50%
 - Poetry installation caching speeds up subsequent runs
-- Fixed cache key bug ensures reliable dependency caching
-- Focused MyPy scope reduces linting time
-- Combined shell commands reduce overhead
+- Smart cache restoration with fail-on-cache-miss ensures consistency
+- Parallel execution of django-checks and test jobs
+- Test job no longer waits for django-checks to complete
 
 ### 2. Staging Environment Deployment (`deploy-staging.yml`)
 **Trigger**: PR from `master` to `staging` branch (when merged)
