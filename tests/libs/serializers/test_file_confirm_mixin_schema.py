@@ -109,11 +109,9 @@ class TestFileConfirmMixinSchemaGeneration:
         # Get request body schema
         request_body = schema.get_request_serializer()
         if request_body is not None:
-            # request_body is either a class or an instance
-            if isinstance(request_body, type):
-                serializer_instance = request_body()
-            else:
-                serializer_instance = request_body
+            # drf-spectacular may return either a serializer class or instance
+            # depending on configuration. Instantiate if it's a class.
+            serializer_instance = request_body() if isinstance(request_body, type) else request_body
 
             assert "files" in serializer_instance.fields
             files_field = serializer_instance.fields["files"]

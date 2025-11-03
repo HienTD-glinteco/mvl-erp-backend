@@ -237,8 +237,10 @@ class FileConfirmSerializerMixin:
         field_name = getattr(cls, "file_tokens_field", "files")
 
         # Create a nested serializer class with explicit fields
+        # Truncate class name if too long to avoid overly verbose names
+        base_name = cls.__name__[:50] if len(cls.__name__) > 50 else cls.__name__
         file_fields_serializer_class = type(
-            f"{cls.__name__}FileFieldsSerializer",
+            f"{base_name}FileFieldsSerializer",
             (serializers.Serializer,),
             {
                 fname: serializers.CharField(
