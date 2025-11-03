@@ -13,7 +13,7 @@ migrate:
 messages:
 	python manage.py makemessages -l vi -i venv
 
-server:
+start:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver
 
 shell:

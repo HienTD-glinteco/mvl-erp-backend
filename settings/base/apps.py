@@ -25,6 +25,7 @@ EXTERNAL_APPS = [
 INTERNAL_APPS = [
     "apps.core",
     "apps.audit_logging",
+    "apps.devices",
     "apps.hrm",
     "apps.notifications",
     "apps.files",
