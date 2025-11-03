@@ -291,7 +291,7 @@ def generate_email(username: str, existing_emails: set) -> str:
     return email
 
 
-def lookup_or_create_branch(name: str) -> Branch | None:
+def lookup_or_create_branch(name: str) -> tuple[Branch | None, bool]:
     """
     Lookup or create Branch by name.
     
@@ -299,41 +299,43 @@ def lookup_or_create_branch(name: str) -> Branch | None:
         name: Branch name
         
     Returns:
-        Branch instance or None
+        Tuple of (Branch instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     branch = Branch.objects.filter(name__iexact=name).first()
     
-    if not branch:
-        # Need to get or create a default province and administrative unit
-        from apps.core.models import AdministrativeUnit, Province
-        
-        # Try to get a default province (first one, or create a placeholder)
-        province = Province.objects.first()
-        if not province:
-            logger.warning("No Province found for branch creation, skipping")
-            return None
-        
-        # Try to get a default administrative unit
-        admin_unit = AdministrativeUnit.objects.first()
-        if not admin_unit:
-            logger.warning("No AdministrativeUnit found for branch creation, skipping")
-            return None
-        
-        branch = Branch.objects.create(
-            name=name,
-            province=province,
-            administrative_unit=admin_unit,
-        )
-        logger.info(f"Created branch: {branch.code} - {branch.name}")
+    if branch:
+        return branch, False
     
-    return branch
+    # Need to get or create a default province and administrative unit
+    from apps.core.models import AdministrativeUnit, Province
+    
+    # Try to get a default province (first one, or create a placeholder)
+    province = Province.objects.first()
+    if not province:
+        logger.warning("No Province found for branch creation, skipping")
+        return None, False
+    
+    # Try to get a default administrative unit
+    admin_unit = AdministrativeUnit.objects.first()
+    if not admin_unit:
+        logger.warning("No AdministrativeUnit found for branch creation, skipping")
+        return None, False
+    
+    branch = Branch.objects.create(
+        name=name,
+        province=province,
+        administrative_unit=admin_unit,
+    )
+    logger.info(f"Created branch: {branch.code} - {branch.name}")
+    
+    return branch, True
 
 
-def lookup_or_create_block(name: str, branch: Branch = None) -> Block | None:
+def lookup_or_create_block(name: str, branch: Branch = None) -> tuple[Block | None, bool]:
     """
     Lookup or create Block by name.
     
@@ -342,10 +344,10 @@ def lookup_or_create_block(name: str, branch: Branch = None) -> Block | None:
         branch: Associated branch
         
     Returns:
-        Block instance or None
+        Tuple of (Block instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     
@@ -355,32 +357,34 @@ def lookup_or_create_block(name: str, branch: Branch = None) -> Block | None:
     else:
         block = Block.objects.filter(name__iexact=name).first()
     
-    if not block:
-        # Determine block type from name
-        block_type = Block.BlockType.BUSINESS
-        if "hỗ trợ" in name.lower() or "support" in name.lower():
-            block_type = Block.BlockType.SUPPORT
-        
-        # If no branch, try to get first branch
-        if not branch:
-            branch = Branch.objects.first()
-            if not branch:
-                logger.warning("No Branch found for block creation, skipping")
-                return None
-        
-        block = Block.objects.create(
-            name=name,
-            branch=branch,
-            block_type=block_type,
-        )
-        logger.info(f"Created block: {block.code} - {block.name}")
+    if block:
+        return block, False
     
-    return block
+    # Determine block type from name
+    block_type = Block.BlockType.BUSINESS
+    if "hỗ trợ" in name.lower() or "support" in name.lower():
+        block_type = Block.BlockType.SUPPORT
+    
+    # If no branch, try to get first branch
+    if not branch:
+        branch = Branch.objects.first()
+        if not branch:
+            logger.warning("No Branch found for block creation, skipping")
+            return None, False
+    
+    block = Block.objects.create(
+        name=name,
+        branch=branch,
+        block_type=block_type,
+    )
+    logger.info(f"Created block: {block.code} - {block.name}")
+    
+    return block, True
 
 
 def lookup_or_create_department(
     name: str, block: Block = None, branch: Branch = None
-) -> Department | None:
+) -> tuple[Department | None, bool]:
     """
     Lookup or create Department by name.
     
@@ -390,10 +394,10 @@ def lookup_or_create_department(
         branch: Associated branch
         
     Returns:
-        Department instance or None
+        Tuple of (Department instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     
@@ -403,33 +407,35 @@ def lookup_or_create_department(
     else:
         department = Department.objects.filter(name__iexact=name).first()
     
-    if not department:
-        # If no block, try to get first block
-        if not block:
-            if branch:
-                block = Block.objects.filter(branch=branch).first()
-            else:
-                block = Block.objects.first()
-            
-            if not block:
-                logger.warning("No Block found for department creation, skipping")
-                return None
-        
-        # Auto-set branch from block
-        if not branch and block:
-            branch = block.branch
-        
-        department = Department.objects.create(
-            name=name,
-            block=block,
-            branch=branch,
-        )
-        logger.info(f"Created department: {department.code} - {department.name}")
+    if department:
+        return department, False
     
-    return department
+    # If no block, try to get first block
+    if not block:
+        if branch:
+            block = Block.objects.filter(branch=branch).first()
+        else:
+            block = Block.objects.first()
+        
+        if not block:
+            logger.warning("No Block found for department creation, skipping")
+            return None, False
+    
+    # Auto-set branch from block
+    if not branch and block:
+        branch = block.branch
+    
+    department = Department.objects.create(
+        name=name,
+        block=block,
+        branch=branch,
+    )
+    logger.info(f"Created department: {department.code} - {department.name}")
+    
+    return department, True
 
 
-def lookup_or_create_position(name: str) -> Position | None:
+def lookup_or_create_position(name: str) -> tuple[Position | None, bool]:
     """
     Lookup or create Position by name.
     
@@ -437,22 +443,24 @@ def lookup_or_create_position(name: str) -> Position | None:
         name: Position name
         
     Returns:
-        Position instance or None
+        Tuple of (Position instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     position = Position.objects.filter(name__iexact=name).first()
     
-    if not position:
-        position = Position.objects.create(name=name)
-        logger.info(f"Created position: {position.code} - {position.name}")
+    if position:
+        return position, False
     
-    return position
+    position = Position.objects.create(name=name)
+    logger.info(f"Created position: {position.code} - {position.name}")
+    
+    return position, True
 
 
-def lookup_or_create_contract_type(name: str) -> ContractType | None:
+def lookup_or_create_contract_type(name: str) -> tuple[ContractType | None, bool]:
     """
     Lookup or create ContractType by name.
     
@@ -460,22 +468,24 @@ def lookup_or_create_contract_type(name: str) -> ContractType | None:
         name: Contract type name
         
     Returns:
-        ContractType instance or None
+        Tuple of (ContractType instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     contract_type = ContractType.objects.filter(name__iexact=name).first()
     
-    if not contract_type:
-        contract_type = ContractType.objects.create(name=name)
-        logger.info(f"Created contract type: {contract_type.name}")
+    if contract_type:
+        return contract_type, False
     
-    return contract_type
+    contract_type = ContractType.objects.create(name=name)
+    logger.info(f"Created contract type: {contract_type.name}")
+    
+    return contract_type, True
 
 
-def lookup_or_create_nationality(name: str) -> Nationality | None:
+def lookup_or_create_nationality(name: str) -> tuple[Nationality | None, bool]:
     """
     Lookup or create Nationality by name.
     
@@ -483,19 +493,21 @@ def lookup_or_create_nationality(name: str) -> Nationality | None:
         name: Nationality name
         
     Returns:
-        Nationality instance or None
+        Tuple of (Nationality instance or None, created flag)
     """
     if not name:
-        return None
+        return None, False
     
     name = name.strip()
     nationality = Nationality.objects.filter(name__iexact=name).first()
     
-    if not nationality:
-        nationality = Nationality.objects.create(name=name)
-        logger.info(f"Created nationality: {nationality.name}")
+    if nationality:
+        return nationality, False
     
-    return nationality
+    nationality = Nationality.objects.create(name=name)
+    logger.info(f"Created nationality: {nationality.name}")
+    
+    return nationality, True
 
 
 def parse_phone(value: Any) -> tuple[str, list[str]]:
@@ -677,10 +689,10 @@ def employee_import_handler(
             # Contract type (reference)
             contract_type_name = normalize_value(row_dict.get("contract_type", ""))
             if contract_type_name:
-                contract_type = lookup_or_create_contract_type(contract_type_name)
+                contract_type, created = lookup_or_create_contract_type(contract_type_name)
                 if contract_type:
                     employee_data["contract_type"] = contract_type
-                    if contract_type.id not in [ct.id for ct in ContractType.objects.all()[:100]]:
+                    if created:
                         created_references["contract_type"] = {
                             "id": contract_type.id,
                             "name": contract_type.name,
@@ -690,11 +702,9 @@ def employee_import_handler(
             branch_name = normalize_value(row_dict.get("branch", ""))
             branch = None
             if branch_name:
-                branch = lookup_or_create_branch(branch_name)
+                branch, created = lookup_or_create_branch(branch_name)
                 if branch:
-                    # Branch is required, so we'll set it later after getting department
-                    if Branch.objects.filter(id=branch.id).count() == 1:
-                        # Just created
+                    if created:
                         created_references["branch"] = {
                             "id": branch.id,
                             "name": branch.name,
@@ -704,10 +714,9 @@ def employee_import_handler(
             block_name = normalize_value(row_dict.get("block", ""))
             block = None
             if block_name:
-                block = lookup_or_create_block(block_name, branch)
+                block, created = lookup_or_create_block(block_name, branch)
                 if block:
-                    if Block.objects.filter(id=block.id).count() == 1:
-                        # Just created
+                    if created:
                         created_references["block"] = {
                             "id": block.id,
                             "name": block.name,
@@ -720,11 +729,10 @@ def employee_import_handler(
             department_name = normalize_value(row_dict.get("department", ""))
             department = None
             if department_name:
-                department = lookup_or_create_department(department_name, block, branch)
+                department, created = lookup_or_create_department(department_name, block, branch)
                 if department:
                     employee_data["department"] = department
-                    if Department.objects.filter(id=department.id).count() == 1:
-                        # Just created
+                    if created:
                         created_references["department"] = {
                             "id": department.id,
                             "name": department.name,
@@ -738,11 +746,10 @@ def employee_import_handler(
             # Position (reference)
             position_name = normalize_value(row_dict.get("position", ""))
             if position_name:
-                position = lookup_or_create_position(position_name)
+                position, created = lookup_or_create_position(position_name)
                 if position:
                     employee_data["position"] = position
-                    if Position.objects.filter(id=position.id).count() == 1:
-                        # Just created
+                    if created:
                         created_references["position"] = {
                             "id": position.id,
                             "name": position.name,
@@ -834,11 +841,10 @@ def employee_import_handler(
             # Nationality (reference)
             nationality_name = normalize_value(row_dict.get("nationality", ""))
             if nationality_name:
-                nationality = lookup_or_create_nationality(nationality_name)
+                nationality, created = lookup_or_create_nationality(nationality_name)
                 if nationality:
                     employee_data["nationality"] = nationality
-                    if Nationality.objects.filter(id=nationality.id).count() == 1:
-                        # Just created
+                    if created:
                         created_references["nationality"] = {
                             "id": nationality.id,
                             "name": nationality.name,

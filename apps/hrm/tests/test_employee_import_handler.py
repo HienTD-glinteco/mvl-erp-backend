@@ -190,80 +190,93 @@ class TestReferenceLookupFunctions:
     def test_lookup_or_create_position(self):
         """Test position lookup/creation."""
         # Create position
-        position1 = lookup_or_create_position("Manager")
+        position1, created1 = lookup_or_create_position("Manager")
         assert position1 is not None
         assert position1.name == "Manager"
+        assert created1 is True
 
         # Lookup existing (case insensitive)
-        position2 = lookup_or_create_position("manager")
+        position2, created2 = lookup_or_create_position("manager")
         assert position2.id == position1.id
+        assert created2 is False
 
         # Empty name
-        position3 = lookup_or_create_position("")
+        position3, created3 = lookup_or_create_position("")
         assert position3 is None
+        assert created3 is False
 
     def test_lookup_or_create_contract_type(self):
         """Test contract type lookup/creation."""
         # Create contract type
-        ct1 = lookup_or_create_contract_type("Full Time")
+        ct1, created1 = lookup_or_create_contract_type("Full Time")
         assert ct1 is not None
         assert ct1.name == "Full Time"
+        assert created1 is True
 
         # Lookup existing
-        ct2 = lookup_or_create_contract_type("Full Time")
+        ct2, created2 = lookup_or_create_contract_type("Full Time")
         assert ct2.id == ct1.id
+        assert created2 is False
 
     def test_lookup_or_create_nationality(self):
         """Test nationality lookup/creation."""
         # Create nationality
-        nat1 = lookup_or_create_nationality("Việt Nam")
+        nat1, created1 = lookup_or_create_nationality("Việt Nam")
         assert nat1 is not None
         assert nat1.name == "Việt Nam"
+        assert created1 is True
 
         # Lookup existing
-        nat2 = lookup_or_create_nationality("Việt Nam")
+        nat2, created2 = lookup_or_create_nationality("Việt Nam")
         assert nat2.id == nat1.id
+        assert created2 is False
 
     def test_lookup_or_create_branch(self, setup_base_data):
         """Test branch lookup/creation."""
         # Create branch
-        branch1 = lookup_or_create_branch("Hà Nội")
+        branch1, created1 = lookup_or_create_branch("Hà Nội")
         assert branch1 is not None
         assert branch1.name == "Hà Nội"
+        assert created1 is True
 
         # Lookup existing
-        branch2 = lookup_or_create_branch("hà nội")
+        branch2, created2 = lookup_or_create_branch("hà nội")
         assert branch2.id == branch1.id
+        assert created2 is False
 
     def test_lookup_or_create_block(self, setup_base_data):
         """Test block lookup/creation."""
-        branch = lookup_or_create_branch("Test Branch")
+        branch, _ = lookup_or_create_branch("Test Branch")
 
         # Create block
-        block1 = lookup_or_create_block("Khối Kinh doanh", branch)
+        block1, created1 = lookup_or_create_block("Khối Kinh doanh", branch)
         assert block1 is not None
         assert block1.name == "Khối Kinh doanh"
         assert block1.branch == branch
+        assert created1 is True
 
         # Lookup existing
-        block2 = lookup_or_create_block("khối kinh doanh", branch)
+        block2, created2 = lookup_or_create_block("khối kinh doanh", branch)
         assert block2.id == block1.id
+        assert created2 is False
 
     def test_lookup_or_create_department(self, setup_base_data):
         """Test department lookup/creation."""
-        branch = lookup_or_create_branch("Test Branch")
-        block = lookup_or_create_block("Test Block", branch)
+        branch, _ = lookup_or_create_branch("Test Branch")
+        block, _ = lookup_or_create_block("Test Block", branch)
 
         # Create department
-        dept1 = lookup_or_create_department("Sales", block, branch)
+        dept1, created1 = lookup_or_create_department("Sales", block, branch)
         assert dept1 is not None
         assert dept1.name == "Sales"
         assert dept1.block == block
         assert dept1.branch == branch
+        assert created1 is True
 
         # Lookup existing
-        dept2 = lookup_or_create_department("sales", block, branch)
+        dept2, created2 = lookup_or_create_department("sales", block, branch)
         assert dept2.id == dept1.id
+        assert created2 is False
 
 
 @pytest.mark.django_db
