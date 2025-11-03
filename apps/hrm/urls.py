@@ -7,6 +7,7 @@ from apps.hrm.api.views import (
     ContractTypeViewSet,
     DepartmentViewSet,
     EmployeeCertificateViewSet,
+    EmployeeDependentViewSet,
     EmployeeRelationshipViewSet,
     EmployeeRoleViewSet,
     EmployeeViewSet,
@@ -36,6 +37,7 @@ router.register(r"organization-chart", OrganizationChartViewSet, basename="organ
 router.register(r"employee-roles", EmployeeRoleViewSet, basename="employee-role")
 router.register(r"employees", EmployeeViewSet, basename="employee")
 router.register(r"employee-certificates", EmployeeCertificateViewSet, basename="employee-certificate")
+router.register(r"employee-dependents", EmployeeDependentViewSet, basename="employee-dependent")
 router.register(r"contract-types", ContractTypeViewSet, basename="contract-type")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")

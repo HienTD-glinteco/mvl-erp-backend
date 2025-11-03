@@ -1,6 +1,7 @@
 from .contract_type import ContractTypeSerializer
 from .employee import EmployeeSerializer
 from .employee_certificate import EmployeeCertificateSerializer
+from .employee_dependent import EmployeeDependentSerializer
 from .employee_relationship import EmployeeRelationshipSerializer
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
 from .interview_candidate import InterviewCandidateSerializer
@@ -49,6 +50,7 @@ __all__ = [
     "BulkUpdateRoleSerializer",
     "EmployeeSerializer",
     "EmployeeCertificateSerializer",
+    "EmployeeDependentSerializer",
     "ContractTypeSerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",

@@ -1,29 +1,33 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.models import EmployeeRelationship
+from apps.hrm.models import EmployeeDependent
 from libs.drf.serializers import FileConfirmSerializerMixin
 
 
-class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    """Serializer for EmployeeRelationship model with file upload support"""
+class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+    """Serializer for EmployeeDependent model with file upload support."""
 
     file_confirm_fields = ["attachment"]
     attachment = FileSerializer(read_only=True)
 
+    # Include display fields for better API responses
+    relationship_display = serializers.CharField(
+        source="get_relationship_display",
+        read_only=True,
+        help_text="Human-readable relationship label",
+    )
+
     class Meta:
-        model = EmployeeRelationship
+        model = EmployeeDependent
         fields = [
             "id",
             "employee",
-            "employee_code",
-            "employee_name",
-            "relative_name",
-            "relation_type",
+            "dependent_name",
+            "relationship",
+            "relationship_display",
             "date_of_birth",
             "citizen_id",
-            "address",
-            "phone",
             "attachment",
             "note",
             "is_active",
@@ -33,8 +37,7 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         ]
         read_only_fields = [
             "id",
-            "employee_code",
-            "employee_name",
+            "relationship_display",
             "attachment",
             "is_active",
             "created_by",
@@ -43,7 +46,7 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         ]
 
     def create(self, validated_data):
-        """Create relationship with current user as creator"""
+        """Create dependent with current user as creator."""
         request = self.context.get("request")
         if request and request.user:
             validated_data["created_by"] = request.user

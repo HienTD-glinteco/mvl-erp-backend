@@ -81,7 +81,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
             "relative_name": "Jane Doe",
             "relation_type": "WIFE",
             "date_of_birth": "1990-05-15",
-            "national_id": "123456789",
+            "citizen_id": "123456789",
             "address": "123 Main Street",
             "phone": "0901234567",
             "note": "Emergency contact",
@@ -99,7 +99,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(relationship.relative_name, self.relationship_data["relative_name"])
         self.assertEqual(relationship.relation_type, self.relationship_data["relation_type"])
         self.assertEqual(relationship.phone, self.relationship_data["phone"])
-        self.assertEqual(relationship.national_id, self.relationship_data["national_id"])
+        self.assertEqual(relationship.citizen_id, self.relationship_data["citizen_id"])
         self.assertEqual(relationship.employee, self.employee)
         self.assertEqual(relationship.employee_code, self.employee.code)
         self.assertEqual(relationship.employee_name, self.employee.fullname)
@@ -122,7 +122,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         relationship = EmployeeRelationship.objects.first()
         self.assertEqual(relationship.relative_name, minimal_data["relative_name"])
         self.assertEqual(relationship.relation_type, minimal_data["relation_type"])
-        self.assertEqual(relationship.national_id, "")
+        self.assertEqual(relationship.citizen_id, "")
         self.assertEqual(relationship.phone, "")
         self.assertEqual(relationship.address, "")
 
@@ -138,38 +138,38 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(EmployeeRelationship.objects.count(), 0)
 
-    def test_validate_national_id_length_9(self):
+    def test_validate_citizen_id_length_9(self):
         """Test national ID validation with 9 digits"""
         url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
-        data["national_id"] = "123456789"
+        data["citizen_id"] = "123456789"
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_validate_national_id_length_12(self):
+    def test_validate_citizen_id_length_12(self):
         """Test national ID validation with 12 digits"""
         url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
-        data["national_id"] = "123456789012"
+        data["citizen_id"] = "123456789012"
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_validate_national_id_invalid_length(self):
+    def test_validate_citizen_id_invalid_length(self):
         """Test national ID validation with invalid length"""
         url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
-        data["national_id"] = "12345"  # Invalid length
+        data["citizen_id"] = "12345"  # Invalid length
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_validate_national_id_non_numeric(self):
+    def test_validate_citizen_id_non_numeric(self):
         """Test national ID validation with non-numeric characters"""
         url = reverse("hrm:employee-relationship-list")
         data = self.relationship_data.copy()
-        data["national_id"] = "12345ABC9"  # Contains letters
+        data["citizen_id"] = "12345ABC9"  # Contains letters
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -276,7 +276,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         update_data = self.relationship_data.copy()
         update_data["relative_name"] = "Jane Smith Updated"
         update_data["phone"] = "0909876543"
-        update_data["national_id"] = "123456789012"
+        update_data["citizen_id"] = "123456789012"
 
         detail_url = reverse("hrm:employee-relationship-detail", kwargs={"pk": relationship_id})
         response = self.client.put(detail_url, update_data, format="json")
@@ -285,7 +285,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["relative_name"], update_data["relative_name"])
         self.assertEqual(response_data["phone"], update_data["phone"])
-        self.assertEqual(response_data["national_id"], update_data["national_id"])
+        self.assertEqual(response_data["citizen_id"], update_data["citizen_id"])
 
     def test_partial_update_relationship(self):
         """Test partially updating a relationship via API"""
