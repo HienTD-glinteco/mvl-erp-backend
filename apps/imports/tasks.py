@@ -27,6 +27,7 @@ from apps.imports.utils import (
     count_total_rows,
     get_streaming_reader,
     get_streaming_writer,
+    read_headers,
     upload_result_file,
 )
 
@@ -149,6 +150,15 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         aws_location = getattr(settings, "AWS_LOCATION", None)
         if aws_location and file_path.startswith(f"{aws_location}/"):
             file_path = file_path[len(aws_location) + 1 :]
+
+        # Read headers from the file and add to options
+        try:
+            headers = read_headers(file_path, file_extension, header_row=0)
+            options["headers"] = headers
+            logger.info(f"Import job {import_job_id}: Read {len(headers)} headers")
+        except Exception as e:
+            logger.warning(f"Failed to read headers for import job {import_job_id}: {e}")
+            options["headers"] = []
 
         # Count total rows if requested
         total_rows = None

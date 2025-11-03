@@ -337,3 +337,48 @@ def count_total_rows(file_path: str, file_extension: str, skip_rows: int = 1) ->
         for _ in reader.read_rows(skip_rows=skip_rows):
             count += 1
     return count
+
+
+def read_headers(file_path: str, file_extension: str, header_row: int = 0) -> list:
+    """
+    Read header row from a file.
+
+    Args:
+        file_path: S3 path or local file path
+        file_extension: File extension
+        header_row: 0-based index of header row (default: 0 for first row)
+
+    Returns:
+        list: List of header values
+    """
+    headers = []
+    
+    # Open file stream
+    with default_storage.open(file_path, "rb") as file_stream:
+        ext = file_extension.lower()
+        
+        if ext in [".csv", ".txt"]:
+            # CSV file
+            text_stream = io.TextIOWrapper(file_stream, encoding="utf-8-sig")
+            reader = csv.reader(text_stream)
+            
+            # Skip to header row
+            for i, row in enumerate(reader):
+                if i == header_row:
+                    headers = row
+                    break
+        
+        elif ext in [".xlsx", ".xls"]:
+            # XLSX file
+            workbook = openpyxl.load_workbook(file_stream, read_only=True, data_only=True)
+            sheet = workbook.active
+            
+            # Get header row (1-based in openpyxl)
+            for i, row in enumerate(sheet.iter_rows(values_only=True)):
+                if i == header_row:
+                    headers = [cell if cell is not None else "" for cell in row]
+                    break
+            
+            workbook.close()
+    
+    return headers
