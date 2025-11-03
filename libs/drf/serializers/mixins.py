@@ -218,40 +218,90 @@ class FileConfirmSerializerMixin:
 
     file_tokens_field = "files"
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the mixin and add files field with optional schema enhancement."""
-        super().__init__(*args, **kwargs)
+    def __init_subclass__(cls, **kwargs):
+        """
+        Set up class-level declared files field for drf-spectacular schema generation.
 
-        # Get file fields for enhanced schema
-        file_fields = self._get_file_confirm_fields()
+        This method is called when a subclass is created, allowing us to add the
+        files field at class definition time rather than instance initialization time.
+        This ensures drf-spectacular and other schema generators can detect the field.
+        """
+        super().__init_subclass__(**kwargs)
 
-        if file_fields:
-            # Create a structured field showing concrete file field names for better schema
-            file_fields_serializer_class = type(
-                "FileFieldsSerializer",
-                (serializers.Serializer,),
-                {
-                    field_name: serializers.CharField(
-                        required=False,
-                        help_text=_("File token for {field}").format(field=field_name),
-                    )
-                    for field_name in file_fields
-                },
-            )
+        # Only process if file_confirm_fields is explicitly declared
+        file_confirm_fields = getattr(cls, "file_confirm_fields", None)
+        if not file_confirm_fields:
+            return
 
-            self.fields[self.file_tokens_field] = file_fields_serializer_class(
+        # Get the field name for file tokens (default: "files")
+        field_name = getattr(cls, "file_tokens_field", "files")
+
+        # Create a nested serializer class with explicit fields
+        file_fields_serializer_class = type(
+            f"{cls.__name__}FileFieldsSerializer",
+            (serializers.Serializer,),
+            {
+                fname: serializers.CharField(
+                    required=False,
+                    write_only=True,
+                    help_text=_("File token for {field}").format(field=fname),
+                )
+                for fname in file_confirm_fields
+            },
+        )
+
+        # Store the serializer class on the class for later instantiation
+        cls._file_fields_serializer_class = file_fields_serializer_class
+
+    def get_fields(self):
+        """
+        Override get_fields to add the files field when file_confirm_fields is set.
+
+        This ensures the files field is available at schema generation time.
+        """
+        fields = super().get_fields()
+
+        # Check if we have a pre-configured files serializer class
+        if hasattr(self.__class__, "_file_fields_serializer_class"):
+            # Use the pre-configured serializer class
+            fields[self.file_tokens_field] = self.__class__._file_fields_serializer_class(
                 required=False,
                 write_only=True,
                 help_text=_("File tokens for uploading files. Each key corresponds to a file field on the model."),
             )
-        else:
-            # Fallback to generic dict field for backward compatibility
-            self.fields[self.file_tokens_field] = serializers.DictField(
-                child=serializers.CharField(),
-                required=False,
-                write_only=True,
-                help_text=_("Dictionary mapping field names to file tokens (e.g., {'attachment': 'token123'})"),
-            )
+        elif self.file_tokens_field not in fields:
+            # Fallback to runtime detection/creation
+            file_fields = self._get_file_confirm_fields()
+
+            if file_fields:
+                # Create a structured field showing concrete file field names for better schema
+                file_fields_serializer_class = type(
+                    "FileFieldsSerializer",
+                    (serializers.Serializer,),
+                    {
+                        field_name: serializers.CharField(
+                            required=False,
+                            help_text=_("File token for {field}").format(field=field_name),
+                        )
+                        for field_name in file_fields
+                    },
+                )
+
+                fields[self.file_tokens_field] = file_fields_serializer_class(
+                    required=False,
+                    write_only=True,
+                    help_text=_("File tokens for uploading files. Each key corresponds to a file field on the model."),
+                )
+            else:
+                # Fallback to generic dict field for backward compatibility
+                fields[self.file_tokens_field] = serializers.DictField(
+                    child=serializers.CharField(),
+                    required=False,
+                    write_only=True,
+                    help_text=_("Dictionary mapping field names to file tokens (e.g., {'attachment': 'token123'})"),
+                )
+
+        return fields
 
     def _get_file_confirm_fields(self):  # noqa: C901
         """

@@ -642,7 +642,7 @@ class EmployeeCertificateAPITest(TestCase):
                 "expiry_date": "2026-06-01",
                 "issuing_organization": "British Council",
                 "notes": "English proficiency certificate",
-                "files": {"file": file_token},
+                "files": {"attachment": file_token},
             }
 
             response = self.client.post(url, cert_data, format="json")
@@ -651,18 +651,18 @@ class EmployeeCertificateAPITest(TestCase):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             response_data = self.get_response_data(response)
 
-            # Check that file is populated with FileModel data
-            self.assertIsNotNone(response_data["file"])
-            self.assertEqual(response_data["file"]["file_name"], "ielts_certificate.pdf")
-            self.assertEqual(response_data["file"]["purpose"], "employee_certificate")
-            self.assertTrue(response_data["file"]["is_confirmed"])
+            # Check that attachment is populated with FileModel data
+            self.assertIsNotNone(response_data["attachment"])
+            self.assertEqual(response_data["attachment"]["file_name"], "ielts_certificate.pdf")
+            self.assertEqual(response_data["attachment"]["purpose"], "employee_certificate")
+            self.assertTrue(response_data["attachment"]["is_confirmed"])
 
             # Check database
             certificate = EmployeeCertificate.objects.get(pk=response_data["id"])
-            self.assertIsNotNone(certificate.file)
-            self.assertEqual(certificate.file.file_name, "ielts_certificate.pdf")
-            self.assertEqual(certificate.file.purpose, "employee_certificate")
-            self.assertTrue(certificate.file.is_confirmed)
+            self.assertIsNotNone(certificate.attachment)
+            self.assertEqual(certificate.attachment.file_name, "ielts_certificate.pdf")
+            self.assertEqual(certificate.attachment.purpose, "employee_certificate")
+            self.assertTrue(certificate.attachment.is_confirmed)
 
             # Check FileModel was created
             self.assertEqual(FileModel.objects.count(), 1)
@@ -689,12 +689,12 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
 
-        # File should be None/null
-        self.assertIsNone(response_data["file"])
+        # Attachment should be None/null
+        self.assertIsNone(response_data["attachment"])
 
         # Check database
         certificate = EmployeeCertificate.objects.get(pk=response_data["id"])
-        self.assertIsNone(certificate.file)
+        self.assertIsNone(certificate.attachment)
 
     def test_create_certificate_with_invalid_file_token(self):
         """Test creating a certificate with invalid file token"""
@@ -719,7 +719,7 @@ class EmployeeCertificateAPITest(TestCase):
                 "certificate_code": "DIPLOMA-111",
                 "certificate_name": "Bachelor Degree",
                 "issue_date": "2024-06-01",
-                "files": {"file": "invalid-token-123"},
+                "files": {"attachment": "invalid-token-123"},
             }
 
             response = self.client.post(url, cert_data, format="json")
