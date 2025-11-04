@@ -724,7 +724,17 @@ class TestEmployeeImportHandler:
             "",
         ]
 
-        options = {"headers": headers}
+        # Setup banks for bank account creation
+        from apps.hrm.models import Bank
+
+        vpbank, _ = Bank.objects.get_or_create(name="VPBank", defaults={"code": "VPB"})
+        vietcombank, _ = Bank.objects.get_or_create(name="Vietcombank", defaults={"code": "VCB"})
+
+        options = {
+            "headers": headers,
+            "_vpbank": vpbank,
+            "_vietcombank": vietcombank,
+        }
 
         result = employee_import_handler(1, row, "test-job-id", options)
 
@@ -755,4 +765,10 @@ class TestEmployeeImportHandler:
         assert employee.residential_address == "TT Vôi, Lạng Giang, Bắc Giang"
         assert employee.permanent_address == "TT Vôi, Lạng Giang, Bắc Giang"
         assert employee.username == "TUNGDTCTV@MVL"
-        assert "VPBank: 0943973622" in employee.note
+
+        # Verify bank accounts are created in BankAccount model
+        bank_accounts = employee.bank_accounts.all()
+        assert bank_accounts.count() == 1
+        vpbank_account = bank_accounts.filter(bank__name="VPBank").first()
+        assert vpbank_account is not None
+        assert vpbank_account.account_number == "0943973622"

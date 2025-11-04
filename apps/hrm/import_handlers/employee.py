@@ -710,9 +710,12 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         code = normalize_value(row_dict.get("code", ""))
         fullname = normalize_value(row_dict.get("fullname", ""))
 
-        # Check if this is a section header row
+        # Check if this is a section header row (check before required fields)
         first_col = normalize_value(row[0]) if row else ""
-        if is_section_header_row(row, first_col):
+        second_col = normalize_value(row[1]) if len(row) > 1 else ""
+
+        # Check both first and second columns for section headers
+        if is_section_header_row(row, first_col) or is_section_header_row(row, second_col):
             return {
                 "ok": True,
                 "row_index": row_index,
@@ -765,6 +768,10 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
             if start_date:
                 employee_data["start_date"] = start_date  # type: ignore[assignment]
+            else:
+                # start_date is required, use today's date as default if not provided
+                employee_data["start_date"] = date.today()  # type: ignore[assignment]
+                warnings.append("No start date provided, using today's date")
 
             # Status and Contract type (combined logic)
             # Status code: W = Working (Active), C = Ceased (Resigned)
@@ -1004,7 +1011,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
                 action = "created" if created else "updated"
 
-                # Handle bank accounts
+                # Handle bank accounts - create BankAccount records
                 vpbank_account = normalize_value(row_dict.get("vpbank_account", ""))
                 vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
 
