@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 23:18+0700\n"
+"POT-Creation-Date: 2025-11-04 09:41+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -91,11 +91,6 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
-
 # models/organization.py:102
 #: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
@@ -105,11 +100,6 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr "Tổng"
-
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/utils/functions.py:128
-msgid "Week"
-msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:408
 msgid ""
@@ -140,6 +130,14 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
+
+#: apps/hrm/constants.py:39
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
 
 #: apps/hrm/constants.py:46
 msgid "All data"
@@ -419,14 +417,14 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Employee code"
 msgid "Processing {} certificates..."
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:64
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificate {}: {} -> {}"
 msgstr "Kênh tuyển dụng"
@@ -437,30 +435,27 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Employee code"
 msgid "Total certificates: {}"
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificates updated: {}"
 msgstr "Kênh tuyển dụng"
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:77
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:78
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
