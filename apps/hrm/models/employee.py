@@ -341,10 +341,6 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         Automatically sets the employee's block and branch based on the
         selected department's organizational structure.
-        
-        Also manages OrganizationChart entries when position changes:
-        - Deactivates all existing organization chart entries
-        - Creates a new active and primary entry if position is set
         """
         # Auto-set block and branch from department
         if self.department:
@@ -352,42 +348,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             self.branch = self.department.branch
 
         self.clean()
-        
-        # Track if this is a new employee or if position changed
-        is_new = self.pk is None
-        position_changed = False
-        
-        if not is_new:
-            try:
-                old_instance = Employee.objects.get(pk=self.pk)
-                position_changed = old_instance.position != self.position
-            except Employee.DoesNotExist:
-                pass
-        
         super().save(*args, **kwargs)
-        
-        # Handle OrganizationChart when position is set and has changed or is new
-        if (is_new or position_changed) and self.position and self.department and self.user:
-            from apps.hrm.models import OrganizationChart
-            from datetime import date as date_module
-            
-            # Deactivate all existing organization chart entries for this employee
-            OrganizationChart.objects.filter(
-                employee=self.user,
-                is_active=True
-            ).update(is_active=False, is_primary=False)
-            
-            # Create new organization chart entry
-            OrganizationChart.objects.create(
-                employee=self.user,
-                position=self.position,
-                department=self.department,
-                block=self.block,
-                branch=self.branch,
-                start_date=self.start_date or date_module.today(),
-                is_primary=True,
-                is_active=True,
-            )
 
     def clean(self):
         """Validate employee data.
