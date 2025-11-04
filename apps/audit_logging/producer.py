@@ -9,12 +9,51 @@ from typing import Any, Optional
 from django.conf import settings
 from django.http import HttpRequest
 from rstream import Producer, exceptions
-from sentry_sdk import start_span
 
 from .registry import AuditLogRegistry
 from .utils import prepare_request_info, prepare_user_info
 
 file_audit_logger = logging.getLogger("audit_logging")
+
+
+# Fields to ignore explicitly (common meta fields)
+IGNORED_FIELD_NAMES = {
+    "id",
+    "pk",
+    "created_at",
+    "updated_at",
+    "deleted_at",
+    "created",
+    "updated",
+    "modified",
+}
+
+
+def _should_ignore_field(field) -> bool:
+    """Decide whether a model field should be ignored when preparing change messages.
+
+    Returns True if the field is a primary key, was auto-created, has a commonly
+    ignored name (timestamps/meta), or is auto-managed (auto_now/auto_now_add).
+    """
+    field_name = getattr(field, "name", None)
+    if not field_name:
+        return True
+
+    # Primary keys and auto-created fields should be skipped
+    if getattr(field, "primary_key", False):
+        return True
+    if getattr(field, "auto_created", False):
+        return True
+
+    # Explicitly ignored field names
+    if field_name in IGNORED_FIELD_NAMES:
+        return True
+
+    # Auto-managed DateTimeFields
+    if getattr(field, "auto_now", False) or getattr(field, "auto_now_add", False):
+        return True
+
+    return False
 
 
 class AuditStreamProducer:
@@ -116,26 +155,33 @@ def _prepare_change_messages(
     modified_object=None,
 ):
     """Prepare change messages for audit logs."""
+    # Handle CHANGE action with both original and modified objects
     if action == "CHANGE" and original_object and modified_object:
         rows = []
-        if hasattr(original_object, "_meta") and hasattr(modified_object, "_meta"):
-            for field in modified_object._meta.fields:
-                field_name = field.name
-                old_value = getattr(original_object, field_name, None)
-                new_value = getattr(modified_object, field_name, None)
-                if old_value != new_value:
-                    rows.append(
-                        {
-                            "field": str(field.verbose_name) if field.verbose_name else field_name,
-                            "old_value": _format_field_value(old_value, original_object, field),
-                            "new_value": _format_field_value(new_value, modified_object, field),
-                        }
-                    )
+
+        if not (hasattr(original_object, "_meta") and hasattr(modified_object, "_meta")):
+            log_data["change_message"] = "Object modified"
+            return
+
+        for field in modified_object._meta.fields:
+            # Use helper to decide if the field should be ignored
+            if _should_ignore_field(field):
+                continue
+
+            field_name = field.name
+            old_value = getattr(original_object, field_name, None)
+            new_value = getattr(modified_object, field_name, None)
+            if old_value != new_value:
+                rows.append(
+                    {
+                        "field": str(field.verbose_name) if field.verbose_name else field_name,
+                        "old_value": _format_field_value(old_value, original_object, field),
+                        "new_value": _format_field_value(new_value, modified_object, field),
+                    }
+                )
+
         if rows:
-            log_data["change_message"] = {
-                "headers": ["field", "old_value", "new_value"],
-                "rows": rows,
-            }
+            log_data["change_message"] = {"headers": ["field", "old_value", "new_value"], "rows": rows}
         else:
             log_data["change_message"] = "Object modified"
     elif action == "ADD":
@@ -196,14 +242,10 @@ def log_audit_event(
         prepare_request_info(log_data, request)
 
     # Create change message describing the changes
-    with start_span(
-        op="log_audit_event._prepare_change_messages", description="Prepare change messages for log event"
-    ):
-        _prepare_change_messages(log_data, action, original_object, modified_object)
+    _prepare_change_messages(log_data, action, original_object, modified_object)
 
     # Add any extra kwargs provided
     log_data.update(extra_kwargs)
 
     # Final step
-    with start_span(op="log_audit_event.log_event", description="Call Audit Producer's log event method"):
-        _audit_producer.log_event(**log_data)
+    _audit_producer.log_event(**log_data)

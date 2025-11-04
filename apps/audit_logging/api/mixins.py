@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from ..exceptions import AuditLogException
 from ..middleware import audit_context
+from ..opensearch_client import get_opensearch_client
 from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSerializer, AuditLogSerializer
 
 
@@ -199,6 +200,7 @@ class AuditLoggingMixin:
         model_class = obj.__class__
         object_type = model_class._meta.model_name
         object_id = str(obj.pk)
+        object_name = getattr(obj, "name", str(obj))
 
         # Build search parameters
         search_params = {
@@ -219,7 +221,7 @@ class AuditLoggingMixin:
             search_params["page"] = request.query_params["page"]
 
         # Use the audit log search serializer
-        serializer = AuditLogSearchSerializer(data=search_params)
+        serializer = AuditLogSearchSerializer(data=search_params, context={"object_name": object_name})
         if not serializer.is_valid():
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -315,31 +317,38 @@ class AuditLoggingMixin:
         model_class = obj.__class__
         object_type = model_class._meta.model_name
         object_id = str(obj.pk)
+        object_name = getattr(obj, "name", str(obj))
 
-        # Build search parameters to find specific log entry
-        search_params = {
-            "object_type": object_type,
-            "object_id": object_id,
-            "log_id": log_id,
-            "page_size": 1,
-            "summary_fields_only": False,
-        }
-
-        # Use the audit log search serializer
-        serializer = AuditLogSearchSerializer(data=search_params)
-        if not serializer.is_valid():
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        # Ensure log_id provided
+        if not log_id:
+            return Response({"error": "log_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Execute search
-            result = serializer.search()
-            if result.get("count", 0) == 0:
+            opensearch_client = get_opensearch_client()
+            log_data = opensearch_client.get_log_by_id(log_id)
+
+            # Verify the log belongs to the requested object
+            if not log_data:
                 return Response({"error": "History entry not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Return the first (and only) result
-            return Response(result["results"][0] if result.get("results") else {})
+            # Compare object_type and object_id from the log with the current object
+            log_object_type = str(log_data.get("object_type", ""))
+            log_object_id = str(log_data.get("object_id", ""))
+
+            if log_object_type.lower() != str(object_type).lower() or log_object_id != object_id:
+                return Response({"error": "History entry not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            log_data["object_name"] = object_name
+
+            serializer = AuditLogSerializer(log_data)
+            return Response(serializer.data)
+
         except AuditLogException as e:
+            # Treat not-found as 404, other errors as 500
+            if "not found" in str(e).lower():
+                return Response({"error": "History entry not found"}, status=status.HTTP_404_NOT_FOUND)
             return Response(
-                {"error": f"Failed to retrieve history detail: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": f"Failed to retrieve history detail: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except Exception as e:
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

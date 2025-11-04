@@ -10,7 +10,11 @@ import uuid
 from django.db import models
 
 
-def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields=None, base_class=None):
+def create_dummy_model(
+    base_name="DummyModel",
+    app_label="audit_logging",
+    fields=None,
+):
     """
     Create a dynamic Django model with a unique name.
 
@@ -21,7 +25,6 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
         base_name: Base name for the model (default: "DummyModel")
         app_label: Django app label for the model (default: "audit_logging")
         fields: Dictionary of field names to field instances (default: None)
-        base_class: Base class to inherit from (default: models.Model)
 
     Returns:
         A new model class that inherits from the specified base class or models.Model
@@ -42,8 +45,7 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
         ... )
     """
     fields = fields or {}
-    base_class = base_class or models.Model
-    
+
     # Generate a unique name using UUID to avoid registration conflicts
     name = f"{base_name}_{uuid.uuid4().hex}"
 
@@ -58,4 +60,4 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
     }
 
     # Create and return the model class
-    return type(name, (base_class,), attrs)
+    return type(name, (models.Model,), attrs)

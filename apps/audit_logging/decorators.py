@@ -7,6 +7,7 @@ to automatically log create, update, and delete actions.
 
 import logging
 from contextvars import ContextVar
+from typing import Any
 
 from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
@@ -21,13 +22,14 @@ from .registry import AuditLogRegistry
 logger = logging.getLogger(__name__)
 
 # Global storage for original object states (before save)
-_original_objects = {}
+_original_objects: dict[str, Any] = {}
 
 # Context variable to track main objects being deleted
-_deleting_main_objects: ContextVar[set] = ContextVar("deleting_main_objects", default=None)
+# Allow None as a valid default value for contexts where no deletions are tracked
+_deleting_main_objects: ContextVar[set | None] = ContextVar("deleting_main_objects", default=None)
 
 # Storage for pre-delete states (for dependent models)
-_pre_delete_states = {}
+_pre_delete_states: dict[str, Any] = {}
 
 
 def _get_object_key(instance):

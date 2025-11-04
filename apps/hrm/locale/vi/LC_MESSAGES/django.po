@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend HRM\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-04 15:38+0700\n"
+"POT-Creation-Date: 2025-11-04 16:46+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -91,11 +91,6 @@ msgstr "Có kinh nghiệm"
 msgid "Inexperienced"
 msgstr "Chưa có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-msgid "Month"
-msgstr "Tháng"
-
 # models/organization.py:102
 #: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
@@ -105,11 +100,6 @@ msgstr "Không có phòng ban"
 #: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr "Tổng"
-
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/utils/functions.py:128
-msgid "Week"
-msgstr "Tuần"
 
 #: apps/hrm/api/views/recruitment_request.py:408
 msgid ""
@@ -140,6 +130,14 @@ msgstr "Nguồn Phòng tuyển dụng"
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
 msgstr "Nhân viên quay lại"
+
+#: apps/hrm/constants.py:39
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:40
+msgid "Month"
+msgstr "Tháng"
 
 #: apps/hrm/constants.py:46
 msgid "All data"
@@ -419,14 +417,14 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Employee code"
 msgid "Processing {} certificates..."
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:64
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificate {}: {} -> {}"
 msgstr "Kênh tuyển dụng"
@@ -437,30 +435,27 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Employee code"
 msgid "Total certificates: {}"
 msgstr "Mã nhân viên"
 
 # models/recruitment_channel.py:18
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, fuzzy, python-brace-format
+#, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificates updated: {}"
 msgstr "Kênh tuyển dụng"
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:77
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:78
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -635,7 +630,7 @@ msgid "Whether this attendance record is valid"
 msgstr ""
 
 #: apps/hrm/models/attendance_record.py:69
-#: apps/hrm/models/employee_certificate.py:102
+#: apps/hrm/models/employee_certificate.py:103
 msgid "Notes"
 msgstr ""
 
@@ -675,9 +670,9 @@ msgstr ""
 
 # models/organization.py:205
 #: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:321
-#: apps/hrm/models/employee_certificate.py:52
-#: apps/hrm/models/employee_dependent.py:50
-#: apps/hrm/models/employee_relationship.py:54
+#: apps/hrm/models/employee_certificate.py:53
+#: apps/hrm/models/employee_dependent.py:51
+#: apps/hrm/models/employee_relationship.py:55
 #: apps/hrm/models/employee_work_history.py:52
 #: apps/hrm/models/organization.py:281
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
@@ -826,7 +821,7 @@ msgid "Employee type"
 msgstr "Loại nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee.py:117 apps/hrm/models/employee_relationship.py:63
+#: apps/hrm/models/employee.py:117 apps/hrm/models/employee_relationship.py:64
 msgid "Employee code"
 msgstr "Mã nhân viên"
 
@@ -883,7 +878,7 @@ msgstr "Chức vụ"
 msgid "Start date"
 msgstr "Ngày bắt đầu"
 
-#: apps/hrm/models/employee.py:177 apps/hrm/models/employee_certificate.py:109
+#: apps/hrm/models/employee.py:177 apps/hrm/models/employee_certificate.py:110
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
@@ -898,8 +893,8 @@ msgstr "Tên nghỉ việc"
 msgid "Resignation reason"
 msgstr "Lý do nghỉ việc"
 
-#: apps/hrm/models/employee.py:191 apps/hrm/models/employee_dependent.py:108
-#: apps/hrm/models/employee_relationship.py:143
+#: apps/hrm/models/employee.py:191 apps/hrm/models/employee_dependent.py:109
+#: apps/hrm/models/employee_relationship.py:144
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:118
@@ -908,8 +903,8 @@ msgstr "Lý do nghỉ việc"
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:197 apps/hrm/models/employee_dependent.py:70
-#: apps/hrm/models/employee_relationship.py:91
+#: apps/hrm/models/employee.py:197 apps/hrm/models/employee_dependent.py:71
+#: apps/hrm/models/employee_relationship.py:92
 msgid "Date of birth"
 msgstr ""
 
@@ -933,8 +928,8 @@ msgstr ""
 msgid "Religion"
 msgstr ""
 
-#: apps/hrm/models/employee.py:235 apps/hrm/models/employee_dependent.py:78
-#: apps/hrm/models/employee_relationship.py:99
+#: apps/hrm/models/employee.py:235 apps/hrm/models/employee_dependent.py:79
+#: apps/hrm/models/employee_relationship.py:100
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr ""
@@ -948,8 +943,8 @@ msgid "Citizen ID issued place"
 msgstr ""
 
 # models/organization.py:10
-#: apps/hrm/models/employee.py:250 apps/hrm/models/employee_dependent.py:92
-#: apps/hrm/models/employee_relationship.py:113
+#: apps/hrm/models/employee.py:250 apps/hrm/models/employee_dependent.py:93
+#: apps/hrm/models/employee_relationship.py:114
 msgid "Tax code"
 msgstr "Mã số thuế"
 
@@ -1017,326 +1012,326 @@ msgstr ""
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:27
+#: apps/hrm/models/employee_certificate.py:28
 msgid "Valid"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:28
+#: apps/hrm/models/employee_certificate.py:29
 msgid "Near Expiry"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_certificate.py:29
+#: apps/hrm/models/employee_certificate.py:30
 #, fuzzy
 #| msgid "Expense date"
 msgid "Expired"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_certificate.py:45
-#: apps/hrm/models/employee_dependent.py:43
-#: apps/hrm/models/employee_relationship.py:47
+#: apps/hrm/models/employee_certificate.py:46
+#: apps/hrm/models/employee_dependent.py:44
+#: apps/hrm/models/employee_relationship.py:48
 msgid "Code"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:46
+#: apps/hrm/models/employee_certificate.py:47
 msgid "Auto-generated unique code for this certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:53
+#: apps/hrm/models/employee_certificate.py:54
 msgid "Employee who owns this certificate"
 msgstr ""
 
 # models/recruitment_channel.py:18
-#: apps/hrm/models/employee_certificate.py:58
+#: apps/hrm/models/employee_certificate.py:59
 #, fuzzy
 #| msgid "Recruitment type"
 msgid "Certificate type"
 msgstr "Kênh tuyển dụng"
 
-#: apps/hrm/models/employee_certificate.py:59
+#: apps/hrm/models/employee_certificate.py:60
 msgid "Type of certificate"
 msgstr ""
 
 # models/recruitment_channel.py:13
-#: apps/hrm/models/employee_certificate.py:64
+#: apps/hrm/models/employee_certificate.py:65
 #, fuzzy
 #| msgid "Candidate code"
 msgid "Certificate code"
 msgstr "Mã ứng viên"
 
-#: apps/hrm/models/employee_certificate.py:65
+#: apps/hrm/models/employee_certificate.py:66
 msgid "Certificate number or code issued by the certifying organization"
 msgstr ""
 
 # models/organization.py:9
 # models/recruitment_channel.py:12
-#: apps/hrm/models/employee_certificate.py:70
+#: apps/hrm/models/employee_certificate.py:71
 #, fuzzy
 #| msgid "Candidate name"
 msgid "Certificate name"
 msgstr "Tên ứng viên"
 
-#: apps/hrm/models/employee_certificate.py:71
+#: apps/hrm/models/employee_certificate.py:72
 msgid "Specific name of the certificate or exam"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_certificate.py:76
+#: apps/hrm/models/employee_certificate.py:77
 #, fuzzy
 #| msgid "Expense date"
 msgid "Issue date"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_certificate.py:77
+#: apps/hrm/models/employee_certificate.py:78
 msgid "Date when the certificate was issued"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_certificate.py:82
+#: apps/hrm/models/employee_certificate.py:83
 #, fuzzy
 #| msgid "Expense date"
 msgid "Expiry date"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_certificate.py:83
+#: apps/hrm/models/employee_certificate.py:84
 msgid "Date when the certificate expires (if applicable)"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:88
+#: apps/hrm/models/employee_certificate.py:89
 msgid "Issuing organization"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:89
+#: apps/hrm/models/employee_certificate.py:90
 msgid "Organization that issued the certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:97
+#: apps/hrm/models/employee_certificate.py:98
 msgid "Certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:98
+#: apps/hrm/models/employee_certificate.py:99
 msgid "Uploaded certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:103
+#: apps/hrm/models/employee_certificate.py:104
 msgid "Additional notes about the certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:110
+#: apps/hrm/models/employee_certificate.py:111
 msgid "Certificate status based on expiry date"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee_certificate.py:115
+#: apps/hrm/models/employee_certificate.py:116
 msgid "Employee certificate"
 msgstr "Chứng chỉ nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee_certificate.py:116
+#: apps/hrm/models/employee_certificate.py:117
 msgid "Employee certificates"
 msgstr "Các chứng chỉ nhân viên"
 
-#: apps/hrm/models/employee_dependent.py:44
+#: apps/hrm/models/employee_dependent.py:45
 msgid "Auto-generated unique code for this dependent"
 msgstr ""
 
-#: apps/hrm/models/employee_dependent.py:51
+#: apps/hrm/models/employee_dependent.py:52
 msgid "Employee associated with this dependent"
 msgstr ""
 
 # models/organization.py:71
-#: apps/hrm/models/employee_dependent.py:56
+#: apps/hrm/models/employee_dependent.py:57
 msgid "Dependent name"
 msgstr "Tên phụ thuộc"
 
-#: apps/hrm/models/employee_dependent.py:57
+#: apps/hrm/models/employee_dependent.py:58
 msgid "Full name of the dependent"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee_dependent.py:63
+#: apps/hrm/models/employee_dependent.py:64
 msgid "Relationship"
 msgstr "Loại mối quan hệ"
 
-#: apps/hrm/models/employee_dependent.py:64
-#: apps/hrm/models/employee_relationship.py:85
+#: apps/hrm/models/employee_dependent.py:65
+#: apps/hrm/models/employee_relationship.py:86
 msgid "Type of relationship to the employee"
 msgstr ""
 
-#: apps/hrm/models/employee_dependent.py:71
+#: apps/hrm/models/employee_dependent.py:72
 msgid "Date of birth of the dependent"
 msgstr ""
 
-#: apps/hrm/models/employee_dependent.py:79
-#: apps/hrm/models/employee_relationship.py:100
+#: apps/hrm/models/employee_dependent.py:80
+#: apps/hrm/models/employee_relationship.py:101
 msgid "National ID (CMND/CCCD) - 9 or 12 digits"
 msgstr ""
 
 # models/organization.py:218
-#: apps/hrm/models/employee_dependent.py:85
+#: apps/hrm/models/employee_dependent.py:86
 #, fuzzy
 #| msgid "Expense date"
 msgid "Effective date"
 msgstr "Ngày chi phí"
 
-#: apps/hrm/models/employee_dependent.py:86
+#: apps/hrm/models/employee_dependent.py:87
 msgid "Start date for tax deduction applicability"
 msgstr ""
 
-#: apps/hrm/models/employee_dependent.py:93
-#: apps/hrm/models/employee_relationship.py:114
+#: apps/hrm/models/employee_dependent.py:94
+#: apps/hrm/models/employee_relationship.py:115
 msgid "Tax identification number"
-msgstr ""
-
-#: apps/hrm/models/employee_dependent.py:102
-#: apps/hrm/models/employee_relationship.py:137
-#: apps/hrm/models/job_description.py:32
-msgid "Attachment"
 msgstr ""
 
 #: apps/hrm/models/employee_dependent.py:103
 #: apps/hrm/models/employee_relationship.py:138
+#: apps/hrm/models/job_description.py:32
+msgid "Attachment"
+msgstr ""
+
+#: apps/hrm/models/employee_dependent.py:104
+#: apps/hrm/models/employee_relationship.py:139
 msgid "Supporting document or file attachment"
 msgstr ""
 
-#: apps/hrm/models/employee_dependent.py:109
-#: apps/hrm/models/employee_relationship.py:144
+#: apps/hrm/models/employee_dependent.py:110
+#: apps/hrm/models/employee_relationship.py:145
 msgid "Additional notes or information"
 msgstr ""
 
 # models/organization.py:14
-#: apps/hrm/models/employee_dependent.py:114
-#: apps/hrm/models/employee_relationship.py:149
+#: apps/hrm/models/employee_dependent.py:115
+#: apps/hrm/models/employee_relationship.py:150
 #, fuzzy
 #| msgid "Active"
 msgid "Is active"
 msgstr "Hoạt động"
 
-#: apps/hrm/models/employee_dependent.py:115
+#: apps/hrm/models/employee_dependent.py:116
 msgid "Whether this dependent record is active"
 msgstr ""
 
 # management/commands/setup_default_org_data.py:117
-#: apps/hrm/models/employee_dependent.py:124
-#: apps/hrm/models/employee_relationship.py:159
+#: apps/hrm/models/employee_dependent.py:125
+#: apps/hrm/models/employee_relationship.py:160
 #, fuzzy
 #| msgid "Created block: %s"
 msgid "Created by"
 msgstr "Đã tạo khối: %s"
 
-#: apps/hrm/models/employee_dependent.py:125
-#: apps/hrm/models/employee_relationship.py:160
+#: apps/hrm/models/employee_dependent.py:126
+#: apps/hrm/models/employee_relationship.py:161
 msgid "User who created this record"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee_dependent.py:129
+#: apps/hrm/models/employee_dependent.py:130
 #, fuzzy
 #| msgid "Employee type"
 msgid "Employee Dependent"
 msgstr "Loại nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee_dependent.py:130
+#: apps/hrm/models/employee_dependent.py:131
 #, fuzzy
 #| msgid "Employee type"
 msgid "Employee Dependents"
 msgstr "Loại nhân viên"
 
-#: apps/hrm/models/employee_relationship.py:48
+#: apps/hrm/models/employee_relationship.py:49
 msgid "Auto-generated unique code for this relationship"
 msgstr ""
 
-#: apps/hrm/models/employee_relationship.py:55
+#: apps/hrm/models/employee_relationship.py:56
 msgid "Employee associated with this relationship"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee_relationship.py:64
+#: apps/hrm/models/employee_relationship.py:65
 #, fuzzy
 #| msgid "Employee code"
 msgid "Cached employee code"
 msgstr "Mã nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee_relationship.py:71
+#: apps/hrm/models/employee_relationship.py:72
 #, fuzzy
 #| msgid "Employee type"
 msgid "Employee name"
 msgstr "Loại nhân viên"
 
-#: apps/hrm/models/employee_relationship.py:72
+#: apps/hrm/models/employee_relationship.py:73
 msgid "Cached employee name"
 msgstr ""
 
 # models/organization.py:71
-#: apps/hrm/models/employee_relationship.py:77
+#: apps/hrm/models/employee_relationship.py:78
 #, fuzzy
 #| msgid "Department name"
 msgid "Relative name"
 msgstr "Tên phòng ban"
 
-#: apps/hrm/models/employee_relationship.py:78
+#: apps/hrm/models/employee_relationship.py:79
 msgid "Full name of the relative"
 msgstr ""
 
 # models/organization.py:182
-#: apps/hrm/models/employee_relationship.py:84
+#: apps/hrm/models/employee_relationship.py:85
 #, fuzzy
 #| msgid "Resignation date"
 msgid "Relation type"
 msgstr "Tên nghỉ việc"
 
-#: apps/hrm/models/employee_relationship.py:92
+#: apps/hrm/models/employee_relationship.py:93
 msgid "Date of birth of the relative"
 msgstr ""
 
 # models/organization.py:189
-#: apps/hrm/models/employee_relationship.py:106
+#: apps/hrm/models/employee_relationship.py:107
 #, fuzzy
 #| msgid "Location"
 msgid "Occupation"
 msgstr "Địa điểm"
 
-#: apps/hrm/models/employee_relationship.py:107
+#: apps/hrm/models/employee_relationship.py:108
 msgid "Occupation or job title of the relative"
 msgstr ""
 
 # models/organization.py:11
-#: apps/hrm/models/employee_relationship.py:119
+#: apps/hrm/models/employee_relationship.py:120
 #: apps/hrm/models/organization.py:20
 msgid "Address"
 msgstr "Địa chỉ"
 
-#: apps/hrm/models/employee_relationship.py:120
+#: apps/hrm/models/employee_relationship.py:121
 msgid "Residential address of the relative"
 msgstr ""
 
-#: apps/hrm/models/employee_relationship.py:127
+#: apps/hrm/models/employee_relationship.py:128
 #: apps/hrm/models/recruitment_candidate.py:57
 msgid "Phone"
 msgstr ""
 
 # models/organization.py:217
-#: apps/hrm/models/employee_relationship.py:128
+#: apps/hrm/models/employee_relationship.py:129
 #, fuzzy
 #| msgid "Contract type name"
 msgid "Contact phone number"
 msgstr "Tên loại liên hệ"
 
-#: apps/hrm/models/employee_relationship.py:150
+#: apps/hrm/models/employee_relationship.py:151
 msgid "Whether this relationship record is active"
 msgstr ""
 
 # models/organization.py:205
-#: apps/hrm/models/employee_relationship.py:164
+#: apps/hrm/models/employee_relationship.py:165
 #, fuzzy
 #| msgid "Employee type"
 msgid "Employee Relationship"
 msgstr "Loại nhân viên"
 
 # models/organization.py:205
-#: apps/hrm/models/employee_relationship.py:165
+#: apps/hrm/models/employee_relationship.py:166
 #, fuzzy
 #| msgid "Employee code"
 msgid "Employee Relationships"
