@@ -73,6 +73,10 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
     """
     Collect changes from related objects (ForeignKey, ManyToMany, reverse ForeignKey).
 
+    Optimization:
+    - Only tracks M2M fields specified in model's `m2m_fields_to_track` attribute (if present)
+    - Only tracks reverse FK relationships for FK/OneToOneField fields that changed on the main object
+
     Args:
         original_object: The original object state
         modified_object: The modified object state
@@ -90,9 +94,16 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
         return related_changes
 
     try:
+        # Get the list of M2M fields to track (if specified by the model)
+        m2m_fields_to_track = getattr(modified_object, "m2m_fields_to_track", None)
+
         # Check ManyToMany field changes
         for field in modified_object._meta.many_to_many:
             field_name = field.name
+
+            # Skip this M2M field if model specifies which fields to track and this field is not in the list
+            if m2m_fields_to_track is not None and field_name not in m2m_fields_to_track:
+                continue
             try:
                 # Get the related managers
                 original_manager = getattr(original_object, field_name, None)
@@ -136,10 +147,17 @@ def _collect_related_changes(original_object, modified_object):  # noqa: C901
                 logging.debug(f"Error processing M2M field {field_name}: {e}")
                 continue
 
+        # Get the list of reverse FK relationships to track (if specified by the model)
+        reverse_fk_fields_to_track = getattr(modified_object, "reverse_fk_fields_to_track", None)
+
         # Check reverse foreign key relationships (inline objects)
         for related_object in modified_object._meta.related_objects:
             try:
                 accessor_name = related_object.get_accessor_name()
+
+                # Skip this reverse FK if model specifies which fields to track and this field is not in the list
+                if reverse_fk_fields_to_track is not None and accessor_name not in reverse_fk_fields_to_track:
+                    continue
 
                 # Get related querysets
                 original_related = getattr(original_object, accessor_name, None)

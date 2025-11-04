@@ -107,6 +107,12 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     CODE_PREFIX = "MV"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
+    # Audit logging configuration
+    # Optimize audit logging by tracking only specific M2M and reverse FK fields
+    # Empty lists mean no M2M or reverse FK changes will be tracked for this model
+    m2m_fields_to_track = []  # No M2M fields to track for Employee
+    reverse_fk_fields_to_track = []  # Don't track reverse FK changes (dependents, certificates, relationships)
+
     # Basic employee info
     code_type = models.CharField(
         max_length=10,

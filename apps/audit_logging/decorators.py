@@ -133,9 +133,16 @@ def audit_logging_register(model_class):
     Decorator to enable automatic audit logging for a Django model.
 
     Usage:
-        @audit_logging
+        @audit_logging_register
         class MyModel(models.Model):
-            ...
+            name = models.CharField(max_length=100)
+            tags = models.ManyToManyField('Tag')
+
+            # Optional: Control which M2M fields to track for audit logging
+            m2m_fields_to_track = ['tags']  # Only track changes to 'tags' M2M field
+
+            # Optional: Control which reverse FK relationships to track
+            reverse_fk_fields_to_track = ['comments']  # Track changes to related comments
 
     This decorator registers signal handlers that automatically log
     create, update, and delete actions on the decorated model.
@@ -145,6 +152,48 @@ def audit_logging_register(model_class):
     - The object state (before and after for changes)
     - The user who performed the action (from request context)
     - Request metadata (IP address, user agent, session key)
+
+    Performance Optimization:
+    -------------------------
+    To optimize audit logging performance for models with many relationships:
+
+    1. **m2m_fields_to_track**: List of ManyToManyField names to track
+       - If not specified (None): ALL M2M fields are tracked (default behavior)
+       - If empty list []: NO M2M fields are tracked
+       - If list of field names: ONLY specified M2M fields are tracked
+
+       Example:
+           class Article(models.Model):
+               tags = models.ManyToManyField('Tag')
+               categories = models.ManyToManyField('Category')
+
+               # Only track tags changes, ignore categories
+               m2m_fields_to_track = ['tags']
+
+    2. **reverse_fk_fields_to_track**: List of reverse ForeignKey accessor names to track
+       - If not specified (None): ALL reverse FK relationships are tracked (default)
+       - If empty list []: NO reverse FK relationships are tracked
+       - If list of accessor names: ONLY specified relationships are tracked
+
+       Example:
+           class Employee(models.Model):
+               name = models.CharField(max_length=100)
+
+               # Don't track changes to dependents, certificates, or relationships
+               # as they're managed separately and not relevant to Employee updates
+               reverse_fk_fields_to_track = []
+
+    When to Use:
+    ------------
+    - Use empty lists [] for models with many reverse relationships that don't need tracking
+    - Use specific field lists for models where only certain relationships matter
+    - Leave as None (don't define) for models where all relationships should be tracked
+
+    Common Use Cases:
+    -----------------
+    1. Employee model: Set both to [] as related objects are managed independently
+    2. Order model: Track 'items' reverse FK to see order line changes
+    3. Article model: Track 'tags' M2M but not 'categories'
     """
 
     # Register signal handlers for the decorated model

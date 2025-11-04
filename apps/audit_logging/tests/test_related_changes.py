@@ -439,13 +439,13 @@ def test_collect_related_changes_with_choice_field():
     mock_field.choices = [("H", "High"), ("M", "Medium"), ("L", "Low")]
 
     # Create main objects (parent)
-    original = MagicMock()
+    original = MagicMock(spec=['_meta', 'pk', 'tasks'])  # spec to prevent MagicMock for missing attributes
     original._meta = MagicMock()
     original._meta.fields = []
     original._meta.many_to_many = []
     original.pk = 1
 
-    modified = MagicMock()
+    modified = MagicMock(spec=['_meta', 'pk', 'tasks'])  # spec to prevent MagicMock for missing attributes
     modified._meta = MagicMock()
     modified._meta.fields = []
     modified._meta.many_to_many = []
