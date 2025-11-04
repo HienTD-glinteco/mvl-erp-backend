@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.models import EmployeeCertificate
+from apps.hrm.models import Employee, EmployeeCertificate
 from libs import ColoredValueSerializer
 from libs.drf.serializers import FileConfirmSerializerMixin
+
+from .common_nested import EmployeeNestedSerializer
 
 
 class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
@@ -11,6 +13,15 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
 
     file_confirm_fields = ["attachment"]
     attachment = FileSerializer(read_only=True)
+
+    # Nested employee representation for read operations
+    employee = EmployeeNestedSerializer(read_only=True)
+    # Write-only field for POST/PUT/PATCH operations
+    employee_id = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        source="employee",
+        write_only=True,
+    )
 
     certificate_type_display = serializers.CharField(
         source="get_certificate_type_display",
@@ -29,6 +40,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         fields = [
             "id",
             "employee",
+            "employee_id",
             "certificate_type",
             "certificate_type_display",
             "certificate_code",
@@ -46,6 +58,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         ]
         read_only_fields = [
             "id",
+            "employee",
             "certificate_type_display",
             "attachment",
             "status",

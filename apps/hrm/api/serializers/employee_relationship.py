@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.models import EmployeeRelationship
+from apps.hrm.models import Employee, EmployeeRelationship
 from libs.drf.serializers import FileConfirmSerializerMixin
+
+from .common_nested import EmployeeNestedSerializer
 
 
 class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
@@ -11,11 +13,21 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
     file_confirm_fields = ["attachment"]
     attachment = FileSerializer(read_only=True)
 
+    # Nested employee representation for read operations
+    employee = EmployeeNestedSerializer(read_only=True)
+    # Write-only field for POST/PUT/PATCH operations
+    employee_id = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        source="employee",
+        write_only=True,
+    )
+
     class Meta:
         model = EmployeeRelationship
         fields = [
             "id",
             "employee",
+            "employee_id",
             "employee_code",
             "employee_name",
             "relative_name",
@@ -33,6 +45,7 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         ]
         read_only_fields = [
             "id",
+            "employee",
             "employee_code",
             "employee_name",
             "attachment",
