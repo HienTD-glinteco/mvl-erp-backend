@@ -23,7 +23,7 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
     )
 
     code = serializers.CharField(read_only=True)
-    
+
     # Include display fields for better API responses
     relationship_display = serializers.CharField(
         source="get_relationship_display",
