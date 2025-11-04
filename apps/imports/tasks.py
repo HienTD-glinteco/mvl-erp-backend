@@ -179,7 +179,7 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
             if hasattr(module, "pre_import_initialize"):
                 logger.info(f"Import job {import_job_id}: Calling pre_import_initialize")
                 module.pre_import_initialize(import_job_id, options)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to call pre_import_initialize for job {import_job_id}: {e}")
 
         # Count total rows if requested

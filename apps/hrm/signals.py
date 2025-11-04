@@ -46,7 +46,7 @@ register_auto_code_signal(
 
 
 @receiver(post_save, sender=Employee)
-def create_user_for_employee(sender, instance, created, **kwargs):
+def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG001
     """Create a User instance for the Employee after it is created.
 
     This signal handler automatically creates a User account when an Employee
@@ -67,7 +67,7 @@ def create_user_for_employee(sender, instance, created, **kwargs):
 
 
 @receiver(pre_save, sender=Employee)
-def track_position_change(sender, instance, **kwargs):
+def track_position_change(sender, instance, **kwargs):  # noqa: ARG001
     """Track if employee position is changing.
     
     Store the old position in a temporary attribute so we can detect changes
@@ -76,15 +76,15 @@ def track_position_change(sender, instance, **kwargs):
     if instance.pk:
         try:
             old_instance = Employee.objects.get(pk=instance.pk)
-            instance._old_position = old_instance.position
+            instance._old_position = old_instance.position  # type: ignore[attr-defined]
         except Employee.DoesNotExist:
-            instance._old_position = None
+            instance._old_position = None  # type: ignore[attr-defined]
     else:
-        instance._old_position = None
+        instance._old_position = None  # type: ignore[attr-defined]
 
 
 @receiver(post_save, sender=Employee)
-def manage_organization_chart_on_position_change(sender, instance, created, **kwargs):
+def manage_organization_chart_on_position_change(sender, instance, created, **kwargs):  # noqa: ARG001
     """Manage OrganizationChart entries when employee position changes.
     
     This signal handler:
@@ -95,8 +95,8 @@ def manage_organization_chart_on_position_change(sender, instance, created, **kw
     - Employee is newly created with a position
     - Employee position is changed
     """
-    from datetime import date as date_module
-    from apps.hrm.models import OrganizationChart
+    from datetime import date as date_module  # noqa: PLC0415
+    from apps.hrm.models import OrganizationChart  # noqa: PLC0415
     
     # Skip if employee doesn't have required fields
     if not instance.position or not instance.department or not instance.user:
@@ -108,7 +108,7 @@ def manage_organization_chart_on_position_change(sender, instance, created, **kw
         should_create = True
     else:
         # Check if position changed (using tracked old position from pre_save)
-        old_position = getattr(instance, '_old_position', None)
+        old_position = getattr(instance, '_old_position', None)  # type: ignore[misc]
         should_create = old_position != instance.position
     
     if should_create:

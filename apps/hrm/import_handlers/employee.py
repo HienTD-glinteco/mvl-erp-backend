@@ -131,7 +131,7 @@ def is_section_header_row(row: list, first_col_value: str) -> bool:
     return False
 
 
-def parse_date(value: Any, formats: list = None) -> date | None:
+def parse_date(value: Any, formats: list | None = None) -> date | None:  # noqa: B006
     """
     Parse date from various formats.
     
@@ -315,7 +315,7 @@ def lookup_or_create_branch(name: str) -> tuple[Branch | None, bool]:
     return branch, True
 
 
-def lookup_or_create_block(name: str, branch: Branch = None) -> tuple[Block | None, bool]:
+def lookup_or_create_block(name: str, branch: Branch | None = None) -> tuple[Block | None, bool]:
     """
     Lookup or create Block by name.
     
@@ -363,7 +363,7 @@ def lookup_or_create_block(name: str, branch: Branch = None) -> tuple[Block | No
 
 
 def lookup_or_create_department(
-    name: str, block: Block = None, branch: Branch = None
+    name: str, block: Block | None = None, branch: Branch | None = None
 ) -> tuple[Department | None, bool]:
     """
     Lookup or create Department by name.
@@ -540,7 +540,7 @@ def lookup_or_create_bank(code: str, name: str) -> tuple[Bank | None, bool]:
     return bank, True
 
 
-def ensure_default_banks() -> dict[str, Bank]:
+def ensure_default_banks() -> dict[str, Bank | None]:
     """
     Ensure default banks exist (VPBank and Vietcombank).
     
@@ -1058,7 +1058,7 @@ def import_handler(
                     "pk": employee.pk,
                 }
                 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to save employee {code}: {e}")
                 return {
                     "ok": False,
@@ -1068,7 +1068,7 @@ def import_handler(
                     "action": "skipped",
                 }
     
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception(f"Import handler error at row {row_index}: {e}")
         return {
             "ok": False,
