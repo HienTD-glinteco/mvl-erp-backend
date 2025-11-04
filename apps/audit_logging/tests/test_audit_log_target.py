@@ -1,8 +1,8 @@
 """
-Tests for audit_log_target functionality and cascade delete handling.
+Tests for AUDIT_LOG_TARGET functionality and cascade delete handling.
 
 This module tests the new refactored audit logging system that includes:
-- audit_log_target attribute for dependent models
+- AUDIT_LOG_TARGET attribute for dependent models
 - Cascade delete detection to avoid duplicate logs
 - Logging dependent model changes under target models
 """
@@ -14,7 +14,7 @@ from django.db import models
 from django.test import TestCase, override_settings
 
 from apps.audit_logging import LogAction, audit_logging_register
-from apps.audit_logging.decorators import _cascade_delete_context, _clear_cascade_context
+from apps.audit_logging.decorators import _clear_delete_context
 from apps.audit_logging.registry import AuditLogRegistry
 from libs.models import BaseModel, create_dummy_model
 
@@ -23,7 +23,7 @@ User = get_user_model()
 
 @override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditLogTarget(TestCase):
-    """Test cases for audit_log_target functionality."""
+    """Test cases for AUDIT_LOG_TARGET functionality."""
 
     @classmethod
     def setUpClass(cls):
@@ -38,7 +38,7 @@ class TestAuditLogTarget(TestCase):
             },
         )
 
-        # Create a dependent model with audit_log_target
+        # Create a dependent model with AUDIT_LOG_TARGET
         cls.DependentModel = create_dummy_model(
             base_name="DependentModel",
             base_class=BaseModel,
@@ -52,8 +52,8 @@ class TestAuditLogTarget(TestCase):
             },
         )
 
-        # Set audit_log_target on the dependent model
-        cls.DependentModel.audit_log_target = cls.MainModel
+        # Set AUDIT_LOG_TARGET on the dependent model
+        cls.DependentModel.AUDIT_LOG_TARGET = cls.MainModel
 
         # Register both models
         audit_logging_register(cls.MainModel)
@@ -65,15 +65,13 @@ class TestAuditLogTarget(TestCase):
             email="test@example.com",
             password="testpass123",
         )
-        # Clear cascade context before each test
-        _clear_cascade_context()
+        _clear_delete_context()
 
     def tearDown(self):
-        # Clean up cascade context after each test
-        _clear_cascade_context()
+        _clear_delete_context()
 
     def test_audit_log_target_registration(self):
-        """Test that audit_log_target is properly registered."""
+        """Test that AUDIT_LOG_TARGET is properly registered."""
         target = AuditLogRegistry.get_audit_log_target(self.DependentModel)
         self.assertEqual(target, self.MainModel)
 
@@ -182,13 +180,12 @@ class TestAuditLogTarget(TestCase):
 
 @override_settings(AUDIT_LOG_DISABLED=False)
 class TestAuditLogTargetStringReference(TestCase):
-    """Test audit_log_target with string references."""
+    """Test AUDIT_LOG_TARGET with string references."""
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
-        # Create models
         cls.ParentModel = create_dummy_model(
             base_name="ParentModel",
             base_class=BaseModel,
@@ -209,17 +206,13 @@ class TestAuditLogTargetStringReference(TestCase):
             },
         )
 
-        # Set audit_log_target as string (will be resolved by registry)
-        # Note: For dynamic models, we need to use the actual class reference
-        # since they don't have a fixed app_label
-        cls.ChildModel.audit_log_target = cls.ParentModel
+        cls.ChildModel.AUDIT_LOG_TARGET = cls.ParentModel
 
-        # Register models
         audit_logging_register(cls.ParentModel)
         audit_logging_register(cls.ChildModel)
 
     def test_string_reference_resolved(self):
-        """Test that string reference to audit_log_target is resolved."""
+        """Test that string reference to AUDIT_LOG_TARGET is resolved."""
         target = AuditLogRegistry.get_audit_log_target(self.ChildModel)
         self.assertEqual(target, self.ParentModel)
 

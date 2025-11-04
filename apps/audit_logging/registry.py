@@ -1,3 +1,6 @@
+from django.apps import apps
+
+
 class AuditLogRegistry:
     """
     Registry for models that have audit logging enabled.
@@ -7,7 +10,7 @@ class AuditLogRegistry:
     - Register models when they're decorated
     - Query registered models
     - Get model information (app_label, model_name, ContentType)
-    - Track audit_log_target relationships for dependent models
+    - Track AUDIT_LOG_TARGET relationships for dependent models
 
     Usage:
         # Models are automatically registered when decorated
@@ -15,10 +18,10 @@ class AuditLogRegistry:
         class MyModel(models.Model):
             ...
 
-        # Dependent models can declare an audit_log_target
+        # Dependent models can declare an AUDIT_LOG_TARGET
         @audit_logging
         class DependentModel(models.Model):
-            audit_log_target = 'app_label.ModelName'  # or reference to model class
+            AUDIT_LOG_TARGET = 'app_label.ModelName'  # or reference to model class
             ...
 
         # Query registered models
@@ -36,22 +39,26 @@ class AuditLogRegistry:
 
         Args:
             model_class: The Django model class to register
+            
+        Raises:
+            ValueError: If AUDIT_LOG_TARGET is specified but cannot be resolved
         """
         if model_class not in cls._registry:
             app_label = model_class._meta.app_label
             model_name = model_class._meta.model_name
 
-            # Check if model has audit_log_target attribute
-            audit_log_target = getattr(model_class, "audit_log_target", None)
+            # Check if model has AUDIT_LOG_TARGET attribute
+            audit_log_target = getattr(model_class, "AUDIT_LOG_TARGET", None)
             
             # Resolve target if it's a string (e.g., 'app_label.ModelName')
             if isinstance(audit_log_target, str):
-                from django.apps import apps
                 try:
                     audit_log_target = apps.get_model(audit_log_target)
-                except Exception:
-                    # Invalid target, set to None
-                    audit_log_target = None
+                except (LookupError, ValueError) as e:
+                    raise ValueError(
+                        f"Invalid AUDIT_LOG_TARGET '{audit_log_target}' for model "
+                        f"{model_class.__name__}: {e}"
+                    )
 
             cls._registry[model_class] = {
                 "app_label": app_label,

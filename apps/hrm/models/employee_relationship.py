@@ -37,8 +37,7 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
     """
 
     CODE_PREFIX = "ER"
-    # Audit log target: log changes under the related Employee
-    audit_log_target = "hrm.Employee"
+    AUDIT_LOG_TARGET = "hrm.Employee"
 
     code = models.CharField(
         max_length=50,

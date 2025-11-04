@@ -69,31 +69,6 @@ class AuditStreamProducer:
 _audit_producer = AuditStreamProducer()
 
 
-def _collect_related_changes(original_object, modified_object):
-    """
-    Collect changes from direct ForeignKey and OneToOneField relationships only.
-    
-    This simplified version only tracks direct field changes (FK id changes, set/unset).
-    It does NOT recursively inspect changes inside related objects.
-    ManyToMany changes should be logged through explicit actions on the join table.
-
-    Args:
-        original_object: The original object state
-        modified_object: The modified object state
-
-    Returns:
-        list: List of dictionaries containing direct FK/OneToOne field changes (empty for now)
-    """
-    # NOTE: This function is simplified per the refactoring requirements.
-    # We only log direct field changes on the main object itself.
-    # Related object changes (M2M, reverse FK) are now handled by:
-    # 1. Models with audit_log_target attribute logging to their parent
-    # 2. Explicit logging in business logic where M2M changes occur
-    
-    # Return empty list as we don't collect related changes automatically anymore
-    return []
-
-
 def _format_field_value(value, instance=None, field=None):
     """
     Format a field value for audit logging.
@@ -140,15 +115,9 @@ def _prepare_change_messages(
     original_object=None,
     modified_object=None,
 ):
-    """
-    Prepare change messages for audit logs.
-    
-    Only includes direct field changes on the object itself.
-    Related object changes are no longer automatically collected here.
-    """
+    """Prepare change messages for audit logs."""
     if action == "CHANGE" and original_object and modified_object:
         rows = []
-        # Try to detect field changes if both objects are Django models
         if hasattr(original_object, "_meta") and hasattr(modified_object, "_meta"):
             for field in modified_object._meta.fields:
                 field_name = field.name
@@ -169,9 +138,6 @@ def _prepare_change_messages(
             }
         else:
             log_data["change_message"] = "Object modified"
-
-        # NOTE: Related changes are no longer automatically collected.
-        # They are now handled by models with audit_log_target attribute.
     elif action == "ADD":
         log_data["change_message"] = "Created new object"
     elif action == "DELETE":
