@@ -20,8 +20,8 @@ User = get_user_model()
 @pytest.mark.django_db
 @override_settings(AUDIT_LOG_DISABLED=False)
 @patch("apps.audit_logging.producer._audit_producer.log_event")
-def test_related_changes_field_added_to_log(mock_log_event):
-    """Test that related_changes field is added when there are related changes."""
+def test_related_changes_no_longer_collected(mock_log_event):
+    """Test that related_changes are no longer automatically collected (refactored behavior)."""
     # Create mock objects with _meta
     original = MagicMock()
     original._meta = MagicMock()
@@ -55,9 +55,8 @@ def test_related_changes_field_added_to_log(mock_log_event):
     mock_log_event.assert_called_once()
     call_args = mock_log_event.call_args[1]
 
-    # With no actual related changes, related_changes should not be present or be empty
-    if "related_changes" in call_args:
-        assert len(call_args["related_changes"]) == 0
+    # related_changes should NOT be present (new refactored behavior)
+    assert "related_changes" not in call_args
 
 
 @pytest.mark.django_db
@@ -131,8 +130,8 @@ def test_backward_compatibility_with_delete_action(mock_log_event):
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-def test_collect_related_changes_with_no_meta():
-    """Test that _collect_related_changes handles objects without _meta gracefully."""
+def test_collect_related_changes_returns_empty():
+    """Test that _collect_related_changes returns empty list (refactored behavior)."""
     # Create objects without _meta attribute
     original = MagicMock(spec=[])
     modified = MagicMock(spec=[])
@@ -140,14 +139,14 @@ def test_collect_related_changes_with_no_meta():
     # Call the utility function
     related_changes = _collect_related_changes(original, modified)
 
-    # Should return empty list for objects without _meta
+    # Should always return empty list (new simplified behavior)
     assert isinstance(related_changes, list)
     assert len(related_changes) == 0
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-def test_collect_related_changes_with_empty_relationships():
-    """Test that _collect_related_changes works when there are no relationships."""
+def test_collect_related_changes_always_returns_empty():
+    """Test that _collect_related_changes always returns empty (simplified behavior)."""
     # Create mock objects with _meta but no relationships
     original = MagicMock()
     original._meta = MagicMock()
@@ -162,14 +161,14 @@ def test_collect_related_changes_with_empty_relationships():
     # Call the utility function
     related_changes = _collect_related_changes(original, modified)
 
-    # Should return empty list when there are no relationships
+    # Should always return empty list (simplified - no longer collects related changes)
     assert isinstance(related_changes, list)
     assert len(related_changes) == 0
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-def test_prepare_change_messages_adds_related_changes():
-    """Test that _prepare_change_messages adds related_changes field."""
+def test_prepare_change_messages_no_related_changes():
+    """Test that _prepare_change_messages no longer adds related_changes field."""
     # Create mock objects with relationships
     original = MagicMock()
     original._meta = MagicMock()
@@ -193,8 +192,8 @@ def test_prepare_change_messages_adds_related_changes():
     assert "change_message" in log_data
     assert log_data["change_message"] == "Object modified"
 
-    # related_changes should not be added if there are no actual changes
-    # This verifies the function runs without errors
+    # related_changes should NOT be added (new refactored behavior)
+    assert "related_changes" not in log_data
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
@@ -430,8 +429,8 @@ def test_prepare_change_messages_with_choice_field():
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-def test_collect_related_changes_with_choice_field():
-    """Test that _collect_related_changes handles choice fields correctly using get_FOO_display()."""
+def test_collect_related_changes_no_longer_tracks_reverse_fk():
+    """Test that _collect_related_changes no longer tracks reverse FK changes (refactored)."""
     # Create mock field with choices for related objects
     mock_field = MagicMock()
     mock_field.name = "priority"
@@ -492,25 +491,6 @@ def test_collect_related_changes_with_choice_field():
     # Call _collect_related_changes
     related_changes = _collect_related_changes(original, modified)
 
-    # Verify the result
-    assert len(related_changes) == 1
-    assert related_changes[0]["object_type"] == "task"
-    assert related_changes[0]["relation_type"] == "reverse_foreign_key"
-    assert related_changes[0]["field_name"] == "tasks"
-
-    # Check the changes for the related object
-    changes = related_changes[0]["changes"]
-    assert len(changes) == 1
-    assert changes[0]["action"] == "modified"
-    assert changes[0]["object_id"] == "101"
-
-    # Check field changes - should use human-readable labels for choice fields
-    field_changes = changes[0]["field_changes"]
-    assert len(field_changes) == 1
-    assert field_changes[0]["field"] == "Priority"
-    assert field_changes[0]["old_value"] == "High"
-    assert field_changes[0]["new_value"] == "Low"
-
-    # Verify that get_priority_display was called
-    original_task.get_priority_display.assert_called_once()
-    modified_task.get_priority_display.assert_called_once()
+    # Verify that NO related changes are collected (new refactored behavior)
+    assert len(related_changes) == 0
+    # Related object changes should now be logged through audit_log_target

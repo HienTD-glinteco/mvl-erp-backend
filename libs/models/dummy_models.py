@@ -10,7 +10,7 @@ import uuid
 from django.db import models
 
 
-def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields=None):
+def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields=None, base_class=None):
     """
     Create a dynamic Django model with a unique name.
 
@@ -21,9 +21,10 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
         base_name: Base name for the model (default: "DummyModel")
         app_label: Django app label for the model (default: "audit_logging")
         fields: Dictionary of field names to field instances (default: None)
+        base_class: Base class to inherit from (default: models.Model)
 
     Returns:
-        A new model class that inherits from models.Model
+        A new model class that inherits from the specified base class or models.Model
 
     Example:
         >>> TestModel = create_dummy_model(
@@ -33,8 +34,16 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
         ...         'value': models.IntegerField(default=0)
         ...     }
         ... )
+        >>> # Or with a custom base class
+        >>> TestModel = create_dummy_model(
+        ...     base_name="TestModel",
+        ...     base_class=BaseModel,
+        ...     fields={'name': models.CharField(max_length=100)}
+        ... )
     """
     fields = fields or {}
+    base_class = base_class or models.Model
+    
     # Generate a unique name using UUID to avoid registration conflicts
     name = f"{base_name}_{uuid.uuid4().hex}"
 
@@ -49,4 +58,4 @@ def create_dummy_model(base_name="DummyModel", app_label="audit_logging", fields
     }
 
     # Create and return the model class
-    return type(name, (models.Model,), attrs)
+    return type(name, (base_class,), attrs)
