@@ -11,11 +11,14 @@ from django.utils.text import slugify
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
 from apps.hrm.models import (
+    Bank,
+    BankAccount,
     Block,
     Branch,
     ContractType,
     Department,
     Employee,
+    OrganizationChart,
     Position,
 )
 
@@ -63,49 +66,29 @@ COLUMN_MAPPING = {
     "ghi chú": "note",
 }
 
-# Gender mapping
+# Gender mapping - only "Nam" or "Nữ"
 GENDER_MAPPING = {
     "nam": Employee.Gender.MALE,
-    "m": Employee.Gender.MALE,
-    "male": Employee.Gender.MALE,
     "nữ": Employee.Gender.FEMALE,
-    "nu": Employee.Gender.FEMALE,
-    "f": Employee.Gender.FEMALE,
-    "female": Employee.Gender.FEMALE,
 }
 
-# Status mapping
-STATUS_MAPPING = {
-    "chính thức": Employee.Status.ACTIVE,
-    "chinh thuc": Employee.Status.ACTIVE,
-    "active": Employee.Status.ACTIVE,
-    "thử việc": Employee.Status.ONBOARDING,
-    "thu viec": Employee.Status.ONBOARDING,
-    "onboarding": Employee.Status.ONBOARDING,
-    "không lương chính thức": Employee.Status.ONBOARDING,
-    "khong luong chinh thuc": Employee.Status.ONBOARDING,
-    "nghỉ việc": Employee.Status.RESIGNED,
-    "nghi viec": Employee.Status.RESIGNED,
-    "resigned": Employee.Status.RESIGNED,
-    "nghỉ thai sản": Employee.Status.MATERNITY_LEAVE,
-    "nghi thai san": Employee.Status.MATERNITY_LEAVE,
-    "maternity leave": Employee.Status.MATERNITY_LEAVE,
+# Status code mapping - W = Working (Active), C = Ceased (Resigned)
+STATUS_CODE_MAPPING = {
+    "w": Employee.Status.ACTIVE,
+    "c": Employee.Status.RESIGNED,
+}
+
+# Contract types that should set specific employee status
+CONTRACT_TYPE_STATUS_MAPPING = {
     "nghỉ không lương": Employee.Status.UNPAID_LEAVE,
-    "nghi khong luong": Employee.Status.UNPAID_LEAVE,
-    "unpaid leave": Employee.Status.UNPAID_LEAVE,
+    "nghỉ thai sản": Employee.Status.MATERNITY_LEAVE,
 }
 
-# Marital status mapping
+# Marital status mapping - only 3 statuses
 MARITAL_STATUS_MAPPING = {
     "độc thân": Employee.MaritalStatus.SINGLE,
-    "doc than": Employee.MaritalStatus.SINGLE,
-    "single": Employee.MaritalStatus.SINGLE,
     "đã kết hôn": Employee.MaritalStatus.MARRIED,
-    "da ket hon": Employee.MaritalStatus.MARRIED,
-    "married": Employee.MaritalStatus.MARRIED,
-    "ly hôn": Employee.MaritalStatus.DIVORCED,
-    "ly hon": Employee.MaritalStatus.DIVORCED,
-    "divorced": Employee.MaritalStatus.DIVORCED,
+    "đã ly hôn": Employee.MaritalStatus.DIVORCED,
 }
 
 
@@ -533,11 +516,86 @@ def parse_phone(value: Any) -> tuple[str, list[str]]:
     return phone, warnings
 
 
+def lookup_or_create_bank(code: str, name: str) -> tuple[Bank | None, bool]:
+    """
+    Lookup or create Bank by code.
+    
+    Args:
+        code: Bank code
+        name: Bank name
+        
+    Returns:
+        Tuple of (Bank instance or None, created flag)
+    """
+    if not code or not name:
+        return None, False
+    
+    bank = Bank.objects.filter(code=code).first()
+    
+    if bank:
+        return bank, False
+    
+    bank = Bank.objects.create(code=code, name=name)
+    logger.info(f"Created bank: {bank.code} - {bank.name}")
+    
+    return bank, True
+
+
+def ensure_default_banks() -> dict[str, Bank]:
+    """
+    Ensure default banks exist (VPBank and Vietcombank).
+    
+    Returns:
+        dict: Dictionary with 'vpbank' and 'vietcombank' keys
+    """
+    vpbank, _ = lookup_or_create_bank(
+        "VPBank",
+        "Ngân hàng TMCP Việt Nam Thịnh Vượng"
+    )
+    vietcombank, _ = lookup_or_create_bank(
+        "Vietcombank",
+        "Ngân hàng TMCP Ngoại thương Việt Nam"
+    )
+    
+    return {
+        "vpbank": vpbank,
+        "vietcombank": vietcombank,
+    }
+
+
+def extract_code_type(code: str) -> str:
+    """
+    Extract code_type from employee code.
+    
+    Args:
+        code: Employee code like "CTV000000360" or "MV000004693"
+        
+    Returns:
+        str: Code type ("CTV" or "MV"), defaults to "MV"
+    """
+    if not code:
+        return Employee.CodeType.MV
+    
+    code_upper = code.upper().strip()
+    if code_upper.startswith("CTV"):
+        return Employee.CodeType.CTV
+    elif code_upper.startswith("MV"):
+        return Employee.CodeType.MV
+    
+    # Default to MV if pattern doesn't match
+    return Employee.CodeType.MV
+
+
 def parse_emergency_contact(value: Any) -> tuple[str, str]:
     """
     Parse emergency contact field.
     
-    Expected format: "Phone" or "Name - Phone"
+    Handles formats like:
+    - "0936998985 (Chồng)" -> phone: "0936998985", name: "Chồng"
+    - "0968677128 (mẹ)" -> phone: "0968677128", name: "mẹ"
+    - "0931996386/ 0829111185 (vợ)" -> phone: "0931996386", name: "vợ" (first phone)
+    - "0968677128 mẹ" -> phone: "0968677128", name: "mẹ"
+    - "Name - Phone" -> phone: from second part, name: from first part
     
     Args:
         value: Emergency contact value
@@ -550,7 +608,24 @@ def parse_emergency_contact(value: Any) -> tuple[str, str]:
     
     value_str = normalize_value(value)
     
-    # Try to split by common separators
+    # Pattern 1: "Phone (Name)" or "Phone1/Phone2 (Name)"
+    match = re.match(r"^([\d\s/]+)\s*\(([^)]+)\)", value_str)
+    if match:
+        phone_part = match.group(1).strip()
+        name_part = match.group(2).strip()
+        # Extract first phone if multiple separated by /
+        phones = re.findall(r"\d+", phone_part)
+        phone = phones[0] if phones else ""
+        return phone, name_part
+    
+    # Pattern 2: "Phone Name" (phone followed by text without parentheses)
+    match = re.match(r"^([\d\s]+)\s+([^\d]+)$", value_str)
+    if match:
+        phone = strip_non_digits(match.group(1))
+        name = match.group(2).strip()
+        return phone, name
+    
+    # Pattern 3: "Name - Phone" (dash separator)
     if "-" in value_str:
         parts = value_str.split("-", 1)
         if len(parts) == 2:
@@ -653,19 +728,14 @@ def employee_import_handler(
             employee_data["code"] = code
             employee_data["fullname"] = fullname
             
+            # Extract and set code_type from code
+            code_type = extract_code_type(code)
+            employee_data["code_type"] = code_type
+            
             # Attendance code (digits only)
             attendance_code = strip_non_digits(row_dict.get("attendance_code", ""))
             if attendance_code:
                 employee_data["attendance_code"] = attendance_code
-            
-            # Status
-            status_raw = normalize_value(row_dict.get("status", "")).lower()
-            if status_raw:
-                status = STATUS_MAPPING.get(status_raw)
-                if status:
-                    employee_data["status"] = status
-                else:
-                    warnings.append(f"Unknown status: {status_raw}")
             
             # Start date (combine day, month, year)
             start_day = row_dict.get("start_day")
@@ -684,9 +754,29 @@ def employee_import_handler(
             if start_date:
                 employee_data["start_date"] = start_date
             
-            # Contract type (reference)
+            # Status and Contract type (combined logic)
+            # Status code: W = Working (Active), C = Ceased (Resigned)
+            status_raw = normalize_value(row_dict.get("status", "")).lower()
             contract_type_name = normalize_value(row_dict.get("contract_type", ""))
-            if contract_type_name:
+            
+            # Determine status based on status code and contract type
+            status = None
+            contract_type_lower = contract_type_name.lower()
+            
+            # First check if contract type maps to a specific status
+            if contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
+                status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
+            # Otherwise use status code mapping
+            elif status_raw in STATUS_CODE_MAPPING:
+                status = STATUS_CODE_MAPPING[status_raw]
+            
+            if status:
+                employee_data["status"] = status
+            elif status_raw:
+                warnings.append(f"Unknown status code: {status_raw}")
+            
+            # Create contract type if provided (except for special status ones)
+            if contract_type_name and contract_type_lower not in CONTRACT_TYPE_STATUS_MAPPING:
                 contract_type, created = lookup_or_create_contract_type(contract_type_name)
                 if contract_type:
                     employee_data["contract_type"] = contract_type
@@ -888,22 +978,6 @@ def employee_import_handler(
             if note:
                 employee_data["note"] = note
             
-            # Bank account notes (store in note field if needed)
-            vpbank_account = normalize_value(row_dict.get("vpbank_account", ""))
-            vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
-            if vpbank_account or vietcombank_account:
-                bank_note_parts = []
-                if vpbank_account:
-                    bank_note_parts.append(f"VPBank: {vpbank_account}")
-                if vietcombank_account:
-                    bank_note_parts.append(f"VietcomBank: {vietcombank_account}")
-                
-                bank_note = "; ".join(bank_note_parts)
-                if note:
-                    employee_data["note"] = f"{note}\n{bank_note}"
-                else:
-                    employee_data["note"] = bank_note
-            
             # Update or create employee
             try:
                 employee, created = Employee.objects.update_or_create(
@@ -912,6 +986,58 @@ def employee_import_handler(
                 )
                 
                 action = "created" if created else "updated"
+                
+                # Handle bank accounts
+                vpbank_account = normalize_value(row_dict.get("vpbank_account", ""))
+                vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
+                
+                if vpbank_account or vietcombank_account:
+                    # Ensure default banks exist
+                    banks = ensure_default_banks()
+                    
+                    # Create VPBank account if provided
+                    if vpbank_account and banks["vpbank"]:
+                        BankAccount.objects.update_or_create(
+                            employee=employee,
+                            bank=banks["vpbank"],
+                            defaults={
+                                "account_number": vpbank_account,
+                                "account_name": employee.fullname,
+                                "is_primary": not vietcombank_account,  # Primary if only one
+                            }
+                        )
+                    
+                    # Create Vietcombank account if provided
+                    if vietcombank_account and banks["vietcombank"]:
+                        BankAccount.objects.update_or_create(
+                            employee=employee,
+                            bank=banks["vietcombank"],
+                            defaults={
+                                "account_number": vietcombank_account,
+                                "account_name": employee.fullname,
+                                "is_primary": not vpbank_account,  # Primary if only one
+                            }
+                        )
+                
+                # Handle OrganizationChart for position
+                if position and department and employee.user:
+                    # Deactivate all existing organization chart entries for this employee
+                    OrganizationChart.objects.filter(
+                        employee=employee.user,
+                        is_active=True
+                    ).update(is_active=False, is_primary=False)
+                    
+                    # Create new organization chart entry
+                    OrganizationChart.objects.create(
+                        employee=employee.user,
+                        position=position,
+                        department=department,
+                        block=block,
+                        branch=branch,
+                        start_date=start_date or date.today(),
+                        is_primary=True,
+                        is_active=True,
+                    )
                 
                 return {
                     "ok": True,
