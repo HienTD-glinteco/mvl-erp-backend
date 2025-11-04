@@ -19,6 +19,7 @@ from .export_xlsx import (
 )
 from .import_xlsx import ImportXLSXMixin
 from .models import AutoCodeMixin, BaseModel, ColoredValueMixin, create_dummy_model
+from .validators import CitizenIdValidator
 
 __all__ = [
     "AutoCodeMixin",
@@ -46,4 +47,5 @@ __all__ = [
     "register_auto_code_signal",
     "AutoDocOrderingFilterExtension",
     "wrap_with_envelope",
+    "CitizenIdValidator",
 ]

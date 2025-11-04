@@ -1,6 +1,8 @@
+import io
 import json
 from datetime import datetime, timezone
 
+import openpyxl
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from django.urls import reverse
@@ -117,6 +119,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020025",
         )
 
         self.employee2 = Employee.objects.create(
@@ -132,6 +135,7 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="lethid.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020026",
         )
 
         # Create job description
@@ -250,6 +254,71 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
         schedule.refresh_from_db()
         self.assertEqual(schedule.interviewers.count(), 2)
 
+    def test_export_interview_schedules(self):
+        """Test exporting interview schedules to Excel"""
+        # Create interview schedules
+        schedule1 = InterviewSchedule.objects.create(
+            title="First Round Interview",
+            recruitment_request=self.recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Office Meeting Room A",
+            time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            note="Please bring portfolio",
+        )
+
+        schedule2 = InterviewSchedule.objects.create(
+            title="Second Round Interview",
+            recruitment_request=self.recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.ONLINE,
+            location="Zoom Meeting",
+            time=datetime(2025, 10, 26, 14, 0, 0, tzinfo=timezone.utc),
+            note="Technical interview",
+        )
+
+        url = reverse("hrm:interview-schedule-export")
+
+        # Test direct download
+        response = self.client.get(url, {"delivery": "direct"})
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertIn("filename", response["Content-Disposition"])
+
+        # Verify the exported data contains the correct fields
+        workbook = openpyxl.load_workbook(io.BytesIO(response.content))
+        sheet = workbook.active
+
+        # Verify headers
+        headers = [cell.value for cell in sheet[1]]
+        expected_headers = [
+            "Title",
+            "Recruitment Request",
+            "Position Title",
+            "Number of Positions",
+            "Interview Time",
+        ]
+        self.assertEqual(headers, expected_headers)
+
+        # Verify data rows (2 schedules created)
+        self.assertEqual(sheet.max_row, 3)  # 1 header + 2 data rows
+
+        # Verify first schedule data (ordered by time descending, so Second Round comes first)
+        row2 = [cell.value for cell in sheet[2]]
+        self.assertEqual(row2[0], "Second Round Interview")
+        self.assertEqual(row2[1], "Backend Developer Position")
+        self.assertEqual(row2[2], "Senior Python Developer")
+        self.assertEqual(row2[3], 2)
+
+        # Verify second schedule data
+        row3 = [cell.value for cell in sheet[3]]
+        self.assertEqual(row3[0], "First Round Interview")
+        self.assertEqual(row3[1], "Backend Developer Position")
+        self.assertEqual(row3[2], "Senior Python Developer")
+        self.assertEqual(row3[3], 2)
+
 
 class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
     """Test cases for InterviewCandidate API endpoints"""
@@ -327,6 +396,7 @@ class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
             start_date="2024-01-01",
+            citizen_id="000000020027",
         )
 
         # Create job description

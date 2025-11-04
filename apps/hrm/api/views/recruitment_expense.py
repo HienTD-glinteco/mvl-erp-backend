@@ -324,9 +324,8 @@ class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
     """ViewSet for RecruitmentExpense model"""
 
     queryset = RecruitmentExpense.objects.select_related(
-        "recruitment_source",
-        "recruitment_channel",
-    ).all()
+        "recruitment_source", "recruitment_channel", "recruitment_request", "referee", "referrer"
+    )
     serializer_class = RecruitmentExpenseSerializer
     filterset_class = RecruitmentExpenseFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

@@ -1,11 +1,11 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
+from libs.validators import CitizenIdValidator
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -49,13 +49,9 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=200, verbose_name=_("Candidate name"))
     citizen_id = models.CharField(
         max_length=12,
+        unique=True,
         verbose_name=_("Citizen ID"),
-        validators=[
-            RegexValidator(
-                regex=r"^\d{12}$",
-                message=_("Citizen ID must contain exactly 12 digits."),
-            )
-        ],
+        validators=[CitizenIdValidator],
     )
     email = models.EmailField(verbose_name=_("Email"))
     phone = models.CharField(max_length=20, verbose_name=_("Phone"))

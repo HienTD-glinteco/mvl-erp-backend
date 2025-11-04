@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
-from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
+from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position, RecruitmentCandidate
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
@@ -52,6 +52,15 @@ class EmployeeContractTypeNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name"]
 
 
+class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested branch references"""
+
+    class Meta:
+        model = RecruitmentCandidate
+        fields = ["id", "name", "code"]
+        read_only_fields = ["id", "name", "code"]
+
+
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model.
 
@@ -71,6 +80,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     position = EmployeePositionNestedSerializer(read_only=True)
     contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
+    recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -89,6 +99,13 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     contract_type_id = serializers.PrimaryKeyRelatedField(
         queryset=ContractType.objects.all(),
         source="contract_type",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    recruitment_candidate_id = serializers.PrimaryKeyRelatedField(
+        queryset=RecruitmentCandidate.objects.all(),
+        source="recruitment_candidate",
         write_only=True,
         required=False,
         allow_null=True,
@@ -142,6 +159,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "emergency_contact_name",
             "emergency_contact_phone",
             "user",
+            "recruitment_candidate",
+            "recruitment_candidate_id",
             "is_onboarding_email_sent",
             "created_at",
             "updated_at",
@@ -157,6 +176,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "avatar",
             "nationality",
             "user",
+            "recruitment_candidate",
             "colored_code_type",
             "colored_status",
             "is_onboarding_email_sent",

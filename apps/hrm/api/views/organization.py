@@ -222,7 +222,7 @@ from libs import BaseModelViewSet
 class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Branch model"""
 
-    queryset = Branch.objects.all()
+    queryset = Branch.objects.select_related("province", "administrative_unit")
     serializer_class = BranchSerializer
     filterset_class = BranchFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

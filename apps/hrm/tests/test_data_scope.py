@@ -899,6 +899,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             date_of_birth=date(1990, 1, 1),
             personal_email="emp_hr_hn_1_personal@gmail.com",
             nationality=self.nationality,
+            citizen_id="000000000001",
         )
 
         self.emp_hr_hn_2 = Employee.objects.create(
@@ -916,6 +917,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             start_date=date.today(),
             date_of_birth=date(1991, 1, 1),
             nationality=self.nationality,
+            citizen_id="000000000002",
         )
 
         self.emp_it_hn = Employee.objects.create(
@@ -933,6 +935,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             start_date=date.today(),
             date_of_birth=date(1992, 1, 1),
             nationality=self.nationality,
+            citizen_id="000000000003",
         )
 
         self.emp_sales_hn = Employee.objects.create(
@@ -950,6 +953,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             start_date=date.today(),
             date_of_birth=date(1993, 1, 1),
             nationality=self.nationality,
+            citizen_id="000000000004",
         )
 
         self.emp_hr_hcm = Employee.objects.create(
@@ -967,6 +971,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             start_date=date.today(),
             date_of_birth=date(1994, 1, 1),
             nationality=self.nationality,
+            citizen_id="000000000005",
         )
 
         # Create organizational chart assignments

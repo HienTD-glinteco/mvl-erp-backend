@@ -74,6 +74,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             start_date="2024-01-01",
+            citizen_id="000000020012",
         )
 
         self.dependent_data = {
@@ -339,6 +340,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             start_date="2024-01-01",
+            citizen_id="000000020013",
         )
 
         EmployeeDependent.objects.create(

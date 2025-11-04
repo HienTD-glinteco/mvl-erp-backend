@@ -74,6 +74,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             start_date="2024-01-01",
+            citizen_id="000000020020",
         )
 
         self.relationship_data = {
@@ -345,6 +346,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
             block=self.block,
             department=self.department,
             start_date="2024-01-01",
+            citizen_id="000000020021",
         )
 
         # Create relationships for both employees

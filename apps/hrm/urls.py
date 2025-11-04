@@ -4,6 +4,8 @@ from rest_framework.routers import DefaultRouter
 from apps.hrm.api.views import (
     AttendanceDeviceViewSet,
     AttendanceRecordViewSet,
+    BankAccountViewSet,
+    BankViewSet,
     BlockViewSet,
     BranchViewSet,
     ContractTypeViewSet,
@@ -41,6 +43,8 @@ router.register(r"employees", EmployeeViewSet, basename="employee")
 router.register(r"employee-certificates", EmployeeCertificateViewSet, basename="employee-certificate")
 router.register(r"employee-dependents", EmployeeDependentViewSet, basename="employee-dependent")
 router.register(r"contract-types", ContractTypeViewSet, basename="contract-type")
+router.register(r"banks", BankViewSet, basename="bank")
+router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")
 router.register(r"job-descriptions", JobDescriptionViewSet, basename="job-description")
