@@ -433,20 +433,84 @@ Each audit log entry contains:
 
 ### API Reference
 
-#### `@audit_logging` Decorator
+#### `@audit_logging_register` Decorator
 
 Enables automatic audit logging on a Django model.
 
 ```python
-@audit_logging
+@audit_logging_register
 class MyModel(models.Model):
-    ...
+    name = models.CharField(max_length=100)
+    tags = models.ManyToManyField('Tag')
+
+    # Optional: Control which M2M fields to track for audit logging
+    m2m_fields_to_track = ['tags']  # Only track changes to 'tags' M2M field
+
+    # Optional: Control which reverse FK relationships to track
+    reverse_fk_fields_to_track = ['comments']  # Track changes to related comments
 ```
 
 **What it logs:**
 - CREATE: When a new instance is saved with `created=True`
 - UPDATE: When an existing instance is saved with `created=False`
 - DELETE: When an instance is deleted
+
+**Performance Optimization:**
+
+For models with many relationships, you can optimize audit logging performance by controlling which relationships are tracked:
+
+1. **`m2m_fields_to_track`**: List of ManyToManyField names to track
+   - If not specified (None): ALL M2M fields are tracked (default behavior)
+   - If empty list []: NO M2M fields are tracked
+   - If list of field names: ONLY specified M2M fields are tracked
+
+2. **`reverse_fk_fields_to_track`**: List of reverse ForeignKey accessor names to track
+   - If not specified (None): ALL reverse FK relationships are tracked (default)
+   - If empty list []: NO reverse FK relationships are tracked
+   - If list of accessor names: ONLY specified relationships are tracked
+
+**Examples:**
+
+```python
+# Example 1: Track only specific M2M field
+@audit_logging_register
+class Article(models.Model):
+    title = models.CharField(max_length=200)
+    tags = models.ManyToManyField('Tag')
+    categories = models.ManyToManyField('Category')
+
+    # Only track tags changes, ignore categories
+    m2m_fields_to_track = ['tags']
+
+# Example 2: Optimize Employee model by skipping relationship tracking
+@audit_logging_register
+class Employee(models.Model):
+    name = models.CharField(max_length=100)
+    # ... other fields ...
+
+    # Don't track changes to dependents, certificates, or relationships
+    # as they're managed separately and not relevant to Employee updates
+    m2m_fields_to_track = []
+    reverse_fk_fields_to_track = []
+
+# Example 3: Track specific reverse FK relationship
+@audit_logging_register
+class Order(models.Model):
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+
+    # Track changes to order items (reverse FK)
+    reverse_fk_fields_to_track = ['items']
+```
+
+**When to Use:**
+- Use empty lists [] for models with many reverse relationships that don't need tracking
+- Use specific field lists for models where only certain relationships matter
+- Leave as None (don't define) for models where all relationships should be tracked
+
+**Common Use Cases:**
+1. Employee model: Set both to [] as related objects are managed independently
+2. Order model: Track 'items' reverse FK to see order line changes
+3. Article model: Track 'tags' M2M but not 'categories'
 
 #### `log_audit_event()` Function
 
