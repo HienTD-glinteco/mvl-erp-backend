@@ -792,9 +792,11 @@ def import_handler(
             
             if status:
                 employee_data["status"] = status
-                # If status is RESIGNED, set resignation_date to today to pass validation
+                # If status is RESIGNED, set resignation_date and resignation_reason to pass validation
                 if status == Employee.Status.RESIGNED:
                     employee_data["resignation_date"] = date.today()
+                    # Set a default resignation_reason since it's required when status is RESIGNED
+                    employee_data["resignation_reason"] = Employee.ResignationReason.PERSONAL_ISSUES
             elif status_raw:
                 warnings.append(f"Unknown status code: {status_raw}")
             
