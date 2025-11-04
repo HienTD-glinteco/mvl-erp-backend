@@ -318,7 +318,44 @@ That's it! All create, update, and delete operations on `Customer` made through 
 
 **Important**: The mixin must be listed **before** the ViewSet class in the inheritance order.
 
-#### 3. Manual Logging for Custom Actions
+#### 3. Dependent Models with audit_log_target
+
+For dependent/related models (like EmployeeDependent, EmployeeRelationship), you can specify an `audit_log_target` to log changes under the main model:
+
+```python
+from django.db import models
+from apps.audit_logging import audit_logging_register
+
+@audit_logging_register
+class Employee(models.Model):
+    name = models.CharField(max_length=200)
+    # ... other fields
+
+@audit_logging_register
+class EmployeeDependent(models.Model):
+    # Specify the audit log target - changes will be logged under Employee
+    audit_log_target = 'hrm.Employee'  # or direct class reference: Employee
+    
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='dependents')
+    dependent_name = models.CharField(max_length=200)
+    relationship = models.CharField(max_length=50)
+    # ... other fields
+```
+
+**Benefits of audit_log_target:**
+- Changes to dependent models are logged under their parent/main model
+- Provides clear audit trail showing all changes related to a main object
+- Includes source metadata (source_model, source_pk, source_repr) to identify the dependent
+- Prevents duplicate logs when cascade deleting the main object
+- All dependent changes appear in the main object's history
+
+**How it works:**
+- When you create/update/delete an EmployeeDependent, the audit log is recorded under the related Employee
+- The log includes metadata showing it came from EmployeeDependent
+- If you delete an Employee (cascade deletes dependents), only the Employee delete is logged
+- No duplicate logs for cascade-deleted dependents
+
+#### 4. Manual Logging for Custom Actions
 
 For custom actions like IMPORT or EXPORT, use the `log_audit_event` function directly:
 
@@ -697,7 +734,37 @@ class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
    - Cache entries
    - Temporary computation results
 
-3. **Use Batch Context for Bulk Operations**: Always use `batch_audit_context` for bulk operations to add batch metadata:
+3. **Use audit_log_target for Dependent Models**: 
+   - Apply to models that are "owned by" or "part of" another model
+   - Examples: EmployeeDependent, EmployeeRelationship, OrderLineItem, etc.
+   - This keeps all related changes in one audit trail
+   - Prevents duplicate logs from cascade deletes
+   
+   ```python
+   @audit_logging_register
+   class OrderLineItem(models.Model):
+       audit_log_target = 'orders.Order'
+       order = models.ForeignKey(Order, on_delete=models.CASCADE)
+       # ... other fields
+   ```
+
+4. **ManyToMany Changes**: ManyToMany relationships are NOT automatically logged. 
+   - Log M2M changes explicitly where the business logic handles them
+   - Example: When adding/removing tags, roles, permissions, etc.
+   
+   ```python
+   # Example: Logging role assignment
+   employee.roles.add(new_role)
+   log_audit_event(
+       action=LogAction.CHANGE,
+       modified_object=employee,
+       user=request.user,
+       request=request,
+       change_message=f"Added role: {new_role}",
+   )
+   ```
+
+5. **Use Batch Context for Bulk Operations**: Always use `batch_audit_context` for bulk operations to add batch metadata:
    ```python
    # Good - Individual logs with batch metadata for linking
    with batch_audit_context(action=LogAction.IMPORT, model_class=Customer, ...) as batch:
@@ -723,7 +790,59 @@ class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
        obj.save()  # Triggers ADD log for each
    ```
 
-4. **Error Handling**: The logging system silently catches and logs errors to avoid breaking your application. Check logs if audit entries are missing.
+6. **Error Handling**: The logging system silently catches and logs errors to avoid breaking your application. Check logs if audit entries are missing.
+
+### What Changed in the Refactoring
+
+The audit logging system has been refactored to simplify complexity and improve performance:
+
+#### What Was Removed
+1. **Automatic ManyToMany Tracking**: M2M field changes are no longer automatically detected and logged in `related_changes`
+2. **Automatic Reverse Foreign Key Tracking**: Changes to related objects (inline models) are no longer automatically logged
+3. **Recursive Inspection**: The system no longer recursively inspects related objects for field changes
+
+#### What Was Added
+1. **audit_log_target Attribute**: Dependent models can declare their target model for logging
+2. **Cascade Delete Detection**: Prevents duplicate logs when deleting main objects that cascade to dependents
+3. **Source Metadata**: Logs from dependent models include source_model, source_pk, and source_repr
+
+#### Why These Changes
+- **Performance**: Eliminated expensive queries to detect M2M and reverse FK changes
+- **Clarity**: Makes it explicit where audit logs are recorded
+- **Predictability**: Developers can easily control and predict audit logging behavior
+- **Reduced Noise**: Cascade deletes no longer create multiple logs
+
+#### Migration Guide
+If you were relying on automatic M2M or reverse FK tracking:
+
+**Before (automatic):**
+```python
+# M2M changes were automatically logged
+article.tags.add(tag1, tag2)  # Automatically logged in related_changes
+```
+
+**After (explicit):**
+```python
+# Log M2M changes explicitly where you make them
+article.tags.add(tag1, tag2)
+log_audit_event(
+    action=LogAction.CHANGE,
+    modified_object=article,
+    user=request.user,
+    request=request,
+    change_message=f"Added tags: {tag1}, {tag2}",
+)
+```
+
+**For dependent models:**
+```python
+# Add audit_log_target to log under parent
+@audit_logging_register
+class EmployeeDependent(models.Model):
+    audit_log_target = 'hrm.Employee'
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    # Now all EmployeeDependent changes log under Employee
+```
 
 ### Testing
 

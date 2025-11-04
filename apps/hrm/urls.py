@@ -15,6 +15,7 @@ from apps.hrm.api.views import (
     EmployeeRelationshipViewSet,
     EmployeeRoleViewSet,
     EmployeeViewSet,
+    EmployeeWorkHistoryViewSet,
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
@@ -42,6 +43,7 @@ router.register(r"employee-roles", EmployeeRoleViewSet, basename="employee-role"
 router.register(r"employees", EmployeeViewSet, basename="employee")
 router.register(r"employee-certificates", EmployeeCertificateViewSet, basename="employee-certificate")
 router.register(r"employee-dependents", EmployeeDependentViewSet, basename="employee-dependent")
+router.register(r"employee-work-histories", EmployeeWorkHistoryViewSet, basename="employee-work-history")
 router.register(r"contract-types", ContractTypeViewSet, basename="contract-type")
 router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")

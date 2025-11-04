@@ -177,6 +177,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
             "count": result["count"],
             "next": result.get("next"),
             "previous": result.get("previous"),
+            "object_name": self.context.get("object_name") or "",
         }
 
 
@@ -212,6 +213,7 @@ class AuditLogSerializer(serializers.Serializer):
     ip_address = serializers.CharField(required=False, allow_null=True)
     user_agent = serializers.CharField(required=False, allow_null=True)
     session_key = serializers.CharField(required=False, allow_null=True)
+    object_name = serializers.CharField(required=False, allow_null=True)
 
     def get_change_message(self, obj) -> str | dict | None:
         change_message = obj.get("change_message")
@@ -229,3 +231,4 @@ class AuditLogSearchResponseSerializer(serializers.Serializer):
     next = serializers.IntegerField(required=False, allow_null=True)
     previous = serializers.IntegerField(required=False, allow_null=True)
     results = AuditLogSummarySerializer(many=True)
+    object_name = serializers.CharField(required=False, allow_null=True)

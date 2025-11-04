@@ -8,6 +8,7 @@ from .employee_certificate import EmployeeCertificateSerializer
 from .employee_dependent import EmployeeDependentSerializer
 from .employee_relationship import EmployeeRelationshipSerializer
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
+from .employee_work_history import EmployeeWorkHistorySerializer
 from .interview_candidate import InterviewCandidateSerializer
 from .interview_schedule import (
     InterviewScheduleSerializer,
@@ -60,6 +61,7 @@ __all__ = [
     "EmployeeSerializer",
     "EmployeeCertificateSerializer",
     "EmployeeDependentSerializer",
+    "EmployeeWorkHistorySerializer",
     "ContractTypeSerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",

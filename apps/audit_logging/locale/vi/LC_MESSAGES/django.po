@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 17:29+0700\n"
+"POT-Creation-Date: 2025-11-05 00:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,4 +48,16 @@ msgstr ""
 
 #: apps/audit_logging/constants.py:17
 msgid "Password Reset"
+msgstr ""
+
+#: apps/audit_logging/decorators.py:101
+msgid "Added"
+msgstr ""
+
+#: apps/audit_logging/decorators.py:101
+msgid "Modified"
+msgstr ""
+
+#: apps/audit_logging/decorators.py:154
+msgid "Deleted"
 msgstr ""

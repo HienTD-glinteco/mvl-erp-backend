@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 _batch_locals = threading.local()
 
 
-def _get_batch_context():
+def get_batch_context():
     """Get the current batch context if active."""
     return getattr(_batch_locals, "batch_context", None)
 
 
-def _is_batch_active():
+def is_batch_active():
     """Check if we're currently in a batch logging context."""
-    return _get_batch_context() is not None
+    return get_batch_context() is not None
 
 
 def get_batch_metadata():
@@ -41,7 +41,7 @@ def get_batch_metadata():
     Returns:
         dict: Batch metadata to include in individual logs, or None if not in batch context
     """
-    batch_context = _get_batch_context()
+    batch_context = get_batch_context()
     if batch_context:
         return batch_context.get_metadata()
     return None

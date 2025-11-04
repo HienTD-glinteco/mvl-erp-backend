@@ -1,0 +1,122 @@
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from apps.audit_logging.decorators import audit_logging_register
+from libs.models import BaseModel
+
+
+@audit_logging_register
+class EmployeeWorkHistory(BaseModel):
+    """Employee work history model for tracking employee work events.
+
+    This model manages work history records for employees including transfers,
+    promotions, role changes, and other significant work events. Key organizational
+    fields (branch, block, department, position) are automatically populated from
+    the associated employee record.
+
+    Attributes:
+        date: Date of the work history event
+        name: Type of the work history event (Change Position, Change Status, Transfer)
+        detail: Detailed description of the event
+        employee: Reference to the employee
+        branch: Employee's branch (auto-populated from employee)
+        block: Employee's block (auto-populated from employee)
+        department: Employee's department (auto-populated from employee)
+        position: Employee's position (auto-populated from employee)
+    """
+
+    class EventType(models.TextChoices):
+        CHANGE_POSITION = "Change Position", _("Change Position")
+        CHANGE_STATUS = "Change Status", _("Change Status")
+        TRANSFER = "Transfer", _("Transfer")
+
+    date = models.DateField(
+        verbose_name=_("Date"),
+        help_text=_("Date of the work history event"),
+    )
+    name = models.CharField(
+        max_length=50,
+        choices=EventType.choices,
+        verbose_name=_("Event type"),
+        help_text=_("Type of the work history event"),
+    )
+    detail = models.TextField(
+        blank=True,
+        verbose_name=_("Details"),
+        help_text=_("Detailed description of the work history event"),
+    )
+    employee = models.ForeignKey(
+        "hrm.Employee",
+        on_delete=models.CASCADE,
+        related_name="work_histories",
+        verbose_name=_("Employee"),
+        help_text=_("Employee associated with this work history record"),
+    )
+    branch = models.ForeignKey(
+        "hrm.Branch",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name=_("Branch"),
+        help_text=_("Branch (auto-populated from employee)"),
+    )
+    block = models.ForeignKey(
+        "hrm.Block",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name=_("Block"),
+        help_text=_("Block (auto-populated from employee)"),
+    )
+    department = models.ForeignKey(
+        "hrm.Department",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name=_("Department"),
+        help_text=_("Department (auto-populated from employee)"),
+    )
+    position = models.ForeignKey(
+        "hrm.Position",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name=_("Position"),
+        help_text=_("Position (auto-populated from employee)"),
+    )
+
+    class Meta:
+        verbose_name = _("Employee work history")
+        verbose_name_plural = _("Employee work histories")
+        db_table = "hrm_employee_work_history"
+        ordering = ["-date", "-created_at"]
+        indexes = [
+            models.Index(fields=["employee", "date"]),
+            models.Index(fields=["branch"]),
+            models.Index(fields=["block"]),
+            models.Index(fields=["department"]),
+            models.Index(fields=["position"]),
+            models.Index(fields=["date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.employee} ({self.date})"
+
+    def save(self, *args, **kwargs):
+        """Override save to automatically populate organizational fields from employee.
+
+        The branch, block, department, and position fields are automatically
+        set from the related employee record whenever the work history is
+        created or updated.
+        """
+        if self.employee:
+            self.branch = self.employee.branch
+            self.block = self.employee.block
+            self.department = self.employee.department
+            self.position = self.employee.position
+
+        super().save(*args, **kwargs)

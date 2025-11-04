@@ -9,12 +9,51 @@ from typing import Any, Optional
 from django.conf import settings
 from django.http import HttpRequest
 from rstream import Producer, exceptions
-from sentry_sdk import start_span
 
 from .registry import AuditLogRegistry
 from .utils import prepare_request_info, prepare_user_info
 
 file_audit_logger = logging.getLogger("audit_logging")
+
+
+# Fields to ignore explicitly (common meta fields)
+IGNORED_FIELD_NAMES = {
+    "id",
+    "pk",
+    "created_at",
+    "updated_at",
+    "deleted_at",
+    "created",
+    "updated",
+    "modified",
+}
+
+
+def _should_ignore_field(field) -> bool:
+    """Decide whether a model field should be ignored when preparing change messages.
+
+    Returns True if the field is a primary key, was auto-created, has a commonly
+    ignored name (timestamps/meta), or is auto-managed (auto_now/auto_now_add).
+    """
+    field_name = getattr(field, "name", None)
+    if not field_name:
+        return True
+
+    # Primary keys and auto-created fields should be skipped
+    if getattr(field, "primary_key", False):
+        return True
+    if getattr(field, "auto_created", False):
+        return True
+
+    # Explicitly ignored field names
+    if field_name in IGNORED_FIELD_NAMES:
+        return True
+
+    # Auto-managed DateTimeFields
+    if getattr(field, "auto_now", False) or getattr(field, "auto_now_add", False):
+        return True
+
+    return False
 
 
 class AuditStreamProducer:
@@ -69,158 +108,6 @@ class AuditStreamProducer:
 _audit_producer = AuditStreamProducer()
 
 
-def _collect_related_changes(original_object, modified_object):  # noqa: C901
-    """
-    Collect changes from related objects (ForeignKey, ManyToMany, reverse ForeignKey).
-
-    Args:
-        original_object: The original object state
-        modified_object: The modified object state
-
-    Returns:
-        list: List of dictionaries containing related object changes, each with:
-            - object_type: Type of the related object
-            - object_id: ID of the related object
-            - object_repr: String representation
-            - changes: List of field changes
-    """
-    related_changes = []
-
-    if not (hasattr(original_object, "_meta") and hasattr(modified_object, "_meta")):
-        return related_changes
-
-    try:
-        # Check ManyToMany field changes
-        for field in modified_object._meta.many_to_many:
-            field_name = field.name
-            try:
-                # Get the related managers
-                original_manager = getattr(original_object, field_name, None)
-                modified_manager = getattr(modified_object, field_name, None)
-
-                if original_manager is None or modified_manager is None:
-                    continue
-
-                # Get PKs from both sides
-                original_pks = set(original_manager.values_list("pk", flat=True))
-                modified_pks = set(modified_manager.values_list("pk", flat=True))
-
-                # Detect additions and removals
-                added_pks = modified_pks - original_pks
-                removed_pks = original_pks - modified_pks
-
-                if added_pks or removed_pks:
-                    change_detail = {
-                        "object_type": field.related_model._meta.model_name,
-                        "relation_type": "many_to_many",
-                        "field_name": field_name,
-                        "changes": [],
-                    }
-
-                    if added_pks:
-                        added_objs = field.related_model.objects.filter(pk__in=added_pks)
-                        for obj in added_objs:
-                            change_detail["changes"].append(
-                                {"action": "added", "object_id": str(obj.pk), "object_repr": str(obj)}
-                            )
-
-                    if removed_pks:
-                        removed_objs = field.related_model.objects.filter(pk__in=removed_pks)
-                        for obj in removed_objs:
-                            change_detail["changes"].append(
-                                {"action": "removed", "object_id": str(obj.pk), "object_repr": str(obj)}
-                            )
-
-                    related_changes.append(change_detail)
-            except Exception as e:
-                logging.debug(f"Error processing M2M field {field_name}: {e}")
-                continue
-
-        # Check reverse foreign key relationships (inline objects)
-        for related_object in modified_object._meta.related_objects:
-            try:
-                accessor_name = related_object.get_accessor_name()
-
-                # Get related querysets
-                original_related = getattr(original_object, accessor_name, None)
-                modified_related = getattr(modified_object, accessor_name, None)
-
-                if original_related is None or modified_related is None:
-                    continue
-
-                # Get all related objects
-                original_related_objs = {obj.pk: obj for obj in original_related.all()}
-                modified_related_objs = {obj.pk: obj for obj in modified_related.all()}
-
-                original_pks = set(original_related_objs.keys())
-                modified_pks = set(modified_related_objs.keys())
-
-                # Detect added, removed, and modified
-                added_pks = modified_pks - original_pks
-                removed_pks = original_pks - modified_pks
-                common_pks = original_pks & modified_pks
-
-                changes_for_relation = []
-
-                # Added objects
-                for pk in added_pks:
-                    obj = modified_related_objs[pk]
-                    changes_for_relation.append({"action": "added", "object_id": str(pk), "object_repr": str(obj)})
-
-                # Removed objects
-                for pk in removed_pks:
-                    obj = original_related_objs[pk]
-                    changes_for_relation.append({"action": "removed", "object_id": str(pk), "object_repr": str(obj)})
-
-                # Modified objects
-                for pk in common_pks:
-                    original_rel_obj = original_related_objs[pk]
-                    modified_rel_obj = modified_related_objs[pk]
-
-                    # Check for field changes in related object
-                    field_changes = []
-                    for field in modified_rel_obj._meta.fields:
-                        field_name = field.name
-                        old_value = getattr(original_rel_obj, field_name, None)
-                        new_value = getattr(modified_rel_obj, field_name, None)
-                        if old_value != new_value:
-                            field_changes.append(
-                                {
-                                    "field": str(field.verbose_name) if field.verbose_name else field_name,
-                                    "old_value": _format_field_value(old_value, original_rel_obj, field),
-                                    "new_value": _format_field_value(new_value, modified_rel_obj, field),
-                                }
-                            )
-
-                    if field_changes:
-                        changes_for_relation.append(
-                            {
-                                "action": "modified",
-                                "object_id": str(pk),
-                                "object_repr": str(modified_rel_obj),
-                                "field_changes": field_changes,
-                            }
-                        )
-
-                if changes_for_relation:
-                    related_changes.append(
-                        {
-                            "object_type": related_object.related_model._meta.model_name,
-                            "relation_type": "reverse_foreign_key",
-                            "field_name": accessor_name,
-                            "changes": changes_for_relation,
-                        }
-                    )
-            except Exception as e:
-                logging.debug(f"Error processing reverse FK {accessor_name}: {e}")
-                continue
-
-    except Exception as e:
-        logging.warning(f"Error collecting related changes: {e}")
-
-    return related_changes
-
-
 def _format_field_value(value, instance=None, field=None):
     """
     Format a field value for audit logging.
@@ -267,34 +154,36 @@ def _prepare_change_messages(
     original_object=None,
     modified_object=None,
 ):
+    """Prepare change messages for audit logs."""
+    # Handle CHANGE action with both original and modified objects
     if action == "CHANGE" and original_object and modified_object:
         rows = []
-        # Try to detect field changes if both objects are Django models
-        if hasattr(original_object, "_meta") and hasattr(modified_object, "_meta"):
-            for field in modified_object._meta.fields:
-                field_name = field.name
-                old_value = getattr(original_object, field_name, None)
-                new_value = getattr(modified_object, field_name, None)
-                if old_value != new_value:
-                    rows.append(
-                        {
-                            "field": str(field.verbose_name) if field.verbose_name else field_name,
-                            "old_value": _format_field_value(old_value, original_object, field),
-                            "new_value": _format_field_value(new_value, modified_object, field),
-                        }
-                    )
+
+        if not (hasattr(original_object, "_meta") and hasattr(modified_object, "_meta")):
+            log_data["change_message"] = "Object modified"
+            return
+
+        for field in modified_object._meta.fields:
+            # Use helper to decide if the field should be ignored
+            if _should_ignore_field(field):
+                continue
+
+            field_name = field.name
+            old_value = getattr(original_object, field_name, None)
+            new_value = getattr(modified_object, field_name, None)
+            if old_value != new_value:
+                rows.append(
+                    {
+                        "field": str(field.verbose_name) if field.verbose_name else field_name,
+                        "old_value": _format_field_value(old_value, original_object, field),
+                        "new_value": _format_field_value(new_value, modified_object, field),
+                    }
+                )
+
         if rows:
-            log_data["change_message"] = {
-                "headers": ["field", "old_value", "new_value"],
-                "rows": rows,
-            }
+            log_data["change_message"] = {"headers": ["field", "old_value", "new_value"], "rows": rows}
         else:
             log_data["change_message"] = "Object modified"
-
-        # Collect related object changes
-        related_changes = _collect_related_changes(original_object, modified_object)
-        if related_changes:
-            log_data["related_changes"] = related_changes
     elif action == "ADD":
         log_data["change_message"] = "Created new object"
     elif action == "DELETE":
@@ -353,14 +242,10 @@ def log_audit_event(
         prepare_request_info(log_data, request)
 
     # Create change message describing the changes
-    with start_span(
-        op="log_audit_event._prepare_change_messages", description="Prepare change messages for log event"
-    ):
-        _prepare_change_messages(log_data, action, original_object, modified_object)
+    _prepare_change_messages(log_data, action, original_object, modified_object)
 
     # Add any extra kwargs provided
     log_data.update(extra_kwargs)
 
     # Final step
-    with start_span(op="log_audit_event.log_event", description="Call Audit Producer's log event method"):
-        _audit_producer.log_event(**log_data)
+    _audit_producer.log_event(**log_data)
