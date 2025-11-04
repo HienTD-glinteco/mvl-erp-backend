@@ -21,6 +21,7 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     The certificate_code is the actual certificate number issued by the certifying organization.
     """
 
+    AUDIT_LOG_TARGET = "hrm.Employee"
     CODE_PREFIX = "EC"
 
     class Status(models.TextChoices):

@@ -36,8 +36,8 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         created_by: User who created this record
     """
 
-    CODE_PREFIX = "ER"
     AUDIT_LOG_TARGET = "hrm.Employee"
+    CODE_PREFIX = "ER"
 
     code = models.CharField(
         max_length=50,

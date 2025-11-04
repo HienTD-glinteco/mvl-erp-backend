@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.utils.translation import gettext as _
 
+from .batch import get_batch_context, get_batch_metadata
 from .constants import LogAction
 from .middleware import get_current_request, get_current_user
 from .producer import log_audit_event
@@ -59,14 +60,14 @@ def _clear_delete_context():
 def _get_target_instance(instance, audit_target):
     """
     Get the target instance for a dependent model.
-    
+
     Args:
         instance: The dependent model instance
         audit_target: The target model class
-        
+
     Returns:
         The target instance
-        
+
     Raises:
         ValueError: If target instance cannot be found
     """
@@ -74,14 +75,11 @@ def _get_target_instance(instance, audit_target):
         if hasattr(field, "related_model") and field.related_model == audit_target:
             target_instance = getattr(instance, field.name, None)
             if target_instance is None:
-                raise ValueError(
-                    f"Target instance not found for {instance.__class__.__name__}.{field.name}"
-                )
+                raise ValueError(f"Target instance not found for {instance.__class__.__name__}.{field.name}")
             return target_instance
-    
+
     raise ValueError(
-        f"No foreign key field found pointing to {audit_target.__name__} "
-        f"in {instance.__class__.__name__}"
+        f"No foreign key field found pointing to {audit_target.__name__} in {instance.__class__.__name__}"
     )
 
 
@@ -89,13 +87,15 @@ def _log_dependent_save(sender, instance, created, user, request, extra_kwargs):
     """Log save action for a dependent model under its target."""
     audit_target = AuditLogRegistry.get_audit_log_target(sender)
     target_instance = _get_target_instance(instance, audit_target)
-    
-    extra_kwargs.update({
-        "source_model": sender._meta.model_name,
-        "source_pk": str(instance.pk),
-        "source_repr": str(instance),
-    })
-    
+
+    extra_kwargs.update(
+        {
+            "source_model": sender._meta.model_name,
+            "source_pk": str(instance.pk),
+            "source_repr": str(instance),
+        }
+    )
+
     action_desc = _("Added") if created else _("Modified")
     log_audit_event(
         action=LogAction.CHANGE,
@@ -110,39 +110,39 @@ def _log_dependent_save(sender, instance, created, user, request, extra_kwargs):
 
 def _log_standard_save(sender, instance, created, user, request, extra_kwargs):
     """Log save action for a standard model."""
+    action = None
+    original = None
+
     if created:
-        log_audit_event(
-            action=LogAction.ADD,
-            original_object=None,
-            modified_object=instance,
-            user=user,
-            request=request,
-            **extra_kwargs,
-        )
+        action = LogAction.ADD
     else:
+        action = LogAction.CHANGE
         key = _get_object_key(instance)
         original = _original_objects.pop(key, None)
-        log_audit_event(
-            action=LogAction.CHANGE,
-            original_object=original,
-            modified_object=instance,
-            user=user,
-            request=request,
-            **extra_kwargs,
-        )
+
+    log_audit_event(
+        action=action,
+        original_object=original,
+        modified_object=instance,
+        user=user,
+        request=request,
+        **extra_kwargs,
+    )
 
 
 def _log_dependent_delete(sender, instance, user, request, extra_kwargs):
     """Log delete action for a dependent model under its target."""
     audit_target = AuditLogRegistry.get_audit_log_target(sender)
     target_instance = _get_target_instance(instance, audit_target)
-    
-    extra_kwargs.update({
-        "source_model": sender._meta.model_name,
-        "source_pk": str(instance.pk),
-        "source_repr": str(instance),
-    })
-    
+
+    extra_kwargs.update(
+        {
+            "source_model": sender._meta.model_name,
+            "source_pk": str(instance.pk),
+            "source_repr": str(instance),
+        }
+    )
+
     log_audit_event(
         action=LogAction.CHANGE,
         original_object=target_instance,
@@ -172,29 +172,25 @@ def _handle_pre_save(sender, instance, **kwargs):
 def _handle_post_save(sender, instance, created, **kwargs):
     """
     Post-save signal handler to log create and update actions.
-    
+
     Handles AUDIT_LOG_TARGET for dependent models.
     """
     try:
         request = get_current_request()
         user = get_current_user()
 
-        from .batch import get_batch_metadata
-
         batch_metadata = get_batch_metadata()
         extra_kwargs = batch_metadata if batch_metadata else {}
 
         audit_target = AuditLogRegistry.get_audit_log_target(sender)
-        
+
         if audit_target:
             _log_dependent_save(sender, instance, created, user, request, extra_kwargs)
         else:
             _log_standard_save(sender, instance, created, user, request, extra_kwargs)
 
         if batch_metadata:
-            from .batch import _get_batch_context
-
-            batch_context = _get_batch_context()
+            batch_context = get_batch_context()
             if batch_context:
                 batch_context.increment_count()
 
@@ -205,7 +201,7 @@ def _handle_post_save(sender, instance, created, **kwargs):
 def _handle_pre_delete(sender, instance, **kwargs):
     """
     Pre-delete signal handler to capture object state before deletion.
-    
+
     This ensures we have the complete object state even if the delete
     is rolled back by a transaction.
     """
@@ -214,7 +210,7 @@ def _handle_pre_delete(sender, instance, **kwargs):
         "instance": instance,
         "pk": instance.pk,
     }
-    
+
     # If this is a main object (not a dependent), mark it as being deleted
     audit_target = AuditLogRegistry.get_audit_log_target(sender)
     if not audit_target:
@@ -224,12 +220,12 @@ def _handle_pre_delete(sender, instance, **kwargs):
 def _handle_post_delete(sender, instance, **kwargs):
     """
     Post-delete signal handler to log delete actions.
-    
+
     Handles cascade deletes and AUDIT_LOG_TARGET for dependent models.
     """
     try:
         audit_target = AuditLogRegistry.get_audit_log_target(sender)
-        
+
         # Check if this is a dependent whose main object is being deleted
         if audit_target:
             target_instance = _get_target_instance(instance, audit_target)
@@ -241,8 +237,6 @@ def _handle_post_delete(sender, instance, **kwargs):
 
         request = get_current_request()
         user = get_current_user()
-
-        from .batch import get_batch_metadata
 
         batch_metadata = get_batch_metadata()
         extra_kwargs = batch_metadata if batch_metadata else {}
@@ -260,15 +254,13 @@ def _handle_post_delete(sender, instance, **kwargs):
             )
 
         if batch_metadata:
-            from .batch import _get_batch_context
-
-            batch_context = _get_batch_context()
+            batch_context = get_batch_context()
             if batch_context:
                 batch_context.increment_count()
 
         key = _get_object_key(instance)
         _pre_delete_states.pop(key, None)
-        
+
         # Clear delete context after top-level delete completes
         if not audit_target:
             transaction.on_commit(_clear_delete_context)
@@ -285,7 +277,7 @@ def audit_logging_register(model_class):
         @audit_logging_register
         class MyModel(models.Model):
             ...
-        
+
         # For dependent models, specify AUDIT_LOG_TARGET
         @audit_logging_register
         class DependentModel(models.Model):
@@ -301,7 +293,7 @@ def audit_logging_register(model_class):
     - The object state (before and after for changes)
     - The user who performed the action (from request context)
     - Request metadata (IP address, user agent, session key)
-    
+
     For dependent models with AUDIT_LOG_TARGET:
     - Changes are logged under the target model
     - Cascade deletes don't create duplicate logs

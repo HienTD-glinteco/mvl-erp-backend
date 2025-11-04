@@ -39,7 +39,7 @@ class AuditLogRegistry:
 
         Args:
             model_class: The Django model class to register
-            
+
         Raises:
             ValueError: If AUDIT_LOG_TARGET is specified but cannot be resolved
         """
@@ -49,15 +49,14 @@ class AuditLogRegistry:
 
             # Check if model has AUDIT_LOG_TARGET attribute
             audit_log_target = getattr(model_class, "AUDIT_LOG_TARGET", None)
-            
+
             # Resolve target if it's a string (e.g., 'app_label.ModelName')
             if isinstance(audit_log_target, str):
                 try:
                     audit_log_target = apps.get_model(audit_log_target)
                 except (LookupError, ValueError) as e:
                     raise ValueError(
-                        f"Invalid AUDIT_LOG_TARGET '{audit_log_target}' for model "
-                        f"{model_class.__name__}: {e}"
+                        f"Invalid AUDIT_LOG_TARGET '{audit_log_target}' for model {model_class.__name__}: {e}"
                     )
 
             cls._registry[model_class] = {

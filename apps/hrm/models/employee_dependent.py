@@ -32,8 +32,8 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         created_by: User who created this record
     """
 
-    CODE_PREFIX = "ED"
     AUDIT_LOG_TARGET = "hrm.Employee"
+    CODE_PREFIX = "ED"
 
     code = models.CharField(
         max_length=50,
