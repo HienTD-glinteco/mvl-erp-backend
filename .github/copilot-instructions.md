@@ -437,5 +437,3 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
   }
 }
 ```
-
-

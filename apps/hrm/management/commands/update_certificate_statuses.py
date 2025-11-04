@@ -60,9 +60,7 @@ class Command(BaseCommand):
                 updated_count += 1
                 status_changes[new_status] += 1
 
-                self.stdout.write(
-                    _("Certificate {}: {} -> {}").format(certificate.id, old_status, new_status)
-                )
+                self.stdout.write(_("Certificate {}: {} -> {}").format(certificate.id, old_status, new_status))
 
                 if not dry_run:
                     certificate.status = new_status

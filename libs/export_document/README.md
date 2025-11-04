@@ -51,7 +51,7 @@ from libs import BaseModelViewSet, ExportDocumentMixin
 class MyViewSet(ExportDocumentMixin, BaseModelViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
-    
+
     # Document export configuration
     document_template_name = "documents/my_template.html"
 ```
@@ -116,7 +116,7 @@ Override the `export_detail_document` method to provide custom context:
 ```python
 class MyViewSet(ExportDocumentMixin, BaseModelViewSet):
     document_template_name = "documents/my_template.html"
-    
+
     def export_detail_document(self, request, pk=None):
         instance = self.get_object()
         context = {

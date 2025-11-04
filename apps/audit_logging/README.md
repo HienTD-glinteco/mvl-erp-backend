@@ -335,7 +335,7 @@ class Employee(models.Model):
 class EmployeeDependent(models.Model):
     # Specify the audit log target - changes will be logged under Employee
     audit_log_target = 'hrm.Employee'  # or direct class reference: Employee
-    
+
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='dependents')
     dependent_name = models.CharField(max_length=200)
     relationship = models.CharField(max_length=50)
@@ -734,12 +734,12 @@ class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
    - Cache entries
    - Temporary computation results
 
-3. **Use audit_log_target for Dependent Models**: 
+3. **Use audit_log_target for Dependent Models**:
    - Apply to models that are "owned by" or "part of" another model
    - Examples: EmployeeDependent, EmployeeRelationship, OrderLineItem, etc.
    - This keeps all related changes in one audit trail
    - Prevents duplicate logs from cascade deletes
-   
+
    ```python
    @audit_logging_register
    class OrderLineItem(models.Model):
@@ -748,10 +748,10 @@ class CustomerViewSet(AuditLoggingMixin, viewsets.ModelViewSet):
        # ... other fields
    ```
 
-4. **ManyToMany Changes**: ManyToMany relationships are NOT automatically logged. 
+4. **ManyToMany Changes**: ManyToMany relationships are NOT automatically logged.
    - Log M2M changes explicitly where the business logic handles them
    - Example: When adding/removing tags, roles, permissions, etc.
-   
+
    ```python
    # Example: Logging role assignment
    employee.roles.add(new_role)

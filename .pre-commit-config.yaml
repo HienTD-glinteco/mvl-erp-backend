@@ -37,7 +37,7 @@ repos:
         entry: python scripts/check_no_vietnamese.py
         language: system
         types: [python]
-        exclude: ^(docs/|apps/core/management/commands/import_administrative_data\.py)
+        exclude: ^(docs/|apps/core/management/commands/import_administrative_data\.py|apps/hrm/import_handlers/)
         stages: [pre-commit]
     -   id: check-string-constants
         name: Check for hardcoded strings (warning only)

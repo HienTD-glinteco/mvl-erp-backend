@@ -4,55 +4,126 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0040_alter_employee_citizen_id_and_more'),
+        ("hrm", "0040_alter_employee_citizen_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employeecertificate',
-            name='code',
-            field=models.CharField(blank=True, editable=False, help_text='Auto-generated unique code for this certificate', max_length=50, null=True, unique=True, verbose_name='Code'),
+            model_name="employeecertificate",
+            name="code",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                help_text="Auto-generated unique code for this certificate",
+                max_length=50,
+                null=True,
+                unique=True,
+                verbose_name="Code",
+            ),
         ),
         migrations.AddField(
-            model_name='employeedependent',
-            name='code',
-            field=models.CharField(blank=True, editable=False, help_text='Auto-generated unique code for this dependent', max_length=50, null=True, unique=True, verbose_name='Code'),
+            model_name="employeedependent",
+            name="code",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                help_text="Auto-generated unique code for this dependent",
+                max_length=50,
+                null=True,
+                unique=True,
+                verbose_name="Code",
+            ),
         ),
         migrations.AddField(
-            model_name='employeedependent',
-            name='effective_date',
-            field=models.DateField(blank=True, help_text='Start date for tax deduction applicability', null=True, verbose_name='Effective date'),
+            model_name="employeedependent",
+            name="effective_date",
+            field=models.DateField(
+                blank=True,
+                help_text="Start date for tax deduction applicability",
+                null=True,
+                verbose_name="Effective date",
+            ),
         ),
         migrations.AddField(
-            model_name='employeedependent',
-            name='tax_code',
-            field=models.CharField(blank=True, help_text='Tax identification number', max_length=50, verbose_name='Tax code'),
+            model_name="employeedependent",
+            name="tax_code",
+            field=models.CharField(
+                blank=True, help_text="Tax identification number", max_length=50, verbose_name="Tax code"
+            ),
         ),
         migrations.AddField(
-            model_name='employeerelationship',
-            name='code',
-            field=models.CharField(blank=True, editable=False, help_text='Auto-generated unique code for this relationship', max_length=50, null=True, unique=True, verbose_name='Code'),
+            model_name="employeerelationship",
+            name="code",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                help_text="Auto-generated unique code for this relationship",
+                max_length=50,
+                null=True,
+                unique=True,
+                verbose_name="Code",
+            ),
         ),
         migrations.AddField(
-            model_name='employeerelationship',
-            name='occupation',
-            field=models.CharField(blank=True, help_text='Occupation or job title of the relative', max_length=255, verbose_name='Occupation'),
+            model_name="employeerelationship",
+            name="occupation",
+            field=models.CharField(
+                blank=True,
+                help_text="Occupation or job title of the relative",
+                max_length=255,
+                verbose_name="Occupation",
+            ),
         ),
         migrations.AddField(
-            model_name='employeerelationship',
-            name='tax_code',
-            field=models.CharField(blank=True, help_text='Tax identification number', max_length=50, verbose_name='Tax code'),
+            model_name="employeerelationship",
+            name="tax_code",
+            field=models.CharField(
+                blank=True, help_text="Tax identification number", max_length=50, verbose_name="Tax code"
+            ),
         ),
         migrations.AlterField(
-            model_name='employeedependent',
-            name='relationship',
-            field=models.CharField(choices=[('CHILD', 'Child'), ('WIFE', 'Wife'), ('HUSBAND', 'Husband'), ('FATHER', 'Father'), ('MOTHER', 'Mother'), ('BROTHER', 'Brother'), ('SISTER', 'Sister'), ('SIBLING', 'Sibling'), ('GRANDFATHER', 'Grandfather'), ('GRANDMOTHER', 'Grandmother'), ('OTHER', 'Other')], help_text='Type of relationship to the employee', max_length=20, verbose_name='Relationship'),
+            model_name="employeedependent",
+            name="relationship",
+            field=models.CharField(
+                choices=[
+                    ("CHILD", "Child"),
+                    ("WIFE", "Wife"),
+                    ("HUSBAND", "Husband"),
+                    ("FATHER", "Father"),
+                    ("MOTHER", "Mother"),
+                    ("BROTHER", "Brother"),
+                    ("SISTER", "Sister"),
+                    ("SIBLING", "Sibling"),
+                    ("GRANDFATHER", "Grandfather"),
+                    ("GRANDMOTHER", "Grandmother"),
+                    ("OTHER", "Other"),
+                ],
+                help_text="Type of relationship to the employee",
+                max_length=20,
+                verbose_name="Relationship",
+            ),
         ),
         migrations.AlterField(
-            model_name='employeerelationship',
-            name='relation_type',
-            field=models.CharField(choices=[('CHILD', 'Child'), ('WIFE', 'Wife'), ('HUSBAND', 'Husband'), ('FATHER', 'Father'), ('MOTHER', 'Mother'), ('BROTHER', 'Brother'), ('SISTER', 'Sister'), ('SIBLING', 'Sibling'), ('GRANDFATHER', 'Grandfather'), ('GRANDMOTHER', 'Grandmother'), ('OTHER', 'Other')], help_text='Type of relationship to the employee', max_length=20, verbose_name='Relation type'),
+            model_name="employeerelationship",
+            name="relation_type",
+            field=models.CharField(
+                choices=[
+                    ("CHILD", "Child"),
+                    ("WIFE", "Wife"),
+                    ("HUSBAND", "Husband"),
+                    ("FATHER", "Father"),
+                    ("MOTHER", "Mother"),
+                    ("BROTHER", "Brother"),
+                    ("SISTER", "Sister"),
+                    ("SIBLING", "Sibling"),
+                    ("GRANDFATHER", "Grandfather"),
+                    ("GRANDMOTHER", "Grandmother"),
+                    ("OTHER", "Other"),
+                ],
+                help_text="Type of relationship to the employee",
+                max_length=20,
+                verbose_name="Relation type",
+            ),
         ),
     ]

@@ -159,12 +159,12 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         except Exception as e:
             logger.warning(f"Failed to read headers for import job {import_job_id}: {e}")
             options["headers"] = []
-        
+
         # Initialize sets for tracking generated usernames/emails across rows
         # These maintain uniqueness throughout the import job
         options["_existing_usernames"] = set()
         options["_existing_emails"] = set()
-        
+
         # Call pre-import initialization callback if handler has one
         # This allows handlers to perform one-time setup (e.g., ensuring default data exists)
         if hasattr(handler, "__self__"):
@@ -173,7 +173,7 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         else:
             # Function handler
             handler_module = handler.__module__
-        
+
         try:
             module = importlib.import_module(handler_module)
             if hasattr(module, "pre_import_initialize"):

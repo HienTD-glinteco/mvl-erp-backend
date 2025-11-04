@@ -126,7 +126,7 @@ class EnhancedAutoSchema(AutoSchema):
         This method checks if:
         1. The current operation is the 'export' action (from ExportXLSXMixin)
         2. The view has a filterset_class defined
-        
+
         If both conditions are met, it extracts filter parameters from the filterset
         and adds them to the OpenAPI documentation for the export endpoint.
 

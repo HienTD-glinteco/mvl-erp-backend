@@ -143,7 +143,7 @@ omit =
     */tests/*
 ```
 
-**Impact**: 
+**Impact**:
 - Focuses coverage on actual application code
 - Excludes test files from coverage measurement
 - Parallel coverage collection for speed
@@ -158,7 +158,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         # Mark tests that interact with external services as slow
         if any(keyword in item.nodeid for keyword in ["s3_utils", "opensearch", "consumer", "fcm_service"]):
             item.add_marker(pytest.mark.slow)
-        
+
         # Mark API tests as integration tests
         if "test_api" in item.nodeid or "API" in str(item.cls):
             item.add_marker(pytest.mark.integration)
@@ -284,7 +284,7 @@ from factory import Factory
 class UserFactory(Factory):
     class Meta:
         model = User
-    
+
     username = "testuser"
     email = "test@example.com"
 ```

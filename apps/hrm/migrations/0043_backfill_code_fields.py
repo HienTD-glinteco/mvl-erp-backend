@@ -86,13 +86,14 @@ def reverse_backfill_codes(apps, schema_editor):
     dep_count = EmployeeDependent.objects.update(code=None)
     rel_count = EmployeeRelationship.objects.update(code=None)
 
-    print(f"Reversed backfill: Set {cert_count} certificate(s), {dep_count} dependent(s), and {rel_count} relationship(s) codes to NULL")
+    print(
+        f"Reversed backfill: Set {cert_count} certificate(s), {dep_count} dependent(s), and {rel_count} relationship(s) codes to NULL"
+    )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0042_fix_monther_to_mother_data'),
+        ("hrm", "0042_fix_monther_to_mother_data"),
     ]
 
     operations = [

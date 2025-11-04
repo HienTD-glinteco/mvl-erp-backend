@@ -4,6 +4,7 @@ to easily develop the app.
 """
 
 from .base import *  # noqa
+from .base import config
 
 INSTALLED_APPS += [  # NOQA
     "django.contrib.staticfiles",  # for API admin in local & develop

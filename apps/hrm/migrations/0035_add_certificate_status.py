@@ -4,30 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0034_remove_employeedependent_hrm_employe_id_numb_1cb2b2_idx_and_more'),
+        ("hrm", "0034_remove_employeedependent_hrm_employe_id_numb_1cb2b2_idx_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employeecertificate',
-            name='status',
+            model_name="employeecertificate",
+            name="status",
             field=models.CharField(
-                choices=[
-                    ('Valid', 'Valid'),
-                    ('Near Expiry', 'Near Expiry'),
-                    ('Expired', 'Expired')
-                ],
-                default='Valid',
-                help_text='Certificate status based on expiry date',
+                choices=[("Valid", "Valid"), ("Near Expiry", "Near Expiry"), ("Expired", "Expired")],
+                default="Valid",
+                help_text="Certificate status based on expiry date",
                 max_length=20,
-                verbose_name='Status',
+                verbose_name="Status",
                 db_index=True,
             ),
         ),
         migrations.AddIndex(
-            model_name='employeecertificate',
-            index=models.Index(fields=['status'], name='hrm_employe_status_abc123_idx'),
+            model_name="employeecertificate",
+            index=models.Index(fields=["status"], name="hrm_employe_status_abc123_idx"),
         ),
     ]

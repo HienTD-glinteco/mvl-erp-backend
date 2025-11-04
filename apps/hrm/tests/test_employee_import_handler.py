@@ -1,17 +1,18 @@
 """Tests for employee import handler."""
 
-import pytest
 from datetime import date
 
-from apps.core.models import AdministrativeUnit, Nationality, Province
+import pytest
+
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.import_handlers.employee import (
     combine_start_date,
     generate_email,
     generate_username,
     import_handler as employee_import_handler,
     is_section_header_row,
-    lookup_or_create_branch,
     lookup_or_create_block,
+    lookup_or_create_branch,
     lookup_or_create_contract_type,
     lookup_or_create_department,
     lookup_or_create_nationality,
@@ -25,10 +26,8 @@ from apps.hrm.import_handlers.employee import (
 from apps.hrm.models import (
     Block,
     Branch,
-    ContractType,
     Department,
     Employee,
-    Position,
 )
 
 

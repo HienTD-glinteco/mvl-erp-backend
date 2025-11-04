@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 00:13+0700\n"
+"POT-Creation-Date: 2025-11-05 00:35+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
 #: apps/hrm/api/serializers/attendance_device.py:94
 #, python-brace-format
 msgid "A device with IP {ip} and port {port} already exists."
@@ -371,41 +372,41 @@ msgstr ""
 msgid "Processing {} certificates..."
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:64
+#: apps/hrm/management/commands/update_certificate_statuses.py:63
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:73
+#: apps/hrm/management/commands/update_certificate_statuses.py:71
 msgid "Summary:"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:74
+#: apps/hrm/management/commands/update_certificate_statuses.py:72
 msgid "Total certificates: {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:75
+#: apps/hrm/management/commands/update_certificate_statuses.py:73
 msgid "Certificates updated: {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:76
+#: apps/hrm/management/commands/update_certificate_statuses.py:74
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:77
+#: apps/hrm/management/commands/update_certificate_statuses.py:75
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:78
+#: apps/hrm/management/commands/update_certificate_statuses.py:76
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:82
+#: apps/hrm/management/commands/update_certificate_statuses.py:80
 msgid ""
 "\n"
 "No changes made (dry run mode). Run without --dry-run to apply changes."
 msgstr ""
 
-#: apps/hrm/management/commands/update_certificate_statuses.py:85
+#: apps/hrm/management/commands/update_certificate_statuses.py:83
 msgid ""
 "\n"
 "Certificate statuses updated successfully!"
@@ -1942,26 +1943,26 @@ msgstr ""
 msgid "5+ years"
 msgstr ""
 
-#: apps/hrm/utils/validators.py:20
+#: apps/hrm/utils/validators.py:21
 msgid "National ID must contain only digits."
 msgstr ""
 
-#: apps/hrm/utils/validators.py:22
+#: apps/hrm/utils/validators.py:23
 msgid "National ID must be exactly 9 or 12 digits."
 msgstr ""
 
-#: apps/hrm/utils/validators.py:33
+#: apps/hrm/utils/validators.py:34
 msgid "Phone number must contain only digits and optional leading '+'."
 msgstr ""
 
-#: apps/hrm/utils/validators.py:39
+#: apps/hrm/utils/validators.py:40
 msgid "Phone number with +84 must be followed by 9 digits."
 msgstr ""
 
-#: apps/hrm/utils/validators.py:43
+#: apps/hrm/utils/validators.py:44
 msgid "Phone number starting with 0 must be exactly 10 digits."
 msgstr ""
 
-#: apps/hrm/utils/validators.py:45
+#: apps/hrm/utils/validators.py:46
 msgid "Phone number must start with 0 or +84."
 msgstr ""

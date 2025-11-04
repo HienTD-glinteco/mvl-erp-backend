@@ -34,13 +34,13 @@ from libs import BaseModelViewSet
 
 class RecruitmentCandidateFilterSet(django_filters.FilterSet):
     """FilterSet for RecruitmentCandidate model"""
-    
+
     name = django_filters.CharFilter(lookup_expr="icontains")
     code = django_filters.CharFilter(lookup_expr="exact")
     status = django_filters.MultipleChoiceFilter(choices=RecruitmentCandidate.Status.choices)
     submitted_date_from = django_filters.DateFilter(field_name="submitted_date", lookup_expr="gte")
     submitted_date_to = django_filters.DateFilter(field_name="submitted_date", lookup_expr="lte")
-    
+
     class Meta:
         model = RecruitmentCandidate
         fields = ["name", "code", "status", "submitted_date_from", "submitted_date_to"]
@@ -48,7 +48,7 @@ class RecruitmentCandidateFilterSet(django_filters.FilterSet):
 
 class RecruitmentCandidateViewSet(ExportXLSXMixin, BaseModelViewSet):
     """ViewSet for RecruitmentCandidate model"""
-    
+
     queryset = RecruitmentCandidate.objects.all()
     serializer_class = RecruitmentCandidateSerializer
     filterset_class = RecruitmentCandidateFilterSet  # This enables auto-documentation
