@@ -61,17 +61,39 @@ class TestAuditLogTarget(TestCase):
 
         # Create database tables for the dynamic models
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             schema_editor.create_model(cls.MainModel)
             schema_editor.create_model(cls.DependentModel)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
 
     @classmethod
     def tearDownClass(cls):
         # Drop the tables after tests
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             schema_editor.delete_model(cls.DependentModel)
             schema_editor.delete_model(cls.MainModel)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
         
         super().tearDownClass()
 
@@ -229,17 +251,39 @@ class TestAuditLogTargetStringReference(TestCase):
 
         # Create database tables for the dynamic models
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             schema_editor.create_model(cls.ParentModel)
             schema_editor.create_model(cls.ChildModel)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
 
     @classmethod
     def tearDownClass(cls):
         # Drop the tables after tests
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             schema_editor.delete_model(cls.ChildModel)
             schema_editor.delete_model(cls.ParentModel)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
         
         super().tearDownClass()
 
@@ -285,6 +329,12 @@ class TestSimplifiedRelatedChanges(TestCase):
 
         # Create database tables for the dynamic models
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             schema_editor.create_model(cls.ArticleModel)
             schema_editor.create_model(cls.TagModel)
@@ -294,11 +344,22 @@ class TestSimplifiedRelatedChanges(TestCase):
                     continue
                 if field.many_to_many:
                     schema_editor.create_model(field.remote_field.through)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
 
     @classmethod
     def tearDownClass(cls):
         # Drop the tables after tests
         from django.db import connection
+        
+        # Disable foreign key checks for SQLite
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = OFF')
+        
         with connection.schema_editor() as schema_editor:
             # Drop M2M table
             for field in cls.ArticleModel._meta.get_fields():
@@ -306,6 +367,11 @@ class TestSimplifiedRelatedChanges(TestCase):
                     schema_editor.delete_model(field.remote_field.through)
             schema_editor.delete_model(cls.TagModel)
             schema_editor.delete_model(cls.ArticleModel)
+        
+        # Re-enable foreign key checks
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute('PRAGMA foreign_keys = ON')
         
         super().tearDownClass()
 
