@@ -8,6 +8,7 @@ from .employee_certificate import EmployeeCertificateViewSet
 from .employee_dependent import EmployeeDependentViewSet
 from .employee_relationship import EmployeeRelationshipViewSet
 from .employee_role import EmployeeRoleViewSet
+from .employee_work_history import EmployeeWorkHistoryViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
@@ -41,6 +42,7 @@ __all__ = [
     "EmployeeViewSet",
     "EmployeeCertificateViewSet",
     "EmployeeDependentViewSet",
+    "EmployeeWorkHistoryViewSet",
     "ContractTypeViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
