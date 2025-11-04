@@ -25,12 +25,21 @@ from apps.hrm.models import (
 def SimpleNestedSerializerFactory(model, fields):
     """Factory function to create simple read-only nested serializers.
 
+    This factory dynamically creates read-only ModelSerializer classes for
+    nested representations of models. The generated serializers are lightweight
+    and designed for consistent API responses across the application.
+
     Args:
         model: Django model class
         fields: List of field names to include in the serializer
 
     Returns:
         A ModelSerializer class with specified fields as read-only
+
+    Example:
+        >>> EmployeeNestedSerializer = SimpleNestedSerializerFactory(
+        ...     Employee, ["id", "code", "fullname"]
+        ... )
     """
     meta_attrs = {
         "model": model,
@@ -39,7 +48,14 @@ def SimpleNestedSerializerFactory(model, fields):
     }
     Meta = type("Meta", (), meta_attrs)
     serializer_name = f"{model.__name__}NestedSerializer"
-    cls = type(serializer_name, (serializers.ModelSerializer,), {"Meta": Meta})
+    cls = type(
+        serializer_name,
+        (serializers.ModelSerializer,),
+        {
+            "Meta": Meta,
+            "__module__": __name__,  # Improve debugging by setting correct module
+        },
+    )
     return cls
 
 
