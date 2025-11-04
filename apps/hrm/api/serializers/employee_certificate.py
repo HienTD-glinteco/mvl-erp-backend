@@ -23,6 +23,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         write_only=True,
     )
 
+    code = serializers.CharField(read_only=True)
     certificate_type_display = serializers.CharField(
         source="get_certificate_type_display",
         read_only=True,
@@ -39,6 +40,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         model = EmployeeCertificate
         fields = [
             "id",
+            "code",
             "employee",
             "employee_id",
             "certificate_type",
@@ -58,6 +60,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         ]
         read_only_fields = [
             "id",
+            "code",
             "employee",
             "certificate_type_display",
             "attachment",

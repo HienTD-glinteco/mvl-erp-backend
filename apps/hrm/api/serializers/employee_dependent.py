@@ -22,6 +22,8 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
         write_only=True,
     )
 
+    code = serializers.CharField(read_only=True)
+    
     # Include display fields for better API responses
     relationship_display = serializers.CharField(
         source="get_relationship_display",
@@ -29,10 +31,14 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
         help_text="Human-readable relationship label",
     )
 
+    effective_date = serializers.DateField(required=False, allow_null=True)
+    tax_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = EmployeeDependent
         fields = [
             "id",
+            "code",
             "employee",
             "employee_id",
             "dependent_name",
@@ -40,6 +46,8 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
             "relationship_display",
             "date_of_birth",
             "citizen_id",
+            "effective_date",
+            "tax_code",
             "attachment",
             "note",
             "is_active",
@@ -49,6 +57,7 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
         ]
         read_only_fields = [
             "id",
+            "code",
             "employee",
             "relationship_display",
             "attachment",

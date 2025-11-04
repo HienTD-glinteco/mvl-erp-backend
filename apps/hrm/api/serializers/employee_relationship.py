@@ -22,10 +22,15 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         write_only=True,
     )
 
+    code = serializers.CharField(read_only=True)
+    occupation = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    tax_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = EmployeeRelationship
         fields = [
             "id",
+            "code",
             "employee",
             "employee_id",
             "employee_code",
@@ -34,6 +39,8 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
             "relation_type",
             "date_of_birth",
             "citizen_id",
+            "occupation",
+            "tax_code",
             "address",
             "phone",
             "attachment",
@@ -45,6 +52,7 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         ]
         read_only_fields = [
             "id",
+            "code",
             "employee",
             "employee_code",
             "employee_name",
