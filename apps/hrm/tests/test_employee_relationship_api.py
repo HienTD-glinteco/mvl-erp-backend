@@ -359,7 +359,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.client.post(url, self.relationship_data, format="json")
 
         data2 = self.relationship_data.copy()
-        data2["employee"] = employee2.id
+        data2["employee_id"] = employee2.id
         data2["relative_name"] = "Bob Johnson"
         self.client.post(url, data2, format="json")
 
@@ -369,7 +369,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["employee"], self.employee.id)
+        self.assertEqual(response_data[0]["employee"]["id"], self.employee.id)
 
     def test_filter_by_relation_type(self):
         """Test filtering relationships by relation type"""
