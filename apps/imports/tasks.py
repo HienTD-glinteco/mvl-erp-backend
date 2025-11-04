@@ -164,6 +164,23 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         # These maintain uniqueness throughout the import job
         options["_existing_usernames"] = set()
         options["_existing_emails"] = set()
+        
+        # Call pre-import initialization callback if handler has one
+        # This allows handlers to perform one-time setup (e.g., ensuring default data exists)
+        if hasattr(handler, "__self__"):
+            # Method handler
+            handler_module = handler.__self__.__class__.__module__
+        else:
+            # Function handler
+            handler_module = handler.__module__
+        
+        try:
+            module = importlib.import_module(handler_module)
+            if hasattr(module, "pre_import_initialize"):
+                logger.info(f"Import job {import_job_id}: Calling pre_import_initialize")
+                module.pre_import_initialize(import_job_id, options)
+        except Exception as e:
+            logger.warning(f"Failed to call pre_import_initialize for job {import_job_id}: {e}")
 
         # Count total rows if requested
         total_rows = None

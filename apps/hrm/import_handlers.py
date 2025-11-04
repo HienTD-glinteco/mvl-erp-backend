@@ -18,7 +18,6 @@ from apps.hrm.models import (
     ContractType,
     Department,
     Employee,
-    OrganizationChart,
     Position,
 )
 
@@ -563,6 +562,27 @@ def ensure_default_banks() -> dict[str, Bank]:
     }
 
 
+def pre_import_initialize(import_job_id: str, options: dict) -> None:
+    """
+    Pre-import initialization callback.
+    
+    Called once at the start of the import process before processing any rows.
+    Use this for one-time setup operations like ensuring default data exists.
+    
+    Args:
+        import_job_id: UUID of the import job
+        options: Import options dictionary
+    """
+    # Ensure default banks exist once at the start
+    banks = ensure_default_banks()
+    
+    # Store bank references in options for reuse across all rows
+    options["_vpbank"] = banks["vpbank"]
+    options["_vietcombank"] = banks["vietcombank"]
+    
+    logger.info(f"Import job {import_job_id}: Initialized default banks")
+
+
 def extract_code_type(code: str) -> str:
     """
     Extract code_type from employee code.
@@ -992,14 +1012,15 @@ def employee_import_handler(
                 vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
                 
                 if vpbank_account or vietcombank_account:
-                    # Ensure default banks exist
-                    banks = ensure_default_banks()
+                    # Get pre-initialized banks from options (created once at import start)
+                    vpbank = options.get("_vpbank")
+                    vietcombank = options.get("_vietcombank")
                     
                     # Create VPBank account if provided
-                    if vpbank_account and banks["vpbank"]:
+                    if vpbank_account and vpbank:
                         BankAccount.objects.update_or_create(
                             employee=employee,
-                            bank=banks["vpbank"],
+                            bank=vpbank,
                             defaults={
                                 "account_number": vpbank_account,
                                 "account_name": employee.fullname,
@@ -1008,10 +1029,10 @@ def employee_import_handler(
                         )
                     
                     # Create Vietcombank account if provided
-                    if vietcombank_account and banks["vietcombank"]:
+                    if vietcombank_account and vietcombank:
                         BankAccount.objects.update_or_create(
                             employee=employee,
-                            bank=banks["vietcombank"],
+                            bank=vietcombank,
                             defaults={
                                 "account_number": vietcombank_account,
                                 "account_name": employee.fullname,
@@ -1019,25 +1040,8 @@ def employee_import_handler(
                             }
                         )
                 
-                # Handle OrganizationChart for position
-                if position and department and employee.user:
-                    # Deactivate all existing organization chart entries for this employee
-                    OrganizationChart.objects.filter(
-                        employee=employee.user,
-                        is_active=True
-                    ).update(is_active=False, is_primary=False)
-                    
-                    # Create new organization chart entry
-                    OrganizationChart.objects.create(
-                        employee=employee.user,
-                        position=position,
-                        department=department,
-                        block=block,
-                        branch=branch,
-                        start_date=start_date or date.today(),
-                        is_primary=True,
-                        is_active=True,
-                    )
+                # OrganizationChart is now handled automatically in Employee.save()
+                # when position changes, so no need to manage it here
                 
                 return {
                     "ok": True,
