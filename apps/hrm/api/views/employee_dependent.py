@@ -26,7 +26,7 @@ from libs import BaseModelViewSet
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                                 "dependent_name": "Jane Doe",
                                 "relationship": "CHILD",
                                 "relationship_display": "Child",
@@ -57,7 +57,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "dependent_name": "Jane Doe",
                         "relationship": "CHILD",
                         "relationship_display": "Child",
@@ -79,7 +79,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "dependent_name": "Jane Doe",
                         "relationship": "CHILD",
                         "relationship_display": "Child",
@@ -123,7 +123,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "dependent_name": "Jane Doe",
                         "relationship": "CHILD",
                         "relationship_display": "Child",
@@ -152,7 +152,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "dependent_name": "Jane Doe",
                         "relationship": "CHILD",
                         "relationship_display": "Child",
@@ -187,7 +187,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "dependent_name": "Jane Doe",
                         "relationship": "CHILD",
                         "relationship_display": "Child",

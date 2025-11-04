@@ -7,19 +7,21 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
 from libs import ColorVariant
-from libs.models import BaseModel, ColoredValueMixin
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 
 from ..constants import CertificateType
 
 
 @audit_logging_register
-class EmployeeCertificate(ColoredValueMixin, BaseModel):
+class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Employee certificate model for tracking qualifications and certifications.
 
     This model manages certificates for employees including foreign language certificates,
     computer certificates, diplomas, broker training completion, and real estate practice licenses.
     The certificate_code is the actual certificate number issued by the certifying organization.
     """
+
+    CODE_PREFIX = "EC"
 
     class Status(models.TextChoices):
         VALID = "Valid", _("Valid")
@@ -34,6 +36,15 @@ class EmployeeCertificate(ColoredValueMixin, BaseModel):
         },
     }
 
+    code = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        null=True,
+        blank=True,
+        verbose_name=_("Code"),
+        help_text=_("Auto-generated unique code for this certificate"),
+    )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,

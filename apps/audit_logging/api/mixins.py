@@ -322,6 +322,7 @@ class AuditLoggingMixin:
             "object_id": object_id,
             "log_id": log_id,
             "page_size": 1,
+            "summary_fields_only": False,
         }
 
         # Use the audit log search serializer

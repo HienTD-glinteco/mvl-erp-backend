@@ -115,6 +115,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
         default="desc",
         help_text="Sort order by timestamp (default: desc - newest first)",
     )
+    summary_fields_only = serializers.BooleanField(required=False, default=True)
 
     def search(self):
         """
@@ -158,6 +159,8 @@ class AuditLogSearchSerializer(serializers.Serializer):
         page = self.validated_data.get("page", 1)
         sort_order = self.validated_data.get("sort_order", "desc")
 
+        summary_fields_only = self.validated_data.get("summary_fields_only")
+
         # Search logs using OpenSearch with summary fields only
         opensearch_client = get_opensearch_client()
         result = opensearch_client.search_logs(
@@ -165,7 +168,7 @@ class AuditLogSearchSerializer(serializers.Serializer):
             page_size=page_size,
             page=page,
             sort_order=sort_order,
-            summary_fields_only=True,  # Return only summary fields
+            summary_fields_only=summary_fields_only,
         )
 
         # Format response

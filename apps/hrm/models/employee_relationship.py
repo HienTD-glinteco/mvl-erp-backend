@@ -4,20 +4,21 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
-from libs.models import BaseModel
+from libs.models import AutoCodeMixin, BaseModel
 
 from ..constants import RelationType
 from ..utils.validators import validate_national_id, validate_phone
 
 
 @audit_logging_register
-class EmployeeRelationship(BaseModel):
+class EmployeeRelationship(AutoCodeMixin, BaseModel):
     """Employee relationship/next-of-kin model.
 
     Stores information about employee relatives and next-of-kin contacts.
     Supports file attachments for supporting documents.
 
     Attributes:
+        code: Auto-generated unique code
         employee: Reference to the employee
         employee_code: Cached employee code for fast read (denormalized)
         employee_name: Cached employee name for fast read (denormalized)
@@ -25,6 +26,8 @@ class EmployeeRelationship(BaseModel):
         relation_type: Type of relationship (child, spouse, parent, etc.)
         date_of_birth: Date of birth of the relative
         citizen_id: National ID number (CMND/CCCD) - 9 or 12 digits
+        occupation: Occupation of the relative (optional)
+        tax_code: Tax code (optional)
         address: Residential address
         phone: Contact phone number
         attachment: File attachment (supporting document)
@@ -33,6 +36,17 @@ class EmployeeRelationship(BaseModel):
         created_by: User who created this record
     """
 
+    CODE_PREFIX = "ER"
+
+    code = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        null=True,
+        blank=True,
+        verbose_name=_("Code"),
+        help_text=_("Auto-generated unique code for this relationship"),
+    )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
@@ -84,6 +98,20 @@ class EmployeeRelationship(BaseModel):
         validators=[validate_national_id],
         verbose_name=_("Citizen ID"),
         help_text=_("National ID (CMND/CCCD) - 9 or 12 digits"),
+    )
+
+    occupation = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Occupation"),
+        help_text=_("Occupation or job title of the relative"),
+    )
+
+    tax_code = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name=_("Tax code"),
+        help_text=_("Tax identification number"),
     )
 
     address = models.TextField(

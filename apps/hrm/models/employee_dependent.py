@@ -4,31 +4,45 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
-from libs.models import BaseModel
+from libs.models import AutoCodeMixin, BaseModel
 
 from ..constants import RelationType
 from ..utils.validators import validate_national_id
 
 
 @audit_logging_register
-class EmployeeDependent(BaseModel):
+class EmployeeDependent(AutoCodeMixin, BaseModel):
     """Employee dependent model for tracking employee dependents.
 
     This model manages employee dependents such as children, spouse, parents, etc.
     Supports file attachments for supporting documents via the project's file upload flow.
 
     Attributes:
+        code: Auto-generated unique code
         employee: Reference to the employee
         dependent_name: Full name of the dependent
         relationship: Type of relationship (child, spouse, parent, etc.)
         date_of_birth: Date of birth of the dependent
         citizen_id: National ID number (CMND/CCCD) - 9 or 12 digits
+        effective_date: Start date for tax deduction applicability
+        tax_code: Tax code (optional)
         attachment: File attachment (supporting document)
         note: Additional notes
         is_active: Whether this record is active (soft delete)
         created_by: User who created this record
     """
 
+    CODE_PREFIX = "ED"
+
+    code = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        null=True,
+        blank=True,
+        verbose_name=_("Code"),
+        help_text=_("Auto-generated unique code for this dependent"),
+    )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
@@ -63,6 +77,20 @@ class EmployeeDependent(BaseModel):
         validators=[validate_national_id],
         verbose_name=_("Citizen ID"),
         help_text=_("National ID (CMND/CCCD) - 9 or 12 digits"),
+    )
+
+    effective_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Effective date"),
+        help_text=_("Start date for tax deduction applicability"),
+    )
+
+    tax_code = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name=_("Tax code"),
+        help_text=_("Tax identification number"),
     )
 
     attachment = models.ForeignKey(

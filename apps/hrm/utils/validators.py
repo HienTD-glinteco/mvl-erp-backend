@@ -6,8 +6,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from ..constants import (
-    NATIONAL_ID_LENGTH_12,
     NATIONAL_ID_LENGTH_9,
+    NATIONAL_ID_LENGTH_12,
     PHONE_INTL_LENGTH,
     PHONE_LOCAL_LENGTH,
 )
