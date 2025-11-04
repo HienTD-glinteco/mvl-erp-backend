@@ -27,7 +27,7 @@ from libs import BaseModelViewSet
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
+                                "employee": {"id": 1, "code": "MV0001", "fullname": "John Doe"},
                                 "employee_code": "MV0001",
                                 "employee_name": "John Doe",
                                 "relative_name": "Jane Doe",
@@ -61,7 +61,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "MV0001", "fullname": "John Doe"},
                         "employee_code": "MV0001",
                         "employee_name": "John Doe",
                         "relative_name": "Jane Doe",
@@ -86,7 +86,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "MV0001", "fullname": "John Doe"},
                         "employee_code": "MV0001",
                         "employee_name": "John Doe",
                         "relative_name": "Jane Doe",
@@ -133,7 +133,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "MV0001", "fullname": "John Doe"},
                         "employee_code": "MV0001",
                         "employee_name": "John Doe",
                         "relative_name": "Jane Doe",
@@ -165,7 +165,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "MV0001", "fullname": "John Doe"},
                         "employee_code": "MV0001",
                         "employee_name": "John Doe",
                         "relative_name": "Jane Doe",
