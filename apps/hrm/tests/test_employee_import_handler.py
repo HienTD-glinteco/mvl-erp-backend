@@ -175,7 +175,7 @@ class TestUtilityFunctions:
 class TestReferenceLookupFunctions:
     """Test reference model lookup/creation functions."""
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def setup_base_data(self):
         """Create base data needed for references."""
         # Create province and administrative unit for branches
@@ -183,6 +183,8 @@ class TestReferenceLookupFunctions:
         admin_unit = AdministrativeUnit.objects.create(
             name="Test Unit",
             code="TU",
+            parent_province=province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
         )
         return {"province": province, "admin_unit": admin_unit}
 
@@ -230,7 +232,7 @@ class TestReferenceLookupFunctions:
         assert nat2.id == nat1.id
         assert created2 is False
 
-    def test_lookup_or_create_branch(self, setup_base_data):
+    def test_lookup_or_create_branch(self):
         """Test branch lookup/creation."""
         # Create branch
         branch1, created1 = lookup_or_create_branch("Hà Nội")
@@ -243,7 +245,7 @@ class TestReferenceLookupFunctions:
         assert branch2.id == branch1.id
         assert created2 is False
 
-    def test_lookup_or_create_block(self, setup_base_data):
+    def test_lookup_or_create_block(self):
         """Test block lookup/creation."""
         branch, _ = lookup_or_create_branch("Test Branch")
 
@@ -259,7 +261,7 @@ class TestReferenceLookupFunctions:
         assert block2.id == block1.id
         assert created2 is False
 
-    def test_lookup_or_create_department(self, setup_base_data):
+    def test_lookup_or_create_department(self):
         """Test department lookup/creation."""
         branch, _ = lookup_or_create_branch("Test Branch")
         block, _ = lookup_or_create_block("Test Block", branch)
@@ -290,6 +292,8 @@ class TestEmployeeImportHandler:
         admin_unit = AdministrativeUnit.objects.create(
             name="Test Unit",
             code="TU",
+            parent_province=province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
         )
 
         # Create branch, block, department
