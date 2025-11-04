@@ -69,7 +69,7 @@ class EmployeeViewSet(
     permission_prefix = "employee"
 
     # Import handler path for AsyncImportProgressMixin
-    import_row_handler = "apps.hrm.import_handlers.employee_import_handler"
+    import_row_handler = "apps.hrm.import_handlers.employee.import_handler"
 
     @extend_schema(
         summary="Preview welcome email for employee",

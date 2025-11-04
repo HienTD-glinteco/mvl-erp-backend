@@ -656,7 +656,7 @@ def parse_emergency_contact(value: Any) -> tuple[str, str]:
     return strip_non_digits(value_str), ""
 
 
-def employee_import_handler(
+def import_handler(
     row_index: int, row: list, import_job_id: str, options: dict
 ) -> dict:
     """

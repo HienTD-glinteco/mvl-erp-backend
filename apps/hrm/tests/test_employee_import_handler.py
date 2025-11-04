@@ -4,11 +4,11 @@ import pytest
 from datetime import date
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
-from apps.hrm.import_handlers import (
+from apps.hrm.import_handlers.employee import (
     combine_start_date,
-    employee_import_handler,
     generate_email,
     generate_username,
+    import_handler as employee_import_handler,
     is_section_header_row,
     lookup_or_create_branch,
     lookup_or_create_block,
