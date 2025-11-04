@@ -9,6 +9,7 @@ from typing import Any, Optional
 from django.conf import settings
 from django.http import HttpRequest
 from rstream import Producer, exceptions
+from sentry_sdk import start_span
 
 from .registry import AuditLogRegistry
 from .utils import prepare_request_info, prepare_user_info
@@ -352,10 +353,14 @@ def log_audit_event(
         prepare_request_info(log_data, request)
 
     # Create change message describing the changes
-    _prepare_change_messages(log_data, action, original_object, modified_object)
+    with start_span(
+        op="log_audit_event._prepare_change_messages", description="Prepare change messages for log event"
+    ):
+        _prepare_change_messages(log_data, action, original_object, modified_object)
 
     # Add any extra kwargs provided
     log_data.update(extra_kwargs)
 
     # Final step
-    _audit_producer.log_event(**log_data)
+    with start_span(op="log_audit_event.log_event", description="Call Audit Producer's log event method"):
+        _audit_producer.log_event(**log_data)
