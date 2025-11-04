@@ -59,6 +59,22 @@ class TestAuditLogTarget(TestCase):
         audit_logging_register(cls.MainModel)
         audit_logging_register(cls.DependentModel)
 
+        # Create database tables for the dynamic models
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            schema_editor.create_model(cls.MainModel)
+            schema_editor.create_model(cls.DependentModel)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Drop the tables after tests
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            schema_editor.delete_model(cls.DependentModel)
+            schema_editor.delete_model(cls.MainModel)
+        
+        super().tearDownClass()
+
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
@@ -211,6 +227,22 @@ class TestAuditLogTargetStringReference(TestCase):
         audit_logging_register(cls.ParentModel)
         audit_logging_register(cls.ChildModel)
 
+        # Create database tables for the dynamic models
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            schema_editor.create_model(cls.ParentModel)
+            schema_editor.create_model(cls.ChildModel)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Drop the tables after tests
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            schema_editor.delete_model(cls.ChildModel)
+            schema_editor.delete_model(cls.ParentModel)
+        
+        super().tearDownClass()
+
     def test_string_reference_resolved(self):
         """Test that string reference to AUDIT_LOG_TARGET is resolved."""
         target = AuditLogRegistry.get_audit_log_target(self.ChildModel)
@@ -250,6 +282,32 @@ class TestSimplifiedRelatedChanges(TestCase):
         # Register models
         audit_logging_register(cls.ArticleModel)
         audit_logging_register(cls.TagModel)
+
+        # Create database tables for the dynamic models
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            schema_editor.create_model(cls.ArticleModel)
+            schema_editor.create_model(cls.TagModel)
+            # Create M2M table
+            for field in cls.ArticleModel._meta.get_fields():
+                if field.many_to_many and not field.remote_field.through._meta.auto_created:
+                    continue
+                if field.many_to_many:
+                    schema_editor.create_model(field.remote_field.through)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Drop the tables after tests
+        from django.db import connection
+        with connection.schema_editor() as schema_editor:
+            # Drop M2M table
+            for field in cls.ArticleModel._meta.get_fields():
+                if field.many_to_many:
+                    schema_editor.delete_model(field.remote_field.through)
+            schema_editor.delete_model(cls.TagModel)
+            schema_editor.delete_model(cls.ArticleModel)
+        
+        super().tearDownClass()
 
     def setUp(self):
         self.user = User.objects.create_user(
