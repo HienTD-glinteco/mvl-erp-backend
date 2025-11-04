@@ -1,3 +1,6 @@
+from django.apps import apps
+
+
 class AuditLogRegistry:
     """
     Registry for models that have audit logging enabled.
@@ -61,28 +64,25 @@ class AuditLogRegistry:
     def resolve_targets(cls):
         """
         Resolve all string-based AUDIT_LOG_TARGET references to actual model classes.
-        
+
         This should be called after all models are loaded (e.g., in AppConfig.ready()).
-        
+
         Raises:
             ValueError: If any AUDIT_LOG_TARGET cannot be resolved
         """
         if cls._targets_resolved:
             return
 
-        from django.apps import apps
-
         for model_class, info in cls._registry.items():
             audit_log_target = info.get("audit_log_target")
-            
+
             if isinstance(audit_log_target, str):
                 try:
                     resolved_target = apps.get_model(audit_log_target)
                     info["audit_log_target"] = resolved_target
                 except (LookupError, ValueError) as e:
                     raise ValueError(
-                        f"Invalid AUDIT_LOG_TARGET '{audit_log_target}' for model "
-                        f"{model_class.__name__}: {e}"
+                        f"Invalid AUDIT_LOG_TARGET '{audit_log_target}' for model {model_class.__name__}: {e}"
                     )
 
         cls._targets_resolved = True
