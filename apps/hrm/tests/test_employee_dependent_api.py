@@ -77,7 +77,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         )
 
         self.dependent_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
             "date_of_birth": "2010-05-12",
@@ -101,11 +101,18 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
         self.assertTrue(dependent.is_active)
         self.assertEqual(dependent.created_by, self.user)
 
+        # Verify nested employee is returned in response
+        result_data = self.get_response_data(response)
+        self.assertIn("employee", result_data)
+        self.assertEqual(result_data["employee"]["id"], self.employee.id)
+        self.assertEqual(result_data["employee"]["code"], self.employee.code)
+        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+
     def test_create_dependent_minimal_fields(self):
         """Test creating a dependent with only required fields."""
         url = reverse("hrm:employee-dependent-list")
         minimal_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "dependent_name": "Bob Smith",
             "relationship": "FATHER",
         }
@@ -219,7 +226,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
 
         url = reverse("hrm:employee-dependent-detail", kwargs={"pk": dependent.id})
         update_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "dependent_name": "Jane Updated",
             "relationship": "CHILD",
             "note": "Updated note",

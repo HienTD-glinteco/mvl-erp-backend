@@ -77,7 +77,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         )
 
         self.relationship_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "relative_name": "Jane Doe",
             "relation_type": "WIFE",
             "date_of_birth": "1990-05-15",
@@ -106,11 +106,18 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertTrue(relationship.is_active)
         self.assertEqual(relationship.created_by, self.user)
 
+        # Verify nested employee is returned in response
+        result_data = self.get_response_data(response)
+        self.assertIn("employee", result_data)
+        self.assertEqual(result_data["employee"]["id"], self.employee.id)
+        self.assertEqual(result_data["employee"]["code"], self.employee.code)
+        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+
     def test_create_relationship_minimal_fields(self):
         """Test creating a relationship with only required fields"""
         url = reverse("hrm:employee-relationship-list")
         minimal_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "relative_name": "Bob Smith",
             "relation_type": "FATHER",
         }

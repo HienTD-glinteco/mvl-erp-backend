@@ -289,7 +289,7 @@ class EmployeeCertificateAPITest(TestCase):
         """Test creating a certificate with certificate code"""
         url = reverse("hrm:employee-certificate-list")
         data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "foreign_language",
             "certificate_code": "IELTS-123456789",
             "certificate_name": "IELTS 7.0",
@@ -305,12 +305,17 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertEqual(result_data["certificate_type"], "foreign_language")
         self.assertEqual(result_data["certificate_code"], "IELTS-123456789")
         self.assertEqual(result_data["certificate_name"], "IELTS 7.0")
+        # Verify nested employee is returned in response
+        self.assertIn("employee", result_data)
+        self.assertEqual(result_data["employee"]["id"], self.employee.id)
+        self.assertEqual(result_data["employee"]["code"], self.employee.code)
+        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
 
     def test_create_certificate_without_code(self):
         """Test creating a certificate without certificate code"""
         url = reverse("hrm:employee-certificate-list")
         data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "foreign_language",
             "certificate_name": "IELTS 7.0",
             "issue_date": "2024-06-01",
@@ -330,7 +335,7 @@ class EmployeeCertificateAPITest(TestCase):
         """Test creating a certificate with invalid certificate_type"""
         url = reverse("hrm:employee-certificate-list")
         data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "invalid_type",
             "certificate_name": "Test Certificate",
             "issue_date": "2024-06-01",
@@ -452,7 +457,7 @@ class EmployeeCertificateAPITest(TestCase):
 
         result_data = self.get_response_data(response)
         self.assertEqual(len(result_data), 1)
-        self.assertEqual(result_data[0]["employee"], self.employee.id)
+        self.assertEqual(result_data[0]["employee"]["id"], self.employee.id)
 
     def test_update_certificate_code(self):
         """Test updating certificate code"""
@@ -466,7 +471,7 @@ class EmployeeCertificateAPITest(TestCase):
 
         url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
         data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "foreign_language",
             "certificate_code": "IELTS-987654",
             "certificate_name": "IELTS 8.0",
@@ -524,7 +529,7 @@ class EmployeeCertificateAPITest(TestCase):
         for cert_type, display_name in CertificateType.choices:
             with self.subTest(cert_type=cert_type):
                 data = {
-                    "employee": self.employee.id,
+                    "employee_id": self.employee.id,
                     "certificate_type": cert_type,
                     "certificate_code": f"TEST-{cert_type}",
                     "certificate_name": f"Test {display_name}",
@@ -634,7 +639,7 @@ class EmployeeCertificateAPITest(TestCase):
             # Act: Create certificate with file token
             url = reverse("hrm:employee-certificate-list")
             cert_data = {
-                "employee": self.employee.id,
+                "employee_id": self.employee.id,
                 "certificate_type": "foreign_language",
                 "certificate_code": "IELTS-123456789",
                 "certificate_name": "IELTS 7.0",
@@ -674,7 +679,7 @@ class EmployeeCertificateAPITest(TestCase):
         """Test creating a certificate without file token still works"""
         url = reverse("hrm:employee-certificate-list")
         cert_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "computer",
             "certificate_code": "MOS-987654321",
             "certificate_name": "Microsoft Office Specialist",
@@ -714,7 +719,7 @@ class EmployeeCertificateAPITest(TestCase):
 
             url = reverse("hrm:employee-certificate-list")
             cert_data = {
-                "employee": self.employee.id,
+                "employee_id": self.employee.id,
                 "certificate_type": "diploma",
                 "certificate_code": "DIPLOMA-111",
                 "certificate_name": "Bachelor Degree",
@@ -752,7 +757,7 @@ class EmployeeCertificateAPITest(TestCase):
         """Test that status field cannot be set via API"""
         url = reverse("hrm:employee-certificate-list")
         data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "certificate_type": "foreign_language",
             "certificate_name": "IELTS 7.0",
             "issue_date": date.today().strftime("%Y-%m-%d"),
