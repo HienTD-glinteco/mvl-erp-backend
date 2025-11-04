@@ -7,11 +7,18 @@ class AuditLogRegistry:
     - Register models when they're decorated
     - Query registered models
     - Get model information (app_label, model_name, ContentType)
+    - Track audit_log_target relationships for dependent models
 
     Usage:
         # Models are automatically registered when decorated
         @audit_logging
         class MyModel(models.Model):
+            ...
+
+        # Dependent models can declare an audit_log_target
+        @audit_logging
+        class DependentModel(models.Model):
+            audit_log_target = 'app_label.ModelName'  # or reference to model class
             ...
 
         # Query registered models
@@ -20,7 +27,7 @@ class AuditLogRegistry:
         model_info = AuditLogRegistry.get_model_info(MyModel)
     """
 
-    _registry: dict = {}  # {model_class: {'app_label': str, 'model_name': str, 'content_type': ContentType}}
+    _registry: dict = {}  # {model_class: {'app_label': str, 'model_name': str, 'audit_log_target': model_class or None}}
 
     @classmethod
     def register(cls, model_class):
@@ -34,11 +41,24 @@ class AuditLogRegistry:
             app_label = model_class._meta.app_label
             model_name = model_class._meta.model_name
 
+            # Check if model has audit_log_target attribute
+            audit_log_target = getattr(model_class, "audit_log_target", None)
+            
+            # Resolve target if it's a string (e.g., 'app_label.ModelName')
+            if isinstance(audit_log_target, str):
+                from django.apps import apps
+                try:
+                    audit_log_target = apps.get_model(audit_log_target)
+                except Exception:
+                    # Invalid target, set to None
+                    audit_log_target = None
+
             cls._registry[model_class] = {
                 "app_label": app_label,
                 "model_name": model_name,
                 "verbose_name": model_class._meta.verbose_name,
                 "verbose_name_plural": model_class._meta.verbose_name_plural,
+                "audit_log_target": audit_log_target,
             }
 
     @classmethod
@@ -102,6 +122,22 @@ class AuditLogRegistry:
 
         if model_class in cls._registry:
             return ContentType.objects.get_for_model(model_class)
+        return None
+
+    @classmethod
+    def get_audit_log_target(cls, model_class):
+        """
+        Get the audit log target for a model (if it has one).
+
+        Args:
+            model_class: The Django model class
+
+        Returns:
+            The target model class if set, otherwise None
+        """
+        model_info = cls.get_model_info(model_class)
+        if model_info:
+            return model_info.get("audit_log_target")
         return None
 
     @classmethod
