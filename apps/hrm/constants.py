@@ -57,7 +57,7 @@ class RelationType(models.TextChoices):
     WIFE = "WIFE", _("Wife")
     HUSBAND = "HUSBAND", _("Husband")
     FATHER = "FATHER", _("Father")
-    MONTHER = "MONTHER", _("Monther")
+    MOTHER = "MOTHER", _("Mother")
     BROTHER = "BROTHER", _("Brother")
     SISTER = "SISTER", _("Sister")
     SIBLING = "SIBLING", _("Sibling")
