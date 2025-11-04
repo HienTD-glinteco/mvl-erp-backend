@@ -26,7 +26,7 @@ from libs import BaseModelViewSet
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                                 "certificate_type": "foreign_language",
                                 "certificate_type_display": "Foreign language certificate",
                                 "certificate_code": "IELTS-123456789",
@@ -44,7 +44,7 @@ from libs import BaseModelViewSet
                             },
                             {
                                 "id": 2,
-                                "employee": 1,
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                                 "certificate_type": "real_estate_practice_license",
                                 "certificate_type_display": "Real estate practice license",
                                 "certificate_code": "BDS-2023-001234",
@@ -76,7 +76,7 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Request",
                 value={
-                    "employee": 1,
+                    "employee_id": 1,
                     "certificate_type": "foreign_language",
                     "certificate_code": "IELTS-123456789",
                     "certificate_name": "IELTS 7.0",
@@ -94,7 +94,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
                         "certificate_code": "IELTS-123456789",
@@ -142,7 +142,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
                         "certificate_code": "IELTS-123456789",
@@ -172,7 +172,7 @@ from libs import BaseModelViewSet
             OpenApiExample(
                 "Request",
                 value={
-                    "employee": 1,
+                    "employee_id": 1,
                     "certificate_type": "foreign_language",
                     "certificate_code": "TOEIC-987654321",
                     "certificate_name": "TOEIC 850",
@@ -190,7 +190,7 @@ from libs import BaseModelViewSet
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "certificate_type": "foreign_language",
                         "certificate_type_display": "Foreign language certificate",
                         "certificate_code": "TOEIC-987654321",

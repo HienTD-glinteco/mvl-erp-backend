@@ -2,8 +2,6 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import (
-    Block,
-    Branch,
     Department,
     Employee,
     JobDescription,
@@ -11,50 +9,13 @@ from apps.hrm.models import (
 )
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
-
-class RecruitmentRequestJobDescriptionNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested job description references"""
-
-    class Meta:
-        model = JobDescription
-        fields = ["id", "code", "title", "requirement", "benefit"]
-        read_only_fields = ["id", "code", "title", "requirement", "benefit"]
-
-
-class RecruitmentRequestEmployeeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested employee references"""
-
-    class Meta:
-        model = Employee
-        fields = ["id", "code", "fullname"]
-        read_only_fields = ["id", "code", "fullname"]
-
-
-class RecruitmentRequestBranchNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested branch references"""
-
-    class Meta:
-        model = Branch
-        fields = ["id", "name", "code"]
-        read_only_fields = ["id", "name", "code"]
-
-
-class RecruitmentRequestBlockNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested block references"""
-
-    class Meta:
-        model = Block
-        fields = ["id", "name", "code"]
-        read_only_fields = ["id", "name", "code"]
-
-
-class RecruitmentRequestDepartmentNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested department references"""
-
-    class Meta:
-        model = Department
-        fields = ["id", "name", "code"]
-        read_only_fields = ["id", "name", "code"]
+from .common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    DepartmentNestedSerializer,
+    EmployeeNestedSerializer,
+    JobDescriptionNestedSerializer,
+)
 
 
 class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -72,11 +33,11 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
     """
 
     # Nested read-only serializers for full object representation
-    job_description = RecruitmentRequestJobDescriptionNestedSerializer(read_only=True)
-    branch = RecruitmentRequestBranchNestedSerializer(read_only=True)
-    block = RecruitmentRequestBlockNestedSerializer(read_only=True)
-    department = RecruitmentRequestDepartmentNestedSerializer(read_only=True)
-    proposer = RecruitmentRequestEmployeeNestedSerializer(read_only=True)
+    job_description = JobDescriptionNestedSerializer(read_only=True)
+    branch = BranchNestedSerializer(read_only=True)
+    block = BlockNestedSerializer(read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
+    proposer = EmployeeNestedSerializer(read_only=True)
 
     # Colored value fields
     colored_status = ColoredValueSerializer(read_only=True)

@@ -78,7 +78,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         )
 
         self.relationship_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "relative_name": "Jane Doe",
             "relation_type": "WIFE",
             "date_of_birth": "1990-05-15",
@@ -107,11 +107,18 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertTrue(relationship.is_active)
         self.assertEqual(relationship.created_by, self.user)
 
+        # Verify nested employee is returned in response
+        result_data = self.get_response_data(response)
+        self.assertIn("employee", result_data)
+        self.assertEqual(result_data["employee"]["id"], self.employee.id)
+        self.assertEqual(result_data["employee"]["code"], self.employee.code)
+        self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+
     def test_create_relationship_minimal_fields(self):
         """Test creating a relationship with only required fields"""
         url = reverse("hrm:employee-relationship-list")
         minimal_data = {
-            "employee": self.employee.id,
+            "employee_id": self.employee.id,
             "relative_name": "Bob Smith",
             "relation_type": "FATHER",
         }
@@ -354,7 +361,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.client.post(url, self.relationship_data, format="json")
 
         data2 = self.relationship_data.copy()
-        data2["employee"] = employee2.id
+        data2["employee_id"] = employee2.id
         data2["relative_name"] = "Bob Johnson"
         self.client.post(url, data2, format="json")
 
@@ -364,7 +371,7 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["employee"], self.employee.id)
+        self.assertEqual(response_data[0]["employee"]["id"], self.employee.id)
 
     def test_filter_by_relation_type(self):
         """Test filtering relationships by relation type"""
