@@ -1,6 +1,8 @@
 from django.contrib import admin
 
 from .models import (
+    Bank,
+    BankAccount,
     Block,
     Branch,
     ContractType,
@@ -83,6 +85,8 @@ class OrganizationChartAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Block)
+admin.site.register(Bank)
+admin.site.register(BankAccount)
 admin.site.register(Branch)
 admin.site.register(Department)
 admin.site.register(RecruitmentChannel)
