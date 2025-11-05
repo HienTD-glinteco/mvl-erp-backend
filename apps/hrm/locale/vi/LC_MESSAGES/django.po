@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 16:29+0700\n"
+"POT-Creation-Date: 2025-11-05 17:19+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,27 +80,6 @@ msgstr ""
 msgid "Number of positions must be at least 1."
 msgstr ""
 
-#: apps/hrm/api/views/employee_reportss.py:39
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:128
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reportss.py:59
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reportss.py:85 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reportss.py:106 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reportss.py:291
 msgid "Average"
 msgstr ""
@@ -150,6 +129,22 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
+msgstr ""
+
+#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:47
+msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53
@@ -384,12 +379,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -398,27 +391,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 

@@ -82,8 +82,8 @@ class EmployeeStatusBreakdownReportModelTest(TransactionTestCase):
             count_resigned=3,
             total_not_resigned=58,
             count_resigned_reasons={
-                Employee.ResignationReason.CAREER_CHANGE: 1,
-                Employee.ResignationReason.PERSONAL_ISSUES: 2,
+                Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE: 1,
+                Employee.ResignationReason.VOLUNTARY_PERSONAL: 2,
             },
         )
 
@@ -95,7 +95,7 @@ class EmployeeStatusBreakdownReportModelTest(TransactionTestCase):
         self.assertEqual(report.count_resigned, 3)
         self.assertEqual(report.total_not_resigned, 58)
         self.assertEqual(len(report.count_resigned_reasons), 2)
-        self.assertEqual(report.count_resigned_reasons[Employee.ResignationReason.CAREER_CHANGE], 1)
+        self.assertEqual(report.count_resigned_reasons[Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE], 1)
 
     def test_unique_constraint_on_date_and_org_units(self):
         """Test unique constraint on report_date + branch + block + department"""
