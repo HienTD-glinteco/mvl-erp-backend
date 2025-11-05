@@ -461,7 +461,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         """Test that missing required parameters return validation error"""
         # Act: Call API without required params
         url = reverse("hrm:employee-reports-employee-status-breakdown")
-        response = self.client.get(url, {"period_type": "week"})
+        response = self.client.get(url, {})
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

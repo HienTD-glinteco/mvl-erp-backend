@@ -11,7 +11,9 @@ from .data_scope import (
 from .filters import DataScopeFilterBackend, LeadershipFilterBackend
 from .functions import (
     get_current_month_range,
+    get_current_quarter_range,
     get_current_week_range,
+    get_current_year_range,
     get_experience_category,
     get_last_6_months_range,
     get_week_key_from_date,
@@ -24,6 +26,8 @@ __all__ = [
     "get_experience_category",
     "get_current_month_range",
     "get_current_week_range",
+    "get_current_quarter_range",
+    "get_current_year_range",
     "get_last_6_months_range",
     "get_week_key_from_date",
     "get_week_label_from_date_range",

@@ -59,6 +59,40 @@ def get_current_week_range():
     return monday, sunday
 
 
+def get_current_quarter_range():
+    """Get the first and last day of the current quarter.
+
+    Returns:
+        tuple: (first_day, last_day) of the current quarter
+    """
+    today = date.today()
+    # Quarter numbers: 1..4
+    quarter = ((today.month - 1) // 3) + 1
+    first_month = (quarter - 1) * 3 + 1
+    first_day = date(today.year, first_month, 1)
+
+    # First day of next quarter
+    if first_month + 3 > 12:
+        next_quarter_first = date(today.year + 1, 1, 1)
+    else:
+        next_quarter_first = date(today.year, first_month + 3, 1)
+
+    last_day = next_quarter_first - timedelta(days=1)
+    return first_day, last_day
+
+
+def get_current_year_range():
+    """Get the first and last day of the current year.
+
+    Returns:
+        tuple: (first_day, last_day) of the current year
+    """
+    today = date.today()
+    first_day = date(today.year, 1, 1)
+    last_day = date(today.year + 1, 1, 1) - timedelta(days=1)
+    return first_day, last_day
+
+
 def get_last_6_months_range():
     """
     Get the first day of the month 6 months ago and the last day of the current month.

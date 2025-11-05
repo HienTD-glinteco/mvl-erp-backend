@@ -9,6 +9,10 @@ from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
 from apps.hrm.models import EmployeeStatusBreakdownReport
+from apps.hrm.utils import (
+    get_current_month_range,
+    get_current_week_range,
+)
 
 from ..serializers import (
     EmployeeCountBreakdownReportParamsSerializer,
@@ -254,16 +258,32 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return data
 
+    def _get_from_date_to_date(self, params: dict) -> tuple[date, date]:
+        period_type = params["period_type"]
+        from_date = params.get("from_date")
+        to_date = params.get("to_date")
+
+        if not from_date or not to_date:
+            if period_type == ExtendedReportPeriodType.WEEK.value:
+                from_date, to_date = get_current_month_range()
+            elif period_type == ExtendedReportPeriodType.MONTH.value:
+                from_date, to_date = get_current_month_range()
+            elif period_type == ExtendedReportPeriodType.QUARTER.value:
+                from_date, to_date = get_current_month_range()
+            else:
+                from_date, to_date = get_current_week_range()
+        return from_date, to_date
+
     def _prepare_report_data(self, request, value_field) -> dict:
         param_serializer = EmployeeCountBreakdownReportParamsSerializer(data=request.query_params)
         param_serializer.is_valid(raise_exception=True)
         params = param_serializer.validated_data
 
         period_type = params["period_type"]
-        from_date = params["from_date"]
-        to_date = params["to_date"]
+        from_date, to_date = self._get_from_date_to_date(params)
 
         buckets = self._generate_time_buckets(period_type, from_date, to_date)
+
         org_filters = {}
         if params.get("branch"):
             org_filters["branch_id"] = params["branch"]

@@ -11,8 +11,8 @@ class EmployeeCountBreakdownReportParamsSerializer(serializers.Serializer):
         choices=ExtendedReportPeriodType.choices,
         help_text="Period type for aggregation. Choices: 'week', 'month', 'quarter', or 'year'.",
     )
-    from_date = serializers.DateField(help_text="Start date (YYYY-MM-DD)")
-    to_date = serializers.DateField(help_text="End date (YYYY-MM-DD)")
+    from_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
     branch = serializers.IntegerField(required=False, help_text="Branch ID to filter")
     block = serializers.IntegerField(required=False, help_text="Block ID to filter")
     department = serializers.IntegerField(required=False, help_text="Department ID to filter")

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 17:19+0700\n"
+"POT-Creation-Date: 2025-11-05 17:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,7 +80,7 @@ msgstr ""
 msgid "Number of positions must be at least 1."
 msgstr ""
 
-#: apps/hrm/api/views/employee_reportss.py:291
+#: apps/hrm/api/views/employee_reportss.py:311
 msgid "Average"
 msgstr ""
 
