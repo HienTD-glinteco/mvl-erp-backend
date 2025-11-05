@@ -4,11 +4,12 @@ import os
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from apps.files.models import FileModel
-from apps.files.utils.s3_utils import S3FileUploadService
 from apps.imports.constants import FILE_PURPOSE_IMPORT_TEMPLATE
 
 User = get_user_model()
@@ -116,7 +117,6 @@ class Command(BaseCommand):
         # Upload templates
         uploaded_count = 0
         replaced_count = 0
-        s3_service = S3FileUploadService()
 
         for template_path, app_name, final_name in template_files:
             try:
@@ -147,18 +147,14 @@ class Command(BaseCommand):
                     # Generate S3 path with final name
                     s3_path = f"{s3_prefix}{final_name}"
 
-                    # Upload to S3
-                    s3_service.upload_file(
-                        file_content=file_content,
-                        s3_path=s3_path,
-                        content_type=self._get_content_type(final_name),
-                    )
+                    # Upload to S3 using default_storage
+                    saved_path = default_storage.save(s3_path, ContentFile(file_content))
 
                     # Create FileModel record
                     file_obj = FileModel.objects.create(
                         purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
                         file_name=final_name,
-                        file_path=s3_path,
+                        file_path=saved_path,
                         size=len(file_content),
                         is_confirmed=True,
                         uploaded_by=uploaded_by,

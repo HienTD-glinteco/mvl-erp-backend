@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -55,16 +55,15 @@ def mock_apps_structure():
 class TestUploadImportTemplatesCommand:
     """Test cases for upload_import_templates management command."""
 
-    @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
+    @patch("apps.imports.management.commands.upload_import_templates.default_storage")
     @patch("os.getcwd")
-    def test_upload_templates_success(self, mock_getcwd, mock_s3_service, mock_apps_structure, capsys):
+    def test_upload_templates_success(self, mock_getcwd, mock_storage, mock_apps_structure, capsys):
         """Test successful upload of template files."""
         # Mock getcwd to return our test directory
         mock_getcwd.return_value = mock_apps_structure
 
-        # Mock S3 service
-        mock_s3_instance = MagicMock()
-        mock_s3_service.return_value = mock_s3_instance
+        # Mock default_storage.save to return the path
+        mock_storage.save.side_effect = lambda path, content: path
 
         # Call command
         call_command("upload_import_templates")
@@ -78,8 +77,8 @@ class TestUploadImportTemplatesCommand:
         assert "hrm_departments_template.xlsx" in captured.out
         assert "crm_customers_template.csv" in captured.out
 
-        # Verify S3 upload was called
-        assert mock_s3_instance.upload_file.call_count == 3
+        # Verify storage.save was called
+        assert mock_storage.save.call_count == 3
 
         # Verify FileModel records were created with app prefixes
         assert FileModel.objects.filter(purpose=FILE_PURPOSE_IMPORT_TEMPLATE).count() == 3
@@ -87,13 +86,12 @@ class TestUploadImportTemplatesCommand:
         assert FileModel.objects.filter(file_name="hrm_departments_template.xlsx").exists()
         assert FileModel.objects.filter(file_name="crm_customers_template.csv").exists()
 
-    @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
+    @patch("apps.imports.management.commands.upload_import_templates.default_storage")
     @patch("os.getcwd")
-    def test_upload_templates_single_app(self, mock_getcwd, mock_s3_service, mock_apps_structure, capsys):
+    def test_upload_templates_single_app(self, mock_getcwd, mock_storage, mock_apps_structure, capsys):
         """Test upload with --app filter."""
         mock_getcwd.return_value = mock_apps_structure
-        mock_s3_instance = MagicMock()
-        mock_s3_service.return_value = mock_s3_instance
+        mock_storage.save.side_effect = lambda path, content: path
 
         # Call command with app filter
         call_command("upload_import_templates", app="hrm")
@@ -107,13 +105,12 @@ class TestUploadImportTemplatesCommand:
         assert "hrm_departments_template.xlsx" in captured.out
         assert "crm_customers_template.csv" not in captured.out
 
-    @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
+    @patch("apps.imports.management.commands.upload_import_templates.default_storage")
     @patch("os.getcwd")
-    def test_upload_templates_with_user(self, mock_getcwd, mock_s3_service, mock_apps_structure, user, capsys):
+    def test_upload_templates_with_user(self, mock_getcwd, mock_storage, mock_apps_structure, user, capsys):
         """Test upload with specified user."""
         mock_getcwd.return_value = mock_apps_structure
-        mock_s3_instance = MagicMock()
-        mock_s3_service.return_value = mock_s3_instance
+        mock_storage.save.side_effect = lambda path, content: path
 
         # Call command with user_id
         call_command("upload_import_templates", user_id=user.id)
@@ -124,13 +121,12 @@ class TestUploadImportTemplatesCommand:
         for template in templates:
             assert template.uploaded_by == user
 
-    @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
+    @patch("apps.imports.management.commands.upload_import_templates.default_storage")
     @patch("os.getcwd")
-    def test_upload_templates_dry_run(self, mock_getcwd, mock_s3_service, mock_apps_structure, capsys):
+    def test_upload_templates_dry_run(self, mock_getcwd, mock_storage, mock_apps_structure, capsys):
         """Test dry run mode."""
         mock_getcwd.return_value = mock_apps_structure
-        mock_s3_instance = MagicMock()
-        mock_s3_service.return_value = mock_s3_instance
+        mock_storage.save.side_effect = lambda path, content: path
 
         # Call command with dry_run
         call_command("upload_import_templates", dry_run=True)
@@ -143,18 +139,17 @@ class TestUploadImportTemplatesCommand:
         assert "Dry run mode - no files will be uploaded" in captured.out
 
         # Verify no S3 upload
-        assert mock_s3_instance.upload_file.call_count == 0
+        assert mock_storage.save.call_count == 0
 
         # Verify no FileModel records
         assert FileModel.objects.filter(purpose=FILE_PURPOSE_IMPORT_TEMPLATE).count() == 0
 
-    @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
+    @patch("apps.imports.management.commands.upload_import_templates.default_storage")
     @patch("os.getcwd")
-    def test_upload_templates_replace_existing(self, mock_getcwd, mock_s3_service, mock_apps_structure, user, capsys):
+    def test_upload_templates_replace_existing(self, mock_getcwd, mock_storage, mock_apps_structure, user, capsys):
         """Test replacing existing templates."""
         mock_getcwd.return_value = mock_apps_structure
-        mock_s3_instance = MagicMock()
-        mock_s3_service.return_value = mock_s3_instance
+        mock_storage.save.side_effect = lambda path, content: path
 
         # Create existing template
         existing_template = FileModel.objects.create(
