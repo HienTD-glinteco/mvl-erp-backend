@@ -809,7 +809,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 if status == Employee.Status.RESIGNED:
                     employee_data["resignation_date"] = date.today()  # type: ignore[assignment]
                     # Set a default resignation_reason since it's required when status is RESIGNED
-                    employee_data["resignation_reason"] = Employee.ResignationReason.PERSONAL_ISSUES
+                    employee_data["resignation_reason"] = Employee.ResignationReason.VOLUNTARY_PERSONAL
             elif status_raw:
                 warnings.append(f"Unknown status code: {status_raw}")
 

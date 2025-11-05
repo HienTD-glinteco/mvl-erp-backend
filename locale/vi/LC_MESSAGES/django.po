@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 13:37+0700\n"
+"POT-Creation-Date: 2025-11-05 16:29+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -264,6 +264,7 @@ msgid "Override handler path (optional)"
 msgstr ""
 
 #: apps/imports/api/serializers.py:70
+#, python-brace-format
 msgid "Custom options for handler (default: {})"
 msgstr ""
 
@@ -895,39 +896,3 @@ msgstr ""
 #: templates/emails/base_email.html:27
 msgid "All rights reserved."
 msgstr ""
-
-msgid "Agreement Termination"
-msgstr "Thỏa thuận chấm dứt HĐLĐ trước thời hạn"
-
-msgid "Probation Fail"
-msgstr "Thử việc không đạt"
-
-msgid "Job Abandonment"
-msgstr "Bỏ việc"
-
-msgid "Disciplinary Termination"
-msgstr "Sa thải do kỷ luật"
-
-msgid "Workforce Reduction"
-msgstr "Thanh lọc"
-
-msgid "Underperforming"
-msgstr "Thành tích kém trong công việc"
-
-msgid "Contract Expired"
-msgstr "Hết hợp đồng"
-
-msgid "Voluntary - Health Reasons"
-msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
-
-msgid "Voluntary - Personal Reasons"
-msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
-
-msgid "Voluntary - Career Change"
-msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
-
-msgid "Voluntary - Other"
-msgstr "Nguyện vọng theo đơn - Khác"
-
-msgid "Other"
-msgstr "Khác"
