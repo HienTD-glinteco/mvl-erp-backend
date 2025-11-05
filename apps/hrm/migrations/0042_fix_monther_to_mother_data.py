@@ -15,7 +15,9 @@ def fix_monther_to_mother(apps, schema_editor):
     relationship_count = EmployeeRelationship.objects.filter(relation_type="MONTHER").update(relation_type="MOTHER")
 
     if dependent_count > 0 or relationship_count > 0:
-        print(f"Fixed typo: Updated {dependent_count} dependent(s) and {relationship_count} relationship(s) from MONTHER to MOTHER")
+        print(
+            f"Fixed typo: Updated {dependent_count} dependent(s) and {relationship_count} relationship(s) from MONTHER to MOTHER"
+        )
 
 
 def reverse_fix_monther_to_mother(apps, schema_editor):
@@ -30,13 +32,14 @@ def reverse_fix_monther_to_mother(apps, schema_editor):
     relationship_count = EmployeeRelationship.objects.filter(relation_type="MOTHER").update(relation_type="MONTHER")
 
     if dependent_count > 0 or relationship_count > 0:
-        print(f"Reversed fix: Updated {dependent_count} dependent(s) and {relationship_count} relationship(s) from MOTHER to MONTHER")
+        print(
+            f"Reversed fix: Updated {dependent_count} dependent(s) and {relationship_count} relationship(s) from MOTHER to MONTHER"
+        )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0041_add_code_fields_and_typo_fix'),
+        ("hrm", "0041_add_code_fields_and_typo_fix"),
     ]
 
     operations = [

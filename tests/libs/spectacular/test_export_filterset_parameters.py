@@ -148,7 +148,7 @@ class TestExportFiltersetParameters:
         # Find the is_active parameter
         is_active_param = next((p for p in parameters if p.name == "is_active"), None)
         assert is_active_param is not None
-        assert is_active_param.type == bool
+        assert is_active_param.type is bool
 
     def test_date_filter_type(self, auto_schema):
         """Test that DateFilter parameters have str type."""
@@ -159,7 +159,7 @@ class TestExportFiltersetParameters:
         # Find date filter parameters
         created_at_from = next((p for p in parameters if p.name == "created_at_from"), None)
         assert created_at_from is not None
-        assert created_at_from.type == str
+        assert created_at_from.type is str
 
     def test_choice_filter_has_enum(self):
         """Test that ChoiceFilter parameters have enum values."""

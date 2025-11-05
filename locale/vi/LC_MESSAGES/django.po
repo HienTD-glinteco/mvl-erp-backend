@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 23:05+0700\n"
+"POT-Creation-Date: 2025-11-05 09:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -252,7 +252,7 @@ msgid "ID of the confirmed FileModel to import"
 msgstr ""
 
 #: apps/imports/api/serializers.py:24
-msgid "Import options including batch_size, handler_path, etc."
+msgid "Import options including allow_update, batch_size, handler_path, etc."
 msgstr ""
 
 #: apps/imports/api/serializers.py:30

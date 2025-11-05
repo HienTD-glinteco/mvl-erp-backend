@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0036_rename_hrm_employe_status_abc123_idx_hrm_employe_status_320c12_idx'),
+        ("hrm", "0036_rename_hrm_employe_status_abc123_idx_hrm_employe_status_320c12_idx"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='employeecertificate',
-            old_name='file',
-            new_name='attachment',
+            model_name="employeecertificate",
+            old_name="file",
+            new_name="attachment",
         ),
     ]

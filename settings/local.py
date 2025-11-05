@@ -4,6 +4,7 @@ to easily develop the app.
 """
 
 from .base import *  # noqa
+from .base import config
 
 INSTALLED_APPS += [  # NOQA
     "django.contrib.staticfiles",  # for API admin in local & develop
@@ -13,15 +14,24 @@ ALLOWED_HOSTS = ["*"]
 
 INTERNAL_IPS = ["127.0.0.1"]
 
-CELERY_TASK_ALWAYS_EAGER = True
+# CELERY_TASK_ALWAYS_EAGER = True
 
 STATIC_ROOT = "staticfiles"
 
-# Use local memory cache for tests to avoid Redis dependency
+# Cache settings
+CACHE_URL = config("CACHE_URL", default="redis://127.0.0.1:6379/2")
+CACHE_PREFIX = config("CACHE_PREFIX", default="")
+CACHE_TIMEOUT = config(
+    "CACHE_TIMEOUT",
+    default=24 * 60 * 60 * 30,  # timeout after 30 days
+    cast=int,
+)
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "test-cache",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": CACHE_URL,
+        "KEY_PREFIX": CACHE_PREFIX + "default",
+        "TIMEOUT": CACHE_TIMEOUT,
     },
 }
 

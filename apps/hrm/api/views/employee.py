@@ -8,6 +8,7 @@ from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
+from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 
@@ -44,7 +45,12 @@ from libs import BaseModelViewSet
         tags=["Employee"],
     ),
 )
-class EmployeeViewSet(EmailTemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
+class EmployeeViewSet(
+    AsyncImportProgressMixin,
+    EmailTemplateActionMixin,
+    AuditLoggingMixin,
+    BaseModelViewSet,
+):
     """ViewSet for Employee model"""
 
     queryset = Employee.objects.select_related(
@@ -61,6 +67,9 @@ class EmployeeViewSet(EmailTemplateActionMixin, AuditLoggingMixin, BaseModelView
     module = "HRM"
     submodule = "Employee Management"
     permission_prefix = "employee"
+
+    # Import handler path for AsyncImportProgressMixin
+    import_row_handler = "apps.hrm.import_handlers.employee.import_handler"  # type: ignore[assignment]
 
     @extend_schema(
         summary="Preview welcome email for employee",
