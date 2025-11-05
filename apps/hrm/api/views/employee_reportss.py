@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
-from apps.hrm.models import Block, Branch, Department, EmployeeStatusBreakdownReport
+from apps.hrm.models import EmployeeStatusBreakdownReport
 
 from ..serializers import (
     EmployeeCountBreakdownReportParamsSerializer,
@@ -125,71 +125,137 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return self._generate_time_buckets_for_year(from_date, to_date)
 
-    def _get_bucket_value(self, branch_id, block_id, dept_id, bucket_start, bucket_end, value_field):
-        """Get value for a specific bucket using target date fallback logic.
+    def _build_breakdown_nested_structure(self, buckets, value_field, org_filters):  # noqa: C901
+        """Build nested organizational structure with time-series data.
 
-        1. Try target_date = bucket_end
-        2. Fallback to latest record within bucket
-        3. Return 0 if no data
+        Optimized to use a single query to fetch all report data, then build the structure in memory.
         """
-        base_qs = EmployeeStatusBreakdownReport.objects.filter(
-            branch_id=branch_id,
-            block_id=block_id,
-            department_id=dept_id,
+        # Build date range for the entire query period
+        if not buckets:
+            return []
+
+        min_date = min(bucket_start for __, bucket_start, __ in buckets)
+        max_date = max(bucket_end for __, __, bucket_end in buckets)
+
+        # Single query to fetch all relevant report data with related objects
+        reports_qs = EmployeeStatusBreakdownReport.objects.filter(
+            report_date__range=[min_date, max_date]
+        ).select_related('branch', 'block', 'department')
+
+        # Apply organizational filters
+        if org_filters.get("branch_id"):
+            reports_qs = reports_qs.filter(branch_id=org_filters["branch_id"])
+        if org_filters.get("block_id"):
+            reports_qs = reports_qs.filter(block_id=org_filters["block_id"])
+        if org_filters.get("department_id"):
+            reports_qs = reports_qs.filter(department_id=org_filters["department_id"])
+
+        # Filter to active organizational units
+        reports_qs = reports_qs.filter(
+            branch__is_active=True,
+            block__is_active=True,
+            department__is_active=True
         )
 
-        report = base_qs.filter(report_date=bucket_end).first()
+        # Fetch all reports at once
+        all_reports = list(reports_qs)
 
-        if not report:
-            report = base_qs.filter(report_date__range=[bucket_start, bucket_end]).order_by("-report_date").first()
+        # Build lookup structure: {(branch_id, block_id, dept_id): [reports]}
+        reports_by_org = {}
+        for report in all_reports:
+            key = (report.branch_id, report.block_id, report.department_id)
+            if key not in reports_by_org:
+                reports_by_org[key] = []
+            reports_by_org[key].append(report)
 
-        if not report:
+        # Build organizational hierarchy structure: {branch_id: {block_id: [dept_id]}}
+        org_hierarchy = {}
+        branch_names = {}
+        block_names = {}
+        dept_names = {}
+
+        for report in all_reports:
+            # Track names
+            branch_names[report.branch_id] = report.branch.name
+            block_names[report.block_id] = report.block.name
+            dept_names[report.department_id] = report.department.name
+
+            # Build hierarchy
+            if report.branch_id not in org_hierarchy:
+                org_hierarchy[report.branch_id] = {}
+            if report.block_id not in org_hierarchy[report.branch_id]:
+                org_hierarchy[report.branch_id][report.block_id] = set()
+            org_hierarchy[report.branch_id][report.block_id].add(report.department_id)
+
+        # Helper function to get value for a specific bucket and org unit
+        def get_bucket_value(branch_id, block_id, dept_id, bucket_start, bucket_end):
+            key = (branch_id, block_id, dept_id)
+            org_reports = reports_by_org.get(key, [])
+
+            if not org_reports:
+                return 0
+
+            # Try exact match on bucket_end first
+            for report in org_reports:
+                if report.report_date == bucket_end:
+                    return getattr(report, value_field, 0)
+
+            # Fallback to latest report within bucket range
+            bucket_reports = [
+                r for r in org_reports
+                if bucket_start <= r.report_date <= bucket_end
+            ]
+            if bucket_reports:
+                latest = max(bucket_reports, key=lambda r: r.report_date)
+                return getattr(latest, value_field, 0)
+
             return 0
-        return getattr(report, value_field, 0)
 
-    def _build_breakdown_nested_structure(self, buckets, value_field, org_filters):  # noqa: C901
-        """Build nested organizational structure with time-series data."""
-        branches_qs = Branch.objects.filter(is_active=True)
-        if org_filters.get("branch_id"):
-            branches_qs = branches_qs.filter(id=org_filters["branch_id"])
-
+        # Build the nested structure
         data = []
-        for branch in branches_qs:
-            blocks_qs = Block.objects.filter(branch=branch, is_active=True)
-            if org_filters.get("block_id"):
-                blocks_qs = blocks_qs.filter(id=org_filters["block_id"])
-
+        for branch_id in sorted(org_hierarchy.keys()):
             branch_stats = [0] * len(buckets)
             block_children = []
-            for block in blocks_qs:
-                depts_qs = Department.objects.filter(block=block, is_active=True)
-                if org_filters.get("department_id"):
-                    depts_qs = depts_qs.filter(id=org_filters["department_id"])
 
+            for block_id in sorted(org_hierarchy[branch_id].keys()):
                 block_stats = [0] * len(buckets)
                 dept_children = []
-                for dept in depts_qs:
+
+                for dept_id in sorted(org_hierarchy[branch_id][block_id]):
                     dept_stats = []
                     for __, bucket_start, bucket_end in buckets:
-                        value = self._get_bucket_value(
-                            branch.id, block.id, dept.id, bucket_start, bucket_end, value_field
-                        )
+                        value = get_bucket_value(branch_id, block_id, dept_id, bucket_start, bucket_end)
                         dept_stats.append(value)
-                    dept_children.append({"type": "department", "name": dept.name, "statistics": dept_stats})
+
+                    dept_children.append({
+                        "type": "department",
+                        "name": dept_names[dept_id],
+                        "statistics": dept_stats
+                    })
+
+                    # Aggregate to block level
                     for i, val in enumerate(dept_stats):
                         block_stats[i] += val
 
                 if dept_children:
-                    block_children.append(
-                        {"type": "block", "name": block.name, "statistics": block_stats, "children": dept_children}
-                    )
+                    block_children.append({
+                        "type": "block",
+                        "name": block_names[block_id],
+                        "statistics": block_stats,
+                        "children": dept_children
+                    })
+
+                    # Aggregate to branch level
                     for i, val in enumerate(block_stats):
                         branch_stats[i] += val
 
             if block_children:
-                data.append(
-                    {"type": "branch", "name": branch.name, "statistics": branch_stats, "children": block_children}
-                )
+                data.append({
+                    "type": "branch",
+                    "name": branch_names[branch_id],
+                    "statistics": branch_stats,
+                    "children": block_children
+                })
 
         return data
 
