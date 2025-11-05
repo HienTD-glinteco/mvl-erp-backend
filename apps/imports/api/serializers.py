@@ -22,7 +22,7 @@ from apps.imports.models import ImportJob
 
 
 class ImportOptionsSerializer(serializers.Serializer):
-    """Serializer for import options."""
+    """Serializer for import options with strict type validation."""
 
     batch_size = serializers.IntegerField(
         required=False,
@@ -47,10 +47,9 @@ class ImportOptionsSerializer(serializers.Serializer):
             f"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
         ),
     )
-    output_format = serializers.ChoiceField(
+    output_format = serializers.CharField(
         required=False,
         default=DEFAULT_OUTPUT_FORMAT,
-        choices=ALLOWED_OUTPUT_FORMATS,
         help_text=_("Format for result files (default: csv, choices: csv, xlsx)"),
     )
     create_result_file_records = serializers.BooleanField(
@@ -76,11 +75,91 @@ class ImportOptionsSerializer(serializers.Serializer):
         help_text=_("Custom prefix for result files (optional)"),
     )
 
-    def validate_output_format(self, value):
-        """Normalize output_format to lowercase."""
-        if value:
-            return value.lower()
+    def validate_batch_size(self, value):
+        """Validate batch_size with strict type checking."""
+        # Check if the original input was actually an integer
+        if hasattr(self, "initial_data") and self.initial_data and "batch_size" in self.initial_data:
+            original_value = self.initial_data["batch_size"]
+            if not isinstance(original_value, int) or isinstance(original_value, bool):
+                raise serializers.ValidationError(_("batch_size must be an integer"))
         return value
+
+    def validate_count_total_first(self, value):
+        """Validate count_total_first with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "count_total_first" in self.initial_data:
+            original_value = self.initial_data["count_total_first"]
+            if not isinstance(original_value, bool):
+                raise serializers.ValidationError(_("count_total_first must be a boolean"))
+        return value
+
+    def validate_header_rows(self, value):
+        """Validate header_rows with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "header_rows" in self.initial_data:
+            original_value = self.initial_data["header_rows"]
+            if not isinstance(original_value, int) or isinstance(original_value, bool):
+                raise serializers.ValidationError(_("header_rows must be an integer"))
+        return value
+
+    def validate_create_result_file_records(self, value):
+        """Validate create_result_file_records with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "create_result_file_records" in self.initial_data:
+            original_value = self.initial_data["create_result_file_records"]
+            if not isinstance(original_value, bool):
+                raise serializers.ValidationError(_("create_result_file_records must be a boolean"))
+        return value
+
+    def validate_handler_path(self, value):
+        """Validate handler_path with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "handler_path" in self.initial_data:
+            original_value = self.initial_data["handler_path"]
+            if original_value is not None and not isinstance(original_value, str):
+                raise serializers.ValidationError(_("handler_path must be a string or null"))
+        return value
+
+    def validate_handler_options(self, value):
+        """Validate handler_options with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "handler_options" in self.initial_data:
+            original_value = self.initial_data["handler_options"]
+            if not isinstance(original_value, dict):
+                raise serializers.ValidationError(_("handler_options must be a dictionary"))
+        return value
+
+    def validate_result_file_prefix(self, value):
+        """Validate result_file_prefix with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "result_file_prefix" in self.initial_data:
+            original_value = self.initial_data["result_file_prefix"]
+            if not isinstance(original_value, str):
+                raise serializers.ValidationError(_("result_file_prefix must be a string"))
+        return value
+
+    def validate_output_format(self, value):
+        """Validate and normalize output_format to lowercase."""
+        if value:
+            # Normalize to lowercase
+            normalized = value.lower()
+            # Check if it's in the allowed formats
+            if normalized not in ALLOWED_OUTPUT_FORMATS:
+                formats_str = ", ".join(ALLOWED_OUTPUT_FORMATS)
+                raise serializers.ValidationError(
+                    _("output_format must be one of: %(formats)s") % {"formats": formats_str}
+                )
+            return normalized
+        return value
+
+    def validate(self, attrs):
+        """Validate the entire options dict and reject unknown keys."""
+        # Get all known field names
+        known_fields = set(self.fields.keys())
+        # Get all provided keys from initial_data
+        provided_keys = set(self.initial_data.keys()) if hasattr(self, "initial_data") and self.initial_data else set()
+        # Find unknown keys
+        unknown_keys = provided_keys - known_fields
+
+        if unknown_keys:
+            # Raise validation error for unknown keys
+            raise serializers.ValidationError({key: _("Unknown field") for key in unknown_keys})
+
+        return attrs
 
 
 class ImportStartSerializer(serializers.Serializer):
