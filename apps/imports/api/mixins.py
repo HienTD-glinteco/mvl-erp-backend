@@ -13,6 +13,8 @@ from apps.imports.constants import (
     API_MESSAGE_CANCELLED_SUCCESS,
     API_MESSAGE_CANNOT_CANCEL,
     ERROR_MISSING_HANDLER,
+    ERROR_NO_TEMPLATE,
+    FILE_PURPOSE_IMPORT_TEMPLATE,
     STATUS_CANCELLED,
     STATUS_QUEUED,
     STATUS_RUNNING,
@@ -24,6 +26,7 @@ from .serializers import (
     ImportCancelResponseSerializer,
     ImportStartResponseSerializer,
     ImportStartSerializer,
+    ImportTemplateResponseSerializer,
 )
 
 
@@ -166,6 +169,95 @@ class AsyncImportProgressMixin:
             return None
 
         return self.import_row_handler
+
+    def get_import_template_name(self) -> Optional[str]:
+        """
+        Get the template name for template lookup.
+
+        Override this method to provide a custom template name for template files.
+
+        Lookup priority:
+        1. Check if ViewSet has `import_template_name` attribute
+        2. Fall back to default format: {app}_{resource} (e.g., "hrm_employees")
+
+        By default, constructs name from model's app_label and model name.
+
+        Returns:
+            str: Template name for lookup (e.g., "hrm_employees", "crm_customers")
+        """
+        # Check for explicit import_template_name attribute
+        if hasattr(self, "import_template_name") and self.import_template_name:
+            return self.import_template_name
+
+        # Generate default: app_resource format
+        if hasattr(self, "queryset") and self.queryset is not None:
+            app_label = self.queryset.model._meta.app_label
+            model_name = self.queryset.model._meta.model_name
+            return f"{app_label}_{model_name}"
+
+        return None
+
+    @extend_schema(
+        summary="Download import template",
+        description=(
+            "Download the import template file for this resource. "
+            "The template provides the correct format and headers for importing data."
+        ),
+        responses={
+            200: ImportTemplateResponseSerializer,
+            404: OpenApiResponse(description="No template available for this resource"),
+        },
+        tags=["Import"],
+    )
+    @action(detail=False, methods=["get"], url_path="import_template")
+    def import_template(self, request, *args, **kwargs):
+        """
+        Get the import template file for this resource.
+
+        GET /import_template/
+        """
+        # Get template name for lookup
+        template_name = self.get_import_template_name()
+        if not template_name:
+            return Response(
+                {"error": _(ERROR_NO_TEMPLATE)},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Look up the most recent template file matching the template name
+        try:
+            template_file = (
+                FileModel.objects.filter(
+                    purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
+                    file_name__istartswith=template_name,
+                    is_confirmed=True,
+                )
+                .order_by("-created_at")
+                .first()
+            )
+
+            if not template_file:
+                return Response(
+                    {"error": _(ERROR_NO_TEMPLATE)},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Return template file information with download URL
+            response_data = {
+                "file_id": template_file.id,
+                "file_name": template_file.file_name,
+                "download_url": template_file.download_url,
+                "size": template_file.size,
+                "created_at": template_file.created_at.isoformat(),
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class AsyncImportCancelMixin:
