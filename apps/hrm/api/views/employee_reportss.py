@@ -28,8 +28,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
     pagination_class = None
 
-    def _generate_time_buckets_for_week(self, from_date: str, to_date: str) -> list[str, date, date]:
-        buckets: list[str, date, date] = []
+    def _generate_time_buckets_for_week(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
+        buckets: list[tuple[str, date, date]] = []
 
         current = from_date - timedelta(days=from_date.weekday())
         while current <= to_date:
@@ -42,8 +42,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return buckets
 
-    def _generate_time_buckets_for_month(self, from_date: str, to_date: str) -> list[str, date, date]:
-        buckets: list[str, date, date] = []
+    def _generate_time_buckets_for_month(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
+        buckets: list[tuple[str, date, date]] = []
 
         year, month = from_date.year, from_date.month
         while True:
@@ -66,8 +66,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return buckets
 
-    def _generate_time_buckets_for_quarter(self, from_date: str, to_date: str) -> list[str, date, date]:
-        buckets: list[str, date, date] = []
+    def _generate_time_buckets_for_quarter(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
+        buckets: list[tuple[str, date, date]] = []
 
         year, quarter = from_date.year, (from_date.month - 1) // 3 + 1
         while True:
@@ -92,8 +92,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return buckets
 
-    def _generate_time_buckets_for_year(self, from_date: str, to_date: str) -> list[str, date, date]:
-        buckets: list[str, date, date] = []
+    def _generate_time_buckets_for_year(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
+        buckets: list[tuple[str, date, date]] = []
 
         year = from_date.year
         while True:
@@ -109,7 +109,7 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         return buckets
 
-    def _generate_time_buckets(self, period_type: str, from_date: str, to_date: str) -> list[str, date, date]:
+    def _generate_time_buckets(self, period_type: str, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
         """Generate time buckets based on period type.
 
         Returns list of tuples (bucket_label, bucket_start, bucket_end) where dates are clipped to [from_date, to_date].
@@ -150,7 +150,7 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
                 report_date__in=bucket_dates, branch__is_active=True, block__is_active=True, department__is_active=True
             )
             .select_related("branch", "block", "department")
-            .only("branch", "block", "department", value_field)
+            .only("branch", "block", "department", value_field, "report_date")
             .order_by("report_date")
         )
 
@@ -165,16 +165,16 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         # Fetch all reports at once
         all_reports = list(reports_qs)
 
-        # Build structures in a single pass using defaultdict
-        reports_by_org = defaultdict(list)
+        # Build structures and value lookup in a single pass
+        reports_by_org_date = {}  # {(branch_id, block_id, dept_id, date): report}
         org_hierarchy = defaultdict(lambda: defaultdict(set))
         branch_names = {}
         block_names = {}
         dept_names = {}
 
         for report in all_reports:
-            key = (report.branch_id, report.block_id, report.department_id)
-            reports_by_org[key].append(report)
+            key = (report.branch_id, report.block_id, report.department_id, report.report_date)
+            reports_by_org_date[key] = report
 
             # Track names
             branch_names[report.branch_id] = report.branch.name
@@ -184,36 +184,42 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             # Build hierarchy
             org_hierarchy[report.branch_id][report.block_id].add(report.department_id)
 
-        # Build lookup dict for quick access: {(branch_id, block_id, dept_id, bucket_end): value}
-        value_lookup = {}
-        for key, reports in reports_by_org.items():
-            for __, bucket_start, bucket_end in buckets:
-                # Try exact match on bucket_end first
-                exact_match = next((r for r in reports if r.report_date == bucket_end), None)
-                if exact_match:
-                    value_lookup[key + (bucket_end,)] = getattr(exact_match, value_field, 0)
-                else:
-                    # Fallback to latest report within bucket range
-                    bucket_reports = [r for r in reports if bucket_start <= r.report_date <= bucket_end]
-                    if bucket_reports:
-                        latest = max(bucket_reports, key=lambda r: r.report_date)
-                        value_lookup[key + (bucket_end,)] = getattr(latest, value_field, 0)
+        # Helper to get value for a bucket
+        def get_value(branch_id, block_id, dept_id, bucket_start, bucket_end):
+            # Try exact match on bucket_end first
+            key = (branch_id, block_id, dept_id, bucket_end)
+            if key in reports_by_org_date:
+                return getattr(reports_by_org_date[key], value_field, 0)
+
+            # Fallback: find latest date within bucket range
+            latest_date = None
+            for report_date in bucket_dates:
+                if bucket_start <= report_date <= bucket_end:
+                    test_key = (branch_id, block_id, dept_id, report_date)
+                    if test_key in reports_by_org_date:
+                        if latest_date is None or report_date > latest_date:
+                            latest_date = report_date
+
+            if latest_date:
+                key = (branch_id, block_id, dept_id, latest_date)
+                return getattr(reports_by_org_date[key], value_field, 0)
+
+            return 0
 
         # Build the nested structure
         data = []
-        for branch_id in org_hierarchy.keys():
+        for branch_id in sorted(org_hierarchy.keys()):
             branch_stats = [0] * len(buckets)
             block_children = []
 
-            for block_id in org_hierarchy[branch_id].keys():
+            for block_id in sorted(org_hierarchy[branch_id].keys()):
                 block_stats = [0] * len(buckets)
                 dept_children = []
 
-                for dept_id in org_hierarchy[branch_id][block_id]:
+                for dept_id in sorted(org_hierarchy[branch_id][block_id]):
                     dept_stats = []
-                    for __, __, bucket_end in buckets:
-                        key = (branch_id, block_id, dept_id, bucket_end)
-                        value = value_lookup.get(key, 0)
+                    for __, bucket_start, bucket_end in buckets:
+                        value = get_value(branch_id, block_id, dept_id, bucket_start, bucket_end)
                         dept_stats.append(value)
 
                     dept_children.append({"type": "department", "name": dept_names[dept_id], "statistics": dept_stats})
