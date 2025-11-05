@@ -74,6 +74,11 @@ class ImportOptionsSerializer(serializers.Serializer):
         allow_blank=False,
         help_text=_("Custom prefix for result files (optional)"),
     )
+    allow_update = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text=_("Allow updating existing records during import (default: false)"),
+    )
 
     def validate_batch_size(self, value):
         """Validate batch_size with strict type checking."""
@@ -130,6 +135,14 @@ class ImportOptionsSerializer(serializers.Serializer):
             original_value = self.initial_data["result_file_prefix"]
             if not isinstance(original_value, str):
                 raise serializers.ValidationError(_("result_file_prefix must be a string"))
+        return value
+
+    def validate_allow_update(self, value):
+        """Validate allow_update with strict type checking."""
+        if hasattr(self, "initial_data") and self.initial_data and "allow_update" in self.initial_data:
+            original_value = self.initial_data["allow_update"]
+            if not isinstance(original_value, bool):
+                raise serializers.ValidationError(_("allow_update must be a boolean"))
         return value
 
     def validate_output_format(self, value):

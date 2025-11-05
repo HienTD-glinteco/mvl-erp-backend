@@ -239,6 +239,32 @@ class TestImportOptionsSerializerValidation:
         serializer = ImportOptionsSerializer(data={"result_file_prefix": 123})
         assert not serializer.is_valid()
 
+    def test_validate_options_allow_update_valid(self):
+        """Test valid allow_update values."""
+        # Test True
+        serializer = ImportOptionsSerializer(data={"allow_update": True})
+        assert serializer.is_valid()
+        validated = serializer.validated_data
+        assert validated["allow_update"] is True
+
+        # Test False
+        serializer = ImportOptionsSerializer(data={"allow_update": False})
+        assert serializer.is_valid()
+        validated = serializer.validated_data
+        assert validated["allow_update"] is False
+
+    def test_validate_options_allow_update_invalid_type(self):
+        """Test that non-boolean allow_update is rejected."""
+        serializer = ImportOptionsSerializer(data={"allow_update": "true"})
+        assert not serializer.is_valid()
+
+    def test_validate_options_allow_update_default(self):
+        """Test that allow_update defaults to False."""
+        serializer = ImportOptionsSerializer(data={})
+        assert serializer.is_valid()
+        validated = serializer.validated_data
+        assert validated["allow_update"] is False
+
     def test_validate_options_multiple_keys(self):
         """Test validation with multiple option keys."""
         options = {
@@ -250,6 +276,7 @@ class TestImportOptionsSerializerValidation:
             "handler_path": "apps.test.handler",
             "handler_options": {"key": "value"},
             "result_file_prefix": "test/",
+            "allow_update": True,
         }
 
         serializer = ImportOptionsSerializer(data=options)
@@ -264,6 +291,7 @@ class TestImportOptionsSerializerValidation:
         assert validated["handler_path"] == "apps.test.handler"
         assert validated["handler_options"] == {"key": "value"}
         assert validated["result_file_prefix"] == "test/"
+        assert validated["allow_update"] is True
 
     def test_validate_options_not_dict(self):
         """Test that non-dict options value is rejected at the parent serializer level."""

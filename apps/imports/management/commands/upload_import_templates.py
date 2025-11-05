@@ -17,24 +17,26 @@ User = get_user_model()
 
 class Command(BaseCommand):
     """
-    Upload import template files from apps/*/import_templates/ directories to S3.
+    Upload import template files from apps/*/fixtures/import_templates/ directories to S3.
 
-    The command automatically scans all apps for import_templates/ subdirectories
+    The command automatically scans all apps for fixtures/import_templates/ subdirectories
     and uploads template files found there, automatically prefixing each file
     with the app name.
 
     Directory structure:
         apps/
             hrm/
-                import_templates/
-                    employees_template.csv      -> uploaded as hrm_employees_template.csv
-                    departments_template.xlsx   -> uploaded as hrm_departments_template.xlsx
+                fixtures/
+                    import_templates/
+                        employees_template.csv      -> uploaded as hrm_employees_template.csv
+                        departments_template.xlsx   -> uploaded as hrm_departments_template.xlsx
             crm/
-                import_templates/
-                    customers_template.csv      -> uploaded as crm_customers_template.csv
+                fixtures/
+                    import_templates/
+                        customers_template.csv      -> uploaded as crm_customers_template.csv
             ...
 
-    File naming convention in import_templates/:
+    File naming convention in fixtures/import_templates/:
         {resource}_template.{ext}
 
     Examples:
@@ -43,7 +45,7 @@ class Command(BaseCommand):
         users_template.csv
     """
 
-    help = "Upload import template files from apps/*/import_templates/ directories to S3"
+    help = "Upload import template files from apps/*/fixtures/import_templates/ directories to S3"
 
     def add_arguments(self, parser):
         """Add command arguments."""
@@ -93,16 +95,16 @@ class Command(BaseCommand):
             except User.DoesNotExist:
                 raise CommandError(f"User with ID {user_id} does not exist")
 
-        # Find template files from apps/*/import_templates/ directories
+        # Find template files from apps/*/fixtures/import_templates/ directories
         template_files = self._find_template_files_in_apps(app_filter)
         if not template_files:
             if app_filter:
                 self.stdout.write(
-                    self.style.WARNING(f"No template files found in apps/{app_filter}/import_templates/")
+                    self.style.WARNING(f"No template files found in apps/{app_filter}/fixtures/import_templates/")
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("No template files found in any apps/*/import_templates/ directories")
+                    self.style.WARNING("No template files found in any apps/*/fixtures/import_templates/ directories")
                 )
             return
 

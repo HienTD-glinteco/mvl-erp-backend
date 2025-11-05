@@ -27,20 +27,20 @@ def user(db):
 
 @pytest.fixture
 def mock_apps_structure():
-    """Create a temporary directory structure mimicking apps/*/import_templates/."""
+    """Create a temporary directory structure mimicking apps/*/fixtures/import_templates/."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create apps structure
         apps_dir = Path(tmpdir) / "apps"
         apps_dir.mkdir()
 
-        # Create hrm app with import_templates
-        hrm_dir = apps_dir / "hrm" / "import_templates"
+        # Create hrm app with fixtures/import_templates
+        hrm_dir = apps_dir / "hrm" / "fixtures" / "import_templates"
         hrm_dir.mkdir(parents=True)
         (hrm_dir / "employees_template.csv").write_text("name,email\n")
         (hrm_dir / "departments_template.xlsx").write_bytes(b"fake xlsx")
 
-        # Create crm app with import_templates
-        crm_dir = apps_dir / "crm" / "import_templates"
+        # Create crm app with fixtures/import_templates
+        crm_dir = apps_dir / "crm" / "fixtures" / "import_templates"
         crm_dir.mkdir(parents=True)
         (crm_dir / "customers_template.csv").write_text("name,email\n")
 
