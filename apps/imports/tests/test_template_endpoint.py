@@ -67,8 +67,8 @@ class TestImportTemplateEndpoint:
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
-            def get_import_template_app_name(self):
-                return "hrm"
+            def get_import_template_name(self):
+                return "hrm_employees"
 
         # Create ViewSet instance
         factory = APIRequestFactory()
@@ -97,7 +97,7 @@ class TestImportTemplateEndpoint:
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
-            def get_import_template_app_name(self):
+            def get_import_template_name(self):
                 return "nonexistent"
 
         # Create ViewSet instance
@@ -170,8 +170,8 @@ class TestImportTemplateEndpoint:
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
-            def get_import_template_app_name(self):
-                return "crm"
+            def get_import_template_name(self):
+                return "crm_customers"
 
         # Create ViewSet instance
         factory = APIRequestFactory()
@@ -206,8 +206,8 @@ class TestImportTemplateEndpoint:
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
-            def get_import_template_app_name(self):
-                return "core"
+            def get_import_template_name(self):
+                return "core_users"
 
         # Create ViewSet instance
         factory = APIRequestFactory()
@@ -224,30 +224,30 @@ class TestImportTemplateEndpoint:
         # Verify that no template is found (unconfirmed should be ignored)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_import_template_app_name_from_queryset(self):
-        """Test extracting app name from queryset model."""
+    def test_get_import_template_name_from_queryset(self):
+        """Test extracting template name from queryset model."""
         from rest_framework.viewsets import ModelViewSet
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
         viewset = TestViewSet()
-        app_name = viewset.get_import_template_app_name()
+        template_name = viewset.get_import_template_name()
 
-        # ImportJob model is in the 'imports' app
-        assert app_name == "imports"
+        # ImportJob model is in the 'imports' app, model name is 'importjob'
+        assert template_name == "imports_importjob"
 
-    def test_get_import_template_app_name_custom_override(self):
+    def test_get_import_template_name_custom_override(self):
         """Test custom override of app name."""
         from rest_framework.viewsets import ModelViewSet
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = None
 
-            def get_import_template_app_name(self):
+            def get_import_template_name(self):
                 return "custom_app"
 
         viewset = TestViewSet()
-        app_name = viewset.get_import_template_app_name()
+        app_name = viewset.get_import_template_name()
 
         assert app_name == "custom_app"

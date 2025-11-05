@@ -170,18 +170,31 @@ class AsyncImportProgressMixin:
 
         return self.import_row_handler
 
-    def get_import_template_app_name(self) -> Optional[str]:
+    def get_import_template_name(self) -> Optional[str]:
         """
-        Get the app name for template lookup.
+        Get the template name for template lookup.
 
-        Override this method to provide a custom app name for template files.
-        By default, extracts app name from the model's app_label.
+        Override this method to provide a custom template name for template files.
+
+        Lookup priority:
+        1. Check if ViewSet has `import_template_name` attribute
+        2. Fall back to default format: {app}_{resource} (e.g., "hrm_employees")
+
+        By default, constructs name from model's app_label and model name.
 
         Returns:
-            str: App name for template lookup (e.g., "hrm", "crm")
+            str: Template name for lookup (e.g., "hrm_employees", "crm_customers")
         """
+        # Check for explicit import_template_name attribute
+        if hasattr(self, "import_template_name") and self.import_template_name:
+            return self.import_template_name
+
+        # Generate default: app_resource format
         if hasattr(self, "queryset") and self.queryset is not None:
-            return self.queryset.model._meta.app_label
+            app_label = self.queryset.model._meta.app_label
+            model_name = self.queryset.model._meta.model_name
+            return f"{app_label}_{model_name}"
+
         return None
 
     @extend_schema(
@@ -203,20 +216,20 @@ class AsyncImportProgressMixin:
 
         GET /import_template/
         """
-        # Get app name for template lookup
-        app_name = self.get_import_template_app_name()
-        if not app_name:
+        # Get template name for lookup
+        template_name = self.get_import_template_name()
+        if not template_name:
             return Response(
                 {"error": _(ERROR_NO_TEMPLATE)},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Look up the most recent template file for this app
+        # Look up the most recent template file matching the template name
         try:
             template_file = (
                 FileModel.objects.filter(
                     purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
-                    file_name__istartswith=app_name,
+                    file_name__istartswith=template_name,
                     is_confirmed=True,
                 )
                 .order_by("-created_at")

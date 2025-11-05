@@ -16,32 +16,41 @@ User = get_user_model()
 
 class Command(BaseCommand):
     """
-    Upload import template files from a directory structure to S3 and create FileModel records.
+    Upload import template files from apps/*/import_templates/ directories to S3.
+
+    The command automatically scans all apps for import_templates/ subdirectories
+    and uploads template files found there, automatically prefixing each file
+    with the app name.
 
     Directory structure:
-        templates/
-            hrm_employees_template.csv
-            hrm_departments_template.xlsx
-            crm_customers_template.csv
+        apps/
+            hrm/
+                import_templates/
+                    employees_template.csv      -> uploaded as hrm_employees_template.csv
+                    departments_template.xlsx   -> uploaded as hrm_departments_template.xlsx
+            crm/
+                import_templates/
+                    customers_template.csv      -> uploaded as crm_customers_template.csv
             ...
 
-    File naming convention:
-        {app_name}_{resource}_template.{ext}
+    File naming convention in import_templates/:
+        {resource}_template.{ext}
 
     Examples:
-        hrm_employees_template.csv
-        crm_customers_template.xlsx
-        core_users_template.csv
+        employees_template.csv
+        customers_template.xlsx
+        users_template.csv
     """
 
-    help = "Upload import template files from a directory to S3"
+    help = "Upload import template files from apps/*/import_templates/ directories to S3"
 
     def add_arguments(self, parser):
         """Add command arguments."""
         parser.add_argument(
-            "directory",
+            "--app",
             type=str,
-            help="Path to the directory containing template files",
+            default=None,
+            help="Process only specific app (e.g., 'hrm', 'crm'). If not provided, scans all apps.",
         )
         parser.add_argument(
             "--user-id",
@@ -63,23 +72,16 @@ class Command(BaseCommand):
         parser.add_argument(
             "--replace",
             action="store_true",
-            help="Replace existing templates for the same app (archives old ones)",
+            help="Replace existing templates (archives old ones)",
         )
 
     def handle(self, *args, **options):  # noqa: C901
         """Handle the command execution."""
-        directory = options["directory"]
+        app_filter = options.get("app")
         user_id = options.get("user_id")
         s3_prefix = options["s3_prefix"]
         dry_run = options["dry_run"]
         replace = options["replace"]
-
-        # Validate directory
-        if not os.path.exists(directory):
-            raise CommandError(f"Directory does not exist: {directory}")
-
-        if not os.path.isdir(directory):
-            raise CommandError(f"Path is not a directory: {directory}")
 
         # Get user if specified
         uploaded_by = None
@@ -90,15 +92,22 @@ class Command(BaseCommand):
             except User.DoesNotExist:
                 raise CommandError(f"User with ID {user_id} does not exist")
 
-        # Find template files
-        template_files = self._find_template_files(directory)
+        # Find template files from apps/*/import_templates/ directories
+        template_files = self._find_template_files_in_apps(app_filter)
         if not template_files:
-            self.stdout.write(self.style.WARNING("No template files found in directory"))
+            if app_filter:
+                self.stdout.write(
+                    self.style.WARNING(f"No template files found in apps/{app_filter}/import_templates/")
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING("No template files found in any apps/*/import_templates/ directories")
+                )
             return
 
         self.stdout.write(f"Found {len(template_files)} template file(s):")
-        for template_path, app_name in template_files:
-            self.stdout.write(f"  - {template_path.name} (app: {app_name})")
+        for template_path, app_name, final_name in template_files:
+            self.stdout.write(f"  - {template_path.name} -> {final_name} (app: {app_name})")
 
         if dry_run:
             self.stdout.write(self.style.WARNING("\nDry run mode - no files will be uploaded"))
@@ -109,14 +118,16 @@ class Command(BaseCommand):
         replaced_count = 0
         s3_service = S3FileUploadService()
 
-        for template_path, app_name in template_files:
+        for template_path, app_name, final_name in template_files:
             try:
                 with transaction.atomic():
-                    # Handle replacement
+                    # Handle replacement - look for templates with the same final name prefix
                     if replace:
+                        # Extract the template name without extension for matching
+                        template_name_base = final_name.rsplit("_template.", 1)[0]
                         existing = FileModel.objects.filter(
                             purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
-                            file_name__istartswith=app_name,
+                            file_name__istartswith=template_name_base,
                             is_confirmed=True,
                         )
                         if existing.exists():
@@ -125,7 +136,7 @@ class Command(BaseCommand):
                             existing.update(is_confirmed=False)
                             self.stdout.write(
                                 self.style.WARNING(
-                                    f"  Archived {existing.count()} existing template(s) for app: {app_name}"
+                                    f"  Archived {existing.count()} existing template(s): {template_name_base}"
                                 )
                             )
 
@@ -133,21 +144,20 @@ class Command(BaseCommand):
                     with open(template_path, "rb") as f:
                         file_content = f.read()
 
-                    # Generate S3 path
-                    file_name = template_path.name
-                    s3_path = f"{s3_prefix}{file_name}"
+                    # Generate S3 path with final name
+                    s3_path = f"{s3_prefix}{final_name}"
 
                     # Upload to S3
                     s3_service.upload_file(
                         file_content=file_content,
                         s3_path=s3_path,
-                        content_type=self._get_content_type(file_name),
+                        content_type=self._get_content_type(final_name),
                     )
 
                     # Create FileModel record
                     file_obj = FileModel.objects.create(
                         purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
-                        file_name=file_name,
+                        file_name=final_name,
                         file_path=s3_path,
                         size=len(file_content),
                         is_confirmed=True,
@@ -155,7 +165,7 @@ class Command(BaseCommand):
                     )
 
                     uploaded_count += 1
-                    self.stdout.write(self.style.SUCCESS(f"  ✓ Uploaded: {file_name} (FileModel ID: {file_obj.id})"))
+                    self.stdout.write(self.style.SUCCESS(f"  ✓ Uploaded: {final_name} (FileModel ID: {file_obj.id})"))
 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"  ✗ Failed to upload {template_path.name}: {e}"))
@@ -168,31 +178,50 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"Replaced {replaced_count} existing template(s)"))
         self.stdout.write("=" * 60)
 
-    def _find_template_files(self, directory):
+    def _find_template_files_in_apps(self, app_filter=None):
         """
-        Find all template files in the directory.
+        Find all template files in apps/*/import_templates/ directories.
+
+        Args:
+            app_filter: If provided, only scan this specific app
 
         Returns:
-            List of tuples: (Path, app_name)
+            List of tuples: (Path, app_name, final_name)
+            Where final_name is the filename with app prefix (e.g., hrm_employees_template.csv)
         """
         template_files = []
-        dir_path = Path(directory)
 
-        for file_path in dir_path.glob("*_template.*"):
-            if file_path.is_file():
-                # Extract app name from filename
-                # Format: {app_name}_{resource}_template.{ext}
-                file_name = file_path.stem  # Remove extension
-                parts = file_name.split("_")
+        # Get the base directory (assumes command is run from project root)
+        base_dir = Path(os.getcwd())
+        apps_dir = base_dir / "apps"
 
-                if len(parts) >= 2:
-                    # First part is the app name
-                    app_name = parts[0]
-                    template_files.append((file_path, app_name))
-                else:
-                    self.stdout.write(
-                        self.style.WARNING(f"Skipping file with invalid naming convention: {file_path.name}")
-                    )
+        if not apps_dir.exists():
+            self.stdout.write(self.style.WARNING(f"Apps directory not found: {apps_dir}"))
+            return template_files
+
+        # Determine which apps to scan
+        if app_filter:
+            app_dirs = [apps_dir / app_filter]
+        else:
+            # Scan all subdirectories in apps/
+            app_dirs = [d for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith("_")]
+
+        for app_dir in app_dirs:
+            app_name = app_dir.name
+            import_templates_dir = app_dir / "import_templates"
+
+            if not import_templates_dir.exists():
+                continue
+
+            # Find all template files in this app's import_templates directory
+            for file_path in import_templates_dir.glob("*_template.*"):
+                if file_path.is_file():
+                    # Generate final name with app prefix
+                    # e.g., employees_template.csv -> hrm_employees_template.csv
+                    file_name = file_path.name
+                    final_name = f"{app_name}_{file_name}"
+
+                    template_files.append((file_path, app_name, final_name))
 
         return template_files
 

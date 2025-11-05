@@ -5,7 +5,6 @@ from rest_framework import serializers
 
 from apps.files.models import FileModel
 from apps.imports.constants import (
-    ALLOWED_OPTION_KEYS,
     ALLOWED_OUTPUT_FORMATS,
     DEFAULT_BATCH_SIZE,
     DEFAULT_COUNT_TOTAL_FIRST,
@@ -14,13 +13,74 @@ from apps.imports.constants import (
     DEFAULT_OUTPUT_FORMAT,
     ERROR_FILE_NOT_CONFIRMED,
     ERROR_FILE_NOT_FOUND,
-    ERROR_INVALID_OPTION_KEY,
     MAX_BATCH_SIZE,
     MAX_HEADER_ROWS,
     MIN_BATCH_SIZE,
     MIN_HEADER_ROWS,
 )
 from apps.imports.models import ImportJob
+
+
+class ImportOptionsSerializer(serializers.Serializer):
+    """Serializer for import options."""
+
+    batch_size = serializers.IntegerField(
+        required=False,
+        default=DEFAULT_BATCH_SIZE,
+        min_value=MIN_BATCH_SIZE,
+        max_value=MAX_BATCH_SIZE,
+        help_text=_(
+            f"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+        ),
+    )
+    count_total_first = serializers.BooleanField(
+        required=False,
+        default=DEFAULT_COUNT_TOTAL_FIRST,
+        help_text=_("Whether to count total rows before processing (default: true)"),
+    )
+    header_rows = serializers.IntegerField(
+        required=False,
+        default=DEFAULT_HEADER_ROWS,
+        min_value=MIN_HEADER_ROWS,
+        max_value=MAX_HEADER_ROWS,
+        help_text=_(
+            f"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
+        ),
+    )
+    output_format = serializers.ChoiceField(
+        required=False,
+        default=DEFAULT_OUTPUT_FORMAT,
+        choices=ALLOWED_OUTPUT_FORMATS,
+        help_text=_("Format for result files (default: csv, choices: csv, xlsx)"),
+    )
+    create_result_file_records = serializers.BooleanField(
+        required=False,
+        default=DEFAULT_CREATE_RESULT_FILE_RECORDS,
+        help_text=_("Create FileModel records for result files (default: true)"),
+    )
+    handler_path = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=False,
+        default=None,
+        help_text=_("Override handler path (optional)"),
+    )
+    handler_options = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text=_("Custom options for handler (default: {})"),
+    )
+    result_file_prefix = serializers.CharField(
+        required=False,
+        allow_blank=False,
+        help_text=_("Custom prefix for result files (optional)"),
+    )
+
+    def validate_output_format(self, value):
+        """Normalize output_format to lowercase."""
+        if value:
+            return value.lower()
+        return value
 
 
 class ImportStartSerializer(serializers.Serializer):
@@ -30,16 +90,10 @@ class ImportStartSerializer(serializers.Serializer):
         required=True,
         help_text=_("ID of the confirmed FileModel to import"),
     )
-    options = serializers.JSONField(
+    options = ImportOptionsSerializer(
         required=False,
         default=dict,
-        help_text=_(
-            "Import options: batch_size (int, 1-100000, default 500), "
-            "count_total_first (bool, default true), header_rows (int, 0-100, default 1), "
-            "output_format (csv|xlsx, default csv), create_result_file_records (bool, default true), "
-            "handler_path (str|null, optional), handler_options (dict, default {}), "
-            "result_file_prefix (str, optional)"
-        ),
+        help_text=_("Import options for controlling the import process"),
     )
     async_field = serializers.BooleanField(
         required=False,
@@ -59,122 +113,6 @@ class ImportStartSerializer(serializers.Serializer):
             raise serializers.ValidationError(_(ERROR_FILE_NOT_CONFIRMED))
 
         return value
-
-    def validate_options(self, value):  # noqa: C901
-        """Validate the options parameter with strict key and value validation."""
-        if not isinstance(value, dict):
-            raise serializers.ValidationError(_("Options must be a dictionary"))
-
-        # Check for unknown keys
-        unknown_keys = set(value.keys()) - ALLOWED_OPTION_KEYS
-        if unknown_keys:
-            allowed_keys_str = ", ".join(sorted(ALLOWED_OPTION_KEYS))
-            raise serializers.ValidationError(
-                _(ERROR_INVALID_OPTION_KEY.format(key=", ".join(unknown_keys), allowed_keys=allowed_keys_str))
-            )
-
-        # Validate and set defaults for each option
-        validated_options = self._validate_batch_size(value)
-        validated_options.update(self._validate_count_total_first(value))
-        validated_options.update(self._validate_header_rows(value))
-        validated_options.update(self._validate_output_format(value))
-        validated_options.update(self._validate_create_result_file_records(value))
-        validated_options.update(self._validate_handler_path(value))
-        validated_options.update(self._validate_handler_options(value))
-        validated_options.update(self._validate_result_file_prefix(value))
-
-        return validated_options
-
-    def _validate_batch_size(self, value):
-        """Validate batch_size option."""
-        if "batch_size" in value:
-            batch_size = value["batch_size"]
-            if not isinstance(batch_size, int):
-                raise serializers.ValidationError(_("batch_size must be an integer"))
-            if batch_size < MIN_BATCH_SIZE or batch_size > MAX_BATCH_SIZE:
-                raise serializers.ValidationError(
-                    _("batch_size must be between %(min)s and %(max)s")
-                    % {"min": MIN_BATCH_SIZE, "max": MAX_BATCH_SIZE}
-                )
-            return {"batch_size": batch_size}
-        return {"batch_size": DEFAULT_BATCH_SIZE}
-
-    def _validate_count_total_first(self, value):
-        """Validate count_total_first option."""
-        if "count_total_first" in value:
-            count_total_first = value["count_total_first"]
-            if not isinstance(count_total_first, bool):
-                raise serializers.ValidationError(_("count_total_first must be a boolean"))
-            return {"count_total_first": count_total_first}
-        return {"count_total_first": DEFAULT_COUNT_TOTAL_FIRST}
-
-    def _validate_header_rows(self, value):
-        """Validate header_rows option."""
-        if "header_rows" in value:
-            header_rows = value["header_rows"]
-            if not isinstance(header_rows, int):
-                raise serializers.ValidationError(_("header_rows must be an integer"))
-            if header_rows < MIN_HEADER_ROWS or header_rows > MAX_HEADER_ROWS:
-                raise serializers.ValidationError(
-                    _("header_rows must be between %(min)s and %(max)s")
-                    % {"min": MIN_HEADER_ROWS, "max": MAX_HEADER_ROWS}
-                )
-            return {"header_rows": header_rows}
-        return {"header_rows": DEFAULT_HEADER_ROWS}
-
-    def _validate_output_format(self, value):
-        """Validate output_format option."""
-        if "output_format" in value:
-            output_format = value["output_format"]
-            if not isinstance(output_format, str):
-                raise serializers.ValidationError(_("output_format must be a string"))
-            output_format_lower = output_format.lower()
-            if output_format_lower not in ALLOWED_OUTPUT_FORMATS:
-                formats_str = ", ".join(ALLOWED_OUTPUT_FORMATS)
-                raise serializers.ValidationError(
-                    _("output_format must be one of: %(formats)s") % {"formats": formats_str}
-                )
-            return {"output_format": output_format_lower}
-        return {"output_format": DEFAULT_OUTPUT_FORMAT}
-
-    def _validate_create_result_file_records(self, value):
-        """Validate create_result_file_records option."""
-        if "create_result_file_records" in value:
-            create_result_file_records = value["create_result_file_records"]
-            if not isinstance(create_result_file_records, bool):
-                raise serializers.ValidationError(_("create_result_file_records must be a boolean"))
-            return {"create_result_file_records": create_result_file_records}
-        return {"create_result_file_records": DEFAULT_CREATE_RESULT_FILE_RECORDS}
-
-    def _validate_handler_path(self, value):
-        """Validate handler_path option."""
-        if "handler_path" in value:
-            handler_path = value["handler_path"]
-            if handler_path is not None:
-                if not isinstance(handler_path, str):
-                    raise serializers.ValidationError(_("handler_path must be a string or null"))
-                if not handler_path.strip():
-                    raise serializers.ValidationError(_("handler_path cannot be an empty string"))
-            return {"handler_path": handler_path}
-        return {}
-
-    def _validate_handler_options(self, value):
-        """Validate handler_options option."""
-        if "handler_options" in value:
-            handler_options = value["handler_options"]
-            if not isinstance(handler_options, dict):
-                raise serializers.ValidationError(_("handler_options must be a dictionary"))
-            return {"handler_options": handler_options}
-        return {"handler_options": {}}
-
-    def _validate_result_file_prefix(self, value):
-        """Validate result_file_prefix option."""
-        if "result_file_prefix" in value:
-            result_file_prefix = value["result_file_prefix"]
-            if not isinstance(result_file_prefix, str):
-                raise serializers.ValidationError(_("result_file_prefix must be a string"))
-            return {"result_file_prefix": result_file_prefix}
-        return {}
 
 
 class ImportJobSerializer(serializers.ModelSerializer):
