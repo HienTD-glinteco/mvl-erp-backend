@@ -21,7 +21,7 @@ class ImportStartSerializer(serializers.Serializer):
     options = serializers.JSONField(
         required=False,
         default=dict,
-        help_text=_("Import options including batch_size, handler_path, etc."),
+        help_text=_("Import options including allow_update, batch_size, handler_path, etc."),
     )
     async_field = serializers.BooleanField(
         required=False,

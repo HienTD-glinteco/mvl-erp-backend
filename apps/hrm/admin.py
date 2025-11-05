@@ -84,6 +84,11 @@ class OrganizationChartAdmin(admin.ModelAdmin):
     ]
 
 
+@admin.register(Employee)
+class EmployeeAdmin(admin.ModelAdmin):
+    list_display = ["code", "fullname", "username", "email", "status", "phone", "start_date"]
+
+
 admin.site.register(Block)
 admin.site.register(Bank)
 admin.site.register(BankAccount)
@@ -91,7 +96,7 @@ admin.site.register(Branch)
 admin.site.register(Department)
 admin.site.register(RecruitmentChannel)
 admin.site.register(RecruitmentSource)
-admin.site.register(Employee)
+
 admin.site.register(EmployeeCertificate)
 admin.site.register(EmployeeDependent)
 admin.site.register(EmployeeRelationship)

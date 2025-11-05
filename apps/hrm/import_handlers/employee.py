@@ -735,7 +735,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             }
 
         # Check if employee already exists and skip if allow_update is False
-        allow_update = options.get("allow_update", True)
+        allow_update = options.get("allow_update", False)
         if not allow_update:
             # Check if employee with this code already exists
             if Employee.objects.filter(code=code).exists():
@@ -798,8 +798,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             # Prioritize status code mapping first
             if status_raw in STATUS_CODE_MAPPING:
                 status = STATUS_CODE_MAPPING[status_raw]
+
             # Only check contract type mapping if status code is W (Working/Active)
-            elif status_raw == "w" and contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
+            if status_raw == "w" and contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
                 status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
 
             if status:
