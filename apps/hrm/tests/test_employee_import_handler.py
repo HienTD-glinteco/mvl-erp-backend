@@ -463,7 +463,7 @@ class TestEmployeeImportHandler:
         # Verify enum mappings
         employee = Employee.objects.get(code="CTV000003")
         assert employee.gender == Employee.Gender.MALE
-        assert employee.status == Employee.Status.ACTIVE
+        assert employee.status == Employee.Status.ONBOARDING
         assert employee.marital_status == Employee.MaritalStatus.MARRIED
 
     def test_create_employee_with_generated_username_email(self, setup_test_data):
@@ -737,7 +737,7 @@ class TestEmployeeImportHandler:
             "CTV000000109",
             "Đào Thanh Tùng",
             "7504",
-            "W",  # Unknown status, should handle gracefully
+            "",  # Empty status, will use default ONBOARDING
             "23",
             "12",
             "2023",

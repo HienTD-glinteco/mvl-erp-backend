@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 17:52+0700\n"
+"POT-Creation-Date: 2025-11-05 19:49+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,8 +23,18 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:225
+#: apps/hrm/api/serializers/employee.py:226
 msgid "An employee with this attendance code already exists."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:265
+#: apps/hrm/api/serializers/employee.py:280
+msgid "Employee is already Active."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:299
+#: apps/hrm/api/serializers/employee.py:319
+msgid "Employee is already in a resigned status."
 msgstr ""
 
 #: apps/hrm/api/serializers/employee_role.py:74
@@ -606,7 +616,7 @@ msgstr ""
 msgid "Banks"
 msgstr ""
 
-#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:326
+#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:331
 #: apps/hrm/models/employee_certificate.py:53
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
@@ -812,14 +822,18 @@ msgid "Status"
 msgstr ""
 
 #: apps/hrm/models/employee.py:187
-msgid "Resignation date"
+msgid "Resignation start date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:194
+#: apps/hrm/models/employee.py:192
+msgid "Resignation end date"
+msgstr ""
+
+#: apps/hrm/models/employee.py:199
 msgid "Resignation reason"
 msgstr ""
 
-#: apps/hrm/models/employee.py:196 apps/hrm/models/employee_dependent.py:109
+#: apps/hrm/models/employee.py:201 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
@@ -829,108 +843,118 @@ msgstr ""
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:202 apps/hrm/models/employee_dependent.py:71
+#: apps/hrm/models/employee.py:207 apps/hrm/models/employee_dependent.py:71
 #: apps/hrm/models/employee_relationship.py:92
 msgid "Date of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:208
+#: apps/hrm/models/employee.py:213
 msgid "Gender"
 msgstr ""
 
-#: apps/hrm/models/employee.py:214
+#: apps/hrm/models/employee.py:219
 msgid "Marital status"
 msgstr ""
 
-#: apps/hrm/models/employee.py:222
+#: apps/hrm/models/employee.py:227
 msgid "Nationality"
 msgstr ""
 
-#: apps/hrm/models/employee.py:227
+#: apps/hrm/models/employee.py:232
 msgid "Ethnicity"
 msgstr ""
 
-#: apps/hrm/models/employee.py:232
+#: apps/hrm/models/employee.py:237
 msgid "Religion"
 msgstr ""
 
-#: apps/hrm/models/employee.py:240 apps/hrm/models/employee_dependent.py:79
+#: apps/hrm/models/employee.py:245 apps/hrm/models/employee_dependent.py:79
 #: apps/hrm/models/employee_relationship.py:100
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr ""
 
-#: apps/hrm/models/employee.py:245
+#: apps/hrm/models/employee.py:250
 msgid "Citizen ID issued date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:250
+#: apps/hrm/models/employee.py:255
 msgid "Citizen ID issued place"
 msgstr ""
 
-#: apps/hrm/models/employee.py:255 apps/hrm/models/employee_dependent.py:93
+#: apps/hrm/models/employee.py:260 apps/hrm/models/employee_dependent.py:93
 #: apps/hrm/models/employee_relationship.py:114
 msgid "Tax code"
 msgstr ""
 
-#: apps/hrm/models/employee.py:261
+#: apps/hrm/models/employee.py:266
 msgid "Phone number must be exactly 10 digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:262 apps/hrm/models/organization.py:21
+#: apps/hrm/models/employee.py:267 apps/hrm/models/organization.py:21
 msgid "Phone number"
 msgstr ""
 
-#: apps/hrm/models/employee.py:268
+#: apps/hrm/models/employee.py:273
 msgid "Personal email"
 msgstr ""
 
-#: apps/hrm/models/employee.py:275
+#: apps/hrm/models/employee.py:280
 msgid "Place of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:280
+#: apps/hrm/models/employee.py:285
 msgid "Residential address"
 msgstr ""
 
-#: apps/hrm/models/employee.py:285
+#: apps/hrm/models/employee.py:290
 msgid "Permanent address"
 msgstr ""
 
-#: apps/hrm/models/employee.py:292
+#: apps/hrm/models/employee.py:297
 msgid "Emergency contact name"
 msgstr ""
 
-#: apps/hrm/models/employee.py:297
+#: apps/hrm/models/employee.py:302
 msgid "Phone number must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:298
+#: apps/hrm/models/employee.py:303
 msgid "Emergency contact phone"
 msgstr ""
 
-#: apps/hrm/models/employee.py:308
+#: apps/hrm/models/employee.py:313
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:312
+#: apps/hrm/models/employee.py:317
 msgid "Is onboarding email sent"
 msgstr ""
 
-#: apps/hrm/models/employee.py:322 apps/hrm/models/recruitment_candidate.py:129
+#: apps/hrm/models/employee.py:327 apps/hrm/models/recruitment_candidate.py:129
 msgid "Recruitment Candidate"
 msgstr ""
 
-#: apps/hrm/models/employee.py:327
+#: apps/hrm/models/employee.py:332
 msgid "Employees"
 msgstr ""
 
-#: apps/hrm/models/employee.py:375
-msgid "Resignation date is required when status is Resigned."
+#: apps/hrm/models/employee.py:373
+msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr ""
 
-#: apps/hrm/models/employee.py:378
+#: apps/hrm/models/employee.py:392
+msgid ""
+"Resignation start date is required when changing status to Resigned, "
+"Maternity Leave, or Unpaid Leave."
+msgstr ""
+
+#: apps/hrm/models/employee.py:399
 msgid "Resignation reason is required when status is Resigned."
+msgstr ""
+
+#: apps/hrm/models/employee.py:404
+msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 
 #: apps/hrm/models/employee_certificate.py:28

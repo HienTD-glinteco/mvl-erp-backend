@@ -178,13 +178,18 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     status = models.CharField(
         max_length=50,
         choices=Status.choices,
-        default=Status.ACTIVE,
+        default=Status.ONBOARDING,
         verbose_name=_("Status"),
     )
-    resignation_date = models.DateField(
+    resignation_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Resignation date"),
+        verbose_name=_("Resignation start date"),
+    )
+    resignation_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Resignation end date"),
     )
     resignation_reason = models.CharField(
         max_length=50,
@@ -334,6 +339,10 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             )
         ]
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.old_status = self.status
+
     def __str__(self):
         return f"{self.code} - {self.fullname}"
 
@@ -355,6 +364,51 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         self.clean()
         super().save(*args, **kwargs)
 
+    def _clean_working_statuses(self):
+        working_statuses = [self.Status.ACTIVE, self.Status.ONBOARDING]
+
+        if self.status in working_statuses:
+            if self.status == self.Status.ONBOARDING and self.old_status != self.Status.ONBOARDING:
+                raise ValidationError(
+                    {"status": _("Cannot change status back to On-boarding for an existing employee.")}
+                )
+
+            self.resignation_start_date = None
+            self.resignation_end_date = None
+            self.resignation_reason = None
+
+    def _clean_resigned_statuses(self):
+        resigned_statuses = [
+            self.Status.RESIGNED,
+            self.Status.MATERNITY_LEAVE,
+            self.Status.UNPAID_LEAVE,
+        ]
+
+        if self.status in resigned_statuses:
+            if not self.resignation_start_date:
+                raise ValidationError(
+                    {
+                        "resignation_start_date": _(
+                            "Resignation start date is required when changing status to Resigned, Maternity Leave, or Unpaid Leave."
+                        )
+                    }
+                )
+
+            if self.status == self.Status.RESIGNED and not self.resignation_reason:
+                raise ValidationError(
+                    {"resignation_reason": _("Resignation reason is required when status is Resigned.")}
+                )
+
+            if self.status == self.Status.MATERNITY_LEAVE and not self.resignation_end_date:
+                raise ValidationError(
+                    {"resignation_end_date": _("Resignation end date is required when status is Maternity Leave.")}
+                )
+
+    def _clean_status(self):
+        """Clean and validate status-related fields before saving."""
+        self._clean_working_statuses()
+        self._clean_resigned_statuses()
+
     def clean(self):
         """Validate employee data.
 
@@ -362,21 +416,16 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         - Block belongs to the selected Branch
         - Department belongs to the selected Block
         - Department belongs to the selected Branch
-        - Resignation date and reason are provided when status is Resigned
+        - Status cannot be reverted to On-boarding for existing employees
+        - `resignation_start_date` is only set for RESIGNED, MATERNITY_LEAVE, UNPAID_LEAVE statuses
+        - `resignation_end_date` is only set for MATERNITY_LEAVE status
 
         Raises:
             ValidationError: If any validation constraint is violated
         """
         super().clean()
 
-        # Validate resignation fields
-        if self.status == self.Status.RESIGNED:
-            if not self.resignation_date:
-                raise ValidationError({"resignation_date": _("Resignation date is required when status is Resigned.")})
-            if not self.resignation_reason:
-                raise ValidationError(
-                    {"resignation_reason": _("Resignation reason is required when status is Resigned.")}
-                )
+        self._clean_status()
 
     @property
     def colored_code_type(self):

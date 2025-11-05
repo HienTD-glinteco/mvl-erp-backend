@@ -1,11 +1,19 @@
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
-from apps.hrm.api.serializers import EmployeeSerializer
+from apps.hrm.api.serializers import (
+    EmployeeActiveActionSerializer,
+    EmployeeMaternityLeaveActionSerializer,
+    EmployeeReactiveActionSerializer,
+    EmployeeResignedActionSerializer,
+    EmployeeSerializer,
+)
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
 from apps.imports.api.mixins import AsyncImportProgressMixin
@@ -70,6 +78,81 @@ class EmployeeViewSet(
 
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.employee.import_handler"  # type: ignore[assignment]
+
+    def get_serializer_class(self):
+        if self.action == "active":
+            return EmployeeActiveActionSerializer
+        if self.action == "reactive":
+            return EmployeeReactiveActionSerializer
+        if self.action == "resigned":
+            return EmployeeResignedActionSerializer
+        if self.action == "maternity_leave":
+            return EmployeeMaternityLeaveActionSerializer
+        return super().get_serializer_class()
+
+    @extend_schema(
+        summary="Active an employee",
+        request=EmployeeActiveActionSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def active(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
+
+    @extend_schema(
+        summary="Reactive an employee",
+        request=EmployeeReactiveActionSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def reactive(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
+
+    @extend_schema(
+        summary="Resign an employee",
+        request=EmployeeResignedActionSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def resigned(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
+
+    @extend_schema(
+        summary="Set employee to maternity leave",
+        request=EmployeeMaternityLeaveActionSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def maternity_leave(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
 
     @extend_schema(
         summary="Preview welcome email for employee",

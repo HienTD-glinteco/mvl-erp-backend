@@ -138,7 +138,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "start_date",
             "status",
             "colored_status",
-            "resignation_date",
+            "resignation_start_date",
+            "resignation_end_date",
             "resignation_reason",
             "note",
             "date_of_birth",
@@ -225,3 +226,103 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             raise serializers.ValidationError(_("An employee with this attendance code already exists."))
 
         return value
+
+
+class EmployeeBaseStatusActionSerializer(serializers.Serializer):
+    """Base serializer for employee actions."""
+
+    start_date = serializers.DateField(required=True)
+    description = serializers.CharField(max_length=100, required=False)
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.employee: Employee = self.context.get("employee", None)
+        self.employee_update_fields = []
+
+    def _validate_employee(self):
+        try:
+            self.employee.clean()
+        except DjangoValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
+
+    def validate(self, attrs):
+        self._validate_employee()
+        return attrs
+
+    def save(self, **kwargs):
+        self.employee.save(update_fields=self.employee_update_fields)
+
+
+class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
+    """Serializer for the 'active' action."""
+
+    def validate(self, attrs):
+        if self.employee.status == Employee.Status.ACTIVE:
+            raise serializers.ValidationError({"status": _("Employee is already Active.")})
+
+        self.employee.start_date = attrs["start_date"]
+        self.employee.status = Employee.Status.ACTIVE
+        self.employee_update_fields.extend(["start_date", "status"])
+        return super().validate(attrs)
+
+
+class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
+    """Serializer for the 'reactive' action."""
+
+    is_seniority_retained = serializers.BooleanField(default=False, required=False)
+
+    def validate(self, attrs):
+        if self.employee.status == Employee.Status.ACTIVE:
+            raise serializers.ValidationError({"status": _("Employee is already Active.")})
+
+        self.employee.start_date = attrs["start_date"]
+        self.employee.status = Employee.Status.ACTIVE
+        self.employee_update_fields.extend(["start_date", "status"])
+        return super().validate(attrs)
+
+
+class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
+    """Serializer for the 'resigned' action."""
+
+    resignation_reason = serializers.ChoiceField(choices=Employee.ResignationReason.choices, required=True)
+
+    def validate(self, attrs):
+        if self.employee.status in [
+            Employee.Status.RESIGNED,
+            Employee.Status.UNPAID_LEAVE,
+            Employee.Status.MATERNITY_LEAVE,
+        ]:
+            raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
+
+        self.employee.resignation_start_date = attrs["start_date"]
+        self.employee.status = Employee.Status.RESIGNED
+        self.employee.resignation_reason = attrs["resignation_reason"]
+        self.employee_update_fields.extend(["resignation_start_date", "status", "resignation_reason"])
+        return super().validate(attrs)
+
+
+class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer):
+    """Serializer for the 'maternity_leave' action."""
+
+    end_date = serializers.DateField(required=True)
+
+    def validate(self, attrs):
+        if self.employee.status in [
+            Employee.Status.RESIGNED,
+            Employee.Status.UNPAID_LEAVE,
+            Employee.Status.MATERNITY_LEAVE,
+        ]:
+            raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
+
+        self.employee.resignation_start_date = attrs["start_date"]
+        self.employee.resignation_end_date = attrs["end_date"]
+        self.employee.status = Employee.Status.MATERNITY_LEAVE
+        self.employee.resignation_reason = None
+        self.employee_update_fields.extend(
+            ["resignation_start_date", "status", "resignation_start_date", "resignation_end_date"]
+        )
+        return super().validate(attrs)

@@ -3,7 +3,13 @@ from .attendance_record import AttendanceRecordSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
 from .contract_type import ContractTypeSerializer
-from .employee import EmployeeSerializer
+from .employee import (
+    EmployeeActiveActionSerializer,
+    EmployeeMaternityLeaveActionSerializer,
+    EmployeeReactiveActionSerializer,
+    EmployeeResignedActionSerializer,
+    EmployeeSerializer,
+)
 from .employee_certificate import EmployeeCertificateSerializer
 from .employee_dependent import EmployeeDependentSerializer
 from .employee_relationship import EmployeeRelationshipSerializer
@@ -62,6 +68,10 @@ __all__ = [
     "OrganizationChartDetailSerializer",
     "EmployeeRoleListSerializer",
     "BulkUpdateRoleSerializer",
+    "EmployeeActiveActionSerializer",
+    "EmployeeMaternityLeaveActionSerializer",
+    "EmployeeReactiveActionSerializer",
+    "EmployeeResignedActionSerializer",
     "EmployeeSerializer",
     "EmployeeCertificateSerializer",
     "EmployeeDependentSerializer",

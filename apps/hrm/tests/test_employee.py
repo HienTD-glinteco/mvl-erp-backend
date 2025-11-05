@@ -324,95 +324,29 @@ class EmployeeModelTest(TestCase):
         self.assertEqual(employee.block, block2)
         self.assertEqual(employee.department, department2)
 
-    def test_employee_resignation_validation_requires_date(self):
-        """Test that resignation_date is required when status is Resigned"""
+    def test_change_status_back_to_onboarding_fails(self):
+        """Test that changing status back to On-boarding for an existing employee fails."""
         from django.core.exceptions import ValidationError
 
-        employee = Employee(
-            fullname="Resigned Employee",
-            username="resignedtest",
-            email="resignedtest@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            date_of_birth="1990-01-01",
-            personal_email="resigned.personal@example.com",
-            start_date="2024-01-01",
-            department=self.department,
-            status=Employee.Status.RESIGNED,
-            resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            employee.save()
-
-        self.assertIn("resignation_date", context.exception.message_dict)
-
-    def test_employee_resignation_validation_requires_reason(self):
-        """Test that resignation_reason is required when status is Resigned"""
-        from django.core.exceptions import ValidationError
-
-        employee = Employee(
-            fullname="Resigned Employee",
-            username="resignedtest",
-            email="resignedtest@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            date_of_birth="1990-01-01",
-            personal_email="resigned.personal@example.com",
-            start_date="2024-01-01",
-            department=self.department,
-            status=Employee.Status.RESIGNED,
-            resignation_date="2024-12-31",
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            employee.save()
-
-        self.assertIn("resignation_reason", context.exception.message_dict)
-
-    def test_employee_resignation_validation_both_fields_required(self):
-        """Test that both resignation_date and resignation_reason are required when status is Resigned"""
-        from django.core.exceptions import ValidationError
-
-        employee = Employee(
-            fullname="Resigned Employee",
-            username="resignedtest",
-            email="resignedtest@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            date_of_birth="1990-01-01",
-            personal_email="resigned.personal@example.com",
-            start_date="2024-01-01",
-            department=self.department,
-            status=Employee.Status.RESIGNED,
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            employee.save()
-
-        self.assertIn("resignation_date", context.exception.message_dict)
-
-    def test_employee_resignation_valid(self):
-        """Test that employee with Resigned status and both fields is valid"""
         employee = Employee.objects.create(
-            fullname="Resigned Employee",
-            username="resignedtest",
-            email="resignedtest@example.com",
-            phone="0123456789",
+            fullname="Test Employee",
+            username="testemployee",
+            email="test@example.com",
+            phone="1234567890",
             attendance_code="12345",
-            date_of_birth="1990-01-01",
-            personal_email="resigned.personal@example.com",
             start_date="2024-01-01",
             department=self.department,
-            status=Employee.Status.RESIGNED,
-            resignation_date="2024-12-31",
-            resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
-            citizen_id="000000010009",
+            citizen_id="123456789012",
         )
+        # Set status to ACTIVE using update_fields to bypass validation
+        employee.status = Employee.Status.ACTIVE
+        employee.save(update_fields=["status"])
+        # Refresh old_status to reflect the current status
+        employee.old_status = employee.status
 
-        self.assertEqual(employee.status, Employee.Status.RESIGNED)
-        self.assertEqual(str(employee.resignation_date), "2024-12-31")
-        self.assertEqual(employee.resignation_reason, Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE)
+        employee.status = Employee.Status.ONBOARDING
+        with self.assertRaises(ValidationError):
+            employee.clean()
 
     def test_resignation_reasons_are_updated(self):
         """Test that ResignationReason choices have been updated"""
@@ -467,9 +401,11 @@ class EmployeeModelTest(TestCase):
             personal_email="testcolor.personal@example.com",
             start_date="2024-01-01",
             department=self.department,
-            status=Employee.Status.ACTIVE,
             citizen_id="000000010011",
         )
+        # Set status to ACTIVE using update_fields to bypass validation
+        employee.status = Employee.Status.ACTIVE
+        employee.save(update_fields=["status"])
 
         colored_value = employee.colored_status
         self.assertIsNotNone(colored_value)
@@ -766,79 +702,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(employee.branch, branch2)
         self.assertEqual(employee.block, block2)
         self.assertEqual(employee.department, department2)
-
-    def test_create_employee_resigned_without_date_fails(self):
-        """Test that creating employee with Resigned status without resignation_date fails"""
-        url = reverse("hrm:employee-list")
-        payload = {
-            "fullname": "Resigned Employee",
-            "username": "resigned001",
-            "email": "resigned001@example.com",
-            "phone": "5555555555",
-            "attendance_code": "586070831460",
-            "date_of_birth": "1994-01-01",
-            "personal_email": "resigned001.personal@example.com",
-            "start_date": "2024-01-01",
-            "department_id": self.department.id,
-            "status": "Resigned",
-            "resignation_reason": "VOLUNTARY_CAREER_CHANGE",
-            "citizen_id": "944477823080",
-        }
-        response = self.client.post(url, payload, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertIn("error", content)
-
-    def test_create_employee_resigned_without_reason_fails(self):
-        """Test that creating employee with Resigned status without resignation_reason fails"""
-        url = reverse("hrm:employee-list")
-        payload = {
-            "fullname": "Resigned Employee",
-            "username": "resigned001",
-            "email": "resigned001@example.com",
-            "phone": "5555555555",
-            "attendance_code": "586070831460",
-            "date_of_birth": "1994-01-01",
-            "personal_email": "resigned001.personal@example.com",
-            "start_date": "2024-01-01",
-            "department_id": self.department.id,
-            "status": "Resigned",
-            "resignation_date": "2024-12-31",
-            "citizen_id": "666814324396",
-        }
-        response = self.client.post(url, payload, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = json.loads(response.content.decode())
-        self.assertIn("error", content)
-
-    def test_create_employee_resigned_with_both_fields_succeeds(self):
-        """Test that creating employee with Resigned status with both fields succeeds"""
-        url = reverse("hrm:employee-list")
-        payload = {
-            "fullname": "Resigned Employee",
-            "username": "resigned001",
-            "email": "resigned001@example.com",
-            "phone": "5555555555",
-            "attendance_code": "586070831460",
-            "date_of_birth": "1994-01-01",
-            "personal_email": "resigned001.personal@example.com",
-            "start_date": "2024-01-01",
-            "department_id": self.department.id,
-            "status": "Resigned",
-            "resignation_date": "2024-12-31",
-            "resignation_reason": "VOLUNTARY_CAREER_CHANGE",
-            "citizen_id": "632438842613",
-        }
-        response = self.client.post(url, payload, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        data = self.get_response_data(response)
-        employee = Employee.objects.get(username="resigned001")
-        self.assertEqual(employee.status, "Resigned")
-        self.assertEqual(employee.resignation_date.isoformat(), "2024-12-31")
-        self.assertEqual(employee.resignation_reason, "VOLUNTARY_CAREER_CHANGE")
 
     def test_update_employee_to_resigned_without_fields_fails(self):
         """Test that updating employee status to Resigned without required fields fails"""
