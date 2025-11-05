@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date, timedelta
 
 from django.utils.translation import gettext as _
@@ -130,8 +131,6 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         Optimized to fetch only necessary dates and build structure in a single pass.
         """
-        from collections import defaultdict
-
         if not buckets:
             return []
 
@@ -146,9 +145,14 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
                 current += timedelta(days=1)
 
         # Single query to fetch only relevant report dates with related objects
-        reports_qs = EmployeeStatusBreakdownReport.objects.filter(
-            report_date__in=bucket_dates
-        ).select_related('branch', 'block', 'department')
+        reports_qs = (
+            EmployeeStatusBreakdownReport.objects.filter(
+                report_date__in=bucket_dates, branch__is_active=True, block__is_active=True, department__is_active=True
+            )
+            .select_related("branch", "block", "department")
+            .only("branch", "block", "department", value_field)
+            .order_by("report_date")
+        )
 
         # Apply organizational filters
         if org_filters.get("branch_id"):
@@ -157,13 +161,6 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             reports_qs = reports_qs.filter(block_id=org_filters["block_id"])
         if org_filters.get("department_id"):
             reports_qs = reports_qs.filter(department_id=org_filters["department_id"])
-
-        # Filter to active organizational units
-        reports_qs = reports_qs.filter(
-            branch__is_active=True,
-            block__is_active=True,
-            department__is_active=True
-        )
 
         # Fetch all reports at once
         all_reports = list(reports_qs)
@@ -204,50 +201,50 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
         # Build the nested structure
         data = []
-        for branch_id in sorted(org_hierarchy.keys()):
+        for branch_id in org_hierarchy.keys():
             branch_stats = [0] * len(buckets)
             block_children = []
 
-            for block_id in sorted(org_hierarchy[branch_id].keys()):
+            for block_id in org_hierarchy[branch_id].keys():
                 block_stats = [0] * len(buckets)
                 dept_children = []
 
-                for dept_id in sorted(org_hierarchy[branch_id][block_id]):
+                for dept_id in org_hierarchy[branch_id][block_id]:
                     dept_stats = []
-                    for bucket_idx, (__, __, bucket_end) in enumerate(buckets):
+                    for __, __, bucket_end in buckets:
                         key = (branch_id, block_id, dept_id, bucket_end)
                         value = value_lookup.get(key, 0)
                         dept_stats.append(value)
 
-                    dept_children.append({
-                        "type": "department",
-                        "name": dept_names[dept_id],
-                        "statistics": dept_stats
-                    })
+                    dept_children.append({"type": "department", "name": dept_names[dept_id], "statistics": dept_stats})
 
                     # Aggregate to block level
                     for i, val in enumerate(dept_stats):
                         block_stats[i] += val
 
                 if dept_children:
-                    block_children.append({
-                        "type": "block",
-                        "name": block_names[block_id],
-                        "statistics": block_stats,
-                        "children": dept_children
-                    })
+                    block_children.append(
+                        {
+                            "type": "block",
+                            "name": block_names[block_id],
+                            "statistics": block_stats,
+                            "children": dept_children,
+                        }
+                    )
 
                     # Aggregate to branch level
                     for i, val in enumerate(block_stats):
                         branch_stats[i] += val
 
             if block_children:
-                data.append({
-                    "type": "branch",
-                    "name": branch_names[branch_id],
-                    "statistics": branch_stats,
-                    "children": block_children
-                })
+                data.append(
+                    {
+                        "type": "branch",
+                        "name": branch_names[branch_id],
+                        "statistics": branch_stats,
+                        "children": block_children,
+                    }
+                )
 
         return data
 
