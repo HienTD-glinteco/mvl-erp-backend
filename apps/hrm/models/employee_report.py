@@ -1,13 +1,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
 
 from .organization import Block, Branch, Department
 
 
-@audit_logging_register
 class EmployeeStatusBreakdownReport(BaseModel):
     """Daily employee status breakdown report.
 

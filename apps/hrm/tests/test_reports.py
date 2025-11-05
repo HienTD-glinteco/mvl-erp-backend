@@ -4,6 +4,7 @@ import json
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.test import TransactionTestCase
 from django.urls import reverse
 from rest_framework import status
@@ -109,8 +110,6 @@ class EmployeeStatusBreakdownReportModelTest(TransactionTestCase):
         )
 
         # Act & Assert
-        from django.db import IntegrityError
-
         with self.assertRaises(IntegrityError):
             EmployeeStatusBreakdownReport.objects.create(
                 report_date=date(2025, 11, 1),
@@ -141,12 +140,6 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
-        EmployeeStatusBreakdownReport.objects.all().delete()
-        Department.objects.all().delete()
-        Block.objects.all().delete()
-        Branch.objects.all().delete()
-        User.objects.all().delete()
-
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
@@ -214,7 +207,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -271,7 +264,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API
-        url = reverse("hrm:recruitment-reports-employee-resigned-breakdown")
+        url = reverse("hrm:employee-reports-employee-resigned-breakdown")
         response = self.client.get(
             url,
             {
@@ -325,7 +318,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API for October
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -363,7 +356,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API for October (target would be Oct 31)
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -390,7 +383,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API for Oct-Nov (Nov has no data)
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -420,7 +413,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API for Q4
-        url = reverse("hrm:recruitment-reports-employee-resigned-breakdown")
+        url = reverse("hrm:employee-reports-employee-resigned-breakdown")
         response = self.client.get(
             url,
             {
@@ -448,7 +441,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Call the API for 2025
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -467,7 +460,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
     def test_missing_required_params(self):
         """Test that missing required parameters return validation error"""
         # Act: Call API without required params
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(url, {"period_type": "week"})
 
         # Assert
@@ -488,7 +481,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
@@ -544,7 +537,7 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Act: Filter by first branch
-        url = reverse("hrm:recruitment-reports-employee-status-breakdown")
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
         response = self.client.get(
             url,
             {
