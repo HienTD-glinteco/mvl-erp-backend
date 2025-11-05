@@ -34,18 +34,6 @@ from ..serializers.recruitment_reports import (
     StaffGrowthReportParametersSerializer,
 )
 
-# API documentation constants
-API_EMPLOYEE_STATUS_BREAKDOWN_SUMMARY = "Employee Status Breakdown Report"
-API_EMPLOYEE_STATUS_BREAKDOWN_DESCRIPTION = (
-    "Aggregate employee headcount data (total_not_resigned) by time period and organizational hierarchy. "
-    "Returns time-series data with branch > block > department nesting."
-)
-API_EMPLOYEE_RESIGNED_BREAKDOWN_SUMMARY = "Employee Resigned Breakdown Report"
-API_EMPLOYEE_RESIGNED_BREAKDOWN_DESCRIPTION = (
-    "Aggregate resigned employee count (count_resigned) by time period and organizational hierarchy. "
-    "Returns time-series data with branch > block > department nesting."
-)
-
 
 class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     """

@@ -128,18 +128,26 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
     def _build_breakdown_nested_structure(self, buckets, value_field, org_filters):  # noqa: C901
         """Build nested organizational structure with time-series data.
 
-        Optimized to use a single query to fetch all report data, then build the structure in memory.
+        Optimized to fetch only necessary dates and build structure in a single pass.
         """
-        # Build date range for the entire query period
+        from collections import defaultdict
+
         if not buckets:
             return []
 
-        min_date = min(bucket_start for __, bucket_start, __ in buckets)
-        max_date = max(bucket_end for __, __, bucket_end in buckets)
+        # Collect all bucket end dates (target dates for lookup)
+        bucket_dates = {bucket_end for __, __, bucket_end in buckets}
 
-        # Single query to fetch all relevant report data with related objects
+        # Add all dates within each bucket range for fallback
+        for __, bucket_start, bucket_end in buckets:
+            current = bucket_start
+            while current <= bucket_end:
+                bucket_dates.add(current)
+                current += timedelta(days=1)
+
+        # Single query to fetch only relevant report dates with related objects
         reports_qs = EmployeeStatusBreakdownReport.objects.filter(
-            report_date__range=[min_date, max_date]
+            report_date__in=bucket_dates
         ).select_related('branch', 'block', 'department')
 
         # Apply organizational filters
@@ -160,56 +168,39 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         # Fetch all reports at once
         all_reports = list(reports_qs)
 
-        # Build lookup structure: {(branch_id, block_id, dept_id): [reports]}
-        reports_by_org = {}
-        for report in all_reports:
-            key = (report.branch_id, report.block_id, report.department_id)
-            if key not in reports_by_org:
-                reports_by_org[key] = []
-            reports_by_org[key].append(report)
-
-        # Build organizational hierarchy structure: {branch_id: {block_id: [dept_id]}}
-        org_hierarchy = {}
+        # Build structures in a single pass using defaultdict
+        reports_by_org = defaultdict(list)
+        org_hierarchy = defaultdict(lambda: defaultdict(set))
         branch_names = {}
         block_names = {}
         dept_names = {}
 
         for report in all_reports:
+            key = (report.branch_id, report.block_id, report.department_id)
+            reports_by_org[key].append(report)
+
             # Track names
             branch_names[report.branch_id] = report.branch.name
             block_names[report.block_id] = report.block.name
             dept_names[report.department_id] = report.department.name
 
             # Build hierarchy
-            if report.branch_id not in org_hierarchy:
-                org_hierarchy[report.branch_id] = {}
-            if report.block_id not in org_hierarchy[report.branch_id]:
-                org_hierarchy[report.branch_id][report.block_id] = set()
             org_hierarchy[report.branch_id][report.block_id].add(report.department_id)
 
-        # Helper function to get value for a specific bucket and org unit
-        def get_bucket_value(branch_id, block_id, dept_id, bucket_start, bucket_end):
-            key = (branch_id, block_id, dept_id)
-            org_reports = reports_by_org.get(key, [])
-
-            if not org_reports:
-                return 0
-
-            # Try exact match on bucket_end first
-            for report in org_reports:
-                if report.report_date == bucket_end:
-                    return getattr(report, value_field, 0)
-
-            # Fallback to latest report within bucket range
-            bucket_reports = [
-                r for r in org_reports
-                if bucket_start <= r.report_date <= bucket_end
-            ]
-            if bucket_reports:
-                latest = max(bucket_reports, key=lambda r: r.report_date)
-                return getattr(latest, value_field, 0)
-
-            return 0
+        # Build lookup dict for quick access: {(branch_id, block_id, dept_id, bucket_end): value}
+        value_lookup = {}
+        for key, reports in reports_by_org.items():
+            for __, bucket_start, bucket_end in buckets:
+                # Try exact match on bucket_end first
+                exact_match = next((r for r in reports if r.report_date == bucket_end), None)
+                if exact_match:
+                    value_lookup[key + (bucket_end,)] = getattr(exact_match, value_field, 0)
+                else:
+                    # Fallback to latest report within bucket range
+                    bucket_reports = [r for r in reports if bucket_start <= r.report_date <= bucket_end]
+                    if bucket_reports:
+                        latest = max(bucket_reports, key=lambda r: r.report_date)
+                        value_lookup[key + (bucket_end,)] = getattr(latest, value_field, 0)
 
         # Build the nested structure
         data = []
@@ -223,8 +214,9 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
 
                 for dept_id in sorted(org_hierarchy[branch_id][block_id]):
                     dept_stats = []
-                    for __, bucket_start, bucket_end in buckets:
-                        value = get_bucket_value(branch_id, block_id, dept_id, bucket_start, bucket_end)
+                    for bucket_idx, (__, __, bucket_end) in enumerate(buckets):
+                        key = (branch_id, block_id, dept_id, bucket_end)
+                        value = value_lookup.get(key, 0)
                         dept_stats.append(value)
 
                     dept_children.append({
