@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -8,8 +9,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from apps.hrm.constants import RecruitmentSourceType, ReportPeriodType
+from apps.hrm.constants import ExtendedReportPeriodType, RecruitmentSourceType, ReportPeriodType
 from apps.hrm.models import (
+    EmployeeStatusBreakdownReport,
     HiredCandidateReport,
     RecruitmentChannelReport,
     RecruitmentCostReport,
@@ -20,6 +22,8 @@ from apps.hrm.models import (
 from apps.hrm.utils import get_current_month_range, get_current_week_range
 
 from ..serializers.recruitment_reports import (
+    EmployeeCountBreakdownReportParamsSerializer,
+    EmployeeStatusBreakdownReportAggregatedSerializer,
     HiredCandidateReportAggregatedSerializer,
     HiredCandidateReportParametersSerializer,
     RecruitmentChannelReportAggregatedSerializer,
@@ -32,6 +36,18 @@ from ..serializers.recruitment_reports import (
     ReferralCostReportParametersSerializer,
     StaffGrowthReportAggregatedSerializer,
     StaffGrowthReportParametersSerializer,
+)
+
+# API documentation constants
+API_EMPLOYEE_STATUS_BREAKDOWN_SUMMARY = "Employee Status Breakdown Report"
+API_EMPLOYEE_STATUS_BREAKDOWN_DESCRIPTION = (
+    "Aggregate employee headcount data (total_not_resigned) by time period and organizational hierarchy. "
+    "Returns time-series data with branch > block > department nesting."
+)
+API_EMPLOYEE_RESIGNED_BREAKDOWN_SUMMARY = "Employee Resigned Breakdown Report"
+API_EMPLOYEE_RESIGNED_BREAKDOWN_DESCRIPTION = (
+    "Aggregate resigned employee count (count_resigned) by time period and organizational hierarchy. "
+    "Returns time-series data with branch > block > department nesting."
 )
 
 
@@ -882,3 +898,327 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
             "statistics": block_stats,
             "children": block_children,
         }, block_stats
+
+    def _generate_time_buckets(self, period_type, from_date, to_date):  # noqa: C901
+        """Generate time buckets based on period type.
+
+        Returns list of tuples (bucket_label, bucket_start, bucket_end) where dates are clipped to [from_date, to_date].
+        """
+        from django.utils.translation import gettext as translate
+
+        buckets = []
+        if period_type == ExtendedReportPeriodType.WEEK.value:
+            current = from_date - timedelta(days=from_date.weekday())
+            while current <= to_date:
+                week_start = max(current, from_date)
+                week_end = min(current + timedelta(days=6), to_date)
+                iso_year, iso_week, iso_weekday = week_start.isocalendar()
+                label = f"{translate('Week')} {iso_week}/{iso_year}"
+                buckets.append((label, week_start, week_end))
+                current += timedelta(days=7)
+        elif period_type == ExtendedReportPeriodType.MONTH.value:
+            year, month = from_date.year, from_date.month
+            while True:
+                month_start = max(date(year, month, 1), from_date)
+                if month == 12:
+                    month_end = min(date(year + 1, 1, 1) - timedelta(days=1), to_date)
+                else:
+                    month_end = min(date(year, month + 1, 1) - timedelta(days=1), to_date)
+                if month_start > to_date:
+                    break
+                label = f"{translate('Month')} {month:02d}/{year}"
+                buckets.append((label, month_start, month_end))
+                if month == 12:
+                    year += 1
+                    month = 1
+                else:
+                    month += 1
+        elif period_type == ExtendedReportPeriodType.QUARTER.value:
+            year, quarter = from_date.year, (from_date.month - 1) // 3 + 1
+            while True:
+                q_start_month = (quarter - 1) * 3 + 1
+                q_end_month = quarter * 3
+                quarter_start = max(date(year, q_start_month, 1), from_date)
+                if q_end_month == 12:
+                    quarter_end = min(date(year + 1, 1, 1) - timedelta(days=1), to_date)
+                else:
+                    quarter_end = min(date(year, q_end_month + 1, 1) - timedelta(days=1), to_date)
+                if quarter_start > to_date:
+                    break
+                label = f"{translate('Quarter')} {quarter}/{year}"
+                buckets.append((label, quarter_start, quarter_end))
+                if quarter == 4:
+                    year += 1
+                    quarter = 1
+                else:
+                    quarter += 1
+        elif period_type == ExtendedReportPeriodType.YEAR.value:
+            year = from_date.year
+            while True:
+                year_start = max(date(year, 1, 1), from_date)
+                year_end = min(date(year, 12, 31), to_date)
+                if year_start > to_date:
+                    break
+                label = f"{translate('Year')} {year}"
+                buckets.append((label, year_start, year_end))
+                year += 1
+        return buckets
+
+    def _get_bucket_value(self, branch_id, block_id, dept_id, bucket_start, bucket_end, value_field):
+        """Get value for a specific bucket using target date fallback logic.
+
+        1. Try target_date = bucket_end
+        2. Fallback to latest record within bucket
+        3. Return 0 if no data
+        """
+        target_date = bucket_end
+        try:
+            report = EmployeeStatusBreakdownReport.objects.get(
+                branch_id=branch_id,
+                block_id=block_id,
+                department_id=dept_id,
+                report_date=target_date,
+            )
+            return getattr(report, value_field, 0)
+        except EmployeeStatusBreakdownReport.DoesNotExist:
+            latest_report = (
+                EmployeeStatusBreakdownReport.objects.filter(
+                    branch_id=branch_id,
+                    block_id=block_id,
+                    department_id=dept_id,
+                    report_date__range=[bucket_start, bucket_end],
+                )
+                .order_by("-report_date")
+                .first()
+            )
+            if latest_report:
+                return getattr(latest_report, value_field, 0)
+            return 0
+
+    def _build_breakdown_nested_structure(self, buckets, value_field, org_filters):  # noqa: C901
+        """Build nested organizational structure with time-series data."""
+        from apps.hrm.models import Block, Branch, Department
+
+        branches_qs = Branch.objects.filter(is_active=True)
+        if org_filters.get("branch_id"):
+            branches_qs = branches_qs.filter(id=org_filters["branch_id"])
+
+        data = []
+        for branch in branches_qs:
+            blocks_qs = Block.objects.filter(branch=branch, is_active=True)
+            if org_filters.get("block_id"):
+                blocks_qs = blocks_qs.filter(id=org_filters["block_id"])
+
+            branch_stats = [0 for bucket_item in buckets]
+            block_children = []
+            for block in blocks_qs:
+                depts_qs = Department.objects.filter(block=block, is_active=True)
+                if org_filters.get("department_id"):
+                    depts_qs = depts_qs.filter(id=org_filters["department_id"])
+
+                block_stats = [0 for bucket_item in buckets]
+                dept_children = []
+                for dept in depts_qs:
+                    dept_stats = []
+                    for bucket_label, bucket_start, bucket_end in buckets:
+                        value = self._get_bucket_value(branch.id, block.id, dept.id, bucket_start, bucket_end, value_field)
+                        dept_stats.append(value)
+                    dept_children.append(
+                        {
+                            "type": "department",
+                            "name": dept.name,
+                            "statistics": dept_stats,
+                        }
+                    )
+                    for i, val in enumerate(dept_stats):
+                        block_stats[i] += val
+
+                if dept_children:
+                    block_children.append(
+                        {
+                            "type": "block",
+                            "name": block.name,
+                            "statistics": block_stats,
+                            "children": dept_children,
+                        }
+                    )
+                    for i, val in enumerate(block_stats):
+                        branch_stats[i] += val
+
+            if block_children:
+                data.append(
+                    {
+                        "type": "branch",
+                        "name": branch.name,
+                        "statistics": branch_stats,
+                        "children": block_children,
+                    }
+                )
+
+        return data
+
+    @extend_schema(
+        operation_id="hrm_reports_employee_status_breakdown_retrieve",
+        summary=API_EMPLOYEE_STATUS_BREAKDOWN_SUMMARY,
+        description=API_EMPLOYEE_STATUS_BREAKDOWN_DESCRIPTION,
+        parameters=[EmployeeCountBreakdownReportParamsSerializer],
+        responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "time_headers": ["Week 43/2025", "Week 44/2025", "Week 45/2025", "Average"],
+                        "data": [
+                            {
+                                "type": "branch",
+                                "name": "Branch A",
+                                "statistics": [120, 125, 127, 124.00],
+                                "children": [
+                                    {
+                                        "type": "block",
+                                        "name": "Block X",
+                                        "statistics": [80, 82, 83, 81.67],
+                                        "children": [
+                                            {"type": "department", "name": "Dept 1", "statistics": [30, 31, 32, 31.00]}
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error",
+                value={"success": False, "data": None, "error": {"from_date": ["This field is required."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="employee-status-breakdown")
+    def employee_status_breakdown(self, request):
+        """Aggregate employee headcount (total_not_resigned) by time period and organizational hierarchy."""
+        param_serializer = EmployeeCountBreakdownReportParamsSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+
+        period_type = params["period_type"]
+        from_date = params["from_date"]
+        to_date = params["to_date"]
+
+        buckets = self._generate_time_buckets(period_type, from_date, to_date)
+        org_filters = {}
+        if params.get("branch"):
+            org_filters["branch_id"] = params["branch"]
+        if params.get("block"):
+            org_filters["block_id"] = params["block"]
+        if params.get("department"):
+            org_filters["department_id"] = params["department"]
+
+        data = self._build_breakdown_nested_structure(buckets, "total_not_resigned", org_filters)
+
+        time_headers = [label for label, bucket_start, bucket_end in buckets]
+        for branch_item in data:
+            avg = round(sum(branch_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+            branch_item["statistics"].append(float(avg))
+            for block_item in branch_item.get("children", []):
+                avg = round(sum(block_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+                block_item["statistics"].append(float(avg))
+                for dept_item in block_item.get("children", []):
+                    avg = round(sum(dept_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+                    dept_item["statistics"].append(float(avg))
+
+        time_headers.append(_("Average"))
+
+        result = {"time_headers": time_headers, "data": data}
+        serializer = EmployeeStatusBreakdownReportAggregatedSerializer(result)
+        return Response(serializer.data)
+
+    @extend_schema(
+        operation_id="hrm_reports_employee_resigned_breakdown_retrieve",
+        summary=API_EMPLOYEE_RESIGNED_BREAKDOWN_SUMMARY,
+        description=API_EMPLOYEE_RESIGNED_BREAKDOWN_DESCRIPTION,
+        parameters=[EmployeeCountBreakdownReportParamsSerializer],
+        responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "time_headers": ["Month 10/2025", "Month 11/2025", "Average"],
+                        "data": [
+                            {
+                                "type": "branch",
+                                "name": "Branch A",
+                                "statistics": [5, 8, 6.50],
+                                "children": [
+                                    {
+                                        "type": "block",
+                                        "name": "Block X",
+                                        "statistics": [3, 5, 4.00],
+                                        "children": [
+                                            {"type": "department", "name": "Dept 1", "statistics": [2, 3, 2.50]}
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error",
+                value={"success": False, "data": None, "error": {"to_date": ["This field is required."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="employee-resigned-breakdown")
+    def employee_resigned_breakdown(self, request):
+        """Aggregate resigned employee count (count_resigned) by time period and organizational hierarchy."""
+        param_serializer = EmployeeCountBreakdownReportParamsSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+        params = param_serializer.validated_data
+
+        period_type = params["period_type"]
+        from_date = params["from_date"]
+        to_date = params["to_date"]
+
+        buckets = self._generate_time_buckets(period_type, from_date, to_date)
+        org_filters = {}
+        if params.get("branch"):
+            org_filters["branch_id"] = params["branch"]
+        if params.get("block"):
+            org_filters["block_id"] = params["block"]
+        if params.get("department"):
+            org_filters["department_id"] = params["department"]
+
+        data = self._build_breakdown_nested_structure(buckets, "count_resigned", org_filters)
+
+        time_headers = [label for label, bucket_start, bucket_end in buckets]
+        for branch_item in data:
+            avg = round(sum(branch_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+            branch_item["statistics"].append(float(avg))
+            for block_item in branch_item.get("children", []):
+                avg = round(sum(block_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+                block_item["statistics"].append(float(avg))
+                for dept_item in block_item.get("children", []):
+                    avg = round(sum(dept_item["statistics"]) / len(buckets), 2) if buckets else 0.0
+                    dept_item["statistics"].append(float(avg))
+
+        time_headers.append(_("Average"))
+
+        result = {"time_headers": time_headers, "data": data}
+        serializer = EmployeeStatusBreakdownReportAggregatedSerializer(result)
+        return Response(serializer.data)

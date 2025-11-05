@@ -40,6 +40,13 @@ class ReportPeriodType(models.TextChoices):
     MONTH = "month", _("Month")
 
 
+class ExtendedReportPeriodType(models.TextChoices):
+    WEEK = "week", _("Week")
+    MONTH = "month", _("Month")
+    QUARTER = "quarter", _("Quarter")
+    YEAR = "year", _("Year")
+
+
 class DataScope(models.TextChoices):
     """Data scope levels for position-based access control"""
 

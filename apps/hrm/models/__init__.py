@@ -31,6 +31,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequest
 from .recruitment_source import RecruitmentSource
+from .report import EmployeeStatusBreakdownReport
 
 __all__ = [
     "AttendanceDevice",
@@ -62,4 +63,5 @@ __all__ = [
     "RecruitmentCostReport",
     "HiredCandidateReport",
     "EmployeeRelationship",
+    "EmployeeStatusBreakdownReport",
 ]
