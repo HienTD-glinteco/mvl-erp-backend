@@ -97,6 +97,9 @@ class ConstantsView(APIView):
 
             # Module-level constants: keep existing rule (uppercase, non-callable, non-module)
             if name.isupper() and not (inspect.ismodule(value) or callable(value)):
+                # Convert sets to lists for JSON serialization
+                if isinstance(value, set):
+                    value = list(value)
                 constants[name] = value
 
         return constants
