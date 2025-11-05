@@ -734,6 +734,19 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "warnings": ["Missing required fields (code or fullname)"],
             }
 
+        # Check if employee already exists and skip if allow_update is False
+        allow_update = options.get("allow_update", True)
+        if not allow_update:
+            # Check if employee with this code already exists
+            if Employee.objects.filter(code=code).exists():
+                return {
+                    "ok": True,
+                    "row_index": row_index,
+                    "action": "skipped",
+                    "employee_code": code,
+                    "warnings": ["Employee with this code already exists (allow_update=False)"],
+                }
+
         # Use a single transaction for this row
         with transaction.atomic():
             # Parse and validate fields
@@ -782,12 +795,12 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             status = None
             contract_type_lower = contract_type_name.lower()
 
-            # First check if contract type maps to a specific status
-            if contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
-                status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
-            # Otherwise use status code mapping
-            elif status_raw in STATUS_CODE_MAPPING:
+            # Prioritize status code mapping first
+            if status_raw in STATUS_CODE_MAPPING:
                 status = STATUS_CODE_MAPPING[status_raw]
+            # Only check contract type mapping if status code is W (Working/Active)
+            elif status_raw == "w" and contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
+                status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
 
             if status:
                 employee_data["status"] = status
