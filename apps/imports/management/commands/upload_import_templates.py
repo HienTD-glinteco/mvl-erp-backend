@@ -3,13 +3,15 @@
 import os
 from pathlib import Path
 
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from apps.core.models import User
 from apps.files.models import FileModel
 from apps.files.utils.s3_utils import S3FileUploadService
 from apps.imports.constants import FILE_PURPOSE_IMPORT_TEMPLATE
+
+User = get_user_model()
 
 
 class Command(BaseCommand):

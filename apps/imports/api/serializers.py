@@ -93,7 +93,8 @@ class ImportStartSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_("batch_size must be an integer"))
             if batch_size < MIN_BATCH_SIZE or batch_size > MAX_BATCH_SIZE:
                 raise serializers.ValidationError(
-                    _(f"batch_size must be between {MIN_BATCH_SIZE} and {MAX_BATCH_SIZE}")
+                    _("batch_size must be between %(min)s and %(max)s")
+                    % {"min": MIN_BATCH_SIZE, "max": MAX_BATCH_SIZE}
                 )
             return {"batch_size": batch_size}
         return {"batch_size": DEFAULT_BATCH_SIZE}
@@ -115,7 +116,8 @@ class ImportStartSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_("header_rows must be an integer"))
             if header_rows < MIN_HEADER_ROWS or header_rows > MAX_HEADER_ROWS:
                 raise serializers.ValidationError(
-                    _(f"header_rows must be between {MIN_HEADER_ROWS} and {MAX_HEADER_ROWS}")
+                    _("header_rows must be between %(min)s and %(max)s")
+                    % {"min": MIN_HEADER_ROWS, "max": MAX_HEADER_ROWS}
                 )
             return {"header_rows": header_rows}
         return {"header_rows": DEFAULT_HEADER_ROWS}
@@ -128,8 +130,9 @@ class ImportStartSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_("output_format must be a string"))
             output_format_lower = output_format.lower()
             if output_format_lower not in ALLOWED_OUTPUT_FORMATS:
+                formats_str = ", ".join(ALLOWED_OUTPUT_FORMATS)
                 raise serializers.ValidationError(
-                    _(f"output_format must be one of: {', '.join(ALLOWED_OUTPUT_FORMATS)}")
+                    _("output_format must be one of: %(formats)s") % {"formats": formats_str}
                 )
             return {"output_format": output_format_lower}
         return {"output_format": DEFAULT_OUTPUT_FORMAT}
