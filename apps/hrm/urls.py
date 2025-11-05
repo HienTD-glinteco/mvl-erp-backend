@@ -13,6 +13,7 @@ from apps.hrm.api.views import (
     EmployeeCertificateViewSet,
     EmployeeDependentViewSet,
     EmployeeRelationshipViewSet,
+    EmployeeReportsViewSet,
     EmployeeRoleViewSet,
     EmployeeViewSet,
     EmployeeWorkHistoryViewSet,
@@ -65,6 +66,7 @@ router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attend
 router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
 
 # Report endpoints (single ViewSet with custom actions)
+router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")
 router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-reports")
 
 # Dashboard endpoints (single ViewSet with custom actions)

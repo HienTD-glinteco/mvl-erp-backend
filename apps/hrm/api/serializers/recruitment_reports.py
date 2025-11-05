@@ -4,6 +4,7 @@ from datetime import date
 from rest_framework import serializers
 
 from apps.hrm.constants import ReportPeriodType
+from libs.drf.serializers import BaseStatisticsSerializer
 
 from .employee import EmployeeSerializer
 from .recruitment_expense import RecruitmentExpenseSerializer
@@ -121,17 +122,11 @@ class StaffGrowthReportAggregatedSerializer(serializers.Serializer):
     num_resignations = serializers.IntegerField(read_only=True)
 
 
-class BaseRecruitmentReportStatisticsSerializer(serializers.Serializer):
-    type = serializers.CharField()
-    name = serializers.CharField()
-    statistics = serializers.ListField(child=serializers.IntegerField())
+class RecruitmentReportBlockItemSerializer(BaseStatisticsSerializer):
+    children = serializers.ListField(child=BaseStatisticsSerializer())
 
 
-class RecruitmentReportBlockItemSerializer(BaseRecruitmentReportStatisticsSerializer):
-    children = serializers.ListField(child=BaseRecruitmentReportStatisticsSerializer())
-
-
-class RecruitmentReportBranchItemSerializer(BaseRecruitmentReportStatisticsSerializer):
+class RecruitmentReportBranchItemSerializer(BaseStatisticsSerializer):
     children = serializers.ListField(child=RecruitmentReportBlockItemSerializer())
 
 
@@ -173,8 +168,8 @@ class RecruitmentCostReportAggregatedSerializer(serializers.Serializer):
     data = serializers.ListField(child=RecruitmentCostSourceSerializer())
 
 
-class HiredCandidateSourceTypeSerializer(BaseRecruitmentReportStatisticsSerializer):
-    children = serializers.ListField(child=BaseRecruitmentReportStatisticsSerializer())
+class HiredCandidateSourceTypeSerializer(BaseStatisticsSerializer):
+    children = serializers.ListField(child=BaseStatisticsSerializer())
 
 
 class HiredCandidateReportAggregatedSerializer(serializers.Serializer):
