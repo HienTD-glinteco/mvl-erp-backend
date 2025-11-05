@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 13:00+0700\n"
+"POT-Creation-Date: 2025-11-05 13:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -175,7 +175,7 @@ msgstr ""
 msgid "File size"
 msgstr ""
 
-#: apps/files/models.py:36 apps/imports/api/serializers.py:201
+#: apps/files/models.py:36 apps/imports/api/serializers.py:293
 msgid "File size in bytes"
 msgstr ""
 
@@ -251,75 +251,120 @@ msgstr ""
 msgid "Whether to count total rows before processing (default: true)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:54
+#: apps/imports/api/serializers.py:53
 msgid "Format for result files (default: csv, choices: csv, xlsx)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:59
+#: apps/imports/api/serializers.py:58
 msgid "Create FileModel records for result files (default: true)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:66
+#: apps/imports/api/serializers.py:65
 msgid "Override handler path (optional)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:71
+#: apps/imports/api/serializers.py:70
 msgid "Custom options for handler (default: {})"
 msgstr ""
 
-#: apps/imports/api/serializers.py:76
+#: apps/imports/api/serializers.py:75
 msgid "Custom prefix for result files (optional)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:91
-msgid "ID of the confirmed FileModel to import"
+#: apps/imports/api/serializers.py:80
+msgid "Allow updating existing records during import (default: false)"
 msgstr ""
 
-#: apps/imports/api/serializers.py:96
-msgid "Import options for controlling the import process"
+#: apps/imports/api/serializers.py:89
+msgid "batch_size must be an integer"
 msgstr ""
 
-#: apps/imports/api/serializers.py:102
-msgid "Whether to process import asynchronously (always true for imports)"
+#: apps/imports/api/serializers.py:97
+msgid "count_total_first must be a boolean"
 msgstr ""
 
-#: apps/imports/api/serializers.py:164
-msgid "UUID of the created import job"
+#: apps/imports/api/serializers.py:105
+msgid "header_rows must be an integer"
 msgstr ""
 
-#: apps/imports/api/serializers.py:167
-msgid "Celery task ID for tracking"
+#: apps/imports/api/serializers.py:113
+msgid "create_result_file_records must be a boolean"
 msgstr ""
 
-#: apps/imports/api/serializers.py:170
-msgid "Initial status of the import job"
+#: apps/imports/api/serializers.py:121
+msgid "handler_path must be a string or null"
+msgstr ""
+
+#: apps/imports/api/serializers.py:129
+msgid "handler_options must be a dictionary"
+msgstr ""
+
+#: apps/imports/api/serializers.py:137
+msgid "result_file_prefix must be a string"
+msgstr ""
+
+#: apps/imports/api/serializers.py:145
+msgid "allow_update must be a boolean"
+msgstr ""
+
+#: apps/imports/api/serializers.py:157
+#, python-format
+msgid "output_format must be one of: %(formats)s"
 msgstr ""
 
 #: apps/imports/api/serializers.py:173
+msgid "Unknown field"
+msgstr ""
+
+#: apps/imports/api/serializers.py:183
+msgid "ID of the confirmed FileModel to import"
+msgstr ""
+
+#: apps/imports/api/serializers.py:188
+msgid "Import options for controlling the import process"
+msgstr ""
+
+#: apps/imports/api/serializers.py:194
+msgid "Whether to process import asynchronously (always true for imports)"
+msgstr ""
+
+#: apps/imports/api/serializers.py:256
+msgid "UUID of the created import job"
+msgstr ""
+
+#: apps/imports/api/serializers.py:259
+msgid "Celery task ID for tracking"
+msgstr ""
+
+#: apps/imports/api/serializers.py:262
+msgid "Initial status of the import job"
+msgstr ""
+
+#: apps/imports/api/serializers.py:265
 msgid "Timestamp when the job was created"
 msgstr ""
 
-#: apps/imports/api/serializers.py:181
+#: apps/imports/api/serializers.py:273
 msgid "Cancellation result message"
 msgstr ""
 
-#: apps/imports/api/serializers.py:184 apps/imports/models.py:52
+#: apps/imports/api/serializers.py:276 apps/imports/models.py:52
 msgid "Current status of the import job"
 msgstr ""
 
-#: apps/imports/api/serializers.py:192
+#: apps/imports/api/serializers.py:284
 msgid "ID of the template file"
 msgstr ""
 
-#: apps/imports/api/serializers.py:195
+#: apps/imports/api/serializers.py:287
 msgid "Name of the template file"
 msgstr ""
 
-#: apps/imports/api/serializers.py:198
+#: apps/imports/api/serializers.py:290
 msgid "Presigned download URL for the template file"
 msgstr ""
 
-#: apps/imports/api/serializers.py:205
+#: apps/imports/api/serializers.py:297
 msgid "Timestamp when the template was created"
 msgstr ""
 

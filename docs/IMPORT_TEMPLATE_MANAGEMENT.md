@@ -98,7 +98,7 @@ Override `get_import_template_app_name()` if you need custom app name resolution
 ```python
 class EmployeeViewSet(AsyncImportProgressMixin, ModelViewSet):
     queryset = Employee.objects.all()
-    
+
     def get_import_template_app_name(self):
         # Custom logic to determine app name
         return "hrm"
@@ -209,11 +209,11 @@ from apps.hrm.api.serializers import EmployeeSerializer
 
 class EmployeeViewSet(AsyncImportProgressMixin, ModelViewSet):
     """Employee ViewSet with import capabilities."""
-    
+
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     import_row_handler = "apps.hrm.import_handlers.employee_handler"
-    
+
     # Optional: customize app name for template lookup
     def get_import_template_app_name(self):
         return "hrm"
