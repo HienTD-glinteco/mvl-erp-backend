@@ -204,7 +204,7 @@ class Command(BaseCommand):
 
         for app_dir in app_dirs:
             app_name = app_dir.name
-            import_templates_dir = app_dir / "import_templates"
+            import_templates_dir = app_dir / "fixtures/import_templates"
 
             if not import_templates_dir.exists():
                 continue
