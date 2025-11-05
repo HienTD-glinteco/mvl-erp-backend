@@ -325,7 +325,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertNotIn("password", response_data)
 
-    @patch("apps.devices.zk.ZKDeviceService")
+    @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_toggle_enabled_enable_device_success(self, mock_service):
         """Test toggling device from disabled to enabled with successful connection."""
         # Arrange - Create disabled device
@@ -355,7 +355,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(device.serial_number, "SN123")
         self.assertEqual(device.registration_number, "REG123")
 
-    @patch("apps.devices.zk.ZKDeviceService")
+    @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_toggle_enabled_enable_device_connection_failure(self, mock_service):
         """Test toggling device from disabled to enabled with connection failure."""
         # Arrange - Create disabled device
@@ -378,7 +378,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertFalse(device.is_enabled)
         self.assertFalse(device.is_connected)
 
-    @patch("apps.devices.zk.ZKDeviceService")
+    @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_toggle_enabled_disable_device(self, mock_service):
         """Test toggling device from enabled to disabled."""
         # Arrange - Create enabled device
@@ -396,7 +396,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertFalse(device.is_enabled)
         self.assertFalse(device.is_connected)
 
-    @patch("apps.devices.zk.ZKDeviceService")
+    @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_check_connection_success(self, mock_service):
         """Test checking connection with successful result."""
         # Arrange
@@ -427,7 +427,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(device.serial_number, "SN456")
         self.assertEqual(device.registration_number, "REG456")
 
-    @patch("apps.devices.zk.ZKDeviceService")
+    @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_check_connection_failure(self, mock_service):
         """Test checking connection with failed result."""
         # Arrange

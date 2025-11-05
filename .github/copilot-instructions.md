@@ -273,6 +273,29 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       "assert": "Verify the outcome is as expected"
     },
     "database_policy": "Do NOT mock the database unless explicit human instructions. Create real model instances via Django ORM.",
+    "mocking_policy": {
+      "critical": true,
+      "rule": "ALWAYS mock external services, third-party APIs, and network connections in unit tests",
+      "description": "Mock any usage or requests to external services unless explicitly told not to",
+      "must_mock": [
+        "Third-party API calls (payment gateways, email services, etc.)",
+        "Network connections to external devices or services",
+        "File system operations (reading/writing files)",
+        "External database connections",
+        "Time-dependent operations (use freezegun or similar)",
+        "Random number generation when deterministic results are needed"
+      ],
+      "how_to_mock": {
+        "unittest_mock": "Use unittest.mock.patch decorator to mock at the import location",
+        "correct_patch_path": "Mock where the object is imported and used, not where it's defined. Example: @patch('apps.hrm.models.attendance_device.ZKDeviceService') when ZKDeviceService is imported at top of attendance_device.py",
+        "context_managers": "For objects used as context managers, mock both __enter__ and __exit__ methods",
+        "return_values": "Set appropriate return values: mock_instance.method.return_value = expected_value"
+      },
+      "examples": {
+        "correct": "@patch('apps.hrm.models.attendance_device.ZKDeviceService')\ndef test_connection(self, mock_service):\n    mock_instance = MagicMock()\n    mock_instance.test_connection.return_value = (True, 'Connected')\n    mock_service.return_value = mock_instance",
+        "wrong": "@patch('apps.devices.zk.ZKDeviceService')  # Wrong - should patch where imported, not where defined"
+      }
+    },
     "fixtures": {
       "usage": "Reuse test data by creating Pytest fixtures",
       "scope": "For widely used fixtures, define them in higher-level conftest.py"
