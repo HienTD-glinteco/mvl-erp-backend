@@ -1,6 +1,10 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceDeviceFilterSet
@@ -193,3 +197,147 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Attendance Device Management"
     permission_prefix = "attendance_device"
+
+    @extend_schema(
+        summary="Toggle device enabled status",
+        description="Toggle the is_enabled status of an attendance device. When enabling a device, the system will verify the connection to ensure the device is reachable.",
+        tags=["Attendance Device"],
+        request=None,
+        responses={200: AttendanceDeviceSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Device Enabled",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "name": "Main Entrance Device",
+                        "ip_address": "192.168.1.100",
+                        "port": 4370,
+                        "is_enabled": True,
+                        "is_connected": True,
+                        "serial_number": "SN123456789",
+                        "registration_number": "REG001",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Success - Device Disabled",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "name": "Main Entrance Device",
+                        "ip_address": "192.168.1.100",
+                        "port": 4370,
+                        "is_enabled": False,
+                        "is_connected": False,
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Connection Failed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": "Failed to connect to device: Connection timeout",
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="toggle-enabled")
+    def toggle_enabled(self, request, pk=None):
+        """Toggle the is_enabled status of an attendance device.
+
+        When enabling, checks the connection to ensure the device is reachable.
+        When disabling, sets is_connected to False.
+        """
+        device = self.get_object()
+
+        # Toggle the is_enabled status
+        new_enabled_status = not device.is_enabled
+        device.is_enabled = new_enabled_status
+
+        if new_enabled_status:
+            # When enabling, check connection
+            is_connected, message = device.check_and_update_connection()
+            if not is_connected:
+                # Reset is_enabled back to False since connection failed
+                device.is_enabled = False
+                return Response(
+                    {"detail": _("Failed to connect to device: %(message)s") % {"message": message}},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # Connection successful, save the is_enabled status
+            device.save(update_fields=["is_enabled", "updated_at"])
+        else:
+            # When disabling, mark as disconnected
+            device.is_connected = False
+            device.save(update_fields=["is_enabled", "is_connected", "updated_at"])
+
+        serializer = self.get_serializer(device)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Check device connection",
+        description="Test the connection to an attendance device and update its connection status. This action verifies network connectivity and device availability.",
+        tags=["Attendance Device"],
+        request=None,
+        responses={200: AttendanceDeviceSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Connected",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "name": "Main Entrance Device",
+                        "ip_address": "192.168.1.100",
+                        "port": 4370,
+                        "is_connected": True,
+                        "serial_number": "SN123456789",
+                        "registration_number": "REG001",
+                        "message": "Connection successful. Firmware: 6.60",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Success - Connection Failed",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "name": "Main Entrance Device",
+                        "ip_address": "192.168.1.100",
+                        "port": 4370,
+                        "is_connected": False,
+                        "message": "Network connection error: Connection timeout",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="check-connection")
+    def check_connection(self, request, pk=None):
+        """Check connection to an attendance device and update its status.
+
+        Tests network connectivity and device availability.
+        Updates is_connected status and device information if successful.
+        """
+        device = self.get_object()
+
+        # Check connection and update device info
+        is_connected, message = device.check_and_update_connection()
+
+        # Return device data with connection status
+        serializer = self.get_serializer(device)
+        data = serializer.data
+        data["message"] = message
+
+        return Response(data, status=status.HTTP_200_OK)
