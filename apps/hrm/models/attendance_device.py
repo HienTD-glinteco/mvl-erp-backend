@@ -164,6 +164,9 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
     def update_time_sync(self, device_time: "datetime", system_time: "datetime | None" = None):
         """Update device time synchronization information.
 
+        Note: This method only updates the model fields in memory.
+        Caller is responsible for calling save() to persist changes to the database.
+
         Args:
             device_time: Current time from the device
             system_time: Current system time (defaults to timezone.now())

@@ -253,6 +253,10 @@ def _create_attendance_records_from_logs(
 
     Applies delta time correction to timestamps before saving to database.
 
+    Note: Uses corrected_timestamp for duplicate detection. If delta changes between
+    polling runs, the same device record will be stored again with the new correction.
+    This is intentional - different corrections represent different actual times.
+
     Returns:
         list: List of AttendanceRecord objects to create
     """
@@ -263,6 +267,7 @@ def _create_attendance_records_from_logs(
         corrected_timestamp = device_timestamp + timedelta(seconds=device.delta_time_seconds)
 
         # Check if this specific log already exists (using corrected timestamp)
+        # This means if delta changes, we may store the record again with new correction
         key = (log["user_id"], corrected_timestamp)
         if key not in existing_set:
             # Convert datetime to ISO format for JSON storage
