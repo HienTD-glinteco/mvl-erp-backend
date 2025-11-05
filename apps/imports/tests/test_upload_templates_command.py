@@ -195,11 +195,12 @@ class TestUploadImportTemplatesCommand:
         # Capture output
         captured = capsys.readouterr()
 
-        # Verify warning about invalid file
-        assert "Skipping file with invalid naming convention: invalid_file.csv" in captured.out
+        # Verify that invalid_file.csv is not mentioned (it's filtered by glob pattern)
+        assert "invalid_file.csv" not in captured.out
 
-        # Verify only valid templates were uploaded
+        # Verify only valid templates were uploaded (3 valid files in fixture)
         assert FileModel.objects.filter(purpose=FILE_PURPOSE_IMPORT_TEMPLATE).count() == 3
+        assert "Found 3 template file(s)" in captured.out
 
     @patch("apps.imports.management.commands.upload_import_templates.S3FileUploadService")
     def test_upload_templates_content_types(self, mock_s3_service, temp_template_dir):

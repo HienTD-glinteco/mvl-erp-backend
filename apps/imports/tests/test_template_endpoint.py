@@ -1,5 +1,7 @@
 """Tests for import template endpoint."""
 
+from unittest.mock import PropertyMock, patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -53,12 +55,14 @@ def template_file(user):
 class TestImportTemplateEndpoint:
     """Test cases for import_template endpoint."""
 
-    def test_import_template_exists(self, authenticated_client, template_file):
+    @patch("apps.files.models.FileModel.download_url", new_callable=PropertyMock)
+    def test_import_template_exists(self, mock_download_url, authenticated_client, template_file):
         """Test retrieving an existing template file."""
+        # Mock the download_url property
+        mock_download_url.return_value = "https://s3.example.com/template.csv?signature=abc123"
+
         # Create a mock ViewSet to test the mixin
         from rest_framework.viewsets import ModelViewSet
-
-        from apps.imports.models import ImportJob
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
@@ -89,8 +93,6 @@ class TestImportTemplateEndpoint:
     def test_import_template_not_found(self, authenticated_client):
         """Test retrieving template when none exists."""
         from rest_framework.viewsets import ModelViewSet
-
-        from apps.imports.models import ImportJob
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
@@ -137,8 +139,12 @@ class TestImportTemplateEndpoint:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "error" in response.data
 
-    def test_import_template_most_recent(self, authenticated_client, user):
+    @patch("apps.files.models.FileModel.download_url", new_callable=PropertyMock)
+    def test_import_template_most_recent(self, mock_download_url, authenticated_client, user):
         """Test that the most recent template is returned."""
+        # Mock the download_url property
+        mock_download_url.return_value = "https://s3.example.com/template.csv?signature=abc123"
+
         # Create older template
         old_template = FileModel.objects.create(
             purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
@@ -160,8 +166,6 @@ class TestImportTemplateEndpoint:
         )
 
         from rest_framework.viewsets import ModelViewSet
-
-        from apps.imports.models import ImportJob
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
@@ -199,8 +203,6 @@ class TestImportTemplateEndpoint:
 
         from rest_framework.viewsets import ModelViewSet
 
-        from apps.imports.models import ImportJob
-
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()
 
@@ -225,8 +227,6 @@ class TestImportTemplateEndpoint:
     def test_get_import_template_app_name_from_queryset(self):
         """Test extracting app name from queryset model."""
         from rest_framework.viewsets import ModelViewSet
-
-        from apps.imports.models import ImportJob
 
         class TestViewSet(AsyncImportProgressMixin, ModelViewSet):
             queryset = ImportJob.objects.all()

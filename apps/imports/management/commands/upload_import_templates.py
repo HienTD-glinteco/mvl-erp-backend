@@ -3,10 +3,8 @@
 import os
 from pathlib import Path
 
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.utils.translation import gettext as _
 
 from apps.core.models import User
 from apps.files.models import FileModel
@@ -66,7 +64,7 @@ class Command(BaseCommand):
             help="Replace existing templates for the same app (archives old ones)",
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options):  # noqa: C901
         """Handle the command execution."""
         directory = options["directory"]
         user_id = options.get("user_id")
@@ -124,7 +122,9 @@ class Command(BaseCommand):
                             # Mark existing templates as not confirmed (soft archive)
                             existing.update(is_confirmed=False)
                             self.stdout.write(
-                                self.style.WARNING(f"  Archived {existing.count()} existing template(s) for app: {app_name}")
+                                self.style.WARNING(
+                                    f"  Archived {existing.count()} existing template(s) for app: {app_name}"
+                                )
                             )
 
                     # Read file content
@@ -153,9 +153,7 @@ class Command(BaseCommand):
                     )
 
                     uploaded_count += 1
-                    self.stdout.write(
-                        self.style.SUCCESS(f"  ✓ Uploaded: {file_name} (FileModel ID: {file_obj.id})")
-                    )
+                    self.stdout.write(self.style.SUCCESS(f"  ✓ Uploaded: {file_name} (FileModel ID: {file_obj.id})"))
 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"  ✗ Failed to upload {template_path.name}: {e}"))
@@ -191,9 +189,7 @@ class Command(BaseCommand):
                     template_files.append((file_path, app_name))
                 else:
                     self.stdout.write(
-                        self.style.WARNING(
-                            f"Skipping file with invalid naming convention: {file_path.name}"
-                        )
+                        self.style.WARNING(f"Skipping file with invalid naming convention: {file_path.name}")
                     )
 
         return template_files

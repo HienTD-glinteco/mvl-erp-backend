@@ -60,7 +60,7 @@ class ImportStartSerializer(serializers.Serializer):
 
         return value
 
-    def validate_options(self, value):
+    def validate_options(self, value):  # noqa: C901
         """Validate the options parameter with strict key and value validation."""
         if not isinstance(value, dict):
             raise serializers.ValidationError(_("Options must be a dictionary"))
@@ -74,9 +74,19 @@ class ImportStartSerializer(serializers.Serializer):
             )
 
         # Validate and set defaults for each option
-        validated_options = {}
+        validated_options = self._validate_batch_size(value)
+        validated_options.update(self._validate_count_total_first(value))
+        validated_options.update(self._validate_header_rows(value))
+        validated_options.update(self._validate_output_format(value))
+        validated_options.update(self._validate_create_result_file_records(value))
+        validated_options.update(self._validate_handler_path(value))
+        validated_options.update(self._validate_handler_options(value))
+        validated_options.update(self._validate_result_file_prefix(value))
 
-        # batch_size: integer, 1-100000, default 500
+        return validated_options
+
+    def _validate_batch_size(self, value):
+        """Validate batch_size option."""
         if "batch_size" in value:
             batch_size = value["batch_size"]
             if not isinstance(batch_size, int):
@@ -85,55 +95,56 @@ class ImportStartSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     _(f"batch_size must be between {MIN_BATCH_SIZE} and {MAX_BATCH_SIZE}")
                 )
-            validated_options["batch_size"] = batch_size
-        else:
-            validated_options["batch_size"] = DEFAULT_BATCH_SIZE
+            return {"batch_size": batch_size}
+        return {"batch_size": DEFAULT_BATCH_SIZE}
 
-        # count_total_first: boolean, default true
+    def _validate_count_total_first(self, value):
+        """Validate count_total_first option."""
         if "count_total_first" in value:
             count_total_first = value["count_total_first"]
             if not isinstance(count_total_first, bool):
                 raise serializers.ValidationError(_("count_total_first must be a boolean"))
-            validated_options["count_total_first"] = count_total_first
-        else:
-            validated_options["count_total_first"] = DEFAULT_COUNT_TOTAL_FIRST
+            return {"count_total_first": count_total_first}
+        return {"count_total_first": DEFAULT_COUNT_TOTAL_FIRST}
 
-        # header_rows: integer, 0-100, default 1
+    def _validate_header_rows(self, value):
+        """Validate header_rows option."""
         if "header_rows" in value:
             header_rows = value["header_rows"]
             if not isinstance(header_rows, int):
                 raise serializers.ValidationError(_("header_rows must be an integer"))
             if header_rows < MIN_HEADER_ROWS or header_rows > MAX_HEADER_ROWS:
-                raise serializers.ValidationError(_(f"header_rows must be between {MIN_HEADER_ROWS} and {MAX_HEADER_ROWS}"))
-            validated_options["header_rows"] = header_rows
-        else:
-            validated_options["header_rows"] = DEFAULT_HEADER_ROWS
+                raise serializers.ValidationError(
+                    _(f"header_rows must be between {MIN_HEADER_ROWS} and {MAX_HEADER_ROWS}")
+                )
+            return {"header_rows": header_rows}
+        return {"header_rows": DEFAULT_HEADER_ROWS}
 
-        # output_format: string, "csv" or "xlsx", default "csv"
+    def _validate_output_format(self, value):
+        """Validate output_format option."""
         if "output_format" in value:
             output_format = value["output_format"]
             if not isinstance(output_format, str):
                 raise serializers.ValidationError(_("output_format must be a string"))
-            # Case-insensitive comparison
             output_format_lower = output_format.lower()
             if output_format_lower not in ALLOWED_OUTPUT_FORMATS:
                 raise serializers.ValidationError(
                     _(f"output_format must be one of: {', '.join(ALLOWED_OUTPUT_FORMATS)}")
                 )
-            validated_options["output_format"] = output_format_lower
-        else:
-            validated_options["output_format"] = DEFAULT_OUTPUT_FORMAT
+            return {"output_format": output_format_lower}
+        return {"output_format": DEFAULT_OUTPUT_FORMAT}
 
-        # create_result_file_records: boolean, default true
+    def _validate_create_result_file_records(self, value):
+        """Validate create_result_file_records option."""
         if "create_result_file_records" in value:
             create_result_file_records = value["create_result_file_records"]
             if not isinstance(create_result_file_records, bool):
                 raise serializers.ValidationError(_("create_result_file_records must be a boolean"))
-            validated_options["create_result_file_records"] = create_result_file_records
-        else:
-            validated_options["create_result_file_records"] = DEFAULT_CREATE_RESULT_FILE_RECORDS
+            return {"create_result_file_records": create_result_file_records}
+        return {"create_result_file_records": DEFAULT_CREATE_RESULT_FILE_RECORDS}
 
-        # handler_path: string or null, optional
+    def _validate_handler_path(self, value):
+        """Validate handler_path option."""
         if "handler_path" in value:
             handler_path = value["handler_path"]
             if handler_path is not None:
@@ -141,25 +152,26 @@ class ImportStartSerializer(serializers.Serializer):
                     raise serializers.ValidationError(_("handler_path must be a string or null"))
                 if not handler_path.strip():
                     raise serializers.ValidationError(_("handler_path cannot be an empty string"))
-            validated_options["handler_path"] = handler_path
+            return {"handler_path": handler_path}
+        return {}
 
-        # handler_options: dict, default {}
+    def _validate_handler_options(self, value):
+        """Validate handler_options option."""
         if "handler_options" in value:
             handler_options = value["handler_options"]
             if not isinstance(handler_options, dict):
                 raise serializers.ValidationError(_("handler_options must be a dictionary"))
-            validated_options["handler_options"] = handler_options
-        else:
-            validated_options["handler_options"] = {}
+            return {"handler_options": handler_options}
+        return {"handler_options": {}}
 
-        # result_file_prefix: string, optional
+    def _validate_result_file_prefix(self, value):
+        """Validate result_file_prefix option."""
         if "result_file_prefix" in value:
             result_file_prefix = value["result_file_prefix"]
             if not isinstance(result_file_prefix, str):
                 raise serializers.ValidationError(_("result_file_prefix must be a string"))
-            validated_options["result_file_prefix"] = result_file_prefix
-
-        return validated_options
+            return {"result_file_prefix": result_file_prefix}
+        return {}
 
 
 class ImportJobSerializer(serializers.ModelSerializer):
