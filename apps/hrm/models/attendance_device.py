@@ -147,3 +147,60 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         """Update device status after failed connection."""
         self.is_connected = False
         self.save(update_fields=["is_connected", "updated_at"])
+
+    def check_and_update_connection(self):
+        """Check connection and update device information.
+
+        Tests connection to the device and updates is_connected status.
+        If connection is successful, also updates serial and registration numbers.
+
+        Returns:
+            tuple: (is_connected: bool, message: str)
+        """
+        from apps.devices.zk import ZKDeviceService
+
+        service = ZKDeviceService(
+            ip_address=self.ip_address,
+            port=self.port,
+            password=self.password,
+        )
+        is_connected, message = service.test_connection()
+
+        if not is_connected:
+            self.is_connected = False
+            self.save(update_fields=["is_connected", "updated_at"])
+            return False, message
+
+        # If connection successful, get device details
+        try:
+            with service:
+                if not service._zk_connection:
+                    self.is_connected = False
+                    self.save(update_fields=["is_connected", "updated_at"])
+                    return False, "No connection established"
+
+                # Get serial number and registration number from device
+                serial = service._zk_connection.get_serialnumber()
+                if serial:
+                    self.serial_number = serial
+
+                # Get device name/registration as registration_number
+                device_name = service._zk_connection.get_device_name()
+                if device_name:
+                    self.registration_number = device_name
+
+                # Mark as connected
+                self.is_connected = True
+                self.save(
+                    update_fields=[
+                        "is_connected",
+                        "serial_number",
+                        "registration_number",
+                        "updated_at",
+                    ]
+                )
+                return True, message
+        except Exception as e:
+            self.is_connected = False
+            self.save(update_fields=["is_connected", "updated_at"])
+            return False, str(e)

@@ -80,6 +80,18 @@ NATIONAL_ID_LENGTH_12 = 12
 PHONE_INTL_LENGTH = 12  # +84 + 9 digits
 PHONE_LOCAL_LENGTH = 10  # 0 + 9 digits
 
+# Attendance Device API Documentation
+API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_SUMMARY = "Toggle device enabled status"
+API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_DESCRIPTION = (
+    "Toggle the is_enabled status of an attendance device. "
+    "When enabling a device, the system will verify the connection to ensure the device is reachable."
+)
+API_ATTENDANCE_DEVICE_CHECK_CONNECTION_SUMMARY = "Check device connection"
+API_ATTENDANCE_DEVICE_CHECK_CONNECTION_DESCRIPTION = (
+    "Test the connection to an attendance device and update its connection status. "
+    "This action verifies network connectivity and device availability."
+)
+
 
 class CertificateType(models.TextChoices):
     """Certificate types for employee qualifications"""

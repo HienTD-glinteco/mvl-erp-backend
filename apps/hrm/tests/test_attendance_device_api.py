@@ -324,3 +324,129 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertNotIn("password", response_data)
+
+    @patch("apps.devices.zk.ZKDeviceService")
+    def test_toggle_enabled_enable_device_success(self, mock_service):
+        """Test toggling device from disabled to enabled with successful connection."""
+        # Arrange - Create disabled device
+        device = AttendanceDevice.objects.create(
+            name="Test Device", ip_address="192.168.1.100", port=4370, is_enabled=False, is_connected=False
+        )
+
+        # Mock successful connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (True, "Connection successful")
+        mock_service_instance._zk_connection = MagicMock()
+        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
+        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
+        mock_service_instance.__exit__ = MagicMock(return_value=False)
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-toggle-enabled", kwargs={"pk": device.id})
+        response = self.client.post(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        device.refresh_from_db()
+        self.assertTrue(device.is_enabled)
+        self.assertTrue(device.is_connected)
+        self.assertEqual(device.serial_number, "SN123")
+        self.assertEqual(device.registration_number, "REG123")
+
+    @patch("apps.devices.zk.ZKDeviceService")
+    def test_toggle_enabled_enable_device_connection_failure(self, mock_service):
+        """Test toggling device from disabled to enabled with connection failure."""
+        # Arrange - Create disabled device
+        device = AttendanceDevice.objects.create(
+            name="Test Device", ip_address="192.168.1.100", port=4370, is_enabled=False, is_connected=False
+        )
+
+        # Mock failed connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (False, "Connection timeout")
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-toggle-enabled", kwargs={"pk": device.id})
+        response = self.client.post(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        device.refresh_from_db()
+        self.assertFalse(device.is_enabled)
+        self.assertFalse(device.is_connected)
+
+    @patch("apps.devices.zk.ZKDeviceService")
+    def test_toggle_enabled_disable_device(self, mock_service):
+        """Test toggling device from enabled to disabled."""
+        # Arrange - Create enabled device
+        device = AttendanceDevice.objects.create(
+            name="Test Device", ip_address="192.168.1.100", port=4370, is_enabled=True, is_connected=True
+        )
+
+        # Act
+        url = reverse("hrm:attendance-device-toggle-enabled", kwargs={"pk": device.id})
+        response = self.client.post(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        device.refresh_from_db()
+        self.assertFalse(device.is_enabled)
+        self.assertFalse(device.is_connected)
+
+    @patch("apps.devices.zk.ZKDeviceService")
+    def test_check_connection_success(self, mock_service):
+        """Test checking connection with successful result."""
+        # Arrange
+        device = AttendanceDevice.objects.create(
+            name="Test Device", ip_address="192.168.1.100", port=4370, is_connected=False
+        )
+
+        # Mock successful connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (True, "Connection successful. Firmware: 6.60")
+        mock_service_instance._zk_connection = MagicMock()
+        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN456"
+        mock_service_instance._zk_connection.get_device_name.return_value = "REG456"
+        mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
+        mock_service_instance.__exit__ = MagicMock(return_value=False)
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-check-connection", kwargs={"pk": device.id})
+        response = self.client.post(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["message"], "Connection successful. Firmware: 6.60")
+        device.refresh_from_db()
+        self.assertTrue(device.is_connected)
+        self.assertEqual(device.serial_number, "SN456")
+        self.assertEqual(device.registration_number, "REG456")
+
+    @patch("apps.devices.zk.ZKDeviceService")
+    def test_check_connection_failure(self, mock_service):
+        """Test checking connection with failed result."""
+        # Arrange
+        device = AttendanceDevice.objects.create(
+            name="Test Device", ip_address="192.168.1.100", port=4370, is_connected=True
+        )
+
+        # Mock failed connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (False, "Network connection error: Connection timeout")
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-check-connection", kwargs={"pk": device.id})
+        response = self.client.post(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["message"], "Network connection error: Connection timeout")
+        device.refresh_from_db()
+        self.assertFalse(device.is_connected)
