@@ -248,11 +248,11 @@ class ZKDeviceService:
 
         try:
             device_time = self._zk_connection.get_time()
-            
+
             # Ensure timezone-aware datetime in UTC
             if device_time.tzinfo is None:
                 device_time = device_time.replace(tzinfo=timezone.utc)
-            
+
             logger.info(f"Retrieved device time from {self.ip_address}: {device_time}")
             return device_time
 

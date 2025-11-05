@@ -230,6 +230,110 @@ class AttendanceDeviceModelTest(TestCase):
         self.assertEqual(device.block, self.block)
         self.assertIn(device, self.block.attendance_devices.all())
 
+    def test_default_time_sync_fields(self):
+        """Test default values for time synchronization fields."""
+        # Arrange & Act
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+
+        # Assert
+        self.assertEqual(device.delta_time_seconds, 0)
+        self.assertIsNone(device.time_last_synced_at)
+
+    def test_update_time_sync(self):
+        """Test update_time_sync method calculates and stores delta time."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        system_time = django_timezone.now()
+        device_time = system_time - timedelta(seconds=300)  # Device is 5 minutes behind
+
+        # Act
+        device.update_time_sync(device_time, system_time)
+
+        # Assert
+        self.assertEqual(device.delta_time_seconds, 300)
+        self.assertEqual(device.time_last_synced_at, system_time)
+
+    def test_update_time_sync_device_ahead(self):
+        """Test update_time_sync when device time is ahead of system time."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        system_time = django_timezone.now()
+        device_time = system_time + timedelta(seconds=120)  # Device is 2 minutes ahead
+
+        # Act
+        device.update_time_sync(device_time, system_time)
+
+        # Assert
+        self.assertEqual(device.delta_time_seconds, -120)
+        self.assertEqual(device.time_last_synced_at, system_time)
+
+    def test_update_time_sync_uses_current_time_if_not_provided(self):
+        """Test update_time_sync uses current system time if not provided."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device_time = django_timezone.now() - timedelta(seconds=60)
+
+        # Act
+        before_call = django_timezone.now()
+        device.update_time_sync(device_time)
+        after_call = django_timezone.now()
+
+        # Assert
+        self.assertIsNotNone(device.time_last_synced_at)
+        self.assertGreaterEqual(device.time_last_synced_at, before_call)
+        self.assertLessEqual(device.time_last_synced_at, after_call)
+        # Delta should be approximately 60 seconds
+        self.assertGreaterEqual(device.delta_time_seconds, 55)
+        self.assertLessEqual(device.delta_time_seconds, 65)
+
+    def test_should_resync_time_no_previous_sync(self):
+        """Test should_resync_time returns True when never synced."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+
+        # Act
+        should_resync = device.should_resync_time()
+
+        # Assert
+        self.assertTrue(should_resync)
+
+    def test_should_resync_time_recent_sync(self):
+        """Test should_resync_time returns False when recently synced."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device.time_last_synced_at = django_timezone.now() - timedelta(minutes=30)
+        device.save()
+
+        # Act
+        should_resync = device.should_resync_time(max_hours=1)
+
+        # Assert
+        self.assertFalse(should_resync)
+
+    def test_should_resync_time_old_sync(self):
+        """Test should_resync_time returns True when sync is old."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device.time_last_synced_at = django_timezone.now() - timedelta(hours=2)
+        device.save()
+
+        # Act
+        should_resync = device.should_resync_time(max_hours=1)
+
+        # Assert
+        self.assertTrue(should_resync)
+
+    def test_should_resync_time_custom_max_hours(self):
+        """Test should_resync_time with custom max_hours parameter."""
+        # Arrange
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device.time_last_synced_at = django_timezone.now() - timedelta(hours=3)
+        device.save()
+
+        # Act & Assert
+        self.assertFalse(device.should_resync_time(max_hours=4))
+        self.assertTrue(device.should_resync_time(max_hours=2))
+
 
 class AttendanceRecordModelTest(TestCase):
     """Test cases for AttendanceRecord model."""

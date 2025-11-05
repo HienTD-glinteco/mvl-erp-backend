@@ -180,7 +180,6 @@ def handle_device_connected(device_id: int, device_info: dict[str, Any]) -> None
         device_id: ID of the device that connected
         device_info: Dictionary with device information (serial_number, registration_number, etc.)
     """
-    from datetime import timedelta
 
     from apps.devices.zk import ZKDeviceService
 
