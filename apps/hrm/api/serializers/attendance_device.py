@@ -39,6 +39,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "realtime_enabled",
             "realtime_disabled_at",
             "polling_synced_at",
+            "delta_time_seconds",
+            "time_last_synced_at",
             "created_at",
             "updated_at",
         ]
@@ -50,6 +52,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "realtime_enabled",
             "realtime_disabled_at",
             "polling_synced_at",
+            "delta_time_seconds",
+            "time_last_synced_at",
             "created_at",
             "updated_at",
         ]
@@ -96,6 +100,8 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
 
     def fetch_device_info(self, ip_address, port, password, attrs: dict):
         # Test connection and get device info
+        from django.utils import timezone
+
         service = ZKDeviceService(
             ip_address=ip_address,
             port=port,
@@ -121,6 +127,20 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
                     device_name = service._zk_connection.get_device_name()
                     if device_name:
                         attrs["registration_number"] = device_name
+
+                    # Sync device time
+                    try:
+                        device_time = service.get_device_time()
+                        system_time = timezone.now()
+                        delta = system_time - device_time
+                        attrs["delta_time_seconds"] = int(delta.total_seconds())
+                        attrs["time_last_synced_at"] = system_time
+                    except Exception as e:
+                        # Log warning but don't fail the validation if time sync fails
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.warning(f"Failed to sync device time: {str(e)}")
 
                     # Mark as connected
                     attrs["is_connected"] = True

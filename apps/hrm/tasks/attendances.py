@@ -62,6 +62,18 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, Any] | No
 
         try:
             with service:
+                # Sync device time on each polling
+                try:
+                    device_time = service.get_device_time()
+                    system_time = timezone.now()
+                    device.update_time_sync(device_time, system_time)
+                    logger.info(
+                        f"Device {device.name}: Time synced, delta={device.delta_time_seconds}s, "
+                        f"device_time={device_time}, system_time={system_time}"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to sync time for device {device.name}: {str(e)}")
+
                 # Fetch attendance logs
                 logs = service.get_attendance_logs(start_datetime=start_datetime)
 
@@ -239,23 +251,31 @@ def _create_attendance_records_from_logs(
 ) -> list[AttendanceRecord]:
     """Create AttendanceRecord objects from logs, filtering out duplicates.
 
+    Applies delta time correction to timestamps before saving to database.
+
     Returns:
         list: List of AttendanceRecord objects to create
     """
     records_to_create = []
     for log in today_logs:
-        # Check if this specific log already exists
-        key = (log["user_id"], log["timestamp"])
+        # Apply delta time correction to the timestamp
+        device_timestamp = log["timestamp"]
+        corrected_timestamp = device_timestamp + timedelta(seconds=device.delta_time_seconds)
+
+        # Check if this specific log already exists (using corrected timestamp)
+        key = (log["user_id"], corrected_timestamp)
         if key not in existing_set:
             # Convert datetime to ISO format for JSON storage
             raw_data = log.copy()
-            raw_data["timestamp"] = log["timestamp"].isoformat()
+            raw_data["timestamp"] = device_timestamp.isoformat()
+            raw_data["timestamp_corrected"] = corrected_timestamp.isoformat()
+            raw_data["delta_time_seconds"] = device.delta_time_seconds
 
             records_to_create.append(
                 AttendanceRecord(
                     device=device,
                     attendance_code=log["user_id"],
-                    timestamp=log["timestamp"],
+                    timestamp=corrected_timestamp,
                     raw_data=raw_data,
                 )
             )

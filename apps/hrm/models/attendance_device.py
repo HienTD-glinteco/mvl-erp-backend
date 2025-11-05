@@ -109,6 +109,17 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         verbose_name=_("Last polling sync"),
         help_text=_("Timestamp of last successful polling sync from device"),
     )
+    delta_time_seconds = models.IntegerField(
+        default=0,
+        verbose_name=_("Delta time in seconds"),
+        help_text=_("Time difference between system and device (system_time - device_time) in seconds"),
+    )
+    time_last_synced_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Time last synchronized"),
+        help_text=_("Timestamp when device time was last synchronized"),
+    )
 
     def __str__(self):
         """Return string representation showing device name."""
@@ -139,6 +150,8 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
                 "polling_synced_at",
                 "realtime_enabled",
                 "realtime_disabled_at",
+                "delta_time_seconds",
+                "time_last_synced_at",
                 "updated_at",
             ]
         )
@@ -147,3 +160,38 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         """Update device status after failed connection."""
         self.is_connected = False
         self.save(update_fields=["is_connected", "updated_at"])
+
+    def update_time_sync(self, device_time: "datetime", system_time: "datetime | None" = None):
+        """Update device time synchronization information.
+
+        Args:
+            device_time: Current time from the device
+            system_time: Current system time (defaults to timezone.now())
+        """
+        if system_time is None:
+            system_time = timezone.now()
+
+        # Calculate delta in seconds (system_time - device_time)
+        delta = system_time - device_time
+        self.delta_time_seconds = int(delta.total_seconds())
+        self.time_last_synced_at = system_time
+
+        logger.info(
+            f"Updated time sync for device {self.name}: delta={self.delta_time_seconds}s, "
+            f"device_time={device_time}, system_time={system_time}"
+        )
+
+    def should_resync_time(self, max_hours: int = 1) -> bool:
+        """Check if device time should be re-synchronized.
+
+        Args:
+            max_hours: Maximum hours since last sync before re-sync is needed
+
+        Returns:
+            bool: True if time should be re-synchronized
+        """
+        if not self.time_last_synced_at:
+            return True
+
+        time_since_sync = timezone.now() - self.time_last_synced_at
+        return time_since_sync.total_seconds() > (max_hours * 3600)

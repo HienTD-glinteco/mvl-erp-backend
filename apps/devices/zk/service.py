@@ -233,3 +233,30 @@ class ZKDeviceService:
             error_msg = _("Failed to get device info: %(error)s") % {"error": str(e)}
             logger.error(f"Error getting device info from {self.ip_address}: {str(e)}")
             raise DeviceConnectionError(error_msg) from e
+
+    def get_device_time(self) -> datetime:
+        """Get current time from the device.
+
+        Returns:
+            datetime: Current device time (timezone-aware in UTC)
+
+        Raises:
+            DeviceConnectionError: If connection fails or operation fails
+        """
+        if not self._zk_connection:
+            raise DeviceConnectionError(_("Device not connected. Call connect() first."))
+
+        try:
+            device_time = self._zk_connection.get_time()
+            
+            # Ensure timezone-aware datetime in UTC
+            if device_time.tzinfo is None:
+                device_time = device_time.replace(tzinfo=timezone.utc)
+            
+            logger.info(f"Retrieved device time from {self.ip_address}: {device_time}")
+            return device_time
+
+        except Exception as e:
+            error_msg = _("Failed to get device time: %(error)s") % {"error": str(e)}
+            logger.error(f"Error getting device time from {self.ip_address}: {str(e)}")
+            raise DeviceConnectionError(error_msg) from e

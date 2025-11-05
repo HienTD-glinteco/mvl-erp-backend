@@ -99,10 +99,15 @@ def handle_attendance_event(event: ZKAttendanceEvent) -> None:
     """Handle attendance event captured from device.
 
     This creates an AttendanceRecord in the database for the event.
+    Applies delta time correction to ensure accurate timestamps.
 
     Args:
         event: ZKAttendanceEvent object from the device
     """
+    from datetime import timedelta
+
+    from apps.devices.zk import ZKDeviceService
+
     try:
         # Get the device
         try:
@@ -111,20 +116,45 @@ def handle_attendance_event(event: ZKAttendanceEvent) -> None:
             logger.error(f"Device ID {event.device_id} not found in database")
             return
 
+        # Check if time sync is needed (more than 1 hour since last sync)
+        if device.should_resync_time(max_hours=1):
+            logger.info(f"Re-syncing time for device {device.name} (last sync > 1 hour ago)")
+            try:
+                service = ZKDeviceService(
+                    ip_address=device.ip_address,
+                    port=device.port,
+                    password=device.password,
+                )
+                with service:
+                    device_time = service.get_device_time()
+                    system_time = timezone.now()
+                    device.update_time_sync(device_time, system_time)
+                    device.save(update_fields=["delta_time_seconds", "time_last_synced_at", "updated_at"])
+                    logger.info(
+                        f"Re-synced time for device {device.name}: delta={device.delta_time_seconds}s"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to re-sync time for device {device.name}: {str(e)}")
+
         # Ensure timestamp is timezone-aware
-        timestamp = event.timestamp
-        if timestamp.tzinfo is None:
-            timestamp = timezone.make_aware(timestamp)
+        device_timestamp = event.timestamp
+        if device_timestamp.tzinfo is None:
+            device_timestamp = timezone.make_aware(device_timestamp)
+
+        # Apply delta time correction
+        corrected_timestamp = device_timestamp + timedelta(seconds=device.delta_time_seconds)
 
         # Create attendance record
         record = AttendanceRecord.objects.create(
             device=device,
             attendance_code=event.user_id,
-            timestamp=timestamp,
+            timestamp=corrected_timestamp,
             raw_data={
                 "uid": event.uid,
                 "user_id": event.user_id,
-                "timestamp": timestamp.isoformat(),
+                "timestamp": device_timestamp.isoformat(),
+                "timestamp_corrected": corrected_timestamp.isoformat(),
+                "delta_time_seconds": device.delta_time_seconds,
                 "status": event.status,
                 "punch": event.punch,
             },
@@ -133,7 +163,7 @@ def handle_attendance_event(event: ZKAttendanceEvent) -> None:
 
         logger.info(
             f"Created attendance record {record.id} for user {event.user_id} "
-            f"from device {event.device_name} at {timestamp}"
+            f"from device {event.device_name} at {corrected_timestamp} (device: {device_timestamp}, delta: {device.delta_time_seconds}s)"
         )
 
     except Exception as e:
@@ -144,11 +174,16 @@ def handle_device_connected(device_id: int, device_info: dict[str, Any]) -> None
     """Handle device connection event.
 
     Updates device information in the database when a device successfully connects.
+    Also syncs device time on connection.
 
     Args:
         device_id: ID of the device that connected
         device_info: Dictionary with device information (serial_number, registration_number, etc.)
     """
+    from datetime import timedelta
+
+    from apps.devices.zk import ZKDeviceService
+
     try:
         device = AttendanceDevice.objects.get(id=device_id)
 
@@ -166,6 +201,24 @@ def handle_device_connected(device_id: int, device_info: dict[str, Any]) -> None
         if not device.is_connected:
             device.is_connected = True
             updated_fields.append("is_connected")
+
+        # Sync device time on connection
+        try:
+            service = ZKDeviceService(
+                ip_address=device.ip_address,
+                port=device.port,
+                password=device.password,
+            )
+            with service:
+                device_time = service.get_device_time()
+                system_time = timezone.now()
+                device.update_time_sync(device_time, system_time)
+                updated_fields.extend(["delta_time_seconds", "time_last_synced_at"])
+                logger.info(
+                    f"Synced time for device {device.name} on connection: delta={device.delta_time_seconds}s"
+                )
+        except Exception as e:
+            logger.warning(f"Failed to sync time for device {device.name} on connection: {str(e)}")
 
         if updated_fields:
             updated_fields.append("updated_at")
