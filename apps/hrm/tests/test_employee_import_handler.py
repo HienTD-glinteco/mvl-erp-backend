@@ -536,7 +536,7 @@ class TestEmployeeImportHandler:
         assert employee.position.name == "Trưởng Phòng"
         assert employee.nationality.name == "Việt Nam"
 
-    def test_update_existing_employee(self, setup_test_data):
+    def test_skip_existing_employee(self, setup_test_data):
         """Test updating an existing employee."""
         # Create initial employee
         department = setup_test_data["department"]
@@ -571,6 +571,53 @@ class TestEmployeeImportHandler:
         ]
 
         options = {"headers": headers}
+
+        result = employee_import_handler(1, row, "test-job-id", options)
+
+        assert result["ok"] is True
+        assert result["action"] == "skipped"
+
+        # Verify updates
+        employee.refresh_from_db()
+        assert employee.fullname == "Old Name"
+        assert employee.phone == "0000000000"
+        assert employee.email == "old@example.com"
+
+    def test_update_existing_employee(self, setup_test_data):
+        """Test updating an existing employee."""
+        # Create initial employee
+        department = setup_test_data["department"]
+        employee = Employee.objects.create(
+            code="CTV000006",
+            fullname="Old Name",
+            username="olduser",
+            email="old@example.com",
+            phone="0000000000",
+            department=department,
+            start_date=date(2020, 1, 1),
+        )
+
+        # Import with updated data
+        headers = [
+            "Mã nhân viên",
+            "Tên",
+            "Chi nhánh",
+            "Khối",
+            "Phòng Ban",
+            "Điện thoại",
+            "Email",
+        ]
+        row = [
+            "CTV000006",
+            "New Name",
+            "Bắc Giang",
+            "Khối Kinh doanh 9",
+            "Phòng Kinh Doanh 18_BG",
+            "1111111111",
+            "new@example.com",
+        ]
+
+        options = {"headers": headers, "allow_update": True}
 
         result = employee_import_handler(1, row, "test-job-id", options)
 
