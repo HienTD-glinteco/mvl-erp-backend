@@ -339,7 +339,7 @@ class EmployeeModelTest(TestCase):
             start_date="2024-01-01",
             department=self.department,
             status=Employee.Status.RESIGNED,
-            resignation_reason=Employee.ResignationReason.CAREER_CHANGE,
+            resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
         )
 
         with self.assertRaises(ValidationError) as context:
@@ -406,13 +406,32 @@ class EmployeeModelTest(TestCase):
             department=self.department,
             status=Employee.Status.RESIGNED,
             resignation_date="2024-12-31",
-            resignation_reason=Employee.ResignationReason.CAREER_CHANGE,
+            resignation_reason=Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
             citizen_id="000000010009",
         )
 
         self.assertEqual(employee.status, Employee.Status.RESIGNED)
-        self.assertEqual(employee.resignation_date, "2024-12-31")
-        self.assertEqual(employee.resignation_reason, Employee.ResignationReason.CAREER_CHANGE)
+        self.assertEqual(str(employee.resignation_date), "2024-12-31")
+        self.assertEqual(employee.resignation_reason, Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE)
+
+    def test_resignation_reasons_are_updated(self):
+        """Test that ResignationReason choices have been updated"""
+        expected_reasons = [
+            "AGREEMENT_TERMINATION",
+            "PROBATION_FAIL",
+            "JOB_ABANDONMENT",
+            "DISCIPLINARY_TERMINATION",
+            "WORKFORCE_REDUCTION",
+            "UNDERPERFORMING",
+            "CONTRACT_EXPIRED",
+            "VOLUNTARY_HEALTH",
+            "VOLUNTARY_PERSONAL",
+            "VOLUNTARY_CAREER_CHANGE",
+            "VOLUNTARY_OTHER",
+            "OTHER",
+        ]
+        actual_reasons = [reason.name for reason in Employee.ResignationReason]
+        self.assertCountEqual(expected_reasons, actual_reasons)
 
     def test_employee_colored_code_type_property(self):
         """Test that colored_code_type property returns correct format"""
@@ -762,7 +781,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "start_date": "2024-01-01",
             "department_id": self.department.id,
             "status": "Resigned",
-            "resignation_reason": "Career Change",
+            "resignation_reason": "VOLUNTARY_CAREER_CHANGE",
             "citizen_id": "944477823080",
         }
         response = self.client.post(url, payload, format="json")
@@ -809,7 +828,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "department_id": self.department.id,
             "status": "Resigned",
             "resignation_date": "2024-12-31",
-            "resignation_reason": "Career Change",
+            "resignation_reason": "VOLUNTARY_CAREER_CHANGE",
             "citizen_id": "632438842613",
         }
         response = self.client.post(url, payload, format="json")
@@ -819,7 +838,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
         employee = Employee.objects.get(username="resigned001")
         self.assertEqual(employee.status, "Resigned")
         self.assertEqual(employee.resignation_date.isoformat(), "2024-12-31")
-        self.assertEqual(employee.resignation_reason, "Career Change")
+        self.assertEqual(employee.resignation_reason, "VOLUNTARY_CAREER_CHANGE")
 
     def test_update_employee_to_resigned_without_fields_fails(self):
         """Test that updating employee status to Resigned without required fields fails"""

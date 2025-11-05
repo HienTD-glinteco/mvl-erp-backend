@@ -895,3 +895,39 @@ msgstr ""
 #: templates/emails/base_email.html:27
 msgid "All rights reserved."
 msgstr ""
+
+msgid "Agreement Termination"
+msgstr "Thỏa thuận chấm dứt HĐLĐ trước thời hạn"
+
+msgid "Probation Fail"
+msgstr "Thử việc không đạt"
+
+msgid "Job Abandonment"
+msgstr "Bỏ việc"
+
+msgid "Disciplinary Termination"
+msgstr "Sa thải do kỷ luật"
+
+msgid "Workforce Reduction"
+msgstr "Thanh lọc"
+
+msgid "Underperforming"
+msgstr "Thành tích kém trong công việc"
+
+msgid "Contract Expired"
+msgstr "Hết hợp đồng"
+
+msgid "Voluntary - Health Reasons"
+msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
+
+msgid "Voluntary - Personal Reasons"
+msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
+
+msgid "Voluntary - Career Change"
+msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
+
+msgid "Voluntary - Other"
+msgstr "Nguyện vọng theo đơn - Khác"
+
+msgid "Other"
+msgstr "Khác"

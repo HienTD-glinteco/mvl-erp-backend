@@ -82,13 +82,18 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         DIVORCED = "DIVORCED", _("Divorced")
 
     class ResignationReason(models.TextChoices):
-        CAREER_CHANGE = "Career Change", _("Career Change")
-        UNDERPERFORMING = "Underperforming", _("Underperforming")
-        TERMINATED = "Terminated", _("Terminated")
-        PERSONAL_ISSUES = "Personal Issues", _("Personal Issues")
-        JOB_ABANDONMENT = "Job Abandonment", _("Job Abandonment")
-        NOT_A_GOOD_FIT = "Not a Good Fit", _("Not a Good Fit")
-        HEALTH_ISSUES = "Health Issues", _("Health Issues")
+        AGREEMENT_TERMINATION = "AGREEMENT_TERMINATION", _("Agreement Termination")
+        PROBATION_FAIL = "PROBATION_FAIL", _("Probation Fail")
+        JOB_ABANDONMENT = "JOB_ABANDONMENT", _("Job Abandonment")
+        DISCIPLINARY_TERMINATION = "DISCIPLINARY_TERMINATION", _("Disciplinary Termination")
+        WORKFORCE_REDUCTION = "WORKFORCE_REDUCTION", _("Workforce Reduction")
+        UNDERPERFORMING = "UNDERPERFORMING", _("Underperforming")
+        CONTRACT_EXPIRED = "CONTRACT_EXPIRED", _("Contract Expired")
+        VOLUNTARY_HEALTH = "VOLUNTARY_HEALTH", _("Voluntary - Health Reasons")
+        VOLUNTARY_PERSONAL = "VOLUNTARY_PERSONAL", _("Voluntary - Personal Reasons")
+        VOLUNTARY_CAREER_CHANGE = "VOLUNTARY_CAREER_CHANGE", _("Voluntary - Career Change")
+        VOLUNTARY_OTHER = "VOLUNTARY_OTHER", _("Voluntary - Other")
+        OTHER = "OTHER", _("Other")
 
     VARIANT_MAPPING = {
         "code_type": {
