@@ -9,12 +9,6 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceDeviceFilterSet
 from apps.hrm.api.serializers import AttendanceDeviceSerializer
-from apps.hrm.constants import (
-    API_ATTENDANCE_DEVICE_CHECK_CONNECTION_DESCRIPTION,
-    API_ATTENDANCE_DEVICE_CHECK_CONNECTION_SUMMARY,
-    API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_DESCRIPTION,
-    API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_SUMMARY,
-)
 from apps.hrm.models import AttendanceDevice
 from libs import BaseModelViewSet
 
@@ -205,8 +199,8 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     permission_prefix = "attendance_device"
 
     @extend_schema(
-        summary=API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_SUMMARY,
-        description=API_ATTENDANCE_DEVICE_TOGGLE_ENABLED_DESCRIPTION,
+        summary="Toggle device enabled status",
+        description="Toggle the is_enabled status of an attendance device. When enabling a device, the system will verify the connection to ensure the device is reachable.",
         tags=["Attendance Device"],
         request=None,
         responses={200: AttendanceDeviceSerializer},
@@ -289,8 +283,8 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        summary=API_ATTENDANCE_DEVICE_CHECK_CONNECTION_SUMMARY,
-        description=API_ATTENDANCE_DEVICE_CHECK_CONNECTION_DESCRIPTION,
+        summary="Check device connection",
+        description="Test the connection to an attendance device and update its connection status. This action verifies network connectivity and device availability.",
         tags=["Attendance Device"],
         request=None,
         responses={200: AttendanceDeviceSerializer},

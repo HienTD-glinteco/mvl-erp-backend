@@ -225,12 +225,15 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       ]
     },
     "string_constants": {
-      "rule": "Use constants for string values throughout the codebase",
+      "rule": "Use constants for string values throughout the codebase, but avoid creating constants for simple API documentation strings",
       "apply_to": [
-        "API Documentation: Define summary, description, and tags as constants",
         "Serializer Help Text: Use constants for help_text values",
         "Log Messages: Define log messages as constants",
         "Error Messages: Use constants for internal error messages (user-facing strings use gettext())"
+      ],
+      "do_not_create_constants_for": [
+        "API Documentation: @extend_schema summary and description should use inline strings, not constants",
+        "OpenAPI examples: Use inline strings in OpenApiExample definitions"
       ],
       "exceptions": [
         "Very short strings (≤3 chars): \"id\", \"pk\", \"en\"",
@@ -238,6 +241,22 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
         "URLs and paths: \"/api/users\", \"https://example.com\"",
         "Format strings: f\"{user.name}\"",
         "Strings wrapped in gettext(): _(\"User not found\") (user-facing)"
+      ]
+    },
+    "import_rules": {
+      "critical": true,
+      "rule": "ALL imports MUST be placed at the top of the file",
+      "description": "Never import modules inside functions or methods. All imports must be at module level (top of file).",
+      "enforcement": "blocking",
+      "examples": {
+        "correct": "# At top of file\nfrom apps.devices.zk import ZKDeviceService\n\nclass MyModel:\n    def my_method(self):\n        service = ZKDeviceService()",
+        "wrong": "# NEVER do this\nclass MyModel:\n    def my_method(self):\n        from apps.devices.zk import ZKDeviceService  # WRONG!\n        service = ZKDeviceService()"
+      },
+      "rationale": [
+        "Improves code readability and maintainability",
+        "Makes dependencies explicit and visible",
+        "Prevents import-related performance issues",
+        "Follows PEP 8 style guidelines"
       ]
     },
     "general_principles": {
@@ -424,12 +443,18 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       "python": "error_message = \"Địa chỉ email không hợp lệ\"\n@extend_schema(summary=\"Danh sách vai trò\")"
     },
     "constants_correct": {
-      "constants_py": "API_USER_LIST_SUMMARY = \"List all users\"\nAPI_USER_LIST_DESCRIPTION = \"Retrieve a paginated list of all users in the system\"\nERROR_USER_NOT_FOUND = \"User not found\"\nHELP_TEXT_EMAIL = \"User's email address\"",
-      "views_py": "from .constants import API_USER_LIST_SUMMARY, API_USER_LIST_DESCRIPTION\n\n@extend_schema(\n    summary=API_USER_LIST_SUMMARY,\n    description=API_USER_LIST_DESCRIPTION,\n    tags=[\"Users\"],\n)\ndef list_users(request):\n    pass",
+      "constants_py": "ERROR_USER_NOT_FOUND = \"User not found\"\nHELP_TEXT_EMAIL = \"User's email address\"",
+      "views_py": "@extend_schema(\n    summary=\"List all users\",\n    description=\"Retrieve a paginated list of all users in the system\",\n    tags=[\"Users\"],\n)\ndef list_users(request):\n    pass",
       "serializers_py": "from .constants import HELP_TEXT_EMAIL\n\nclass UserSerializer(serializers.ModelSerializer):\n    email = serializers.EmailField(help_text=HELP_TEXT_EMAIL)"
     },
     "constants_wrong": {
-      "python": "@extend_schema(\n    summary=\"List all users\",  # Should be a constant\n    description=\"Retrieve a paginated list of all users\",  # Should be a constant\n    tags=[\"Users\"],\n)"
+      "python": "# Don't create constants for API documentation\nAPI_USER_LIST_SUMMARY = \"List all users\"  # WRONG - unnecessary constant\nAPI_USER_LIST_DESCRIPTION = \"Retrieve a list...\"  # WRONG - unnecessary constant"
+    },
+    "import_correct": {
+      "python": "# All imports at top of file\nfrom apps.devices.zk import ZKDeviceService\nfrom apps.hrm.models import AttendanceDevice\n\nclass MyClass:\n    def my_method(self):\n        service = ZKDeviceService()"
+    },
+    "import_wrong": {
+      "python": "# NEVER import inside methods\nclass MyClass:\n    def my_method(self):\n        from apps.devices.zk import ZKDeviceService  # WRONG!\n        service = ZKDeviceService()"
     },
     "api_response_envelope": {
       "python": "from drf_spectacular.utils import extend_schema, OpenApiExample\n\n@extend_schema(\n    summary=\"List all roles\",\n    tags=[\"Roles\"],\n    examples=[\n        OpenApiExample(\n            \"Success\",\n            value={\"success\": True, \"data\": {\"count\": 1, \"next\": None, \"previous\": None, \"results\": [{\"id\": 1, \"name\": \"Admin\"}]}},\n            response_only=True,\n        ),\n        OpenApiExample(\n            \"Error\",\n            value={\"success\": False, \"error\": {\"field\": [\"Error message\"]}},\n            response_only=True,\n            status_codes=[\"400\"],\n        ),\n    ],\n)"

@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
+from apps.devices.zk import ZKDeviceService
 from apps.hrm.constants import TEMP_CODE_PREFIX
 from libs.models import AutoCodeMixin, BaseModel
 
@@ -157,8 +158,6 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         Returns:
             tuple: (is_connected: bool, message: str)
         """
-        from apps.devices.zk import ZKDeviceService
-
         service = ZKDeviceService(
             ip_address=self.ip_address,
             port=self.port,
