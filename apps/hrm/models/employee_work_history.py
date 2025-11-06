@@ -2,7 +2,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import BaseModel
+from libs.models import BaseModel, SafeTextField
+
+# Import Employee choices for reuse
+from .employee import Employee
+from .employee_work_history_queryset import EmployeeWorkHistoryQuerySet
 
 
 @audit_logging_register
@@ -29,6 +33,7 @@ class EmployeeWorkHistory(BaseModel):
         CHANGE_POSITION = "Change Position", _("Change Position")
         CHANGE_STATUS = "Change Status", _("Change Status")
         TRANSFER = "Transfer", _("Transfer")
+        CHANGE_CONTRACT = "Change Contract", _("Change Contract")
 
     date = models.DateField(
         verbose_name=_("Date"),
@@ -88,6 +93,64 @@ class EmployeeWorkHistory(BaseModel):
         verbose_name=_("Position"),
         help_text=_("Position (auto-populated from employee)"),
     )
+    note = SafeTextField(
+        blank=True,
+        verbose_name=_("Note"),
+        help_text=_("Additional notes about the work history event"),
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=Employee.Status.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Status"),
+        help_text=_("New employee status after the event (for state-change events)"),
+    )
+    from_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("From date"),
+        help_text=_("Start date of the event period"),
+    )
+    to_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("To date"),
+        help_text=_("End date of the event period"),
+    )
+    retain_seniority = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name=_("Retain seniority"),
+        help_text=_("For return to work events, whether seniority is retained or reset"),
+    )
+    resignation_reason = models.CharField(
+        max_length=50,
+        choices=Employee.ResignationReason.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Resignation reason"),
+        help_text=_("Reason for resignation (if applicable)"),
+    )
+    contract = models.ForeignKey(
+        "hrm.ContractType",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name=_("Contract"),
+        help_text=_("New contract for contract-change event"),
+    )
+    previous_data = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name=_("Previous data"),
+        help_text=_(
+            "JSON data storing previous values (status, branch_id, block_id, department_id, contract_type, contract_id)"
+        ),
+    )
+
+    objects = EmployeeWorkHistoryQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("Employee work history")
