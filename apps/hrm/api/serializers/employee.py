@@ -454,7 +454,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
             date=self.validated_attrs["start_date"],
             status=Employee.Status.RESIGNED,
-            from_date=self.employee.resignation_start_date,
+            from_date=self.validated_attrs["start_date"],
             resignation_reason=self.validated_attrs["resignation_reason"],
             note=self.validated_attrs.get("description", ""),
             detail=detail,
@@ -479,9 +479,7 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
         self.employee.resignation_end_date = attrs["end_date"]
         self.employee.status = Employee.Status.MATERNITY_LEAVE
         self.employee.resignation_reason = None
-        self.employee_update_fields.extend(
-            ["resignation_start_date", "status", "resignation_start_date", "resignation_end_date"]
-        )
+        self.employee_update_fields.extend(["resignation_start_date", "resignation_end_date", "status"])
         self.validated_attrs = attrs
         return super().validate(attrs)
 

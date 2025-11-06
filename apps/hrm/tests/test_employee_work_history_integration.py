@@ -1,5 +1,6 @@
 """Tests for employee work history integration with employee operations."""
 
+import json
 from datetime import date
 
 from django.contrib.auth import get_user_model
@@ -446,8 +447,6 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Get the copied employee - parse from JSON response
-        import json
-
         response_data = json.loads(response.content)
 
         # The response should contain the data in a 'data' field due to envelope wrapping
