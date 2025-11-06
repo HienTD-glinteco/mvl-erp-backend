@@ -15,7 +15,7 @@ from apps.hrm.api.serializers import (
     RecruitmentCandidateSerializer,
     UpdateReferrerSerializer,
 )
-from apps.hrm.models import Employee, RecruitmentCandidate
+from apps.hrm.models import Employee, EmployeeWorkHistory, RecruitmentCandidate
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -643,6 +643,15 @@ class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
         serializer = EmployeeSerializer(data=employee_data)
         if serializer.is_valid():
             employee = serializer.save()
+
+            # Note: Work history is already created by EmployeeSerializer.create()
+            # but we need to add a note about the conversion from candidate
+            # Update the automatically created work history to include candidate info
+            work_history = EmployeeWorkHistory.objects.filter(employee=employee).first()
+            if work_history:
+                work_history.note = f"Converted from recruitment candidate {candidate.code}"
+                work_history.save(update_fields=["note"])
+
             return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
