@@ -154,6 +154,8 @@ class InterviewScheduleEmailActionTests(TestCase):
         )
 
         # Create recruitment request
+        from apps.hrm.models import JobDescription
+        
         self.province = Province.objects.create(
             code="test", name="test", english_name="test", level="province", decree="", enabled=True
         )
@@ -168,14 +170,42 @@ class InterviewScheduleEmailActionTests(TestCase):
         self.branch = Branch.objects.create(
             name="Test Branch", code="TB", province=self.province, administrative_unit=self.administrative_unit
         )
+        self.block = Block.objects.create(name="Test Block", code="TBK", branch=self.branch, block_type="business")
+        self.department = Department.objects.create(
+            name="Test Department", code="TD", block=self.block, branch=self.branch
+        )
         self.position = Position.objects.create(name="Senior Developer", code="SD")
 
+        # Create proposer (HR employee)
+        self.proposer = Employee.objects.create(
+            fullname="HR Manager",
+            email="hr@example.com",
+            username="hrmanager",
+            start_date=timezone.now().date(),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.position,
+        )
+
+        # Create job description
+        self.job_description = JobDescription.objects.create(
+            code="JD001",
+            title="Senior Developer",
+            position_title="Senior Developer",
+            responsibility="Development tasks",
+            requirement="5 years experience",
+            benefit="Competitive salary",
+            proposed_salary="Negotiable",
+        )
+
+        # Create recruitment request
         self.recruitment_request = RecruitmentRequest.objects.create(
             code="RR001",
             name="Senior Developer Recruitment",
-            position_title="Senior Developer",
+            job_description=self.job_description,
             branch=self.branch,
-            quantity=2,
+            proposer=self.proposer,
         )
 
         # Create interview schedule
@@ -190,12 +220,14 @@ class InterviewScheduleEmailActionTests(TestCase):
         )
 
         # Create candidates
+        submitted_date = timezone.now().date()
         self.candidate1 = RecruitmentCandidate.objects.create(
             name="Candidate One",
             email="candidate1@example.com",
             phone="0123456789",
             citizen_id="123456789012",
             recruitment_request=self.recruitment_request,
+            submitted_date=submitted_date,
         )
         self.candidate2 = RecruitmentCandidate.objects.create(
             name="Candidate Two",
@@ -203,6 +235,7 @@ class InterviewScheduleEmailActionTests(TestCase):
             phone="0987654321",
             citizen_id="210987654321",
             recruitment_request=self.recruitment_request,
+            submitted_date=submitted_date,
         )
         self.candidate3 = RecruitmentCandidate.objects.create(
             name="Candidate Three",
@@ -210,6 +243,7 @@ class InterviewScheduleEmailActionTests(TestCase):
             phone="0111222333",
             citizen_id="333222111000",
             recruitment_request=self.recruitment_request,
+            submitted_date=submitted_date,
         )
 
         # Link candidates to interview schedule

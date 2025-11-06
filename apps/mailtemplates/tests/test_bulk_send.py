@@ -5,11 +5,18 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from apps.core.models import User
 from apps.mailtemplates.models import EmailSendJob, EmailSendRecipient
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
+
+
+def wrap_request(factory_request, user):
+    """Helper to wrap Django request in DRF Request."""
+    factory_request.user = user
+    return Request(factory_request)
 
 
 class MockInstance:
@@ -79,8 +86,8 @@ class BulkSendTemplateMailTestCase(TestCase):
             "object_ids": [1, 2, 3],
             "subject": "Bulk Welcome",
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -126,8 +133,8 @@ class BulkSendTemplateMailTestCase(TestCase):
             "filters": {"department": "Engineering"},
             "subject": "Welcome Engineers",
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -147,8 +154,8 @@ class BulkSendTemplateMailTestCase(TestCase):
             "template_slug": "welcome",
             "subject": "Test",
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -171,8 +178,8 @@ class BulkSendTemplateMailTestCase(TestCase):
             "object_ids": [1],
             # No subject provided
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -201,8 +208,8 @@ class BulkSendTemplateMailTestCase(TestCase):
             "object_ids": [1],
             "client_request_id": "bulk-2025-11-06",
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -268,8 +275,8 @@ class MultiRecipientPerInstanceTestCase(TestCase):
             "object_ids": [1, 2],
             "subject": "Interview Invitation",
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = viewset.bulk_send_template_mail(request)
@@ -318,8 +325,8 @@ class BulkSendValidationTestCase(TestCase):
             "template_slug": "nonexistent",
             "object_ids": [1],
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
@@ -338,8 +345,8 @@ class BulkSendValidationTestCase(TestCase):
             "template_slug": "welcome",
             "object_ids": [999],
         }
-        request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
-        request.user = self.user
+        factory_request = self.factory.post("/api/test/bulk_send/", request_data, format="json")
+        request = wrap_request(factory_request, self.user)
 
         # Act
         response = self.viewset.bulk_send_template_mail(request)
