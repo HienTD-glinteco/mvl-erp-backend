@@ -290,6 +290,7 @@ def save_template(request, slug):
                 "data": {
                     "html": "<html><body>Welcome Jane Doe!</body></html>",
                     "text": "Welcome Jane Doe!",
+                    "subject": "Welcome to MaiVietLand!",
                 },
                 "error": None,
             },
@@ -334,6 +335,15 @@ def preview_template(request, slug):
 
         # Render template
         result = render_and_prepare_email(template_meta, data, validate=True)
+
+        # Add subject to response with priority logic
+        subject = None
+        if "subject" in data:
+            subject = data["subject"]
+        elif "default_subject" in template_meta:
+            subject = template_meta["default_subject"]
+        
+        result["subject"] = subject
 
         return Response(result)
 
@@ -404,7 +414,11 @@ def preview_template(request, slug):
             "Bulk send success",
             value={
                 "success": True,
-                "data": {"job_id": "123e4567-e89b-12d3-a456-426614174000", "detail": "Job enqueued"},
+                "data": {
+                    "job_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "total_recipients": 2,
+                    "detail": "Job enqueued",
+                },
                 "error": None,
             },
             response_only=True,
@@ -421,8 +435,10 @@ def send_bulk_email(request, slug):
     try:
         template_meta = get_template_metadata(slug)
 
-        # Get or set subject and sender
-        subject = serializer.validated_data.get("subject", f"{template_meta['title']}")
+        # Get or set subject and sender - use default_subject if not provided
+        subject = serializer.validated_data.get("subject")
+        if not subject:
+            subject = template_meta.get("default_subject", template_meta["title"])
         sender = serializer.validated_data.get("sender", settings.DEFAULT_FROM_EMAIL)
         client_request_id = serializer.validated_data.get("client_request_id")
 
@@ -469,6 +485,7 @@ def send_bulk_email(request, slug):
                 job=job,
                 email=recipient["email"],
                 data=recipient["data"],
+                callback_data=recipient.get("callback_data"),
             )
 
         # Enqueue task
@@ -477,6 +494,7 @@ def send_bulk_email(request, slug):
         return Response(
             {
                 "job_id": str(job.id),
+                "total_recipients": len(recipients_data),
                 "detail": _("Job enqueued"),
             },
             status=status.HTTP_202_ACCEPTED,
