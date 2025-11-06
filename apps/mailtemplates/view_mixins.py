@@ -363,7 +363,8 @@ class EmailTemplateActionMixin:
             return recipients_data
 
         # Default: single recipient from instance
-        email = self.get_template_action_email(instance, "")
+        # Note: template_slug may not be available in this context, pass empty string
+        email = self.get_template_action_email(instance, template_slug="")
         if not email:
             from rest_framework.exceptions import ValidationError
             raise ValidationError(
@@ -371,8 +372,8 @@ class EmailTemplateActionMixin:
             )
 
         # Extract data from instance - get template_slug from request if available
-        template_slug = request.data.get("template_slug", "")
-        data = self.get_template_action_data(instance, template_slug)
+        template_slug_param = request.data.get("template_slug", "")
+        data = self.get_template_action_data(instance, template_slug_param)
 
         return [{"email": email, "data": data}]
 
@@ -435,8 +436,10 @@ class EmailTemplateActionMixin:
                     recipients = self.get_recipients(request, instance)
                     all_recipients.extend(recipients)
                 except Exception as e:
+                    # Use f-string to avoid format string vulnerabilities
+                    error_message = _("Failed to get recipients for instance") + f" {instance.pk}: {str(e)}"
                     return Response(
-                        {"detail": _("Failed to get recipients for instance {}: {}").format(instance.pk, str(e))},
+                        {"detail": error_message},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 

@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("mailtemplates", "0002_add_callback_data"),
+        ("mailtemplates", "0003_rename_mailtemplat_created_62c62e_idx_mailtemplat_created_992fa7_idx_and_more"),
     ]
 
     operations = [
