@@ -17,6 +17,7 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
+from apps.hrm.services.employee import create_state_change_event
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
@@ -339,5 +340,15 @@ class EmployeeViewSet(
         """Create a duplicate of an existing employee"""
         original = self.get_object()
         copied = original.copy()
+        
+        # Create work history record for the copied employee
+        create_state_change_event(
+            employee=copied,
+            old_status=None,
+            new_status=copied.status,
+            effective_date=copied.start_date,
+            note=f"Employee copied from {original.code}",
+        )
+        
         serializer = self.get_serializer(copied)
         return Response(serializer.data, status=status.HTTP_200_OK)
