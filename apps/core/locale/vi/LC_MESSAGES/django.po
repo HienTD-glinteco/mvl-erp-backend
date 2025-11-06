@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-06 14:38+0700\n"
+"POT-Creation-Date: 2025-11-07 00:31+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 # api/serializers/auth/password_change.py:80
-#: apps/core/api/permissions.py:43
+#: apps/core/api/permissions.py:47
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 
-#: apps/core/api/permissions.py:54
+#: apps/core/api/permissions.py:58
 msgid "You do not have permission to perform this action"
 msgstr ""
 
@@ -518,7 +518,6 @@ msgid "Run in dry-run mode without saving to database"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:41
-#, python-brace-format
 msgid "Starting import of {} data from {}"
 msgstr ""
 
@@ -527,7 +526,6 @@ msgid "Running in DRY-RUN mode - no data will be saved"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:57
-#, python-brace-format
 msgid "Loaded {} rows from file"
 msgstr ""
 
@@ -536,68 +534,55 @@ msgid "Import completed successfully"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:67
-#, python-brace-format
 msgid "Error during import: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:86
-#, python-brace-format
 msgid "Skipping row with missing code or name: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:128
-#, python-brace-format
 msgid "Updated province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:130
-#, python-brace-format
 msgid "Province unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:144
-#, python-brace-format
 msgid "Created province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:147
 #: apps/core/management/commands/import_administrative_data.py:253
-#, python-brace-format
 msgid "Error processing row {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:155
-#, python-brace-format
 msgid "Province import summary: {} created, {} updated, {} disabled"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:177
-#, python-brace-format
 msgid "Skipping row with missing required fields: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:201
-#, python-brace-format
 msgid "Parent province not found for code {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:234
-#, python-brace-format
 msgid "Updated unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:236
-#, python-brace-format
 msgid "Unit unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:250
-#, python-brace-format
 msgid "Created unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:261
-#, python-brace-format
 msgid "Unit import summary: {} created, {} updated, {} disabled, {} skipped"
 msgstr ""
 
@@ -1140,7 +1125,6 @@ msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 # validators.py:34
 #: apps/core/validators.py:34
-#, python-brace-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

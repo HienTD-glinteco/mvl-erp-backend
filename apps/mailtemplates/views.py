@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -81,9 +80,9 @@ from .tasks import send_email_job_task
         )
     ],
 )
+@register_permission("mailtemplate.list", _("View mail template list"))
 @api_view(["GET"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.list", gettext_lazy("Xem danh sách mẫu email"))
 def list_templates(request):
     """List all available mail templates."""
     include_preview = request.query_params.get("include_preview", "false").lower() == "true"
@@ -147,9 +146,9 @@ def list_templates(request):
         ),
     ],
 )
+@register_permission("mailtemplate.view", _("View mail template details"))
 @api_view(["GET"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.view", gettext_lazy("Xem chi tiết mẫu email"))
 def get_template(request, slug):
     """Get template metadata and optionally content."""
     try:
@@ -213,9 +212,9 @@ def get_template(request, slug):
         ),
     ],
 )
+@register_permission("mailtemplate.edit", _("Edit mail template"))
 @api_view(["PUT"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.edit", gettext_lazy("Chỉnh sửa mẫu email"))
 def save_template(request, slug):
     """Save template content."""
     serializer = TemplateSaveRequestSerializer(data=request.data)
@@ -303,9 +302,9 @@ def save_template(request, slug):
         ),
     ],
 )
+@register_permission("mailtemplate.preview", _("Preview mail template"))
 @api_view(["POST"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.preview", gettext_lazy("Xem trước mẫu email"))
 def preview_template(request, slug):
     """Preview template with data."""
     mode = request.query_params.get("mode", "sample")
@@ -342,7 +341,7 @@ def preview_template(request, slug):
             subject = data["subject"]
         elif "default_subject" in template_meta:
             subject = template_meta["default_subject"]
-        
+
         result["subject"] = subject
 
         return Response(result)
@@ -425,9 +424,9 @@ def preview_template(request, slug):
         ),
     ],
 )
+@register_permission("mailtemplate.send", _("Send bulk emails"))
 @api_view(["POST"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.send", gettext_lazy("Gửi email hàng loạt"))
 def send_bulk_email(request, slug):
     """Create bulk email send job."""
     serializer = BulkSendRequestSerializer(data=request.data)
@@ -537,9 +536,9 @@ def send_bulk_email(request, slug):
         )
     ],
 )
+@register_permission("mailtemplate.job_status", _("View email send job status"))
 @api_view(["GET"])
 @permission_classes([RoleBasedPermission])
-@register_permission("mailtemplate.job_status", gettext_lazy("Xem trạng thái gửi email"))
 def get_send_job_status(request, job_id):
     """Get status of a send job."""
     try:

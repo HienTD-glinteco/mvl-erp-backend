@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import User
+from apps.core.models import Permission, Role, User
 from apps.mailtemplates.models import EmailSendJob, EmailSendRecipient
 from apps.mailtemplates.services import get_template_metadata
 
@@ -17,11 +17,21 @@ class SubjectPreviewTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
+
+        # Create permissions
+        perm_preview = Permission.objects.create(code="mailtemplate.preview", description="Preview mail template")
+
+        # Create role with preview permission
+        role = Role.objects.create(code="MAIL_USER", name="Mail User")
+        role.permissions.add(perm_preview)
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = role
+        self.user.save()
 
     def test_preview_includes_subject_from_data(self):
         """TC1: Preview returns subject from data when provided."""
@@ -84,12 +94,20 @@ class MultiRecipientTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
+
+        # Create permission and role
+        perm_send = Permission.objects.create(code="mailtemplate.send", description="Send bulk emails")
+        role = Role.objects.create(code="MAIL_USER", name="Mail User")
+        role.permissions.add(perm_send)
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
             is_staff=True,
         )
+        self.user.role = role
+        self.user.save()
 
     @patch("apps.mailtemplates.views.send_email_job_task")
     def test_send_with_multiple_recipients_from_request(self, mock_task):
@@ -132,12 +150,20 @@ class PerRecipientCallbackTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
+
+        # Create permission and role
+        perm_send = Permission.objects.create(code="mailtemplate.send", description="Send bulk emails")
+        role = Role.objects.create(code="MAIL_USER", name="Mail User")
+        role.permissions.add(perm_send)
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
             is_staff=True,
         )
+        self.user.role = role
+        self.user.save()
 
     @patch("apps.mailtemplates.views.send_email_job_task")
     def test_recipient_callback_data_is_saved(self, mock_task):

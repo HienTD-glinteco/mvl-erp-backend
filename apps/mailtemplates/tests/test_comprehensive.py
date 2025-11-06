@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import User
+from apps.core.models import Permission, Role, User
 from apps.mailtemplates.models import EmailSendJob, EmailSendRecipient
 from apps.mailtemplates.services import get_template_metadata, render_and_prepare_email
 
@@ -17,17 +17,39 @@ class MailTemplatesComprehensiveTest(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
+
+        # Create permissions
+        self.perm_list = Permission.objects.create(code="mailtemplate.list", description="View mail template list")
+        self.perm_view = Permission.objects.create(code="mailtemplate.view", description="View mail template details")
+        self.perm_edit = Permission.objects.create(code="mailtemplate.edit", description="Edit mail template")
+        self.perm_preview = Permission.objects.create(code="mailtemplate.preview", description="Preview mail template")
+        self.perm_send = Permission.objects.create(code="mailtemplate.send", description="Send bulk emails")
+        self.perm_job_status = Permission.objects.create(
+            code="mailtemplate.job_status", description="View email send job status"
+        )
+
+        # Create role with all permissions
+        self.role = Role.objects.create(code="MAIL_USER", name="Mail User")
+        self.role.permissions.add(
+            self.perm_list, self.perm_view, self.perm_edit, self.perm_preview, self.perm_send, self.perm_job_status
+        )
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = self.role
+        self.user.save()
+
         self.staff_user = User.objects.create_user(
             username="staffuser",
             email="staff@example.com",
             password="testpass123",
             is_staff=True,
         )
+        self.staff_user.role = self.role
+        self.staff_user.save()
 
     # ====== Template Listing Tests ======
 
@@ -77,7 +99,8 @@ class MailTemplatesComprehensiveTest(TestCase):
         response = self.client.get("/api/mailtemplates/")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        # RoleBasedPermission returns 403 (Forbidden) for unauthenticated users
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     # ====== Template Detail Tests ======
 
@@ -124,9 +147,14 @@ class MailTemplatesComprehensiveTest(TestCase):
 
     @patch("apps.mailtemplates.views.save_template_content")
     def test_save_template_staff_only(self, mock_save):
-        """Test only staff/users with mailtemplate.edit permission can save templates."""
-        # Arrange
-        self.client.force_authenticate(user=self.user)
+        """Test only users with mailtemplate.edit permission can save templates."""
+        # Arrange - create user without edit permission
+        user_no_edit = User.objects.create_user(
+            username="noedituser",
+            email="noedit@example.com",
+            password="testpass123",
+        )
+        self.client.force_authenticate(user=user_no_edit)
         data = {"content": "<html><body>Test</body></html>"}
 
         # Act
@@ -248,9 +276,14 @@ class MailTemplatesComprehensiveTest(TestCase):
 
     @patch("apps.mailtemplates.tasks.send_email_job_task")
     def test_send_bulk_email_permission_required(self, mock_task):
-        """Test bulk send requires staff permission."""
-        # Arrange
-        self.client.force_authenticate(user=self.user)  # Non-staff
+        """Test bulk send requires mailtemplate.send permission."""
+        # Arrange - create user without send permission
+        user_no_perm = User.objects.create_user(
+            username="nopermuser",
+            email="noperm@example.com",
+            password="testpass123",
+        )
+        self.client.force_authenticate(user=user_no_perm)
         data = {
             "subject": "Test",
             "recipients": [{"email": "test@example.com", "data": {"fullname": "Test", "start_date": "2025-11-01"}}],

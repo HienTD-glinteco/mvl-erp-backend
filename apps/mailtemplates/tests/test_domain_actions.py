@@ -143,7 +143,9 @@ class InterviewScheduleEmailActionTests(TestCase):
             InterviewCandidate,
             InterviewSchedule,
             RecruitmentCandidate,
+            RecruitmentChannel,
             RecruitmentRequest,
+            RecruitmentSource,
         )
 
         self.client = APIClient()
@@ -155,7 +157,7 @@ class InterviewScheduleEmailActionTests(TestCase):
 
         # Create recruitment request
         from apps.hrm.models import JobDescription
-        
+
         self.province = Province.objects.create(
             code="test", name="test", english_name="test", level="province", decree="", enabled=True
         )
@@ -219,6 +221,16 @@ class InterviewScheduleEmailActionTests(TestCase):
             note="Please bring portfolio",
         )
 
+        # Create recruitment channel and source
+        self.recruitment_channel = RecruitmentChannel.objects.create(
+            code="CH001",
+            name="Job Website",
+        )
+        self.recruitment_source = RecruitmentSource.objects.create(
+            code="RS001",
+            name="LinkedIn",
+        )
+
         # Create candidates
         submitted_date = timezone.now().date()
         self.candidate1 = RecruitmentCandidate.objects.create(
@@ -227,6 +239,8 @@ class InterviewScheduleEmailActionTests(TestCase):
             phone="0123456789",
             citizen_id="123456789012",
             recruitment_request=self.recruitment_request,
+            recruitment_channel=self.recruitment_channel,
+            recruitment_source=self.recruitment_source,
             submitted_date=submitted_date,
         )
         self.candidate2 = RecruitmentCandidate.objects.create(
@@ -235,6 +249,8 @@ class InterviewScheduleEmailActionTests(TestCase):
             phone="0987654321",
             citizen_id="210987654321",
             recruitment_request=self.recruitment_request,
+            recruitment_channel=self.recruitment_channel,
+            recruitment_source=self.recruitment_source,
             submitted_date=submitted_date,
         )
         self.candidate3 = RecruitmentCandidate.objects.create(
@@ -243,6 +259,8 @@ class InterviewScheduleEmailActionTests(TestCase):
             phone="0111222333",
             citizen_id="333222111000",
             recruitment_request=self.recruitment_request,
+            recruitment_channel=self.recruitment_channel,
+            recruitment_source=self.recruitment_source,
             submitted_date=submitted_date,
         )
 

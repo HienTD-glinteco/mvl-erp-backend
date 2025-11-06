@@ -106,7 +106,7 @@ class EmailTemplateActionMixin:
         use_real = request.query_params.get("use_real", "0") == "1"
 
         # Permission for preview is handled at the view level via @register_permission
-        
+
         serializer = TemplatePreviewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -134,7 +134,7 @@ class EmailTemplateActionMixin:
                 subject = serializer.validated_data["data"]["subject"]
             elif "default_subject" in template_meta:
                 subject = template_meta["default_subject"]
-            
+
             result["subject"] = subject
 
             return Response(result)
@@ -178,7 +178,11 @@ class EmailTemplateActionMixin:
             except Exception:
                 # Don't expose internal exception details
                 return Response(
-                    {"detail": _("Failed to get recipients. Override get_recipients() or provide recipients in request.")},
+                    {
+                        "detail": _(
+                            "Failed to get recipients. Override get_recipients() or provide recipients in request."
+                        )
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -258,7 +262,7 @@ class EmailTemplateActionMixin:
                         # Override with per-recipient callback data (if exists)
                         if recipient.get("callback_data"):
                             recipient_callback_data.update(recipient["callback_data"])
-                    
+
                     EmailSendRecipient.objects.create(
                         job=job,
                         email=recipient["email"],
@@ -281,7 +285,10 @@ class EmailTemplateActionMixin:
         except TemplateNotFoundError:
             return Response({"detail": _("Template not found")}, status=status.HTTP_404_NOT_FOUND)
         except TemplateValidationError:
-            return Response({"detail": _("Template validation failed. Please check your data.")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": _("Template validation failed. Please check your data.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def get_template_action_data(self, instance: Any, template_slug: str) -> dict[str, Any]:
         """Extract template data from domain object.
@@ -367,9 +374,8 @@ class EmailTemplateActionMixin:
         email = self.get_template_action_email(instance, template_slug="")
         if not email:
             from rest_framework.exceptions import ValidationError
-            raise ValidationError(
-                _("No email address found. Override get_recipients() to provide recipients.")
-            )
+
+            raise ValidationError(_("No email address found. Override get_recipients() to provide recipients."))
 
         # Extract data from instance - get template_slug from request if available
         template_slug_param = request.data.get("template_slug", "")
@@ -395,6 +401,7 @@ class EmailTemplateActionMixin:
             Response with job_id and total_recipients
         """
         from django.db import transaction
+
         from .serializers import BulkSendTemplateMailRequestSerializer
 
         serializer = BulkSendTemplateMailRequestSerializer(data=request.data)
@@ -415,7 +422,7 @@ class EmailTemplateActionMixin:
                 subject = template_meta.get("default_subject", template_meta["title"])
 
             # Get queryset and apply filters
-            queryset = self.get_queryset()  # type: ignore[attr-defined]
+            queryset = self.get_queryset()
 
             if object_ids:
                 instances = queryset.filter(pk__in=object_ids)
@@ -493,4 +500,7 @@ class EmailTemplateActionMixin:
         except TemplateNotFoundError:
             return Response({"detail": _("Template not found")}, status=status.HTTP_404_NOT_FOUND)
         except TemplateValidationError:
-            return Response({"detail": _("Template validation failed. Please check your data.")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": _("Template validation failed. Please check your data.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

@@ -243,14 +243,17 @@ class RoleBasedPermissionTestCase(TestCase):
         self.user.role = self.role
         self.user.save()
 
+        @register_permission("test.view", "Test View Permission")
         @api_view(["GET"])
         @permission_classes([RoleBasedPermission])
-        @register_permission("test.view", "Test View Permission")
         def test_view(request):
             return Response({"ok": True})
 
         request = self.factory.get("/test/")
-        request.user = self.user
+        # Force authentication is required for APIRequestFactory
+        from rest_framework.test import force_authenticate
+
+        force_authenticate(request, user=self.user)
 
         # Act
         response = test_view(request)
@@ -282,14 +285,16 @@ class RoleBasedPermissionTestCase(TestCase):
         self.user.is_superuser = True
         self.user.save()
 
+        @register_permission("test.view", "Test View Permission")
         @api_view(["GET"])
         @permission_classes([RoleBasedPermission])
-        @register_permission("test.view", "Test View Permission")
         def test_view(request):
             return Response({"ok": True})
 
         request = self.factory.get("/test/")
-        request.user = self.user
+        from rest_framework.test import force_authenticate
+
+        force_authenticate(request, user=self.user)
 
         # Act
         response = test_view(request)
@@ -305,7 +310,9 @@ class RoleBasedPermissionTestCase(TestCase):
             return Response({"ok": True})
 
         request = self.factory.get("/test/")
-        request.user = self.user
+        from rest_framework.test import force_authenticate
+
+        force_authenticate(request, user=self.user)
 
         # Act
         response = test_view(request)
