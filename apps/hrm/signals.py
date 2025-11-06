@@ -12,6 +12,7 @@ from apps.hrm.models import (
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
+    EmployeeWorkHistory,
     JobDescription,
     Position,
     RecruitmentCandidate,
