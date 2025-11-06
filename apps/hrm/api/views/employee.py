@@ -340,7 +340,7 @@ class EmployeeViewSet(
         """Create a duplicate of an existing employee"""
         original = self.get_object()
         copied = original.copy()
-        
+
         # Create work history record for the copied employee
         create_state_change_event(
             employee=copied,
@@ -349,6 +349,6 @@ class EmployeeViewSet(
             effective_date=copied.start_date,
             note=f"Employee copied from {original.code}",
         )
-        
+
         serializer = self.get_serializer(copied)
         return Response(serializer.data, status=status.HTTP_200_OK)

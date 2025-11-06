@@ -39,7 +39,7 @@ def create_state_change_event(
         old_status_display = _("None")
     else:
         old_status_display = _(old_status)
-    
+
     new_status_display = _(new_status)
     detail = _("Status changed from {old_status} to {new_status}").format(
         old_status=old_status_display, new_status=new_status_display

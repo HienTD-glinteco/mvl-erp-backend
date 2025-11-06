@@ -245,7 +245,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     def create(self, validated_data):
         """Create employee and generate initial work history record."""
         employee = super().create(validated_data)
-        
+
         # Create initial status change work history record
         create_state_change_event(
             employee=employee,
@@ -254,7 +254,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             effective_date=employee.start_date,
             note=_("Employee created"),
         )
-        
+
         return employee
 
     def update(self, instance, validated_data):
@@ -263,10 +263,10 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         old_status = self._original_status
         old_position = self._original_position
         old_department = self._original_department
-        
+
         # Perform the update
         employee = super().update(instance, validated_data)
-        
+
         # Check for status change
         if old_status != employee.status:
             # Determine the effective date based on status
@@ -277,12 +277,14 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             ]:
                 effective_date = employee.resignation_start_date or date.today()
                 start_date = employee.resignation_start_date
-                end_date = employee.resignation_end_date if employee.status == Employee.Status.MATERNITY_LEAVE else None
+                end_date = (
+                    employee.resignation_end_date if employee.status == Employee.Status.MATERNITY_LEAVE else None
+                )
             else:
                 effective_date = employee.start_date or date.today()
                 start_date = None
                 end_date = None
-            
+
             create_state_change_event(
                 employee=employee,
                 old_status=old_status,
@@ -291,7 +293,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
                 start_date=start_date,
                 end_date=end_date,
             )
-        
+
         # Check for department change (transfer)
         if old_department and employee.department and old_department.id != employee.department.id:
             create_transfer_event(
@@ -310,7 +312,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
                 new_position=employee.position,
                 effective_date=date.today(),
             )
-        
+
         return employee
 
 
@@ -342,10 +344,10 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         self.employee.save(update_fields=self.employee_update_fields)
-        
+
         # Create work history record after save - to be implemented by subclasses
         self._create_work_history()
-    
+
     def _create_work_history(self):
         """Override in subclasses to create appropriate work history records."""
         pass
@@ -363,7 +365,7 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
         self.employee_update_fields.extend(["start_date", "status"])
         self.validated_attrs = attrs
         return super().validate(attrs)
-    
+
     def _create_work_history(self):
         """Create work history record for activation."""
         create_state_change_event(
@@ -389,20 +391,20 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
         self.employee_update_fields.extend(["start_date", "status"])
         self.validated_attrs = attrs
         return super().validate(attrs)
-    
+
     def _create_work_history(self):
         """Create work history record for reactivation."""
         # Create a state change event for reactivation with retain_seniority flag
         from apps.hrm.models import EmployeeWorkHistory
-        
+
         previous_data = {"status": self.old_status}
-        
+
         old_status_display = _(self.old_status)
         new_status_display = _(Employee.Status.ACTIVE)
         detail = _("Status changed from {old_status} to {new_status} (Reactivated)").format(
             old_status=old_status_display, new_status=new_status_display
         )
-        
+
         EmployeeWorkHistory.objects.create(
             employee=self.employee,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
@@ -434,19 +436,19 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
         self.employee_update_fields.extend(["resignation_start_date", "status", "resignation_reason"])
         self.validated_attrs = attrs
         return super().validate(attrs)
-    
+
     def _create_work_history(self):
         """Create work history record for resignation."""
         from apps.hrm.models import EmployeeWorkHistory
-        
+
         previous_data = {"status": self.old_status}
-        
+
         old_status_display = _(self.old_status)
         new_status_display = _(Employee.Status.RESIGNED)
         detail = _("Status changed from {old_status} to {new_status}").format(
             old_status=old_status_display, new_status=new_status_display
         )
-        
+
         EmployeeWorkHistory.objects.create(
             employee=self.employee,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
@@ -482,7 +484,7 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
         )
         self.validated_attrs = attrs
         return super().validate(attrs)
-    
+
     def _create_work_history(self):
         """Create work history record for maternity leave."""
         create_state_change_event(

@@ -87,11 +87,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         employee = Employee.objects.get(email="janesmith@example.com")
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.ONBOARDING)
@@ -115,7 +115,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             phone="0123456788",
             status=Employee.Status.ONBOARDING,
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -132,11 +132,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
@@ -158,7 +158,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             attendance_code="12347",
             phone="0123456787",
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -175,11 +175,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_POSITION)
         self.assertIn("Senior Developer", work_history.detail)
@@ -202,7 +202,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             attendance_code="12348",
             phone="0123456786",
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -218,11 +218,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.TRANSFER)
         self.assertIn("Engineering Department", work_history.detail)
@@ -246,7 +246,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             phone="0123456785",
             status=Employee.Status.ONBOARDING,
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -263,11 +263,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
@@ -294,7 +294,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             resignation_start_date=date(2024, 3, 1),
             resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -312,11 +312,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
@@ -342,7 +342,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             phone="0123456783",
             status=Employee.Status.ACTIVE,
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -360,11 +360,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.RESIGNED)
@@ -390,7 +390,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             status=Employee.Status.ACTIVE,
             gender=Employee.Gender.FEMALE,
         )
-        
+
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
@@ -408,11 +408,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.MATERNITY_LEAVE)
@@ -444,27 +444,26 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Get the copied employee - parse from JSON response
         import json
+
         response_data = json.loads(response.content)
-        
+
         # The response should contain the data in a 'data' field due to envelope wrapping
         if "data" in response_data:
             copied_employee = Employee.objects.get(pk=response_data["data"]["id"])
         else:
             copied_employee = Employee.objects.get(pk=response_data["id"])
-        
+
         # Check that work history was created for the copied employee
         work_histories = EmployeeWorkHistory.objects.filter(employee=copied_employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         # The note should mention the original employee's code
-        self.assertTrue(
-            employee.code in work_history.note or work_history.note.startswith("Employee copied from")
-        )
+        self.assertTrue(employee.code in work_history.note or work_history.note.startswith("Employee copied from"))
 
     def test_recruitment_candidate_to_employee_creates_work_history(self):
         """Test that converting a recruitment candidate to employee creates a work history record."""
@@ -483,9 +482,9 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             attendance_code="99999",
             phone="0999999999",
         )
-        
+
         from apps.hrm.models import JobDescription, RecruitmentChannel, RecruitmentSource
-        
+
         # Create recruitment channel and source
         recruitment_channel = RecruitmentChannel.objects.create(
             name="Job Website",
@@ -493,7 +492,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         recruitment_source = RecruitmentSource.objects.create(
             name="LinkedIn",
         )
-        
+
         # Create job description
         job_desc = JobDescription.objects.create(
             title="Backend Developer",
@@ -503,7 +502,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             benefit="Competitive salary",
             proposed_salary="1000-2000 USD",
         )
-        
+
         # Create recruitment request
         recruitment_request = RecruitmentRequest.objects.create(
             name="Backend Developer Position",
@@ -516,7 +515,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             proposed_salary="1000-2000 USD",
             number_of_positions=1,
         )
-        
+
         candidate = RecruitmentCandidate.objects.create(
             name="Alice Johnson",
             email="alice@example.com",
@@ -539,14 +538,14 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Get the created employee
         employee = Employee.objects.get(email="alice@example.com")
-        
+
         # Check that work history was created
         work_histories = EmployeeWorkHistory.objects.filter(employee=employee)
         self.assertEqual(work_histories.count(), 1)
-        
+
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
         self.assertEqual(work_history.status, Employee.Status.ONBOARDING)
