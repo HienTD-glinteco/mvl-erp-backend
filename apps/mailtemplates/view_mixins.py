@@ -183,9 +183,10 @@ class EmailTemplateActionMixin:
             # Get recipients using the new hook
             try:
                 recipients_data = self.get_recipients(request, obj)
-            except Exception as e:
+            except Exception:
+                # Don't expose internal exception details
                 return Response(
-                    {"detail": str(e)},
+                    {"detail": _("Failed to get recipients. Override get_recipients() or provide recipients in request.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -278,10 +279,10 @@ class EmailTemplateActionMixin:
                 status=status.HTTP_202_ACCEPTED,
             )
 
-        except TemplateNotFoundError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
-        except TemplateValidationError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TemplateNotFoundError:
+            return Response({"detail": _("Template not found")}, status=status.HTTP_404_NOT_FOUND)
+        except TemplateValidationError:
+            return Response({"detail": _("Template validation failed. Please check your data.")}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_template_action_data(self, instance: Any, template_slug: str) -> dict[str, Any]:
         """Extract template data from domain object.
@@ -435,9 +436,9 @@ class EmailTemplateActionMixin:
                 try:
                     recipients = self.get_recipients(request, instance)
                     all_recipients.extend(recipients)
-                except Exception as e:
-                    # Use f-string to avoid format string vulnerabilities
-                    error_message = _("Failed to get recipients for instance") + f" {instance.pk}: {str(e)}"
+                except Exception:
+                    # Don't expose internal exception details to users
+                    error_message = _("Failed to get recipients for instance") + f" {instance.pk}"
                     return Response(
                         {"detail": error_message},
                         status=status.HTTP_400_BAD_REQUEST,
@@ -490,7 +491,7 @@ class EmailTemplateActionMixin:
                 status=status.HTTP_202_ACCEPTED,
             )
 
-        except TemplateNotFoundError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
-        except TemplateValidationError as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TemplateNotFoundError:
+            return Response({"detail": _("Template not found")}, status=status.HTTP_404_NOT_FOUND)
+        except TemplateValidationError:
+            return Response({"detail": _("Template validation failed. Please check your data.")}, status=status.HTTP_400_BAD_REQUEST)
