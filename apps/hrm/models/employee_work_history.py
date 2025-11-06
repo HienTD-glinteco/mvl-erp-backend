@@ -14,19 +14,28 @@ class EmployeeWorkHistory(BaseModel):
     """Employee work history model for tracking employee work events.
 
     This model manages work history records for employees including transfers,
-    promotions, role changes, and other significant work events. Key organizational
-    fields (branch, block, department, position) are automatically populated from
-    the associated employee record.
+    promotions, role changes, contract changes, and other significant work events.
+    Key organizational fields (branch, block, department, position) are automatically
+    populated from the associated employee record.
 
     Attributes:
         date: Date of the work history event
-        name: Type of the work history event (Change Position, Change Status, Transfer)
+        name: Type of the work history event (Change Position, Change Status, Transfer, Change Contract)
         detail: Detailed description of the event
         employee: Reference to the employee
         branch: Employee's branch (auto-populated from employee)
         block: Employee's block (auto-populated from employee)
         department: Employee's department (auto-populated from employee)
         position: Employee's position (auto-populated from employee)
+        note: Additional notes about the work history event (SafeTextField, shared for all event cases)
+        status: New employee status after the event (for state-change events)
+        from_date: Start date of the event period (e.g., leave start date)
+        to_date: End date of the event period (e.g., leave end date)
+        retain_seniority: For return to work events, whether seniority is retained or reset
+        resignation_reason: Reason for resignation (if applicable)
+        contract: New contract type for contract-change events
+        previous_data: JSON data storing previous values (status, branch_id, block_id,
+                      department_id, contract_type, contract_id)
     """
 
     class EventType(models.TextChoices):
