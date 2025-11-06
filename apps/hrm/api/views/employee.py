@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
@@ -347,7 +348,7 @@ class EmployeeViewSet(
             old_status=None,
             new_status=copied.status,
             effective_date=copied.start_date,
-            note=f"Employee copied from {original.code}",
+            note=_("Employee created"),
         )
 
         serializer = self.get_serializer(copied)
