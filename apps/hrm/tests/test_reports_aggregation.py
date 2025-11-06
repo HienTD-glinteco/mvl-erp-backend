@@ -135,7 +135,7 @@ class TestHRReportsAggregationTasks(TestCase):
         """Test batch aggregation defaults to yesterday when no date provided."""
         # Arrange - create work history for yesterday
         yesterday = (timezone.now() - timedelta(days=1)).date()
-        yesterday_work_history = EmployeeWorkHistory.objects.create(
+        EmployeeWorkHistory.objects.create(
             employee=self.employee,
             date=yesterday,
             name=EmployeeWorkHistory.EventType.CHANGE_STATUS,

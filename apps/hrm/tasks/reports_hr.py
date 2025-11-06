@@ -69,8 +69,12 @@ def aggregate_hr_reports_for_work_history(self, work_history_id: int) -> dict[st
 
         # Aggregate reports for this date and organizational units
         with transaction.atomic():
-            _aggregate_staff_growth_for_date(report_date, work_history.branch, work_history.block, work_history.department)
-            _aggregate_employee_status_for_date(report_date, work_history.branch, work_history.block, work_history.department)
+            _aggregate_staff_growth_for_date(
+                report_date, work_history.branch, work_history.block, work_history.department
+            )
+            _aggregate_employee_status_for_date(
+                report_date, work_history.branch, work_history.block, work_history.department
+            )
 
         logger.info(f"Successfully aggregated HR reports for work history {work_history_id}")
         return {
@@ -137,7 +141,7 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
                 department_id = org_unit["department"]
 
                 if branch_id and block_id and department_id:
-                    from apps.hrm.models import Branch, Block, Department
+                    from apps.hrm.models import Block, Branch, Department
 
                     branch = Branch.objects.get(id=branch_id)
                     block = Block.objects.get(id=block_id)
