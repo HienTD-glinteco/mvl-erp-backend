@@ -364,6 +364,16 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         self.clean()
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        """
+        Additional cleanup when deleting an Employee go here.
+        Also deletes the associated User account if it exists.
+        """
+        user = self.user
+        super().delete(*args, **kwargs)
+        if user:
+            user.delete()
+
     def _clean_working_statuses(self):
         working_statuses = [self.Status.ACTIVE, self.Status.ONBOARDING]
 

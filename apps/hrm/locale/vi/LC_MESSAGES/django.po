@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-05 19:49+0700\n"
+"POT-Creation-Date: 2025-11-06 14:38+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,6 +90,32 @@ msgstr ""
 msgid "Number of positions must be at least 1."
 msgstr ""
 
+#: apps/hrm/api/views/attendance_device.py:272
+#, python-format
+msgid "Failed to connect to device: %(message)s"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reportss.py:43
+#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
+#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reportss.py:63
+#: apps/hrm/api/views/recruitment_reports.py:126
+#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
+#: apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reportss.py:89 apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reportss.py:110 apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/api/views/employee_reportss.py:311
 msgid "Average"
 msgstr ""
@@ -139,22 +165,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:47
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53
@@ -389,10 +399,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -401,22 +413,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -432,23 +449,23 @@ msgid ""
 "Certificate statuses updated successfully!"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:38
+#: apps/hrm/models/attendance_device.py:39
 msgid "Attendance Device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:39
+#: apps/hrm/models/attendance_device.py:40
 msgid "Attendance Devices"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:45
+#: apps/hrm/models/attendance_device.py:46
 msgid "Device name"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:46
+#: apps/hrm/models/attendance_device.py:47
 msgid "Name for the device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:52 apps/hrm/models/employee.py:151
+#: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:151
 #: apps/hrm/models/employee_report.py:40
 #: apps/hrm/models/employee_work_history.py:70
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
@@ -459,87 +476,87 @@ msgstr ""
 msgid "Block"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:53
+#: apps/hrm/models/attendance_device.py:54
 msgid "Organization Block where device is installed"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:59
+#: apps/hrm/models/attendance_device.py:60
 msgid "IP address or domain"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:60
+#: apps/hrm/models/attendance_device.py:61
 msgid "Network address for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:64
+#: apps/hrm/models/attendance_device.py:65
 msgid "Port"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:65
+#: apps/hrm/models/attendance_device.py:66
 msgid "Network port for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:70
+#: apps/hrm/models/attendance_device.py:71
 msgid "Password"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:71
+#: apps/hrm/models/attendance_device.py:72
 msgid "Authentication password for device access"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:76
+#: apps/hrm/models/attendance_device.py:77
 msgid "Serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:77
+#: apps/hrm/models/attendance_device.py:78
 msgid "Manufacturer's device serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:82
+#: apps/hrm/models/attendance_device.py:83
 msgid "Registration number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:83
+#: apps/hrm/models/attendance_device.py:84
 msgid "Device registration or license number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:87
+#: apps/hrm/models/attendance_device.py:88
 msgid "Is enabled"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:88
+#: apps/hrm/models/attendance_device.py:89
 msgid "Whether the device is enabled for automatic synchronization"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:92
+#: apps/hrm/models/attendance_device.py:93
 msgid "Connection status"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:93
+#: apps/hrm/models/attendance_device.py:94
 msgid "Whether the device is currently online and reachable"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:97
+#: apps/hrm/models/attendance_device.py:98
 msgid "Realtime enabled"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:98
+#: apps/hrm/models/attendance_device.py:99
 msgid "Whether realtime listener is enabled for this device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:103
+#: apps/hrm/models/attendance_device.py:104
 msgid "Realtime disabled at"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:104
+#: apps/hrm/models/attendance_device.py:105
 msgid "Timestamp when realtime was disabled due to connection failures"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:109
+#: apps/hrm/models/attendance_device.py:110
 msgid "Last polling sync"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:110
+#: apps/hrm/models/attendance_device.py:111
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
@@ -939,21 +956,21 @@ msgstr ""
 msgid "Employees"
 msgstr ""
 
-#: apps/hrm/models/employee.py:373
+#: apps/hrm/models/employee.py:383
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr ""
 
-#: apps/hrm/models/employee.py:392
+#: apps/hrm/models/employee.py:402
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
 msgstr ""
 
-#: apps/hrm/models/employee.py:399
+#: apps/hrm/models/employee.py:409
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
-#: apps/hrm/models/employee.py:404
+#: apps/hrm/models/employee.py:414
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 

@@ -98,6 +98,70 @@ class EmployeeModelTest(TestCase):
         self.assertEqual(employee.user.email, "john@example.com")
         self.assertIn("John Doe", str(employee))
 
+    def test_delete_employee_with_user(self):
+        """Test deleting an employee also deletes the associated User account"""
+        # Arrange: Create an employee with an associated user
+        employee = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="john.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="123456789",
+        )
+
+        # Verify user was created
+        self.assertIsNotNone(employee.user)
+        user_id = employee.user.id
+        self.assertTrue(User.objects.filter(id=user_id).exists())
+
+        # Act: Delete the employee
+        employee.delete()
+
+        # Assert: Both employee and user should be deleted
+        self.assertFalse(Employee.objects.filter(id=employee.id).exists())
+        self.assertFalse(User.objects.filter(id=user_id).exists())
+
+    def test_delete_employee_without_user(self):
+        """Test deleting an employee without an associated User account"""
+        # Arrange: Create an employee
+        employee = Employee.objects.create(
+            fullname="Jane Doe",
+            username="janedoe",
+            email="jane@example.com",
+            phone="0987654321",
+            attendance_code="54321",
+            date_of_birth="1991-01-01",
+            personal_email="jane.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="987654321",
+        )
+
+        # Manually remove the user association
+        if employee.user:
+            user = employee.user
+            employee.user = None
+            employee.save()
+            # Delete the user separately to simulate an employee without a user
+            user.delete()
+
+        employee_id = employee.id
+
+        # Act: Delete the employee
+        employee.delete()
+
+        # Assert: Employee should be deleted without errors
+        self.assertFalse(Employee.objects.filter(id=employee_id).exists())
+
     def test_employee_code_unique(self):
         """Test employee code uniqueness"""
         employee1 = Employee.objects.create(
