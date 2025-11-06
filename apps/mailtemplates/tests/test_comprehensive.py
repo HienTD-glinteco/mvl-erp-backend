@@ -122,8 +122,9 @@ class MailTemplatesComprehensiveTest(TestCase):
 
     # ====== Template Save Tests ======
 
-    def test_save_template_staff_only(self):
-        """Test only staff can save templates."""
+    @patch("apps.mailtemplates.views.save_template_content")
+    def test_save_template_staff_only(self, mock_save):
+        """Test only staff/users with mailtemplate.edit permission can save templates."""
         # Arrange
         self.client.force_authenticate(user=self.user)
         data = {"content": "<html><body>Test</body></html>"}
@@ -132,7 +133,10 @@ class MailTemplatesComprehensiveTest(TestCase):
         response = self.client.put("/api/mailtemplates/welcome/save/", data, format="json")
 
         # Assert
+        # User doesn't have mailtemplate.edit permission, should get 403
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Ensure template was never actually saved
+        mock_save.assert_not_called()
 
     @patch("apps.mailtemplates.views.save_template_content")
     def test_save_template_success(self, mock_save):
