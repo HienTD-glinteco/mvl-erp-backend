@@ -3,7 +3,7 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory, Position
@@ -11,16 +11,11 @@ from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHis
 User = get_user_model()
 
 
-class EmployeeWorkHistoryAutoCreationTest(TransactionTestCase):
+class EmployeeWorkHistoryAutoCreationTest(TestCase):
     """Test cases for automatic work history creation on employee changes."""
 
     def setUp(self):
         """Set up test data."""
-        # Clear all existing data for clean tests
-        EmployeeWorkHistory.objects.all().delete()
-        Employee.objects.all().delete()
-        User.objects.all().delete()
-
         # Create organizational structure
         self.province = Province.objects.create(code="01", name="Test Province")
         self.admin_unit = AdministrativeUnit.objects.create(

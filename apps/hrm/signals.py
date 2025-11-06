@@ -169,7 +169,8 @@ def create_employee_work_history_on_changes(sender, instance, created, **kwargs)
         # Check for status change
         old_status = getattr(instance, "_old_status", None)
         if old_status and old_status != instance.status:
-            detail = f"Status changed from {Employee.Status(old_status).label} to {instance.get_status_display()}"
+            old_status_display = dict(Employee.Status.choices).get(old_status, old_status)
+            detail = f"Status changed from {old_status_display} to {instance.get_status_display()}"
             event_date = instance.resignation_start_date or instance.start_date or date_module.today()
             create_employee_work_history(
                 employee=instance,
@@ -178,9 +179,9 @@ def create_employee_work_history_on_changes(sender, instance, created, **kwargs)
                 detail=detail,
             )
 
-        # Check for position change
+        # Check for position change (only for existing employees with actual changes)
         old_position = getattr(instance, "_old_position", None)
-        if old_position != instance.position:
+        if old_position is not None and old_position != instance.position:
             if old_position and instance.position:
                 detail = f"Position changed from {old_position.name} to {instance.position.name}"
             elif instance.position:
@@ -197,7 +198,7 @@ def create_employee_work_history_on_changes(sender, instance, created, **kwargs)
 
         # Check for department change (transfer)
         old_department = getattr(instance, "_old_department", None)
-        if old_department and old_department != instance.department:
+        if old_department is not None and old_department != instance.department:
             detail = f"Transferred from {old_department.name} to {instance.department.name}"
             create_employee_work_history(
                 employee=instance,
