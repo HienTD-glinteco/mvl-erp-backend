@@ -103,7 +103,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test creating a recruitment candidate"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -117,7 +117,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
 
         self.assertIsNotNone(candidate.id)
         self.assertEqual(candidate.name, "Nguyen Van B")
-        self.assertEqual(candidate.citizen_id, "123456789012")
+        self.assertEqual(candidate.citizen_id, "123456789")
         self.assertEqual(candidate.email, "nguyenvanb@example.com")
         self.assertEqual(candidate.phone, "0123456789")
         self.assertEqual(candidate.recruitment_request, self.recruitment_request)
@@ -128,7 +128,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that code is auto-generated with UV prefix"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -145,7 +145,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that branch is automatically set from recruitment_request"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -160,7 +160,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that block is automatically set from recruitment_request"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -175,7 +175,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that department is automatically set from recruitment_request"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -190,7 +190,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that default status is CONTACTED"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -205,7 +205,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test string representation of recruitment candidate"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -221,7 +221,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test validation for citizen_id with non-digit characters"""
         candidate = RecruitmentCandidate(
             name="Nguyen Van B",
-            citizen_id="12345678901A",  # Contains letter
+            citizen_id="12345678A",  # Contains letter
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -253,11 +253,49 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
 
         self.assertIn("citizen_id", context.exception.error_dict)
 
+    def test_citizen_id_validation_valid_lengths(self):
+        """Test validation for citizen_id with valid lengths"""
+        valid_citizen_ids = ["123456789", "123456789012"]
+        for citizen_id in valid_citizen_ids:
+            with self.subTest(citizen_id=citizen_id):
+                candidate = RecruitmentCandidate(
+                    name="Nguyen Van B",
+                    citizen_id=citizen_id,
+                    email="nguyenvanb@example.com",
+                    phone="0123456789",
+                    recruitment_request=self.recruitment_request,
+                    recruitment_source=self.recruitment_source,
+                    recruitment_channel=self.recruitment_channel,
+                    submitted_date=date(2025, 10, 15),
+                )
+                candidate.save()
+                candidate.full_clean()  # Should not raise ValidationError
+
+    def test_citizen_id_validation_invalid_length(self):
+        """Test validation for citizen_id with invalid length"""
+        invalid_citizen_ids = ["12345678", "1234567890123"]
+        for citizen_id in invalid_citizen_ids:
+            with self.subTest(citizen_id=citizen_id):
+                candidate = RecruitmentCandidate(
+                    name="Nguyen Van B",
+                    citizen_id=citizen_id,
+                    email="nguyenvanb@example.com",
+                    phone="0123456789",
+                    recruitment_request=self.recruitment_request,
+                    recruitment_source=self.recruitment_source,
+                    recruitment_channel=self.recruitment_channel,
+                    submitted_date=date(2025, 10, 15),
+                )
+                with self.assertRaises(ValidationError) as context:
+                    candidate.save()
+                    candidate.full_clean()
+                self.assertIn("citizen_id", context.exception.error_dict)
+
     def test_onboard_date_required_when_hired(self):
         """Test validation for onboard_date when status is HIRED"""
         candidate = RecruitmentCandidate(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -277,7 +315,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that onboard_date is not required for non-HIRED statuses"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -295,7 +333,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test creating a hired candidate with onboard_date"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -324,7 +362,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         for status in statuses:
             candidate = RecruitmentCandidate.objects.create(
                 name=f"Candidate {status}",
-                citizen_id=f"{123456789000 + statuses.index(status):012d}",
+                citizen_id=f"{123456789 + statuses.index(status)}",
                 email=f"candidate{statuses.index(status)}@example.com",
                 phone="0123456789",
                 recruitment_request=self.recruitment_request,
@@ -339,7 +377,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that referrer field is optional"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -356,7 +394,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test setting referrer field with an employee"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -373,7 +411,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that code field is unique"""
         candidate1 = RecruitmentCandidate.objects.create(
             name="Candidate 1",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="candidate1@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -384,7 +422,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
 
         candidate2 = RecruitmentCandidate.objects.create(
             name="Candidate 2",
-            citizen_id="123456789013",
+            citizen_id="123456780",
             email="candidate2@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -399,7 +437,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that recruitment candidates are ordered by created_at descending"""
         candidate1 = RecruitmentCandidate.objects.create(
             name="Candidate 1",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="candidate1@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -410,7 +448,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
 
         candidate2 = RecruitmentCandidate.objects.create(
             name="Candidate 2",
-            citizen_id="123456789013",
+            citizen_id="123456780",
             email="candidate2@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -427,7 +465,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test colored_status property returns correct value and variant"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -457,7 +495,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         for idx, (status, expected_variant) in enumerate(test_cases):
             candidate = RecruitmentCandidate.objects.create(
                 name=f"Candidate {status}",
-                citizen_id=f"{123456789000 + idx:012d}",
+                citizen_id=f"{123456789 + idx}",
                 email=f"candidate{idx}@example.com",
                 phone="0123456789",
                 recruitment_request=self.recruitment_request,
@@ -495,7 +533,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         """Test that default years_of_experience is NO_EXPERIENCE"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="nguyenvanb@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -519,7 +557,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         for idx, exp_level in enumerate(experience_levels):
             candidate = RecruitmentCandidate.objects.create(
                 name=f"Candidate {idx}",
-                citizen_id=f"{123456789100 + idx:012d}",
+                citizen_id=f"{123456789100 + idx}",
                 email=f"candidate_exp_{idx}@example.com",
                 phone="0123456789",
                 recruitment_request=self.recruitment_request,
@@ -536,7 +574,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
 
         RecruitmentCandidate.objects.create(
             name="Candidate A",
-            citizen_id="123456789012",
+            citizen_id="123456789",
             email="candidatea@example.com",
             phone="0123456789",
             recruitment_request=self.recruitment_request,
@@ -549,7 +587,7 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
         with self.assertRaises(IntegrityError):
             RecruitmentCandidate.objects.create(
                 name="Candidate B",
-                citizen_id="123456789012",  # Same as first candidate
+                citizen_id="123456789",  # Same as first candidate
                 email="candidateb@example.com",
                 phone="0987654321",
                 recruitment_request=self.recruitment_request,

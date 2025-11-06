@@ -87,7 +87,7 @@ class EmployeeModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010000",
+            citizen_id="123456789",
         )
         self.assertTrue(employee.code.startswith("MV"))
         self.assertEqual(employee.fullname, "John Doe")
@@ -112,7 +112,7 @@ class EmployeeModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010001",
+            citizen_id="123456789",
         )
 
         # Cannot create with same code manually
@@ -130,7 +130,7 @@ class EmployeeModelTest(TestCase):
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
-                citizen_id="000000010002",
+                citizen_id="123456780",
             )
 
     def test_employee_username_unique(self):
@@ -147,7 +147,7 @@ class EmployeeModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010003",
+            citizen_id="123456789",
         )
 
         with self.assertRaises(Exception):
@@ -163,7 +163,7 @@ class EmployeeModelTest(TestCase):
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
-                citizen_id="000000010004",
+                citizen_id="123456780",
             )
 
     def test_employee_email_unique(self):
@@ -180,7 +180,7 @@ class EmployeeModelTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010005",
+            citizen_id="123456789",
         )
 
         with self.assertRaises(Exception):
@@ -196,7 +196,7 @@ class EmployeeModelTest(TestCase):
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
-                citizen_id="000000010006",
+                citizen_id="123456780",
             )
 
     def test_employee_validation_block_branch(self):
@@ -266,7 +266,7 @@ class EmployeeModelTest(TestCase):
             personal_email="autotest.personal@example.com",
             start_date="2024-01-01",
             department=self.department,
-            citizen_id="000000010007",
+            citizen_id="123456789",
         )
 
         # Verify that branch and block were automatically set from department
@@ -308,7 +308,7 @@ class EmployeeModelTest(TestCase):
             personal_email="transfertest.personal@example.com",
             start_date="2024-01-01",
             department=self.department,
-            citizen_id="000000010008",
+            citizen_id="123456789",
         )
 
         # Initially should be in first branch/block
@@ -336,7 +336,7 @@ class EmployeeModelTest(TestCase):
             attendance_code="12345",
             start_date="2024-01-01",
             department=self.department,
-            citizen_id="123456789012",
+            citizen_id="123456789",
         )
         # Set status to ACTIVE using update_fields to bypass validation
         employee.status = Employee.Status.ACTIVE
@@ -380,7 +380,7 @@ class EmployeeModelTest(TestCase):
             start_date="2024-01-01",
             department=self.department,
             code_type=Employee.CodeType.MV,
-            citizen_id="000000010010",
+            citizen_id="123456789",
         )
 
         colored_value = employee.colored_code_type
@@ -401,7 +401,7 @@ class EmployeeModelTest(TestCase):
             personal_email="testcolor.personal@example.com",
             start_date="2024-01-01",
             department=self.department,
-            citizen_id="000000010011",
+            citizen_id="123456789",
         )
         # Set status to ACTIVE using update_fields to bypass validation
         employee.status = Employee.Status.ACTIVE
@@ -470,7 +470,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010012",
+            citizen_id="123456789",
         )
 
         self.employee2 = Employee.objects.create(
@@ -485,7 +485,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010013",
+            citizen_id="123456780",
         )
 
         self.employee3 = Employee.objects.create(
@@ -500,7 +500,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010014",
+            citizen_id="123456781",
         )
 
     def test_list_employees(self):
@@ -590,7 +590,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "start_date": "2024-01-01",
             "department_id": self.department.id,
             "note": "Test note",
-            "citizen_id": "665030149161",
+            "citizen_id": "123456787",
         }
         response = self.client.post(url, payload, format="json")
 
@@ -623,7 +623,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "personal_email": "emp1.personal@example.com",
             "start_date": "2024-01-01",
             "department_id": self.department.id,
-            "citizen_id": "104085808593",
+            "citizen_id": self.employee1.citizen_id,
         }
         response = self.client.put(url, payload, format="json")
 
@@ -690,7 +690,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "personal_email": "testuser.personal@example.com",
             "start_date": "2024-01-01",
             "department_id": department2.id,
-            "citizen_id": "608498989398",
+            "citizen_id": "123456788",
         }
         response = self.client.post(url, payload, format="json")
 
@@ -717,7 +717,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "start_date": "2024-01-01",
             "department_id": self.department.id,
             "status": "Resigned",
-            "citizen_id": "363379597750",
+            "citizen_id": self.employee1.citizen_id,
         }
         response = self.client.put(url, payload, format="json")
 
@@ -779,7 +779,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "department_id": self.department.id,
             "position_id": position.id,
             "contract_type_id": contract_type.id,
-            "citizen_id": "446130818974",
+            "citizen_id": "123456790",
         }
         response = self.client.post(url, payload, format="json")
 
@@ -850,7 +850,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010015",
+            citizen_id="123456791",
         )
         self.assertIsNone(employee.date_of_birth)
         self.assertEqual(employee.fullname, "Jane Doe")
@@ -868,7 +868,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010016",
+            citizen_id="123456792",
         )
         self.assertIsNone(employee.personal_email)
         self.assertEqual(employee.fullname, "Bob Smith")
@@ -888,7 +888,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010017",
+            citizen_id="123456782",
         )
         self.assertEqual(str(employee.date_of_birth), "1995-05-15")
         self.assertEqual(employee.personal_email, "alice.personal@example.com")
@@ -906,7 +906,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010018",
+            citizen_id="123456783",
         )
 
         employee2 = Employee.objects.create(
@@ -919,7 +919,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010019",
+            citizen_id="123456784",
         )
 
         self.assertIsNone(employee1.personal_email)
@@ -939,7 +939,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010020",
+            citizen_id="123456785",
         )
         self.assertFalse(employee.is_onboarding_email_sent)
 
@@ -955,7 +955,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="000000010021",
+            citizen_id="123456786",
         )
         self.assertFalse(employee.is_onboarding_email_sent)
 
@@ -1040,7 +1040,7 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             department=self.department,
             position=self.leadership_position,
             is_onboarding_email_sent=True,
-            citizen_id="000000010022",
+            citizen_id="123456789",
         )
 
         self.staff_employee = Employee.objects.create(
@@ -1056,7 +1056,7 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             department=self.department,
             position=self.regular_position,
             is_onboarding_email_sent=False,
-            citizen_id="000000010023",
+            citizen_id="123456780",
         )
 
         self.onboarding_employee = Employee.objects.create(
@@ -1072,7 +1072,7 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             department=self.department,
             position=self.regular_position,
             is_onboarding_email_sent=True,
-            citizen_id="000000010024",
+            citizen_id="123456781",
         )
 
         self.march_birthday_employee = Employee.objects.create(
@@ -1088,7 +1088,7 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             department=self.department,
             position=self.leadership_position,
             is_onboarding_email_sent=False,
-            citizen_id="000000010025",
+            citizen_id="123456782",
         )
 
     def test_filter_by_position_is_leadership_true(self):

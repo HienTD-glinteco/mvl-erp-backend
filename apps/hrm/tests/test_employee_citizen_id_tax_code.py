@@ -58,26 +58,46 @@ class EmployeeCitizenIdTest(TestCase):
 
         self.assertIn("citizen_id", context.exception.error_dict)
 
-    def test_citizen_id_must_be_12_digits(self):
-        """Test that citizen_id must be exactly 12 digits"""
-        # Test with too few digits
-        employee = Employee(
-            fullname="John Doe",
-            username="johndoe",
-            email="john@example.com",
-            phone="0123456789",
-            attendance_code="12345",
-            start_date="2024-01-01",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            citizen_id="12345",  # Only 5 digits
-        )
+    def test_citizen_id_length_validation(self):
+        """Test that citizen_id must be between 9 and 12 digits"""
+        valid_ids = ["123456789", "123456789012"]
+        invalid_ids = ["12345", "1234567890123"]
 
-        with self.assertRaises(ValidationError) as context:
-            employee.full_clean()
+        for citizen_id in valid_ids:
+            with self.subTest(citizen_id=citizen_id):
+                employee = Employee(
+                    fullname="John Doe",
+                    username=f"johndoe_{citizen_id}",
+                    email=f"john_{citizen_id}@example.com",
+                    phone="0123456789",
+                    attendance_code="12345",
+                    start_date="2024-01-01",
+                    branch=self.branch,
+                    block=self.block,
+                    department=self.department,
+                    citizen_id=citizen_id,
+                )
+                employee.save()
+                employee.full_clean()  # Should not raise ValidationError
 
-        self.assertIn("citizen_id", context.exception.error_dict)
+        for citizen_id in invalid_ids:
+            with self.subTest(citizen_id=citizen_id):
+                employee = Employee(
+                    fullname="John Doe",
+                    username=f"johndoe_{citizen_id}",
+                    email=f"john_{citizen_id}@example.com",
+                    phone="0123456789",
+                    attendance_code="12345",
+                    start_date="2024-01-01",
+                    branch=self.branch,
+                    block=self.block,
+                    department=self.department,
+                    citizen_id=citizen_id,
+                )
+                with self.assertRaises(ValidationError) as context:
+                    employee.save()
+                    employee.full_clean()
+                self.assertIn("citizen_id", context.exception.error_dict)
 
     def test_citizen_id_must_be_numeric(self):
         """Test that citizen_id must contain only digits"""
@@ -111,7 +131,7 @@ class EmployeeCitizenIdTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="123456789012",
+            citizen_id="123456789",
         )
 
         # Try to create another employee with same citizen_id
@@ -126,7 +146,7 @@ class EmployeeCitizenIdTest(TestCase):
                 branch=self.branch,
                 block=self.block,
                 department=self.department,
-                citizen_id="123456789012",  # Same as first employee
+                citizen_id="123456789",  # Same as first employee
             )
 
     def test_valid_citizen_id(self):
@@ -141,10 +161,10 @@ class EmployeeCitizenIdTest(TestCase):
             branch=self.branch,
             block=self.block,
             department=self.department,
-            citizen_id="123456789012",
+            citizen_id="123456789",
         )
 
-        self.assertEqual(employee.citizen_id, "123456789012")
+        self.assertEqual(employee.citizen_id, "123456789")
 
 
 class EmployeeTaxCodeTest(TestCase):

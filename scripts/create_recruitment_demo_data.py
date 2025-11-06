@@ -629,9 +629,11 @@ def create_dashboard_realtime_data(org_structure):
         # If the source allows referral, pick a random employee as referrer
         if recruitment_source and getattr(recruitment_source, "allow_referral", False) and employees:
             referrer = random.choice(employees)
+        length = random.choice([9, 12])
+        citizen_id = str(random.randint(10 ** (length - 1), (10**length) - 1))
         candidate = RecruitmentCandidate.objects.create(
             name=f"Candidate {random.randint(1000, 9999)}",
-            citizen_id=str(random.randint(100000000000, 999999999999)),
+            citizen_id=citizen_id,
             email=f"candidate{random.randint(1000, 9999)}@example.com",
             phone=f"0{random.randint(100000000, 999999999)}",
             status=RecruitmentCandidate.Status.CONTACTED,
