@@ -14,6 +14,7 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.callbacks import mark_interview_candidate_email_sent
 from apps.hrm.models import InterviewSchedule
+from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
@@ -338,6 +339,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
                             "data": {
                                 "html": "<html>...</html>",
                                 "text": "Plain text version of email",
+                                "subject": "Interview Invitation - MaiVietLand",
                             },
                         }
                     }
@@ -380,9 +382,14 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
             "application/json": {
                 "type": "object",
                 "properties": {
+                    "candidate_ids": {
+                        "type": "array",
+                        "description": "Optional list of candidate IDs to send emails to. If not provided, emails are sent to all candidates in the schedule",
+                        "items": {"type": "integer"}
+                    },
                     "recipients": {
                         "type": "array",
-                        "description": "Optional list of recipients. If not provided, email is sent to all candidates in the schedule",
+                        "description": "Optional list of recipients. If provided, overrides candidate_ids and default behavior",
                         "items": {
                             "type": "object",
                             "properties": {
@@ -429,7 +436,8 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
                             "success": True,
                             "data": {
                                 "job_id": "550e8400-e29b-41d4-a716-446655440000",
-                                "detail": "Email job created and queued",
+                                "total_recipients": 3,
+                                "detail": "Email send job enqueued",
                             },
                         }
                     }
@@ -468,6 +476,78 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
             pk,
             on_success_callback=mark_interview_candidate_email_sent,
         )
+
+    def get_recipients(self, request, instance):
+        """Get recipients for interview schedule email.
+        
+        For interview schedules, returns multiple recipients - one for each candidate.
+        Supports filtering by candidate_ids if provided in the request.
+        
+        Args:
+            request: Request object, may contain 'candidate_ids' list
+            instance: InterviewSchedule instance
+            
+        Returns:
+            List of recipient dicts with email, data, and callback_data
+        """
+        from rest_framework.exceptions import ValidationError
+        
+        # Get candidate_ids filter from request if provided
+        candidate_ids = request.data.get("candidate_ids")
+        
+        # Get all interview candidates for this schedule
+        interview_candidates = instance.interview_candidates.select_related(
+            "recruitment_candidate",
+            "interview_schedule__recruitment_request"
+        ).all()
+        
+        # Filter by candidate_ids if provided
+        if candidate_ids is not None:
+            interview_candidates = interview_candidates.filter(
+                recruitment_candidate_id__in=candidate_ids
+            )
+        
+        if not interview_candidates.exists():
+            raise ValidationError("No candidates found for this interview schedule")
+        
+        recipients = []
+        for interview_candidate in interview_candidates:
+            candidate = interview_candidate.recruitment_candidate
+            schedule = interview_candidate.interview_schedule
+            
+            if not candidate.email:
+                continue  # Skip candidates without email
+            
+            # Format interview time
+            interview_time_str = interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
+            interview_date_str = interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
+            
+            # Get position from recruitment request
+            position_name = ""
+            if schedule.recruitment_request:
+                if hasattr(schedule.recruitment_request, 'job_description') and schedule.recruitment_request.job_description:
+                    position_name = schedule.recruitment_request.job_description.position_title
+                elif hasattr(schedule.recruitment_request, 'position_title'):
+                    position_name = schedule.recruitment_request.position_title
+            
+            recipients.append({
+                "email": candidate.email,
+                "data": {
+                    "candidate_name": candidate.name,
+                    "position": position_name,
+                    "interview_date": interview_date_str,
+                    "interview_time": interview_time_str,
+                    "location": schedule.location,
+                },
+                "callback_data": {
+                    "interview_candidate_id": interview_candidate.id,
+                }
+            })
+        
+        if not recipients:
+            raise ValidationError("No candidates with valid email addresses found")
+        
+        return recipients
 
     @extend_schema(
         summary="Update interviewers in interview schedule",

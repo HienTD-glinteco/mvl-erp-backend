@@ -8,7 +8,6 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from .models import EmailSendJob, EmailSendRecipient
-from .permissions import CanPreviewRealData
 from .serializers import TemplatePreviewRequestSerializer
 from .services import (
     TemplateNotFoundError,
@@ -106,15 +105,8 @@ class EmailTemplateActionMixin:
         obj = self.get_object()  # type: ignore[attr-defined]
         use_real = request.query_params.get("use_real", "0") == "1"
 
-        # Check permissions for real data
-        if use_real:
-            permission = CanPreviewRealData()
-            if not permission.has_permission(request, self):
-                return Response(
-                    {"detail": _("Real data preview permission required")},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
+        # Permission for preview is handled at the view level via @register_permission
+        
         serializer = TemplatePreviewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -255,11 +247,18 @@ class EmailTemplateActionMixin:
 
                 # Create recipients with per-recipient callback_data
                 for recipient in recipients_data:
-                    # Prepare per-recipient callback data if provided
-                    recipient_callback_data = recipient.get("callback_data")
+                    # Merge job-level callback_data with per-recipient callback_data
+                    # Per-recipient values override job-level values
+                    recipient_callback_data = None
+                    if job_callback_data or recipient.get("callback_data"):
+                        recipient_callback_data = {}
+                        # Start with job-level callback data (if exists)
+                        if job_callback_data:
+                            recipient_callback_data.update(job_callback_data)
+                        # Override with per-recipient callback data (if exists)
+                        if recipient.get("callback_data"):
+                            recipient_callback_data.update(recipient["callback_data"])
                     
-                    # If job-level callback exists and recipient doesn't have callback_data,
-                    # we'll let the task use job-level callback
                     EmailSendRecipient.objects.create(
                         job=job,
                         email=recipient["email"],

@@ -167,10 +167,10 @@ def send_single_email(
 
             logger.info(f"Email sent to {recipient.email} (attempt {attempt})")
 
-            # Execute per-recipient callback if configured, otherwise use job-level callback
-            callback_data = recipient.callback_data if recipient.callback_data else job.callback_data
-            if callback_data:
-                execute_callback(callback_data, recipient)
+            # Execute per-recipient callback if configured
+            # (per-recipient callback_data already has job-level data merged in)
+            if recipient.callback_data:
+                execute_callback(recipient.callback_data, recipient)
 
             return True
 

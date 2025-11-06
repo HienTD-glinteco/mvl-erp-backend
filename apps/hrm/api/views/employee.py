@@ -18,6 +18,7 @@ from apps.hrm.api.serializers import (
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
 from apps.imports.api.mixins import AsyncImportProgressMixin
+from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 
@@ -199,6 +200,7 @@ class EmployeeViewSet(
                             "data": {
                                 "html": "<html>...</html>",
                                 "text": "Plain text version of email",
+                                "subject": "Welcome to MaiVietLand!",
                             },
                         }
                     }
@@ -287,7 +289,8 @@ class EmployeeViewSet(
                             "success": True,
                             "data": {
                                 "job_id": "550e8400-e29b-41d4-a716-446655440000",
-                                "detail": "Email job created and queued",
+                                "total_recipients": 1,
+                                "detail": "Email send job enqueued",
                             },
                         }
                     }
@@ -326,6 +329,27 @@ class EmployeeViewSet(
             pk,
             on_success_callback=mark_employee_onboarding_email_sent,
         )
+
+    def get_recipients(self, request, instance):
+        """Get recipients for employee email.
+        
+        For employees, returns a single recipient using the employee's email.
+        """
+        if not instance.email:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Employee does not have an email address")
+        
+        return [
+            {
+                "email": instance.email,
+                "data": {
+                    "fullname": instance.fullname,
+                    "start_date": instance.start_date.isoformat() if instance.start_date else "",
+                    "position": instance.position.name if instance.position else "",
+                    "department": instance.department.name if instance.department else "",
+                },
+            }
+        ]
 
     @extend_schema(
         summary="Copy employee",
