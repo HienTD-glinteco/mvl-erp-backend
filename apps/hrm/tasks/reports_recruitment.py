@@ -67,7 +67,11 @@ def aggregate_recruitment_reports_for_candidate(self, candidate_id: int) -> dict
             }
 
         # Use onboard_date if hired, otherwise submitted_date
-        report_date = candidate.onboard_date if candidate.status == RecruitmentCandidate.Status.HIRED else candidate.submitted_date
+        report_date = (
+            candidate.onboard_date
+            if candidate.status == RecruitmentCandidate.Status.HIRED
+            else candidate.submitted_date
+        )
 
         logger.info(
             f"Aggregating recruitment reports for candidate {candidate_id} "
@@ -159,7 +163,7 @@ def aggregate_recruitment_reports_batch(self, target_date: str | None = None) ->
                 department_id = org_unit["department"]
 
                 if branch_id and block_id and department_id:
-                    from apps.hrm.models import Branch, Block, Department
+                    from apps.hrm.models import Block, Branch, Department
 
                     branch = Branch.objects.get(id=branch_id)
                     block = Block.objects.get(id=block_id)
