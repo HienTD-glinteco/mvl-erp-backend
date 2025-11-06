@@ -17,11 +17,16 @@ from django.utils import timezone
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
+    Block,
+    Branch,
+    Department,
     HiredCandidateReport,
     RecruitmentCandidate,
+    RecruitmentChannel,
     RecruitmentChannelReport,
     RecruitmentCostReport,
     RecruitmentExpense,
+    RecruitmentSource,
     RecruitmentSourceReport,
 )
 
@@ -145,34 +150,38 @@ def aggregate_recruitment_reports_batch(self, target_date: str | None = None) ->
 
         logger.info(f"Starting batch recruitment reports aggregation for {report_date}")
 
-        # Get all unique organizational unit combinations that have hired candidates on this date
-        org_units = (
+        # Get unique org units with hired candidates on this date
+        org_unit_ids = (
             RecruitmentCandidate.objects.filter(
                 status=RecruitmentCandidate.Status.HIRED,
                 onboard_date=report_date,
             )
-            .values("branch", "block", "department")
+            .values_list("branch_id", "block_id", "department_id")
             .distinct()
         )
 
+        # Fetch all org units in one query
+        branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
+        block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
+        department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
+
+        branches = {b.id: b for b in Branch.objects.filter(id__in=branch_ids)}
+        blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
+        departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
+
         org_units_count = 0
         with transaction.atomic():
-            for org_unit in org_units:
-                branch_id = org_unit["branch"]
-                block_id = org_unit["block"]
-                department_id = org_unit["department"]
-
+            for branch_id, block_id, department_id in org_unit_ids:
                 if branch_id and block_id and department_id:
-                    from apps.hrm.models import Block, Branch, Department
+                    branch = branches.get(branch_id)
+                    block = blocks.get(block_id)
+                    department = departments.get(department_id)
 
-                    branch = Branch.objects.get(id=branch_id)
-                    block = Block.objects.get(id=block_id)
-                    department = Department.objects.get(id=department_id)
-
-                    _aggregate_recruitment_source_for_date(report_date, branch, block, department)
-                    _aggregate_recruitment_channel_for_date(report_date, branch, block, department)
-                    _aggregate_recruitment_cost_for_date(report_date, branch, block, department)
-                    _aggregate_hired_candidate_for_date(report_date, branch, block, department)
+                    if branch and block and department:
+                        _aggregate_recruitment_source_for_date(report_date, branch, block, department)
+                        _aggregate_recruitment_channel_for_date(report_date, branch, block, department)
+                        _aggregate_recruitment_cost_for_date(report_date, branch, block, department)
+                        _aggregate_hired_candidate_for_date(report_date, branch, block, department)
                     org_units_count += 1
 
         logger.info(
@@ -228,8 +237,6 @@ def _aggregate_recruitment_source_for_date(report_date: date, branch, block, dep
 
     # Update or create report for each source
     for item in hired_by_source:
-        from apps.hrm.models import RecruitmentSource
-
         source = RecruitmentSource.objects.get(id=item["recruitment_source"])
         RecruitmentSourceReport.objects.update_or_create(
             report_date=report_date,
@@ -272,8 +279,6 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
 
     # Update or create report for each channel
     for item in hired_by_channel:
-        from apps.hrm.models import RecruitmentChannel
-
         channel = RecruitmentChannel.objects.get(id=item["recruitment_channel"])
         RecruitmentChannelReport.objects.update_or_create(
             report_date=report_date,
