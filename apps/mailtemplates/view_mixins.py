@@ -136,6 +136,15 @@ class EmailTemplateActionMixin:
             # Render template
             result = render_and_prepare_email(template_meta, data, validate=True)
 
+            # Add subject to response with priority logic
+            subject = None
+            if serializer.validated_data.get("data") and "subject" in serializer.validated_data["data"]:
+                subject = serializer.validated_data["data"]["subject"]
+            elif "default_subject" in template_meta:
+                subject = template_meta["default_subject"]
+            
+            result["subject"] = subject
+
             return Response(result)
 
         except TemplateNotFoundError as e:
@@ -164,43 +173,54 @@ class EmailTemplateActionMixin:
         Returns:
             Response with job_id
         """
+        from django.db import transaction
+
         obj = self.get_object()  # type: ignore[attr-defined]
 
         try:
             template_meta = get_template_metadata(template_slug)
 
-            # Get recipients from request or use object's email
-            recipients_data = request.data.get("recipients")
+            # Get recipients using the new hook
+            try:
+                recipients_data = self.get_recipients(request, obj)
+            except Exception as e:
+                return Response(
+                    {"detail": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
+            # Validate recipients list
             if not recipients_data:
-                # Default to object's email if available
-                obj_email = self.get_template_action_email(obj, template_slug)
-                if not obj_email:
-                    return Response(
-                        {"detail": _("No email address found for this object")},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                # Extract data from object
-                data = self.get_template_action_data(obj, template_slug)
-
-                recipients_data = [{"email": obj_email, "data": data}]
-
-            # Get subject and sender from request or use defaults
-            subject = request.data.get("subject", template_meta["title"])
-            sender = request.data.get("sender", settings.DEFAULT_FROM_EMAIL)
+                return Response(
+                    {"detail": _("No recipients found")},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             # Validate all recipient data
             for recipient in recipients_data:
+                if "email" not in recipient or "data" not in recipient:
+                    return Response(
+                        {"detail": _("Each recipient must have 'email' and 'data' fields")},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 validate_template_data(recipient["data"], template_meta)
 
-            # Prepare callback data if callback provided
-            callback_data = None
+            # Get subject and sender from request or use defaults
+            subject = request.data.get("subject")
+            if not subject:
+                subject = template_meta.get("default_subject", template_meta["title"])
+            sender = request.data.get("sender", settings.DEFAULT_FROM_EMAIL)
+
+            # Get client_request_id if provided
+            client_request_id = request.data.get("client_request_id")
+
+            # Prepare callback data for job-level if callback provided
+            job_callback_data = None
             if on_success_callback:
                 # Store callback information with object reference
                 if callable(on_success_callback):
                     # Store the callable's module and name
-                    callback_data = {
+                    job_callback_data = {
                         "module": on_success_callback.__module__,
                         "function": on_success_callback.__name__,
                         "object_id": obj.pk,
@@ -209,7 +229,7 @@ class EmailTemplateActionMixin:
                     }
                 elif isinstance(on_success_callback, str):
                     # Store the string path
-                    callback_data = {
+                    job_callback_data = {
                         "path": on_success_callback,
                         "object_id": obj.pk,
                         "model_name": obj.__class__.__name__,
@@ -217,26 +237,34 @@ class EmailTemplateActionMixin:
                     }
 
                 # Add callback params if provided
-                if callback_params and callback_data is not None:
-                    callback_data["params"] = callback_params
+                if callback_params and job_callback_data is not None:
+                    job_callback_data["params"] = callback_params
 
-            # Create job
-            job = EmailSendJob.objects.create(
-                template_slug=template_slug,
-                subject=subject,
-                sender=sender,
-                total=len(recipients_data),
-                created_by=request.user if request.user.is_authenticated else None,
-                callback_data=callback_data,
-            )
-
-            # Create recipients
-            for recipient in recipients_data:
-                EmailSendRecipient.objects.create(
-                    job=job,
-                    email=recipient["email"],
-                    data=recipient["data"],
+            # Create job and recipients atomically
+            with transaction.atomic():
+                job = EmailSendJob.objects.create(
+                    template_slug=template_slug,
+                    subject=subject,
+                    sender=sender,
+                    total=len(recipients_data),
+                    created_by=request.user if request.user.is_authenticated else None,
+                    callback_data=job_callback_data,
+                    client_request_id=client_request_id,
                 )
+
+                # Create recipients with per-recipient callback_data
+                for recipient in recipients_data:
+                    # Prepare per-recipient callback data if provided
+                    recipient_callback_data = recipient.get("callback_data")
+                    
+                    # If job-level callback exists and recipient doesn't have callback_data,
+                    # we'll let the task use job-level callback
+                    EmailSendRecipient.objects.create(
+                        job=job,
+                        email=recipient["email"],
+                        data=recipient["data"],
+                        callback_data=recipient_callback_data,
+                    )
 
             # Enqueue task
             send_email_job_task.delay(str(job.id))
@@ -244,6 +272,7 @@ class EmailTemplateActionMixin:
             return Response(
                 {
                     "job_id": str(job.id),
+                    "total_recipients": len(recipients_data),
                     "detail": _("Email send job enqueued"),
                 },
                 status=status.HTTP_202_ACCEPTED,
@@ -308,3 +337,157 @@ class EmailTemplateActionMixin:
         if hasattr(instance, "email"):
             return instance.email
         return None
+
+    def get_recipients(self, request, instance: Any) -> list[dict[str, Any]]:
+        """Get recipients for an instance.
+
+        Override this method to support multiple recipients per instance.
+
+        Args:
+            request: DRF request object
+            instance: Domain model instance
+
+        Returns:
+            List of recipient dicts, each containing:
+            - email: recipient email address (required)
+            - data: template context data (required)
+            - callback_data: per-recipient callback data (optional)
+
+        Default behavior:
+            Returns a single recipient using instance.email and extracted data.
+            If instance has no email, raises ValidationError.
+        """
+        # Check if recipients provided in request
+        recipients_data = request.data.get("recipients")
+        if recipients_data:
+            return recipients_data
+
+        # Default: single recipient from instance
+        email = self.get_template_action_email(instance, "")
+        if not email:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                _("No email address found. Override get_recipients() to provide recipients.")
+            )
+
+        # Extract data from instance - get template_slug from request if available
+        template_slug = request.data.get("template_slug", "")
+        data = self.get_template_action_data(instance, template_slug)
+
+        return [{"email": email, "data": data}]
+
+    def bulk_send_template_mail(self, request):  # noqa: C901
+        """Send template email for multiple objects.
+
+        This method creates a single job for multiple objects, collecting recipients from each.
+
+        Args:
+            request: DRF request object containing:
+                - template_slug (required)
+                - object_ids or filters (one required)
+                - subject (optional)
+                - sender (optional)
+                - client_request_id (optional)
+                - meta (optional)
+
+        Returns:
+            Response with job_id and total_recipients
+        """
+        from django.db import transaction
+        from .serializers import BulkSendTemplateMailRequestSerializer
+
+        serializer = BulkSendTemplateMailRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        template_slug = serializer.validated_data["template_slug"]
+        object_ids = serializer.validated_data.get("object_ids")
+        filters = serializer.validated_data.get("filters")
+        subject = serializer.validated_data.get("subject")
+        sender = serializer.validated_data.get("sender", settings.DEFAULT_FROM_EMAIL)
+        client_request_id = serializer.validated_data.get("client_request_id")
+
+        try:
+            template_meta = get_template_metadata(template_slug)
+
+            # Use default subject if not provided
+            if not subject:
+                subject = template_meta.get("default_subject", template_meta["title"])
+
+            # Get queryset and apply filters
+            queryset = self.get_queryset()  # type: ignore[attr-defined]
+
+            if object_ids:
+                instances = queryset.filter(pk__in=object_ids)
+            elif filters:
+                # Apply filters to queryset
+                # ViewSet should implement filter logic or use filterset_class
+                instances = queryset.filter(**filters)
+            else:
+                return Response(
+                    {"detail": _("Either object_ids or filters must be provided")},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Collect all recipients from all instances
+            all_recipients = []
+            for instance in instances:
+                try:
+                    recipients = self.get_recipients(request, instance)
+                    all_recipients.extend(recipients)
+                except Exception as e:
+                    return Response(
+                        {"detail": _("Failed to get recipients for instance {}: {}").format(instance.pk, str(e))},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # Validate all recipients
+            if not all_recipients:
+                return Response(
+                    {"detail": _("No recipients found for the selected objects")},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            for recipient in all_recipients:
+                if "email" not in recipient or "data" not in recipient:
+                    return Response(
+                        {"detail": _("Each recipient must have 'email' and 'data' fields")},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                validate_template_data(recipient["data"], template_meta)
+
+            # Create job and recipients atomically
+            with transaction.atomic():
+                job = EmailSendJob.objects.create(
+                    template_slug=template_slug,
+                    subject=subject,
+                    sender=sender,
+                    total=len(all_recipients),
+                    created_by=request.user if request.user.is_authenticated else None,
+                    client_request_id=client_request_id,
+                )
+
+                # Create all recipient records
+                for recipient in all_recipients:
+                    EmailSendRecipient.objects.create(
+                        job=job,
+                        email=recipient["email"],
+                        data=recipient["data"],
+                        callback_data=recipient.get("callback_data"),
+                    )
+
+            # Enqueue task
+            send_email_job_task.delay(str(job.id))
+
+            return Response(
+                {
+                    "job_id": str(job.id),
+                    "total_recipients": len(all_recipients),
+                    "detail": _("Bulk email send job enqueued"),
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+
+        except TemplateNotFoundError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except TemplateValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

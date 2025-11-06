@@ -135,9 +135,21 @@ def send_single_email(
                 validate=True,
             )
 
+            # Determine subject with priority:
+            # 1. recipient.data['subject']
+            # 2. job.subject
+            # 3. template default_subject
+            subject = None
+            if "subject" in recipient.data:
+                subject = recipient.data["subject"]
+            elif job.subject:
+                subject = job.subject
+            else:
+                subject = template_meta.get("default_subject", template_meta.get("title", ""))
+
             # Create email message
             email = EmailMultiAlternatives(
-                subject=job.subject,
+                subject=subject,
                 body=result["text"],
                 from_email=job.sender,
                 to=[recipient.email],
@@ -155,9 +167,10 @@ def send_single_email(
 
             logger.info(f"Email sent to {recipient.email} (attempt {attempt})")
 
-            # Execute callback if configured
-            if job.callback_data:
-                execute_callback(job.callback_data, recipient)
+            # Execute per-recipient callback if configured, otherwise use job-level callback
+            callback_data = recipient.callback_data if recipient.callback_data else job.callback_data
+            if callback_data:
+                execute_callback(callback_data, recipient)
 
             return True
 

@@ -140,6 +140,12 @@ class EmailSendRecipient(BaseModel):
         verbose_name=_("Template data"),
         help_text=_("Data used to render the template for this recipient"),
     )
+    callback_data = models.JSONField(
+        null=True,
+        blank=True,
+        verbose_name=_("Callback data"),
+        help_text=_("Per-recipient callback data to use after successful send"),
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

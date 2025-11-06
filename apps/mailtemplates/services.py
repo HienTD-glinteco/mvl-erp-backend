@@ -19,7 +19,7 @@ from jinja2 import StrictUndefined, TemplateError
 from jinja2.sandbox import SandboxedEnvironment
 from premailer import Premailer
 
-from .constants import ACTION_TEMPLATE_MAP, TEMPLATE_REGISTRY, TemplateMetadata
+from .constants import TEMPLATE_REGISTRY, TemplateMetadata
 
 
 class TemplateNotFoundError(Exception):
@@ -66,26 +66,7 @@ def get_template_metadata(slug: str) -> TemplateMetadata:
     raise TemplateNotFoundError(f"Template with slug '{slug}' not found")
 
 
-def get_template_by_action(action_key: str) -> tuple[TemplateMetadata, dict[str, Any]]:
-    """Get template metadata and action config by action key.
 
-    Args:
-        action_key: Action identifier (e.g., 'send_welcome_email')
-
-    Returns:
-        Tuple of (template_metadata, action_config_dict)
-
-    Raises:
-        TemplateNotFoundError: If action is not found or template doesn't exist
-    """
-    if action_key not in ACTION_TEMPLATE_MAP:
-        raise TemplateNotFoundError(f"Action '{action_key}' not found in ACTION_TEMPLATE_MAP")
-
-    action_config = ACTION_TEMPLATE_MAP[action_key]
-    template_slug = action_config["template_slug"]
-    template_meta = get_template_metadata(template_slug)
-
-    return template_meta, dict(action_config)
 
 
 def get_template_file_path(filename: str) -> Path:
