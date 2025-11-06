@@ -23,7 +23,7 @@ def create_state_change_event(
 
     Args:
         employee: Employee instance
-        old_status: Previous employee status
+        old_status: Previous employee status (can be None for new employees)
         new_status: New employee status
         effective_date: Date when the status change takes effect
         start_date: Optional start date for the event period (e.g., leave start date)
@@ -35,7 +35,11 @@ def create_state_change_event(
     """
     previous_data = {"status": old_status}
 
-    old_status_display = _(old_status)
+    if old_status is None:
+        old_status_display = _("None")
+    else:
+        old_status_display = _(old_status)
+    
     new_status_display = _(new_status)
     detail = _("Status changed from {old_status} to {new_status}").format(
         old_status=old_status_display, new_status=new_status_display

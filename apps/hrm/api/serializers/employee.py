@@ -118,6 +118,18 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     colored_code_type = ColoredValueSerializer(read_only=True)
     colored_status = ColoredValueSerializer(read_only=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Store original values when instance exists
+        if self.instance:
+            self._original_status = self.instance.status
+            self._original_position = self.instance.position
+            self._original_department = self.instance.department
+        else:
+            self._original_status = None
+            self._original_position = None
+            self._original_department = None
+
     class Meta:
         model = Employee
         fields = [
@@ -247,10 +259,10 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
 
     def update(self, instance, validated_data):
         """Update employee and track changes in work history."""
-        # Store old values before update
-        old_status = instance.status
-        old_position = instance.position
-        old_department = instance.department
+        # Use stored original values before update
+        old_status = self._original_status
+        old_position = self._original_position
+        old_department = self._original_department
         
         # Perform the update
         employee = super().update(instance, validated_data)
@@ -281,7 +293,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             )
         
         # Check for department change (transfer)
-        if old_department and old_department.id != employee.department.id:
+        if old_department and employee.department and old_department.id != employee.department.id:
             create_transfer_event(
                 employee=employee,
                 old_department=old_department,
