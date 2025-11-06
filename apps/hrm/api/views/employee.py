@@ -1,6 +1,7 @@
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -325,3 +326,18 @@ class EmployeeViewSet(
             pk,
             on_success_callback=mark_employee_onboarding_email_sent,
         )
+
+    @extend_schema(
+        summary="Copy employee",
+        description="Create a duplicate of an existing employee with unique identifiers for code, username, email, and citizen_id",
+        tags=["Employee"],
+        request=None,
+        responses={200: EmployeeSerializer},
+    )
+    @action(detail=True, methods=["post"], url_path="copy")
+    def copy(self, request, pk=None):
+        """Create a duplicate of an existing employee"""
+        original = self.get_object()
+        copied = original.copy()
+        serializer = self.get_serializer(copied)
+        return Response(serializer.data, status=status.HTTP_200_OK)

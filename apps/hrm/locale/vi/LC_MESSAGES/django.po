@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-06 14:38+0700\n"
+"POT-Creation-Date: 2025-11-06 17:18+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,7 +228,7 @@ msgid "Grandmother"
 msgstr ""
 
 #: apps/hrm/constants.py:73 apps/hrm/constants.py:90
-#: apps/hrm/models/employee.py:96 apps/hrm/models/recruitment_channel.py:22
+#: apps/hrm/models/employee.py:97 apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr ""
 
@@ -465,7 +465,7 @@ msgstr ""
 msgid "Name for the device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:151
+#: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:152
 #: apps/hrm/models/employee_report.py:40
 #: apps/hrm/models/employee_work_history.py:70
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
@@ -576,7 +576,7 @@ msgstr ""
 msgid "Attendance device that captured this record"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:55 apps/hrm/models/employee.py:135
+#: apps/hrm/models/attendance_record.py:55 apps/hrm/models/employee.py:136
 msgid "Attendance code"
 msgstr ""
 
@@ -633,7 +633,7 @@ msgstr ""
 msgid "Banks"
 msgstr ""
 
-#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:331
+#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:332
 #: apps/hrm/models/employee_certificate.py:53
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
@@ -672,7 +672,7 @@ msgstr ""
 msgid "Contract type name"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:19 apps/hrm/models/employee.py:173
+#: apps/hrm/models/contract_type.py:19 apps/hrm/models/employee.py:174
 msgid "Contract type"
 msgstr ""
 
@@ -680,131 +680,131 @@ msgstr ""
 msgid "Contract types"
 msgstr ""
 
-#: apps/hrm/models/employee.py:65
+#: apps/hrm/models/employee.py:66
 msgid "MV"
 msgstr ""
 
-#: apps/hrm/models/employee.py:66
+#: apps/hrm/models/employee.py:67
 msgid "CTV"
 msgstr ""
 
-#: apps/hrm/models/employee.py:69 apps/hrm/models/organization.py:36
+#: apps/hrm/models/employee.py:70 apps/hrm/models/organization.py:36
 #: apps/hrm/models/organization.py:68 apps/hrm/models/organization.py:130
 #: apps/hrm/models/organization.py:261 apps/hrm/models/organization.py:316
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr ""
 
-#: apps/hrm/models/employee.py:70
+#: apps/hrm/models/employee.py:71
 msgid "Onboarding"
 msgstr ""
 
-#: apps/hrm/models/employee.py:71
+#: apps/hrm/models/employee.py:72
 msgid "Resigned"
 msgstr ""
 
-#: apps/hrm/models/employee.py:72
+#: apps/hrm/models/employee.py:73
 msgid "Maternity Leave"
 msgstr ""
 
-#: apps/hrm/models/employee.py:73
+#: apps/hrm/models/employee.py:74
 msgid "Unpaid Leave"
 msgstr ""
 
-#: apps/hrm/models/employee.py:76
+#: apps/hrm/models/employee.py:77
 msgid "Male"
 msgstr ""
 
-#: apps/hrm/models/employee.py:77
+#: apps/hrm/models/employee.py:78
 msgid "Female"
 msgstr ""
 
-#: apps/hrm/models/employee.py:80
+#: apps/hrm/models/employee.py:81
 msgid "Single"
 msgstr ""
 
-#: apps/hrm/models/employee.py:81
+#: apps/hrm/models/employee.py:82
 msgid "Married"
 msgstr ""
 
-#: apps/hrm/models/employee.py:82
+#: apps/hrm/models/employee.py:83
 msgid "Divorced"
 msgstr ""
 
-#: apps/hrm/models/employee.py:85
+#: apps/hrm/models/employee.py:86
 msgid "Agreement Termination"
 msgstr ""
 
-#: apps/hrm/models/employee.py:86
+#: apps/hrm/models/employee.py:87
 msgid "Probation Fail"
 msgstr ""
 
-#: apps/hrm/models/employee.py:87
+#: apps/hrm/models/employee.py:88
 msgid "Job Abandonment"
 msgstr ""
 
-#: apps/hrm/models/employee.py:88
+#: apps/hrm/models/employee.py:89
 msgid "Disciplinary Termination"
 msgstr ""
 
-#: apps/hrm/models/employee.py:89
+#: apps/hrm/models/employee.py:90
 msgid "Workforce Reduction"
 msgstr ""
 
-#: apps/hrm/models/employee.py:90
+#: apps/hrm/models/employee.py:91
 msgid "Underperforming"
 msgstr ""
 
-#: apps/hrm/models/employee.py:91
+#: apps/hrm/models/employee.py:92
 msgid "Contract Expired"
 msgstr ""
 
-#: apps/hrm/models/employee.py:92
+#: apps/hrm/models/employee.py:93
 msgid "Voluntary - Health Reasons"
 msgstr ""
 
-#: apps/hrm/models/employee.py:93
+#: apps/hrm/models/employee.py:94
 msgid "Voluntary - Personal Reasons"
 msgstr ""
 
-#: apps/hrm/models/employee.py:94
+#: apps/hrm/models/employee.py:95
 msgid "Voluntary - Career Change"
 msgstr ""
 
-#: apps/hrm/models/employee.py:95
+#: apps/hrm/models/employee.py:96
 msgid "Voluntary - Other"
 msgstr ""
 
-#: apps/hrm/models/employee.py:120
+#: apps/hrm/models/employee.py:121
 msgid "Employee type"
 msgstr ""
 
-#: apps/hrm/models/employee.py:122 apps/hrm/models/employee_relationship.py:64
+#: apps/hrm/models/employee.py:123 apps/hrm/models/employee_relationship.py:64
 msgid "Employee code"
 msgstr ""
 
-#: apps/hrm/models/employee.py:129
+#: apps/hrm/models/employee.py:130
 msgid "Avatar"
 msgstr ""
 
-#: apps/hrm/models/employee.py:131
+#: apps/hrm/models/employee.py:132
 msgid "Full name"
 msgstr ""
 
-#: apps/hrm/models/employee.py:134
+#: apps/hrm/models/employee.py:135
 msgid "Attendance code must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:137
+#: apps/hrm/models/employee.py:138
 msgid "Username"
 msgstr ""
 
-#: apps/hrm/models/employee.py:138 apps/hrm/models/organization.py:22
+#: apps/hrm/models/employee.py:139 apps/hrm/models/organization.py:22
 #: apps/hrm/models/recruitment_candidate.py:56
 msgid "Email"
 msgstr ""
 
-#: apps/hrm/models/employee.py:145 apps/hrm/models/employee_report.py:34
+#: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:34
 #: apps/hrm/models/employee_work_history.py:61
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
 #: apps/hrm/models/organization.py:103 apps/hrm/models/organization.py:311
@@ -814,7 +814,7 @@ msgstr ""
 msgid "Branch"
 msgstr ""
 
-#: apps/hrm/models/employee.py:157 apps/hrm/models/employee_report.py:46
+#: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:46
 #: apps/hrm/models/employee_work_history.py:79
 #: apps/hrm/models/organization.py:133 apps/hrm/models/organization.py:295
 #: apps/hrm/models/recruitment_candidate.py:84
@@ -823,34 +823,34 @@ msgstr ""
 msgid "Department"
 msgstr ""
 
-#: apps/hrm/models/employee.py:165 apps/hrm/models/employee_work_history.py:88
+#: apps/hrm/models/employee.py:166 apps/hrm/models/employee_work_history.py:88
 #: apps/hrm/models/organization.py:264 apps/hrm/models/organization.py:287
 msgid "Position"
 msgstr ""
 
-#: apps/hrm/models/employee.py:177 apps/hrm/models/organization.py:313
+#: apps/hrm/models/employee.py:178 apps/hrm/models/organization.py:313
 msgid "Start date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:182 apps/hrm/models/employee_certificate.py:110
+#: apps/hrm/models/employee.py:183 apps/hrm/models/employee_certificate.py:110
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
 msgstr ""
 
-#: apps/hrm/models/employee.py:187
+#: apps/hrm/models/employee.py:188
 msgid "Resignation start date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:192
+#: apps/hrm/models/employee.py:193
 msgid "Resignation end date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:199
+#: apps/hrm/models/employee.py:200
 msgid "Resignation reason"
 msgstr ""
 
-#: apps/hrm/models/employee.py:201 apps/hrm/models/employee_dependent.py:109
+#: apps/hrm/models/employee.py:202 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
@@ -860,117 +860,117 @@ msgstr ""
 msgid "Note"
 msgstr ""
 
-#: apps/hrm/models/employee.py:207 apps/hrm/models/employee_dependent.py:71
+#: apps/hrm/models/employee.py:208 apps/hrm/models/employee_dependent.py:71
 #: apps/hrm/models/employee_relationship.py:92
 msgid "Date of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:213
+#: apps/hrm/models/employee.py:214
 msgid "Gender"
 msgstr ""
 
-#: apps/hrm/models/employee.py:219
+#: apps/hrm/models/employee.py:220
 msgid "Marital status"
 msgstr ""
 
-#: apps/hrm/models/employee.py:227
+#: apps/hrm/models/employee.py:228
 msgid "Nationality"
 msgstr ""
 
-#: apps/hrm/models/employee.py:232
+#: apps/hrm/models/employee.py:233
 msgid "Ethnicity"
 msgstr ""
 
-#: apps/hrm/models/employee.py:237
+#: apps/hrm/models/employee.py:238
 msgid "Religion"
 msgstr ""
 
-#: apps/hrm/models/employee.py:245 apps/hrm/models/employee_dependent.py:79
+#: apps/hrm/models/employee.py:246 apps/hrm/models/employee_dependent.py:79
 #: apps/hrm/models/employee_relationship.py:100
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr ""
 
-#: apps/hrm/models/employee.py:250
+#: apps/hrm/models/employee.py:251
 msgid "Citizen ID issued date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:255
+#: apps/hrm/models/employee.py:256
 msgid "Citizen ID issued place"
 msgstr ""
 
-#: apps/hrm/models/employee.py:260 apps/hrm/models/employee_dependent.py:93
+#: apps/hrm/models/employee.py:261 apps/hrm/models/employee_dependent.py:93
 #: apps/hrm/models/employee_relationship.py:114
 msgid "Tax code"
 msgstr ""
 
-#: apps/hrm/models/employee.py:266
+#: apps/hrm/models/employee.py:267
 msgid "Phone number must be exactly 10 digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:267 apps/hrm/models/organization.py:21
+#: apps/hrm/models/employee.py:268 apps/hrm/models/organization.py:21
 msgid "Phone number"
 msgstr ""
 
-#: apps/hrm/models/employee.py:273
+#: apps/hrm/models/employee.py:274
 msgid "Personal email"
 msgstr ""
 
-#: apps/hrm/models/employee.py:280
+#: apps/hrm/models/employee.py:281
 msgid "Place of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:285
+#: apps/hrm/models/employee.py:286
 msgid "Residential address"
 msgstr ""
 
-#: apps/hrm/models/employee.py:290
+#: apps/hrm/models/employee.py:291
 msgid "Permanent address"
 msgstr ""
 
-#: apps/hrm/models/employee.py:297
+#: apps/hrm/models/employee.py:298
 msgid "Emergency contact name"
 msgstr ""
 
-#: apps/hrm/models/employee.py:302
+#: apps/hrm/models/employee.py:303
 msgid "Phone number must contain only digits"
 msgstr ""
 
-#: apps/hrm/models/employee.py:303
+#: apps/hrm/models/employee.py:304
 msgid "Emergency contact phone"
 msgstr ""
 
-#: apps/hrm/models/employee.py:313
+#: apps/hrm/models/employee.py:314
 msgid "User"
 msgstr ""
 
-#: apps/hrm/models/employee.py:317
+#: apps/hrm/models/employee.py:318
 msgid "Is onboarding email sent"
 msgstr ""
 
-#: apps/hrm/models/employee.py:327 apps/hrm/models/recruitment_candidate.py:129
+#: apps/hrm/models/employee.py:328 apps/hrm/models/recruitment_candidate.py:129
 msgid "Recruitment Candidate"
 msgstr ""
 
-#: apps/hrm/models/employee.py:332
+#: apps/hrm/models/employee.py:333
 msgid "Employees"
 msgstr ""
 
-#: apps/hrm/models/employee.py:383
+#: apps/hrm/models/employee.py:384
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr ""
 
-#: apps/hrm/models/employee.py:402
+#: apps/hrm/models/employee.py:403
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
 msgstr ""
 
-#: apps/hrm/models/employee.py:409
+#: apps/hrm/models/employee.py:410
 msgid "Resignation reason is required when status is Resigned."
 msgstr ""
 
-#: apps/hrm/models/employee.py:414
+#: apps/hrm/models/employee.py:415
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 

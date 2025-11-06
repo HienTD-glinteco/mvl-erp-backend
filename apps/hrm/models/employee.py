@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -446,3 +447,25 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def colored_status(self):
         """Get colored value representation for status field."""
         return self.get_colored_value("status")
+
+    def copy(self, save: bool = True) -> "Employee":
+        """Create a copy of the Employee instance.
+
+        The copied instance will have a temporary code and no associated User account.
+        Args:
+            save (bool): Whether to save the copied instance to the database. Defaults to True.
+            If False, the caller is responsible for saving the instance.
+        """
+        self.id = self.pk = None
+        self.user = None
+
+        self.code = f"{Employee.TEMP_CODE_PREFIX}{get_random_string(8)}"[:10]
+        self.username = f"{self.username}_copy_{get_random_string(10)}"
+        self.email = f"{self.username}@example.com"
+        self.citizen_id = get_random_string(10, allowed_chars="0123456789")
+        self.tax_code = get_random_string(10)
+
+        if save:
+            self.save()
+
+        return self
