@@ -226,6 +226,10 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
     def test_list_work_histories(self):
         """Test listing work histories returns paginated results."""
         # Arrange
+        # Note: Employee creation automatically creates 1 work history record
+        # Clear auto-created history for this test
+        EmployeeWorkHistory.objects.filter(employee=self.employee).delete()
+
         EmployeeWorkHistory.objects.create(
             employee=self.employee,
             date=date(2024, 6, 1),
@@ -332,6 +336,10 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
     def test_filter_by_employee(self):
         """Test filtering work histories by employee."""
         # Arrange
+        # Note: Employee creation automatically creates 1 work history record per employee
+        # Clear auto-created histories for this test
+        EmployeeWorkHistory.objects.filter(employee=self.employee).delete()
+
         employee2 = Employee.objects.create(
             fullname="Jane Smith",
             username="janesmith",
@@ -346,6 +354,9 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
             attendance_code="54321",
             phone="0987654321",
         )
+        # Clear auto-created history for employee2
+        EmployeeWorkHistory.objects.filter(employee=employee2).delete()
+
         EmployeeWorkHistory.objects.create(
             employee=self.employee,
             date=date(2024, 6, 1),

@@ -67,20 +67,26 @@ def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG0
 
 
 @receiver(pre_save, sender=Employee)
-def track_position_change(sender, instance, **kwargs):  # noqa: ARG001
-    """Track if employee position is changing.
+def track_employee_changes(sender, instance, **kwargs):  # noqa: ARG001
+    """Track employee changes for work history recording.
 
-    Store the old position in a temporary attribute so we can detect changes
+    Store the old values in temporary attributes so we can detect changes
     in the post_save signal.
     """
     if instance.pk:
         try:
             old_instance = Employee.objects.get(pk=instance.pk)
             instance._old_position = old_instance.position
+            instance._old_department = old_instance.department
+            instance._old_status = old_instance.status
         except Employee.DoesNotExist:
             instance._old_position = None
+            instance._old_department = None
+            instance._old_status = None
     else:
         instance._old_position = None
+        instance._old_department = None
+        instance._old_status = None
 
 
 @receiver(post_save, sender=Employee)
@@ -129,3 +135,73 @@ def manage_organization_chart_on_position_change(sender, instance, created, **kw
             is_primary=True,
             is_active=True,
         )
+
+
+@receiver(post_save, sender=Employee)
+def create_employee_work_history_on_changes(sender, instance, created, **kwargs):  # noqa: ARG001
+    """Create work history records when employee is created or updated.
+
+    This signal handler creates EmployeeWorkHistory records for:
+    - New employee creation (status: ONBOARDING or ACTIVE)
+    - Status changes (CHANGE_STATUS event)
+    - Position changes (CHANGE_POSITION event)
+    - Department changes (TRANSFER event)
+    """
+    from datetime import date as date_module  # noqa: PLC0415
+
+    from apps.hrm.models import EmployeeWorkHistory  # noqa: PLC0415
+    from apps.hrm.utils.functions import create_employee_work_history  # noqa: PLC0415
+
+    # Skip if this is from copy operation (has temp code prefix)
+    if instance.code.startswith(TEMP_CODE_PREFIX):
+        return
+
+    if created:
+        # New employee - create initial work history
+        detail = f"Employee created with status: {instance.get_status_display()}"
+        create_employee_work_history(
+            employee=instance,
+            event_type=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            event_date=instance.start_date or date_module.today(),
+            detail=detail,
+        )
+    else:
+        # Check for status change
+        old_status = getattr(instance, "_old_status", None)
+        if old_status and old_status != instance.status:
+            detail = f"Status changed from {Employee.Status(old_status).label} to {instance.get_status_display()}"
+            event_date = instance.resignation_start_date or instance.start_date or date_module.today()
+            create_employee_work_history(
+                employee=instance,
+                event_type=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+                event_date=event_date,
+                detail=detail,
+            )
+
+        # Check for position change
+        old_position = getattr(instance, "_old_position", None)
+        if old_position != instance.position:
+            if old_position and instance.position:
+                detail = f"Position changed from {old_position.name} to {instance.position.name}"
+            elif instance.position:
+                detail = f"Position assigned: {instance.position.name}"
+            else:
+                detail = "Position removed"
+
+            create_employee_work_history(
+                employee=instance,
+                event_type=EmployeeWorkHistory.EventType.CHANGE_POSITION,
+                event_date=date_module.today(),
+                detail=detail,
+            )
+
+        # Check for department change (transfer)
+        old_department = getattr(instance, "_old_department", None)
+        if old_department and old_department != instance.department:
+            detail = f"Transferred from {old_department.name} to {instance.department.name}"
+            create_employee_work_history(
+                employee=instance,
+                event_type=EmployeeWorkHistory.EventType.TRANSFER,
+                event_date=date_module.today(),
+                detail=detail,
+            )

@@ -173,3 +173,25 @@ def get_week_label_from_date_range(start_date, end_date):
         str: Week label in format "DD/MM - DD/MM" (e.g., "12/05 - 18/05")
     """
     return f"{start_date.strftime('%d/%m')} - {end_date.strftime('%d/%m')}"
+
+
+def create_employee_work_history(employee, event_type, event_date, detail=""):
+    """Create a work history record for an employee.
+
+    Args:
+        employee: Employee instance
+        event_type: Type of event (use EmployeeWorkHistory.EventType choices)
+        event_date: Date of the event
+        detail: Optional detailed description of the event
+
+    Returns:
+        EmployeeWorkHistory: Created work history instance
+    """
+    from apps.hrm.models import EmployeeWorkHistory  # noqa: PLC0415
+
+    return EmployeeWorkHistory.objects.create(
+        employee=employee,
+        name=event_type,
+        date=event_date,
+        detail=detail,
+    )
