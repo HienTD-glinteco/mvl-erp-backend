@@ -461,8 +461,8 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         work_history = work_histories.first()
         self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
-        # The note should mention the original employee's code
-        self.assertTrue(employee.code in work_history.note or work_history.note.startswith("Employee copied from"))
+        # The note should be "Employee created" (same as regular employee creation)
+        self.assertEqual(work_history.note, "Employee created")
 
     def test_recruitment_candidate_to_employee_creates_work_history(self):
         """Test that converting a recruitment candidate to employee creates a work history record."""

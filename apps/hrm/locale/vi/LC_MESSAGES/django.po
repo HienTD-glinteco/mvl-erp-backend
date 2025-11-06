@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-06 22:28+0700\n"
+"POT-Creation-Date: 2025-11-07 00:03+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,18 +23,33 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:226
+#: apps/hrm/api/serializers/employee.py:250
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:265
-#: apps/hrm/api/serializers/employee.py:280
+#: apps/hrm/api/serializers/employee.py:264 apps/hrm/api/views/employee.py:351
+msgid "Employee created"
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:375
+#: apps/hrm/api/serializers/employee.py:400
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:299
-#: apps/hrm/api/serializers/employee.py:319
+#: apps/hrm/api/serializers/employee.py:414
+#, python-brace-format
+msgid "Status changed from {old_status} to {new_status} (Reactivated)"
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:441
+#: apps/hrm/api/serializers/employee.py:483
 msgid "Employee is already in a resigned status."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:455
+#: apps/hrm/services/employee/work_history.py:44
+#, python-brace-format
+msgid "Status changed from {old_status} to {new_status}"
 msgstr ""
 
 #: apps/hrm/api/serializers/employee_role.py:74
@@ -2081,31 +2096,27 @@ msgstr ""
 msgid "Recruitment Sources"
 msgstr ""
 
-#: apps/hrm/services/employee/work_history.py:40
-#, python-brace-format
-msgid "Status changed from {old_status} to {new_status}"
-msgstr ""
-
-#: apps/hrm/services/employee/work_history.py:76
-#: apps/hrm/services/employee/work_history.py:77
-#: apps/hrm/services/employee/work_history.py:120
-#: apps/hrm/services/employee/work_history.py:121
-#: apps/hrm/services/employee/work_history.py:122
-#: apps/hrm/services/employee/work_history.py:123
+#: apps/hrm/services/employee/work_history.py:39
+#: apps/hrm/services/employee/work_history.py:80
+#: apps/hrm/services/employee/work_history.py:81
 #: apps/hrm/services/employee/work_history.py:124
 #: apps/hrm/services/employee/work_history.py:125
-#: apps/hrm/services/employee/work_history.py:145
-#: apps/hrm/services/employee/work_history.py:146
+#: apps/hrm/services/employee/work_history.py:126
+#: apps/hrm/services/employee/work_history.py:127
+#: apps/hrm/services/employee/work_history.py:128
+#: apps/hrm/services/employee/work_history.py:129
+#: apps/hrm/services/employee/work_history.py:149
+#: apps/hrm/services/employee/work_history.py:150
 msgid "None"
 msgstr ""
 
-#: apps/hrm/services/employee/work_history.py:86
-#: apps/hrm/services/employee/work_history.py:148
+#: apps/hrm/services/employee/work_history.py:90
+#: apps/hrm/services/employee/work_history.py:152
 #, python-brace-format
 msgid "Position changed from {old_position} to {new_position}"
 msgstr ""
 
-#: apps/hrm/services/employee/work_history.py:128
+#: apps/hrm/services/employee/work_history.py:132
 #, python-brace-format
 msgid ""
 "Transferred from {old_branch}/{old_block}/{old_dept} to {new_branch}/"

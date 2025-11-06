@@ -15,7 +15,7 @@ from apps.hrm.api.serializers import (
     RecruitmentCandidateSerializer,
     UpdateReferrerSerializer,
 )
-from apps.hrm.models import Employee, RecruitmentCandidate
+from apps.hrm.models import Employee, EmployeeWorkHistory, RecruitmentCandidate
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -646,8 +646,6 @@ class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
 
             # Note: Work history is already created by EmployeeSerializer.create()
             # but we need to add a note about the conversion from candidate
-            from apps.hrm.models import EmployeeWorkHistory
-
             # Update the automatically created work history to include candidate info
             work_history = EmployeeWorkHistory.objects.filter(employee=employee).first()
             if work_history:
