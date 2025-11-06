@@ -293,7 +293,7 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
         self.assertEqual(work_history.contract, self.new_contract_type)
         self.assertEqual(work_history.note, "Contract type updated")
         self.assertEqual(work_history.previous_data["contract_id"], self.contract_type.id)
-        self.assertEqual(work_history.previous_data["contract_type"], self.contract_type.name)
+        self.assertEqual(work_history.previous_data["contract_name"], self.contract_type.name)
         self.assertIn(self.contract_type.name, work_history.detail)
         self.assertIn(self.new_contract_type.name, work_history.detail)
 

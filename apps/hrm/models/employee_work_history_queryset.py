@@ -1,5 +1,9 @@
+from datetime import date
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from ..constants import EmployeeWorkHistoryEventType
 
 
 class EmployeeWorkHistoryQuerySet(models.QuerySet):
@@ -29,13 +33,11 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
         Returns:
             EmployeeWorkHistory: The created work history record
         """
-        from .employee_work_history import EmployeeWorkHistory
-
         previous_data = {"status": old_status}
 
         return self.create(
             employee=employee,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            name=EmployeeWorkHistoryEventType.CHANGE_STATUS,
             date=effective_date,
             status=new_status,
             from_date=start_date,
@@ -67,8 +69,6 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
         Returns:
             EmployeeWorkHistory: The created work history record
         """
-        from .employee_work_history import EmployeeWorkHistory
-
         old_position_name = old_position.name if old_position else _("None")
         new_position_name = new_position.name if new_position else _("None")
 
@@ -76,7 +76,7 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
 
         return self.create(
             employee=employee,
-            name=EmployeeWorkHistory.EventType.CHANGE_POSITION,
+            name=EmployeeWorkHistoryEventType.CHANGE_POSITION,
             date=effective_date,
             note=note or "",
             detail=_("Position changed from {old_position} to {new_position}").format(
@@ -109,24 +109,32 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
         Returns:
             EmployeeWorkHistory: The created work history record
         """
-        from datetime import date
-
-        from .employee_work_history import EmployeeWorkHistory
-
         if effective_date is None:
             effective_date = date.today()
 
+        # Build detailed organizational hierarchy information
+        old_branch_name = old_department.branch.name if old_department else _("None")
+        new_branch_name = new_department.branch.name if new_department else _("None")
+        old_block_name = old_department.block.name if old_department else _("None")
+        new_block_name = new_department.block.name if new_department else _("None")
         old_dept_name = old_department.name if old_department else _("None")
         new_dept_name = new_department.name if new_department else _("None")
 
         detail_parts = [
-            _("Transferred from {old_dept} to {new_dept}").format(old_dept=old_dept_name, new_dept=new_dept_name)
+            _("Transferred from {old_branch}/{old_block}/{old_dept} to {new_branch}/{new_block}/{new_dept}").format(
+                old_branch=old_branch_name,
+                old_block=old_block_name,
+                old_dept=old_dept_name,
+                new_branch=new_branch_name,
+                new_block=new_block_name,
+                new_dept=new_dept_name,
+            )
         ]
 
         previous_data = {
-            "department_id": old_department.id if old_department else None,
             "branch_id": old_department.branch_id if old_department else None,
             "block_id": old_department.block_id if old_department else None,
+            "department_id": old_department.id if old_department else None,
         }
 
         if old_position != new_position and new_position is not None:
@@ -143,7 +151,7 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
 
         return self.create(
             employee=employee,
-            name=EmployeeWorkHistory.EventType.TRANSFER,
+            name=EmployeeWorkHistoryEventType.TRANSFER,
             date=effective_date,
             note=note or "",
             detail=detail,
@@ -170,19 +178,17 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
         Returns:
             EmployeeWorkHistory: The created work history record
         """
-        from .employee_work_history import EmployeeWorkHistory
-
         old_contract_name = old_contract.name if old_contract else _("None")
         new_contract_name = new_contract.name if new_contract else _("None")
 
         previous_data = {
             "contract_id": old_contract.id if old_contract else None,
-            "contract_type": str(old_contract_name),  # Convert lazy translation to string for JSON
+            "contract_name": str(old_contract_name),  # Convert lazy translation to string for JSON
         }
 
         return self.create(
             employee=employee,
-            name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+            name=EmployeeWorkHistoryEventType.CHANGE_CONTRACT,
             date=effective_date,
             contract=new_contract,
             note=note or "",
