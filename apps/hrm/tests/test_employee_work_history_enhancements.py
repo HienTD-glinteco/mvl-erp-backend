@@ -1,4 +1,4 @@
-"""Tests for EmployeeWorkHistory enhancements including new fields and QuerySet helper methods."""
+"""Tests for EmployeeWorkHistory enhancements including new fields and service helper functions."""
 
 from datetime import date
 
@@ -14,6 +14,12 @@ from apps.hrm.models import (
     Employee,
     EmployeeWorkHistory,
     Position,
+)
+from apps.hrm.services.employee import (
+    create_contract_change_event,
+    create_position_change_event,
+    create_state_change_event,
+    create_transfer_event,
 )
 
 User = get_user_model()
@@ -139,7 +145,7 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
         self.assertIsNotNone(work_history.get_resignation_reason_display())
 
 
-class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
+class EmployeeWorkHistoryServiceTest(TransactionTestCase):
     """Test cases for EmployeeWorkHistory QuerySet helper methods."""
 
     def setUp(self):
@@ -198,9 +204,9 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
         )
 
     def test_create_state_change_event(self):
-        """Test creating a state change event using QuerySet helper."""
+        """Test creating a state change event using service helper."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_state_change_event(
+        work_history = create_state_change_event(
             employee=self.employee,
             old_status=Employee.Status.ACTIVE,
             new_status=Employee.Status.MATERNITY_LEAVE,
@@ -221,9 +227,9 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
         self.assertEqual(work_history.previous_data["status"], Employee.Status.ACTIVE)
 
     def test_create_position_change_event(self):
-        """Test creating a position change event using QuerySet helper."""
+        """Test creating a position change event using service helper."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_position_change_event(
+        work_history = create_position_change_event(
             employee=self.employee,
             old_position=self.position,
             new_position=self.new_position,
@@ -241,9 +247,9 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
         self.assertIn(self.new_position.name, work_history.detail)
 
     def test_create_transfer_event(self):
-        """Test creating a transfer event using QuerySet helper."""
+        """Test creating a transfer event using service helper."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_transfer_event(
+        work_history = create_transfer_event(
             employee=self.employee,
             old_department=self.department,
             new_department=self.new_department,
@@ -266,7 +272,7 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
     def test_create_transfer_event_defaults_to_today(self):
         """Test that transfer event defaults to today's date if no effective_date provided."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_transfer_event(
+        work_history = create_transfer_event(
             employee=self.employee,
             old_department=self.department,
             new_department=self.new_department,
@@ -276,9 +282,9 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
         self.assertEqual(work_history.date, date.today())
 
     def test_create_contract_change_event(self):
-        """Test creating a contract change event using QuerySet helper."""
+        """Test creating a contract change event using service helper."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_contract_change_event(
+        work_history = create_contract_change_event(
             employee=self.employee,
             old_contract=self.contract_type,
             new_contract=self.new_contract_type,
@@ -300,7 +306,7 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
     def test_create_position_change_event_from_none(self):
         """Test creating a position change event when old position is None."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_position_change_event(
+        work_history = create_position_change_event(
             employee=self.employee,
             old_position=None,
             new_position=self.new_position,
@@ -314,7 +320,7 @@ class EmployeeWorkHistoryQuerySetTest(TransactionTestCase):
     def test_create_contract_change_event_from_none(self):
         """Test creating a contract change event when old contract is None."""
         # Act
-        work_history = EmployeeWorkHistory.objects.create_contract_change_event(
+        work_history = create_contract_change_event(
             employee=self.employee,
             old_contract=None,
             new_contract=self.new_contract_type,

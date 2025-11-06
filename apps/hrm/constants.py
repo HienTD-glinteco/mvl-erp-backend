@@ -98,12 +98,3 @@ class CertificateType(models.TextChoices):
     @classmethod
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
-
-
-class EmployeeWorkHistoryEventType(models.TextChoices):
-    """Employee work history event types"""
-
-    CHANGE_POSITION = "Change Position", _("Change Position")
-    CHANGE_STATUS = "Change Status", _("Change Status")
-    TRANSFER = "Transfer", _("Transfer")
-    CHANGE_CONTRACT = "Change Contract", _("Change Contract")

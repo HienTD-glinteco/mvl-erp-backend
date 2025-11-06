@@ -4,11 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel, SafeTextField
 
-from ..constants import EmployeeWorkHistoryEventType
-
 # Import Employee choices for reuse
 from .employee import Employee
-from .employee_work_history_queryset import EmployeeWorkHistoryQuerySet
 
 
 @audit_logging_register
@@ -40,8 +37,11 @@ class EmployeeWorkHistory(BaseModel):
                       department_id, contract_type, contract_id)
     """
 
-    # Use event types from constants for consistency
-    EventType = EmployeeWorkHistoryEventType
+    class EventType(models.TextChoices):
+        CHANGE_POSITION = "Change Position", _("Change Position")
+        CHANGE_STATUS = "Change Status", _("Change Status")
+        TRANSFER = "Transfer", _("Transfer")
+        CHANGE_CONTRACT = "Change Contract", _("Change Contract")
 
     date = models.DateField(
         verbose_name=_("Date"),
@@ -157,8 +157,6 @@ class EmployeeWorkHistory(BaseModel):
             "JSON data storing previous values (status, branch_id, block_id, department_id, contract_type, contract_id)"
         ),
     )
-
-    objects = EmployeeWorkHistoryQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("Employee work history")
