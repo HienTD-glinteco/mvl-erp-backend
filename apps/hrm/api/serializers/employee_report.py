@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.hrm.constants import ExtendedReportPeriodType
+from apps.hrm.models import Block
 from libs.drf.serializers import BaseStatisticsSerializer
 
 
@@ -15,6 +16,11 @@ class EmployeeCountBreakdownReportParamsSerializer(serializers.Serializer):
     to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
     branch = serializers.IntegerField(required=False, help_text="Branch ID to filter")
     block = serializers.IntegerField(required=False, help_text="Block ID to filter")
+    block_type = serializers.ChoiceField(
+        required=False,
+        choices=Block.BlockType.choices,
+        help_text="Block type to filter. Choices: 'support' or 'business'.",
+    )
     department = serializers.IntegerField(required=False, help_text="Department ID to filter")
 
 

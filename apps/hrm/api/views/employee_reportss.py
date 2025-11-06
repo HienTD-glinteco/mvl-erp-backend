@@ -163,6 +163,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             reports_qs = reports_qs.filter(branch_id=org_filters["branch_id"])
         if org_filters.get("block_id"):
             reports_qs = reports_qs.filter(block_id=org_filters["block_id"])
+        if org_filters.get("block_type"):
+            reports_qs = reports_qs.filter(block__block_type=org_filters["block_type"])
         if org_filters.get("department_id"):
             reports_qs = reports_qs.filter(department_id=org_filters["department_id"])
 
@@ -289,6 +291,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             org_filters["branch_id"] = params["branch"]
         if params.get("block"):
             org_filters["block_id"] = params["block"]
+        if params.get("block_type"):
+            org_filters["block_type"] = params["block_type"]
         if params.get("department"):
             org_filters["department_id"] = params["department"]
 
@@ -317,7 +321,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         summary="Employee Status Breakdown Report",
         description=(
             "Aggregate employee headcount data (total_not_resigned) by time period and organizational hierarchy. "
-            "Returns time-series data with branch > block > department nesting."
+            "Returns time-series data with branch > block > department nesting. "
+            "Supports filtering by branch, block, block_type, or department."
         ),
         parameters=[EmployeeCountBreakdownReportParamsSerializer],
         responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},
@@ -371,7 +376,8 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         summary="Employee Resigned Breakdown Report",
         description=(
             "Aggregate resigned employee count (count_resigned) by time period and organizational hierarchy. "
-            "Returns time-series data with branch > block > department nesting."
+            "Returns time-series data with branch > block > department nesting. "
+            "Supports filtering by branch, block, block_type, or department."
         ),
         parameters=[EmployeeCountBreakdownReportParamsSerializer],
         responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},

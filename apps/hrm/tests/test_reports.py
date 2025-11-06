@@ -553,3 +553,257 @@ class EmployeeStatusBreakdownReportAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(data["data"]), 1)
         self.assertEqual(data["data"][0]["name"], "Hanoi Branch")
         self.assertEqual(data["data"][0]["statistics"][0], 100)
+
+    def test_filter_by_block_type_business(self):
+        """Test filtering by business block type"""
+        # Arrange: Create business and support blocks
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        support_block = Block.objects.create(
+            name="Support Block",
+            branch=branch2,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        support_dept = Department.objects.create(
+            name="HR Department",
+            branch=branch2,
+            block=support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+
+        # Create reports for both block types
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            total_not_resigned=100,
+        )
+
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=branch2,
+            block=support_block,
+            department=support_dept,
+            total_not_resigned=50,
+        )
+
+        # Act: Filter by business block type
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
+        response = self.client.get(
+            url,
+            {
+                "period_type": "month",
+                "from_date": date(2025, 10, 1).isoformat(),
+                "to_date": date(2025, 10, 31).isoformat(),
+                "block_type": "business",
+            },
+        )
+
+        # Assert: Should only have business block
+        data = self.get_response_data(response)
+        self.assertEqual(len(data["data"]), 1)
+        self.assertEqual(data["data"][0]["name"], "Hanoi Branch")
+        self.assertEqual(data["data"][0]["statistics"][0], 100)
+        # Verify it's the business block
+        self.assertEqual(data["data"][0]["children"][0]["name"], "Business Block")
+
+    def test_filter_by_block_type_support(self):
+        """Test filtering by support block type"""
+        # Arrange: Create business and support blocks
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        support_block = Block.objects.create(
+            name="Support Block",
+            branch=branch2,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        support_dept = Department.objects.create(
+            name="HR Department",
+            branch=branch2,
+            block=support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+
+        # Create reports for both block types
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            total_not_resigned=100,
+        )
+
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=branch2,
+            block=support_block,
+            department=support_dept,
+            total_not_resigned=50,
+        )
+
+        # Act: Filter by support block type
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
+        response = self.client.get(
+            url,
+            {
+                "period_type": "month",
+                "from_date": date(2025, 10, 1).isoformat(),
+                "to_date": date(2025, 10, 31).isoformat(),
+                "block_type": "support",
+            },
+        )
+
+        # Assert: Should only have support block
+        data = self.get_response_data(response)
+        self.assertEqual(len(data["data"]), 1)
+        self.assertEqual(data["data"][0]["name"], "HCMC Branch")
+        self.assertEqual(data["data"][0]["statistics"][0], 50)
+        # Verify it's the support block
+        self.assertEqual(data["data"][0]["children"][0]["name"], "Support Block")
+
+    def test_filter_by_block_type_with_multiple_branches(self):
+        """Test filtering by block type across multiple branches with same block type"""
+        # Arrange: Create multiple branches with business blocks
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        business_block2 = Block.objects.create(
+            name="Business Block 2",
+            branch=branch2,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        dept2 = Department.objects.create(
+            name="Sales Department",
+            branch=branch2,
+            block=business_block2,
+            function=Department.DepartmentFunction.BUSINESS,
+        )
+
+        # Create support block for filtering out
+        branch3 = Branch.objects.create(
+            name="Danang Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        support_block = Block.objects.create(
+            name="Support Block",
+            branch=branch3,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        support_dept = Department.objects.create(
+            name="HR Department",
+            branch=branch3,
+            block=support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+
+        # Create reports for all blocks
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            total_not_resigned=100,
+        )
+
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=branch2,
+            block=business_block2,
+            department=dept2,
+            total_not_resigned=75,
+        )
+
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=branch3,
+            block=support_block,
+            department=support_dept,
+            total_not_resigned=50,
+        )
+
+        # Act: Filter by business block type
+        url = reverse("hrm:employee-reports-employee-status-breakdown")
+        response = self.client.get(
+            url,
+            {
+                "period_type": "month",
+                "from_date": date(2025, 10, 1).isoformat(),
+                "to_date": date(2025, 10, 31).isoformat(),
+                "block_type": "business",
+            },
+        )
+
+        # Assert: Should have both business blocks from 2 branches
+        data = self.get_response_data(response)
+        self.assertEqual(len(data["data"]), 2)
+        # Verify both branches are business blocks
+        branch_names = {item["name"] for item in data["data"]}
+        self.assertEqual(branch_names, {"Hanoi Branch", "HCMC Branch"})
+        # Total should be 100 + 75 = 175
+        total = sum(item["statistics"][0] for item in data["data"])
+        self.assertEqual(total, 175)
+
+    def test_filter_by_block_type_resigned_breakdown(self):
+        """Test block_type filter works for resigned breakdown report"""
+        # Arrange: Create business and support blocks
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        support_block = Block.objects.create(
+            name="Support Block",
+            branch=branch2,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        support_dept = Department.objects.create(
+            name="HR Department",
+            branch=branch2,
+            block=support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+
+        # Create reports with resigned counts
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            count_resigned=10,
+        )
+
+        EmployeeStatusBreakdownReport.objects.create(
+            report_date=date(2025, 10, 31),
+            branch=branch2,
+            block=support_block,
+            department=support_dept,
+            count_resigned=5,
+        )
+
+        # Act: Filter by business block type on resigned report
+        url = reverse("hrm:employee-reports-employee-resigned-breakdown")
+        response = self.client.get(
+            url,
+            {
+                "period_type": "month",
+                "from_date": date(2025, 10, 1).isoformat(),
+                "to_date": date(2025, 10, 31).isoformat(),
+                "block_type": "business",
+            },
+        )
+
+        # Assert: Should only have business block resigned count
+        data = self.get_response_data(response)
+        self.assertEqual(len(data["data"]), 1)
+        self.assertEqual(data["data"][0]["name"], "Hanoi Branch")
+        self.assertEqual(data["data"][0]["statistics"][0], 10)
