@@ -177,7 +177,7 @@ class EmployeeWorkHistoryQuerySet(models.QuerySet):
 
         previous_data = {
             "contract_id": old_contract.id if old_contract else None,
-            "contract_type": str(old_contract_name),  # Convert to string for JSON serialization
+            "contract_type": str(old_contract_name),  # Convert lazy translation to string for JSON
         }
 
         return self.create(
