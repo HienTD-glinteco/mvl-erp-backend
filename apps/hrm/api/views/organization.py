@@ -271,7 +271,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
 class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Block model"""
 
-    queryset = Block.objects.select_related("branch").all()
+    queryset = Block.objects.select_related("branch__province", "branch__administrative_unit").all()
     serializer_class = BlockSerializer
     filterset_class = BlockFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -320,7 +320,9 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
 class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Department model"""
 
-    queryset = Department.objects.select_related("block__branch", "parent_department", "management_department").all()
+    queryset = Department.objects.select_related(
+        "block__branch__province", "block__branch__administrative_unit", "parent_department", "management_department"
+    ).all()
     serializer_class = DepartmentSerializer
     filterset_class = DepartmentFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

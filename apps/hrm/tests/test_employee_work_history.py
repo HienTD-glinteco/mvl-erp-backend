@@ -131,11 +131,12 @@ class EmployeeWorkHistoryModelTest(TransactionTestCase):
 
     def test_event_type_choices(self):
         """Test that event type choices are available and work correctly."""
-        # Test all three event types
+        # Test all four event types
         event_types = [
             EmployeeWorkHistory.EventType.CHANGE_POSITION,
             EmployeeWorkHistory.EventType.CHANGE_STATUS,
             EmployeeWorkHistory.EventType.TRANSFER,
+            EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
         ]
 
         for event_type in event_types:
