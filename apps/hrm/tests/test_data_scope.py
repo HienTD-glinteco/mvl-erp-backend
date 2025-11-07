@@ -3,12 +3,11 @@
 from datetime import date
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from apps.core.models import AdministrativeUnit, Province
+from apps.core.models import AdministrativeUnit, Nationality, Province
 from apps.hrm.constants import DataScope
-from apps.hrm.models import Block, Branch, Department, Employee, Position
+from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
 from apps.hrm.utils import collect_allowed_units, filter_queryset_by_data_scope
 
 User = get_user_model()
@@ -36,7 +35,6 @@ class PositionDataScopeTest(TestCase):
                 name=f"Position {scope_value}", code=scope_value.upper()[:10], data_scope=scope_value
             )
             self.assertEqual(position.data_scope, scope_value)
-
 
 
 # OrganizationChartEnhancedTest class removed as OrganizationChart model no longer exists
@@ -89,6 +87,10 @@ class DataScopeFilteringTest(TestCase):
         self.pos_dept = Position.objects.create(name="Dept Manager", code="DM", data_scope=DataScope.DEPARTMENT)
         self.pos_self = Position.objects.create(name="Employee", code="EMP", data_scope=DataScope.SELF)
 
+        # Create contract type and nationality for employees
+        self.contract_type = ContractType.objects.create(name="Full-time")
+        self.nationality = Nationality.objects.create(name="Vietnamese")
+
         # Users with different assignments
         self.user_ceo = User.objects.create_user(username="ceo", email="ceo@test.com")
         self.user_bd1 = User.objects.create_user(username="bd1", email="bd1@test.com")
@@ -97,48 +99,102 @@ class DataScopeFilteringTest(TestCase):
         self.user_emp1 = User.objects.create_user(username="emp1", email="emp1@test.com")
         self.user_emp2 = User.objects.create_user(username="emp2", email="emp2@test.com")
 
-        # Assignments
-        # OrganizationChart.objects.create(
-            employee=self.user_ceo,
+        # Create Employee records to link users with organizational structure
+        Employee.objects.create(
+            user=self.user_ceo,
+            code="CEO001",
+            fullname="CEO User",
+            username="ceo",
+            email="ceo@test.com",
+            personal_email="ceo@personal.com",
+            attendance_code="CEO001",
             position=self.pos_all,
             department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1970, 1, 1),
+            nationality=self.nationality,
+            citizen_id="CEO0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.user_bd1,
+        Employee.objects.create(
+            user=self.user_bd1,
+            code="BD001",
+            fullname="Branch Director 1",
+            username="bd1",
+            email="bd1@test.com",
+            personal_email="bd1@personal.com",
+            attendance_code="BD001",
             position=self.pos_branch,
-            branch=self.branch1,
+            department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1975, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BD0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.user_bh1,
+        Employee.objects.create(
+            user=self.user_bh1,
+            code="BH001",
+            fullname="Block Head 1",
+            username="bh1",
+            email="bh1@test.com",
+            personal_email="bh1@personal.com",
+            attendance_code="BH001",
             position=self.pos_block,
-            block=self.block1,
+            department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1980, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BH0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.user_dm1,
+        Employee.objects.create(
+            user=self.user_dm1,
+            code="DM001",
+            fullname="Dept Manager 1",
+            username="dm1",
+            email="dm1@test.com",
+            personal_email="dm1@personal.com",
+            attendance_code="DM001",
             position=self.pos_dept,
             department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1985, 1, 1),
+            nationality=self.nationality,
+            citizen_id="DM0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.user_emp1,
+        Employee.objects.create(
+            user=self.user_emp1,
+            code="EMP001",
+            fullname="Employee 1",
+            username="emp1",
+            email="emp1@test.com",
+            personal_email="emp1@personal.com",
+            attendance_code="EMP001",
             position=self.pos_self,
             department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1990, 1, 1),
+            nationality=self.nationality,
+            citizen_id="EMP0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.user_emp2,
+        Employee.objects.create(
+            user=self.user_emp2,
+            code="EMP002",
+            fullname="Employee 2",
+            username="emp2",
+            email="emp2@test.com",
+            personal_email="emp2@personal.com",
+            attendance_code="EMP002",
             position=self.pos_self,
             department=self.dept2,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1991, 1, 1),
+            nationality=self.nationality,
+            citizen_id="EMP0002",
         )
 
     def test_collect_allowed_units_for_ceo(self):
@@ -183,8 +239,7 @@ class DataScopeFilteringTest(TestCase):
 
     def test_filter_queryset_by_data_scope_dept_manager_sees_dept_only(self):
         """Test that department manager sees only their department"""
-        # Create a queryset of OrganizationChart
-        # qs = OrganizationChart.objects.all()  # TODO: Rewrite using Employee model
+        qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.user_dm1, org_field="department")
 
         # Should see only assignments in dept1
@@ -197,16 +252,12 @@ class DataScopeFilteringTest(TestCase):
 
     def test_filter_queryset_by_data_scope_branch_director_sees_branch(self):
         """Test that branch director sees their entire branch"""
-        # qs = OrganizationChart.objects.all()  # TODO: Rewrite using Employee model
+        qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.user_bd1, org_field="department")
 
         # Should see all assignments in branch1
-        branch1_assignments = (
-            filtered.filter(department__block__branch=self.branch1).count()
-            + filtered.filter(block__branch=self.branch1).count()
-            + filtered.filter(branch=self.branch1).count()
-        )
-        self.assertGreater(branch1_assignments, 0)
+        branch1_count = filtered.filter(branch=self.branch1).count()
+        self.assertGreater(branch1_count, 0)
 
     def test_superuser_bypasses_filtering(self):
         """Test that superuser bypasses all filtering"""
@@ -252,24 +303,46 @@ class LeadershipFilteringTest(TestCase):
             name="Staff", code="STAFF", is_leadership=False, data_scope=DataScope.SELF
         )
 
+        # Create contract type and nationality
+        self.contract_type = ContractType.objects.create(name="Full-time")
+        self.nationality = Nationality.objects.create(name="Vietnamese")
+
         # Users
         self.leader = User.objects.create_user(username="leader", email="leader@test.com")
         self.staff = User.objects.create_user(username="staff", email="staff@test.com")
 
-        # Assignments
-        # OrganizationChart.objects.create(
-            employee=self.leader,
+        # Create Employee records
+        Employee.objects.create(
+            user=self.leader,
+            code="LEAD001",
+            fullname="Leader User",
+            username="leader",
+            email="leader@test.com",
+            personal_email="leader@personal.com",
+            attendance_code="LEAD001",
             position=self.pos_leader,
             department=self.dept,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1980, 1, 1),
+            nationality=self.nationality,
+            citizen_id="LEAD0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.staff,
+        Employee.objects.create(
+            user=self.staff,
+            code="STAFF001",
+            fullname="Staff User",
+            username="staff",
+            email="staff@test.com",
+            personal_email="staff@personal.com",
+            attendance_code="STAFF001",
             position=self.pos_staff,
             department=self.dept,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1985, 1, 1),
+            nationality=self.nationality,
+            citizen_id="STAFF0001",
         )
 
     def test_filter_by_leadership_includes_only_leaders(self):
@@ -345,6 +418,10 @@ class BranchDirectorDataScopeTest(TestCase):
             name="Employee", code="EMP", data_scope=DataScope.SELF, is_leadership=False
         )
 
+        # Create contract type and nationality
+        self.contract_type = ContractType.objects.create(name="Full-time")
+        self.nationality = Nationality.objects.create(name="Vietnamese")
+
         # Create users
         self.branch_director = User.objects.create_user(
             username="branch_director", email="director@branch.com", first_name="Branch", last_name="Director"
@@ -359,46 +436,77 @@ class BranchDirectorDataScopeTest(TestCase):
             username="emp_dept3", email="emp3@branch.com", first_name="Employee", last_name="Three"
         )
 
-        # Create assignments
-        # Branch director: assigned to branch only (no department)
-        # OrganizationChart.objects.create(
-            employee=self.branch_director,
+        # Create Employee records
+        Employee.objects.create(
+            user=self.branch_director,
+            code="BRDIR001",
+            fullname="Branch Director",
+            username="branch_director",
+            email="director@branch.com",
+            personal_email="director@personal.com",
+            attendance_code="BRDIR001",
             position=self.pos_branch_director,
-            branch=self.branch,  # Only branch set, no department
+            department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1975, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BRDIR0001",
         )
-
-        # Employees assigned to different departments
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept1,
+        Employee.objects.create(
+            user=self.emp_dept1,
+            code="EMP001",
+            fullname="Employee One",
+            username="emp_dept1",
+            email="emp1@branch.com",
+            personal_email="emp1@personal.com",
+            attendance_code="EMP001",
             position=self.pos_employee,
             department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1990, 1, 1),
+            nationality=self.nationality,
+            citizen_id="EMP0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept2,
+        Employee.objects.create(
+            user=self.emp_dept2,
+            code="EMP002",
+            fullname="Employee Two",
+            username="emp_dept2",
+            email="emp2@branch.com",
+            personal_email="emp2@personal.com",
+            attendance_code="EMP002",
             position=self.pos_employee,
             department=self.dept2,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1991, 1, 1),
+            nationality=self.nationality,
+            citizen_id="EMP0002",
         )
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept3,
+        Employee.objects.create(
+            user=self.emp_dept3,
+            code="EMP003",
+            fullname="Employee Three",
+            username="emp_dept3",
+            email="emp3@branch.com",
+            personal_email="emp3@personal.com",
+            attendance_code="EMP003",
             position=self.pos_employee,
             department=self.dept3,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1992, 1, 1),
+            nationality=self.nationality,
+            citizen_id="EMP0003",
         )
 
     def test_branch_director_sees_all_child_department_employees(self):
         """Test branch director with branch-only assignment can see employees in all child departments"""
         # Filter employees by branch director's scope
         qs = User.objects.filter(employee__isnull=False)
-        filtered = filter_queryset_by_data_scope(
-            qs, self.branch_director, org_field="employee__department"
-        )
+        filtered = filter_queryset_by_data_scope(qs, self.branch_director, org_field="employee__department")
 
         # Branch director should see all employees in the branch
         self.assertIn(self.emp_dept1, filtered)
@@ -409,25 +517,23 @@ class BranchDirectorDataScopeTest(TestCase):
         # Verify count (4 users with assignments)
         self.assertEqual(filtered.distinct().count(), 4)
 
-    def test_branch_director_sees_all_department_org_charts(self):
+    def test_branch_director_sees_all_department_employees(self):
         """Test branch director can see all Employee records in their branch"""
-        # Filter Employee records
-        # qs = OrganizationChart.objects.all()  # TODO: Rewrite using Employee model
+        qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.branch_director, org_field="department")
 
-        # Should see all 4 assignments (1 branch-level + 3 department-level)
+        # Should see all 4 employees in branch (branch director + 3 dept employees)
         self.assertEqual(filtered.count(), 4)
 
         # Verify specific departments are visible
-        dept1_assignments = filtered.filter(department=self.dept1).count()
-        dept2_assignments = filtered.filter(department=self.dept2).count()
-        dept3_assignments = filtered.filter(department=self.dept3).count()
-        branch_assignments = filtered.filter(branch=self.branch, department__isnull=True).count()
+        dept1_count = filtered.filter(department=self.dept1).count()
+        dept2_count = filtered.filter(department=self.dept2).count()
+        dept3_count = filtered.filter(department=self.dept3).count()
 
-        self.assertEqual(dept1_assignments, 1)
-        self.assertEqual(dept2_assignments, 1)
-        self.assertEqual(dept3_assignments, 1)
-        self.assertEqual(branch_assignments, 1)
+        # Branch director is in dept1, so dept1 should have 2 (director + 1 employee)
+        self.assertEqual(dept1_count, 2)
+        self.assertEqual(dept2_count, 1)
+        self.assertEqual(dept3_count, 1)
 
     def test_branch_director_allowed_units_includes_branch(self):
         """Test that branch director's allowed units correctly includes branch ID"""
@@ -495,6 +601,10 @@ class BlockHeadDataScopeTest(TestCase):
             name="Staff", code="STF", data_scope=DataScope.SELF, is_leadership=False
         )
 
+        # Create contract type and nationality
+        self.contract_type = ContractType.objects.create(name="Full-time")
+        self.nationality = Nationality.objects.create(name="Vietnamese")
+
         # Create users
         self.block_head = User.objects.create_user(
             username="block_head", email="head@block.com", first_name="Block", last_name="Head"
@@ -512,46 +622,86 @@ class BlockHeadDataScopeTest(TestCase):
             username="emp_sales", email="emp_sales@block.com", first_name="Sales", last_name="Employee"
         )
 
-        # Create assignments
-        # Block head: assigned to block only (no department)
-        # OrganizationChart.objects.create(
-            employee=self.block_head,
+        # Create Employee records
+        Employee.objects.create(
+            user=self.block_head,
+            code="BLKHD001",
+            fullname="Block Head",
+            username="block_head",
+            email="head@block.com",
+            personal_email="head@personal.com",
+            attendance_code="BLKHD001",
             position=self.pos_block_head,
-            block=self.block,  # Only block set, no department
+            department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1975, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BLKHD0001",
         )
-
-        # Employees in block head's block
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept1,
+        Employee.objects.create(
+            user=self.emp_dept1,
+            code="IT001",
+            fullname="IT Employee",
+            username="emp_it",
+            email="emp_it@block.com",
+            personal_email="emp_it@personal.com",
+            attendance_code="IT001",
             position=self.pos_employee,
             department=self.dept1,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1990, 1, 1),
+            nationality=self.nationality,
+            citizen_id="IT0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept2,
+        Employee.objects.create(
+            user=self.emp_dept2,
+            code="ADM001",
+            fullname="Admin Employee",
+            username="emp_admin",
+            email="emp_admin@block.com",
+            personal_email="emp_admin@personal.com",
+            attendance_code="ADM001",
             position=self.pos_employee,
             department=self.dept2,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1991, 1, 1),
+            nationality=self.nationality,
+            citizen_id="ADM0001",
         )
-        # OrganizationChart.objects.create(
-            employee=self.emp_dept3,
+        Employee.objects.create(
+            user=self.emp_dept3,
+            code="FAC001",
+            fullname="Facilities Employee",
+            username="emp_fac",
+            email="emp_fac@block.com",
+            personal_email="emp_fac@personal.com",
+            attendance_code="FAC001",
             position=self.pos_employee,
             department=self.dept3,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1992, 1, 1),
+            nationality=self.nationality,
+            citizen_id="FAC0001",
         )
-
-        # Employee in different block (should not be visible)
-        # OrganizationChart.objects.create(
-            employee=self.emp_other_block,
+        Employee.objects.create(
+            user=self.emp_other_block,
+            code="SAL001",
+            fullname="Sales Employee",
+            username="emp_sales",
+            email="emp_sales@block.com",
+            personal_email="emp_sales@personal.com",
+            attendance_code="SAL001",
             position=self.pos_employee,
             department=self.other_dept,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1993, 1, 1),
+            nationality=self.nationality,
+            citizen_id="SAL0001",
         )
 
     def test_block_head_sees_all_child_department_employees(self):
@@ -572,25 +722,23 @@ class BlockHeadDataScopeTest(TestCase):
         # Verify count (4 users in the block)
         self.assertEqual(filtered.distinct().count(), 4)
 
-    def test_block_head_sees_all_department_org_charts_in_block(self):
+    def test_block_head_sees_all_department_employees_in_block(self):
         """Test block head can see all Employee records in their block only"""
-        # Filter Employee records
-        # qs = OrganizationChart.objects.all()  # TODO: Rewrite using Employee model
+        qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="department")
 
-        # Should see 4 assignments in their block (1 block-level + 3 department-level)
+        # Should see 4 employees in their block (block head + 3 dept employees)
         self.assertEqual(filtered.count(), 4)
 
         # Verify specific departments in the block are visible
-        dept1_assignments = filtered.filter(department=self.dept1).count()
-        dept2_assignments = filtered.filter(department=self.dept2).count()
-        dept3_assignments = filtered.filter(department=self.dept3).count()
-        block_assignments = filtered.filter(block=self.block, department__isnull=True).count()
+        dept1_count = filtered.filter(department=self.dept1).count()
+        dept2_count = filtered.filter(department=self.dept2).count()
+        dept3_count = filtered.filter(department=self.dept3).count()
 
-        self.assertEqual(dept1_assignments, 1)
-        self.assertEqual(dept2_assignments, 1)
-        self.assertEqual(dept3_assignments, 1)
-        self.assertEqual(block_assignments, 1)
+        # Block head is in dept1, so dept1 should have 2 (head + 1 employee)
+        self.assertEqual(dept1_count, 2)
+        self.assertEqual(dept2_count, 1)
+        self.assertEqual(dept3_count, 1)
 
         # Should NOT see other block's department
         other_dept_assignments = filtered.filter(department=self.other_dept).count()
@@ -616,12 +764,21 @@ class BlockHeadDataScopeTest(TestCase):
         pos_other_block_head = Position.objects.create(
             name="Business Block Head", code="BBHD", data_scope=DataScope.BLOCK, is_leadership=True
         )
-        # OrganizationChart.objects.create(
-            employee=other_block_head,
+        Employee.objects.create(
+            user=other_block_head,
+            code="BBHD001",
+            fullname="Other Block Head",
+            username="other_block_head",
+            email="other@block.com",
+            personal_email="other@personal.com",
+            attendance_code="BBHD001",
             position=pos_other_block_head,
-            block=self.other_block,
+            department=self.other_dept,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1976, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BBHD0001",
         )
 
         # Original block head should not see the other block head
@@ -818,29 +975,54 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             citizen_id="000000000005",
         )
 
-        # Create organizational chart assignments
-        # OrganizationChart.objects.create(
-            employee=self.user_branch_director,
+        # Create Employee records for managers
+        Employee.objects.create(
+            user=self.user_branch_director,
+            code="BRDIR001",
+            fullname="Director HN",
+            username="branch_director_hn",
+            email="bd_hn@company.com",
+            personal_email="bd_hn@personal.com",
+            attendance_code="BRDIR001",
             position=self.pos_branch_director,
-            branch=self.branch_hn,  # Branch-level assignment
+            department=self.dept_hr_hn,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1975, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BRDIR0001",
         )
-
-        # OrganizationChart.objects.create(
-            employee=self.user_block_head,
+        Employee.objects.create(
+            user=self.user_block_head,
+            code="BLKHD001",
+            fullname="BlockHead Support",
+            username="block_head_support",
+            email="bh_sup@company.com",
+            personal_email="bh_sup@personal.com",
+            attendance_code="BLKHD001",
             position=self.pos_block_head,
-            block=self.block_support_hn,  # Block-level assignment
+            department=self.dept_hr_hn,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1980, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BLKHD0001",
         )
-
-        # OrganizationChart.objects.create(
-            employee=self.user_dept_manager,
+        Employee.objects.create(
+            user=self.user_dept_manager,
+            code="DPTMGR001",
+            fullname="Manager HR",
+            username="dept_mgr_hr",
+            email="mgr_hr@company.com",
+            personal_email="mgr_hr@personal.com",
+            attendance_code="DPTMGR001",
             position=self.pos_dept_manager,
-            department=self.dept_hr_hn,  # Department-level assignment
+            department=self.dept_hr_hn,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1985, 1, 1),
+            nationality=self.nationality,
+            citizen_id="DPTMGR0001",
         )
 
     def test_branch_director_sees_all_employees_in_branch(self):
@@ -851,7 +1033,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.user_branch_director, org_field="department")
 
-        # Branch director should see all employees in Hanoi branch
+        # Branch director should see all employees in Hanoi branch (branch_director + block_head + dept_manager + 4 regular employees = 7)
         self.assertIn(self.emp_hr_hn_1, filtered)
         self.assertIn(self.emp_hr_hn_2, filtered)
         self.assertIn(self.emp_it_hn, filtered)
@@ -860,8 +1042,8 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         # Should NOT see employees in HCMC branch
         self.assertNotIn(self.emp_hr_hcm, filtered)
 
-        # Should see 4 employees in Hanoi branch
-        self.assertEqual(filtered.count(), 4)
+        # Should see 7 employees in Hanoi branch (3 managers + 4 regular employees)
+        self.assertEqual(filtered.count(), 7)
 
     def test_block_head_sees_employees_in_block_only(self):
         """Test block head can see employees in their block across multiple departments"""
@@ -871,7 +1053,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.user_block_head, org_field="department")
 
-        # Block head should see employees in Support Block (HR and IT departments)
+        # Block head should see employees in Support Block (HR and IT departments + block head + dept manager)
         self.assertIn(self.emp_hr_hn_1, filtered)
         self.assertIn(self.emp_hr_hn_2, filtered)
         self.assertIn(self.emp_it_hn, filtered)
@@ -882,8 +1064,10 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         # Should NOT see employees in HCMC
         self.assertNotIn(self.emp_hr_hcm, filtered)
 
-        # Should see 3 employees in Support Block
-        self.assertEqual(filtered.count(), 3)
+        # Should see 6 employees in Support Block (block head + dept manager + 4 regular in HR/IT depts)
+        # Actually: block_head(hr), dept_manager(hr), emp_hr_hn_1, emp_hr_hn_2, emp_it_hn = 5
+        # But we also have branch_director in HR dept, so 6 total
+        self.assertEqual(filtered.count(), 6)
 
     def test_dept_manager_sees_employees_in_department_only(self):
         """Test department manager can see employees in their department only"""
@@ -902,8 +1086,8 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         self.assertNotIn(self.emp_sales_hn, filtered)
         self.assertNotIn(self.emp_hr_hcm, filtered)
 
-        # Should see 2 employees in HR department
-        self.assertEqual(filtered.count(), 2)
+        # Should see 5 employees in HR department (branch_director + block_head + dept_manager + 2 regular)
+        self.assertEqual(filtered.count(), 5)
 
     def test_data_scope_filter_backend_integration(self):
         """Test DataScopeFilterBackend can be applied to Employee queryset
@@ -918,9 +1102,9 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         qs = Employee.objects.all()
         filtered = filter_queryset_by_data_scope(qs, self.user_branch_director, org_field="department")
 
-        # Branch director should see only employees in their branch (Hanoi)
-        # Verifies that data scope filtering works correctly with Employee model
-        self.assertEqual(filtered.count(), 4, "Branch director should see 4 employees in Hanoi branch")
+        # Branch director should see all employees in their branch (Hanoi)
+        # Including: branch_director, block_head, dept_manager + 4 regular employees = 7 total
+        self.assertEqual(filtered.count(), 7, "Branch director should see 7 employees in Hanoi branch")
         self.assertIn(self.emp_hr_hn_1, filtered, "Should see HR employee 1")
         self.assertIn(self.emp_hr_hn_2, filtered, "Should see HR employee 2")
         self.assertIn(self.emp_it_hn, filtered, "Should see IT employee")
@@ -936,24 +1120,33 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             username="branch_director_hcm", email="bd_hcm@company.com", first_name="Director", last_name="HCM"
         )
 
-        # OrganizationChart.objects.create(
-            employee=user_branch_director_hcm,
+        Employee.objects.create(
+            user=user_branch_director_hcm,
+            code="BRDIR002",
+            fullname="Director HCM",
+            username="branch_director_hcm",
+            email="bd_hcm@company.com",
+            personal_email="bd_hcm@personal.com",
+            attendance_code="BRDIR002",
             position=self.pos_branch_director,
-            branch=self.branch_hcm,
+            department=self.dept_hr_hcm,
+            contract_type=self.contract_type,
             start_date=date.today(),
-            is_active=True,
+            date_of_birth=date(1976, 1, 1),
+            nationality=self.nationality,
+            citizen_id="BRDIR0002",
         )
 
         # HN branch director should only see HN employees
         qs_hn = Employee.objects.all()
         filtered_hn = filter_queryset_by_data_scope(qs_hn, self.user_branch_director, org_field="department")
-        self.assertEqual(filtered_hn.count(), 4)
+        self.assertEqual(filtered_hn.count(), 7)
         self.assertNotIn(self.emp_hr_hcm, filtered_hn)
 
         # HCM branch director should only see HCM employees
         qs_hcm = Employee.objects.all()
         filtered_hcm = filter_queryset_by_data_scope(qs_hcm, user_branch_director_hcm, org_field="department")
-        self.assertEqual(filtered_hcm.count(), 1)
+        self.assertEqual(filtered_hcm.count(), 2)  # HCM director + 1 HR employee
         self.assertIn(self.emp_hr_hcm, filtered_hcm)
         self.assertNotIn(self.emp_hr_hn_1, filtered_hcm)
 

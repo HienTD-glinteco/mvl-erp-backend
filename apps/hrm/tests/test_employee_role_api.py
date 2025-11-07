@@ -1,5 +1,4 @@
 import json
-from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
@@ -346,16 +345,6 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
                 username=f"EMP{i:03d}", email=f"emp{i:03d}@example.com", password="testpass123", role=self.role_staff
             )
             employee_ids.append(emp.id)
-
-            # Create organization chart entry for each
-            # OrganizationChart.objects.create(
-                employee=emp,
-                position=self.position,
-                department=self.department,
-                start_date=date(2024, 1, 1),
-                is_primary=True,
-                is_active=True,
-            )
 
         url = reverse("hrm:employee-role-bulk-update-roles")
         data = {"employee_ids": employee_ids, "new_role_id": self.role_manager.id}
