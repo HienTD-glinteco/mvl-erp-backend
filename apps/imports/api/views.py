@@ -46,7 +46,9 @@ class ImportStatusView(APIView):
         },
         tags=["Import"],
     )
-    @register_permission("import.check_status", _("Check import status"))
+    @register_permission(
+        "import.check_status", _("Check import status"), "Imports", "Status", _("Import Check Status")
+    )
     def get(self, request):
         """
         Check import task status with progress information.

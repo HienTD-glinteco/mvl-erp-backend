@@ -26,8 +26,12 @@ class RoleBasedPermission(BasePermission):
         # For class-based views, check the specific method handler
         permission_code = None
 
+        # For ViewSets with PermissionRegistrationMixin - check permission_prefix and action
+        if hasattr(view, "permission_prefix") and hasattr(view, "action"):
+            if view.permission_prefix and view.action:
+                permission_code = f"{view.permission_prefix}.{view.action}"
         # For function-based views - check the view function directly first
-        if hasattr(view, "_permission_code"):
+        elif hasattr(view, "_permission_code"):
             permission_code = view._permission_code
         # For function-based views wrapped by @api_view decorator
         # Check cls attribute (DRF wraps FBV in APIView.as_view())

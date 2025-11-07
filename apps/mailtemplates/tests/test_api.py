@@ -19,7 +19,10 @@ class TemplateAPITestCase(TestCase):
 
         # Create permissions
         self.perm_list = Permission.objects.create(code="mailtemplate.list", description="View mail template list")
-        self.perm_view = Permission.objects.create(code="mailtemplate.view", description="View mail template details")
+        self.perm_retrieve = Permission.objects.create(
+            code="mailtemplate.retrieve", description="View mail template details"
+        )
+        self.perm_update = Permission.objects.create(code="mailtemplate.update", description="Update mail template")
         self.perm_preview = Permission.objects.create(code="mailtemplate.preview", description="Preview mail template")
         self.perm_send = Permission.objects.create(code="mailtemplate.send", description="Send bulk emails")
         self.perm_job_status = Permission.objects.create(
@@ -29,7 +32,12 @@ class TemplateAPITestCase(TestCase):
         # Create role with all permissions
         self.role = Role.objects.create(code="MAIL_USER", name="Mail User")
         self.role.permissions.add(
-            self.perm_list, self.perm_view, self.perm_preview, self.perm_send, self.perm_job_status
+            self.perm_list,
+            self.perm_retrieve,
+            self.perm_update,
+            self.perm_preview,
+            self.perm_send,
+            self.perm_job_status,
         )
 
         self.user = User.objects.create_user(
@@ -98,7 +106,7 @@ class TemplateAPITestCase(TestCase):
 
     @patch("apps.mailtemplates.views.save_template_content")
     def test_save_template_requires_permission(self, mock_save):
-        """Test saving template requires mailtemplate.edit permission."""
+        """Test saving template requires mailtemplate.update permission."""
         # Arrange
         # Create a user without the required permission
         basic_user = User.objects.create_user(
@@ -110,10 +118,10 @@ class TemplateAPITestCase(TestCase):
         data = {"content": "<html>Test</html>"}
 
         # Act
-        response = self.client.put("/api/mailtemplates/welcome/save/", data, format="json")
+        response = self.client.put("/api/mailtemplates/welcome/", data, format="json")
 
         # Assert
-        # User doesn't have mailtemplate.edit permission, should get 403
+        # User doesn't have mailtemplate.update permission, should get 403
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Ensure template was never actually saved
         mock_save.assert_not_called()
@@ -214,7 +222,7 @@ class TemplateAPITestCase(TestCase):
         )
 
         # Act
-        response = self.client.get(f"/api/mailtemplates/send/{job.id}/status/")
+        response = self.client.get(f"/api/mailtemplates/job/{job.id}/status/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -234,7 +242,7 @@ class TemplateAPITestCase(TestCase):
         )
 
         # Act
-        response = self.client.get(f"/api/mailtemplates/send/{job.id}/status/")
+        response = self.client.get(f"/api/mailtemplates/job/{job.id}/status/")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

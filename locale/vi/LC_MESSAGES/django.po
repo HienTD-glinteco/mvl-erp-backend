@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-07 11:53+0700\n"
+"POT-Creation-Date: 2025-11-07 15:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -243,7 +243,7 @@ msgstr ""
 msgid "File not found"
 msgstr ""
 
-#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:93
+#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:95
 msgid "Import job not found"
 msgstr ""
 
@@ -368,8 +368,12 @@ msgstr ""
 msgid "Timestamp when the template was created"
 msgstr ""
 
-#: apps/imports/api/views.py:49
+#: apps/imports/api/views.py:50
 msgid "Check import status"
+msgstr ""
+
+#: apps/imports/api/views.py:50
+msgid "Import Check Status"
 msgstr ""
 
 #: apps/imports/models.py:22
@@ -776,51 +780,27 @@ msgstr ""
 msgid "Bulk email send job enqueued"
 msgstr ""
 
-#: apps/mailtemplates/views.py:83
-msgid "View mail template list"
-msgstr ""
-
-#: apps/mailtemplates/views.py:149
-msgid "View mail template details"
-msgstr ""
-
-#: apps/mailtemplates/views.py:215
-msgid "Edit mail template"
-msgstr ""
-
-#: apps/mailtemplates/views.py:246
+#: apps/mailtemplates/views.py:248
 msgid "Failed to save template"
-msgstr ""
-
-#: apps/mailtemplates/views.py:305
-msgid "Preview mail template"
 msgstr ""
 
 #: apps/mailtemplates/views.py:331
 msgid "Data or ref required for real mode"
 msgstr ""
 
-#: apps/mailtemplates/views.py:427
-msgid "Send bulk emails"
-msgstr ""
-
-#: apps/mailtemplates/views.py:451
+#: apps/mailtemplates/views.py:449
 msgid "Job with this client_request_id already exists"
 msgstr ""
 
-#: apps/mailtemplates/views.py:498
+#: apps/mailtemplates/views.py:496
 msgid "Job enqueued"
 msgstr ""
 
-#: apps/mailtemplates/views.py:539
-msgid "View email send job status"
-msgstr ""
-
-#: apps/mailtemplates/views.py:550
+#: apps/mailtemplates/views.py:545
 msgid "Not authorized to view this job"
 msgstr ""
 
-#: apps/mailtemplates/views.py:559
+#: apps/mailtemplates/views.py:554
 msgid "Job not found"
 msgstr ""
 
