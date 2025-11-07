@@ -20,7 +20,6 @@ from apps.hrm.api.views import (
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
-    OrganizationChartViewSet,
     PositionViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
@@ -39,7 +38,6 @@ router.register(r"branches", BranchViewSet, basename="branch")
 router.register(r"blocks", BlockViewSet, basename="block")
 router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"positions", PositionViewSet, basename="position")
-router.register(r"organization-chart", OrganizationChartViewSet, basename="organization-chart")
 router.register(r"employee-roles", EmployeeRoleViewSet, basename="employee-role")
 router.register(r"employees", EmployeeViewSet, basename="employee")
 router.register(r"employee-certificates", EmployeeCertificateViewSet, basename="employee-certificate")

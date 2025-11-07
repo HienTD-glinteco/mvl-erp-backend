@@ -17,7 +17,6 @@ from .organization import (
     BlockViewSet,
     BranchViewSet,
     DepartmentViewSet,
-    OrganizationChartViewSet,
     PositionViewSet,
 )
 from .recruitment_candidate import RecruitmentCandidateViewSet
@@ -38,7 +37,6 @@ __all__ = [
     "BlockViewSet",
     "DepartmentViewSet",
     "PositionViewSet",
-    "OrganizationChartViewSet",
     "EmployeeReportsViewSet",
     "EmployeeRoleViewSet",
     "EmployeeViewSet",

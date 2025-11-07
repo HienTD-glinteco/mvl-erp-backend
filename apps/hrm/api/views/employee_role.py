@@ -84,9 +84,12 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     Supports bulk updating of employee roles.
     """
 
-    queryset = User.objects.select_related("role").prefetch_related(
-        "organization_positions__department__block__branch",
-        "organization_positions__position",
+    queryset = User.objects.select_related(
+        "role",
+        "employee__branch",
+        "employee__block",
+        "employee__department",
+        "employee__position",
     )
     serializer_class = EmployeeRoleListSerializer
     filterset_class = EmployeeRoleFilterSet
@@ -102,14 +105,14 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     def get_queryset(self):
         """
-        Filter to only active users with organization positions.
-        Returns only users who have active organization positions.
+        Filter to only active users with employee records.
+        Returns only users who have an associated employee record.
         """
         queryset = super().get_queryset()
         # Filter to active users
         queryset = queryset.filter(is_active=True)
-        # Only include users with at least one organization position
-        queryset = queryset.filter(organization_positions__isnull=False).distinct()
+        # Only include users with an employee record
+        queryset = queryset.filter(employee__isnull=False).distinct()
         return queryset
 
     @extend_schema(

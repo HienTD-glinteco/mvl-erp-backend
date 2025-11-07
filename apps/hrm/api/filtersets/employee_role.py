@@ -13,22 +13,22 @@ class EmployeeRoleFilterSet(django_filters.FilterSet):
 
     # Organization filters
     branch = django_filters.ModelChoiceFilter(
-        field_name="organization_positions__department__block__branch",
+        field_name="employee__branch",
         queryset=Branch.objects.filter(is_active=True),
         distinct=True,
     )
     block = django_filters.ModelChoiceFilter(
-        field_name="organization_positions__department__block",
+        field_name="employee__block",
         queryset=Block.objects.filter(is_active=True),
         distinct=True,
     )
     department = django_filters.ModelChoiceFilter(
-        field_name="organization_positions__department",
+        field_name="employee__department",
         queryset=Department.objects.filter(is_active=True),
         distinct=True,
     )
     position = django_filters.ModelChoiceFilter(
-        field_name="organization_positions__position",
+        field_name="employee__position",
         queryset=Position.objects.filter(is_active=True),
         distinct=True,
     )
@@ -36,13 +36,9 @@ class EmployeeRoleFilterSet(django_filters.FilterSet):
         queryset=Role.objects.all(),
     )
 
-    # Additional filters for active/primary organization positions
-    is_primary = django_filters.BooleanFilter(field_name="organization_positions__is_primary")
-    is_org_active = django_filters.BooleanFilter(field_name="organization_positions__is_active")
-
     class Meta:
         model = User
-        fields = ["search", "branch", "block", "department", "position", "role", "is_primary", "is_org_active"]
+        fields = ["search", "branch", "block", "department", "position", "role"]
 
     def filter_search(self, queryset, name, value):
         """

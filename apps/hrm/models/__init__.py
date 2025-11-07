@@ -16,7 +16,6 @@ from .organization import (
     Block,
     Branch,
     Department,
-    OrganizationChart,
     Position,
 )
 from .recruitment_candidate import RecruitmentCandidate
@@ -42,7 +41,6 @@ __all__ = [
     "Block",
     "Department",
     "Position",
-    "OrganizationChart",
     "Employee",
     "EmployeeCertificate",
     "EmployeeDependent",

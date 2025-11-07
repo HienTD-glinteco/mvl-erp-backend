@@ -1,6 +1,6 @@
 import django_filters
 
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Position
 
 
 class BranchFilterSet(django_filters.FilterSet):
@@ -78,51 +78,4 @@ class PositionFilterSet(django_filters.FilterSet):
         fields = ["name", "code", "is_active"]
 
 
-class OrganizationChartFilterSet(django_filters.FilterSet):
-    """FilterSet for OrganizationChart model"""
 
-    employee = django_filters.UUIDFilter()
-    employee_username = django_filters.CharFilter(field_name="employee__username", lookup_expr="icontains")
-    position = django_filters.ModelChoiceFilter(queryset=Position.objects.all())
-    department = django_filters.ModelChoiceFilter(queryset=Department.objects.all())
-    department_code = django_filters.CharFilter(field_name="department__code", lookup_expr="icontains")
-    block = django_filters.ModelChoiceFilter(field_name="department__block", queryset=Block.objects.all())
-    block_code = django_filters.CharFilter(field_name="department__block__code", lookup_expr="icontains")
-    block_type = django_filters.ChoiceFilter(
-        field_name="department__block__block_type", choices=Block.BlockType.choices
-    )
-    branch = django_filters.ModelChoiceFilter(field_name="department__block__branch", queryset=Branch.objects.all())
-    branch_code = django_filters.CharFilter(field_name="department__block__branch__code", lookup_expr="icontains")
-    start_date = django_filters.DateFilter()
-    start_date_gte = django_filters.DateFilter(field_name="start_date", lookup_expr="gte")
-    start_date_lte = django_filters.DateFilter(field_name="start_date", lookup_expr="lte")
-    end_date = django_filters.DateFilter()
-    end_date_gte = django_filters.DateFilter(field_name="end_date", lookup_expr="gte")
-    end_date_lte = django_filters.DateFilter(field_name="end_date", lookup_expr="lte")
-    is_current = django_filters.BooleanFilter(field_name="end_date", lookup_expr="isnull")
-    is_primary = django_filters.BooleanFilter()
-    is_active = django_filters.BooleanFilter()
-
-    class Meta:
-        model = OrganizationChart
-        fields = [
-            "employee",
-            "employee_username",
-            "position",
-            "department",
-            "department_code",
-            "block",
-            "block_code",
-            "block_type",
-            "branch",
-            "branch_code",
-            "start_date",
-            "start_date_gte",
-            "start_date_lte",
-            "end_date",
-            "end_date_gte",
-            "end_date_lte",
-            "is_current",
-            "is_primary",
-            "is_active",
-        ]
