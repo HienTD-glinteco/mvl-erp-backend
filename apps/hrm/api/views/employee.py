@@ -191,21 +191,7 @@ class EmployeeViewSet(
             }
         },
         responses={
-            200: {
-                "description": "Email preview generated successfully",
-                "content": {
-                    "application/json": {
-                        "example": {
-                            "success": True,
-                            "data": {
-                                "html": "<html>...</html>",
-                                "text": "Plain text version of email",
-                                "subject": "Welcome to MaiVietLand!",
-                            },
-                        }
-                    }
-                },
-            },
+            200: TemplatePreviewResponseSerializer,
             400: {
                 "description": "Invalid data or template rendering error",
                 "content": {
@@ -243,39 +229,9 @@ class EmployeeViewSet(
             "application/json": {
                 "type": "object",
                 "properties": {
-                    "recipients": {
-                        "type": "array",
-                        "description": "Optional list of recipients. If not provided, email is sent to employee.email",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "email": {"type": "string", "format": "email"},
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "fullname": {"type": "string"},
-                                        "start_date": {"type": "string", "format": "date"},
-                                        "position": {"type": "string"},
-                                        "department": {"type": "string"},
-                                    },
-                                },
-                            },
-                            "required": ["email"],
-                        },
-                    },
                     "subject": {
                         "type": "string",
                         "description": "Optional email subject (defaults to 'Welcome to MaiVietLand!')",
-                    },
-                    "data": {
-                        "type": "object",
-                        "description": "Optional data overrides for the default recipient (employee)",
-                        "properties": {
-                            "fullname": {"type": "string"},
-                            "start_date": {"type": "string", "format": "date"},
-                            "position": {"type": "string"},
-                            "department": {"type": "string"},
-                        },
                     },
                 },
             }
@@ -332,13 +288,14 @@ class EmployeeViewSet(
 
     def get_recipients(self, request, instance):
         """Get recipients for employee email.
-        
+
         For employees, returns a single recipient using the employee's email.
         """
         if not instance.email:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError("Employee does not have an email address")
-        
+            from apps.mailtemplates.services import TemplateValidationError
+
+            raise TemplateValidationError("Employee does not have an email address")
+
         return [
             {
                 "email": instance.email,

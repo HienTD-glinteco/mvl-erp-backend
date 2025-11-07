@@ -175,6 +175,11 @@ class EmailTemplateActionMixin:
             # Get recipients using the new hook
             try:
                 recipients_data = self.get_recipients(request, obj)
+            except TemplateValidationError as e:
+                return Response(
+                    {"detail": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             except Exception:
                 # Don't expose internal exception details
                 return Response(

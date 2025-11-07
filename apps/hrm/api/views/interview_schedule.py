@@ -330,21 +330,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
             }
         },
         responses={
-            200: {
-                "description": "Email preview generated successfully",
-                "content": {
-                    "application/json": {
-                        "example": {
-                            "success": True,
-                            "data": {
-                                "html": "<html>...</html>",
-                                "text": "Plain text version of email",
-                                "subject": "Interview Invitation - MaiVietLand",
-                            },
-                        }
-                    }
-                },
-            },
+            200: TemplatePreviewResponseSerializer,
             400: {
                 "description": "Invalid data or template rendering error",
                 "content": {
@@ -385,44 +371,11 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
                     "candidate_ids": {
                         "type": "array",
                         "description": "Optional list of candidate IDs to send emails to. If not provided, emails are sent to all candidates in the schedule",
-                        "items": {"type": "integer"}
-                    },
-                    "recipients": {
-                        "type": "array",
-                        "description": "Optional list of recipients. If provided, overrides candidate_ids and default behavior",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "email": {"type": "string", "format": "email"},
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "candidate_name": {"type": "string"},
-                                        "position": {"type": "string"},
-                                        "interview_date": {"type": "string", "format": "date"},
-                                        "interview_time": {"type": "string"},
-                                        "location": {"type": "string"},
-                                    },
-                                    "required": ["candidate_name", "position", "interview_date", "interview_time"],
-                                },
-                            },
-                            "required": ["email", "data"],
-                        },
+                        "items": {"type": "integer"},
                     },
                     "subject": {
                         "type": "string",
                         "description": "Optional email subject (defaults to 'Interview Invitation - MaiVietLand')",
-                    },
-                    "data": {
-                        "type": "object",
-                        "description": "Optional data overrides for template variables",
-                        "properties": {
-                            "candidate_name": {"type": "string"},
-                            "position": {"type": "string"},
-                            "interview_date": {"type": "string", "format": "date"},
-                            "interview_time": {"type": "string"},
-                            "location": {"type": "string"},
-                        },
                     },
                 },
             }
@@ -479,74 +432,77 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
 
     def get_recipients(self, request, instance):
         """Get recipients for interview schedule email.
-        
+
         For interview schedules, returns multiple recipients - one for each candidate.
         Supports filtering by candidate_ids if provided in the request.
-        
+
         Args:
             request: Request object, may contain 'candidate_ids' list
             instance: InterviewSchedule instance
-            
+
         Returns:
             List of recipient dicts with email, data, and callback_data
         """
-        from rest_framework.exceptions import ValidationError
-        
+        from apps.mailtemplates.services import TemplateValidationError
+
         # Get candidate_ids filter from request if provided
         candidate_ids = request.data.get("candidate_ids")
-        
+
         # Get all interview candidates for this schedule
         interview_candidates = instance.interview_candidates.select_related(
-            "recruitment_candidate",
-            "interview_schedule__recruitment_request"
+            "recruitment_candidate", "interview_schedule__recruitment_request"
         ).all()
-        
+
         # Filter by candidate_ids if provided
         if candidate_ids is not None:
-            interview_candidates = interview_candidates.filter(
-                recruitment_candidate_id__in=candidate_ids
-            )
-        
+            interview_candidates = interview_candidates.filter(id__in=candidate_ids, email_sent_at__isnull=True)
+
         if not interview_candidates.exists():
-            raise ValidationError("No candidates found for this interview schedule")
-        
+            raise TemplateValidationError("No candidates found for this interview schedule")
+
         recipients = []
         for interview_candidate in interview_candidates:
             candidate = interview_candidate.recruitment_candidate
             schedule = interview_candidate.interview_schedule
-            
+
             if not candidate.email:
                 continue  # Skip candidates without email
-            
+
             # Format interview time
-            interview_time_str = interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
-            interview_date_str = interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
-            
+            interview_time_str = (
+                interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
+            )
+            interview_date_str = (
+                interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
+            )
+
             # Get position from recruitment request
             position_name = ""
             if schedule.recruitment_request:
-                if hasattr(schedule.recruitment_request, 'job_description') and schedule.recruitment_request.job_description:
+                if (
+                    hasattr(schedule.recruitment_request, "job_description")
+                    and schedule.recruitment_request.job_description
+                ):
                     position_name = schedule.recruitment_request.job_description.position_title
-                elif hasattr(schedule.recruitment_request, 'position_title'):
+                elif hasattr(schedule.recruitment_request, "position_title"):
                     position_name = schedule.recruitment_request.position_title
-            
-            recipients.append({
-                "email": candidate.email,
-                "data": {
-                    "candidate_name": candidate.name,
-                    "position": position_name,
-                    "interview_date": interview_date_str,
-                    "interview_time": interview_time_str,
-                    "location": schedule.location,
-                },
-                "callback_data": {
-                    "interview_candidate_id": interview_candidate.id,
+
+            recipients.append(
+                {
+                    "email": candidate.email,
+                    "data": {
+                        "candidate_name": candidate.name,
+                        "position": position_name,
+                        "interview_date": interview_date_str,
+                        "interview_time": interview_time_str,
+                        "location": schedule.location,
+                    },
+                    "callback_data": {
+                        "interview_candidate_id": interview_candidate.id,
+                    },
                 }
-            })
-        
-        if not recipients:
-            raise ValidationError("No candidates with valid email addresses found")
-        
+            )
+
         return recipients
 
     @extend_schema(

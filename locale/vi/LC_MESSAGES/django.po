@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-07 00:33+0700\n"
+"POT-Creation-Date: 2025-11-07 11:48+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -729,50 +729,50 @@ msgstr ""
 msgid "Real data preview permission required"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:183
+#: apps/mailtemplates/view_mixins.py:188
 msgid ""
 "Failed to get recipients. Override get_recipients() or provide recipients in "
 "request."
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:192
+#: apps/mailtemplates/view_mixins.py:197
 msgid "No recipients found"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:200 apps/mailtemplates/view_mixins.py:463
+#: apps/mailtemplates/view_mixins.py:205 apps/mailtemplates/view_mixins.py:468
 msgid "Each recipient must have 'email' and 'data' fields"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:280
+#: apps/mailtemplates/view_mixins.py:285
 msgid "Email send job enqueued"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:286 apps/mailtemplates/view_mixins.py:501
+#: apps/mailtemplates/view_mixins.py:291 apps/mailtemplates/view_mixins.py:506
 msgid "Template not found"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:289 apps/mailtemplates/view_mixins.py:504
+#: apps/mailtemplates/view_mixins.py:294 apps/mailtemplates/view_mixins.py:509
 msgid "Template validation failed. Please check your data."
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:378
+#: apps/mailtemplates/view_mixins.py:383
 msgid ""
 "No email address found. Override get_recipients() to provide recipients."
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:435
+#: apps/mailtemplates/view_mixins.py:440
 msgid "Either object_ids or filters must be provided"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:447
+#: apps/mailtemplates/view_mixins.py:452
 msgid "Failed to get recipients for instance"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:456
+#: apps/mailtemplates/view_mixins.py:461
 msgid "No recipients found for the selected objects"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:495
+#: apps/mailtemplates/view_mixins.py:500
 msgid "Bulk email send job enqueued"
 msgstr ""
 

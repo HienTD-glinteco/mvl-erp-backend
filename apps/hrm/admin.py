@@ -11,6 +11,8 @@ from .models import (
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
+    InterviewCandidate,
+    InterviewSchedule,
     JobDescription,
     OrganizationChart,
     Position,
@@ -102,6 +104,8 @@ admin.site.register(EmployeeDependent)
 admin.site.register(EmployeeRelationship)
 admin.site.register(ContractType)
 admin.site.register(JobDescription)
+admin.site.register(InterviewCandidate)
+admin.site.register(InterviewSchedule)
 admin.site.register(RecruitmentRequest)
 admin.site.register(RecruitmentCandidate)
 admin.site.register(RecruitmentCandidateContactLog)
