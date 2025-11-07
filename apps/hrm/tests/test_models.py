@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Position
 
 User = get_user_model()
 
@@ -223,126 +223,5 @@ class PositionModelTest(TestCase):
         self.assertEqual(positions[2], ceo)  # "Tổng Giám đốc" last
 
 
-class OrganizationChartModelTest(TestCase):
-    """Test cases for OrganizationChart model"""
-
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            first_name="Test",
-            last_name="User",
-        )
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-        self.block = Block.objects.create(
-            name="Khối Hỗ trợ",
-            code="HT",
-            block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
-        )
-        self.department = Department.objects.create(
-            name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch
-        )
-        self.position = Position.objects.create(name="Trưởng phòng", code="TP")
-
-    def test_create_organization_chart(self):
-        """Test creating an organization chart entry"""
-        org_chart = OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-            is_primary=True,
-        )
-
-        self.assertEqual(org_chart.employee, self.user)
-        self.assertEqual(org_chart.position, self.position)
-        self.assertEqual(org_chart.department, self.department)
-        self.assertTrue(org_chart.is_primary)
-        self.assertTrue(org_chart.is_active)
-        self.assertIsNone(org_chart.end_date)
-
-    def test_organization_chart_str(self):
-        """Test string representation of organization chart"""
-        org_chart = OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-        )
-
-        expected = f"{self.user.get_full_name()} - {self.position.name} at {self.department.name}"
-        self.assertEqual(str(org_chart), expected)
-
-    def test_organization_chart_validation(self):
-        """Test organization chart custom validation"""
-        # Create first primary position
-        OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-            is_primary=True,
-        )
-
-        # Create another position for the same user in same department
-        another_position = Position.objects.create(
-            name="Phó Trưởng phòng",
-            code="PTP",
-        )
-
-        # This should not raise ValidationError if we're not trying to make it primary
-        org_chart2 = OrganizationChart.objects.create(
-            employee=self.user,
-            position=another_position,
-            department=self.department,
-            start_date=date.today(),
-            is_primary=False,
-        )
-
-        # But trying to make it primary should raise ValidationError
-        org_chart2.is_primary = True
-        with self.assertRaises(ValidationError):
-            org_chart2.clean()
-
-    def test_organization_unique_together(self):
-        """Test organization chart unique constraint"""
-        start_date = date.today()
-
-        OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            start_date=start_date,
-        )
-
-        # Should fail - same employee, position, department, start_date
-        with self.assertRaises(Exception):  # IntegrityError
-            OrganizationChart.objects.create(
-                employee=self.user,
-                position=self.position,
-                department=self.department,
-                start_date=start_date,
-            )
+# OrganizationChartModelTest class removed as OrganizationChart model no longer exists
+# Employee model now directly stores position, department, block, and branch

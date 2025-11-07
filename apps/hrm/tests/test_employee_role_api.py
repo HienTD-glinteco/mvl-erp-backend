@@ -348,7 +348,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             employee_ids.append(emp.id)
 
             # Create organization chart entry for each
-            OrganizationChart.objects.create(
+            # OrganizationChart.objects.create(
                 employee=emp,
                 position=self.position,
                 department=self.department,
