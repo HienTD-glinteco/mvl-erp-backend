@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.core.models import User
+from apps.core.models import Permission, Role, User
 from apps.mailtemplates.models import EmailSendJob
 
 
@@ -16,17 +16,38 @@ class TemplateAPITestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.client = APIClient()
+
+        # Create permissions
+        self.perm_list = Permission.objects.create(code="mailtemplate.list", description="View mail template list")
+        self.perm_view = Permission.objects.create(code="mailtemplate.view", description="View mail template details")
+        self.perm_preview = Permission.objects.create(code="mailtemplate.preview", description="Preview mail template")
+        self.perm_send = Permission.objects.create(code="mailtemplate.send", description="Send bulk emails")
+        self.perm_job_status = Permission.objects.create(
+            code="mailtemplate.job_status", description="View email send job status"
+        )
+
+        # Create role with all permissions
+        self.role = Role.objects.create(code="MAIL_USER", name="Mail User")
+        self.role.permissions.add(
+            self.perm_list, self.perm_view, self.perm_preview, self.perm_send, self.perm_job_status
+        )
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = self.role
+        self.user.save()
+
         self.staff_user = User.objects.create_user(
             username="staffuser",
             email="staff@example.com",
             password="testpass123",
             is_staff=True,
         )
+        self.staff_user.role = self.role
+        self.staff_user.save()
 
     def test_list_templates_authenticated(self):
         """Test listing templates requires authentication."""
@@ -42,12 +63,14 @@ class TemplateAPITestCase(TestCase):
         self.assertGreater(len(response.json()["data"]), 0)
 
     def test_list_templates_unauthenticated(self):
-        """Test listing templates without authentication."""
+        """Test listing templates requires authentication."""
         # Arrange & Act
+        # Don't authenticate - make request as anonymous user
         response = self.client.get("/api/mailtemplates/")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        # RoleBasedPermission requires authentication for views with permission codes
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_template_detail(self):
         """Test getting template details."""
@@ -73,17 +96,27 @@ class TemplateAPITestCase(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_save_template_requires_staff(self):
-        """Test saving template requires staff permissions."""
+    @patch("apps.mailtemplates.views.save_template_content")
+    def test_save_template_requires_permission(self, mock_save):
+        """Test saving template requires mailtemplate.edit permission."""
         # Arrange
-        self.client.force_authenticate(user=self.user)
+        # Create a user without the required permission
+        basic_user = User.objects.create_user(
+            username="basicuser",
+            email="basic@example.com",
+            password="testpass123",
+        )
+        self.client.force_authenticate(user=basic_user)
         data = {"content": "<html>Test</html>"}
 
         # Act
         response = self.client.put("/api/mailtemplates/welcome/save/", data, format="json")
 
         # Assert
+        # User doesn't have mailtemplate.edit permission, should get 403
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Ensure template was never actually saved
+        mock_save.assert_not_called()
 
     def test_preview_template_sample_mode(self):
         """Test previewing template with sample data."""
@@ -114,18 +147,25 @@ class TemplateAPITestCase(TestCase):
 
     @patch("apps.mailtemplates.views.send_email_job_task")
     def test_send_bulk_email_requires_permission(self, mock_task):
-        """Test sending bulk email requires permission."""
+        """Test sending bulk email requires mailtemplate.send permission."""
         # Arrange
-        self.client.force_authenticate(user=self.user)
+        # Create a user without the required permission
+        basic_user = User.objects.create_user(
+            username="basicuser2",
+            email="basic2@example.com",
+            password="testpass123",
+        )
+        self.client.force_authenticate(user=basic_user)
         data = {
             "subject": "Test",
-            "recipients": [{"email": "test@example.com", "data": {"first_name": "John", "start_date": "2025-11-01"}}],
+            "recipients": [{"email": "test@example.com", "data": {"fullname": "John", "start_date": "2025-11-01"}}],
         }
 
         # Act
         response = self.client.post("/api/mailtemplates/welcome/send/", data, format="json")
 
         # Assert
+        # User doesn't have mailtemplate.send permission
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @patch("apps.mailtemplates.views.send_email_job_task")

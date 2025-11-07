@@ -5,12 +5,13 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from apps.core.api.permissions import RoleBasedPermission
+from apps.core.utils import register_permission
 
 from .constants import TEMPLATE_REGISTRY
 from .models import EmailSendJob
-from .permissions import CanPreviewRealData, CanSendMail, IsTemplateEditor
 from .serializers import (
     BulkSendRequestSerializer,
     BulkSendResponseSerializer,
@@ -79,8 +80,9 @@ from .tasks import send_email_job_task
         )
     ],
 )
+@register_permission("mailtemplate.list", _("View mail template list"))
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([RoleBasedPermission])
 def list_templates(request):
     """List all available mail templates."""
     include_preview = request.query_params.get("include_preview", "false").lower() == "true"
@@ -144,8 +146,9 @@ def list_templates(request):
         ),
     ],
 )
+@register_permission("mailtemplate.view", _("View mail template details"))
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([RoleBasedPermission])
 def get_template(request, slug):
     """Get template metadata and optionally content."""
     try:
@@ -209,8 +212,9 @@ def get_template(request, slug):
         ),
     ],
 )
+@register_permission("mailtemplate.edit", _("Edit mail template"))
 @api_view(["PUT"])
-@permission_classes([IsTemplateEditor])
+@permission_classes([RoleBasedPermission])
 def save_template(request, slug):
     """Save template content."""
     serializer = TemplateSaveRequestSerializer(data=request.data)
@@ -290,6 +294,7 @@ def save_template(request, slug):
                 "data": {
                     "html": "<html><body>Welcome Jane Doe!</body></html>",
                     "text": "Welcome Jane Doe!",
+                    "subject": "Welcome to MaiVietLand!",
                 },
                 "error": None,
             },
@@ -297,20 +302,15 @@ def save_template(request, slug):
         ),
     ],
 )
+@register_permission("mailtemplate.preview", _("Preview mail template"))
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([RoleBasedPermission])
 def preview_template(request, slug):
     """Preview template with data."""
     mode = request.query_params.get("mode", "sample")
 
-    # Check permissions for real mode
-    if mode == "real":
-        permission = CanPreviewRealData()
-        if not permission.has_permission(request, None):
-            return Response(
-                {"detail": _("Real data preview permission required")},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+    # Real mode preview is handled by the same permission
+    # If specific real data preview permission is needed, it can be checked here
 
     serializer = TemplatePreviewRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -334,6 +334,15 @@ def preview_template(request, slug):
 
         # Render template
         result = render_and_prepare_email(template_meta, data, validate=True)
+
+        # Add subject to response with priority logic
+        subject = None
+        if "subject" in data:
+            subject = data["subject"]
+        elif "default_subject" in template_meta:
+            subject = template_meta["default_subject"]
+
+        result["subject"] = subject
 
         return Response(result)
 
@@ -404,15 +413,20 @@ def preview_template(request, slug):
             "Bulk send success",
             value={
                 "success": True,
-                "data": {"job_id": "123e4567-e89b-12d3-a456-426614174000", "detail": "Job enqueued"},
+                "data": {
+                    "job_id": "123e4567-e89b-12d3-a456-426614174000",
+                    "total_recipients": 2,
+                    "detail": "Job enqueued",
+                },
                 "error": None,
             },
             response_only=True,
         ),
     ],
 )
+@register_permission("mailtemplate.send", _("Send bulk emails"))
 @api_view(["POST"])
-@permission_classes([CanSendMail])
+@permission_classes([RoleBasedPermission])
 def send_bulk_email(request, slug):
     """Create bulk email send job."""
     serializer = BulkSendRequestSerializer(data=request.data)
@@ -421,8 +435,10 @@ def send_bulk_email(request, slug):
     try:
         template_meta = get_template_metadata(slug)
 
-        # Get or set subject and sender
-        subject = serializer.validated_data.get("subject", f"{template_meta['title']}")
+        # Get or set subject and sender - use default_subject if not provided
+        subject = serializer.validated_data.get("subject")
+        if not subject:
+            subject = template_meta.get("default_subject", template_meta["title"])
         sender = serializer.validated_data.get("sender", settings.DEFAULT_FROM_EMAIL)
         client_request_id = serializer.validated_data.get("client_request_id")
 
@@ -469,6 +485,7 @@ def send_bulk_email(request, slug):
                 job=job,
                 email=recipient["email"],
                 data=recipient["data"],
+                callback_data=recipient.get("callback_data"),
             )
 
         # Enqueue task
@@ -477,6 +494,7 @@ def send_bulk_email(request, slug):
         return Response(
             {
                 "job_id": str(job.id),
+                "total_recipients": len(recipients_data),
                 "detail": _("Job enqueued"),
             },
             status=status.HTTP_202_ACCEPTED,
@@ -518,8 +536,9 @@ def send_bulk_email(request, slug):
         )
     ],
 )
+@register_permission("mailtemplate.job_status", _("View email send job status"))
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([RoleBasedPermission])
 def get_send_job_status(request, job_id):
     """Get status of a send job."""
     try:

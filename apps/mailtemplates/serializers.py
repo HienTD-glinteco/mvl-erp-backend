@@ -10,6 +10,7 @@ class RecipientInputSerializer(serializers.Serializer):
 
     email = serializers.EmailField(required=True)
     data = serializers.JSONField(required=True)
+    callback_data = serializers.JSONField(required=False)
 
 
 class BulkSendRequestSerializer(serializers.Serializer):
@@ -149,6 +150,9 @@ class TemplatePreviewResponseSerializer(serializers.Serializer):
 
     html = serializers.CharField(help_text="Rendered HTML content with inlined CSS")
     text = serializers.CharField(help_text="Plain text version of the email")
+    subject = serializers.CharField(
+        help_text="Email subject line", required=False, allow_null=True, allow_blank=True
+    )
 
 
 class TemplateSaveResponseSerializer(serializers.Serializer):
@@ -165,3 +169,21 @@ class BulkSendResponseSerializer(serializers.Serializer):
     job_id = serializers.UUIDField(help_text="UUID of the created email send job")
     detail = serializers.CharField(help_text="Human-readable message about the operation")
     total_recipients = serializers.IntegerField(help_text="Total number of recipients in this job")
+
+
+class BulkSendTemplateMailRequestSerializer(serializers.Serializer):
+    """Request serializer for bulk_send_template_mail action."""
+
+    template_slug = serializers.CharField(required=True)
+    object_ids = serializers.ListField(child=serializers.IntegerField(), required=False, allow_empty=False)
+    filters = serializers.JSONField(required=False)
+    subject = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    sender = serializers.EmailField(required=False, allow_blank=True)
+    client_request_id = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    meta = serializers.JSONField(required=False)
+
+    def validate(self, attrs):
+        """Validate that either object_ids or filters is provided."""
+        if not attrs.get("object_ids") and not attrs.get("filters"):
+            raise serializers.ValidationError("Either object_ids or filters must be provided")
+        return attrs

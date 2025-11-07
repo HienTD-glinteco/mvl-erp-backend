@@ -92,9 +92,11 @@ This provides:
 - `POST /api/employees/{pk}/send_contract/preview/`
 - `POST /api/employees/{pk}/send_contract/send/`
 
-The mixin provides two helper methods:
+The mixin provides helper methods:
 - `preview_template_email(template_slug, request, pk)` - Preview email with sample or real data
 - `send_template_email(template_slug, request, pk, on_success_callback=None, callback_params=None)` - Send email to recipients with optional callback
+- `bulk_send_template_mail(request)` - Send emails for multiple objects in a single job
+- `get_recipients(request, instance)` - Hook to customize recipient extraction (override for multi-recipient support)
 
 ### Using Callbacks for Post-Send Actions
 
@@ -168,6 +170,96 @@ def send_welcome_email_send(self, request, pk=None):
 - Callbacks are only executed for successfully sent emails, not for failed sends
 - The callback has access to the full recipient data including `recipient.data`, `recipient.email`, etc.
 - Additional parameters via `callback_params` allow you to pass context-specific data to your callback
+
+### Multi-recipient Support with get_recipients Hook
+
+For cases where a single object maps to multiple recipients (e.g., a schedule with many candidates), override the `get_recipients` method:
+
+```python
+class InterviewScheduleViewSet(TemplateActionMixin, BaseModelViewSet):
+
+    def get_recipients(self, request, instance):
+        """Override to send interview invites to all candidates in a schedule."""
+        recipients = []
+        for candidate in instance.candidates.all():
+            recipients.append({
+                "email": candidate.email,
+                "data": {
+                    "candidate_name": candidate.full_name,
+                    "position": instance.position.name,
+                    "interview_date": instance.date.isoformat(),
+                    "interview_time": instance.time.strftime("%H:%M"),
+                    "location": instance.location,
+                },
+                "callback_data": {
+                    # Per-recipient callback data
+                    "candidate_id": candidate.id,
+                    "schedule_id": instance.id,
+                }
+            })
+        return recipients
+
+    @action(detail=True, methods=["post"], url_path="send_invites/send")
+    def send_invites(self, request, pk=None):
+        return self.send_template_email("interview_invite", request, pk)
+```
+
+**get_recipients Contract:**
+- Must return a list of dicts
+- Each dict must contain:
+  - `email` (string, required): recipient email address
+  - `data` (dict, required): template context data for this recipient
+  - `callback_data` (dict, optional): per-recipient callback data
+
+### Bulk Send Action
+
+Send emails for multiple objects in a single job:
+
+```python
+from rest_framework.decorators import action
+from apps.mailtemplates.permissions import CanSendMail
+
+class EmployeeViewSet(TemplateActionMixin, BaseModelViewSet):
+
+    @action(detail=False, methods=["post"], url_path="bulk_send_welcome",
+            permission_classes=[CanSendMail])
+    def bulk_send_welcome(self, request):
+        return self.bulk_send_template_mail(request)
+```
+
+**Request format:**
+
+```json
+{
+  "template_slug": "welcome",
+  "object_ids": [1, 2, 3, 4],
+  "subject": "Welcome to MaiVietLand!",
+  "client_request_id": "bulk-2025-11-06"
+}
+```
+
+Or using filters:
+
+```json
+{
+  "template_slug": "welcome",
+  "filters": {"department": "Engineering", "start_date__gte": "2025-11-01"},
+  "subject": "Welcome to MaiVietLand!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "job_id": "uuid-here",
+    "total_recipients": 12,
+    "detail": "Bulk email send job enqueued"
+  }
+}
+```
 
 ### List Templates
 
@@ -252,17 +344,9 @@ curl -H "Authorization: Bearer <token>" \
 </html>
 ```
 
-3. (Optional) Add action mapping in `constants.py`:
+**Note:** `ACTION_TEMPLATE_MAP` has been removed. Use `TEMPLATE_REGISTRY` with `default_subject` instead. All templates must include a `default_subject` field in their metadata.
 
-```python
-ACTION_TEMPLATE_MAP = {
-    "send_my_email": {
-        "template_slug": "my_template",
-        "default_subject": "My Email Subject",
-        "default_sender": None,
-    }
-}
-```
+
 
 ## Permissions
 
@@ -278,14 +362,67 @@ ACTION_TEMPLATE_MAP = {
 - **CSS Inlining**: CSS is inlined using `premailer` for email compatibility
 - **Permission Checks**: All endpoints enforce proper authorization
 
+## Subject Priority
+
+Email subjects are determined using the following priority:
+
+1. **Per-recipient subject**: `recipient.data['subject']` (highest priority)
+2. **Job-level subject**: From request data or job configuration
+3. **Template default**: `template_meta['default_subject']` from TEMPLATE_REGISTRY
+4. **Template title**: Fallback to `template_meta['title']`
+
+## Per-Recipient Callbacks
+
+Callbacks can be specified at two levels:
+
+1. **Job-level callback**: Set via `on_success_callback` parameter in `send_template_email`
+   - Applied to all recipients in the job
+   - Stored in `EmailSendJob.callback_data`
+
+2. **Per-recipient callback**: Set in `recipient['callback_data']` 
+   - Takes precedence over job-level callback
+   - Allows different callbacks for different recipients
+   - Stored in `EmailSendRecipient.callback_data`
+
+Example with per-recipient callbacks:
+
+```python
+def get_recipients(self, request, instance):
+    return [
+        {
+            "email": "user1@example.com",
+            "data": {"name": "User 1"},
+            "callback_data": {
+                "path": "apps.hrm.callbacks.mark_invited",
+                "candidate_id": 123,
+                "app_label": "hrm",
+                "model_name": "Candidate",
+                "object_id": 123,
+            }
+        },
+        {
+            "email": "user2@example.com", 
+            "data": {"name": "User 2"},
+            "callback_data": {
+                "path": "apps.hrm.callbacks.mark_invited",
+                "candidate_id": 456,
+                "app_label": "hrm",
+                "model_name": "Candidate",
+                "object_id": 456,
+            }
+        }
+    ]
+```
+
 ## Background Processing
 
 Email sending is handled asynchronously using Celery:
 
-1. API creates EmailSendJob and EmailSendRecipient records
+1. API creates EmailSendJob and EmailSendRecipient records atomically
 2. Celery task processes recipients in chunks
 3. Each recipient is retried up to MAX_ATTEMPTS on failure
-4. Job status is updated in real-time
+4. Per-recipient callbacks are executed after successful sends
+5. Job status is updated in real-time
 
 ## Testing
 

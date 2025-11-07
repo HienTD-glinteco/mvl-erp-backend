@@ -24,17 +24,10 @@ class TemplateMetadata(TypedDict):
     title: str
     description: str
     purpose: str
+    default_subject: str
     variables: list[TemplateVariable]
     sample_data: dict[str, Any]
     variables_schema: dict[str, Any] | None
-
-
-class ActionTemplateConfig(TypedDict):
-    """Action to template mapping configuration."""
-
-    template_slug: str
-    default_subject: str
-    default_sender: str | None
 
 
 # Template registry - all available templates
@@ -45,6 +38,7 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
         "title": "Welcome Email",
         "description": "Welcome new employees to the organization",
         "purpose": "Send to new employees on their first day",
+        "default_subject": "Welcome to MaiVietLand!",
         "variables": [
             {
                 "name": "fullname",
@@ -94,6 +88,7 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
         "title": "Interview Invitation",
         "description": "Invite candidates for job interviews",
         "purpose": "Send to candidates when scheduling interviews",
+        "default_subject": "Interview Invitation - MaiVietLand",
         "variables": [
             {
                 "name": "candidate_name",
@@ -146,17 +141,3 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
         },
     },
 ]
-
-# Action to template mapping for domain-level convenience endpoints
-ACTION_TEMPLATE_MAP: dict[str, ActionTemplateConfig] = {
-    "send_welcome_email": {
-        "template_slug": "welcome",
-        "default_subject": "Welcome to MaiVietLand!",
-        "default_sender": None,  # Uses DEFAULT_FROM_EMAIL from settings
-    },
-    "send_interview_invite": {
-        "template_slug": "interview_invite",
-        "default_subject": "Interview Invitation - MaiVietLand",
-        "default_sender": None,
-    },
-}

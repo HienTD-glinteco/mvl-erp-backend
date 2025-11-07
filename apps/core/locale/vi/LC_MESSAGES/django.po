@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-06 22:28+0700\n"
+"POT-Creation-Date: 2025-11-07 00:31+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 # api/serializers/auth/password_change.py:80
-#: apps/core/api/permissions.py:43
+#: apps/core/api/permissions.py:47
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 
-#: apps/core/api/permissions.py:54
+#: apps/core/api/permissions.py:58
 msgid "You do not have permission to perform this action"
 msgstr ""
 

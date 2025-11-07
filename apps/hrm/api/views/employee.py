@@ -20,6 +20,7 @@ from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
 from apps.hrm.services.employee import create_state_change_event
 from apps.imports.api.mixins import AsyncImportProgressMixin
+from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 
@@ -192,20 +193,7 @@ class EmployeeViewSet(
             }
         },
         responses={
-            200: {
-                "description": "Email preview generated successfully",
-                "content": {
-                    "application/json": {
-                        "example": {
-                            "success": True,
-                            "data": {
-                                "html": "<html>...</html>",
-                                "text": "Plain text version of email",
-                            },
-                        }
-                    }
-                },
-            },
+            200: TemplatePreviewResponseSerializer,
             400: {
                 "description": "Invalid data or template rendering error",
                 "content": {
@@ -243,39 +231,9 @@ class EmployeeViewSet(
             "application/json": {
                 "type": "object",
                 "properties": {
-                    "recipients": {
-                        "type": "array",
-                        "description": "Optional list of recipients. If not provided, email is sent to employee.email",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "email": {"type": "string", "format": "email"},
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "fullname": {"type": "string"},
-                                        "start_date": {"type": "string", "format": "date"},
-                                        "position": {"type": "string"},
-                                        "department": {"type": "string"},
-                                    },
-                                },
-                            },
-                            "required": ["email"],
-                        },
-                    },
                     "subject": {
                         "type": "string",
                         "description": "Optional email subject (defaults to 'Welcome to MaiVietLand!')",
-                    },
-                    "data": {
-                        "type": "object",
-                        "description": "Optional data overrides for the default recipient (employee)",
-                        "properties": {
-                            "fullname": {"type": "string"},
-                            "start_date": {"type": "string", "format": "date"},
-                            "position": {"type": "string"},
-                            "department": {"type": "string"},
-                        },
                     },
                 },
             }
@@ -289,7 +247,8 @@ class EmployeeViewSet(
                             "success": True,
                             "data": {
                                 "job_id": "550e8400-e29b-41d4-a716-446655440000",
-                                "detail": "Email job created and queued",
+                                "total_recipients": 1,
+                                "detail": "Email send job enqueued",
                             },
                         }
                     }
@@ -328,6 +287,28 @@ class EmployeeViewSet(
             pk,
             on_success_callback=mark_employee_onboarding_email_sent,
         )
+
+    def get_recipients(self, request, instance):
+        """Get recipients for employee email.
+
+        For employees, returns a single recipient using the employee's email.
+        """
+        if not instance.email:
+            from apps.mailtemplates.services import TemplateValidationError
+
+            raise TemplateValidationError("Employee does not have an email address")
+
+        return [
+            {
+                "email": instance.email,
+                "data": {
+                    "fullname": instance.fullname,
+                    "start_date": instance.start_date.isoformat() if instance.start_date else "",
+                    "position": instance.position.name if instance.position else "",
+                    "department": instance.department.name if instance.department else "",
+                },
+            }
+        ]
 
     @extend_schema(
         summary="Copy employee",

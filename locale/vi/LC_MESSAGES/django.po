@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-06 22:28+0700\n"
+"POT-Creation-Date: 2025-11-07 11:53+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -247,22 +247,8 @@ msgstr ""
 msgid "Import job not found"
 msgstr ""
 
-#: apps/imports/api/serializers.py:33
-#, python-brace-format
-msgid ""
-"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
-"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
-msgstr ""
-
 #: apps/imports/api/serializers.py:39
 msgid "Whether to count total rows before processing (default: true)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:47
-#, python-brace-format
-msgid ""
-"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
-"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 msgstr ""
 
 #: apps/imports/api/serializers.py:53
@@ -630,7 +616,7 @@ msgstr ""
 msgid "When the job finished processing"
 msgstr ""
 
-#: apps/mailtemplates/models.py:96
+#: apps/mailtemplates/models.py:96 apps/mailtemplates/models.py:146
 msgid "Callback data"
 msgstr ""
 
@@ -675,50 +661,54 @@ msgid "Data used to render the template for this recipient"
 msgstr ""
 
 #: apps/mailtemplates/models.py:147
-msgid "Send status"
-msgstr ""
-
-#: apps/mailtemplates/models.py:148
-msgid "Current status of this email"
+msgid "Per-recipient callback data to use after successful send"
 msgstr ""
 
 #: apps/mailtemplates/models.py:153
-msgid "Attempt count"
+msgid "Send status"
 msgstr ""
 
 #: apps/mailtemplates/models.py:154
-msgid "Number of send attempts"
-msgstr ""
-
-#: apps/mailtemplates/models.py:158
-msgid "Last error"
+msgid "Current status of this email"
 msgstr ""
 
 #: apps/mailtemplates/models.py:159
-msgid "Error message from the last failed attempt"
+msgid "Attempt count"
+msgstr ""
+
+#: apps/mailtemplates/models.py:160
+msgid "Number of send attempts"
 msgstr ""
 
 #: apps/mailtemplates/models.py:164
-msgid "Message ID"
+msgid "Last error"
 msgstr ""
 
 #: apps/mailtemplates/models.py:165
-msgid "Provider message ID for tracking"
+msgid "Error message from the last failed attempt"
 msgstr ""
 
 #: apps/mailtemplates/models.py:170
-msgid "Sent at"
+msgid "Message ID"
 msgstr ""
 
 #: apps/mailtemplates/models.py:171
-msgid "When the email was successfully sent"
-msgstr ""
-
-#: apps/mailtemplates/models.py:175
-msgid "Email send recipient"
+msgid "Provider message ID for tracking"
 msgstr ""
 
 #: apps/mailtemplates/models.py:176
+msgid "Sent at"
+msgstr ""
+
+#: apps/mailtemplates/models.py:177
+msgid "When the email was successfully sent"
+msgstr ""
+
+#: apps/mailtemplates/models.py:181
+msgid "Email send recipient"
+msgstr ""
+
+#: apps/mailtemplates/models.py:182
 msgid "Email send recipients"
 msgstr ""
 
@@ -735,40 +725,102 @@ msgstr ""
 msgid "Mail sending permission required"
 msgstr ""
 
-#: apps/mailtemplates/permissions.py:68 apps/mailtemplates/view_mixins.py:114
-#: apps/mailtemplates/views.py:311
+#: apps/mailtemplates/permissions.py:68
 msgid "Real data preview permission required"
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:180
-msgid "No email address found for this object"
+#: apps/mailtemplates/view_mixins.py:188
+msgid ""
+"Failed to get recipients. Override get_recipients() or provide recipients in "
+"request."
 msgstr ""
 
-#: apps/mailtemplates/view_mixins.py:247
+#: apps/mailtemplates/view_mixins.py:197
+msgid "No recipients found"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:205 apps/mailtemplates/view_mixins.py:468
+msgid "Each recipient must have 'email' and 'data' fields"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:285
 msgid "Email send job enqueued"
 msgstr ""
 
-#: apps/mailtemplates/views.py:242
+#: apps/mailtemplates/view_mixins.py:291 apps/mailtemplates/view_mixins.py:506
+msgid "Template not found"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:294 apps/mailtemplates/view_mixins.py:509
+msgid "Template validation failed. Please check your data."
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:383
+msgid ""
+"No email address found. Override get_recipients() to provide recipients."
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:440
+msgid "Either object_ids or filters must be provided"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:452
+msgid "Failed to get recipients for instance"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:461
+msgid "No recipients found for the selected objects"
+msgstr ""
+
+#: apps/mailtemplates/view_mixins.py:500
+msgid "Bulk email send job enqueued"
+msgstr ""
+
+#: apps/mailtemplates/views.py:83
+msgid "View mail template list"
+msgstr ""
+
+#: apps/mailtemplates/views.py:149
+msgid "View mail template details"
+msgstr ""
+
+#: apps/mailtemplates/views.py:215
+msgid "Edit mail template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:246
 msgid "Failed to save template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:305
+msgid "Preview mail template"
 msgstr ""
 
 #: apps/mailtemplates/views.py:331
 msgid "Data or ref required for real mode"
 msgstr ""
 
-#: apps/mailtemplates/views.py:435
+#: apps/mailtemplates/views.py:427
+msgid "Send bulk emails"
+msgstr ""
+
+#: apps/mailtemplates/views.py:451
 msgid "Job with this client_request_id already exists"
 msgstr ""
 
-#: apps/mailtemplates/views.py:480
+#: apps/mailtemplates/views.py:498
 msgid "Job enqueued"
 msgstr ""
 
-#: apps/mailtemplates/views.py:531
+#: apps/mailtemplates/views.py:539
+msgid "View email send job status"
+msgstr ""
+
+#: apps/mailtemplates/views.py:550
 msgid "Not authorized to view this job"
 msgstr ""
 
-#: apps/mailtemplates/views.py:540
+#: apps/mailtemplates/views.py:559
 msgid "Job not found"
 msgstr ""
 
