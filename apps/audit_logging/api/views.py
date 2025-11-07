@@ -6,6 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from libs.drf.mixin.permission import PermissionRegistrationMixin
+
 from ..exceptions import AuditLogException
 from ..opensearch_client import get_opensearch_client
 from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSerializer, AuditLogSerializer
@@ -13,7 +15,7 @@ from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSeriali
 logger = logging.getLogger(__name__)
 
 
-class AuditLogViewSet(viewsets.GenericViewSet):
+class AuditLogViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
     """ViewSet for audit log operations."""
 
     permission_classes = [IsAuthenticated]

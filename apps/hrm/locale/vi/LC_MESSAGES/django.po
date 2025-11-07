@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-07 11:53+0700\n"
+"POT-Creation-Date: 2025-11-07 14:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -52,52 +52,28 @@ msgstr ""
 msgid "Status changed from {old_status} to {new_status}"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:74
+#: apps/hrm/api/serializers/employee_role.py:70
 msgid "List of employee IDs to update (maximum 25)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:79
+#: apps/hrm/api/serializers/employee_role.py:75
 msgid "New role to assign to selected employees"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:85
+#: apps/hrm/api/serializers/employee_role.py:81
 msgid "Cannot update more than 25 employees at once."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:89
+#: apps/hrm/api/serializers/employee_role.py:85
 msgid "One or more employee IDs are invalid."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:96
+#: apps/hrm/api/serializers/employee_role.py:92
 msgid "Please select at least one employee."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_role.py:99
+#: apps/hrm/api/serializers/employee_role.py:95
 msgid "Please select a new role."
-msgstr ""
-
-#: apps/hrm/api/serializers/organization.py:371
-#: apps/hrm/models/organization.py:346
-msgid "At least one of department, block, or branch must be specified."
-msgstr ""
-
-#: apps/hrm/api/serializers/organization.py:380
-#: apps/hrm/models/organization.py:351
-msgid "Block must match the department's block."
-msgstr ""
-
-#: apps/hrm/api/serializers/organization.py:382
-#: apps/hrm/models/organization.py:353
-msgid "Branch must match the department's branch."
-msgstr ""
-
-#: apps/hrm/api/serializers/organization.py:386
-#: apps/hrm/models/organization.py:358
-msgid "Branch must match the block's branch."
-msgstr ""
-
-#: apps/hrm/api/serializers/organization.py:391
-msgid "End date must be after start date."
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_request.py:156
@@ -135,7 +111,7 @@ msgstr ""
 msgid "Average"
 msgstr ""
 
-#: apps/hrm/api/views/employee_role.py:192
+#: apps/hrm/api/views/employee_role.py:195
 msgid "Update successful"
 msgstr ""
 
@@ -477,7 +453,6 @@ msgstr ""
 #: apps/hrm/models/employee_report.py:40
 #: apps/hrm/models/employee_work_history.py:82
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
-#: apps/hrm/models/organization.py:303
 #: apps/hrm/models/recruitment_candidate.py:76
 #: apps/hrm/models/recruitment_reports.py:29
 #: apps/hrm/models/recruitment_request.py:62
@@ -646,7 +621,6 @@ msgstr ""
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
 #: apps/hrm/models/employee_work_history.py:64
-#: apps/hrm/models/organization.py:281
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214
 msgid "Employee"
@@ -698,7 +672,7 @@ msgstr ""
 
 #: apps/hrm/models/employee.py:70 apps/hrm/models/organization.py:36
 #: apps/hrm/models/organization.py:68 apps/hrm/models/organization.py:130
-#: apps/hrm/models/organization.py:261 apps/hrm/models/organization.py:316
+#: apps/hrm/models/organization.py:261
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr ""
@@ -815,7 +789,7 @@ msgstr ""
 #: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:34
 #: apps/hrm/models/employee_work_history.py:73
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
-#: apps/hrm/models/organization.py:103 apps/hrm/models/organization.py:311
+#: apps/hrm/models/organization.py:103
 #: apps/hrm/models/recruitment_candidate.py:68
 #: apps/hrm/models/recruitment_reports.py:21
 #: apps/hrm/models/recruitment_request.py:54
@@ -824,7 +798,7 @@ msgstr ""
 
 #: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:46
 #: apps/hrm/models/employee_work_history.py:91
-#: apps/hrm/models/organization.py:133 apps/hrm/models/organization.py:295
+#: apps/hrm/models/organization.py:133
 #: apps/hrm/models/recruitment_candidate.py:84
 #: apps/hrm/models/recruitment_reports.py:37
 #: apps/hrm/models/recruitment_request.py:70
@@ -832,11 +806,11 @@ msgid "Department"
 msgstr ""
 
 #: apps/hrm/models/employee.py:166 apps/hrm/models/employee_work_history.py:100
-#: apps/hrm/models/organization.py:264 apps/hrm/models/organization.py:287
+#: apps/hrm/models/organization.py:264
 msgid "Position"
 msgstr ""
 
-#: apps/hrm/models/employee.py:178 apps/hrm/models/organization.py:313
+#: apps/hrm/models/employee.py:178
 msgid "Start date"
 msgstr ""
 
@@ -1673,26 +1647,6 @@ msgstr ""
 
 #: apps/hrm/models/organization.py:265
 msgid "Positions"
-msgstr ""
-
-#: apps/hrm/models/organization.py:314
-msgid "End date"
-msgstr ""
-
-#: apps/hrm/models/organization.py:315
-msgid "Is primary position"
-msgstr ""
-
-#: apps/hrm/models/organization.py:319
-msgid "Organization Chart"
-msgstr ""
-
-#: apps/hrm/models/organization.py:320
-msgid "Organization Charts"
-msgstr ""
-
-#: apps/hrm/models/organization.py:371
-msgid "Employee can only have one primary position in a department at a time."
 msgstr ""
 
 #: apps/hrm/models/recruitment_candidate.py:21

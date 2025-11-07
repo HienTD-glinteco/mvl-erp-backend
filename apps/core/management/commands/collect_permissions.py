@@ -164,24 +164,35 @@ class Command(BaseCommand):
             if not app_config.name.startswith("apps."):
                 continue
 
-            # Try to import views module from the app
+            # Try to import views module from the app (check both api.views and views)
+            views_modules = []
+
+            # Try api.views first
             try:
                 views_module = __import__(f"{app_config.name}.api.views", fromlist=[""])
+                views_modules.append(views_module)
             except (ImportError, ModuleNotFoundError):
-                continue
+                pass
 
-            # Find all PermissionRegistrationMixin subclasses in the module
-            # This includes both BaseModelViewSet and BaseReadOnlyModelViewSet
-            for attr_name in dir(views_module):
-                attr = getattr(views_module, attr_name)
-                if (
-                    isinstance(attr, type)
-                    and issubclass(attr, PermissionRegistrationMixin)
-                    and attr is not PermissionRegistrationMixin
-                    and hasattr(attr, "get_registered_permissions")
-                ):
-                    # Get registered permissions from the viewset
-                    viewset_permissions = attr.get_registered_permissions()
-                    permissions.extend(viewset_permissions)
+            # Also try views directly in the app
+            try:
+                views_module = __import__(f"{app_config.name}.views", fromlist=[""])
+                views_modules.append(views_module)
+            except (ImportError, ModuleNotFoundError):
+                pass
+
+            # Find all PermissionRegistrationMixin subclasses in the modules
+            for views_module in views_modules:
+                for attr_name in dir(views_module):
+                    attr = getattr(views_module, attr_name)
+                    if (
+                        isinstance(attr, type)
+                        and issubclass(attr, PermissionRegistrationMixin)
+                        and attr is not PermissionRegistrationMixin
+                        and hasattr(attr, "get_registered_permissions")
+                    ):
+                        # Get registered permissions from the viewset
+                        viewset_permissions = attr.get_registered_permissions()
+                        permissions.extend(viewset_permissions)
 
         return permissions

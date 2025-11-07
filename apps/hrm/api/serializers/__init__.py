@@ -30,8 +30,6 @@ from .organization import (
     BlockSerializer,
     BranchSerializer,
     DepartmentSerializer,
-    OrganizationChartDetailSerializer,
-    OrganizationChartSerializer,
     PositionSerializer,
 )
 from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
@@ -64,8 +62,6 @@ __all__ = [
     "BlockSerializer",
     "DepartmentSerializer",
     "PositionSerializer",
-    "OrganizationChartSerializer",
-    "OrganizationChartDetailSerializer",
     "EmployeeRoleListSerializer",
     "BulkUpdateRoleSerializer",
     "EmployeeActiveActionSerializer",

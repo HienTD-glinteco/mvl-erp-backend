@@ -44,7 +44,7 @@ class AllowedUnits:
 
 def collect_allowed_units(user: UserType) -> AllowedUnits:  # noqa: C901
     """
-    Collect allowed organizational units based on user's positions and their data scopes.
+    Collect allowed organizational units based on user's employee position and data scope.
 
     Args:
         user: The authenticated user
@@ -57,75 +57,72 @@ def collect_allowed_units(user: UserType) -> AllowedUnits:  # noqa: C901
 
     allowed = AllowedUnits()
 
-    # Get all active assignments for the user
-    assignments = user.organization_positions.filter(is_active=True, end_date__isnull=True).select_related(
-        "position", "department__block__branch", "block__branch", "branch"
-    )
+    # Get employee record for the user
+    if not hasattr(user, "employee") or not user.employee:
+        logger.warning("User %s has no employee record - returning empty units", user.id)
+        return allowed
 
-    for assignment in assignments:
-        position = assignment.position
-        data_scope = position.data_scope
+    employee = user.employee
+    position = employee.position
 
-        # If any position has 'all' scope, grant full access
-        if data_scope == DataScope.ALL:
-            allowed.has_all = True
-            logger.debug(
-                "User %s has position %s with 'all' data scope - granting full access",
-                user.id,
-                position.id,
-            )
-            return allowed
+    # User must have a position to access data
+    if not position:
+        logger.warning("User %s has no position assigned - returning empty units", user.id)
+        return allowed
 
-        # Determine the organizational unit from the assignment
-        # Priority: branch > block > department
-        assignment_branch = assignment.branch
-        assignment_block = assignment.block
-        assignment_department = assignment.department
+    data_scope = position.data_scope
 
-        # Auto-derive missing units from available ones
-        if assignment_department and not assignment_block:
-            assignment_block = assignment_department.block
-        if assignment_department and not assignment_branch:
-            assignment_branch = assignment_department.block.branch
-        if assignment_block and not assignment_branch:
-            assignment_branch = assignment_block.branch
+    # If position has 'all' scope, grant full access
+    if data_scope == DataScope.ALL:
+        allowed.has_all = True
+        logger.debug(
+            "User %s has position %s with 'all' data scope - granting full access",
+            user.id,
+            position.id,
+        )
+        return allowed
 
-        # Apply data scope to collect allowed units
-        if data_scope == DataScope.BRANCH and assignment_branch:
-            allowed.branches.add(assignment_branch.id)
-            logger.debug(
-                "User %s position %s: branch scope, added branch %s",
-                user.id,
-                position.id,
-                assignment_branch.id,
-            )
+    # Get organizational units from employee
+    employee_branch = employee.branch
+    employee_block = employee.block
+    employee_department = employee.department
 
-        elif data_scope == DataScope.BLOCK and assignment_block:
-            allowed.blocks.add(assignment_block.id)
-            logger.debug(
-                "User %s position %s: block scope, added block %s",
-                user.id,
-                position.id,
-                assignment_block.id,
-            )
+    # Apply data scope to collect allowed units
+    if data_scope == DataScope.BRANCH and employee_branch:
+        allowed.branches.add(employee_branch.id)
+        logger.debug(
+            "User %s position %s: branch scope, added branch %s",
+            user.id,
+            position.id,
+            employee_branch.id,
+        )
 
-        elif data_scope == DataScope.DEPARTMENT and assignment_department:
-            allowed.departments.add(assignment_department.id)
-            logger.debug(
-                "User %s position %s: department scope, added department %s",
-                user.id,
-                position.id,
-                assignment_department.id,
-            )
+    elif data_scope == DataScope.BLOCK and employee_block:
+        allowed.blocks.add(employee_block.id)
+        logger.debug(
+            "User %s position %s: block scope, added block %s",
+            user.id,
+            position.id,
+            employee_block.id,
+        )
 
-        elif data_scope == DataScope.SELF:
-            allowed.employees.add(user.id)
-            logger.debug(
-                "User %s position %s: self scope, added employee %s",
-                user.id,
-                position.id,
-                user.id,
-            )
+    elif data_scope == DataScope.DEPARTMENT and employee_department:
+        allowed.departments.add(employee_department.id)
+        logger.debug(
+            "User %s position %s: department scope, added department %s",
+            user.id,
+            position.id,
+            employee_department.id,
+        )
+
+    elif data_scope == DataScope.SELF:
+        allowed.employees.add(user.id)
+        logger.debug(
+            "User %s position %s: self scope, added employee %s",
+            user.id,
+            position.id,
+            user.id,
+        )
 
     logger.info(
         "User %s allowed units: branches=%d, blocks=%d, departments=%d, employees=%d",
@@ -324,9 +321,7 @@ def filter_by_leadership(queryset: QuerySet, leadership_only: bool = True) -> Qu
     if not leadership_only:
         return queryset
 
-    # Filter for employees who have at least one active leadership position
+    # Filter for employees who have a leadership position
     return queryset.filter(
-        organization_positions__position__is_leadership=True,
-        organization_positions__is_active=True,
-        organization_positions__end_date__isnull=True,
+        employee__position__is_leadership=True,
     ).distinct()

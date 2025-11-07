@@ -14,7 +14,6 @@ from .models import (
     InterviewCandidate,
     InterviewSchedule,
     JobDescription,
-    OrganizationChart,
     Position,
     RecruitmentCandidate,
     RecruitmentCandidateContactLog,
@@ -38,51 +37,6 @@ class PositionAdmin(admin.ModelAdmin):
         ("Data Access", {"fields": ["data_scope", "is_leadership"]}),
         ("Status", {"fields": ["is_active"]}),
         ("Timestamps", {"fields": ["created_at", "updated_at"]}),
-    ]
-
-
-@admin.register(OrganizationChart)
-class OrganizationChartAdmin(admin.ModelAdmin):
-    """Admin configuration for OrganizationChart model"""
-
-    list_display = ["employee", "position", "department", "block", "branch", "start_date", "is_primary", "is_active"]
-    list_filter = ["is_primary", "is_active", "position__is_leadership"]
-    search_fields = ["employee__username", "employee__email", "position__name"]
-    raw_id_fields = ["employee", "position", "department", "block", "branch"]
-    readonly_fields = ["created_at", "updated_at"]
-    date_hierarchy = "start_date"
-    fieldsets = [
-        (
-            "Assignment",
-            {
-                "fields": ["employee", "position"],
-            },
-        ),
-        (
-            "Organizational Unit",
-            {
-                "fields": ["department", "block", "branch"],
-                "description": "Specify at least one: department, block, or branch. Block and branch will be auto-filled from department if not specified.",
-            },
-        ),
-        (
-            "Period",
-            {
-                "fields": ["start_date", "end_date"],
-            },
-        ),
-        (
-            "Status",
-            {
-                "fields": ["is_primary", "is_active"],
-            },
-        ),
-        (
-            "Timestamps",
-            {
-                "fields": ["created_at", "updated_at"],
-            },
-        ),
     ]
 
 

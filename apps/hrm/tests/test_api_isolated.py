@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Position
 
 User = get_user_model()
 
@@ -37,7 +37,6 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         Block.objects.all().delete()
         Department.objects.all().delete()
         Position.objects.all().delete()
-        OrganizationChart.objects.all().delete()
 
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
@@ -145,123 +144,7 @@ class IsolatedBranchAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[0]["code"], "HN")
 
 
-class IsolatedOrganizationChartAPITest(TransactionTestCase, APITestMixin):
-    """Test cases for Organization Chart API endpoints with proper isolation"""
-
-    def setUp(self):
-        # Clear all existing data
-        Branch.objects.all().delete()
-        Block.objects.all().delete()
-        Department.objects.all().delete()
-        Position.objects.all().delete()
-        OrganizationChart.objects.all().delete()
-        User.objects.all().delete()
-
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
-        self.employee = User.objects.create_user(
-            username="employee",
-            email="employee@example.com",
-            first_name="John",
-            last_name="Doe",
-        )
-
-        # Create Province and AdministrativeUnit for Branch
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-        self.block = Block.objects.create(
-            name="Khối Hỗ trợ",
-            code="HT",
-            block_type=Block.BlockType.SUPPORT,
-            branch=self.branch,
-        )
-        self.department = Department.objects.create(name="Phòng Nhân sự", branch=self.branch, block=self.block)
-        self.position = Position.objects.create(name="Trưởng phòng", code="TP")
-
-    def test_create_organization_chart(self):
-        """Test creating an organization chart entry via API"""
-        org_data = {
-            "employee_id": str(self.employee.id),
-            "position_id": str(self.position.id),
-            "department_id": str(self.department.id),
-            "start_date": date.today().isoformat(),
-            "is_primary": True,
-        }
-
-        url = reverse("hrm:organization-chart-list")
-        response = self.client.post(url, org_data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(OrganizationChart.objects.count(), 1)
-
-    def test_organization_hierarchy_endpoint(self):
-        """Test organization hierarchy endpoint"""
-        OrganizationChart.objects.create(
-            employee=self.employee,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-        )
-
-        url = reverse("hrm:organization-chart-hierarchy")
-        response = self.client.get(url, {"branch_id": str(self.branch.id)})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)  # One department
-        self.assertEqual(len(response_data[0]["positions"]), 1)  # One position
-
-    def test_by_department_endpoint(self):
-        """Test getting employees by department endpoint"""
-        OrganizationChart.objects.create(
-            employee=self.employee,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-        )
-
-        url = reverse("hrm:organization-chart-by-department")
-        response = self.client.get(url, {"department_id": str(self.department.id)})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = self.get_response_data(response)
-        self.assertEqual(len(response_data), 1)
-        self.assertEqual(response_data[0]["employee"]["username"], self.employee.username)
-
-    def test_by_department_endpoint_missing_param(self):
-        """Test by department endpoint without required parameter"""
-        url = reverse("hrm:organization-chart-by-department")
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # For error responses, the format might be different
-        response_data = self.get_response_data(response)
-        if response_data and isinstance(response_data, dict):
-            self.assertIn("error", response_data)
-        # The main test is the status code - that's what matters
-
-
+# IsolatedOrganizationChartAPITest class removed - OrganizationChart API no longer exists
 class IsolatedPositionAPITest(TransactionTestCase, APITestMixin):
     """Test cases for Position API endpoints with proper isolation"""
 

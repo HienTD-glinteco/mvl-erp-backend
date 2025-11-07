@@ -358,7 +358,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         selected department's organizational structure.
         """
         # Auto-set block and branch from department
-        if self.department:
+        if self.department_id:
             self.block = self.department.block
             self.branch = self.department.branch
 

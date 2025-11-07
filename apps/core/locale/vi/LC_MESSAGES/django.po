@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-07 00:31+0700\n"
+"POT-Creation-Date: 2025-11-07 15:12+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 # api/serializers/auth/password_change.py:80
-#: apps/core/api/permissions.py:47
+#: apps/core/api/permissions.py:51
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 
-#: apps/core/api/permissions.py:58
+#: apps/core/api/permissions.py:62
 msgid "You do not have permission to perform this action"
 msgstr ""
 
@@ -494,6 +494,10 @@ msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
 #: apps/core/api/views/export_status.py:43
 msgid "Check export status"
+msgstr ""
+
+#: apps/core/api/views/export_status.py:43
+msgid "Export status"
 msgstr ""
 
 #: apps/core/api/views/export_status.py:66

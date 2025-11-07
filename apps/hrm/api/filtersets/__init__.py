@@ -14,7 +14,6 @@ from .organization import (
     BlockFilterSet,
     BranchFilterSet,
     DepartmentFilterSet,
-    OrganizationChartFilterSet,
     PositionFilterSet,
 )
 from .recruitment_candidate import RecruitmentCandidateFilterSet
@@ -40,7 +39,6 @@ __all__ = [
     "BlockFilterSet",
     "DepartmentFilterSet",
     "PositionFilterSet",
-    "OrganizationChartFilterSet",
     "EmployeeRoleFilterSet",
     "EmployeeFilterSet",
     "EmployeeDependentFilterSet",

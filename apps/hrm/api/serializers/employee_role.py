@@ -33,34 +33,30 @@ class EmployeeRoleListSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.CharField())
     def get_branch_name(self, obj):
-        """Get branch name from primary organization position"""
-        primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
-        if primary_org:
-            return primary_org.department.block.branch.name
+        """Get branch name from employee"""
+        if hasattr(obj, "employee") and obj.employee and obj.employee.branch:
+            return obj.employee.branch.name
         return ""
 
     @extend_schema_field(serializers.CharField())
     def get_block_name(self, obj):
-        """Get block name from primary organization position"""
-        primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
-        if primary_org:
-            return primary_org.department.block.name
+        """Get block name from employee"""
+        if hasattr(obj, "employee") and obj.employee and obj.employee.block:
+            return obj.employee.block.name
         return ""
 
     @extend_schema_field(serializers.CharField())
     def get_department_name(self, obj):
-        """Get department name from primary organization position"""
-        primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
-        if primary_org:
-            return primary_org.department.name
+        """Get department name from employee"""
+        if hasattr(obj, "employee") and obj.employee and obj.employee.department:
+            return obj.employee.department.name
         return ""
 
     @extend_schema_field(serializers.CharField())
     def get_position_name(self, obj):
-        """Get position name from primary organization position"""
-        primary_org = obj.organization_positions.filter(is_primary=True, is_active=True).first()
-        if primary_org:
-            return primary_org.position.name
+        """Get position name from employee"""
+        if hasattr(obj, "employee") and obj.employee and obj.employee.position:
+            return obj.employee.position.name
         return ""
 
 

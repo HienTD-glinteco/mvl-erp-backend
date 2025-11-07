@@ -10,18 +10,15 @@ from apps.hrm.api.filtersets import (
     BlockFilterSet,
     BranchFilterSet,
     DepartmentFilterSet,
-    OrganizationChartFilterSet,
     PositionFilterSet,
 )
 from apps.hrm.api.serializers import (
     BlockSerializer,
     BranchSerializer,
     DepartmentSerializer,
-    OrganizationChartDetailSerializer,
-    OrganizationChartSerializer,
     PositionSerializer,
 )
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Position
 from libs import BaseModelViewSet
 
 
@@ -478,121 +475,4 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     permission_prefix = "position"
 
 
-@extend_schema_view(
-    list=extend_schema(
-        summary="List organization charts",
-        description="Retrieve a list of all organization charts",
-        tags=["Organization Chart"],
-    ),
-    create=extend_schema(
-        summary="Create organization chart",
-        description="Create a new organization chart",
-        tags=["Organization Chart"],
-    ),
-    retrieve=extend_schema(
-        summary="Get organization chart details",
-        description="Retrieve detailed information about a specific organization chart",
-        tags=["Organization Chart"],
-    ),
-    update=extend_schema(
-        summary="Update organization chart",
-        description="Update organization chart information",
-        tags=["Organization Chart"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update organization chart",
-        description="Partially update organization chart information",
-        tags=["Organization Chart"],
-    ),
-    destroy=extend_schema(
-        summary="Delete organization chart",
-        description="Remove an organization chart from the system",
-        tags=["Organization Chart"],
-    ),
-)
-class OrganizationChartViewSet(AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for OrganizationChart model"""
 
-    queryset = OrganizationChart.objects.select_related("employee", "position", "department__block__branch").all()
-    serializer_class = OrganizationChartSerializer
-    filterset_class = OrganizationChartFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = [
-        "employee__username",
-        "employee__first_name",
-        "employee__last_name",
-        "position__name",
-        "department__name",
-    ]
-    ordering_fields = ["start_date", "created_at", "position__name"]
-    ordering = ["position__name", "start_date"]
-
-    # Permission registration attributes
-    module = "HRM"
-    submodule = "Organization"
-    permission_prefix = "organization_chart"
-
-    def get_serializer_class(self):
-        """Use detailed serializer for retrieve action"""
-        if self.action == "retrieve":
-            return OrganizationChartDetailSerializer
-        return super().get_serializer_class()
-
-    @extend_schema(
-        summary="Organization chart hierarchy",
-        description="Retrieve organization chart in hierarchical structure",
-        tags=["Organization Chart"],
-    )
-    @action(detail=False, methods=["get"])
-    def hierarchy(self, request):
-        """Get organization chart in hierarchical structure"""
-        branch_id = request.query_params.get("branch_id")
-        block_id = request.query_params.get("block_id")
-        department_id = request.query_params.get("department_id")
-
-        queryset = self.get_queryset().filter(is_active=True, end_date__isnull=True)
-
-        if branch_id:
-            queryset = queryset.filter(department__block__branch_id=branch_id)
-        if block_id:
-            queryset = queryset.filter(department__block_id=block_id)
-        if department_id:
-            queryset = queryset.filter(department_id=department_id)
-
-        # Group by department
-        hierarchy = {}
-        for org_chart in queryset:
-            dept_key = f"{org_chart.department.id}"
-            if dept_key not in hierarchy:
-                hierarchy[dept_key] = {
-                    "department": DepartmentSerializer(org_chart.department).data,
-                    "positions": [],
-                }
-
-            hierarchy[dept_key]["positions"].append(OrganizationChartDetailSerializer(org_chart).data)
-
-        # Sort positions by name within each department
-        for dept_data in hierarchy.values():
-            dept_data["positions"].sort(key=lambda x: x["position"]["name"])
-
-        return Response(list(hierarchy.values()))
-
-    @extend_schema(
-        summary="Employees by department",
-        description="Retrieve list of employees by department",
-        tags=["Organization Chart"],
-    )
-    @action(detail=False, methods=["get"])
-    def by_department(self, request):
-        """Get employees by department"""
-        department_id = request.query_params.get("department_id")
-        if not department_id:
-            return Response(
-                {"error": "department_id parameter is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        queryset = self.get_queryset().filter(department_id=department_id, is_active=True, end_date__isnull=True)
-
-        serializer = OrganizationChartDetailSerializer(queryset, many=True)
-        return Response(serializer.data)

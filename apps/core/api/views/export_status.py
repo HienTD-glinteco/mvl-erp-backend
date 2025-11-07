@@ -40,7 +40,7 @@ class ExportStatusView(APIView):
         },
         tags=["Export"],
     )
-    @register_permission("export.check_status", _("Check export status"))
+    @register_permission("export.check_status", _("Check export status"), "Core", "Export Status", _("Export status"))
     def get(self, request):
         """
         Check export task status with progress information.
