@@ -1,4 +1,4 @@
-"""Tests for data scope functionality on Position and OrganizationChart models."""
+"""Tests for data scope functionality on Position models."""
 
 from datetime import date
 
@@ -8,7 +8,7 @@ from django.test import TestCase
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import DataScope
-from apps.hrm.models import Block, Branch, Department, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 from apps.hrm.utils import collect_allowed_units, filter_queryset_by_data_scope
 
 User = get_user_model()
@@ -38,165 +38,9 @@ class PositionDataScopeTest(TestCase):
             self.assertEqual(position.data_scope, scope_value)
 
 
-class OrganizationChartEnhancedTest(TestCase):
-    """Test OrganizationChart model with block and branch fields"""
 
-    def setUp(self):
-        """Set up test data"""
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", first_name="Test", last_name="User"
-        )
-
-        # Create organizational structure
-        self.province = Province.objects.create(
-            code="01",
-            name="Thành phố Hà Nội",
-            english_name="Hanoi",
-            level=Province.ProvinceLevel.CENTRAL_CITY,
-            enabled=True,
-        )
-        self.administrative_unit = AdministrativeUnit.objects.create(
-            code="001",
-            name="Quận Ba Đình",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-            enabled=True,
-        )
-
-        self.branch = Branch.objects.create(
-            name="Chi nhánh Hà Nội",
-            code="HN",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-        self.block = Block.objects.create(
-            name="Khối Hỗ trợ", code="HT", block_type=Block.BlockType.SUPPORT, branch=self.branch
-        )
-        self.department = Department.objects.create(
-            name="Phòng Nhân sự", code="NS", block=self.block, branch=self.branch
-        )
-        self.position = Position.objects.create(name="Manager", code="MGR", data_scope=DataScope.DEPARTMENT)
-
-    def test_create_org_chart_with_department_autofills_block_branch(self):
-        """Test that creating an org chart with department auto-fills block and branch"""
-        org_chart = OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            start_date=date.today(),
-            is_primary=True,
-        )
-
-        # Block and branch should be auto-filled
-        self.assertEqual(org_chart.block, self.department.block)
-        self.assertEqual(org_chart.branch, self.department.block.branch)
-
-    def test_create_org_chart_with_block_autofills_branch(self):
-        """Test that creating an org chart with block auto-fills branch"""
-        org_chart = OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            block=self.block,
-            start_date=date.today(),
-            is_primary=True,
-        )
-
-        # Branch should be auto-filled
-        self.assertEqual(org_chart.branch, self.block.branch)
-        # Department should be None
-        self.assertIsNone(org_chart.department)
-
-    def test_create_org_chart_with_branch_only(self):
-        """Test creating an org chart with only branch"""
-        org_chart = OrganizationChart.objects.create(
-            employee=self.user,
-            position=self.position,
-            branch=self.branch,
-            start_date=date.today(),
-            is_primary=True,
-        )
-
-        # Only branch should be set
-        self.assertEqual(org_chart.branch, self.branch)
-        self.assertIsNone(org_chart.block)
-        self.assertIsNone(org_chart.department)
-
-    def test_org_chart_validation_requires_at_least_one_unit(self):
-        """Test that org chart validation requires at least one organizational unit"""
-        org_chart = OrganizationChart(
-            employee=self.user, position=self.position, start_date=date.today(), is_primary=True
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            org_chart.clean()
-
-        self.assertIn("__all__", context.exception.message_dict)
-
-    def test_org_chart_validation_block_must_match_department(self):
-        """Test that block must match department's block"""
-        # Create another block in the same branch
-        other_block = Block.objects.create(
-            name="Khối Kinh doanh", code="KD", block_type=Block.BlockType.BUSINESS, branch=self.branch
-        )
-
-        org_chart = OrganizationChart(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            block=other_block,  # Wrong block
-            start_date=date.today(),
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            org_chart.clean()
-
-        self.assertIn("block", context.exception.message_dict)
-
-    def test_org_chart_validation_branch_must_match_department(self):
-        """Test that branch must match department's branch"""
-        # Create another branch
-        other_branch = Branch.objects.create(
-            name="Chi nhánh TP.HCM",
-            code="HCM",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-
-        org_chart = OrganizationChart(
-            employee=self.user,
-            position=self.position,
-            department=self.department,
-            branch=other_branch,  # Wrong branch
-            start_date=date.today(),
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            org_chart.clean()
-
-        self.assertIn("branch", context.exception.message_dict)
-
-    def test_org_chart_validation_branch_must_match_block(self):
-        """Test that branch must match block's branch"""
-        # Create another branch
-        other_branch = Branch.objects.create(
-            name="Chi nhánh TP.HCM",
-            code="HCM",
-            province=self.province,
-            administrative_unit=self.administrative_unit,
-        )
-
-        org_chart = OrganizationChart(
-            employee=self.user,
-            position=self.position,
-            block=self.block,
-            branch=other_branch,  # Wrong branch
-            start_date=date.today(),
-        )
-
-        with self.assertRaises(ValidationError) as context:
-            org_chart.clean()
-
-        self.assertIn("branch", context.exception.message_dict)
+# OrganizationChartEnhancedTest class removed as OrganizationChart model no longer exists
+# Employee model now directly stores position, department, block, and branch
 
 
 class DataScopeFilteringTest(TestCase):
@@ -254,42 +98,42 @@ class DataScopeFilteringTest(TestCase):
         self.user_emp2 = User.objects.create_user(username="emp2", email="emp2@test.com")
 
         # Assignments
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_ceo,
             position=self.pos_all,
             department=self.dept1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_bd1,
             position=self.pos_branch,
             branch=self.branch1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_bh1,
             position=self.pos_block,
             block=self.block1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_dm1,
             position=self.pos_dept,
             department=self.dept1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_emp1,
             position=self.pos_self,
             department=self.dept1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_emp2,
             position=self.pos_self,
             department=self.dept2,
@@ -332,8 +176,8 @@ class DataScopeFilteringTest(TestCase):
 
     def test_filter_queryset_by_data_scope_ceo_sees_all(self):
         """Test that CEO sees all users"""
-        qs = User.objects.filter(organization_positions__isnull=False)
-        filtered = filter_queryset_by_data_scope(qs, self.user_ceo, org_field="organization_positions__department")
+        qs = User.objects.filter(employee__isnull=False)
+        filtered = filter_queryset_by_data_scope(qs, self.user_ceo, org_field="employee__department")
         # CEO should see all users with assignments
         self.assertEqual(filtered.distinct().count(), 6)
 
@@ -368,7 +212,7 @@ class DataScopeFilteringTest(TestCase):
         """Test that superuser bypasses all filtering"""
         superuser = User.objects.create_superuser(username="admin", email="admin@test.com", password="admin")
         qs = User.objects.all()
-        filtered = filter_queryset_by_data_scope(qs, superuser, org_field="organization_positions__department")
+        filtered = filter_queryset_by_data_scope(qs, superuser, org_field="employee__department")
         self.assertEqual(filtered.count(), User.objects.count())
 
 
@@ -413,14 +257,14 @@ class LeadershipFilteringTest(TestCase):
         self.staff = User.objects.create_user(username="staff", email="staff@test.com")
 
         # Assignments
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.leader,
             position=self.pos_leader,
             department=self.dept,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.staff,
             position=self.pos_staff,
             department=self.dept,
@@ -517,7 +361,7 @@ class BranchDirectorDataScopeTest(TestCase):
 
         # Create assignments
         # Branch director: assigned to branch only (no department)
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.branch_director,
             position=self.pos_branch_director,
             branch=self.branch,  # Only branch set, no department
@@ -526,21 +370,21 @@ class BranchDirectorDataScopeTest(TestCase):
         )
 
         # Employees assigned to different departments
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept1,
             position=self.pos_employee,
             department=self.dept1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept2,
             position=self.pos_employee,
             department=self.dept2,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept3,
             position=self.pos_employee,
             department=self.dept3,
@@ -551,9 +395,9 @@ class BranchDirectorDataScopeTest(TestCase):
     def test_branch_director_sees_all_child_department_employees(self):
         """Test branch director with branch-only assignment can see employees in all child departments"""
         # Filter employees by branch director's scope
-        qs = User.objects.filter(organization_positions__isnull=False)
+        qs = User.objects.filter(employee__isnull=False)
         filtered = filter_queryset_by_data_scope(
-            qs, self.branch_director, org_field="organization_positions__department"
+            qs, self.branch_director, org_field="employee__department"
         )
 
         # Branch director should see all employees in the branch
@@ -670,7 +514,7 @@ class BlockHeadDataScopeTest(TestCase):
 
         # Create assignments
         # Block head: assigned to block only (no department)
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.block_head,
             position=self.pos_block_head,
             block=self.block,  # Only block set, no department
@@ -679,21 +523,21 @@ class BlockHeadDataScopeTest(TestCase):
         )
 
         # Employees in block head's block
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept1,
             position=self.pos_employee,
             department=self.dept1,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept2,
             position=self.pos_employee,
             department=self.dept2,
             start_date=date.today(),
             is_active=True,
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_dept3,
             position=self.pos_employee,
             department=self.dept3,
@@ -702,7 +546,7 @@ class BlockHeadDataScopeTest(TestCase):
         )
 
         # Employee in different block (should not be visible)
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.emp_other_block,
             position=self.pos_employee,
             department=self.other_dept,
@@ -713,8 +557,8 @@ class BlockHeadDataScopeTest(TestCase):
     def test_block_head_sees_all_child_department_employees(self):
         """Test block head with block-only assignment can see employees in all child departments"""
         # Filter employees by block head's scope
-        qs = User.objects.filter(organization_positions__isnull=False)
-        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="organization_positions__department")
+        qs = User.objects.filter(employee__isnull=False)
+        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="employee__department")
 
         # Block head should see employees in their block
         self.assertIn(self.emp_dept1, filtered)
@@ -772,7 +616,7 @@ class BlockHeadDataScopeTest(TestCase):
         pos_other_block_head = Position.objects.create(
             name="Business Block Head", code="BBHD", data_scope=DataScope.BLOCK, is_leadership=True
         )
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=other_block_head,
             position=pos_other_block_head,
             block=self.other_block,
@@ -781,8 +625,8 @@ class BlockHeadDataScopeTest(TestCase):
         )
 
         # Original block head should not see the other block head
-        qs = User.objects.filter(organization_positions__isnull=False)
-        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="organization_positions__department")
+        qs = User.objects.filter(employee__isnull=False)
+        filtered = filter_queryset_by_data_scope(qs, self.block_head, org_field="employee__department")
 
         self.assertNotIn(other_block_head, filtered)
         self.assertNotIn(self.emp_other_block, filtered)
@@ -975,7 +819,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
         )
 
         # Create organizational chart assignments
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_branch_director,
             position=self.pos_branch_director,
             branch=self.branch_hn,  # Branch-level assignment
@@ -983,7 +827,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             is_active=True,
         )
 
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_block_head,
             position=self.pos_block_head,
             block=self.block_support_hn,  # Block-level assignment
@@ -991,7 +835,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             is_active=True,
         )
 
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=self.user_dept_manager,
             position=self.pos_dept_manager,
             department=self.dept_hr_hn,  # Department-level assignment
@@ -1092,7 +936,7 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             username="branch_director_hcm", email="bd_hcm@company.com", first_name="Director", last_name="HCM"
         )
 
-        OrganizationChart.objects.create(
+        # OrganizationChart.objects.create(
             employee=user_branch_director_hcm,
             position=self.pos_branch_director,
             branch=self.branch_hcm,

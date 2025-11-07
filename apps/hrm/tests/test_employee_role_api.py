@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province, Role
-from apps.hrm.models import Block, Branch, Department, Employee, OrganizationChart, Position
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -38,7 +38,6 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         Block.objects.all().delete()
         Department.objects.all().delete()
         Position.objects.all().delete()
-        OrganizationChart.objects.all().delete()
         User.objects.all().delete()
         Role.objects.all().delete()
 
@@ -119,7 +118,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             role=self.role_manager,
         )
 
-        # Create Employee records for each user
+        # Create Employee records for each user with positions
         Employee.objects.create(
             code="NV001",
             fullname="Nguyễn Văn A",
@@ -133,6 +132,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             user=self.employee1,
             citizen_id="000000020022",
         )
@@ -150,6 +150,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             user=self.employee2,
             citizen_id="000000020023",
         )
@@ -167,36 +168,9 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             branch=self.branch,
             block=self.block,
             department=self.department,
+            position=self.position,
             user=self.employee3,
             citizen_id="000000020024",
-        )
-
-        # Create organization chart entries
-        OrganizationChart.objects.create(
-            employee=self.employee1,
-            position=self.position,
-            department=self.department,
-            start_date=date(2024, 1, 1),
-            is_primary=True,
-            is_active=True,
-        )
-
-        OrganizationChart.objects.create(
-            employee=self.employee2,
-            position=self.position,
-            department=self.department,
-            start_date=date(2024, 1, 1),
-            is_primary=True,
-            is_active=True,
-        )
-
-        OrganizationChart.objects.create(
-            employee=self.employee3,
-            position=self.position,
-            department=self.department,
-            start_date=date(2024, 1, 1),
-            is_primary=True,
-            is_active=True,
         )
 
     def test_list_employee_roles(self):
