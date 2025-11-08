@@ -229,7 +229,8 @@ jobs:
     environment: test
     needs: [django-checks]
     # Only run deployment on push to master (not on pull requests) and only if all checks passed
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # Additionally, deployment is controlled by ENABLE_DEPLOY flag (default: false)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.ENABLE_DEPLOY == 'true'
 
     steps:
     - name: Deploy to EC2 Develop Server

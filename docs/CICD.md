@@ -92,8 +92,10 @@ prepare
 **Note**: This job does NOT install dependencies - it only restores them from cache. It runs independently from django-checks.
 
 #### Deploy-Develop Job - Deploy to Test Environment
-**Trigger**: Only runs on push to `master` branch (not on pull requests)
+**Trigger**: Only runs on push to `master` branch (not on pull requests) AND when `ENABLE_DEPLOY` is `true`
 **Depends on**: `django-checks` job must complete successfully
+
+**Deployment Control**: Deployment is controlled by the `ENABLE_DEPLOY` repository variable (default: disabled). See [Deployment Control Flag](#deployment-control-flag) section for details.
 
 **Steps**:
 - Deploy to EC2 test server via SSH
@@ -133,6 +135,66 @@ prepare
 ## API Documentation Versioning
 
 The API documentation version is automatically updated with an ISO timestamp during every deployment. This ensures that the API documentation always reflects the latest deployment time.
+
+## Deployment Control Flag
+
+### Overview
+
+The develop environment deployment is controlled by the `ENABLE_DEPLOY` repository variable. This provides a safety mechanism to prevent accidental deployments to the test environment.
+
+**Note**: The staging deployment is NOT controlled by this flag and will always deploy when a PR from master to staging is merged.
+
+### Configuration
+
+**Default Behavior**: Deployments are **DISABLED** by default
+- When `ENABLE_DEPLOY` is not set or set to any value other than `'true'`, deployments will be skipped
+- The CI/CD pipeline will still run tests and checks, but deployment steps will not execute
+
+**Enabling Deployments**: To enable automatic deployments:
+1. Go to your GitHub repository settings
+2. Navigate to **Settings → Secrets and variables → Actions → Variables**
+3. Add a new repository variable:
+   - **Name**: `ENABLE_DEPLOY`
+   - **Value**: `true`
+
+**Disabling Deployments**: To disable automatic deployments:
+- Either delete the `ENABLE_DEPLOY` variable
+- Or change its value to anything other than `'true'` (e.g., `false`, `disabled`, etc.)
+
+### Affected Workflows
+
+The `ENABLE_DEPLOY` flag controls:
+- **Deploy-Develop Job** in `ci-cd.yml`: Deployment to test environment on push to `master`
+
+**Note**: The staging deployment (`deploy-staging.yml`) is NOT controlled by this flag and will deploy automatically when a PR from master to staging is merged.
+
+### Use Cases
+
+This flag is useful for:
+- **Maintenance Windows**: Temporarily disable deployments during server maintenance
+- **Emergency Situations**: Quickly stop automatic deployments if issues are detected
+- **Testing CI/CD Changes**: Test workflow changes without triggering actual deployments
+- **Cost Control**: Prevent deployments to save infrastructure costs when not needed
+- **Development Phase**: Keep deployments disabled during initial development
+
+### Example Scenarios
+
+**Scenario 1**: Enable deployments for normal operations
+```
+ENABLE_DEPLOY=true  # Deployments will run
+```
+
+**Scenario 2**: Disable deployments for maintenance
+```
+ENABLE_DEPLOY=false  # Deployments will be skipped
+# OR
+# Delete the ENABLE_DEPLOY variable entirely
+```
+
+**Scenario 3**: Testing (default state)
+```
+# ENABLE_DEPLOY not set  # Deployments will be skipped by default
+```
 
 ### How It Works
 
