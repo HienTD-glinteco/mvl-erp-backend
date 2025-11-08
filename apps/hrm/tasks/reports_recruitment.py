@@ -11,8 +11,8 @@ from decimal import Decimal
 from typing import Any
 
 from celery import shared_task
-from django.db import transaction
-from django.db.models import Count, F, Sum
+from django.db import models, transaction
+from django.db.models import Count, F, Min, Q, Sum
 from django.utils import timezone
 
 from apps.hrm.constants import RecruitmentSourceType
@@ -93,57 +93,119 @@ def aggregate_recruitment_reports_for_candidate(
 
 @shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
 def aggregate_recruitment_reports_batch(self, target_date: str | None = None) -> dict[str, Any]:
-    """Batch aggregation of recruitment reports for a date range.
+    """Batch aggregation of recruitment reports for today and affected historical dates.
 
-    This scheduled task re-aggregates all recruitment reports for dates that have
-    hired candidates within the lookback period (up to 1 year). It ensures
-    data consistency even when past records are modified or deleted.
+    This scheduled task:
+    1. Checks if any recruitment candidates were modified/created today
+    2. If yes, finds the earliest affected onboard date (within 1 year lookback)
+    3. Re-aggregates reports only for affected dates and org units
+    4. If no changes today, only processes today's date
 
     Args:
         self: Celery task instance
         target_date: Specific date to aggregate (ISO format YYYY-MM-DD).
-                    If None, aggregates all affected dates in lookback period.
+                    If None, uses today and checks for historical changes.
 
     Returns:
         dict: Aggregation result with success status and metadata
     """
     try:
+        today = timezone.now().date()
+        
         if target_date:
-            # Specific date provided
+            # Specific date provided - process only that date
             report_date = datetime.fromisoformat(target_date).date()
             dates_to_process = [report_date]
+            affected_org_units = None  # Process all org units for this date
         else:
-            # Find all dates with hired candidates in lookback period
-            cutoff_date = timezone.now().date() - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
-            dates_to_process = list(
-                RecruitmentCandidate.objects.filter(
-                    status=RecruitmentCandidate.Status.HIRED,
-                    onboard_date__gte=cutoff_date,
-                    onboard_date__isnull=False,
-                ).values_list("onboard_date", flat=True).distinct().order_by("onboard_date")
-            )
+            # Check for hired candidates modified/created today
+            cutoff_date = today - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
+            
+            # Find hired candidates that were created or updated today
+            modified_today = RecruitmentCandidate.objects.filter(
+                Q(created_at__date=today) | Q(updated_at__date=today),
+                status=RecruitmentCandidate.Status.HIRED,
+                onboard_date__gte=cutoff_date,
+                onboard_date__isnull=False,
+            ).select_related('branch', 'block', 'department')
+            
+            if not modified_today.exists():
+                # No changes today - just process today's hired candidates
+                dates_to_process = [today]
+                affected_org_units = None
+            else:
+                # Find the earliest affected onboard date and all affected org units
+                earliest_date = modified_today.aggregate(
+                    min_date=models.Min('onboard_date')
+                )['min_date']
+                
+                # Get all unique org units affected by these changes
+                affected_org_units = set()
+                for candidate in modified_today:
+                    if candidate.branch_id and candidate.block_id and candidate.department_id:
+                        affected_org_units.add((candidate.branch_id, candidate.block_id, candidate.department_id))
+                
+                # Process all dates from earliest to today
+                dates_to_process = []
+                current_date = earliest_date
+                while current_date <= today:
+                    # Check if there are any hired candidates on this date for affected org units
+                    has_data = RecruitmentCandidate.objects.filter(
+                        status=RecruitmentCandidate.Status.HIRED,
+                        onboard_date=current_date,
+                        branch_id__in=[ou[0] for ou in affected_org_units],
+                        block_id__in=[ou[1] for ou in affected_org_units],
+                        department_id__in=[ou[2] for ou in affected_org_units],
+                    ).exists()
+                    
+                    if has_data:
+                        dates_to_process.append(current_date)
+                    
+                    current_date += timedelta(days=1)
+                
+                logger.info(
+                    f"Detected {modified_today.count()} candidate changes today. "
+                    f"Will re-aggregate from {earliest_date} to {today} "
+                    f"for {len(affected_org_units)} org units."
+                )
 
         if not dates_to_process:
             logger.info("No dates to process for recruitment reports batch aggregation")
             return {"success": True, "dates_processed": 0, "org_units_processed": 0}
 
         logger.info(
-            f"Starting batch recruitment reports aggregation for {len(dates_to_process)} dates "
-            f"(from {dates_to_process[0]} to {dates_to_process[-1]})"
+            f"Starting batch recruitment reports aggregation for {len(dates_to_process)} dates"
         )
 
         total_org_units = 0
         
         for process_date in dates_to_process:
-            # Get unique org units with hired candidates on this date
-            org_unit_ids = (
-                RecruitmentCandidate.objects.filter(
-                    status=RecruitmentCandidate.Status.HIRED,
-                    onboard_date=process_date,
+            # Get org units with hired candidates on this date
+            if affected_org_units:
+                # Filter to only affected org units
+                org_unit_ids = [
+                    ou for ou in affected_org_units
+                    if RecruitmentCandidate.objects.filter(
+                        status=RecruitmentCandidate.Status.HIRED,
+                        onboard_date=process_date,
+                        branch_id=ou[0],
+                        block_id=ou[1],
+                        department_id=ou[2],
+                    ).exists()
+                ]
+            else:
+                # Process all org units for this date
+                org_unit_ids = list(
+                    RecruitmentCandidate.objects.filter(
+                        status=RecruitmentCandidate.Status.HIRED,
+                        onboard_date=process_date,
+                    )
+                    .values_list("branch_id", "block_id", "department_id")
+                    .distinct()
                 )
-                .values_list("branch_id", "block_id", "department_id")
-                .distinct()
-            )
+
+            if not org_unit_ids:
+                continue
 
             # Fetch all org units in bulk
             branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
