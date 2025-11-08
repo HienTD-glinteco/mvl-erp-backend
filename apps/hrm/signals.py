@@ -1,4 +1,8 @@
-"""Signal handlers for HRM app."""
+"""Signal handlers for HRM app.
+
+This module re-exports all signal handlers from the signals package
+and maintains backward compatibility with existing imports.
+"""
 
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
@@ -12,7 +16,6 @@ from apps.hrm.models import (
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
-    EmployeeWorkHistory,
     JobDescription,
     Position,
     RecruitmentCandidate,
@@ -25,8 +28,12 @@ from libs.code_generation import register_auto_code_signal
 
 from .constants import TEMP_CODE_PREFIX
 
+# Import all signal handlers from organized modules
+from .signals import *  # noqa: F401, F403
+
 User = get_user_model()
 
+# Register auto-code generation for models
 register_auto_code_signal(
     Branch,
     Block,
