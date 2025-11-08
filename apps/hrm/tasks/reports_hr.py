@@ -28,151 +28,144 @@ logger = logging.getLogger(__name__)
 # Constants
 AGGREGATION_MAX_RETRIES = 3
 AGGREGATION_RETRY_DELAY = 60  # 1 minute
+MAX_REPORT_LOOKBACK_DAYS = 365  # Maximum 1 year lookback for batch reports
 
 
 @shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
 def aggregate_hr_reports_for_work_history(
-    self, work_history_id: int, event_type: str = "create", old_values: dict | None = None
+    self, event_type: str, snapshot: dict[str, Any]
 ) -> dict[str, Any]:
     """Aggregate HR reports for a single work history event (smart incremental update).
 
-    This event-driven task is triggered when an EmployeeWorkHistory record
-    is created, updated, or deleted. It intelligently updates report records
-    by incrementing/decrementing values based on the event type.
+    This event-driven task uses snapshot data to avoid race conditions where the
+    work history record might be modified before the task processes.
 
     Args:
         self: Celery task instance
-        work_history_id: ID of the EmployeeWorkHistory record
         event_type: Type of event - "create", "update", or "delete"
-        old_values: Dict with old values for update/delete events
+        snapshot: Dict containing previous and current state:
+            - previous: Previous state (None for create, dict for update/delete)
+            - current: Current state (dict for create/update, None for delete)
 
     Returns:
         dict: Aggregation result with success status and metadata
     """
     try:
-        # Get work history record (or use old_values for delete events)
-        if event_type == "delete":
-            if not old_values:
-                logger.warning(f"Delete event for work history {work_history_id} without old_values")
-                return {"success": True, "message": "Delete without old_values, skipped"}
-            work_history_data = old_values
-            report_date = work_history_data["date"]
-            branch_id = work_history_data["branch_id"]
-            block_id = work_history_data["block_id"]
-            department_id = work_history_data["department_id"]
-            event_name = work_history_data["name"]
-            status = work_history_data.get("status")
-            previous_data = work_history_data.get("previous_data", {})
-        else:
-            try:
-                work_history = EmployeeWorkHistory.objects.select_related(
-                    "employee", "branch", "block", "department"
-                ).get(id=work_history_id)
-            except EmployeeWorkHistory.DoesNotExist:
-                logger.warning(f"Work history {work_history_id} does not exist")
-                return {"success": True, "message": "Work history not found, skipped"}
+        previous = snapshot.get("previous")
+        current = snapshot.get("current")
 
-            report_date = work_history.date
-            branch_id = work_history.branch_id
-            block_id = work_history.block_id
-            department_id = work_history.department_id
-            event_name = work_history.name
-            status = work_history.status
-            previous_data = work_history.previous_data or {}
+        if not previous and not current:
+            logger.warning(f"Invalid snapshot for event {event_type}")
+            return {"success": False, "error": "Invalid snapshot"}
 
-        if not (branch_id and block_id and department_id):
-            logger.warning(f"Work history {work_history_id} missing org fields")
-            return {"success": True, "message": "Missing org fields, skipped"}
-
+        # Extract data from current or previous state
+        data = current if current else previous
+        report_date = data["date"]
+        
         logger.info(
-            f"Incrementally updating HR reports for work history {work_history_id} "
+            f"Incrementally updating HR reports for work history "
             f"(event: {event_type}, date: {report_date})"
         )
 
         # Perform incremental update
         with transaction.atomic():
-            _increment_staff_growth(
-                report_date, branch_id, block_id, department_id,
-                event_name, status, previous_data, event_type, old_values
-            )
+            _increment_staff_growth(event_type, snapshot)
+            _increment_employee_status(event_type, snapshot)
 
         return {
             "success": True,
-            "work_history_id": work_history_id,
             "event_type": event_type,
             "report_date": str(report_date),
         }
 
     except Exception as e:
-        logger.exception(f"Error in incremental HR reports update for work history {work_history_id}: {str(e)}")
+        logger.exception(f"Error in incremental HR reports update: {str(e)}")
         try:
             raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
         except self.MaxRetriesExceededError:
-            return {"success": False, "work_history_id": work_history_id, "error": str(e)}
+            return {"success": False, "error": str(e)}
 
 
 @shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
 def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str, Any]:
-    """Batch aggregation of HR reports for a specific date.
+    """Batch aggregation of HR reports for a date range.
 
-    This scheduled task runs at midnight to aggregate all HR reporting data
-    for the previous day. It ensures data consistency and catches any missed
-    or failed event-driven aggregations.
+    This scheduled task re-aggregates all HR reports for dates that have
+    been modified within the lookback period (up to 1 year). It ensures
+    data consistency even when past records are modified or deleted.
 
     Args:
         self: Celery task instance
-        target_date: Date to aggregate (ISO format YYYY-MM-DD). Defaults to yesterday.
+        target_date: Specific date to aggregate (ISO format YYYY-MM-DD).
+                    If None, aggregates all affected dates in lookback period.
 
     Returns:
         dict: Aggregation result with success status and metadata
     """
     try:
-        # Parse target date or default to yesterday
         if target_date:
+            # Specific date provided
             report_date = datetime.fromisoformat(target_date).date()
+            dates_to_process = [report_date]
         else:
-            report_date = (timezone.now() - timedelta(days=1)).date()
+            # Find all dates with work history changes in lookback period
+            cutoff_date = timezone.now().date() - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
+            dates_to_process = list(
+                EmployeeWorkHistory.objects.filter(
+                    date__gte=cutoff_date
+                ).values_list("date", flat=True).distinct().order_by("date")
+            )
 
-        logger.info(f"Starting batch HR reports aggregation for {report_date}")
-
-        # Get unique org units with work history on this date
-        org_unit_ids = (
-            EmployeeWorkHistory.objects.filter(date=report_date)
-            .values_list("branch_id", "block_id", "department_id")
-            .distinct()
-        )
-
-        # Fetch all org units in one query
-        branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
-        block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
-        department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
-
-        branches = {b.id: b for b in Branch.objects.filter(id__in=branch_ids)}
-        blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
-        departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
-
-        org_units_count = 0
-        with transaction.atomic():
-            for branch_id, block_id, department_id in org_unit_ids:
-                if branch_id and block_id and department_id:
-                    branch = branches.get(branch_id)
-                    block = blocks.get(block_id)
-                    department = departments.get(department_id)
-
-                    if branch and block and department:
-                        _aggregate_staff_growth_for_date(report_date, branch, block, department)
-                        _aggregate_employee_status_for_date(report_date, branch, block, department)
-                        org_units_count += 1
+        if not dates_to_process:
+            logger.info("No dates to process for HR reports batch aggregation")
+            return {"success": True, "dates_processed": 0, "org_units_processed": 0}
 
         logger.info(
-            f"Batch HR reports aggregation complete for {report_date}. "
-            f"Processed {org_units_count} organizational units."
+            f"Starting batch HR reports aggregation for {len(dates_to_process)} dates "
+            f"(from {dates_to_process[0]} to {dates_to_process[-1]})"
+        )
+
+        total_org_units = 0
+        
+        for process_date in dates_to_process:
+            # Get unique org units with work history on this date
+            org_unit_ids = (
+                EmployeeWorkHistory.objects.filter(date=process_date)
+                .values_list("branch_id", "block_id", "department_id")
+                .distinct()
+            )
+
+            # Fetch all org units in bulk
+            branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
+            block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
+            department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
+
+            branches = {b.id: b for b in Branch.objects.filter(id__in=branch_ids)}
+            blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
+            departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
+
+            # Process each org unit for this date
+            with transaction.atomic():
+                for branch_id, block_id, department_id in org_unit_ids:
+                    if branch_id and block_id and department_id:
+                        branch = branches.get(branch_id)
+                        block = blocks.get(block_id)
+                        department = departments.get(department_id)
+
+                        if branch and block and department:
+                            _aggregate_staff_growth_for_date(process_date, branch, block, department)
+                            _aggregate_employee_status_for_date(process_date, branch, block, department)
+                            total_org_units += 1
+
+        logger.info(
+            f"Batch HR reports aggregation complete. "
+            f"Processed {len(dates_to_process)} dates, {total_org_units} org units."
         )
 
         return {
             "success": True,
-            "target_date": str(report_date),
-            "org_units_processed": org_units_count,
+            "dates_processed": len(dates_to_process),
+            "org_units_processed": total_org_units,
         }
 
     except Exception as e:
@@ -180,42 +173,126 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
         try:
             raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
         except self.MaxRetriesExceededError:
-            return {"success": False, "target_date": target_date or "yesterday", "error": str(e)}
+            return {"success": False, "error": str(e)}
 
 
 #### Helper functions for HR report aggregation
 
 
-def _increment_staff_growth(
+def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
+    """Incrementally update staff growth report based on event snapshot.
+
+    Handles transfers correctly by updating both source and destination departments.
+
+    Args:
+        event_type: "create", "update", or "delete"
+        snapshot: Dict with previous and current state
+    """
+    previous = snapshot.get("previous")
+    current = snapshot.get("current")
+
+    # Process based on event type
+    if event_type == "create":
+        # New work history record - increment counters
+        _process_staff_growth_change(current, delta=1)
+        
+    elif event_type == "update":
+        # Updated work history - revert old values and apply new values
+        if previous:
+            _process_staff_growth_change(previous, delta=-1)
+        if current:
+            _process_staff_growth_change(current, delta=1)
+            
+    elif event_type == "delete":
+        # Deleted work history - decrement counters
+        if previous:
+            _process_staff_growth_change(previous, delta=-1)
+
+
+def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
+    """Process a single staff growth change (increment or decrement).
+
+    Args:
+        data: Work history data snapshot
+        delta: +1 for increment, -1 for decrement
+    """
+    report_date = data["date"]
+    event_name = data["name"]
+    status = data.get("status")
+    previous_data = data.get("previous_data", {})
+    
+    # Calculate month and week keys
+    month_key = report_date.strftime("%m/%Y")
+    week_number = report_date.isocalendar()[1]
+    week_key = f"Week {week_number} - {month_key}"
+
+    # Handle transfers - affects both source and destination departments
+    if event_name == EmployeeWorkHistory.EventType.TRANSFER:
+        # Increment for current (destination) department
+        _update_staff_growth_counter(
+            report_date, data["branch_id"], data["block_id"], data["department_id"],
+            "num_transfers", delta, month_key, week_key
+        )
+        
+        # If there's previous org data, decrement from source department
+        if previous_data:
+            old_branch_id = previous_data.get("branch_id")
+            old_block_id = previous_data.get("block_id")
+            old_department_id = previous_data.get("department_id")
+            
+            if old_branch_id and old_block_id and old_department_id:
+                # Different from current? Then update source department
+                if (old_branch_id != data["branch_id"] or 
+                    old_block_id != data["block_id"] or 
+                    old_department_id != data["department_id"]):
+                    _update_staff_growth_counter(
+                        report_date, old_branch_id, old_block_id, old_department_id,
+                        "num_transfers", -delta, month_key, week_key
+                    )
+    
+    # Handle status changes
+    elif event_name == EmployeeWorkHistory.EventType.CHANGE_STATUS:
+        branch_id = data["branch_id"]
+        block_id = data["block_id"]
+        department_id = data["department_id"]
+        
+        if status == Employee.Status.RESIGNED:
+            _update_staff_growth_counter(
+                report_date, branch_id, block_id, department_id,
+                "num_resignations", delta, month_key, week_key
+            )
+        elif status == Employee.Status.ACTIVE:
+            # Check if it's a return (from onboarding or unpaid leave)
+            old_status = previous_data.get("status")
+            if old_status in [Employee.Status.ONBOARDING, Employee.Status.UNPAID_LEAVE]:
+                _update_staff_growth_counter(
+                    report_date, branch_id, block_id, department_id,
+                    "num_returns", delta, month_key, week_key
+                )
+
+
+def _update_staff_growth_counter(
     report_date: date,
     branch_id: int,
     block_id: int,
     department_id: int,
-    event_name: str,
-    status: str | None,
-    previous_data: dict,
-    event_type: str,
-    old_values: dict | None = None,
+    counter_field: str,
+    delta: int,
+    month_key: str,
+    week_key: str,
 ) -> None:
-    """Incrementally update staff growth report based on event.
+    """Update a specific counter in StaffGrowthReport.
 
     Args:
         report_date: Date of the report
         branch_id: Branch ID
         block_id: Block ID
         department_id: Department ID
-        event_name: Type of work history event
-        status: New status (for status change events)
-        previous_data: Previous values before the event
-        event_type: "create", "update", or "delete"
-        old_values: Old values for update/delete events
+        counter_field: Field name to update (e.g., "num_transfers")
+        delta: Value to add (positive or negative)
+        month_key: Month key for the report
+        week_key: Week key for the report
     """
-    # Calculate month and week keys
-    month_key = report_date.strftime("%m/%Y")
-    week_number = report_date.isocalendar()[1]
-    week_key = f"Week {week_number} - {month_key}"
-
-    # Get or create the report
     report, created = StaffGrowthReport.objects.get_or_create(
         report_date=report_date,
         branch_id=branch_id,
@@ -232,27 +309,47 @@ def _increment_staff_growth(
         },
     )
 
-    # Determine increment/decrement value
-    delta = 1 if event_type == "create" else -1 if event_type == "delete" else 0
-
-    # Update counters based on event type
-    if event_name == EmployeeWorkHistory.EventType.TRANSFER:
-        report.num_transfers = F("num_transfers") + delta
-    elif event_name == EmployeeWorkHistory.EventType.CHANGE_STATUS:
-        if status == Employee.Status.RESIGNED:
-            report.num_resignations = F("num_resignations") + delta
-        elif status == Employee.Status.ACTIVE:
-            # Check if it's a return (from onboarding or unpaid leave)
-            old_status = previous_data.get("status")
-            if old_status in [Employee.Status.ONBOARDING, Employee.Status.UNPAID_LEAVE]:
-                report.num_returns = F("num_returns") + delta
-
-    report.save(update_fields=["num_transfers", "num_resignations", "num_returns"])
+    # Update the specific counter using F() for atomic operation
+    setattr(report, counter_field, F(counter_field) + delta)
+    report.save(update_fields=[counter_field])
 
     logger.debug(
-        f"Incremented staff growth for {report_date} - "
-        f"Branch{branch_id}/Block{block_id}/Dept{department_id}: {event_name} ({event_type})"
+        f"Updated {counter_field} by {delta} for {report_date} - "
+        f"Branch{branch_id}/Block{block_id}/Dept{department_id}"
     )
+
+
+def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> None:
+    """Incrementally update employee status breakdown based on event snapshot.
+
+    For employee status, we need to re-aggregate as it's based on current employee
+    state, not work history events. However, we only update the affected org unit.
+
+    Args:
+        event_type: "create", "update", or "delete"
+        snapshot: Dict with previous and current state
+    """
+    # Get the date and org unit from the snapshot
+    data = snapshot.get("current") or snapshot.get("previous")
+    if not data:
+        return
+    
+    report_date = data["date"]
+    branch_id = data["branch_id"]
+    block_id = data["block_id"]
+    department_id = data["department_id"]
+    
+    # Get org unit objects
+    try:
+        branch = Branch.objects.get(id=branch_id)
+        block = Block.objects.get(id=block_id)
+        department = Department.objects.get(id=department_id)
+    except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist):
+        logger.warning(f"Org unit not found for status update: {branch_id}/{block_id}/{department_id}")
+        return
+    
+    # Re-aggregate employee status for this org unit
+    _aggregate_employee_status_for_date(report_date, branch, block, department)
 
 
 def _aggregate_staff_growth_for_date(report_date: date, branch, block, department) -> None:
