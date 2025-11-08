@@ -2,7 +2,7 @@
 
 This module contains event-driven and batch tasks for aggregating recruitment reporting data.
 Tasks aggregate data into RecruitmentSourceReport, RecruitmentChannelReport,
-RecruitmentCostReport, and HiredCandidateReport models.
+RecruitmentCostReport, HiredCandidateReport, and StaffGrowthReport (for hired candidates).
 """
 
 import logging
@@ -12,7 +12,7 @@ from typing import Any
 
 from celery import shared_task
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.utils import timezone
 
 from apps.hrm.constants import RecruitmentSourceType
@@ -28,6 +28,7 @@ from apps.hrm.models import (
     RecruitmentExpense,
     RecruitmentSource,
     RecruitmentSourceReport,
+    StaffGrowthReport,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,193 +36,384 @@ logger = logging.getLogger(__name__)
 # Constants
 AGGREGATION_MAX_RETRIES = 3
 AGGREGATION_RETRY_DELAY = 60  # 1 minute
+MAX_REPORT_LOOKBACK_DAYS = 365  # Maximum 1 year lookback for batch reports
 
 
 @shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
-def aggregate_recruitment_reports_for_candidate(self, candidate_id: int) -> dict[str, Any]:
-    """Aggregate recruitment reports for a single candidate event.
+def aggregate_recruitment_reports_for_candidate(
+    self, event_type: str, snapshot: dict[str, Any]
+) -> dict[str, Any]:
+    """Aggregate recruitment reports for a single candidate event (smart incremental update).
 
-    This event-driven task is triggered when a RecruitmentCandidate record
-    is created, updated (especially status change to HIRED), or deleted.
-    It updates the relevant report records for the date of the candidate event.
+    This event-driven task uses snapshot data to avoid race conditions where the
+    candidate record might be modified before the task processes.
 
     Args:
         self: Celery task instance
-        candidate_id: ID of the RecruitmentCandidate record
+        event_type: Type of event - "create", "update", or "delete"
+        snapshot: Dict containing previous and current state:
+            - previous: Previous state (None for create, dict for update/delete)
+            - current: Current state (dict for create/update, None for delete)
 
     Returns:
-        dict: Aggregation result with keys:
-            - success: bool indicating if aggregation succeeded
-            - candidate_id: int candidate ID
-            - report_date: date of the report
-            - error: str error message (if failed)
+        dict: Aggregation result with success status and metadata
     """
     try:
-        # Get candidate record
-        try:
-            candidate = RecruitmentCandidate.objects.select_related(
-                "branch", "block", "department", "recruitment_source", "recruitment_channel", "referrer"
-            ).get(id=candidate_id)
-        except RecruitmentCandidate.DoesNotExist:
-            logger.warning(f"Candidate {candidate_id} does not exist, skipping aggregation")
-            return {
-                "success": True,
-                "candidate_id": candidate_id,
-                "report_date": None,
-                "message": "Candidate deleted, skipped",
-            }
+        previous = snapshot.get("previous")
+        current = snapshot.get("current")
 
-        # Use onboard_date if hired, otherwise submitted_date
-        report_date = (
-            candidate.onboard_date
-            if candidate.status == RecruitmentCandidate.Status.HIRED
-            else candidate.submitted_date
-        )
+        if not previous and not current:
+            logger.warning(f"Invalid snapshot for event {event_type}")
+            return {"success": False, "error": "Invalid snapshot"}
 
+        # Extract data from current or previous state
+        data = current if current else previous
+        
         logger.info(
-            f"Aggregating recruitment reports for candidate {candidate_id} "
-            f"(code: {candidate.code}, status: {candidate.status}, date: {report_date})"
+            f"Incrementally updating recruitment reports for candidate "
+            f"(event: {event_type}, status: {data.get('status')})"
         )
 
-        # Aggregate reports for this date and organizational units
+        # Perform incremental update
         with transaction.atomic():
-            if candidate.status == RecruitmentCandidate.Status.HIRED and candidate.onboard_date:
-                # Only aggregate for hired candidates
-                _aggregate_recruitment_source_for_date(
-                    report_date, candidate.branch, candidate.block, candidate.department
-                )
-                _aggregate_recruitment_channel_for_date(
-                    report_date, candidate.branch, candidate.block, candidate.department
-                )
-                _aggregate_recruitment_cost_for_date(
-                    report_date, candidate.branch, candidate.block, candidate.department
-                )
-                _aggregate_hired_candidate_for_date(
-                    report_date, candidate.branch, candidate.block, candidate.department
-                )
+            _increment_recruitment_reports(event_type, snapshot)
 
-        logger.info(f"Successfully aggregated recruitment reports for candidate {candidate_id}")
         return {
             "success": True,
-            "candidate_id": candidate_id,
-            "report_date": str(report_date),
-            "error": None,
+            "event_type": event_type,
         }
 
     except Exception as e:
-        logger.exception(f"Error aggregating recruitment reports for candidate {candidate_id}: {str(e)}")
-        # Retry on failure
+        logger.exception(f"Error in incremental recruitment reports update: {str(e)}")
         try:
             raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
         except self.MaxRetriesExceededError:
-            return {
-                "success": False,
-                "candidate_id": candidate_id,
-                "report_date": None,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
 
 @shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
 def aggregate_recruitment_reports_batch(self, target_date: str | None = None) -> dict[str, Any]:
-    """Batch aggregation of recruitment reports for a specific date.
+    """Batch aggregation of recruitment reports for a date range.
 
-    This scheduled task runs at midnight to aggregate all recruitment reporting data
-    for the previous day. It ensures data consistency and catches any missed
-    or failed event-driven aggregations.
+    This scheduled task re-aggregates all recruitment reports for dates that have
+    hired candidates within the lookback period (up to 1 year). It ensures
+    data consistency even when past records are modified or deleted.
 
     Args:
         self: Celery task instance
-        target_date: Date to aggregate (ISO format YYYY-MM-DD). Defaults to yesterday.
+        target_date: Specific date to aggregate (ISO format YYYY-MM-DD).
+                    If None, aggregates all affected dates in lookback period.
 
     Returns:
-        dict: Aggregation result with keys:
-            - success: bool indicating if aggregation succeeded
-            - target_date: date that was aggregated
-            - org_units_processed: int number of organizational units processed
-            - error: str error message (if failed)
+        dict: Aggregation result with success status and metadata
     """
     try:
-        # Parse target date or default to yesterday
         if target_date:
+            # Specific date provided
             report_date = datetime.fromisoformat(target_date).date()
+            dates_to_process = [report_date]
         else:
-            report_date = (timezone.now() - timedelta(days=1)).date()
-
-        logger.info(f"Starting batch recruitment reports aggregation for {report_date}")
-
-        # Get unique org units with hired candidates on this date
-        org_unit_ids = (
-            RecruitmentCandidate.objects.filter(
-                status=RecruitmentCandidate.Status.HIRED,
-                onboard_date=report_date,
+            # Find all dates with hired candidates in lookback period
+            cutoff_date = timezone.now().date() - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
+            dates_to_process = list(
+                RecruitmentCandidate.objects.filter(
+                    status=RecruitmentCandidate.Status.HIRED,
+                    onboard_date__gte=cutoff_date,
+                    onboard_date__isnull=False,
+                ).values_list("onboard_date", flat=True).distinct().order_by("onboard_date")
             )
-            .values_list("branch_id", "block_id", "department_id")
-            .distinct()
-        )
 
-        # Fetch all org units in one query
-        branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
-        block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
-        department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
-
-        branches = {b.id: b for b in Branch.objects.filter(id__in=branch_ids)}
-        blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
-        departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
-
-        org_units_count = 0
-        with transaction.atomic():
-            for branch_id, block_id, department_id in org_unit_ids:
-                if branch_id and block_id and department_id:
-                    branch = branches.get(branch_id)
-                    block = blocks.get(block_id)
-                    department = departments.get(department_id)
-
-                    if branch and block and department:
-                        _aggregate_recruitment_source_for_date(report_date, branch, block, department)
-                        _aggregate_recruitment_channel_for_date(report_date, branch, block, department)
-                        _aggregate_recruitment_cost_for_date(report_date, branch, block, department)
-                        _aggregate_hired_candidate_for_date(report_date, branch, block, department)
-                    org_units_count += 1
+        if not dates_to_process:
+            logger.info("No dates to process for recruitment reports batch aggregation")
+            return {"success": True, "dates_processed": 0, "org_units_processed": 0}
 
         logger.info(
-            f"Successfully completed batch recruitment reports aggregation for {report_date}. "
-            f"Processed {org_units_count} organizational units."
+            f"Starting batch recruitment reports aggregation for {len(dates_to_process)} dates "
+            f"(from {dates_to_process[0]} to {dates_to_process[-1]})"
+        )
+
+        total_org_units = 0
+        
+        for process_date in dates_to_process:
+            # Get unique org units with hired candidates on this date
+            org_unit_ids = (
+                RecruitmentCandidate.objects.filter(
+                    status=RecruitmentCandidate.Status.HIRED,
+                    onboard_date=process_date,
+                )
+                .values_list("branch_id", "block_id", "department_id")
+                .distinct()
+            )
+
+            # Fetch all org units in bulk
+            branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
+            block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
+            department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
+
+            branches = {b.id: b for b in Branch.objects.filter(id__in=branch_ids)}
+            blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
+            departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
+
+            # Process each org unit for this date
+            with transaction.atomic():
+                for branch_id, block_id, department_id in org_unit_ids:
+                    if branch_id and block_id and department_id:
+                        branch = branches.get(branch_id)
+                        block = blocks.get(block_id)
+                        department = departments.get(department_id)
+
+                        if branch and block and department:
+                            _aggregate_recruitment_source_for_date(process_date, branch, block, department)
+                            _aggregate_recruitment_channel_for_date(process_date, branch, block, department)
+                            _aggregate_recruitment_cost_for_date(process_date, branch, block, department)
+                            _aggregate_hired_candidate_for_date(process_date, branch, block, department)
+                            _update_staff_growth_for_recruitment(process_date, branch, block, department)
+                            total_org_units += 1
+
+        logger.info(
+            f"Batch recruitment reports aggregation complete. "
+            f"Processed {len(dates_to_process)} dates, {total_org_units} org units."
         )
 
         return {
             "success": True,
-            "target_date": str(report_date),
-            "org_units_processed": org_units_count,
-            "error": None,
+            "dates_processed": len(dates_to_process),
+            "org_units_processed": total_org_units,
         }
 
     except Exception as e:
         logger.exception(f"Error in batch recruitment reports aggregation: {str(e)}")
-        # Retry on failure
         try:
             raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
         except self.MaxRetriesExceededError:
-            return {
-                "success": False,
-                "target_date": target_date or "yesterday",
-                "org_units_processed": 0,
-                "error": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
 
 #### Helper functions for recruitment report aggregation
 
 
-def _aggregate_recruitment_source_for_date(report_date: date, branch, block, department) -> None:
-    """Aggregate recruitment source report for a specific date and organizational unit.
+def _increment_recruitment_reports(event_type: str, snapshot: dict[str, Any]) -> None:
+    """Incrementally update recruitment reports based on event snapshot.
+
+    Only processes hired candidates. Updates StaffGrowthReport as well.
 
     Args:
-        report_date: Date to aggregate
-        branch: Branch instance
-        block: Block instance
-        department: Department instance
+        event_type: "create", "update", or "delete"
+        snapshot: Dict with previous and current state
     """
+    previous = snapshot.get("previous")
+    current = snapshot.get("current")
+
+    # Process based on event type
+    if event_type == "create":
+        if current and current.get("status") == RecruitmentCandidate.Status.HIRED:
+            _process_recruitment_change(current, delta=1)
+        
+    elif event_type == "update":
+        # Check if hired status changed
+        prev_hired = previous and previous.get("status") == RecruitmentCandidate.Status.HIRED
+        curr_hired = current and current.get("status") == RecruitmentCandidate.Status.HIRED
+        
+        if prev_hired and not curr_hired:
+            # Was hired, now not - decrement
+            _process_recruitment_change(previous, delta=-1)
+        elif not prev_hired and curr_hired:
+            # Was not hired, now is - increment
+            _process_recruitment_change(current, delta=1)
+        elif prev_hired and curr_hired:
+            # Status still hired but other fields changed - revert and apply
+            _process_recruitment_change(previous, delta=-1)
+            _process_recruitment_change(current, delta=1)
+            
+    elif event_type == "delete":
+        if previous and previous.get("status") == RecruitmentCandidate.Status.HIRED:
+            _process_recruitment_change(previous, delta=-1)
+
+
+def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
+    """Process a single recruitment change (increment or decrement).
+
+    Args:
+        data: Candidate data snapshot
+        delta: +1 for increment, -1 for decrement
+    """
+    onboard_date = data.get("onboard_date")
+    if not onboard_date:
+        return
+    
+    branch_id = data["branch_id"]
+    block_id = data["block_id"]
+    department_id = data["department_id"]
+    recruitment_source_id = data["recruitment_source_id"]
+    recruitment_channel_id = data["recruitment_channel_id"]
+    
+    # Update recruitment source report
+    _increment_source_report(
+        onboard_date, branch_id, block_id, department_id, recruitment_source_id, delta
+    )
+    
+    # Update recruitment channel report
+    _increment_channel_report(
+        onboard_date, branch_id, block_id, department_id, recruitment_channel_id, delta
+    )
+    
+    # Update hired candidate report and determine source type
+    source_type = _determine_source_type_from_snapshot(data)
+    is_experienced = data.get("years_of_experience") != "NO_EXPERIENCE"
+    referrer_id = data.get("referrer_id")
+    
+    _increment_hired_candidate_report(
+        onboard_date, branch_id, block_id, department_id,
+        source_type, is_experienced, referrer_id, delta
+    )
+    
+    # Update staff growth report (num_recruitment_source)
+    _increment_staff_growth_recruitment(
+        onboard_date, branch_id, block_id, department_id, delta
+    )
+
+
+def _determine_source_type_from_snapshot(data: dict[str, Any]) -> str:
+    """Determine recruitment source type from candidate snapshot data.
+
+    Args:
+        data: Candidate snapshot with source/channel info
+
+    Returns:
+        str: Source type from RecruitmentSourceType choices
+    """
+    # Check if referral source
+    if data.get("source_allow_referral"):
+        return RecruitmentSourceType.REFERRAL_SOURCE
+
+    # Check channel type
+    channel_belong_to = data.get("channel_belong_to")
+    if channel_belong_to == "marketing":
+        return RecruitmentSourceType.MARKETING_CHANNEL
+    elif channel_belong_to == "job_website":
+        return RecruitmentSourceType.JOB_WEBSITE_CHANNEL
+
+    # Default to recruitment department source
+    return RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE
+
+
+def _increment_source_report(
+    report_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    recruitment_source_id: int,
+    delta: int,
+) -> None:
+    """Increment/decrement recruitment source report counter."""
+    report, created = RecruitmentSourceReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        recruitment_source_id=recruitment_source_id,
+        defaults={"num_hires": 0},
+    )
+    
+    report.num_hires = F("num_hires") + delta
+    report.save(update_fields=["num_hires"])
+
+
+def _increment_channel_report(
+    report_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    recruitment_channel_id: int,
+    delta: int,
+) -> None:
+    """Increment/decrement recruitment channel report counter."""
+    report, created = RecruitmentChannelReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        recruitment_channel_id=recruitment_channel_id,
+        defaults={"num_hires": 0},
+    )
+    
+    report.num_hires = F("num_hires") + delta
+    report.save(update_fields=["num_hires"])
+
+
+def _increment_hired_candidate_report(
+    report_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    source_type: str,
+    is_experienced: bool,
+    referrer_id: int | None,
+    delta: int,
+) -> None:
+    """Increment/decrement hired candidate report counters."""
+    month_key = report_date.strftime("%m/%Y")
+    week_number = report_date.isocalendar()[1]
+    week_key = f"Week {week_number} - {month_key}"
+    
+    report, created = HiredCandidateReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        source_type=source_type,
+        employee_id=referrer_id if source_type == RecruitmentSourceType.REFERRAL_SOURCE else None,
+        defaults={
+            "month_key": month_key,
+            "week_key": week_key,
+            "num_candidates_hired": 0,
+            "num_experienced": 0,
+        },
+    )
+    
+    report.num_candidates_hired = F("num_candidates_hired") + delta
+    if is_experienced:
+        report.num_experienced = F("num_experienced") + delta
+    report.save(update_fields=["num_candidates_hired", "num_experienced"])
+
+
+def _increment_staff_growth_recruitment(
+    report_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    delta: int,
+) -> None:
+    """Increment/decrement staff growth num_recruitment_source counter."""
+    month_key = report_date.strftime("%m/%Y")
+    week_number = report_date.isocalendar()[1]
+    week_key = f"Week {week_number} - {month_key}"
+    
+    report, created = StaffGrowthReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        defaults={
+            "month_key": month_key,
+            "week_key": week_key,
+            "num_transfers": 0,
+            "num_resignations": 0,
+            "num_returns": 0,
+            "num_introductions": 0,
+            "num_recruitment_source": 0,
+        },
+    )
+    
+    report.num_recruitment_source = F("num_recruitment_source") + delta
+    report.save(update_fields=["num_recruitment_source"])
+
+
+#### Batch aggregation helper functions
+
+
+def _aggregate_recruitment_source_for_date(report_date: date, branch, block, department) -> None:
+    """Full re-aggregation of recruitment source report for batch processing."""
     # Get all hired candidates for this date and org unit, grouped by source
     hired_by_source = (
         RecruitmentCandidate.objects.filter(
@@ -244,9 +436,7 @@ def _aggregate_recruitment_source_for_date(report_date: date, branch, block, dep
             block=block,
             department=department,
             recruitment_source=source,
-            defaults={
-                "num_hires": item["num_hires"],
-            },
+            defaults={"num_hires": item["num_hires"]},
         )
 
     logger.debug(
@@ -256,14 +446,7 @@ def _aggregate_recruitment_source_for_date(report_date: date, branch, block, dep
 
 
 def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, department) -> None:
-    """Aggregate recruitment channel report for a specific date and organizational unit.
-
-    Args:
-        report_date: Date to aggregate
-        branch: Branch instance
-        block: Block instance
-        department: Department instance
-    """
+    """Full re-aggregation of recruitment channel report for batch processing."""
     # Get all hired candidates for this date and org unit, grouped by channel
     hired_by_channel = (
         RecruitmentCandidate.objects.filter(
@@ -286,9 +469,7 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
             block=block,
             department=department,
             recruitment_channel=channel,
-            defaults={
-                "num_hires": item["num_hires"],
-            },
+            defaults={"num_hires": item["num_hires"]},
         )
 
     logger.debug(
@@ -298,14 +479,7 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
 
 
 def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, department) -> None:
-    """Aggregate recruitment cost report for a specific date and organizational unit.
-
-    Args:
-        report_date: Date to aggregate
-        branch: Branch instance
-        block: Block instance
-        department: Department instance
-    """
+    """Full re-aggregation of recruitment cost report for batch processing."""
     month_key = report_date.strftime("%Y-%m")
 
     # Categorize candidates by source type
@@ -380,16 +554,8 @@ def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, depar
 
 
 def _aggregate_hired_candidate_for_date(report_date: date, branch, block, department) -> None:
-    """Aggregate hired candidate report for a specific date and organizational unit.
-
-    Args:
-        report_date: Date to aggregate
-        branch: Branch instance
-        block: Block instance
-        department: Department instance
-    """
+    """Full re-aggregation of hired candidate report for batch processing."""
     month_key = report_date.strftime("%m/%Y")
-    # Week key format: "Week W - MM/YYYY"
     week_number = report_date.isocalendar()[1]
     week_key = f"Week {week_number} - {month_key}"
 
@@ -433,7 +599,7 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
             block=block,
             department=department,
             source_type=source_type,
-            employee=stats["employee"],  # Only set for referral_source
+            employee=stats["employee"],
             defaults={
                 "month_key": month_key,
                 "week_key": week_key,
@@ -445,6 +611,35 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
     logger.debug(
         f"Aggregated hired candidates for {report_date} - "
         f"{branch.name}/{block.name}/{department.name}: {len(source_type_stats)} source types"
+    )
+
+
+def _update_staff_growth_for_recruitment(report_date: date, branch, block, department) -> None:
+    """Update StaffGrowthReport num_recruitment_source counter for hired candidates."""
+    # Count hired candidates on this date for this org unit
+    num_hired = RecruitmentCandidate.objects.filter(
+        status=RecruitmentCandidate.Status.HIRED,
+        onboard_date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+    ).count()
+
+    month_key = report_date.strftime("%m/%Y")
+    week_number = report_date.isocalendar()[1]
+    week_key = f"Week {week_number} - {month_key}"
+
+    # Update or create staff growth report
+    StaffGrowthReport.objects.update_or_create(
+        report_date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+        defaults={
+            "month_key": month_key,
+            "week_key": week_key,
+            "num_recruitment_source": num_hired,
+        },
     )
 
 
@@ -467,6 +662,5 @@ def _determine_source_type(candidate: RecruitmentCandidate) -> str:
     elif candidate.recruitment_channel.belong_to == "job_website":
         return RecruitmentSourceType.JOB_WEBSITE_CHANNEL
 
-    # Check if returning employee (would need additional logic/field)
-    # For now, default to recruitment department source
+    # Default to recruitment department source
     return RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE
