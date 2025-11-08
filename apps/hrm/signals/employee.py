@@ -1,10 +1,12 @@
 """Signal handlers for Employee model."""
 
+from datetime import date as date_module
+
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from apps.hrm.models import Employee
+from apps.hrm.models import Employee, OrganizationChart
 
 User = get_user_model()
 
@@ -59,10 +61,6 @@ def manage_organization_chart_on_position_change(sender, instance, created, **kw
     - Employee is newly created with a position
     - Employee position is changed
     """
-    from datetime import date as date_module
-
-    from apps.hrm.models import OrganizationChart
-
     # Skip if employee doesn't have required fields
     if not instance.position or not instance.department or not instance.user:
         return

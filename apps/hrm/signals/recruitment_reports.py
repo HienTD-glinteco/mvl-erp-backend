@@ -4,6 +4,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from apps.hrm.models import RecruitmentCandidate
+from apps.hrm.tasks import aggregate_recruitment_reports_for_candidate
 
 
 @receiver(pre_save, sender=RecruitmentCandidate)
@@ -44,14 +45,12 @@ def trigger_recruitment_reports_aggregation_on_save(sender, instance, created, *
     This signal fires a Celery task to incrementally update recruitment reports
     using snapshot data to avoid race conditions.
     """
-    from apps.hrm.tasks import aggregate_recruitment_reports_for_candidate
-
     # Only trigger if the candidate has required organizational fields
     if instance.branch_id and instance.block_id and instance.department_id:
         # Get related data for snapshot
         recruitment_source = instance.recruitment_source
         recruitment_channel = instance.recruitment_channel
-        
+
         # Create current snapshot
         current_snapshot = {
             "status": instance.status,
@@ -66,7 +65,7 @@ def trigger_recruitment_reports_aggregation_on_save(sender, instance, created, *
             "years_of_experience": instance.years_of_experience,
             "referrer_id": instance.referrer_id,
         }
-        
+
         if created:
             # Create event: previous is None, current is new state
             snapshot = {"previous": None, "current": current_snapshot}
@@ -85,14 +84,12 @@ def trigger_recruitment_reports_aggregation_on_delete(sender, instance, **kwargs
     This signal fires a Celery task to decrementally update recruitment reports
     using snapshot data.
     """
-    from apps.hrm.tasks import aggregate_recruitment_reports_for_candidate
-
     # Trigger incremental update for deletion
     if instance.branch_id and instance.block_id and instance.department_id:
         # Get related data for snapshot
         recruitment_source = instance.recruitment_source
         recruitment_channel = instance.recruitment_channel
-        
+
         # Delete event: previous is deleted state, current is None
         previous_snapshot = {
             "status": instance.status,

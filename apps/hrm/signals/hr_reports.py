@@ -4,6 +4,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from apps.hrm.models import EmployeeWorkHistory
+from apps.hrm.tasks import aggregate_hr_reports_for_work_history
 
 
 @receiver(pre_save, sender=EmployeeWorkHistory)
@@ -38,8 +39,6 @@ def trigger_hr_reports_aggregation_on_save(sender, instance, created, **kwargs):
     This signal fires a Celery task to incrementally update HR reports
     using snapshot data to avoid race conditions.
     """
-    from apps.hrm.tasks import aggregate_hr_reports_for_work_history
-
     # Only trigger if the work history has required organizational fields
     if instance.branch_id and instance.block_id and instance.department_id:
         # Create current snapshot
@@ -52,7 +51,7 @@ def trigger_hr_reports_aggregation_on_save(sender, instance, created, **kwargs):
             "status": instance.status,
             "previous_data": instance.previous_data,
         }
-        
+
         if created:
             # Create event: previous is None, current is new state
             snapshot = {"previous": None, "current": current_snapshot}
@@ -71,8 +70,6 @@ def trigger_hr_reports_aggregation_on_delete(sender, instance, **kwargs):  # noq
     This signal fires a Celery task to decrementally update HR reports
     using snapshot data.
     """
-    from apps.hrm.tasks import aggregate_hr_reports_for_work_history
-
     # Trigger incremental update for deletion
     if instance.date and instance.branch_id and instance.block_id and instance.department_id:
         # Delete event: previous is deleted state, current is None
