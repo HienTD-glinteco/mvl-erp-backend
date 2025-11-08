@@ -135,11 +135,10 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
                     min_date=models.Min('date')
                 )['min_date']
                 
-                # Get all unique org units affected by these changes
-                affected_org_units = set()
-                for wh in modified_today:
-                    if wh.branch_id and wh.block_id and wh.department_id:
-                        affected_org_units.add((wh.branch_id, wh.block_id, wh.department_id))
+                # Get all unique org units affected by these changes using efficient query
+                affected_org_units = set(
+                    modified_today.values_list("branch_id", "block_id", "department_id").distinct()
+                )
                 
                 # Process ALL dates from earliest to today for affected org units
                 # Even dates with no work history must be processed because reports are cumulative
@@ -291,6 +290,7 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
                 if (old_branch_id != data["branch_id"] or 
                     old_block_id != data["block_id"] or 
                     old_department_id != data["department_id"]):
+                    # Source department loses a transfer (opposite sign of delta)
                     _update_staff_growth_counter(
                         report_date, old_branch_id, old_block_id, old_department_id,
                         "num_transfers", -delta, month_key, week_key
@@ -448,8 +448,8 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
             "num_transfers": num_transfers,
             "num_resignations": num_resignations,
             "num_returns": num_returns,
-            "num_introductions": 0,
-            "num_recruitment_source": 0,
+            # Note: num_introductions and num_recruitment_source are set by other tasks
+            # and should not be overwritten here
         },
     )
 
@@ -461,7 +461,10 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
 
 
 def _aggregate_employee_status_for_date(report_date: date, branch, block, department) -> None:
-    """Aggregate employee status breakdown using efficient queries.
+    """Aggregate employee status breakdown using EmployeeWorkHistory for historical accuracy.
+
+    Uses EmployeeWorkHistory to get the correct state of employees at the report_date,
+    ensuring accurate historical snapshots.
 
     Args:
         report_date: Date to aggregate
@@ -469,39 +472,50 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
         block: Block instance
         department: Department instance
     """
-    # Use single aggregation query with conditional counting
-    status_counts = (
-        Employee.objects.filter(
+    # Get the latest work history for each employee up to the report_date
+    # This gives us the historical snapshot of employee status at that point in time
+    latest_work_histories = (
+        EmployeeWorkHistory.objects.filter(
             branch=branch,
             block=block,
             department=department,
+            date__lte=report_date,
         )
-        .values("status")
-        .annotate(count=Count("id"))
+        .order_by('employee_id', '-date', '-id')
+        .distinct('employee_id')
     )
+    
+    # Extract employee IDs and their statuses from work history
+    employee_statuses = {}
+    employee_resignation_reasons = {}
+    
+    for wh in latest_work_histories:
+        # Get the status from work history if it's a status change event
+        if wh.name == EmployeeWorkHistory.EventType.CHANGE_STATUS and wh.status:
+            employee_statuses[wh.employee_id] = wh.status
+            if wh.status == Employee.Status.RESIGNED and wh.resignation_reason:
+                employee_resignation_reasons[wh.employee_id] = wh.resignation_reason
+        # Otherwise, use the employee's current status
+        elif wh.employee_id not in employee_statuses:
+            employee_statuses[wh.employee_id] = wh.employee.status
+            if wh.employee.status == Employee.Status.RESIGNED and wh.employee.resignation_reason:
+                employee_resignation_reasons[wh.employee_id] = wh.employee.resignation_reason
+    
+    # Count statuses
+    status_counts = {}
+    for status in employee_statuses.values():
+        status_counts[status] = status_counts.get(status, 0) + 1
+    
+    count_active = status_counts.get(Employee.Status.ACTIVE, 0)
+    count_onboarding = status_counts.get(Employee.Status.ONBOARDING, 0)
+    count_maternity_leave = status_counts.get(Employee.Status.MATERNITY_LEAVE, 0)
+    count_unpaid_leave = status_counts.get(Employee.Status.UNPAID_LEAVE, 0)
+    count_resigned = status_counts.get(Employee.Status.RESIGNED, 0)
 
-    status_dict = {item["status"]: item["count"] for item in status_counts}
-
-    count_active = status_dict.get(Employee.Status.ACTIVE, 0)
-    count_onboarding = status_dict.get(Employee.Status.ONBOARDING, 0)
-    count_maternity_leave = status_dict.get(Employee.Status.MATERNITY_LEAVE, 0)
-    count_unpaid_leave = status_dict.get(Employee.Status.UNPAID_LEAVE, 0)
-    count_resigned = status_dict.get(Employee.Status.RESIGNED, 0)
-
-    # Count resignation reasons in single query
-    resignation_reasons = (
-        Employee.objects.filter(
-            branch=branch,
-            block=block,
-            department=department,
-            status=Employee.Status.RESIGNED,
-            resignation_reason__isnull=False,
-        )
-        .values("resignation_reason")
-        .annotate(count=Count("id"))
-    )
-
-    resignation_reasons_dict = {item["resignation_reason"]: item["count"] for item in resignation_reasons}
+    # Count resignation reasons
+    resignation_reasons_dict = {}
+    for reason in employee_resignation_reasons.values():
+        resignation_reasons_dict[reason] = resignation_reasons_dict.get(reason, 0) + 1
 
     total_not_resigned = count_active + count_onboarding + count_maternity_leave + count_unpaid_leave
 
