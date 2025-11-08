@@ -93,8 +93,11 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
     This scheduled task:
     1. Checks if any work history records were modified/created today
     2. If yes, finds the earliest affected date (within 1 year lookback)
-    3. Re-aggregates reports only for affected dates and org units
+    3. Re-aggregates ALL report records from earliest date to today for affected org units
     4. If no changes today, only processes today's date
+
+    Note: When past records are modified, ALL reports from that date onwards become
+    incorrect and must be recalculated. We can only scope by org unit (branch/block/dept).
 
     Args:
         self: Celery task instance
@@ -117,7 +120,6 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
             cutoff_date = today - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
             
             # Find work histories that were created or updated today
-            # We check both the model's timestamp and the actual event date
             modified_today = EmployeeWorkHistory.objects.filter(
                 Q(created_at__date=today) | Q(updated_at__date=today),
                 date__gte=cutoff_date
@@ -139,26 +141,17 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
                     if wh.branch_id and wh.block_id and wh.department_id:
                         affected_org_units.add((wh.branch_id, wh.block_id, wh.department_id))
                 
-                # Process all dates from earliest to today
+                # Process ALL dates from earliest to today for affected org units
+                # Even dates with no work history must be processed because reports are cumulative
                 dates_to_process = []
                 current_date = earliest_date
                 while current_date <= today:
-                    # Check if there's any work history on this date for affected org units
-                    has_data = EmployeeWorkHistory.objects.filter(
-                        date=current_date,
-                        branch_id__in=[ou[0] for ou in affected_org_units],
-                        block_id__in=[ou[1] for ou in affected_org_units],
-                        department_id__in=[ou[2] for ou in affected_org_units],
-                    ).exists()
-                    
-                    if has_data:
-                        dates_to_process.append(current_date)
-                    
+                    dates_to_process.append(current_date)
                     current_date += timedelta(days=1)
                 
                 logger.info(
                     f"Detected {modified_today.count()} work history changes today. "
-                    f"Will re-aggregate from {earliest_date} to {today} "
+                    f"Will re-aggregate ALL dates from {earliest_date} to {today} "
                     f"for {len(affected_org_units)} org units."
                 )
 
@@ -173,20 +166,12 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
         total_org_units = 0
         
         for process_date in dates_to_process:
-            # Get org units with work history on this date
+            # Get org units to process for this date
             if affected_org_units:
-                # Filter to only affected org units
-                org_unit_ids = [
-                    ou for ou in affected_org_units
-                    if EmployeeWorkHistory.objects.filter(
-                        date=process_date,
-                        branch_id=ou[0],
-                        block_id=ou[1],
-                        department_id=ou[2],
-                    ).exists()
-                ]
+                # Process only affected org units
+                org_unit_ids = list(affected_org_units)
             else:
-                # Process all org units for this date
+                # Process all org units with work history on this date
                 org_unit_ids = list(
                     EmployeeWorkHistory.objects.filter(date=process_date)
                     .values_list("branch_id", "block_id", "department_id")
