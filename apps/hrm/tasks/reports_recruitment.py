@@ -142,11 +142,10 @@ def aggregate_recruitment_reports_batch(self, target_date: str | None = None) ->
                     min_date=models.Min('onboard_date')
                 )['min_date']
                 
-                # Get all unique org units affected by these changes
-                affected_org_units = set()
-                for candidate in modified_today:
-                    if candidate.branch_id and candidate.block_id and candidate.department_id:
-                        affected_org_units.add((candidate.branch_id, candidate.block_id, candidate.department_id))
+                # Get all unique org units affected by these changes using efficient query
+                affected_org_units = set(
+                    modified_today.values_list("branch_id", "block_id", "department_id").distinct()
+                )
                 
                 # Process ALL dates from earliest to today for affected org units
                 # Even dates with no candidates must be processed because reports are cumulative
@@ -473,17 +472,22 @@ def _aggregate_recruitment_source_for_date(report_date: date, branch, block, dep
         .annotate(num_hires=Count("id"))
     )
 
+    # Collect all source IDs and fetch in bulk
+    source_ids = [item["recruitment_source"] for item in hired_by_source if item["recruitment_source"]]
+    sources = {s.id: s for s in RecruitmentSource.objects.filter(id__in=source_ids)}
+
     # Update or create report for each source
     for item in hired_by_source:
-        source = RecruitmentSource.objects.get(id=item["recruitment_source"])
-        RecruitmentSourceReport.objects.update_or_create(
-            report_date=report_date,
-            branch=branch,
-            block=block,
-            department=department,
-            recruitment_source=source,
-            defaults={"num_hires": item["num_hires"]},
-        )
+        source = sources.get(item["recruitment_source"])
+        if source:
+            RecruitmentSourceReport.objects.update_or_create(
+                report_date=report_date,
+                branch=branch,
+                block=block,
+                department=department,
+                recruitment_source=source,
+                defaults={"num_hires": item["num_hires"]},
+            )
 
     logger.debug(
         f"Aggregated recruitment source for {report_date} - "
@@ -506,17 +510,22 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
         .annotate(num_hires=Count("id"))
     )
 
+    # Collect all channel IDs and fetch in bulk
+    channel_ids = [item["recruitment_channel"] for item in hired_by_channel if item["recruitment_channel"]]
+    channels = {c.id: c for c in RecruitmentChannel.objects.filter(id__in=channel_ids)}
+
     # Update or create report for each channel
     for item in hired_by_channel:
-        channel = RecruitmentChannel.objects.get(id=item["recruitment_channel"])
-        RecruitmentChannelReport.objects.update_or_create(
-            report_date=report_date,
-            branch=branch,
-            block=block,
-            department=department,
-            recruitment_channel=channel,
-            defaults={"num_hires": item["num_hires"]},
-        )
+        channel = channels.get(item["recruitment_channel"])
+        if channel:
+            RecruitmentChannelReport.objects.update_or_create(
+                report_date=report_date,
+                branch=branch,
+                block=block,
+                department=department,
+                recruitment_channel=channel,
+                defaults={"num_hires": item["num_hires"]},
+            )
 
     logger.debug(
         f"Aggregated recruitment channel for {report_date} - "
@@ -535,7 +544,32 @@ def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, depar
         branch=branch,
         block=block,
         department=department,
-    ).select_related("recruitment_source", "recruitment_channel")
+    ).select_related("recruitment_source", "recruitment_channel", "recruitment_request")
+
+    # Collect all recruitment request IDs for bulk expense fetching
+    request_ids = set()
+    for candidate in hired_candidates:
+        if candidate.recruitment_request_id:
+            request_ids.add(candidate.recruitment_request_id)
+    
+    # Fetch all expenses in bulk
+    expenses_by_request = {}
+    if request_ids:
+        expenses = RecruitmentExpense.objects.filter(
+            recruitment_request_id__in=request_ids,
+            expense_date__lte=report_date,
+        ).values("recruitment_request_id").annotate(total=Sum("amount"))
+        
+        for expense in expenses:
+            expenses_by_request[expense["recruitment_request_id"]] = expense["total"]
+    
+    # Count hired candidates per request for cost distribution
+    hired_per_request = {}
+    for candidate in hired_candidates:
+        if candidate.recruitment_request_id:
+            hired_per_request[candidate.recruitment_request_id] = (
+                hired_per_request.get(candidate.recruitment_request_id, 0) + 1
+            )
 
     # Group by source type
     source_type_stats = {}
@@ -554,21 +588,14 @@ def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, depar
             RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
             RecruitmentSourceType.REFERRAL_SOURCE,
         ]:
-            # Get expenses related to this candidate
-            expenses = RecruitmentExpense.objects.filter(
-                recruitment_request=candidate.recruitment_request,
-                expense_date__lte=report_date,
-            ).aggregate(total=Sum("amount"))
-
-            if expenses["total"]:
-                # Distribute cost among all hired candidates from this request
-                num_hired_from_request = RecruitmentCandidate.objects.filter(
-                    recruitment_request=candidate.recruitment_request,
-                    status=RecruitmentCandidate.Status.HIRED,
-                ).count()
-
-                if num_hired_from_request > 0:
-                    cost_per_hire = Decimal(str(expenses["total"])) / num_hired_from_request
+            # Get pre-fetched expense total
+            request_id = candidate.recruitment_request_id
+            if request_id and request_id in expenses_by_request:
+                total_expense = expenses_by_request[request_id]
+                num_hired = hired_per_request.get(request_id, 1)
+                
+                if total_expense and num_hired > 0:
+                    cost_per_hire = Decimal(str(total_expense)) / num_hired
                     source_type_stats[source_type]["total_cost"] += cost_per_hire
 
     # Update or create report for each source type
