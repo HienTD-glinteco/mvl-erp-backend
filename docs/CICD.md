@@ -115,9 +115,7 @@ prepare
 - Test job no longer waits for django-checks to complete
 
 ### 2. Staging Environment Deployment (`deploy-staging.yml`)
-**Trigger**: PR from `master` to `staging` branch (when merged) AND when `ENABLE_DEPLOY` is `true`
-
-**Deployment Control**: Deployment is controlled by the `ENABLE_DEPLOY` repository variable (default: disabled). See [Deployment Control Flag](#deployment-control-flag) section for details.
+**Trigger**: PR from `master` to `staging` branch (when merged)
 
 **Steps**:
 - Code checkout from `staging` branch
@@ -142,7 +140,9 @@ The API documentation version is automatically updated with an ISO timestamp dur
 
 ### Overview
 
-All deployments (develop and staging environments) are controlled by the `ENABLE_DEPLOY` repository variable. This provides a safety mechanism to prevent accidental deployments.
+The develop environment deployment is controlled by the `ENABLE_DEPLOY` repository variable. This provides a safety mechanism to prevent accidental deployments to the test environment.
+
+**Note**: The staging deployment is NOT controlled by this flag and will always deploy when a PR from master to staging is merged.
 
 ### Configuration
 
@@ -165,7 +165,8 @@ All deployments (develop and staging environments) are controlled by the `ENABLE
 
 The `ENABLE_DEPLOY` flag controls:
 - **Deploy-Develop Job** in `ci-cd.yml`: Deployment to test environment on push to `master`
-- **Deploy-Staging Job** in `deploy-staging.yml`: Deployment to staging environment on PR merge
+
+**Note**: The staging deployment (`deploy-staging.yml`) is NOT controlled by this flag and will deploy automatically when a PR from master to staging is merged.
 
 ### Use Cases
 

@@ -10,8 +10,7 @@ jobs:
     name: Deploy to Staging Environment
     runs-on: ubuntu-latest
     environment: staging
-    # Only run if PR is merged from master to staging and ENABLE_DEPLOY flag is true (default: false)
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging' && github.event.pull_request.head.ref == 'master' && vars.ENABLE_DEPLOY == 'true'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'staging' && github.event.pull_request.head.ref == 'master'
 
     steps:
     - name: Deploy to Staging Server
