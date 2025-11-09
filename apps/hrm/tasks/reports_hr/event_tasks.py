@@ -20,7 +20,7 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
+@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES, queue='reports_event')
 def aggregate_hr_reports_for_work_history(
     self, event_type: str, snapshot: dict[str, Any]
 ) -> dict[str, Any]:
@@ -56,10 +56,19 @@ def aggregate_hr_reports_for_work_history(
             f"(event: {event_type}, date: {report_date})"
         )
 
-        # Perform incremental update
+        # Perform incremental update with narrow try-catch for better error reporting
         with transaction.atomic():
-            _increment_staff_growth(event_type, snapshot)
-            _increment_employee_status(event_type, snapshot)
+            try:
+                _increment_staff_growth(event_type, snapshot)
+            except Exception as e:
+                logger.error(f"Failed to increment staff growth: {str(e)}", exc_info=True)
+                raise
+            
+            try:
+                _increment_employee_status(event_type, snapshot)
+            except Exception as e:
+                logger.error(f"Failed to increment employee status: {str(e)}", exc_info=True)
+                raise
 
         return {
             "success": True,
