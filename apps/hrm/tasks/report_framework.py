@@ -44,15 +44,24 @@ MAX_REPORT_LOOKBACK_DAYS = 365
 EVENT_QUEUE = "reports_event"
 BATCH_QUEUE = "reports_batch"
 
+# Action type constants (renamed from "event_type" to avoid confusion with system events)
+ACTION_CREATE = "create"
+ACTION_UPDATE = "update"
+ACTION_DELETE = "delete"
 
-class AggregationFunction(Protocol):
-    """Protocol for aggregation functions."""
 
-    def __call__(self, event_type: str, snapshot: dict[str, Any]) -> None:
-        """Process aggregation for a single event.
+class EventAggregationFunction(Protocol):
+    """Protocol for event-driven aggregation functions.
+    
+    Renamed from AggregationFunction to clarify this is for event-driven tasks,
+    not to be confused with other system events.
+    """
+
+    def __call__(self, action: str, snapshot: dict[str, Any]) -> None:
+        """Process aggregation for a single action/event.
         
         Args:
-            event_type: "create", "update", or "delete"
+            action: One of ACTION_CREATE, ACTION_UPDATE, or ACTION_DELETE
             snapshot: Dict with "previous" and "current" state
         """
         ...
@@ -211,10 +220,16 @@ def create_batch_task(
             
         Returns:
             dict: Result with success status and metadata
+            
+        Note:
+            The get_modified_model_query function must return a queryset with:
+            - 'date' field: The date field used for aggregation
+            - 'branch_id', 'block_id', 'department_id': Org unit fields
+            - 'created_at', 'updated_at': Timestamp fields for modification tracking
         """
-        try:
-            today = timezone.now().date()
+        today = timezone.now().date()
 
+        try:
             if target_date:
                 # Process specific date only
                 report_date = datetime.fromisoformat(target_date).date()
@@ -224,21 +239,28 @@ def create_batch_task(
                 # Check for modifications today
                 cutoff_date = today - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
 
-                modified_records = get_modified_model_query(today, cutoff_date)
+                try:
+                    modified_records = get_modified_model_query(today, cutoff_date)
+                except Exception as e:
+                    logger.error(
+                        f"Error querying modified records for {name}: {str(e)}"
+                    )
+                    raise
 
-                if not modified_records.exists():
-                    # No changes - process today only
-                    dates_to_process = [today]
-                    affected_org_units = None
-                else:
-                    # Find earliest date and affected org units
-                    earliest_date = modified_records.aggregate(min_date=Min("date"))[
-                        "min_date"
-                    ]
+                try:
+                    if not modified_records.exists():
+                        # No changes - process today only
+                        dates_to_process = [today]
+                        affected_org_units = None
+                    else:
+                        # Find earliest date and affected org units
+                        earliest_date = modified_records.aggregate(min_date=Min("date"))[
+                            "min_date"
+                        ]
 
-                    # Get unique org units
-                    affected_org_units = set(
-                        modified_records.values_list(
+                        # Get unique org units
+                        affected_org_units = set(
+                            modified_records.values_list(
                             "branch_id", "block_id", "department_id"
                         ).distinct()
                     )
