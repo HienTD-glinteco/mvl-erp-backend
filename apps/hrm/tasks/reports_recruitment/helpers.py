@@ -102,7 +102,13 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
 
     # Update hired candidate report and determine source type
     source_type = _determine_source_type_from_snapshot(data)
-    is_experienced = data.get("years_of_experience") != "NO_EXPERIENCE"
+    # years_of_experience is an integer field
+    from apps.hrm.models import RecruitmentCandidate
+    years_of_experience = data.get("years_of_experience", 0)
+    # Ensure integer type (in case it comes as string from snapshot)
+    if isinstance(years_of_experience, str):
+        years_of_experience = int(years_of_experience) if years_of_experience.isdigit() else 0
+    is_experienced = years_of_experience > 0  # 0 means no experience
     referrer_id = data.get("referrer_id")
 
     _increment_hired_candidate_report(
@@ -226,20 +232,24 @@ def _increment_staff_growth_recruitment(
     block_id: int,
     department_id: int,
     delta: int,
-    is_referral_source: bool = False,
+    source_has_allow_referral: bool = False,
 ) -> None:
     """
     Increment/decrement staff growth counters for recruitment.
     
-    Business logic:
-    - num_introductions: Hired candidates with source "Giới thiệu" (referral)
-    - num_recruitment_source: Hired candidates from recruitment dept with source "Giới thiệu"
+    Business logic (as clarified):
+    - num_introductions: Hired candidates from referral sources (allow_referral=True)
+    - num_recruitment_source: Hired candidates from non-referral sources (allow_referral=False)
+    
+    The allow_referral field on RecruitmentSource distinguishes:
+    - allow_referral=True: Referral sources (giới thiệu)
+    - allow_referral=False: Recruitment department sources
     
     Args:
         report_date: Report date
         branch_id, block_id, department_id: Org unit IDs
         delta: +1 for create, -1 for delete
-        is_referral_source: True if candidate has "Giới thiệu" source
+        source_has_allow_referral: True if candidate's source has allow_referral=True
     """
     month_key = report_date.strftime("%m/%Y")
     week_number = report_date.isocalendar()[1]
@@ -260,11 +270,15 @@ def _increment_staff_growth_recruitment(
         },
     )
 
-    # Only update if candidate has referral source
-    if is_referral_source:
+    # Update counters based on source type
+    if source_has_allow_referral:
+        # Referral source
         report.num_introductions = F("num_introductions") + delta
+    else:
+        # Recruitment department source
         report.num_recruitment_source = F("num_recruitment_source") + delta
-        report.save(update_fields=["num_introductions", "num_recruitment_source"])
+    
+    report.save(update_fields=["num_introductions", "num_recruitment_source"])
 
 
 #### Batch aggregation helper functions
@@ -504,44 +518,55 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
     """Update StaffGrowthReport num_introductions and num_recruitment_source for hired candidates.
     
     Calculation Formula (per business requirements):
-    - num_introductions: COUNT of HIRED candidates with source = "Giới thiệu" (Referral)
-    - num_recruitment_source: COUNT of HIRED candidates from recruitment dept with source = "Giới thiệu"
+    - num_introductions: COUNT of HIRED candidates with source.allow_referrer=True (Referral source)
+    - num_recruitment_source: COUNT of HIRED candidates with source.allow_referrer=False (Department source)
     
-    Both metrics track referral-based hires:
-    - num_introductions: All referral hires regardless of department
-    - num_recruitment_source: Referral hires specifically from recruitment department
+    Business Rules:
+    - allow_referrer=True: Identifies referral sources (nguồn giới thiệu)
+    - allow_referrer=False: Identifies department sources (nguồn phòng ban/phòng tuyển dụng)
+    - num_introductions: ALL hired candidates from referral sources
+    - num_recruitment_source: ALL hired candidates from department sources
     
     Example:
-    - If 5 candidates hired via referral, num_introductions = 5
-    - If 3 of those came from recruitment dept, num_recruitment_source = 3
+    - 10 candidates hired via referral source (allow_referrer=True) → num_introductions
+    - 7 candidates hired via department source (allow_referrer=False) → num_recruitment_source
+    - Both counts are independent and don't overlap
     
     Args:
         report_date: Date to aggregate
         branch, block, department: Org unit objects
     """
-    # Count all hired candidates with "Giới thiệu" source
+    # Identify referral sources using allow_referrer field
     from apps.hrm.models import RecruitmentSource
     
-    try:
-        referral_source = RecruitmentSource.objects.get(name="Giới thiệu")
-    except RecruitmentSource.DoesNotExist:
-        logger.warning("Recruitment source 'Giới thiệu' not found")
+    referral_sources = RecruitmentSource.objects.filter(allow_referrer=True)
+    
+    if not referral_sources.exists():
+        logger.warning("No recruitment sources with allow_referrer=True found")
         return
     
-    # Total referral hires
+    referral_source_ids = list(referral_sources.values_list('id', flat=True))
+    
+    # num_introductions: All hired candidates from referral sources (allow_referrer=True)
     num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
         branch=branch,
         block=block,
         department=department,
-        source=referral_source,
+        source__allow_referrer=True,  # Referral sources
     ).count()
     
-    # Referral hires from recruitment department specifically
-    # TODO: Need to determine how to identify "recruitment department" candidates
-    # For now, using same count as num_introductions
-    num_recruitment_source = num_introductions
+    # num_recruitment_source: Hired candidates with department sources (allow_referrer=False)
+    # According to comment: allow_referrer=False means department sources
+    num_recruitment_source = RecruitmentCandidate.objects.filter(
+        status=RecruitmentCandidate.Status.HIRED,
+        onboard_date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+        source__allow_referrer=False,  # Department sources
+    ).count()
 
     month_key = report_date.strftime("%m/%Y")
     week_number = report_date.isocalendar()[1]
