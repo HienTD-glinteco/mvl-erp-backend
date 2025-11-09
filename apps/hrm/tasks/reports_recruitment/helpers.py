@@ -238,12 +238,12 @@ def _increment_staff_growth_recruitment(
     Increment/decrement staff growth counters for recruitment.
     
     Business logic (as clarified):
-    - num_introductions: Hired candidates from referral sources (allow_referral=True)
-    - num_recruitment_source: Hired candidates from non-referral sources (allow_referral=False)
+    - num_introductions: Hired candidates from referral sources (allow_referrer=True)
+    - num_recruitment_source: Hired candidates from non-referral sources (allow_referrer=False)
     
-    The allow_referral field on RecruitmentSource distinguishes:
-    - allow_referral=True: Referral sources (giới thiệu)
-    - allow_referral=False: Recruitment department sources
+    The allow_referrer field on RecruitmentSource distinguishes:
+    - allow_referrer=True: Referral sources
+    - allow_referrer=False: Recruitment department sources
     
     Args:
         report_date: Report date
@@ -539,13 +539,14 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
     # Identify referral sources using allow_referrer field
     from apps.hrm.models import RecruitmentSource
     
-    referral_sources = RecruitmentSource.objects.filter(allow_referrer=True)
+    # Fetch referral source IDs directly
+    referral_source_ids = list(
+        RecruitmentSource.objects.filter(allow_referrer=True).values_list('id', flat=True)
+    )
     
-    if not referral_sources.exists():
+    if not referral_source_ids:
         logger.warning("No recruitment sources with allow_referrer=True found")
         return
-    
-    referral_source_ids = list(referral_sources.values_list('id', flat=True))
     
     # num_introductions: All hired candidates from referral sources (allow_referrer=True)
     num_introductions = RecruitmentCandidate.objects.filter(
