@@ -226,8 +226,21 @@ def _increment_staff_growth_recruitment(
     block_id: int,
     department_id: int,
     delta: int,
+    is_referral_source: bool = False,
 ) -> None:
-    """Increment/decrement staff growth num_recruitment_source counter."""
+    """
+    Increment/decrement staff growth counters for recruitment.
+    
+    Business logic:
+    - num_introductions: Hired candidates with source "Giới thiệu" (referral)
+    - num_recruitment_source: Hired candidates from recruitment dept with source "Giới thiệu"
+    
+    Args:
+        report_date: Report date
+        branch_id, block_id, department_id: Org unit IDs
+        delta: +1 for create, -1 for delete
+        is_referral_source: True if candidate has "Giới thiệu" source
+    """
     month_key = report_date.strftime("%m/%Y")
     week_number = report_date.isocalendar()[1]
     week_key = f"Week {week_number} - {month_key}"
@@ -243,13 +256,15 @@ def _increment_staff_growth_recruitment(
             "num_transfers": 0,
             "num_resignations": 0,
             "num_returns": 0,
-            "num_introductions": 0,
-            "num_recruitment_source": 0,
+            # These fields should NOT be initialized to 0 - set by other tasks
         },
     )
 
-    report.num_recruitment_source = F("num_recruitment_source") + delta
-    report.save(update_fields=["num_recruitment_source"])
+    # Only update if candidate has referral source
+    if is_referral_source:
+        report.num_introductions = F("num_introductions") + delta
+        report.num_recruitment_source = F("num_recruitment_source") + delta
+        report.save(update_fields=["num_introductions", "num_recruitment_source"])
 
 
 #### Batch aggregation helper functions
