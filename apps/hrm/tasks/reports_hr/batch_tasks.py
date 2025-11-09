@@ -1,11 +1,11 @@
 """Batch Celery task for HR reports aggregation.
 
 This module contains the scheduled batch task that runs at midnight to aggregate
-HR reporting data for today and affected historical dates.
+HR reporting data based on reports marked with need_refresh=True.
 """
 
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
 
 from django.db import transaction
@@ -15,7 +15,8 @@ from apps.hrm.models import (
     Block,
     Branch,
     Department,
-    EmployeeWorkHistory,
+    EmployeeStatusBreakdownReport,
+    StaffGrowthReport,
 )
 from ..report_framework import create_batch_task
 from .helpers import (
@@ -27,52 +28,87 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-def _get_modified_work_history_query(start_date: date, end_date: date) -> Any:
-    """Query function to get work histories modified between dates.
+def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, int]]]:
+    """Get earliest report date and org units needing refresh.
     
-    This function is used by the framework to detect which records were modified.
+    Queries report models for records marked with need_refresh=True.
+    Returns the earliest date that needs processing and all affected org units.
     
-    Args:
-        start_date: Start date for filtering
-        end_date: End date for filtering
-        
     Returns:
-        QuerySet of EmployeeWorkHistory records
+        Tuple of (earliest_date, list of org_unit tuples)
+        earliest_date is None if no reports need refresh
     """
-    from django.db.models import Q
+    from django.db.models import Min
+
+    # Find earliest date needing refresh across all report models
+    staff_growth_date = StaffGrowthReport.objects.filter(
+        need_refresh=True
+    ).aggregate(Min('report_date'))['report_date__min']
     
+    status_breakdown_date = EmployeeStatusBreakdownReport.objects.filter(
+        need_refresh=True
+    ).aggregate(Min('report_date'))['report_date__min']
+    
+    # Get the earliest of the two
+    dates = [d for d in [staff_growth_date, status_breakdown_date] if d is not None]
+    if not dates:
+        return None, []
+    
+    earliest_date = min(dates)
+    
+    # Get all org units that need refresh from earliest date onwards
     today = timezone.now().date()
-    cutoff_date = today - timedelta(days=MAX_REPORT_LOOKBACK_DAYS)
+    org_units_set = set()
     
-    return EmployeeWorkHistory.objects.filter(
-        Q(created_at__date__gte=start_date, created_at__date__lte=end_date) |
-        Q(updated_at__date__gte=start_date, updated_at__date__lte=end_date),
-        date__gte=cutoff_date
-    ).select_related('branch', 'block', 'department')
+    # Collect org units from StaffGrowthReport
+    for report in StaffGrowthReport.objects.filter(
+        need_refresh=True,
+        report_date__gte=earliest_date,
+        report_date__lte=today
+    ).values('branch_id', 'block_id', 'department_id').distinct():
+        org_units_set.add((
+            report['branch_id'],
+            report['block_id'],
+            report['department_id']
+        ))
+    
+    # Collect org units from EmployeeStatusBreakdownReport
+    for report in EmployeeStatusBreakdownReport.objects.filter(
+        need_refresh=True,
+        report_date__gte=earliest_date,
+        report_date__lte=today
+    ).values('branch_id', 'block_id', 'department_id').distinct():
+        org_units_set.add((
+            report['branch_id'],
+            report['block_id'],
+            report['department_id']
+        ))
+    
+    return earliest_date, list(org_units_set)
 
 
-def _hr_batch_aggregation(
-    process_date: date,
-    org_units: list[tuple[int, int, int]]
-) -> int:
-    """Business logic for HR batch aggregation.
+def _hr_batch_aggregation_with_refresh() -> int:
+    """Business logic for HR batch aggregation using need_refresh flag.
     
-    Aggregates HR reports for a specific date and list of org units.
-    The framework handles detection of which dates and org units to process.
+    This function:
+    1. Finds all reports marked with need_refresh=True
+    2. Identifies earliest date and affected org units
+    3. Processes all dates from earliest to today for those org units
+    4. Clears need_refresh flag after successful processing
     
-    Args:
-        process_date: Date to aggregate reports for
-        org_units: List of (branch_id, block_id, department_id) tuples
-        
     Returns:
-        Number of org units successfully processed
+        Number of dates successfully processed
     """
-    if not org_units:
+    earliest_date, org_units = _get_reports_needing_refresh()
+    
+    if earliest_date is None or not org_units:
+        logger.info("No HR reports need refresh")
         return 0
     
+    today = timezone.now().date()
     logger.info(
-        f"Batch aggregating HR reports for {process_date} "
-        f"with {len(org_units)} org units"
+        f"Batch aggregating HR reports from {earliest_date} to {today} "
+        f"for {len(org_units)} org units"
     )
     
     # Fetch all org units in bulk BEFORE loop (optimization per code review)
@@ -84,28 +120,42 @@ def _hr_batch_aggregation(
     blocks = {bl.id: bl for bl in Block.objects.filter(id__in=block_ids)}
     departments = {d.id: d for d in Department.objects.filter(id__in=department_ids)}
     
-    processed_count = 0
+    dates_processed = 0
+    current_date = earliest_date
     
-    # Process each org unit for this date
-    with transaction.atomic():
-        for branch_id, block_id, department_id in org_units:
-            # Early return pattern - skip if conditions don't match (per code review)
-            if not (branch_id and block_id and department_id):
-                continue
+    # Process each date from earliest to today
+    while current_date <= today:
+        with transaction.atomic():
+            for branch_id, block_id, department_id in org_units:
+                # Early return pattern - skip if conditions don't match
+                if not (branch_id and block_id and department_id):
+                    continue
+                
+                branch = branches.get(branch_id)
+                block = blocks.get(block_id)
+                department = departments.get(department_id)
+                
+                if not (branch and block and department):
+                    continue
+                
+                # Aggregate both types of HR reports
+                _aggregate_staff_growth_for_date(current_date, branch, block, department)
+                _aggregate_employee_status_for_date(current_date, branch, block, department)
             
-            branch = branches.get(branch_id)
-            block = blocks.get(block_id)
-            department = departments.get(department_id)
+            # Clear need_refresh flag for this date after successful processing
+            StaffGrowthReport.objects.filter(
+                report_date=current_date
+            ).update(need_refresh=False)
             
-            if not (branch and block and department):
-                continue
-            
-            # Aggregate both types of HR reports
-            _aggregate_staff_growth_for_date(process_date, branch, block, department)
-            _aggregate_employee_status_for_date(process_date, branch, block, department)
-            processed_count += 1
+            EmployeeStatusBreakdownReport.objects.filter(
+                report_date=current_date
+            ).update(need_refresh=False)
+        
+        dates_processed += 1
+        current_date += timedelta(days=1)
     
-    return processed_count
+    logger.info(f"Processed {dates_processed} dates for HR reports")
+    return dates_processed
 
 
 # Create the actual Celery task using the framework
