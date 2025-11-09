@@ -7,71 +7,42 @@ changes (create, edit, status change, delete) via Django signals.
 import logging
 from typing import Any
 
-from celery import shared_task
-from django.db import transaction
-
-from .helpers import (
-    AGGREGATION_MAX_RETRIES,
-    AGGREGATION_RETRY_DELAY,
-    _increment_recruitment_reports,
-)
+from ..report_framework import create_event_task
+from .helpers import _increment_recruitment_reports
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES, queue='reports_event')
-def aggregate_recruitment_reports_for_candidate(
-    self, event_type: str, snapshot: dict[str, Any]
-) -> dict[str, Any]:
-    """Aggregate recruitment reports for a single candidate event (smart incremental update).
-
-    This event-driven task uses snapshot data to avoid race conditions where the
-    candidate record might be modified before the task processes.
-
+def _recruitment_event_aggregation(action_type: str, snapshot: dict[str, Any]) -> None:
+    """Business logic for recruitment event aggregation.
+    
+    Performs incremental updates to recruitment reports based on candidate events.
+    
     Args:
-        self: Celery task instance
-        event_type: Type of event - "create", "update", or "delete"
-        snapshot: Dict containing previous and current state:
-            - previous: Previous state (None for create, dict for update/delete)
-            - current: Current state (dict for create/update, None for delete)
-
-    Returns:
-        dict: Aggregation result with success status and metadata
+        action_type: Type of action - "create", "update", or "delete"
+        snapshot: Dict containing previous and current state
     """
-    try:
-        previous = snapshot.get("previous")
-        current = snapshot.get("current")
+    previous = snapshot.get("previous")
+    current = snapshot.get("current")
 
-        if not previous and not current:
-            logger.warning(f"Invalid snapshot for event {event_type}")
-            return {"success": False, "error": "Invalid snapshot"}
+    # Extract data from current or previous state
+    data = current if current else previous
+    status = data.get('status') if data else 'unknown'
 
-        # Extract data from current or previous state
-        data = current if current else previous
+    logger.info(
+        f"Incrementally updating recruitment reports for candidate "
+        f"(action: {action_type}, status: {status})"
+    )
 
-        logger.info(
-            f"Incrementally updating recruitment reports for candidate "
-            f"(event: {event_type}, status: {data.get('status')})"
-        )
+    # Perform incremental updates
+    _increment_recruitment_reports(action_type, snapshot)
 
-        # Perform incremental update with narrow try-catch for better error reporting
-        with transaction.atomic():
-            try:
-                _increment_recruitment_reports(event_type, snapshot)
-            except Exception as e:
-                logger.error(f"Failed to increment recruitment reports: {str(e)}", exc_info=True)
-                raise
 
-        return {
-            "success": True,
-            "event_type": event_type,
-        }
-
-    except Exception as e:
-        logger.exception(f"Error in incremental recruitment reports update: {str(e)}")
-        try:
-            raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
-        except self.MaxRetriesExceededError:
-            return {"success": False, "error": str(e)}
+# Create the actual Celery task using the framework
+aggregate_recruitment_reports_for_candidate = create_event_task(
+    task_name='aggregate_recruitment_reports_for_candidate',
+    aggregation_function=_recruitment_event_aggregation,
+    queue='reports_event'
+)
 
 
