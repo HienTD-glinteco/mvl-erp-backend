@@ -7,12 +7,8 @@ changes (create, edit, delete) via Django signals.
 import logging
 from typing import Any
 
-from celery import shared_task
-from django.db import transaction
-
+from ..report_framework import create_event_task
 from .helpers import (
-    AGGREGATION_MAX_RETRIES,
-    AGGREGATION_RETRY_DELAY,
     _increment_employee_status,
     _increment_staff_growth,
 )
@@ -20,65 +16,39 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES, queue='reports_event')
-def aggregate_hr_reports_for_work_history(
-    self, event_type: str, snapshot: dict[str, Any]
-) -> dict[str, Any]:
-    """Aggregate HR reports for a single work history event (smart incremental update).
-
-    This event-driven task uses snapshot data to avoid race conditions where the
-    work history record might be modified before the task processes.
-
+def _hr_event_aggregation(action_type: str, snapshot: dict[str, Any]) -> None:
+    """Business logic for HR event aggregation.
+    
+    Performs incremental updates to HR reports based on work history events.
+    
     Args:
-        self: Celery task instance
-        event_type: Type of event - "create", "update", or "delete"
-        snapshot: Dict containing previous and current state:
-            - previous: Previous state (None for create, dict for update/delete)
-            - current: Current state (dict for create/update, None for delete)
-
-    Returns:
-        dict: Aggregation result with success status and metadata
+        action_type: Type of action - "create", "update", or "delete"
+        snapshot: Dict containing previous and current state
     """
-    try:
-        previous = snapshot.get("previous")
-        current = snapshot.get("current")
+    previous = snapshot.get("previous")
+    current = snapshot.get("current")
 
-        if not previous and not current:
-            logger.warning(f"Invalid snapshot for event {event_type}")
-            return {"success": False, "error": "Invalid snapshot"}
+    if not previous and not current:
+        logger.warning(f"Invalid snapshot for action {action_type}")
+        raise ValueError("Invalid snapshot: both previous and current are None")
 
-        # Extract data from current or previous state
-        data = current if current else previous
-        report_date = data["date"]
+    # Extract data from current or previous state
+    data = current if current else previous
+    report_date = data["date"]
 
-        logger.info(
-            f"Incrementally updating HR reports for work history "
-            f"(event: {event_type}, date: {report_date})"
-        )
+    logger.info(
+        f"Incrementally updating HR reports for work history "
+        f"(action: {action_type}, date: {report_date})"
+    )
 
-        # Perform incremental update with narrow try-catch for better error reporting
-        with transaction.atomic():
-            try:
-                _increment_staff_growth(event_type, snapshot)
-            except Exception as e:
-                logger.error(f"Failed to increment staff growth: {str(e)}", exc_info=True)
-                raise
-            
-            try:
-                _increment_employee_status(event_type, snapshot)
-            except Exception as e:
-                logger.error(f"Failed to increment employee status: {str(e)}", exc_info=True)
-                raise
+    # Perform incremental updates
+    _increment_staff_growth(action_type, snapshot)
+    _increment_employee_status(action_type, snapshot)
 
-        return {
-            "success": True,
-            "event_type": event_type,
-            "report_date": str(report_date),
-        }
 
-    except Exception as e:
-        logger.exception(f"Error in incremental HR reports update: {str(e)}")
-        try:
-            raise self.retry(exc=e, countdown=AGGREGATION_RETRY_DELAY * (2 ** self.request.retries))
-        except self.MaxRetriesExceededError:
-            return {"success": False, "error": str(e)}
+# Create the actual Celery task using the framework
+aggregate_hr_reports_for_work_history = create_event_task(
+    task_name='aggregate_hr_reports_for_work_history',
+    aggregation_function=_hr_event_aggregation,
+    queue='reports_event'
+)
