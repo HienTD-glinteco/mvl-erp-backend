@@ -33,9 +33,21 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
 
     Handles transfers correctly by updating both source and destination departments.
 
+    Event Processing Logic:
+    - CREATE: Increment counters for new work history (+1)
+    - UPDATE: Revert old values (-1), apply new values (+1)  
+    - DELETE: Decrement counters for deleted work history (-1)
+
+    Transfer Handling:
+    - For transfers, BOTH source and destination departments are affected
+    - Destination department: increment by delta
+    - Source department: decrement by delta (opposite sign)
+
     Args:
         event_type: "create", "update", or "delete"
-        snapshot: Dict with previous and current state
+        snapshot: Dict with previous and current state:
+            - previous: Old state (None for create, dict for update/delete)
+            - current: New state (dict for create/update, None for delete)
     """
     previous = snapshot.get("previous")
     current = snapshot.get("current")
@@ -61,8 +73,19 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
 def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
     """Process a single staff growth change (increment or decrement).
 
+    Calculation Rules:
+    - New Hire: Increment num_new_hires when event = ONBOARDING
+    - Resignation: Increment num_resignations when event = RESIGNATION  
+    - Transfer: Increment destination dept, decrement source dept when event = TRANSFER
+    
+    All counters are updated atomically using F() expressions for thread safety.
+
     Args:
-        data: Work history data snapshot
+        data: Work history data snapshot containing:
+            - date: Report date
+            - name: Event name (ONBOARDING, RESIGNATION, TRANSFER, etc.)
+            - branch_id, block_id, department_id: Org unit identifiers
+            - previous_data: Dict with old org unit IDs (for transfers)
         delta: +1 for increment, -1 for decrement
     """
     report_date = data["date"]

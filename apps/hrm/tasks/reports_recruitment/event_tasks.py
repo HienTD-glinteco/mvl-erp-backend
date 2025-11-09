@@ -19,7 +19,7 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
+@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES, queue='reports_event')
 def aggregate_recruitment_reports_for_candidate(
     self, event_type: str, snapshot: dict[str, Any]
 ) -> dict[str, Any]:
@@ -54,9 +54,13 @@ def aggregate_recruitment_reports_for_candidate(
             f"(event: {event_type}, status: {data.get('status')})"
         )
 
-        # Perform incremental update
+        # Perform incremental update with narrow try-catch for better error reporting
         with transaction.atomic():
-            _increment_recruitment_reports(event_type, snapshot)
+            try:
+                _increment_recruitment_reports(event_type, snapshot)
+            except Exception as e:
+                logger.error(f"Failed to increment recruitment reports: {str(e)}", exc_info=True)
+                raise
 
         return {
             "success": True,

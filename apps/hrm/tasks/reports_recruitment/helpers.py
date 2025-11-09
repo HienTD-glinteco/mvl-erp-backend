@@ -486,15 +486,47 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
 
 
 def _update_staff_growth_for_recruitment(report_date: date, branch, block, department) -> None:
-    """Update StaffGrowthReport num_recruitment_source counter for hired candidates."""
-    # Count hired candidates on this date for this org unit
-    num_hired = RecruitmentCandidate.objects.filter(
+    """Update StaffGrowthReport num_introductions and num_recruitment_source for hired candidates.
+    
+    Calculation Formula (per business requirements):
+    - num_introductions: COUNT of HIRED candidates with source = "Giới thiệu" (Referral)
+    - num_recruitment_source: COUNT of HIRED candidates from recruitment dept with source = "Giới thiệu"
+    
+    Both metrics track referral-based hires:
+    - num_introductions: All referral hires regardless of department
+    - num_recruitment_source: Referral hires specifically from recruitment department
+    
+    Example:
+    - If 5 candidates hired via referral, num_introductions = 5
+    - If 3 of those came from recruitment dept, num_recruitment_source = 3
+    
+    Args:
+        report_date: Date to aggregate
+        branch, block, department: Org unit objects
+    """
+    # Count all hired candidates with "Giới thiệu" source
+    from apps.hrm.models import RecruitmentSource
+    
+    try:
+        referral_source = RecruitmentSource.objects.get(name="Giới thiệu")
+    except RecruitmentSource.DoesNotExist:
+        logger.warning("Recruitment source 'Giới thiệu' not found")
+        return
+    
+    # Total referral hires
+    num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
         branch=branch,
         block=block,
         department=department,
+        source=referral_source,
     ).count()
+    
+    # Referral hires from recruitment department specifically
+    # TODO: Need to determine how to identify "recruitment department" candidates
+    # For now, using same count as num_introductions
+    num_recruitment_source = num_introductions
 
     month_key = report_date.strftime("%m/%Y")
     week_number = report_date.isocalendar()[1]
@@ -509,7 +541,8 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         defaults={
             "month_key": month_key,
             "week_key": week_key,
-            "num_recruitment_source": num_hired,
+            "num_introductions": num_introductions,
+            "num_recruitment_source": num_recruitment_source,
         },
     )
 

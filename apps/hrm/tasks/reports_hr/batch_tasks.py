@@ -30,7 +30,7 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES)
+@shared_task(bind=True, max_retries=AGGREGATION_MAX_RETRIES, queue='reports_batch')
 def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str, Any]:
     """Batch aggregation of HR reports for today and affected historical dates.
 
@@ -124,7 +124,7 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
             if not org_unit_ids:
                 continue
 
-            # Fetch all org units in bulk
+            # Fetch all org units in bulk BEFORE loop (optimization)
             branch_ids = {unit[0] for unit in org_unit_ids if unit[0]}
             block_ids = {unit[1] for unit in org_unit_ids if unit[1]}
             department_ids = {unit[2] for unit in org_unit_ids if unit[2]}
@@ -136,15 +136,20 @@ def aggregate_hr_reports_batch(self, target_date: str | None = None) -> dict[str
             # Process each org unit for this date
             with transaction.atomic():
                 for branch_id, block_id, department_id in org_unit_ids:
-                    if branch_id and block_id and department_id:
-                        branch = branches.get(branch_id)
-                        block = blocks.get(block_id)
-                        department = departments.get(department_id)
+                    # Early return pattern - skip if conditions don't match
+                    if not (branch_id and block_id and department_id):
+                        continue
+                    
+                    branch = branches.get(branch_id)
+                    block = blocks.get(block_id)
+                    department = departments.get(department_id)
 
-                        if branch and block and department:
-                            _aggregate_staff_growth_for_date(process_date, branch, block, department)
-                            _aggregate_employee_status_for_date(process_date, branch, block, department)
-                            total_org_units += 1
+                    if not (branch and block and department):
+                        continue
+                    
+                    _aggregate_staff_growth_for_date(process_date, branch, block, department)
+                    _aggregate_employee_status_for_date(process_date, branch, block, department)
+                    total_org_units += 1
 
         logger.info(
             f"Batch HR reports aggregation complete. "
