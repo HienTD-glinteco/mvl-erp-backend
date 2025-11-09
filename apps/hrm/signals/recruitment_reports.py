@@ -3,7 +3,13 @@
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from apps.hrm.models import RecruitmentCandidate
+from apps.hrm.models import (
+    HiredCandidateReport,
+    RecruitmentCandidate,
+    RecruitmentChannelReport,
+    RecruitmentCostReport,
+    RecruitmentSourceReport,
+)
 from apps.hrm.tasks import aggregate_recruitment_reports_for_candidate
 
 
@@ -42,8 +48,9 @@ def track_candidate_changes(sender, instance, **kwargs):  # noqa: ARG001
 def trigger_recruitment_reports_aggregation_on_save(sender, instance, created, **kwargs):  # noqa: ARG001
     """Trigger recruitment reports aggregation when candidate is created or updated.
 
-    This signal fires a Celery task to incrementally update recruitment reports
-    using snapshot data to avoid race conditions.
+    This signal:
+    1. Fires a Celery task to incrementally update recruitment reports using snapshot data
+    2. Marks affected report records with need_refresh=True for batch reconciliation
     """
     # Only trigger if the candidate has required organizational fields
     if instance.branch_id and instance.block_id and instance.department_id:
@@ -66,6 +73,16 @@ def trigger_recruitment_reports_aggregation_on_save(sender, instance, created, *
             "referrer_id": instance.referrer_id,
         }
 
+        # Mark affected reports for batch refresh (uses onboard_date if available)
+        report_date = instance.onboard_date if instance.onboard_date else None
+        if report_date:
+            _mark_recruitment_reports_for_refresh(
+                report_date=report_date,
+                branch_id=instance.branch_id,
+                block_id=instance.block_id,
+                department_id=instance.department_id,
+            )
+
         if created:
             # Create event: previous is None, current is new state
             snapshot = {"previous": None, "current": current_snapshot}
@@ -81,14 +98,25 @@ def trigger_recruitment_reports_aggregation_on_save(sender, instance, created, *
 def trigger_recruitment_reports_aggregation_on_delete(sender, instance, **kwargs):  # noqa: ARG001
     """Trigger recruitment reports aggregation when candidate is deleted.
 
-    This signal fires a Celery task to decrementally update recruitment reports
-    using snapshot data.
+    This signal:
+    1. Fires a Celery task to decrementally update recruitment reports using snapshot data
+    2. Marks affected report records with need_refresh=True for batch reconciliation
     """
     # Trigger incremental update for deletion
     if instance.branch_id and instance.block_id and instance.department_id:
         # Get related data for snapshot
         recruitment_source = instance.recruitment_source
         recruitment_channel = instance.recruitment_channel
+
+        # Mark affected reports for batch refresh (uses onboard_date if available)
+        report_date = instance.onboard_date if instance.onboard_date else None
+        if report_date:
+            _mark_recruitment_reports_for_refresh(
+                report_date=report_date,
+                branch_id=instance.branch_id,
+                block_id=instance.block_id,
+                department_id=instance.department_id,
+            )
 
         # Delete event: previous is deleted state, current is None
         previous_snapshot = {
@@ -106,3 +134,40 @@ def trigger_recruitment_reports_aggregation_on_delete(sender, instance, **kwargs
         }
         snapshot = {"previous": previous_snapshot, "current": None}
         aggregate_recruitment_reports_for_candidate.delay("delete", snapshot)
+
+
+def _mark_recruitment_reports_for_refresh(
+    report_date, branch_id, block_id, department_id
+):  # noqa: ANN001, ANN201
+    """Mark affected recruitment report records with need_refresh=True.
+
+    Only marks the specific report record matching the exact date and org unit,
+    avoiding bulk updates of large date ranges.
+
+    Args:
+        report_date: The report date to mark
+        branch_id: Branch ID
+        block_id: Block ID (can be None)
+        department_id: Department ID (can be None)
+    """
+    # Build filter criteria for exact org unit match
+    filter_criteria = {
+        "report_date": report_date,
+        "branch_id": branch_id,
+    }
+    if block_id:
+        filter_criteria["block_id"] = block_id
+    if department_id:
+        filter_criteria["department_id"] = department_id
+
+    # Mark RecruitmentSourceReport records
+    RecruitmentSourceReport.objects.filter(**filter_criteria).update(need_refresh=True)
+
+    # Mark RecruitmentChannelReport records
+    RecruitmentChannelReport.objects.filter(**filter_criteria).update(need_refresh=True)
+
+    # Mark RecruitmentCostReport records
+    RecruitmentCostReport.objects.filter(**filter_criteria).update(need_refresh=True)
+
+    # Mark HiredCandidateReport records
+    HiredCandidateReport.objects.filter(**filter_criteria).update(need_refresh=True)

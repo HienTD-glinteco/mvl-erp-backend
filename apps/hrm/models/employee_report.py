@@ -14,6 +14,7 @@ class EmployeeStatusBreakdownReport(BaseModel):
 
     Attributes:
         report_date: Date of the report
+        need_refresh: Flag indicating if report needs recalculation by batch task
         branch: Branch in the organizational hierarchy
         block: Block within the branch
         department: Department within the block
@@ -27,6 +28,12 @@ class EmployeeStatusBreakdownReport(BaseModel):
     """
 
     report_date = models.DateField(verbose_name=_("Report date"), db_index=True)
+    need_refresh = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name=_("Needs refresh"),
+        help_text=_("Indicates if this report needs to be recalculated by batch task"),
+    )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
