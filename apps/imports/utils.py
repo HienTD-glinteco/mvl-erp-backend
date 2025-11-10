@@ -185,8 +185,9 @@ class CSVStreamingWriter(StreamingWriter):
         """
         super().__init__(temp_dir)
         self.file_path = os.path.join(self.temp_dir, filename)
-        self.temp_file = open(self.file_path, "w", newline="", encoding="utf-8")
-        self.writer = csv.writer(self.temp_file)
+        # Use utf-8-sig for Excel compatibility and QUOTE_MINIMAL for proper escaping
+        self.temp_file = open(self.file_path, "w", newline="", encoding="utf-8-sig")
+        self.writer = csv.writer(self.temp_file, quoting=csv.QUOTE_MINIMAL)
 
     def write_header(self, headers: list) -> None:
         """Write CSV header."""
