@@ -1,20 +1,20 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.models import BaseModel
+from libs.models import BaseReportModel
 
 from .organization import Block, Branch, Department
 
 
-class EmployeeStatusBreakdownReport(BaseModel):
+class EmployeeStatusBreakdownReport(BaseReportModel):
     """Daily employee status breakdown report.
 
     Stores per-day headcount and resignation breakdowns for a specific organizational unit.
     Each record represents data for one day across branch, block, and department.
 
     Attributes:
-        report_date: Date of the report
-        need_refresh: Flag indicating if report needs recalculation by batch task
+        report_date: Date of the report (inherited from BaseReportModel)
+        need_refresh: Flag indicating if report needs recalculation by batch task (inherited from BaseReportModel)
         branch: Branch in the organizational hierarchy
         block: Block within the branch
         department: Department within the block
@@ -26,14 +26,6 @@ class EmployeeStatusBreakdownReport(BaseModel):
         total_not_resigned: Total count excluding resigned employees
         count_resigned_reasons: JSON field storing resignation reason counts
     """
-
-    report_date = models.DateField(verbose_name=_("Report date"), db_index=True)
-    need_refresh = models.BooleanField(
-        default=False,
-        db_index=True,
-        verbose_name=_("Needs refresh"),
-        help_text=_("Indicates if this report needs to be recalculated by batch task"),
-    )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,

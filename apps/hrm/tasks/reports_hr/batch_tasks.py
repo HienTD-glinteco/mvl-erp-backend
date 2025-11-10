@@ -161,8 +161,7 @@ def _hr_batch_aggregation_with_refresh() -> int:
 # Create the actual Celery task using the framework
 aggregate_hr_reports_batch = create_batch_task(
     name='aggregate_hr_reports_batch',
-    batch_aggregate_func=_hr_batch_aggregation,
-    get_modified_model_query=_get_modified_work_history_query,
+    batch_aggregate_func=_hr_batch_aggregation_with_refresh,
     queue='reports_batch'
 )
 
