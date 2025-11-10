@@ -34,6 +34,36 @@ from apps.imports.utils import (
 logger = logging.getLogger(__name__)
 
 
+def sanitize_error_message(error_msg: str) -> str:
+    """
+    Clean error message for CSV/Excel output.
+
+    Args:
+        error_msg: Raw error message
+
+    Returns:
+        str: Sanitized error message safe for CSV/Excel
+    """
+    if not error_msg:
+        return ""
+
+    # Replace newlines and carriage returns with space
+    cleaned = error_msg.replace("\n", " ").replace("\r", " ")
+
+    # Replace multiple spaces with single space
+    cleaned = " ".join(cleaned.split())
+
+    # Remove NULL bytes that can break CSV
+    cleaned = cleaned.replace("\x00", "")
+
+    # Limit length to prevent huge cells (500 chars is reasonable)
+    max_length = 500
+    if len(cleaned) > max_length:
+        cleaned = cleaned[:max_length] + "..."
+
+    return cleaned
+
+
 class ImportCancelled(Exception):
     """Exception raised when import job is cancelled."""
 
@@ -236,9 +266,15 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
 
                     # Write headers on first row
                     if not headers_written:
-                        # Assume row length matches header
-                        success_headers = [f"col_{i}" for i in range(len(row))]
-                        failed_headers = success_headers + ["import_error"]
+                        # Use original headers from file if available
+                        if headers and len(headers) >= len(row):
+                            success_headers = headers[: len(row)]
+                            failed_headers = success_headers + ["Import Error"]
+                        else:
+                            # Fallback to generic headers if original not available
+                            success_headers = [f"Column {i + 1}" for i in range(len(row))]
+                            failed_headers = success_headers + ["Import Error"]
+
                         success_writer.write_header(success_headers)
                         failed_writer.write_header(failed_headers)
                         headers_written = True
@@ -248,8 +284,8 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
                         success_writer.write_row(row)
                         progress_tracker.update(success_increment=1)
                     else:
-                        # Failure
-                        error_msg = result.get("error", "Unknown error")
+                        # Failure - sanitize error message
+                        error_msg = sanitize_error_message(result.get("error", "Unknown error"))
                         failed_row = list(row) + [error_msg]
                         failed_writer.write_row(failed_row)
                         progress_tracker.update(failure_increment=1)
@@ -258,13 +294,22 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
                     # Handler exception
                     logger.error(f"Import job {import_job_id} handler error at row {row_index}: {e}")
                     if not headers_written:
-                        success_headers = [f"col_{i}" for i in range(len(row))]
-                        failed_headers = success_headers + ["import_error"]
+                        # Use original headers from file if available
+                        if headers and len(headers) >= len(row):
+                            success_headers = headers[: len(row)]
+                            failed_headers = success_headers + ["Import Error"]
+                        else:
+                            # Fallback to generic headers
+                            success_headers = [f"Column {i + 1}" for i in range(len(row))]
+                            failed_headers = success_headers + ["Import Error"]
+
                         success_writer.write_header(success_headers)
                         failed_writer.write_header(failed_headers)
                         headers_written = True
 
-                    failed_row = list(row) + [str(e)]
+                    # Sanitize exception message
+                    error_msg = sanitize_error_message(str(e))
+                    failed_row = list(row) + [error_msg]
                     failed_writer.write_row(failed_row)
                     progress_tracker.update(failure_increment=1)
 
