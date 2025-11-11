@@ -473,6 +473,3 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Organization"
     permission_prefix = "position"
-
-
-

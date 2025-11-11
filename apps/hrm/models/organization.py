@@ -268,6 +268,3 @@ class Position(AutoCodeMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
-
-
-

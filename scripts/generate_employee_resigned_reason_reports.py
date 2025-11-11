@@ -15,16 +15,26 @@ Notes:
 """
 
 import argparse
+import os
 import random
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
-from django.db import transaction
-from django.utils import timezone
+# Setup Django
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.local")
 
-from apps.hrm.models.employee import Employee
-from apps.hrm.models.employee_report import EmployeeResignedReasonReport
-from apps.hrm.models.organization import Department
+import django
+
+django.setup()
+
+from django.db import transaction  # noqa: E402
+from django.utils import timezone  # noqa: E402
+
+from apps.hrm.models.employee import Employee  # noqa: E402
+from apps.hrm.models.employee_report import EmployeeResignedReasonReport  # noqa: E402
+from apps.hrm.models.organization import Department  # noqa: E402
 
 # Mapping from Employee.ResignationReason enum values to EmployeeResignedReasonReport field names
 REASON_FIELD_MAP = {

@@ -76,6 +76,3 @@ class PositionFilterSet(django_filters.FilterSet):
     class Meta:
         model = Position
         fields = ["name", "code", "is_active"]
-
-
-

@@ -5,42 +5,68 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0050_remove_organization_chart'),
+        ("hrm", "0050_remove_organization_chart"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EmployeeResignedReasonReport',
+            name="EmployeeResignedReasonReport",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('report_date', models.DateField(db_index=True, verbose_name='Report date')),
-                ('count_resigned', models.IntegerField(default=0, verbose_name='Resigned count')),
-                ('agreement_termination', models.IntegerField(default=0, verbose_name='Agreement Termination')),
-                ('probation_fail', models.IntegerField(default=0, verbose_name='Probation Fail')),
-                ('job_abandonment', models.IntegerField(default=0, verbose_name='Job Abandonment')),
-                ('disciplinary_termination', models.IntegerField(default=0, verbose_name='Disciplinary Termination')),
-                ('workforce_reduction', models.IntegerField(default=0, verbose_name='Workforce Reduction')),
-                ('underperforming', models.IntegerField(default=0, verbose_name='Underperforming')),
-                ('contract_expired', models.IntegerField(default=0, verbose_name='Contract Expired')),
-                ('voluntary_health', models.IntegerField(default=0, verbose_name='Voluntary - Health Reasons')),
-                ('voluntary_personal', models.IntegerField(default=0, verbose_name='Voluntary - Personal Reasons')),
-                ('voluntary_career_change', models.IntegerField(default=0, verbose_name='Voluntary - Career Change')),
-                ('voluntary_other', models.IntegerField(default=0, verbose_name='Voluntary - Other')),
-                ('other', models.IntegerField(default=0, verbose_name='Other')),
-                ('block', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='hrm.block', verbose_name='Block')),
-                ('branch', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='hrm.branch', verbose_name='Branch')),
-                ('department', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='hrm.department', verbose_name='Department')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("report_date", models.DateField(db_index=True, verbose_name="Report date")),
+                ("count_resigned", models.IntegerField(default=0, verbose_name="Resigned count")),
+                ("agreement_termination", models.IntegerField(default=0, verbose_name="Agreement Termination")),
+                ("probation_fail", models.IntegerField(default=0, verbose_name="Probation Fail")),
+                ("job_abandonment", models.IntegerField(default=0, verbose_name="Job Abandonment")),
+                ("disciplinary_termination", models.IntegerField(default=0, verbose_name="Disciplinary Termination")),
+                ("workforce_reduction", models.IntegerField(default=0, verbose_name="Workforce Reduction")),
+                ("underperforming", models.IntegerField(default=0, verbose_name="Underperforming")),
+                ("contract_expired", models.IntegerField(default=0, verbose_name="Contract Expired")),
+                ("voluntary_health", models.IntegerField(default=0, verbose_name="Voluntary - Health Reasons")),
+                ("voluntary_personal", models.IntegerField(default=0, verbose_name="Voluntary - Personal Reasons")),
+                ("voluntary_career_change", models.IntegerField(default=0, verbose_name="Voluntary - Career Change")),
+                ("voluntary_other", models.IntegerField(default=0, verbose_name="Voluntary - Other")),
+                ("other", models.IntegerField(default=0, verbose_name="Other")),
+                (
+                    "block",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="hrm.block",
+                        verbose_name="Block",
+                    ),
+                ),
+                (
+                    "branch",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="hrm.branch",
+                        verbose_name="Branch",
+                    ),
+                ),
+                (
+                    "department",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="hrm.department",
+                        verbose_name="Department",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Employee Resigned Reason Report',
-                'verbose_name_plural': 'Employee Resigned Reason Reports',
-                'db_table': 'hrm_employee_resigned_reason_report',
-                'indexes': [models.Index(fields=['report_date'], name='hrm_employe_report__58d55a_idx'), models.Index(fields=['branch', 'block', 'department'], name='hrm_employe_branch__925fcb_idx')],
-                'unique_together': {('report_date', 'branch', 'block', 'department')},
+                "verbose_name": "Employee Resigned Reason Report",
+                "verbose_name_plural": "Employee Resigned Reason Reports",
+                "db_table": "hrm_employee_resigned_reason_report",
+                "indexes": [
+                    models.Index(fields=["report_date"], name="hrm_employe_report__58d55a_idx"),
+                    models.Index(fields=["branch", "block", "department"], name="hrm_employe_branch__925fcb_idx"),
+                ],
+                "unique_together": {("report_date", "branch", "block", "department")},
             },
         ),
     ]

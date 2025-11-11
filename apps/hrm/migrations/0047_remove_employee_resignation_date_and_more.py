@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("hrm", "0046_employeestatusbreakdownreport"),
     ]
@@ -17,16 +16,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="employee",
             name="resignation_end_date",
-            field=models.DateField(
-                blank=True, null=True, verbose_name="Resignation end date"
-            ),
+            field=models.DateField(blank=True, null=True, verbose_name="Resignation end date"),
         ),
         migrations.AddField(
             model_name="employee",
             name="resignation_start_date",
-            field=models.DateField(
-                blank=True, null=True, verbose_name="Resignation start date"
-            ),
+            field=models.DateField(blank=True, null=True, verbose_name="Resignation start date"),
         ),
         migrations.AlterField(
             model_name="employee",
