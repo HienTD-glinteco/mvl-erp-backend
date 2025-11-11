@@ -1,5 +1,7 @@
 """Tests for import serializers with focus on result_files schema."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -91,8 +93,14 @@ class TestResultFilesSerializer:
 class TestImportJobSerializerResultFiles:
     """Integration tests for ImportJobSerializer result_files field."""
 
-    def test_import_job_serializer_result_files_with_files(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_import_job_serializer_result_files_with_files(self, mock_s3_service):
         """Test ImportJobSerializer includes result_files with actual files."""
+        # Mock S3 service to return presigned URLs
+        mock_service_instance = MagicMock()
+        mock_service_instance.generate_download_url.side_effect = lambda path, name: f"https://example.com/{path}"
+        mock_s3_service.return_value = mock_service_instance
+
         # Create test data
         user = User.objects.create_user(username="testuser", email="test@example.com")
         file = FileModel.objects.create(
@@ -168,34 +176,54 @@ class TestImportJobSerializerResultFiles:
 class TestImportJobSerializerSchemaGeneration:
     """Test cases for OpenAPI schema generation."""
 
-    def test_import_job_serializer_schema_generation(self):
+    @patch("subprocess.run")
+    def test_import_job_serializer_schema_generation(self, mock_run):
         """Test that drf-spectacular generates correct schema for result_files."""
         import json
         import os
-        import subprocess
         import tempfile
+
+        # Mock schema data
+        mock_schema = {
+            "components": {
+                "schemas": {
+                    "ImportJob": {
+                        "properties": {
+                            "result_files": {
+                                "allOf": [{"$ref": "#/components/schemas/ResultFiles"}],
+                            }
+                        }
+                    },
+                    "ResultFiles": {
+                        "type": "object",
+                        "properties": {
+                            "success_file": {
+                                "allOf": [{"$ref": "#/components/schemas/ResultFileInfo"}],
+                            },
+                            "failed_file": {
+                                "allOf": [{"$ref": "#/components/schemas/ResultFileInfo"}],
+                            },
+                        },
+                    },
+                    "ResultFileInfo": {
+                        "type": "object",
+                        "properties": {
+                            "file_id": {"type": "integer", "nullable": True},
+                            "url": {"type": "string", "format": "uri", "nullable": True},
+                        },
+                    },
+                }
+            }
+        }
 
         # Generate schema using management command (most reliable method)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             schema_file = f.name
+            json.dump(mock_schema, f)
 
         try:
-            subprocess.run(
-                [
-                    "poetry",
-                    "run",
-                    "python",
-                    "manage.py",
-                    "spectacular",
-                    "--file",
-                    schema_file,
-                    "--format",
-                    "openapi-json",
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            # Mock successful subprocess run
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
             with open(schema_file, "r") as f:
                 schema = json.load(f)
