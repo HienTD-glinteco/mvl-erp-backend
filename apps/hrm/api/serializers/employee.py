@@ -500,3 +500,62 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
             end_date=self.employee.resignation_end_date,
             note=self.validated_data.get("description", ""),
         )
+
+
+class EmployeeTransferActionSerializer(serializers.Serializer):
+    """Serializer for the 'transfer' action."""
+
+    date = serializers.DateField(required=True)
+    department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        required=True,
+    )
+    position_id = serializers.PrimaryKeyRelatedField(
+        queryset=Position.objects.all(),
+        required=True,
+    )
+    note = serializers.CharField(required=False, allow_blank=True)
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, **kwargs)
+        self.employee: Employee = self.context.get("employee", None)
+        self.employee_update_fields = []
+        self.old_department = self.employee.department if self.employee else None
+        self.old_position = self.employee.position if self.employee else None
+
+    def validate(self, attrs):
+        """Validate transfer data."""
+        department = attrs["department_id"]
+        position = attrs["position_id"]
+
+        # Update employee's department and position
+        self.employee.department = department
+        self.employee.position = position
+        self.employee_update_fields.extend(["department", "position", "block", "branch"])
+
+        # Validate using model's clean method
+        try:
+            self.employee.clean()
+        except DjangoValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
+
+        return attrs
+
+    def save(self, **kwargs):
+        """Save employee transfer and create work history record."""
+        self.employee.save(update_fields=self.employee_update_fields)
+
+        # Create work history record for transfer
+        create_transfer_event(
+            employee=self.employee,
+            old_department=self.old_department,
+            new_department=self.employee.department,
+            old_position=self.old_position,
+            new_position=self.employee.position,
+            effective_date=self.validated_data["date"],
+            note=self.validated_data.get("note", ""),
+        )

@@ -15,6 +15,7 @@ from apps.hrm.api.serializers import (
     EmployeeReactiveActionSerializer,
     EmployeeResignedActionSerializer,
     EmployeeSerializer,
+    EmployeeTransferActionSerializer,
 )
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
@@ -92,6 +93,8 @@ class EmployeeViewSet(
             return EmployeeResignedActionSerializer
         if self.action == "maternity_leave":
             return EmployeeMaternityLeaveActionSerializer
+        if self.action == "transfer":
+            return EmployeeTransferActionSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -151,6 +154,22 @@ class EmployeeViewSet(
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def maternity_leave(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
+
+    @extend_schema(
+        summary="Transfer employee to new department and position",
+        request=EmployeeTransferActionSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def transfer(self, request, *args, **kwargs):
         employee = self.get_object()
         serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
         serializer.is_valid(raise_exception=True)

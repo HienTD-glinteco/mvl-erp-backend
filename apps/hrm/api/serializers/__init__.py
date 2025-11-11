@@ -9,6 +9,7 @@ from .employee import (
     EmployeeReactiveActionSerializer,
     EmployeeResignedActionSerializer,
     EmployeeSerializer,
+    EmployeeTransferActionSerializer,
 )
 from .employee_certificate import EmployeeCertificateSerializer
 from .employee_dependent import EmployeeDependentSerializer
@@ -69,6 +70,7 @@ __all__ = [
     "EmployeeReactiveActionSerializer",
     "EmployeeResignedActionSerializer",
     "EmployeeSerializer",
+    "EmployeeTransferActionSerializer",
     "EmployeeCertificateSerializer",
     "EmployeeDependentSerializer",
     "EmployeeWorkHistorySerializer",

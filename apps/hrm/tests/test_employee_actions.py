@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Block, Branch, Department, Employee
+from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory, Position
 
 User = get_user_model()
 
@@ -290,3 +290,125 @@ class EmployeeActionAPITest(TestCase):
         self.assertNotEqual(copied_employee.citizen_id, self.active_employee.citizen_id)
         self.assertEqual(len(copied_employee.citizen_id), 10)
         self.assertTrue(copied_employee.citizen_id.isdigit())
+
+    def test_transfer_action(self):
+        """Test transferring an employee to a new department and position"""
+        # Create a new department and position
+        new_block = Block.objects.create(
+            code="KH002",
+            name="New Block",
+            branch=self.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        new_department = Department.objects.create(
+            code="PB002",
+            name="New Department",
+            branch=self.branch,
+            block=new_block,
+        )
+        new_position = Position.objects.create(
+            code="CV002",
+            name="Senior Manager",
+        )
+
+        url = reverse("hrm:employee-transfer", kwargs={"pk": self.active_employee.id})
+        payload = {
+            "date": "2024-03-01",
+            "department_id": new_department.id,
+            "position_id": new_position.id,
+            "note": "Transferred to new department for expansion",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_employee.refresh_from_db()
+        self.assertEqual(self.active_employee.department, new_department)
+        self.assertEqual(self.active_employee.position, new_position)
+        # Branch and block should be automatically updated from the new department
+        self.assertEqual(self.active_employee.branch, new_department.branch)
+        self.assertEqual(self.active_employee.block, new_department.block)
+
+        # Verify work history record was created
+        work_history = EmployeeWorkHistory.objects.filter(
+            employee=self.active_employee,
+            name=EmployeeWorkHistory.EventType.TRANSFER,
+        ).first()
+        self.assertIsNotNone(work_history)
+        self.assertEqual(str(work_history.date), "2024-03-01")
+        self.assertEqual(work_history.department, new_department)
+        self.assertEqual(work_history.position, new_position)
+        self.assertEqual(work_history.branch, new_department.branch)
+        self.assertEqual(work_history.block, new_department.block)
+        self.assertEqual(work_history.note, "Transferred to new department for expansion")
+
+    def test_transfer_action_department_only(self):
+        """Test transferring an employee with same position"""
+        # Create a new department
+        new_block = Block.objects.create(
+            code="KH003",
+            name="Another Block",
+            branch=self.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        new_department = Department.objects.create(
+            code="PB003",
+            name="Another Department",
+            branch=self.branch,
+            block=new_block,
+        )
+
+        # Keep the same position but transfer to new department
+        original_position = Position.objects.create(
+            code="CV003",
+            name="Manager",
+        )
+        self.active_employee.position = original_position
+        self.active_employee.save(update_fields=["position"])
+
+        url = reverse("hrm:employee-transfer", kwargs={"pk": self.active_employee.id})
+        payload = {
+            "date": "2024-04-01",
+            "department_id": new_department.id,
+            "position_id": original_position.id,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_employee.refresh_from_db()
+        self.assertEqual(self.active_employee.department, new_department)
+        self.assertEqual(self.active_employee.position, original_position)
+
+    def test_transfer_action_validates_department(self):
+        """Test that transfer action validates the department"""
+        url = reverse("hrm:employee-transfer", kwargs={"pk": self.active_employee.id})
+        payload = {
+            "date": "2024-03-01",
+            "department_id": 99999,  # Non-existent department
+            "position_id": 1,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_transfer_action_validates_position(self):
+        """Test that transfer action validates the position"""
+        url = reverse("hrm:employee-transfer", kwargs={"pk": self.active_employee.id})
+        payload = {
+            "date": "2024-03-01",
+            "department_id": self.department.id,
+            "position_id": 99999,  # Non-existent position
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_transfer_action_requires_date(self):
+        """Test that transfer action requires date field"""
+        url = reverse("hrm:employee-transfer", kwargs={"pk": self.active_employee.id})
+        payload = {
+            "department_id": self.department.id,
+            "position_id": 1,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
