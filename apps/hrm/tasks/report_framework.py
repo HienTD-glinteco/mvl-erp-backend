@@ -71,19 +71,13 @@ class BatchAggregationFunction(Protocol):
     """Protocol for batch aggregation functions.
 
     Implementations must determine which dates and org units to process.
-    The factory will pass the raw `target_date` parameter (ISO date string)
-    or None — the implementation is responsible for interpreting it.
     """
 
-    def __call__(self, target_date: str | None) -> int:
+    def __call__(self) -> int:
         """Run batch aggregation.
 
-        Args:
-            target_date: ISO date string (YYYY-MM-DD) or None to indicate
-                the implementation should decide which dates to process.
-
         Returns:
-            Number of org units processed
+            Number of date processed
         """
         ...
 

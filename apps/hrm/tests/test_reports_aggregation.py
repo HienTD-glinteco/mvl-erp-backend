@@ -8,6 +8,7 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
     Block,
@@ -17,6 +18,7 @@ from apps.hrm.models import (
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
     HiredCandidateReport,
+    JobDescription,
     Position,
     RecruitmentCandidate,
     RecruitmentChannel,
@@ -42,10 +44,29 @@ class TestHRReportsAggregationTasks(TestCase):
     def setUp(self):
         """Set up test data."""
         # Create organizational structure
-        self.branch = Branch.objects.create(code="BR01", name="Branch 1")
-        self.block = Block.objects.create(code="BL01", name="Block 1", branch=self.branch)
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="BR01",
+            name="Branch 1",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="BL01", name="Block 1", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
         self.department = Department.objects.create(
-            code="DP01", name="Department 1", block=self.block, branch=self.branch
+            code="DP01",
+            name="Department 1",
+            block=self.block,
+            branch=self.branch,
+            function=Department.DepartmentFunction.BUSINESS,
         )
         self.position = Position.objects.create(code="POS01", name="Position 1")
 
@@ -61,6 +82,7 @@ class TestHRReportsAggregationTasks(TestCase):
             department=self.department,
             position=self.position,
             status=Employee.Status.ACTIVE,
+            start_date=timezone.now(),
         )
 
         # Create work history
@@ -253,28 +275,71 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
     def setUp(self):
         """Set up test data."""
         # Create organizational structure
-        self.branch = Branch.objects.create(code="BR01", name="Branch 1")
-        self.block = Block.objects.create(code="BL01", name="Block 1", branch=self.branch)
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="BR01",
+            name="Branch 1",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="BL01", name="Block 1", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
         self.department = Department.objects.create(
-            code="DP01", name="Department 1", block=self.block, branch=self.branch
+            code="DP01",
+            name="Department 1",
+            block=self.block,
+            branch=self.branch,
+            function=Department.DepartmentFunction.BUSINESS,
         )
 
         # Create recruitment source and channel
-        self.source = RecruitmentSource.objects.create(
-            code="SRC01", name="Source 1", allow_referral=False
+        self.source = RecruitmentSource.objects.create(code="SRC01", name="Source 1", allow_referral=False)
+        self.channel = RecruitmentChannel.objects.create(code="CH01", name="Channel 1", belong_to="marketing")
+
+        # Create job description
+        self.job_description = JobDescription.objects.create(
+            code="JD001",
+            title="Job Description 1",
+            position_title="Position Title 1",
+            responsibility="",
+            proposed_salary="10.000.000 VND",
         )
-        self.channel = RecruitmentChannel.objects.create(
-            code="CH01", name="Channel 1", belong_to="marketing"
+
+        # Create a proposer employee
+        self.proposer = Employee.objects.create(
+            fullname="Proposer User",
+            username="proposer",
+            email="proposer@example.com",
+            phone="0987654321",
+            attendance_code="99999",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2023-01-01",
+            citizen_id="000000020014",
         )
 
         # Create recruitment request
         self.request = RecruitmentRequest.objects.create(
             code="REQ01",
-            position_name="Developer",
-            quantity=5,
+            name="Developer",
+            number_of_positions=5,
             branch=self.branch,
             block=self.block,
             department=self.department,
+            job_description=self.job_description,
+            proposer=self.proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            proposed_salary="10.000.000 VND",
         )
 
         # Create hired candidate
@@ -492,10 +557,29 @@ class TestSignalIntegration(TestCase):
     def setUp(self):
         """Set up test data."""
         # Create organizational structure
-        self.branch = Branch.objects.create(code="BR01", name="Branch 1")
-        self.block = Block.objects.create(code="BL01", name="Block 1", branch=self.branch)
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="BR01",
+            name="Branch 1",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="BL01", name="Block 1", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
         self.department = Department.objects.create(
-            code="DP01", name="Department 1", block=self.block, branch=self.branch
+            code="DP01",
+            name="Department 1",
+            block=self.block,
+            branch=self.branch,
+            function=Department.DepartmentFunction.BUSINESS,
         )
         self.position = Position.objects.create(code="POS01", name="Position 1")
 
