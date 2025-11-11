@@ -238,6 +238,22 @@ msgstr ""
 msgid "Returning Employee"
 msgstr ""
 
+#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/constants.py:53
 msgid "All data"
 msgstr ""
