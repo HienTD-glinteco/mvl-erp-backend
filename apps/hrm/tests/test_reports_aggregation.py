@@ -5,7 +5,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
@@ -38,6 +38,10 @@ from apps.hrm.tasks import (
 
 
 @pytest.mark.django_db
+@override_settings(
+    CELERY_TASK_ALWAYS_EAGER=True,
+    CELERY_TASK_EAGER_PROPAGATES=True,
+)
 class TestHRReportsAggregationTasks(TestCase):
     """Test cases for HR reports aggregation tasks."""
 
@@ -269,6 +273,10 @@ class TestHRReportsAggregationTasks(TestCase):
 
 
 @pytest.mark.django_db
+@override_settings(
+    CELERY_TASK_ALWAYS_EAGER=True,
+    CELERY_TASK_EAGER_PROPAGATES=True,
+)
 class TestRecruitmentReportsAggregationTasks(TestCase):
     """Test cases for recruitment reports aggregation tasks."""
 
@@ -551,6 +559,10 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
 
 
 @pytest.mark.django_db
+@override_settings(
+    CELERY_TASK_ALWAYS_EAGER=True,
+    CELERY_TASK_EAGER_PROPAGATES=True,
+)
 class TestSignalIntegration(TestCase):
     """Test cases for signal integration with report aggregation tasks."""
 
