@@ -1,0 +1,207 @@
+"""Tests for import serializers with focus on result_files schema."""
+
+import pytest
+from django.contrib.auth import get_user_model
+from drf_spectacular.generators import SchemaGenerator
+from rest_framework import serializers
+
+from apps.files.models import FileModel
+from apps.imports.api.serializers import (
+    ImportJobSerializer,
+    ResultFileInfoSerializer,
+    ResultFilesSerializer,
+)
+from apps.imports.models import ImportJob
+
+User = get_user_model()
+
+
+class TestResultFileInfoSerializer:
+    """Test cases for ResultFileInfoSerializer."""
+
+    def test_result_file_info_serializer_structure(self):
+        """Test ResultFileInfoSerializer has correct field structure."""
+        serializer = ResultFileInfoSerializer()
+
+        # Verify fields exist
+        assert "file_id" in serializer.fields
+        assert "url" in serializer.fields
+
+        # Verify field types
+        assert isinstance(serializer.fields["file_id"], serializers.IntegerField)
+        assert isinstance(serializer.fields["url"], serializers.URLField)
+
+        # Verify nullable
+        assert serializer.fields["file_id"].allow_null is True
+        assert serializer.fields["url"].allow_null is True
+
+    def test_result_file_info_serializer_with_data(self):
+        """Test ResultFileInfoSerializer serializes data correctly."""
+        data = {"file_id": 123, "url": "https://example.com/file.csv"}
+        serializer = ResultFileInfoSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data == data
+
+    def test_result_file_info_serializer_with_null_values(self):
+        """Test ResultFileInfoSerializer handles null values."""
+        data = {"file_id": None, "url": None}
+        serializer = ResultFileInfoSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data["file_id"] is None
+        assert serializer.validated_data["url"] is None
+
+
+class TestResultFilesSerializer:
+    """Test cases for ResultFilesSerializer."""
+
+    def test_result_files_serializer_structure(self):
+        """Test ResultFilesSerializer has correct nested structure."""
+        serializer = ResultFilesSerializer()
+
+        # Verify fields exist
+        assert "success_file" in serializer.fields
+        assert "failed_file" in serializer.fields
+
+        # Verify nested serializers
+        assert isinstance(serializer.fields["success_file"], ResultFileInfoSerializer)
+        assert isinstance(serializer.fields["failed_file"], ResultFileInfoSerializer)
+
+    def test_result_files_serializer_with_complete_data(self):
+        """Test ResultFilesSerializer with complete file data."""
+        data = {
+            "success_file": {"file_id": 123, "url": "https://example.com/success.csv"},
+            "failed_file": {"file_id": 124, "url": "https://example.com/failed.csv"},
+        }
+        serializer = ResultFilesSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data["success_file"]["file_id"] == 123
+        assert serializer.validated_data["failed_file"]["file_id"] == 124
+
+    def test_result_files_serializer_with_partial_data(self):
+        """Test ResultFilesSerializer with some null values."""
+        data = {
+            "success_file": {"file_id": 123, "url": "https://example.com/success.csv"},
+            "failed_file": {"file_id": None, "url": None},
+        }
+        serializer = ResultFilesSerializer(data=data)
+        assert serializer.is_valid()
+        assert serializer.validated_data["failed_file"]["file_id"] is None
+
+
+@pytest.mark.django_db
+class TestImportJobSerializerResultFiles:
+    """Integration tests for ImportJobSerializer result_files field."""
+
+    def test_import_job_serializer_result_files_with_files(self):
+        """Test ImportJobSerializer includes result_files with actual files."""
+        # Create test data
+        user = User.objects.create_user(username="testuser", email="test@example.com")
+        file = FileModel.objects.create(
+            purpose="test_import",
+            file_name="test.csv",
+            file_path="uploads/test.csv",
+            uploaded_by=user,
+        )
+        success_file = FileModel.objects.create(
+            purpose="import_result",
+            file_name="success.csv",
+            file_path="uploads/success.csv",
+            uploaded_by=user,
+        )
+        failed_file = FileModel.objects.create(
+            purpose="import_result",
+            file_name="failed.csv",
+            file_path="uploads/failed.csv",
+            uploaded_by=user,
+        )
+
+        import_job = ImportJob.objects.create(
+            file=file,
+            created_by=user,
+            status="completed",
+            result_success_file=success_file,
+            result_failed_file=failed_file,
+        )
+
+        # Serialize
+        serializer = ImportJobSerializer(import_job)
+        data = serializer.data
+
+        # Verify structure
+        assert "result_files" in data
+        assert isinstance(data["result_files"], dict)
+        assert "success_file" in data["result_files"]
+        assert "failed_file" in data["result_files"]
+
+        # Verify success file data
+        assert data["result_files"]["success_file"]["file_id"] == success_file.id
+        assert data["result_files"]["success_file"]["url"] is not None
+
+        # Verify failed file data
+        assert data["result_files"]["failed_file"]["file_id"] == failed_file.id
+        assert data["result_files"]["failed_file"]["url"] is not None
+
+    def test_import_job_serializer_result_files_without_files(self):
+        """Test ImportJobSerializer handles missing result files."""
+        user = User.objects.create_user(username="testuser", email="test@example.com")
+        file = FileModel.objects.create(
+            purpose="test_import",
+            file_name="test.csv",
+            file_path="uploads/test.csv",
+            uploaded_by=user,
+        )
+
+        import_job = ImportJob.objects.create(
+            file=file, created_by=user, status="pending", result_success_file=None, result_failed_file=None
+        )
+
+        serializer = ImportJobSerializer(import_job)
+        data = serializer.data
+
+        # Verify null values
+        assert data["result_files"]["success_file"]["file_id"] is None
+        assert data["result_files"]["success_file"]["url"] is None
+        assert data["result_files"]["failed_file"]["file_id"] is None
+        assert data["result_files"]["failed_file"]["url"] is None
+
+
+@pytest.mark.django_db
+class TestImportJobSerializerSchemaGeneration:
+    """Test cases for OpenAPI schema generation."""
+
+    def test_import_job_serializer_schema_generation(self):
+        """Test that drf-spectacular generates correct schema for result_files."""
+        generator = SchemaGenerator()
+        schema = generator.get_schema()
+
+        # Navigate to ImportJobSerializer schema
+        import_job_schema = schema["components"]["schemas"]["ImportJob"]
+
+        # Verify result_files exists
+        assert "result_files" in import_job_schema["properties"]
+
+        result_files_schema = import_job_schema["properties"]["result_files"]
+
+        # Verify it's an object, not a string
+        assert result_files_schema["type"] == "object"
+        assert "properties" in result_files_schema
+
+        # Verify success_file structure
+        assert "success_file" in result_files_schema["properties"]
+        success_file_schema = result_files_schema["properties"]["success_file"]
+        assert success_file_schema["type"] == "object"
+        assert "file_id" in success_file_schema["properties"]
+        assert "url" in success_file_schema["properties"]
+
+        # Verify failed_file structure
+        assert "failed_file" in result_files_schema["properties"]
+        failed_file_schema = result_files_schema["properties"]["failed_file"]
+        assert failed_file_schema["type"] == "object"
+        assert "file_id" in failed_file_schema["properties"]
+        assert "url" in failed_file_schema["properties"]
+
+        # Verify field types and nullable
+        assert success_file_schema["properties"]["file_id"]["nullable"] is True
+        assert success_file_schema["properties"]["url"]["nullable"] is True
+        assert failed_file_schema["properties"]["file_id"]["nullable"] is True
+        assert failed_file_schema["properties"]["url"]["nullable"] is True
