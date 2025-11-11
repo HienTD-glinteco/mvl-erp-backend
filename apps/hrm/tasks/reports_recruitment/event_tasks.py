@@ -7,13 +7,15 @@ changes (create, edit, status change, delete) via Django signals.
 import logging
 from typing import Any, cast
 
-from ..report_framework import EventAggregationFunction, create_event_task
+from celery import shared_task
+
 from .helpers import _increment_recruitment_reports
 
 logger = logging.getLogger(__name__)
 
 
-def _recruitment_event_aggregation(action_type: str, snapshot: dict[str, Any]) -> None:
+@shared_task(queue="reports_event")
+def aggregate_recruitment_reports_for_candidate(action_type: str, snapshot: dict[str, Any]) -> None:
     """Business logic for recruitment event aggregation.
 
     Performs incremental updates to recruitment reports based on candidate events.
@@ -38,11 +40,3 @@ def _recruitment_event_aggregation(action_type: str, snapshot: dict[str, Any]) -
 
     # Perform incremental updates
     _increment_recruitment_reports(action_type, snapshot)
-
-
-# Create the actual Celery task using the framework
-aggregate_recruitment_reports_for_candidate = create_event_task(
-    name="aggregate_recruitment_reports_for_candidate",
-    aggregate_func=cast(EventAggregationFunction, _recruitment_event_aggregation),
-    queue="reports_event",
-)

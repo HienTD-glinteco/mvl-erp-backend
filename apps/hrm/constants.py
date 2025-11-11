@@ -98,3 +98,9 @@ class CertificateType(models.TextChoices):
     @classmethod
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
+
+
+class ActionType:
+    ACTION_CREATE = "create"
+    ACTION_UPDATE = "update"
+    ACTION_DELETE = "delete"

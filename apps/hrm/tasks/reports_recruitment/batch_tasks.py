@@ -21,7 +21,6 @@ from apps.hrm.models import (
     RecruitmentSourceReport,
 )
 
-from ..report_framework import AGGREGATION_MAX_RETRIES
 from .helpers import (
     _aggregate_hired_candidate_for_date,
     _aggregate_recruitment_channel_for_date,
@@ -109,11 +108,7 @@ def _get_recruitment_reports_needing_refresh() -> tuple[date | None, list[tuple[
     return earliest_date, list(org_units_set)
 
 
-@shared_task(
-    bind=True,
-    queue="reports_batch",
-    max_retries=AGGREGATION_MAX_RETRIES,
-)
+@shared_task(queue="reports_batch")
 def aggregate_recruitment_reports_batch() -> int:
     """Business logic for recruitment batch aggregation using need_refresh flag.
 

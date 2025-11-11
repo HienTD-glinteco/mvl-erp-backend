@@ -25,11 +25,6 @@ from apps.hrm.models import (
 
 logger = logging.getLogger(__name__)
 
-# Constants
-AGGREGATION_MAX_RETRIES = 3
-AGGREGATION_RETRY_DELAY = 60  # 1 minute
-MAX_REPORT_LOOKBACK_DAYS = 365  # Maximum 1 year lookback for batch reports
-
 
 def _increment_recruitment_reports(event_type: str, snapshot: dict[str, Any]) -> None:
     """Incrementally update recruitment reports based on event snapshot.

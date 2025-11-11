@@ -1,4 +1,6 @@
 import json
+from datetime import date
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -6,7 +8,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Block, Branch, Department, Employee
+from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -44,8 +47,6 @@ class EmployeeModelTest(TestCase):
 
     def setUp(self):
         # Create test branch, block, and department
-        from apps.core.models import AdministrativeUnit, Province
-
         self.province = Province.objects.create(code="01", name="Test Province")
         self.admin_unit = AdministrativeUnit.objects.create(
             code="01",
@@ -72,6 +73,22 @@ class EmployeeModelTest(TestCase):
             branch=self.branch,
             block=self.block,
         )
+
+        # Patch the Celery task "delay" call used by signal handlers.
+        # Keep both the patcher (for stopping) and the mock (for assertions).
+        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay")
+        self.mock_hr_report_delay = self.hr_report_patcher.start()
+
+        self.recruitment_report_patcher = patch(
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+        )
+        self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
+
+    def tearDown(self):
+        # Stop patchers
+        self.hr_report_patcher.stop()
+        self.recruitment_report_patcher.stop()
+        return super().tearDown()
 
     def test_create_employee(self):
         """Test creating an employee"""
@@ -483,7 +500,14 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
-        from apps.core.models import AdministrativeUnit, Province
+        # Patch signal tasks to avoid broker connection during API tests
+        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay")
+        self.mock_hr_report_delay = self.hr_report_patcher.start()
+
+        self.recruitment_report_patcher = patch(
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+        )
+        self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
 
         self.admin_user = User.objects.create_user(
             username="admin",
@@ -823,6 +847,12 @@ class EmployeeAPITest(TestCase, APITestMixin):
             self.assertIn("colored_code_type", item)
             self.assertIn("colored_status", item)
 
+    def tearDown(self):
+        # Stop signal patchers
+        self.hr_report_patcher.stop()
+        self.recruitment_report_patcher.stop()
+        return super().tearDown()
+
     def test_create_employee_with_position_and_contract_type(self):
         """Test creating employee with optional position_id and contract_type_id"""
         from apps.hrm.models import ContractType, Position
@@ -1037,10 +1067,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
-        from datetime import date
+        # Patch signal tasks to avoid broker connection during filter tests
+        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay")
+        self.mock_hr_report_delay = self.hr_report_patcher.start()
 
-        from apps.core.models import AdministrativeUnit, Province
-        from apps.hrm.models import Position
+        self.recruitment_report_patcher = patch(
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+        )
+        self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
 
         self.admin_user = User.objects.create_user(
             username="admin",
@@ -1282,3 +1316,9 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertIn(self.march_birthday_employee.code, codes)
         self.assertNotIn(self.staff_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
+
+    def tearDown(self):
+        # Stop signal patchers
+        self.hr_report_patcher.stop()
+        self.recruitment_report_patcher.stop()
+        return super().tearDown()

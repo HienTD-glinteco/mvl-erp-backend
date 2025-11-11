@@ -20,7 +20,6 @@ from apps.hrm.models import (
     StaffGrowthReport,
 )
 
-from ..report_framework import AGGREGATION_MAX_RETRIES
 from .helpers import (
     _aggregate_employee_status_for_date,
     _aggregate_staff_growth_for_date,
@@ -80,11 +79,7 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
     return earliest_date, list(org_units_set)
 
 
-@shared_task(
-    bind=True,
-    queue="reports_batch",
-    max_retries=AGGREGATION_MAX_RETRIES,
-)
+@shared_task(queue="reports_batch")
 def aggregate_hr_reports_batch() -> int:
     """Business logic for HR batch aggregation using need_refresh flag.
 
