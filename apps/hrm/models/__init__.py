@@ -8,6 +8,7 @@ from .employee_certificate import EmployeeCertificate
 from .employee_dependent import EmployeeDependent
 from .employee_relationship import EmployeeRelationship
 from .employee_report import EmployeeStatusBreakdownReport
+from .employee_resigned_reason_report import EmployeeResignedReasonReport
 from .employee_work_history import EmployeeWorkHistory
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
@@ -62,4 +63,5 @@ __all__ = [
     "HiredCandidateReport",
     "EmployeeRelationship",
     "EmployeeStatusBreakdownReport",
+    "EmployeeResignedReasonReport",
 ]
