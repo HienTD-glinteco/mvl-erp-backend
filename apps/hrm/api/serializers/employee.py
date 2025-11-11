@@ -208,6 +208,19 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             self._original_status = self.instance.status
             self._original_position = self.instance.position
             self._original_department = self.instance.department
+            
+            # Set sensitive fields as read-only for updates
+            # These fields can only be modified through dedicated action endpoints
+            sensitive_fields = [
+                'status',
+                'department_id',
+                'position_id',
+                'branch_id',
+                'block_id',
+            ]
+            for field_name in sensitive_fields:
+                if field_name in self.fields:
+                    self.fields[field_name].read_only = True
         else:
             self._original_status = None
             self._original_position = None
@@ -267,7 +280,34 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         return employee
 
     def update(self, instance, validated_data):
-        """Update employee and track changes in work history."""
+        """Update employee and prevent modification of restricted fields.
+        
+        Restricted fields that cannot be updated directly:
+        - status: Use action endpoints (active/reactive/resigned/maternity_leave)
+        - department: Use transfer action endpoint
+        - position: Use transfer action endpoint
+        - branch: Auto-set based on department
+        - block: Auto-set based on department
+        """
+        # Define restricted fields with their corresponding action endpoints
+        restricted_fields = {
+            'department': 'transfer',
+            'position': 'transfer',
+            'status': 'active/reactive/resigned/maternity_leave',
+            'branch': 'auto-set from department',
+            'block': 'auto-set from department',
+        }
+        
+        # Check for restricted field modifications
+        for field, action in restricted_fields.items():
+            if field in validated_data:
+                raise serializers.ValidationError({
+                    field: _(
+                        "This field cannot be updated directly. "
+                        "Use the '{action}' action endpoint instead."
+                    ).format(action=action)
+                })
+        
         # Use stored original values before update
         old_status = self._original_status
         old_position = self._original_position
@@ -405,26 +445,61 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
         return super().validate(attrs)
 
     def _create_work_history(self):
-        """Create work history record for reactivation."""
-        # Create a state change event for reactivation with retain_seniority flag
-        previous_data = {"status": self.old_status}
+        """Create work history record for reactivation.
+        
+        Creates a RETURN_TO_WORK event if previous status was RESIGNED,
+        otherwise creates a CHANGE_STATUS event.
+        """
+        # Only create RETURN_TO_WORK event if previous status was RESIGNED
+        if self.old_status == Employee.Status.RESIGNED:
+            previous_data = {
+                "status": self.old_status,
+                "resignation_start_date": str(self.employee.resignation_start_date) if self.employee.resignation_start_date else None,
+                "resignation_reason": self.employee.resignation_reason,
+            }
+            
+            old_status_display = _(Employee.Status.RESIGNED.label)
+            new_status_display = _(Employee.Status.ACTIVE.label)
+            detail = _("Employee returned to work from resigned status. Status changed from {old_status} to {new_status}.").format(
+                old_status=old_status_display,
+                new_status=new_status_display
+            )
+            
+            if self.validated_data.get("is_seniority_retained", False):
+                detail += " " + _("Seniority retained from previous employment period.")
+            
+            EmployeeWorkHistory.objects.create(
+                employee=self.employee,
+                name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
+                date=self.validated_data["start_date"],
+                status=Employee.Status.ACTIVE,
+                retain_seniority=self.validated_data.get("is_seniority_retained", False),
+                note=self.validated_data.get("description", ""),
+                detail=detail,
+                previous_data=previous_data,
+            )
+        else:
+            # For other statuses (MATERNITY_LEAVE, UNPAID_LEAVE), use CHANGE_STATUS event
+            previous_data = {"status": self.old_status}
+            
+            old_status_display = _(self.old_status)
+            new_status_display = _(Employee.Status.ACTIVE)
+            detail = _("Status changed from {old_status} to {new_status} (Reactivated)").format(
+                old_status=old_status_display,
+                new_status=new_status_display
+            )
+            
+            EmployeeWorkHistory.objects.create(
+                employee=self.employee,
+                name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+                date=self.validated_data["start_date"],
+                status=Employee.Status.ACTIVE,
+                retain_seniority=self.validated_data.get("is_seniority_retained", False),
+                note=self.validated_data.get("description", ""),
+                detail=detail,
+                previous_data=previous_data,
+            )
 
-        old_status_display = _(self.old_status)
-        new_status_display = _(Employee.Status.ACTIVE)
-        detail = _("Status changed from {old_status} to {new_status} (Reactivated)").format(
-            old_status=old_status_display, new_status=new_status_display
-        )
-
-        EmployeeWorkHistory.objects.create(
-            employee=self.employee,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            date=self.validated_data["start_date"],
-            status=Employee.Status.ACTIVE,
-            retain_seniority=self.validated_data.get("is_seniority_retained", False),
-            note=self.validated_data.get("description", ""),
-            detail=detail,
-            previous_data=previous_data,
-        )
 
 
 class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
