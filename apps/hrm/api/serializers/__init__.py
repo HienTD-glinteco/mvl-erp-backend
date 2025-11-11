@@ -22,6 +22,7 @@ from .employee_report import (
     ResignedReasonItemSerializer,
 )
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
+from .employee_seniority import EmployeeSenioritySerializer
 from .employee_work_history import EmployeeWorkHistorySerializer
 from .interview_candidate import InterviewCandidateSerializer
 from .interview_schedule import (
@@ -101,6 +102,7 @@ __all__ = [
     "DashboardChartDataSerializer",
     "DashboardChartFilterSerializer",
     "EmployeeRelationshipSerializer",
+    "EmployeeSenioritySerializer",
     "EmployeeStatusBreakdownReportAggregatedSerializer",
     "EmployeeCountBreakdownReportParamsSerializer",
     "EmployeeResignedReasonSummaryParamsSerializer",

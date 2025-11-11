@@ -41,6 +41,9 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
             "block",
             "department",
             "position",
+            "from_date",
+            "to_date",
+            "retain_seniority",
             "created_at",
             "updated_at",
         ]
@@ -55,6 +58,9 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
             "block",
             "department",
             "position",
+            "from_date",
+            "to_date",
+            "retain_seniority",
             "created_at",
             "updated_at",
         ]

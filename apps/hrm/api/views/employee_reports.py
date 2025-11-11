@@ -1,24 +1,35 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
-from django.db.models import Sum
+from django.db.models import Prefetch, Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
-from apps.hrm.models import Block, Branch, Department, EmployeeResignedReasonReport, EmployeeStatusBreakdownReport
+from apps.hrm.models import (
+    Block,
+    Branch,
+    Department,
+    EmployeeResignedReasonReport,
+    EmployeeStatusBreakdownReport,
+    EmployeeWorkHistory,
+)
 from apps.hrm.models.employee import Employee
 from apps.hrm.utils import (
     get_current_month_range,
     get_current_week_range,
 )
 
+from ..filtersets.employee_seniority_filter import EmployeeSeniorityFilterSet
+from ..filtersets.seniority_ordering_filter import SeniorityOrderingFilter
 from ..serializers import (
     EmployeeCountBreakdownReportParamsSerializer,
     EmployeeResignedReasonSummarySerializer,
+    EmployeeSenioritySerializer,
     EmployeeStatusBreakdownReportAggregatedSerializer,
 )
 
@@ -622,4 +633,177 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         }
 
         serializer = EmployeeResignedReasonSummarySerializer(data)
+        return Response(serializer.data)
+
+    @extend_schema(
+        operation_id="hrm_reports_employee_seniority_report_list",
+        summary="Employee Seniority Report",
+        description=(
+            "Retrieve employee seniority report with filtering and sorting. "
+            "Calculates seniority based on work history with retain_seniority logic. "
+            "Only includes employees with status Active, Maternity Leave, or Unpaid Leave. "
+            "Excludes employees with code starting with 'OS'."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="branch_id",
+                type=int,
+                required=False,
+                description="Filter by branch ID",
+            ),
+            OpenApiParameter(
+                name="block_id",
+                type=int,
+                required=False,
+                description="Filter by block ID",
+            ),
+            OpenApiParameter(
+                name="department_id",
+                type=int,
+                required=False,
+                description="Filter by department ID",
+            ),
+            OpenApiParameter(
+                name="function_block",
+                type=str,
+                required=False,
+                description="Filter by function block type (support/business)",
+            ),
+            OpenApiParameter(
+                name="ordering",
+                type=str,
+                required=False,
+                description="Sort field: seniority_days, -seniority_days, code, fullname",
+                examples=[
+                    OpenApiExample(
+                        "Sort by seniority descending",
+                        value="-seniority_days",
+                    ),
+                    OpenApiExample(
+                        "Sort by employee code",
+                        value="code",
+                    ),
+                ],
+            ),
+        ],
+        responses={200: EmployeeSenioritySerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 100,
+                        "next": "http://api.example.com/api/hrm/reports/employee-seniority-report/?page=2",
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "MV001",
+                                "fullname": "John Doe",
+                                "branch": 1,
+                                "block": 2,
+                                "department": 3,
+                                "seniority": "5-3-15",
+                                "work_history": [
+                                    {
+                                        "id": 15,
+                                        "date": "2022-01-01",
+                                        "name": "Change Status",
+                                        "name_display": "Change Status",
+                                        "detail": "Return to work",
+                                        "employee": {
+                                            "id": 1,
+                                            "code": "MV001",
+                                            "fullname": "John Doe",
+                                        },
+                                        "branch": {
+                                            "id": 1,
+                                            "name": "Branch A",
+                                            "code": "CN001",
+                                        },
+                                        "block": {
+                                            "id": 2,
+                                            "name": "Block X",
+                                            "code": "KH001",
+                                        },
+                                        "department": {
+                                            "id": 3,
+                                            "name": "Department Y",
+                                            "code": "PB001",
+                                        },
+                                        "position": {
+                                            "id": 4,
+                                            "name": "Developer",
+                                        },
+                                        "created_at": "2022-01-01T00:00:00Z",
+                                        "updated_at": "2022-01-01T00:00:00Z",
+                                    },
+                                ],
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"branch_id": ["Invalid branch ID."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="employee-seniority-report")
+    def employee_seniority_report(self, request):
+        """Retrieve employee seniority report with filtering and sorting."""
+        # Build base queryset with business rules BR-1
+        queryset = Employee.objects.filter(
+            status__in=[
+                Employee.Status.ACTIVE,
+                Employee.Status.MATERNITY_LEAVE,
+                Employee.Status.UNPAID_LEAVE,
+            ]
+        ).exclude(code__startswith="OS")
+
+        # Apply filters
+        filterset = EmployeeSeniorityFilterSet(request.GET, queryset=queryset)
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=400)
+
+        queryset = filterset.qs
+
+        # Optimize query with prefetch
+        work_history_prefetch = Prefetch(
+            "work_histories",
+            queryset=EmployeeWorkHistory.objects.select_related(
+                "branch", "block", "department", "position", "employee"
+            ).order_by("from_date"),
+            to_attr="cached_work_histories",
+        )
+
+        queryset = queryset.select_related("branch", "block", "department").prefetch_related(
+            work_history_prefetch
+        )
+
+        # Apply ordering
+        ordering_filter = SeniorityOrderingFilter()
+        queryset = ordering_filter.filter_queryset(request, queryset, self)
+
+        # Apply pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
+        page = paginator.paginate_queryset(queryset, request)
+
+        if page is not None:
+            serializer = EmployeeSenioritySerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = EmployeeSenioritySerializer(queryset, many=True)
         return Response(serializer.data)
