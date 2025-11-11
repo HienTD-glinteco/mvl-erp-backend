@@ -1,12 +1,10 @@
 """Signal handlers for Employee model."""
 
-from datetime import date as date_module
-
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.models import Employee, OrganizationChart
+from apps.hrm.models import Employee
 
 User = get_user_model()
 
@@ -30,64 +28,3 @@ def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG0
         # Update the employee with the created user
         instance.user = user
         instance.save(update_fields=["user"])
-
-
-@receiver(pre_save, sender=Employee)
-def track_position_change(sender, instance, **kwargs):  # noqa: ARG001
-    """Track if employee position is changing.
-
-    Store the old position in a temporary attribute so we can detect changes
-    in the post_save signal.
-    """
-    if instance.pk:
-        try:
-            old_instance = Employee.objects.get(pk=instance.pk)
-            instance._old_position = old_instance.position
-        except Employee.DoesNotExist:
-            instance._old_position = None
-    else:
-        instance._old_position = None
-
-
-@receiver(post_save, sender=Employee)
-def manage_organization_chart_on_position_change(sender, instance, created, **kwargs):  # noqa: ARG001
-    """Manage OrganizationChart entries when employee position changes.
-
-    This signal handler:
-    - Deactivates all existing organization chart entries for the employee
-    - Creates a new active and primary entry if position is set
-
-    Runs when:
-    - Employee is newly created with a position
-    - Employee position is changed
-    """
-    # Skip if employee doesn't have required fields
-    if not instance.position or not instance.department or not instance.user:
-        return
-
-    # Determine if we should create OrganizationChart
-    if created:
-        # New employee with position
-        should_create = True
-    else:
-        # Check if position changed (using tracked old position from pre_save)
-        old_position = getattr(instance, "_old_position", None)
-        should_create = old_position != instance.position
-
-    if should_create:
-        # Deactivate all existing organization chart entries for this employee
-        OrganizationChart.objects.filter(employee=instance.user, is_active=True).update(
-            is_active=False, is_primary=False
-        )
-
-        # Create new organization chart entry
-        OrganizationChart.objects.create(
-            employee=instance.user,
-            position=instance.position,
-            department=instance.department,
-            block=instance.block,
-            branch=instance.branch,
-            start_date=instance.start_date or date_module.today(),
-            is_primary=True,
-            is_active=True,
-        )
