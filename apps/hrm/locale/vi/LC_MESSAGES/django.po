@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 16:01+0700\n"
+"POT-Creation-Date: 2025-11-11 17:13+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,8 +94,8 @@ msgstr ""
 msgid "Please select a new role."
 msgstr ""
 
-#: apps/hrm/api/serializers/recruitment_request.py:156
-#: apps/hrm/models/recruitment_request.py:133
+#: apps/hrm/api/serializers/recruitment_request.py:148
+#: apps/hrm/models/recruitment_request.py:120
 msgid "Number of positions must be at least 1."
 msgstr ""
 
@@ -465,10 +465,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -477,22 +479,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -2061,18 +2068,6 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_request.py:96
 msgid "Recruitment Requests"
-msgstr ""
-
-#: apps/hrm/models/recruitment_request.py:121
-msgid "Department must belong to the selected block."
-msgstr ""
-
-#: apps/hrm/models/recruitment_request.py:125
-msgid "Department must belong to the selected branch."
-msgstr ""
-
-#: apps/hrm/models/recruitment_request.py:129
-msgid "Block must belong to the selected branch."
 msgstr ""
 
 #: apps/hrm/models/recruitment_source.py:17

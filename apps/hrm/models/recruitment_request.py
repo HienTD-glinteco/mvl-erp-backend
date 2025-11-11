@@ -115,19 +115,6 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
         super().clean()
         errors = {}
 
-        # Validate organizational hierarchy
-        if self.department and self.block:
-            if self.department.block_id != self.block_id:
-                errors["department"] = _("Department must belong to the selected block.")
-
-        if self.department and self.branch:
-            if self.department.branch_id != self.branch_id:
-                errors["department"] = _("Department must belong to the selected branch.")
-
-        if self.block and self.branch:
-            if self.block.branch_id != self.branch_id:
-                errors["block"] = _("Block must belong to the selected branch.")
-
         # Validate number of positions
         if hasattr(self, "number_of_positions") and self.number_of_positions < 1:
             errors["number_of_positions"] = _("Number of positions must be at least 1.")
@@ -138,10 +125,8 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def save(self, *args, **kwargs):
         """Auto-set branch and block from department"""
         if self.department:
-            if not self.branch_id:
-                self.branch = self.department.branch
-            if not self.block_id:
-                self.block = self.department.block
+            self.branch = self.department.branch
+            self.block = self.department.block
 
         self.clean()
         super().save(*args, **kwargs)
