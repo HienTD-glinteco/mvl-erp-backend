@@ -215,7 +215,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
 
     def validate(self, attrs):
         """Validate employee data by delegating to model's clean() method.
-        
+
         Also checks for restricted field modifications during updates.
 
         Note: Field-level validators (e.g., RegexValidator on citizen_id) are automatically
@@ -225,24 +225,23 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         # Check for restricted field modifications during updates
         if self.instance:
             restricted_fields = {
-                'department': 'transfer',
-                'position': 'transfer',
-                'status': 'active/reactive/resigned/maternity_leave',
-                'branch': 'auto-set from department',
-                'block': 'auto-set from department',
+                "department": "transfer",
+                "position": "transfer",
+                "status": "active/reactive/resigned/maternity_leave",
+                "branch": "auto-set from department",
+                "block": "auto-set from department",
             }
-            
+
             errors = {}
             for field, action in restricted_fields.items():
                 if field in attrs:
                     errors[field] = _(
-                        "This field cannot be updated directly. "
-                        "Use the '{action}' action endpoint instead."
+                        "This field cannot be updated directly. Use the '{action}' action endpoint instead."
                     ).format(action=action)
-            
+
             if errors:
                 raise serializers.ValidationError(errors)
-        
+
         # Create a temporary instance with the provided data for validation
         instance = self.instance or Employee()
 
@@ -291,7 +290,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
 
     def update(self, instance, validated_data):
         """Update employee and track changes in work history.
-        
+
         Note: Restricted field validation is performed in validate() method.
         """
         # Use stored original values before update
@@ -429,7 +428,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
         if self.old_status == Employee.Status.RESIGNED:
             self._old_resignation_start_date = self.employee.resignation_start_date
             self._old_resignation_reason = self.employee.resignation_reason
-        
+
         self.employee.start_date = attrs["start_date"]
         self.employee.status = Employee.Status.ACTIVE
         self.employee_update_fields.extend(["start_date", "status"])
@@ -437,7 +436,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
 
     def _create_work_history(self):
         """Create work history record for reactivation.
-        
+
         Creates a RETURN_TO_WORK event if previous status was RESIGNED,
         otherwise creates a CHANGE_STATUS event.
         """
@@ -445,20 +444,21 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
         if self.old_status == Employee.Status.RESIGNED:
             previous_data = {
                 "status": self.old_status,
-                "resignation_start_date": str(self._old_resignation_start_date) if self._old_resignation_start_date else None,
+                "resignation_start_date": str(self._old_resignation_start_date)
+                if self._old_resignation_start_date
+                else None,
                 "resignation_reason": self._old_resignation_reason,
             }
-            
+
             old_status_display = _(Employee.Status.RESIGNED.label)
             new_status_display = _(Employee.Status.ACTIVE.label)
-            detail = _("Employee returned to work from resigned status. Status changed from {old_status} to {new_status}.").format(
-                old_status=old_status_display,
-                new_status=new_status_display
-            )
-            
+            detail = _(
+                "Employee returned to work from resigned status. Status changed from {old_status} to {new_status}."
+            ).format(old_status=old_status_display, new_status=new_status_display)
+
             if self.validated_data.get("is_seniority_retained", False):
                 detail += " " + _("Seniority retained from previous employment period.")
-            
+
             EmployeeWorkHistory.objects.create(
                 employee=self.employee,
                 name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
@@ -472,14 +472,13 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
         else:
             # For other statuses (MATERNITY_LEAVE, UNPAID_LEAVE), use CHANGE_STATUS event
             previous_data = {"status": self.old_status}
-            
+
             old_status_display = _(self.old_status)
             new_status_display = _(Employee.Status.ACTIVE)
             detail = _("Status changed from {old_status} to {new_status} (Reactivated)").format(
-                old_status=old_status_display,
-                new_status=new_status_display
+                old_status=old_status_display, new_status=new_status_display
             )
-            
+
             EmployeeWorkHistory.objects.create(
                 employee=self.employee,
                 name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
@@ -490,8 +489,6 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
                 detail=detail,
                 previous_data=previous_data,
             )
-
-
 
 
 class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):

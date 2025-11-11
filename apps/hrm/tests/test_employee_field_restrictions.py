@@ -157,7 +157,7 @@ class EmployeeFieldRestrictionsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
         self.assertTrue(response_data["success"])
-        
+
         self.employee.refresh_from_db()
         self.assertEqual(self.employee.fullname, "Updated Name")
         self.assertEqual(self.employee.phone, "9876543210")
@@ -288,7 +288,7 @@ class EmployeeReturnToWorkEventTest(TestCase):
         self.assertEqual(work_history.note, "Welcome back to the team")
         self.assertIn("returned to work", work_history.detail.lower())
         self.assertIn("seniority retained", work_history.detail.lower())
-        
+
         # Check previous_data contains resignation details
         self.assertIsNotNone(work_history.previous_data)
         self.assertEqual(work_history.previous_data["status"], Employee.Status.RESIGNED)
