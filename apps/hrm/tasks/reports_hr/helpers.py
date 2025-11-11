@@ -21,11 +21,6 @@ from apps.hrm.models import (
 
 logger = logging.getLogger(__name__)
 
-# Constants
-AGGREGATION_MAX_RETRIES = 3
-AGGREGATION_RETRY_DELAY = 60  # 1 minute
-MAX_REPORT_LOOKBACK_DAYS = 365  # Maximum 1 year lookback for batch reports
-
 
 def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     """Incrementally update staff growth report based on event snapshot.

@@ -7,7 +7,8 @@ changes (create, edit, delete) via Django signals.
 import logging
 from typing import Any, cast
 
-from ..report_framework import EventAggregationFunction, create_event_task
+from celery import shared_task
+
 from .helpers import (
     _increment_employee_status,
     _increment_staff_growth,
@@ -16,7 +17,8 @@ from .helpers import (
 logger = logging.getLogger(__name__)
 
 
-def _hr_event_aggregation(action_type: str, snapshot: dict[str, Any]) -> None:
+@shared_task(queue="reports_event")
+def aggregate_hr_reports_for_work_history(action_type: str, snapshot: dict[str, Any]) -> None:
     """Business logic for HR event aggregation.
 
     Performs incremental updates to HR reports based on work history events.
@@ -46,11 +48,3 @@ def _hr_event_aggregation(action_type: str, snapshot: dict[str, Any]) -> None:
     # Perform incremental updates
     _increment_staff_growth(action_type, snapshot)
     _increment_employee_status(action_type, snapshot)
-
-
-# Create the actual Celery task using the framework
-aggregate_hr_reports_for_work_history = create_event_task(
-    name="aggregate_hr_reports_for_work_history",
-    aggregate_func=cast(EventAggregationFunction, _hr_event_aggregation),
-    queue="reports_event",
-)
