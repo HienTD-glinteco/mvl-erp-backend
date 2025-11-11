@@ -1,7 +1,7 @@
 """Signal handlers for HRM app."""
 
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.hrm.models import (
@@ -64,6 +64,3 @@ def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG0
         # Update the employee with the created user
         instance.user = user
         instance.save(update_fields=["user"])
-
-
-

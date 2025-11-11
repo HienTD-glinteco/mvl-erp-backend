@@ -66,9 +66,6 @@ def get_template_metadata(slug: str) -> TemplateMetadata:
     raise TemplateNotFoundError(f"Template with slug '{slug}' not found")
 
 
-
-
-
 def get_template_file_path(filename: str) -> Path:
     """Get full path to a template file.
 

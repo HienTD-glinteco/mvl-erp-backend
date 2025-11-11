@@ -16,7 +16,10 @@ from .employee_dependent import EmployeeDependentSerializer
 from .employee_relationship import EmployeeRelationshipSerializer
 from .employee_report import (
     EmployeeCountBreakdownReportParamsSerializer,
+    EmployeeResignedReasonSummaryParamsSerializer,
+    EmployeeResignedReasonSummarySerializer,
     EmployeeStatusBreakdownReportAggregatedSerializer,
+    ResignedReasonItemSerializer,
 )
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
 from .employee_work_history import EmployeeWorkHistorySerializer
@@ -100,4 +103,7 @@ __all__ = [
     "EmployeeRelationshipSerializer",
     "EmployeeStatusBreakdownReportAggregatedSerializer",
     "EmployeeCountBreakdownReportParamsSerializer",
+    "EmployeeResignedReasonSummaryParamsSerializer",
+    "EmployeeResignedReasonSummarySerializer",
+    "ResignedReasonItemSerializer",
 ]

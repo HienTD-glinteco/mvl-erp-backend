@@ -15,16 +15,26 @@ Notes:
 """
 
 import argparse
+import os
 import random
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
-from django.db import transaction
-from django.utils import timezone
+# Setup Django
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.local")
 
-from apps.hrm.models.employee import Employee
-from apps.hrm.models.employee_report import EmployeeStatusBreakdownReport
-from apps.hrm.models.organization import Department
+import django
+
+django.setup()
+
+from django.db import transaction  # noqa: E402
+from django.utils import timezone  # noqa: E402
+
+from apps.hrm.models.employee import Employee  # noqa: E402
+from apps.hrm.models.employee_report import EmployeeStatusBreakdownReport  # noqa: E402
+from apps.hrm.models.organization import Department  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,6 +48,66 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("--seed", type=int, default=None, help="Optional random seed for reproducible data")
     return p.parse_args()
+
+
+def distribute_resigned_reasons(count_resigned: int, resignation_reasons: list) -> dict:
+    """Distribute resigned counts across resignation reasons."""
+    remaining = count_resigned
+    reasons_dist: dict = {}
+    if resignation_reasons:
+        for i, reason in enumerate(resignation_reasons):
+            if i == len(resignation_reasons) - 1:
+                reasons_dist[reason] = remaining
+            else:
+                v = random.randint(0, remaining)
+                reasons_dist[reason] = v
+                remaining -= v
+    return reasons_dist
+
+
+def generate_random_counts() -> dict:
+    """Generate random employee counts for different statuses."""
+    return {
+        "count_active": random.randint(0, 200),
+        "count_onboarding": random.randint(0, 20),
+        "count_maternity_leave": random.randint(0, 5),
+        "count_unpaid_leave": random.randint(0, 5),
+        "count_resigned": random.randint(0, 10),
+    }
+
+
+def process_department_report(dept, report_date, resignation_reasons):
+    """Process a single department report for a given date."""
+    block = getattr(dept, "block", None)
+    branch = getattr(block, "branch", None) if block else None
+
+    if block is None or branch is None:
+        return None
+
+    counts = generate_random_counts()
+    total_not_resigned = (
+        counts["count_active"]
+        + counts["count_onboarding"]
+        + counts["count_maternity_leave"]
+        + counts["count_unpaid_leave"]
+    )
+
+    reasons_dist = distribute_resigned_reasons(counts["count_resigned"], resignation_reasons)
+
+    defaults = {
+        **counts,
+        "total_not_resigned": total_not_resigned,
+        "count_resigned_reasons": reasons_dist,
+    }
+
+    obj, created = EmployeeStatusBreakdownReport.objects.update_or_create(
+        report_date=report_date,
+        branch=branch,
+        block=block,
+        department=dept,
+        defaults=defaults,
+    )
+    return created
 
 
 def main():
@@ -63,9 +133,7 @@ def main():
         print("No departments found. Aborting.")
         return
 
-    # collect resignation reason values from Employee model choices
     resignation_reasons = [c.value for c in Employee.ResignationReason]
-
     dates = [start + timedelta(days=i) for i in range(days)]
 
     processed = 0
@@ -75,60 +143,13 @@ def main():
     with transaction.atomic():
         for report_date in dates:
             for dept in departments:
-                block = getattr(dept, "block", None)
-                branch = getattr(block, "branch", None) if block else None
-
-                if block is None or branch is None:
-                    # skip departments without full hierarchy
-                    continue
-
-                # Generate plausible random numbers
-                # Adjust ranges as needed for your org size
-                count_active = random.randint(0, 200)
-                count_onboarding = random.randint(0, 20)
-                count_maternity_leave = random.randint(0, 5)
-                count_unpaid_leave = random.randint(0, 5)
-                count_resigned = random.randint(0, 10)
-
-                total_not_resigned = count_active + count_onboarding + count_maternity_leave + count_unpaid_leave
-
-                # Distribute resigned counts across reasons deterministically/randomly
-                remaining = count_resigned
-                reasons_dist: dict = {}
-                if resignation_reasons:
-                    for i, reason in enumerate(resignation_reasons):
-                        if i == len(resignation_reasons) - 1:
-                            reasons_dist[reason] = remaining
-                        else:
-                            v = random.randint(0, remaining)
-                            reasons_dist[reason] = v
-                            remaining -= v
-                else:
-                    reasons_dist = {}
-
-                defaults = {
-                    "count_active": count_active,
-                    "count_onboarding": count_onboarding,
-                    "count_maternity_leave": count_maternity_leave,
-                    "count_unpaid_leave": count_unpaid_leave,
-                    "count_resigned": count_resigned,
-                    "total_not_resigned": total_not_resigned,
-                    "count_resigned_reasons": reasons_dist,
-                }
-
-                obj, created = EmployeeStatusBreakdownReport.objects.update_or_create(
-                    report_date=report_date,
-                    branch=branch,
-                    block=block,
-                    department=dept,
-                    defaults=defaults,
-                )
-
-                processed += 1
-                if created:
-                    created_count += 1
-                else:
-                    updated_count += 1
+                created = process_department_report(dept, report_date, resignation_reasons)
+                if created is not None:
+                    processed += 1
+                    if created:
+                        created_count += 1
+                    else:
+                        updated_count += 1
 
     print(
         f"Processed {processed} report entries for {days} days and {len(departments)} departments. "
