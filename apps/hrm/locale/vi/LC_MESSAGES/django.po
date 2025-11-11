@@ -1268,15 +1268,15 @@ msgstr ""
 msgid "Active count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:49
+#: apps/hrm/models/employee_report.py:48
 msgid "Onboarding count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:50
+#: apps/hrm/models/employee_report.py:49
 msgid "Maternity leave count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:51
+#: apps/hrm/models/employee_report.py:50
 msgid "Unpaid leave count"
 msgstr ""
 
@@ -1284,19 +1284,19 @@ msgstr ""
 msgid "Resigned count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:53
+#: apps/hrm/models/employee_report.py:52
 msgid "Total not resigned"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:54
+#: apps/hrm/models/employee_report.py:53
 msgid "Resignation reasons breakdown"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:57
+#: apps/hrm/models/employee_report.py:56
 msgid "Employee Status Breakdown Report"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:58
+#: apps/hrm/models/employee_report.py:57
 msgid "Employee Status Breakdown Reports"
 msgstr ""
 

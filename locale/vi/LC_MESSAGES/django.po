@@ -939,8 +939,16 @@ msgstr ""
 msgid "This field is required"
 msgstr ""
 
-#: libs/models/base_model_mixin.py:60
+#: libs/models/base_model_mixin.py:63
 msgid "Report date"
+msgstr ""
+
+#: libs/models/base_model_mixin.py:67
+msgid "Needs refresh"
+msgstr ""
+
+#: libs/models/base_model_mixin.py:68
+msgid "Indicates if this report needs to be recalculated by batch task"
 msgstr ""
 
 #: libs/validators.py:6

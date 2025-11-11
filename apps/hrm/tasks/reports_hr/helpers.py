@@ -5,10 +5,9 @@ This module contains all helper functions used by both event-driven and batch ta
 
 import logging
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 from django.db.models import F, Q
-from django.db import models
 
 from apps.hrm.models import (
     Block,
@@ -35,7 +34,7 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
 
     Event Processing Logic:
     - CREATE: Increment counters for new work history (+1)
-    - UPDATE: Revert old values (-1), apply new values (+1)  
+    - UPDATE: Revert old values (-1), apply new values (+1)
     - DELETE: Decrement counters for deleted work history (-1)
 
     Transfer Handling:
@@ -55,19 +54,20 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     # Process based on event type
     if event_type == "create":
         # New work history record - increment counters
-        _process_staff_growth_change(current, delta=1)
+        if isinstance(current, dict):
+            _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "update":
         # Updated work history - revert old values and apply new values
-        if previous:
-            _process_staff_growth_change(previous, delta=-1)
-        if current:
-            _process_staff_growth_change(current, delta=1)
+        if isinstance(previous, dict):
+            _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
+        if isinstance(current, dict):
+            _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "delete":
         # Deleted work history - decrement counters
-        if previous:
-            _process_staff_growth_change(previous, delta=-1)
+        if isinstance(previous, dict):
+            _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
 
 
 def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
@@ -75,9 +75,9 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
 
     Calculation Rules:
     - New Hire: Increment num_new_hires when event = ONBOARDING
-    - Resignation: Increment num_resignations when event = RESIGNATION  
+    - Resignation: Increment num_resignations when event = RESIGNATION
     - Transfer: Increment destination dept, decrement source dept when event = TRANSFER
-    
+
     All counters are updated atomically using F() expressions for thread safety.
 
     Args:
@@ -102,8 +102,14 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
     if event_name == EmployeeWorkHistory.EventType.TRANSFER:
         # Increment for current (destination) department
         _update_staff_growth_counter(
-            report_date, data["branch_id"], data["block_id"], data["department_id"],
-            "num_transfers", delta, month_key, week_key
+            report_date,
+            data["branch_id"],
+            data["block_id"],
+            data["department_id"],
+            "num_transfers",
+            delta,
+            month_key,
+            week_key,
         )
 
         # If there's previous org data, decrement from source department
@@ -114,13 +120,21 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
 
             if old_branch_id and old_block_id and old_department_id:
                 # Different from current? Then update source department
-                if (old_branch_id != data["branch_id"] or
-                    old_block_id != data["block_id"] or
-                    old_department_id != data["department_id"]):
+                if (
+                    old_branch_id != data["branch_id"]
+                    or old_block_id != data["block_id"]
+                    or old_department_id != data["department_id"]
+                ):
                     # Source department loses a transfer (opposite sign of delta)
                     _update_staff_growth_counter(
-                        report_date, old_branch_id, old_block_id, old_department_id,
-                        "num_transfers", -delta, month_key, week_key
+                        report_date,
+                        old_branch_id,
+                        old_block_id,
+                        old_department_id,
+                        "num_transfers",
+                        -delta,
+                        month_key,
+                        week_key,
                     )
 
     # Handle status changes
@@ -131,16 +145,14 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
 
         if status == Employee.Status.RESIGNED:
             _update_staff_growth_counter(
-                report_date, branch_id, block_id, department_id,
-                "num_resignations", delta, month_key, week_key
+                report_date, branch_id, block_id, department_id, "num_resignations", delta, month_key, week_key
             )
         elif status == Employee.Status.ACTIVE:
             # Check if it's a return (from onboarding or unpaid leave)
             old_status = previous_data.get("status")
             if old_status in [Employee.Status.ONBOARDING, Employee.Status.UNPAID_LEAVE]:
                 _update_staff_growth_counter(
-                    report_date, branch_id, block_id, department_id,
-                    "num_returns", delta, month_key, week_key
+                    report_date, branch_id, block_id, department_id, "num_returns", delta, month_key, week_key
                 )
 
 
@@ -187,8 +199,7 @@ def _update_staff_growth_counter(
     report.save(update_fields=[counter_field])
 
     logger.debug(
-        f"Updated {counter_field} by {delta} for {report_date} - "
-        f"Branch{branch_id}/Block{block_id}/Dept{department_id}"
+        f"Updated {counter_field} by {delta} for {report_date} - Branch{branch_id}/Block{block_id}/Dept{department_id}"
     )
 
 
@@ -255,13 +266,16 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
         status=Employee.Status.RESIGNED,
     ).count()
 
-    num_returns = work_histories.filter(
-        name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-        status=Employee.Status.ACTIVE,
-    ).filter(
-        Q(previous_data__status=Employee.Status.ONBOARDING)
-        | Q(previous_data__status=Employee.Status.UNPAID_LEAVE)
-    ).count()
+    num_returns = (
+        work_histories.filter(
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            status=Employee.Status.ACTIVE,
+        )
+        .filter(
+            Q(previous_data__status=Employee.Status.ONBOARDING) | Q(previous_data__status=Employee.Status.UNPAID_LEAVE)
+        )
+        .count()
+    )
 
     # Update or create the report record
     StaffGrowthReport.objects.update_or_create(
@@ -308,13 +322,13 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
             department=department,
             date__lte=report_date,
         )
-        .order_by('employee_id', '-date', '-id')
-        .distinct('employee_id')
+        .order_by("employee_id", "-date", "-id")
+        .distinct("employee_id")
     )
 
     # Extract employee IDs and their statuses from work history
-    employee_statuses = {}
-    employee_resignation_reasons = {}
+    employee_statuses: dict[int, Any] = {}
+    employee_resignation_reasons: dict[int, str] = {}
 
     for wh in latest_work_histories:
         # Get the status from work history if it's a status change event
@@ -329,7 +343,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
                 employee_resignation_reasons[wh.employee_id] = wh.employee.resignation_reason
 
     # Count statuses
-    status_counts = {}
+    status_counts: dict[Any, int] = {}
     for status in employee_statuses.values():
         status_counts[status] = status_counts.get(status, 0) + 1
 
@@ -340,7 +354,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
     count_resigned = status_counts.get(Employee.Status.RESIGNED, 0)
 
     # Count resignation reasons
-    resignation_reasons_dict = {}
+    resignation_reasons_dict: dict[str, int] = {}
     for reason in employee_resignation_reasons.values():
         resignation_reasons_dict[reason] = resignation_reasons_dict.get(reason, 0) + 1
 

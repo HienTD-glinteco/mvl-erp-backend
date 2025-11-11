@@ -6,16 +6,12 @@ This module contains all helper functions used by both event-driven and batch ta
 import logging
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 
-from django.db.models import Count, F, Q, Sum
-from django.db import models
+from django.db.models import Count, F, Sum
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
     HiredCandidateReport,
     RecruitmentCandidate,
     RecruitmentChannel,
@@ -49,24 +45,24 @@ def _increment_recruitment_reports(event_type: str, snapshot: dict[str, Any]) ->
 
     # Process based on event type
     if event_type == "create":
-        if current and current.get("status") == RecruitmentCandidate.Status.HIRED:
-            _process_recruitment_change(current, delta=1)
+        if isinstance(current, dict) and current.get("status") == RecruitmentCandidate.Status.HIRED:
+            _process_recruitment_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "update":
         # Check if hired status changed
-        prev_hired = previous and previous.get("status") == RecruitmentCandidate.Status.HIRED
-        curr_hired = current and current.get("status") == RecruitmentCandidate.Status.HIRED
+        prev_hired = isinstance(previous, dict) and previous.get("status") == RecruitmentCandidate.Status.HIRED
+        curr_hired = isinstance(current, dict) and current.get("status") == RecruitmentCandidate.Status.HIRED
 
         if prev_hired and not curr_hired:
             # Was hired, now not - decrement
-            _process_recruitment_change(previous, delta=-1)
+            _process_recruitment_change(cast(dict[str, Any], previous), delta=-1)
         elif not prev_hired and curr_hired:
             # Was not hired, now is - increment
-            _process_recruitment_change(current, delta=1)
+            _process_recruitment_change(cast(dict[str, Any], current), delta=1)
         elif prev_hired and curr_hired:
             # Status still hired but other fields changed - revert and apply
-            _process_recruitment_change(previous, delta=-1)
-            _process_recruitment_change(current, delta=1)
+            _process_recruitment_change(cast(dict[str, Any], previous), delta=-1)
+            _process_recruitment_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "delete":
         if previous and previous.get("status") == RecruitmentCandidate.Status.HIRED:
@@ -91,19 +87,15 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
     recruitment_channel_id = data["recruitment_channel_id"]
 
     # Update recruitment source report
-    _increment_source_report(
-        onboard_date, branch_id, block_id, department_id, recruitment_source_id, delta
-    )
+    _increment_source_report(onboard_date, branch_id, block_id, department_id, recruitment_source_id, delta)
 
     # Update recruitment channel report
-    _increment_channel_report(
-        onboard_date, branch_id, block_id, department_id, recruitment_channel_id, delta
-    )
+    _increment_channel_report(onboard_date, branch_id, block_id, department_id, recruitment_channel_id, delta)
 
     # Update hired candidate report and determine source type
     source_type = _determine_source_type_from_snapshot(data)
     # years_of_experience is an integer field
-    from apps.hrm.models import RecruitmentCandidate
+
     years_of_experience = data.get("years_of_experience", 0)
     # Ensure integer type (in case it comes as string from snapshot)
     if isinstance(years_of_experience, str):
@@ -112,14 +104,11 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
     referrer_id = data.get("referrer_id")
 
     _increment_hired_candidate_report(
-        onboard_date, branch_id, block_id, department_id,
-        source_type, is_experienced, referrer_id, delta
+        onboard_date, branch_id, block_id, department_id, source_type, is_experienced, referrer_id, delta
     )
 
     # Update staff growth report (num_recruitment_source)
-    _increment_staff_growth_recruitment(
-        onboard_date, branch_id, block_id, department_id, delta
-    )
+    _increment_staff_growth_recruitment(onboard_date, branch_id, block_id, department_id, delta)
 
 
 def _determine_source_type_from_snapshot(data: dict[str, Any]) -> str:
@@ -236,15 +225,15 @@ def _increment_staff_growth_recruitment(
 ) -> None:
     """
     Increment/decrement staff growth counters for recruitment.
-    
+
     Business logic (as clarified):
     - num_introductions: Hired candidates from referral sources (allow_referrer=True)
     - num_recruitment_source: Hired candidates from non-referral sources (allow_referrer=False)
-    
+
     The allow_referrer field on RecruitmentSource distinguishes:
     - allow_referrer=True: Referral sources
     - allow_referrer=False: Recruitment department sources
-    
+
     Args:
         report_date: Report date
         branch_id, block_id, department_id: Org unit IDs
@@ -277,7 +266,7 @@ def _increment_staff_growth_recruitment(
     else:
         # Recruitment department source
         report.num_recruitment_source = F("num_recruitment_source") + delta
-    
+
     report.save(update_fields=["num_introductions", "num_recruitment_source"])
 
 
@@ -360,11 +349,82 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
     )
 
 
+def _fetch_expenses_by_request(request_ids: set[int], report_date: date) -> dict[int, Decimal]:
+    """Fetch total expenses per recruitment_request in bulk and return mapping.
+
+    Returns a dict mapping recruitment_request_id -> Decimal(total_amount).
+    """
+    expenses_by_request: dict[int, Decimal] = {}
+    if not request_ids:
+        return expenses_by_request
+
+    expenses = (
+        RecruitmentExpense.objects.filter(
+            recruitment_request_id__in=request_ids,
+            date__lte=report_date,
+        )
+        .values("recruitment_request_id")
+        .annotate(total=Sum("amount"))
+    )
+
+    for expense in expenses:
+        total = expense.get("total")
+        if total is None:
+            continue
+        expenses_by_request[int(expense["recruitment_request_id"])] = Decimal(str(total))
+
+    return expenses_by_request
+
+
+def _count_hired_per_request(hired_candidates) -> dict[int, int]:
+    """Count how many hired candidates belong to each recruitment_request."""
+    hired_per_request: dict[int, int] = {}
+    for candidate in hired_candidates:
+        rid = candidate.recruitment_request_id
+        if rid:
+            hired_per_request[rid] = hired_per_request.get(rid, 0) + 1
+    return hired_per_request
+
+
+def _accumulate_source_type_stats(
+    hired_candidates, expenses_by_request: dict[int, Decimal], hired_per_request: dict[int, int]
+) -> dict[str, dict[str, Any]]:
+    """Accumulate stats per source type: num_hires and total_cost."""
+    source_type_stats: dict[str, dict[str, Any]] = {}
+    for candidate in hired_candidates:
+        source_type = _determine_source_type(candidate)
+        if source_type not in source_type_stats:
+            source_type_stats[source_type] = {"num_hires": 0, "total_cost": Decimal("0")}
+
+        stats = source_type_stats[source_type]
+        stats["num_hires"] = int(stats.get("num_hires", 0)) + 1
+
+        # Only certain source types have associated expenses
+        if source_type in (
+            RecruitmentSourceType.MARKETING_CHANNEL,
+            RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
+            RecruitmentSourceType.REFERRAL_SOURCE,
+        ):
+            request_id = candidate.recruitment_request_id
+            if request_id and request_id in expenses_by_request:
+                total_expense = expenses_by_request[request_id]
+                num_hired = hired_per_request.get(request_id, 1)
+                if total_expense and num_hired > 0:
+                    cost_per_hire = total_expense / Decimal(num_hired)
+                    stats["total_cost"] += cost_per_hire
+
+    return source_type_stats
+
+
 def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, department) -> None:
-    """Full re-aggregation of recruitment cost report for batch processing."""
+    """Full re-aggregation of recruitment cost report for batch processing.
+
+    This function was refactored to delegate responsibilities to small helpers
+    so its cyclomatic complexity stays low for linters.
+    """
     month_key = report_date.strftime("%Y-%m")
 
-    # Categorize candidates by source type
+    # Fetch hired candidates and helper structures
     hired_candidates = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
@@ -373,65 +433,15 @@ def _aggregate_recruitment_cost_for_date(report_date: date, branch, block, depar
         department=department,
     ).select_related("recruitment_source", "recruitment_channel", "recruitment_request")
 
-    # Collect all recruitment request IDs for bulk expense fetching
-    request_ids = set()
-    for candidate in hired_candidates:
-        if candidate.recruitment_request_id:
-            request_ids.add(candidate.recruitment_request_id)
+    request_ids = {c.recruitment_request_id for c in hired_candidates if c.recruitment_request_id}
 
-    # Fetch all expenses in bulk
-    expenses_by_request = {}
-    if request_ids:
-        expenses = RecruitmentExpense.objects.filter(
-            recruitment_request_id__in=request_ids,
-            expense_date__lte=report_date,
-        ).values("recruitment_request_id").annotate(total=Sum("amount"))
+    expenses_by_request = _fetch_expenses_by_request(request_ids, report_date)
+    hired_per_request = _count_hired_per_request(hired_candidates)
+    source_type_stats = _accumulate_source_type_stats(hired_candidates, expenses_by_request, hired_per_request)
 
-        for expense in expenses:
-            expenses_by_request[expense["recruitment_request_id"]] = expense["total"]
-
-    # Count hired candidates per request for cost distribution
-    hired_per_request = {}
-    for candidate in hired_candidates:
-        if candidate.recruitment_request_id:
-            hired_per_request[candidate.recruitment_request_id] = (
-                hired_per_request.get(candidate.recruitment_request_id, 0) + 1
-            )
-
-    # Group by source type
-    source_type_stats = {}
-
-    for candidate in hired_candidates:
-        source_type = _determine_source_type(candidate)
-
-        if source_type not in source_type_stats:
-            source_type_stats[source_type] = {"num_hires": 0, "total_cost": Decimal("0")}
-
-        source_type_stats[source_type]["num_hires"] += 1
-
-        # Calculate cost for this candidate if applicable
-        if source_type in [
-            RecruitmentSourceType.MARKETING_CHANNEL,
-            RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
-            RecruitmentSourceType.REFERRAL_SOURCE,
-        ]:
-            # Get pre-fetched expense total
-            request_id = candidate.recruitment_request_id
-            if request_id and request_id in expenses_by_request:
-                total_expense = expenses_by_request[request_id]
-                num_hired = hired_per_request.get(request_id, 1)
-
-                if total_expense and num_hired > 0:
-                    cost_per_hire = Decimal(str(total_expense)) / num_hired
-                    source_type_stats[source_type]["total_cost"] += cost_per_hire
-
-    # Update or create report for each source type
+    # Persist reports
     for source_type, stats in source_type_stats.items():
-        avg_cost = (
-            stats["total_cost"] / stats["num_hires"]
-            if stats["num_hires"] > 0
-            else Decimal("0")
-        )
+        avg_cost = stats["total_cost"] / Decimal(stats["num_hires"]) if stats["num_hires"] > 0 else Decimal("0")
 
         RecruitmentCostReport.objects.update_or_create(
             report_date=report_date,
@@ -469,7 +479,7 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
     ).select_related("recruitment_source", "recruitment_channel", "referrer")
 
     # Group by source type
-    source_type_stats = {}
+    source_type_stats: dict[str, dict[str, Any]] = {}
 
     for candidate in hired_candidates:
         source_type = _determine_source_type(candidate)
@@ -481,15 +491,17 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
                 "employee": None,
             }
 
-        source_type_stats[source_type]["num_candidates_hired"] += 1
+        stats = source_type_stats[source_type]
+        # Ensure numeric fields are initialized and typed before arithmetic
+        stats["num_candidates_hired"] = int(stats.get("num_candidates_hired", 0)) + 1
 
         # Check if experienced (not NO_EXPERIENCE)
         if candidate.years_of_experience != RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE:
-            source_type_stats[source_type]["num_experienced"] += 1
+            stats["num_experienced"] = int(stats.get("num_experienced", 0)) + 1
 
-        # For referral sources, track the referrer
+        # For referral sources, track the referrer (Employee instance)
         if source_type == RecruitmentSourceType.REFERRAL_SOURCE and candidate.referrer:
-            source_type_stats[source_type]["employee"] = candidate.referrer
+            stats["employee"] = candidate.referrer
 
     # Update or create report for each source type
     for source_type, stats in source_type_stats.items():
@@ -516,38 +528,35 @@ def _aggregate_hired_candidate_for_date(report_date: date, branch, block, depart
 
 def _update_staff_growth_for_recruitment(report_date: date, branch, block, department) -> None:
     """Update StaffGrowthReport num_introductions and num_recruitment_source for hired candidates.
-    
+
     Calculation Formula (per business requirements):
     - num_introductions: COUNT of HIRED candidates with source.allow_referrer=True (Referral source)
     - num_recruitment_source: COUNT of HIRED candidates with source.allow_referrer=False (Department source)
-    
+
     Business Rules:
-    - allow_referrer=True: Identifies referral sources (nguồn giới thiệu)
-    - allow_referrer=False: Identifies department sources (nguồn phòng ban/phòng tuyển dụng)
+    - allow_referrer=True: Identifies referral sources
+    - allow_referrer=False: Identifies department sources
     - num_introductions: ALL hired candidates from referral sources
     - num_recruitment_source: ALL hired candidates from department sources
-    
+
     Example:
     - 10 candidates hired via referral source (allow_referrer=True) → num_introductions
     - 7 candidates hired via department source (allow_referrer=False) → num_recruitment_source
     - Both counts are independent and don't overlap
-    
+
     Args:
         report_date: Date to aggregate
         branch, block, department: Org unit objects
     """
     # Identify referral sources using allow_referrer field
-    from apps.hrm.models import RecruitmentSource
-    
+
     # Fetch referral source IDs directly
-    referral_source_ids = list(
-        RecruitmentSource.objects.filter(allow_referrer=True).values_list('id', flat=True)
-    )
-    
+    referral_source_ids = list(RecruitmentSource.objects.filter(allow_referral=True).values_list("id", flat=True))
+
     if not referral_source_ids:
         logger.warning("No recruitment sources with allow_referrer=True found")
         return
-    
+
     # num_introductions: All hired candidates from referral sources (allow_referrer=True)
     num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
@@ -555,9 +564,9 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         branch=branch,
         block=block,
         department=department,
-        source__allow_referrer=True,  # Referral sources
+        recruitment_source__allow_referral=True,  # Referral sources
     ).count()
-    
+
     # num_recruitment_source: Hired candidates with department sources (allow_referrer=False)
     # According to comment: allow_referrer=False means department sources
     num_recruitment_source = RecruitmentCandidate.objects.filter(
@@ -566,7 +575,7 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         branch=branch,
         block=block,
         department=department,
-        source__allow_referrer=False,  # Department sources
+        recruitment_source__allow_referral=False,  # Department sources
     ).count()
 
     month_key = report_date.strftime("%m/%Y")
