@@ -474,7 +474,12 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
                                 "percentage": "25.20",
                             },
                             {"code": "PROBATION_FAIL", "label": "Probation Fail", "count": 20, "percentage": "15.75"},
-                            {"code": "CONTRACT_EXPIRED", "label": "Contract Expired", "count": 15, "percentage": "11.81"},
+                            {
+                                "code": "CONTRACT_EXPIRED",
+                                "label": "Contract Expired",
+                                "count": 15,
+                                "percentage": "11.81",
+                            },
                             {
                                 "code": "VOLUNTARY_HEALTH",
                                 "label": "Voluntary - Health Reasons",
@@ -607,4 +612,5 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             "reasons": reasons,
         }
 
-        return Response({"success": True, "data": data, "error": None})
+        serializer = EmployeeResignedReasonSummarySerializer(data)
+        return Response(serializer.data)

@@ -81,4 +81,6 @@ class EmployeeResignedReasonReport(BaseModel):
         ]
 
     def __str__(self):
-        return f"Employee Resigned Reason Report - {self.report_date} - {self.branch} / {self.block} / {self.department}"
+        return (
+            f"Employee Resigned Reason Report - {self.report_date} - {self.branch} / {self.block} / {self.department}"
+        )

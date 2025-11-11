@@ -76,4 +76,6 @@ class EmployeeResignedReasonSummarySerializer(serializers.Serializer):
     from_date = serializers.DateField(help_text="Start date of the report range")
     to_date = serializers.DateField(help_text="End date of the report range")
     filters = serializers.DictField(help_text="Applied filters (branch, block, department, block_type)")
-    reasons = ResignedReasonItemSerializer(many=True, help_text="List of resignation reasons with counts and percentages")
+    reasons = ResignedReasonItemSerializer(
+        many=True, help_text="List of resignation reasons with counts and percentages"
+    )

@@ -2,7 +2,6 @@
 
 import json
 from datetime import date
-from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -205,7 +204,7 @@ class EmployeeResignedReasonSummaryAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Create a user and authenticate
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -492,10 +491,14 @@ class EmployeeResignedReasonSummaryAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
 
         # Check percentages
-        voluntary_career = next(r for r in data["reasons"] if r["code"] == Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE)
+        voluntary_career = next(
+            r for r in data["reasons"] if r["code"] == Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE
+        )
         self.assertAlmostEqual(float(voluntary_career["percentage"]), 35.43, places=2)
 
-        voluntary_personal = next(r for r in data["reasons"] if r["code"] == Employee.ResignationReason.VOLUNTARY_PERSONAL)
+        voluntary_personal = next(
+            r for r in data["reasons"] if r["code"] == Employee.ResignationReason.VOLUNTARY_PERSONAL
+        )
         self.assertAlmostEqual(float(voluntary_personal["percentage"]), 25.20, places=2)
 
     def test_inactive_org_units_excluded(self):
