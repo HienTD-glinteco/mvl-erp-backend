@@ -23,6 +23,7 @@ class ImportStatusView(APIView):
     """
 
     permission_classes = [RoleBasedPermission]
+    serializer_class = ImportJobSerializer
 
     @extend_schema(
         summary="Check import task status",

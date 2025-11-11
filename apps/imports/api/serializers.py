@@ -1,6 +1,7 @@
 """Serializers for import API."""
 
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.files.models import FileModel
@@ -175,6 +176,30 @@ class ImportOptionsSerializer(serializers.Serializer):
         return attrs
 
 
+class ResultFileInfoSerializer(serializers.Serializer):
+    """Serializer for individual result file information."""
+
+    file_id = serializers.IntegerField(
+        allow_null=True,
+        help_text=_("ID of the result file, null if not generated"),
+    )
+    url = serializers.URLField(
+        allow_null=True,
+        help_text=_("Presigned download URL for the file, null if not available"),
+    )
+
+
+class ResultFilesSerializer(serializers.Serializer):
+    """Serializer for result files structure."""
+
+    success_file = ResultFileInfoSerializer(
+        help_text=_("Information about the success records file"),
+    )
+    failed_file = ResultFileInfoSerializer(
+        help_text=_("Information about the failed records file"),
+    )
+
+
 class ImportStartSerializer(serializers.Serializer):
     """Serializer for starting an import job."""
 
@@ -235,6 +260,7 @@ class ImportJobSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    @extend_schema_field(ResultFilesSerializer)
     def get_result_files(self, obj):
         """Get result file information."""
         return {
