@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-07 14:33+0700\n"
+"POT-Creation-Date: 2025-11-11 14:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -450,7 +450,7 @@ msgid "Name for the device"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:152
-#: apps/hrm/models/employee_report.py:40
+#: apps/hrm/models/employee_report.py:39
 #: apps/hrm/models/employee_work_history.py:82
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
 #: apps/hrm/models/recruitment_candidate.py:76
@@ -786,7 +786,7 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:34
+#: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:33
 #: apps/hrm/models/employee_work_history.py:73
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
 #: apps/hrm/models/organization.py:103
@@ -796,7 +796,7 @@ msgstr ""
 msgid "Branch"
 msgstr ""
 
-#: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:46
+#: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:45
 #: apps/hrm/models/employee_work_history.py:91
 #: apps/hrm/models/organization.py:133
 #: apps/hrm/models/recruitment_candidate.py:84
@@ -1220,43 +1220,39 @@ msgstr ""
 msgid "Employee Relationships"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:29
-msgid "Report date"
-msgstr ""
-
-#: apps/hrm/models/employee_report.py:48
+#: apps/hrm/models/employee_report.py:47
 msgid "Active count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:49
+#: apps/hrm/models/employee_report.py:48
 msgid "Onboarding count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:50
+#: apps/hrm/models/employee_report.py:49
 msgid "Maternity leave count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:51
+#: apps/hrm/models/employee_report.py:50
 msgid "Unpaid leave count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:52
+#: apps/hrm/models/employee_report.py:51
 msgid "Resigned count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:53
+#: apps/hrm/models/employee_report.py:52
 msgid "Total not resigned"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:54
+#: apps/hrm/models/employee_report.py:53
 msgid "Resignation reasons breakdown"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:57
+#: apps/hrm/models/employee_report.py:56
 msgid "Employee Status Breakdown Report"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:58
+#: apps/hrm/models/employee_report.py:57
 msgid "Employee Status Breakdown Reports"
 msgstr ""
 
