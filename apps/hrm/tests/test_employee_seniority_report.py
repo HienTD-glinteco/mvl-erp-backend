@@ -86,19 +86,38 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         if start_date is None:
             start_date = date(2020, 1, 1)
 
-        return Employee.objects.create(
-            code=code,
-            fullname=f"Test Employee {code}",
-            username=f"user_{code}",
-            email=f"{code}@example.com",
-            attendance_code="12345",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            start_date=start_date,
-            status=status,
+        # Generate unique citizen_id based on code
+        citizen_id = (
+            f"{int(code[2:]):012d}"
+            if code.startswith("MV") or code.startswith("OS")
+            else f"{hash(code) % 1000000000000:012d}"
         )
+
+        employee_data = {
+            "code": code,
+            "fullname": f"Test Employee {code}",
+            "username": f"user_{code.lower()}",
+            "email": f"{code.lower()}@example.com",
+            "attendance_code": f"{int(code[2:]):05d}" if (code.startswith("MV") or code.startswith("OS")) else "12345",
+            "citizen_id": citizen_id,
+            "branch": self.branch,
+            "block": self.block,
+            "department": self.department,
+            "position": self.position,
+            "start_date": start_date,
+            "status": status,
+        }
+
+        # Add resignation fields if status requires them
+        if status in [Employee.Status.MATERNITY_LEAVE, Employee.Status.UNPAID_LEAVE]:
+            employee_data["resignation_start_date"] = start_date
+            if status == Employee.Status.MATERNITY_LEAVE:
+                employee_data["resignation_end_date"] = date(2025, 12, 31)
+        elif status == Employee.Status.RESIGNED:
+            employee_data["resignation_start_date"] = start_date
+            employee_data["resignation_reason"] = Employee.ResignationReason.VOLUNTARY_OTHER
+
+        return Employee.objects.create(**employee_data)
 
     def create_work_history(self, employee, from_date, to_date=None, retain_seniority=True):
         """Helper to create work history"""
@@ -377,19 +396,18 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         )
 
         emp1 = self.create_employee(code="MV030")
-        emp2 = Employee.objects.create(
-            code="MV031",
-            fullname="Employee 2",
-            username="user_mv031",
-            email="mv031@example.com",
-            attendance_code="12346",
-            branch=branch2,
-            block=block2,
-            department=dept2,
-            position=self.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
+
+        # Create employee in branch2 using helper
+        saved_branch = self.branch
+        saved_block = self.block
+        saved_dept = self.department
+        self.branch = branch2
+        self.block = block2
+        self.department = dept2
+        emp2 = self.create_employee(code="MV031")
+        self.branch = saved_branch
+        self.block = saved_block
+        self.department = saved_dept
 
         # Act
         url = reverse("hrm:employee-reports-employee-seniority-report")
@@ -420,19 +438,13 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         emp1 = self.create_employee(code="MV040")
 
         # Employee in support block
-        emp2 = Employee.objects.create(
-            code="MV041",
-            fullname="Employee 2",
-            username="user_mv041",
-            email="mv041@example.com",
-            attendance_code="12347",
-            branch=self.branch,
-            block=support_block,
-            department=support_dept,
-            position=self.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
+        saved_block = self.block
+        saved_dept = self.department
+        self.block = support_block
+        self.department = support_dept
+        emp2 = self.create_employee(code="MV041")
+        self.block = saved_block
+        self.department = saved_dept
 
         # Act - Filter by business block
         url = reverse("hrm:employee-reports-employee-seniority-report")
@@ -489,7 +501,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         """Test that results are paginated"""
         # Arrange - Create more employees than page size
         for i in range(25):
-            self.create_employee(code=f"MV{100+i:03d}", start_date=date(2020, 1, 1))
+            self.create_employee(code=f"MV{100 + i:03d}", start_date=date(2020, 1, 1))
 
         # Act
         url = reverse("hrm:employee-reports-employee-seniority-report")

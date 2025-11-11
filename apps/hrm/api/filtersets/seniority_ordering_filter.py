@@ -14,6 +14,20 @@ class SeniorityOrderingFilter(OrderingFilter):
     - fullname: Employee full name
     """
 
+    # Define ordering fields to prevent ImproperlyConfigured error
+    ordering_fields = ["seniority_days", "code", "fullname"]
+
+    def get_valid_fields(self, queryset, view, context=None):
+        """Return valid fields for ordering."""
+        if context is None:
+            context = {}
+        valid_fields = super().get_valid_fields(queryset, view, context)
+        # Add seniority_days as a valid field
+        valid_fields = list(valid_fields) if valid_fields else []
+        if ("seniority_days", "seniority_days") not in valid_fields:
+            valid_fields.append(("seniority_days", "seniority_days"))
+        return valid_fields
+
     def filter_queryset(self, request, queryset, view):
         """Filter queryset with custom ordering."""
         ordering = self.get_ordering(request, queryset, view)
@@ -55,9 +69,7 @@ class SeniorityOrderingFilter(OrderingFilter):
                 return (date.today() - employee.start_date).days
             return 0
 
-        sorted_histories = sorted(
-            work_histories, key=lambda x: x.from_date if x.from_date else date.min
-        )
+        sorted_histories = sorted(work_histories, key=lambda x: x.from_date if x.from_date else date.min)
 
         # Find most recent non-continuous period
         last_non_retain_index = None

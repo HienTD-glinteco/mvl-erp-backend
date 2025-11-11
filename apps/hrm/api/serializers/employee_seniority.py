@@ -56,9 +56,7 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             return [], []
 
         # Sort by from_date
-        sorted_histories = sorted(
-            work_histories, key=lambda x: x.from_date if x.from_date else date.min
-        )
+        sorted_histories = sorted(work_histories, key=lambda x: x.from_date if x.from_date else date.min)
 
         # Find most recent non-continuous period
         last_non_retain_index = None

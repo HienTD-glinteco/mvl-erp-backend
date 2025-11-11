@@ -788,9 +788,7 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             to_attr="cached_work_histories",
         )
 
-        queryset = queryset.select_related("branch", "block", "department").prefetch_related(
-            work_history_prefetch
-        )
+        queryset = queryset.select_related("branch", "block", "department").prefetch_related(work_history_prefetch)
 
         # Apply ordering
         ordering_filter = SeniorityOrderingFilter()
