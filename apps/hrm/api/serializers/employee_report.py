@@ -46,8 +46,10 @@ class EmployeeStatusBreakdownReportAggregatedSerializer(serializers.Serializer):
 class EmployeeResignedReasonSummaryParamsSerializer(serializers.Serializer):
     """Parameters for employee resigned reason summary report."""
 
-    from_date = serializers.DateField(required=True, help_text="Start date (YYYY-MM-DD)")
-    to_date = serializers.DateField(required=True, help_text="End date (YYYY-MM-DD)")
+    from_date = serializers.DateField(
+        required=False, help_text="Start date (YYYY-MM-DD). Default: 1st of current month"
+    )
+    to_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD). Default: today")
     branch = serializers.IntegerField(required=False, help_text="Branch ID to filter")
     block = serializers.IntegerField(required=False, help_text="Block ID to filter")
     block_type = serializers.ChoiceField(

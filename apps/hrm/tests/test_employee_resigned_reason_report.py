@@ -397,14 +397,21 @@ class EmployeeResignedReasonSummaryAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(data["reasons"]), 1)
         self.assertEqual(data["reasons"][0]["code"], Employee.ResignationReason.PROBATION_FAIL)
 
-    def test_missing_required_date_params(self):
-        """Test validation error when date params are missing"""
-        # Act: Call API without from_date
+    def test_default_date_range_when_no_params(self):
+        """Test that default date range is used when no date params provided"""
+        # Act: Call API without date parameters
         url = reverse("hrm:employee-reports-employee-resigned-reasons-summary")
-        response = self.client.get(url, {"to_date": "2025-01-31"})
+        response = self.client.get(url)
 
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Assert: Should use default date range (1st of current month to today)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Verify response structure
+        self.assertIn("from_date", data)
+        self.assertIn("to_date", data)
+        self.assertIn("total_resigned", data)
+        self.assertIn("reasons", data)
 
     def test_empty_result_when_no_data(self):
         """Test response when no data matches the filter"""

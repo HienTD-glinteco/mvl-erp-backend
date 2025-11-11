@@ -6,7 +6,6 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
@@ -437,11 +436,19 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             "Returns aggregated resignation reason counts and percentages for a selected date range "
             "and organizational filter. Suitable for displaying a pie chart. "
             "Filters resignation data by time period (date range) and organizational units (Branch/Block/Department). "
-            "Only resignation reasons with count > 0 are displayed."
+            "Only resignation reasons with count > 0 are displayed. "
+            "Default date range: 1st of current month to today."
         ),
         parameters=[
-            OpenApiParameter(name="from_date", type=str, required=True, description="Start date (YYYY-MM-DD)"),
-            OpenApiParameter(name="to_date", type=str, required=True, description="End date (YYYY-MM-DD)"),
+            OpenApiParameter(
+                name="from_date",
+                type=str,
+                required=False,
+                description="Start date (YYYY-MM-DD). Default: 1st of current month",
+            ),
+            OpenApiParameter(
+                name="to_date", type=str, required=False, description="End date (YYYY-MM-DD). Default: today"
+            ),
             OpenApiParameter(name="branch", type=int, required=False, description="Branch ID"),
             OpenApiParameter(name="block", type=int, required=False, description="Block ID"),
             OpenApiParameter(
@@ -507,6 +514,7 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         """
         Aggregate resigned reasons by date range and organizational filters.
         Returns flat list of reasons with counts and percentages.
+        Default date range: 1st of current month to today (or end of month if today is past end of month).
         """
         # Mapping: column name -> (code, label)
         reason_fields = [
@@ -532,14 +540,15 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
             ("other", Employee.ResignationReason.OTHER, _("Other")),
         ]
 
-        # Validate params
+        # Get or set default date range: 1st of current month to today
         from_date = request.query_params.get("from_date")
         to_date = request.query_params.get("to_date")
 
         if not from_date or not to_date:
-            raise ValidationError(
-                {"from_date": [_("This field is required.")], "to_date": [_("This field is required.")]}
-            )
+            # Default: 1st of current month to today
+            today = date.today()
+            from_date = date(today.year, today.month, 1).isoformat()
+            to_date = today.isoformat()
 
         # Build base queryset
         qs = EmployeeResignedReasonReport.objects.filter(
