@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -7,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory, Position
 
 User = get_user_model()
@@ -17,7 +19,6 @@ class EmployeeActionAPITest(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        from apps.core.models import AdministrativeUnit, Province
 
         self.admin_user = User.objects.create_user(
             username="admin",
@@ -85,6 +86,20 @@ class EmployeeActionAPITest(TestCase):
         # Set status to ACTIVE using update_fields to bypass validation
         self.active_employee.status = Employee.Status.ACTIVE
         self.active_employee.save(update_fields=["status"])
+        # Start patchers for periodic/async aggregation tasks so they don't run during tests
+        # Patch the symbol where it's used (signals) so .delay() calls are intercepted
+        self._patcher_aggregate_hr = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history")
+        self.mock_aggregate_hr = self._patcher_aggregate_hr.start()
+
+        self._patcher_aggregate_recruit = patch(
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate"
+        )
+        self.mock_aggregate_recruit = self._patcher_aggregate_recruit.start()
+
+    def tearDown(self):
+        # Stop patchers to clean up after each test
+        self._patcher_aggregate_hr.stop()
+        self._patcher_aggregate_recruit.stop()
 
     def test_active_action(self):
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
