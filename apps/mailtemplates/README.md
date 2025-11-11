@@ -379,7 +379,7 @@ Callbacks can be specified at two levels:
    - Applied to all recipients in the job
    - Stored in `EmailSendJob.callback_data`
 
-2. **Per-recipient callback**: Set in `recipient['callback_data']` 
+2. **Per-recipient callback**: Set in `recipient['callback_data']`
    - Takes precedence over job-level callback
    - Allows different callbacks for different recipients
    - Stored in `EmailSendRecipient.callback_data`
@@ -401,7 +401,7 @@ def get_recipients(self, request, instance):
             }
         },
         {
-            "email": "user2@example.com", 
+            "email": "user2@example.com",
             "data": {"name": "User 2"},
             "callback_data": {
                 "path": "apps.hrm.callbacks.mark_invited",

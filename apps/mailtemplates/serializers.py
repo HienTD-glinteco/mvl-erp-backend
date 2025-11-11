@@ -150,9 +150,7 @@ class TemplatePreviewResponseSerializer(serializers.Serializer):
 
     html = serializers.CharField(help_text="Rendered HTML content with inlined CSS")
     text = serializers.CharField(help_text="Plain text version of the email")
-    subject = serializers.CharField(
-        help_text="Email subject line", required=False, allow_null=True, allow_blank=True
-    )
+    subject = serializers.CharField(help_text="Email subject line", required=False, allow_null=True, allow_blank=True)
 
 
 class TemplateSaveResponseSerializer(serializers.Serializer):

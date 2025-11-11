@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("hrm", "0047_remove_employee_resignation_date_and_more"),
     ]

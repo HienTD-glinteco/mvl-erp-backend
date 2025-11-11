@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -276,6 +275,3 @@ class PositionSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "code", "data_scope_display", "is_active", "created_at", "updated_at"]
-
-
-

@@ -1,14 +1,16 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
+from django.db.models import Sum
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import OpenApiExample, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
-from apps.hrm.models import EmployeeStatusBreakdownReport
+from apps.hrm.models import Block, Branch, Department, EmployeeResignedReasonReport, EmployeeStatusBreakdownReport
+from apps.hrm.models.employee import Employee
 from apps.hrm.utils import (
     get_current_month_range,
     get_current_week_range,
@@ -16,6 +18,7 @@ from apps.hrm.utils import (
 
 from ..serializers import (
     EmployeeCountBreakdownReportParamsSerializer,
+    EmployeeResignedReasonSummarySerializer,
     EmployeeStatusBreakdownReportAggregatedSerializer,
 )
 
@@ -424,4 +427,199 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
         """Aggregate resigned employee count (count_resigned) by time period and organizational hierarchy."""
         data = self._prepare_report_data(request, "count_resigned")
         serializer = EmployeeStatusBreakdownReportAggregatedSerializer(data)
+        return Response(serializer.data)
+
+    @extend_schema(
+        operation_id="hrm_reports_employee_resigned_reasons_summary_retrieve",
+        summary="Employee Resignation Reason Rate Report (Pie Chart)",
+        description=(
+            "Returns aggregated resignation reason counts and percentages for a selected date range "
+            "and organizational filter. Suitable for displaying a pie chart. "
+            "Filters resignation data by time period (date range) and organizational units (Branch/Block/Department). "
+            "Only resignation reasons with count > 0 are displayed. "
+            "Default date range: 1st of current month to today."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="from_date",
+                type=str,
+                required=False,
+                description="Start date (YYYY-MM-DD). Default: 1st of current month",
+            ),
+            OpenApiParameter(
+                name="to_date", type=str, required=False, description="End date (YYYY-MM-DD). Default: today"
+            ),
+            OpenApiParameter(name="branch", type=int, required=False, description="Branch ID"),
+            OpenApiParameter(name="block", type=int, required=False, description="Block ID"),
+            OpenApiParameter(
+                name="block_type", type=str, required=False, description="Block type: 'support' or 'business'"
+            ),
+            OpenApiParameter(name="department", type=int, required=False, description="Department ID"),
+        ],
+        responses={200: EmployeeResignedReasonSummarySerializer},
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "total_resigned": 127,
+                        "from_date": "2025-01-01",
+                        "to_date": "2025-06-30",
+                        "filters": {"branch": "Branch A", "block": None, "department": None, "block_type": None},
+                        "reasons": [
+                            {
+                                "code": "VOLUNTARY_CAREER_CHANGE",
+                                "label": "Voluntary - Career Change",
+                                "count": 45,
+                                "percentage": "35.43",
+                            },
+                            {
+                                "code": "VOLUNTARY_PERSONAL",
+                                "label": "Voluntary - Personal Reasons",
+                                "count": 32,
+                                "percentage": "25.20",
+                            },
+                            {"code": "PROBATION_FAIL", "label": "Probation Fail", "count": 20, "percentage": "15.75"},
+                            {
+                                "code": "CONTRACT_EXPIRED",
+                                "label": "Contract Expired",
+                                "count": 15,
+                                "percentage": "11.81",
+                            },
+                            {
+                                "code": "VOLUNTARY_HEALTH",
+                                "label": "Voluntary - Health Reasons",
+                                "count": 10,
+                                "percentage": "7.87",
+                            },
+                            {"code": "OTHER", "label": "Other", "count": 5, "percentage": "3.94"},
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error",
+                value={"success": False, "data": None, "error": {"from_date": ["This field is required."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="employee-resigned-reasons-summary")
+    def employee_resigned_reasons_summary(self, request):
+        """
+        Aggregate resigned reasons by date range and organizational filters.
+        Returns flat list of reasons with counts and percentages.
+        Default date range: 1st of current month to today (or end of month if today is past end of month).
+        """
+        # Mapping: column name -> (code, label)
+        reason_fields = [
+            ("agreement_termination", Employee.ResignationReason.AGREEMENT_TERMINATION, _("Agreement Termination")),
+            ("probation_fail", Employee.ResignationReason.PROBATION_FAIL, _("Probation Fail")),
+            ("job_abandonment", Employee.ResignationReason.JOB_ABANDONMENT, _("Job Abandonment")),
+            (
+                "disciplinary_termination",
+                Employee.ResignationReason.DISCIPLINARY_TERMINATION,
+                _("Disciplinary Termination"),
+            ),
+            ("workforce_reduction", Employee.ResignationReason.WORKFORCE_REDUCTION, _("Workforce Reduction")),
+            ("underperforming", Employee.ResignationReason.UNDERPERFORMING, _("Underperforming")),
+            ("contract_expired", Employee.ResignationReason.CONTRACT_EXPIRED, _("Contract Expired")),
+            ("voluntary_health", Employee.ResignationReason.VOLUNTARY_HEALTH, _("Voluntary - Health Reasons")),
+            ("voluntary_personal", Employee.ResignationReason.VOLUNTARY_PERSONAL, _("Voluntary - Personal Reasons")),
+            (
+                "voluntary_career_change",
+                Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
+                _("Voluntary - Career Change"),
+            ),
+            ("voluntary_other", Employee.ResignationReason.VOLUNTARY_OTHER, _("Voluntary - Other")),
+            ("other", Employee.ResignationReason.OTHER, _("Other")),
+        ]
+
+        # Get or set default date range: 1st of current month to today
+        from_date = request.query_params.get("from_date")
+        to_date = request.query_params.get("to_date")
+
+        if not from_date or not to_date:
+            # Default: 1st of current month to today
+            today = date.today()
+            from_date = date(today.year, today.month, 1).isoformat()
+            to_date = today.isoformat()
+
+        # Build base queryset
+        qs = EmployeeResignedReasonReport.objects.filter(
+            report_date__range=[from_date, to_date],
+            branch__is_active=True,
+            block__is_active=True,
+            department__is_active=True,
+        )
+
+        # Apply organizational filters
+        filter_info = {}
+
+        branch_id = request.query_params.get("branch")
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+            branch_obj = Branch.objects.filter(id=branch_id).first()
+            filter_info["branch"] = branch_obj.name if branch_obj else None
+        else:
+            filter_info["branch"] = None
+
+        block_id = request.query_params.get("block")
+        if block_id:
+            qs = qs.filter(block_id=block_id)
+            block_obj = Block.objects.filter(id=block_id).first()
+            filter_info["block"] = block_obj.name if block_obj else None
+        else:
+            filter_info["block"] = None
+
+        block_type = request.query_params.get("block_type")
+        if block_type:
+            qs = qs.filter(block__block_type=block_type)
+            filter_info["block_type"] = block_type
+        else:
+            filter_info["block_type"] = None
+
+        department_id = request.query_params.get("department")
+        if department_id:
+            qs = qs.filter(department_id=department_id)
+            dept_obj = Department.objects.filter(id=department_id).first()
+            filter_info["department"] = dept_obj.name if dept_obj else None
+        else:
+            filter_info["department"] = None
+
+        # Aggregate all reason columns
+        agg_fields = {"total_resigned": Sum("count_resigned")}
+        for field_name, __, __ in reason_fields:
+            agg_fields[field_name] = Sum(field_name)
+
+        aggregates = qs.aggregate(**agg_fields)
+
+        total_resigned = aggregates.get("total_resigned") or 0
+
+        # Build reasons list (only include reasons with count > 0)
+        reasons = []
+        for field_name, code, label in reason_fields:
+            count = aggregates.get(field_name) or 0
+            if count > 0:
+                percentage = round((count / total_resigned * 100), 2) if total_resigned > 0 else 0.0
+                reasons.append({"code": code, "label": str(label), "count": count, "percentage": percentage})
+
+        # Sort by count descending
+        reasons.sort(key=lambda x: x["count"], reverse=True)
+
+        # Build response
+        data = {
+            "total_resigned": total_resigned,
+            "from_date": from_date,
+            "to_date": to_date,
+            "filters": filter_info,
+            "reasons": reasons,
+        }
+
+        serializer = EmployeeResignedReasonSummarySerializer(data)
         return Response(serializer.data)
