@@ -94,8 +94,12 @@ class EmployeeFieldRestrictionsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = json.loads(response.content)
         self.assertFalse(response_data["success"])
-        self.assertIn("status", response_data["error"])
-        self.assertIn("active/reactive/resigned/maternity_leave", str(response_data["error"]["status"]))
+        # Check standardized error format
+        self.assertIn("errors", response_data["error"])
+        errors = response_data["error"]["errors"]
+        status_error = next((e for e in errors if e.get("attr") == "status"), None)
+        self.assertIsNotNone(status_error)
+        self.assertIn("active/reactive/resigned/maternity_leave", status_error["detail"])
 
     def test_update_restricted_field_department_raises_error(self):
         """Test that updating department_id raises validation error."""
@@ -109,8 +113,12 @@ class EmployeeFieldRestrictionsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = json.loads(response.content)
         self.assertFalse(response_data["success"])
-        self.assertIn("department", response_data["error"])
-        self.assertIn("transfer", str(response_data["error"]["department"]))
+        # Check standardized error format
+        self.assertIn("errors", response_data["error"])
+        errors = response_data["error"]["errors"]
+        dept_error = next((e for e in errors if e.get("attr") == "department"), None)
+        self.assertIsNotNone(dept_error)
+        self.assertIn("transfer", dept_error["detail"])
 
     def test_update_restricted_field_position_raises_error(self):
         """Test that updating position_id raises validation error."""
@@ -125,8 +133,12 @@ class EmployeeFieldRestrictionsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = json.loads(response.content)
         self.assertFalse(response_data["success"])
-        self.assertIn("position", response_data["error"])
-        self.assertIn("transfer", str(response_data["error"]["position"]))
+        # Check standardized error format
+        self.assertIn("errors", response_data["error"])
+        errors = response_data["error"]["errors"]
+        pos_error = next((e for e in errors if e.get("attr") == "position"), None)
+        self.assertIsNotNone(pos_error)
+        self.assertIn("transfer", pos_error["detail"])
 
     def test_update_allowed_fields_succeeds(self):
         """Test that updating allowed fields works."""
@@ -162,7 +174,7 @@ class EmployeeFieldRestrictionsTest(TestCase):
                 "username": "newuser001",
                 "email": "newuser@example.com",
                 "phone": "5555555555",
-                "attendance_code": "ATT002",
+                "attendance_code": "002",  # Must be digits only
                 "date_of_birth": "1995-05-05",
                 "start_date": "2025-01-01",
                 "department_id": self.department.id,
