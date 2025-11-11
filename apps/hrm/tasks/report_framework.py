@@ -261,22 +261,27 @@ def create_batch_task(
                         # Get unique org units
                         affected_org_units = set(
                             modified_records.values_list(
-                            "branch_id", "block_id", "department_id"
-                        ).distinct()
-                    )
+                                "branch_id", "block_id", "department_id"
+                            ).distinct()
+                        )
 
-                    # Generate date range
-                    dates_to_process = []
-                    current_date = earliest_date
-                    while current_date <= today:
-                        dates_to_process.append(current_date)
-                        current_date += timedelta(days=1)
+                        # Generate date range
+                        dates_to_process = []
+                        current_date = earliest_date
+                        while current_date <= today:
+                            dates_to_process.append(current_date)
+                            current_date += timedelta(days=1)
 
-                    logger.info(
-                        f"[{name}] Detected {modified_records.count()} modifications. "
-                        f"Processing {len(dates_to_process)} dates for "
-                        f"{len(affected_org_units)} org units."
+                        logger.info(
+                            f"[{name}] Detected {modified_records.count()} modifications. "
+                            f"Processing {len(dates_to_process)} dates for "
+                            f"{len(affected_org_units)} org units."
+                        )
+                except Exception as e:
+                    logger.error(
+                        f"Error determining dates to process for {name}: {str(e)}"
                     )
+                    raise
 
             if not dates_to_process:
                 logger.info(f"[{name}] No dates to process")
