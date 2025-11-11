@@ -235,9 +235,13 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             errors = {}
             for field, action in restricted_fields.items():
                 if field in attrs:
-                    errors[field] = _(
-                        "This field cannot be updated directly. Use the '{action}' action endpoint instead."
-                    ).format(action=action)
+                    # Only raise error if the value is actually changing
+                    old_value = getattr(self.instance, field, None)
+                    new_value = attrs[field]
+                    if old_value != new_value:
+                        errors[field] = _(
+                            "This field cannot be updated directly. Use the '{action}' action endpoint instead."
+                        ).format(action=action)
 
             if errors:
                 raise serializers.ValidationError(errors)
