@@ -2,7 +2,6 @@
 
 import pytest
 from django.contrib.auth import get_user_model
-from drf_spectacular.generators import SchemaGenerator
 from rest_framework import serializers
 
 from apps.files.models import FileModel
@@ -171,8 +170,37 @@ class TestImportJobSerializerSchemaGeneration:
 
     def test_import_job_serializer_schema_generation(self):
         """Test that drf-spectacular generates correct schema for result_files."""
-        generator = SchemaGenerator()
-        schema = generator.get_schema()
+        import json
+        import os
+        import subprocess
+        import tempfile
+
+        # Generate schema using management command (most reliable method)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            schema_file = f.name
+
+        try:
+            subprocess.run(
+                [
+                    "poetry",
+                    "run",
+                    "python",
+                    "manage.py",
+                    "spectacular",
+                    "--file",
+                    schema_file,
+                    "--format",
+                    "openapi-json",
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            with open(schema_file, "r") as f:
+                schema = json.load(f)
+        finally:
+            os.unlink(schema_file)
 
         # Navigate to ImportJobSerializer schema
         import_job_schema = schema["components"]["schemas"]["ImportJob"]
@@ -180,22 +208,48 @@ class TestImportJobSerializerSchemaGeneration:
         # Verify result_files exists
         assert "result_files" in import_job_schema["properties"]
 
-        result_files_schema = import_job_schema["properties"]["result_files"]
+        result_files_ref = import_job_schema["properties"]["result_files"]
 
-        # Verify it's an object, not a string
+        # Handle schema reference - result_files uses allOf with $ref
+        if "allOf" in result_files_ref:
+            ref_path = result_files_ref["allOf"][0]["$ref"]
+            ref_name = ref_path.split("/")[-1]
+            result_files_schema = schema["components"]["schemas"][ref_name]
+        else:
+            result_files_schema = result_files_ref
+
+        # Verify it's an object
         assert result_files_schema["type"] == "object"
         assert "properties" in result_files_schema
 
         # Verify success_file structure
         assert "success_file" in result_files_schema["properties"]
-        success_file_schema = result_files_schema["properties"]["success_file"]
+        success_file_ref = result_files_schema["properties"]["success_file"]
+
+        # Handle schema reference for success_file
+        if "allOf" in success_file_ref:
+            ref_path = success_file_ref["allOf"][0]["$ref"]
+            ref_name = ref_path.split("/")[-1]
+            success_file_schema = schema["components"]["schemas"][ref_name]
+        else:
+            success_file_schema = success_file_ref
+
         assert success_file_schema["type"] == "object"
         assert "file_id" in success_file_schema["properties"]
         assert "url" in success_file_schema["properties"]
 
         # Verify failed_file structure
         assert "failed_file" in result_files_schema["properties"]
-        failed_file_schema = result_files_schema["properties"]["failed_file"]
+        failed_file_ref = result_files_schema["properties"]["failed_file"]
+
+        # Handle schema reference for failed_file
+        if "allOf" in failed_file_ref:
+            ref_path = failed_file_ref["allOf"][0]["$ref"]
+            ref_name = ref_path.split("/")[-1]
+            failed_file_schema = schema["components"]["schemas"][ref_name]
+        else:
+            failed_file_schema = failed_file_ref
+
         assert failed_file_schema["type"] == "object"
         assert "file_id" in failed_file_schema["properties"]
         assert "url" in failed_file_schema["properties"]
