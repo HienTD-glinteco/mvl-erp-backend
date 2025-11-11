@@ -686,8 +686,8 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "date_of_birth": "1990-01-01",
             "personal_email": "emp1.personal@example.com",
             "start_date": "2024-01-01",
-            "department_id": self.department.id,
             "citizen_id": self.employee1.citizen_id,
+            "department_id": self.department.id,
         }
         response = self.client.put(url, payload, format="json")
 

@@ -120,13 +120,13 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
-        # Act - Update status to Active
-        url = reverse("hrm:employee-detail", kwargs={"pk": employee.pk})
-        response = self.client.patch(
+        # Act - Update status to Active using the active action
+        url = reverse("hrm:employee-active", kwargs={"pk": employee.pk})
+        response = self.client.post(
             url,
             {
-                "department_id": self.department.id,
-                "status": Employee.Status.ACTIVE,
+                "start_date": "2024-02-01",
+                "description": "Status changed to active",
             },
             format="json",
         )
@@ -163,13 +163,15 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
-        # Act - Update position
-        url = reverse("hrm:employee-detail", kwargs={"pk": employee.pk})
-        response = self.client.patch(
+        # Act - Update position using transfer action
+        url = reverse("hrm:employee-transfer", kwargs={"pk": employee.pk})
+        response = self.client.post(
             url,
             {
+                "date": "2024-02-01",
                 "department_id": self.department.id,
                 "position_id": self.position2.id,
+                "note": "Position change",
             },
             format="json",
         )
@@ -182,7 +184,8 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(work_histories.count(), 1)
 
         work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_POSITION)
+        # Transfer action always creates TRANSFER event type
+        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.TRANSFER)
         self.assertIn("Senior Developer", work_history.detail)
         self.assertIn("HR Manager", work_history.detail)
 
@@ -207,12 +210,15 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         # Clear the initial work history
         EmployeeWorkHistory.objects.all().delete()
 
-        # Act - Update department
-        url = reverse("hrm:employee-detail", kwargs={"pk": employee.pk})
-        response = self.client.patch(
+        # Act - Update department using transfer action
+        url = reverse("hrm:employee-transfer", kwargs={"pk": employee.pk})
+        response = self.client.post(
             url,
             {
+                "date": "2024-02-01",
                 "department_id": self.department2.id,
+                "position_id": self.position.id,
+                "note": "Department transfer",
             },
             format="json",
         )
@@ -319,11 +325,11 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(work_histories.count(), 1)
 
         work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
+        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.RETURN_TO_WORK)
         self.assertEqual(work_history.status, Employee.Status.ACTIVE)
         self.assertEqual(work_history.retain_seniority, True)
         self.assertEqual(work_history.date, date(2024, 4, 1))
-        self.assertIn("Reactivated", work_history.detail)
+        self.assertIn("returned to work", work_history.detail.lower())
 
     def test_employee_resigned_action_creates_work_history(self):
         """Test that the resigned action creates a work history record with resignation reason."""

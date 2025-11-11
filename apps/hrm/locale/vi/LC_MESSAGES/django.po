@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 13:14+0700\n"
+"POT-Creation-Date: 2025-11-11 16:01+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,30 +23,48 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:250
+#: apps/hrm/api/serializers/employee.py:243
+#, python-brace-format
+msgid ""
+"This field cannot be updated directly. Use the '{action}' action endpoint "
+"instead."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:276
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:264 apps/hrm/api/views/employee.py:332
+#: apps/hrm/api/serializers/employee.py:290 apps/hrm/api/views/employee.py:351
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:375
-#: apps/hrm/api/serializers/employee.py:400
+#: apps/hrm/api/serializers/employee.py:404
+#: apps/hrm/api/serializers/employee.py:429
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:414
+#: apps/hrm/api/serializers/employee.py:460
+#, python-brace-format
+msgid ""
+"Employee returned to work from resigned status. Status changed from "
+"{old_status} to {new_status}."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:464
+msgid "Seniority retained from previous employment period."
+msgstr ""
+
+#: apps/hrm/api/serializers/employee.py:482
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:441
-#: apps/hrm/api/serializers/employee.py:483
+#: apps/hrm/api/serializers/employee.py:509
+#: apps/hrm/api/serializers/employee.py:551
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:455
+#: apps/hrm/api/serializers/employee.py:523
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
@@ -508,7 +526,7 @@ msgstr ""
 
 #: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:152
 #: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:108
-#: apps/hrm/models/employee_work_history.py:82
+#: apps/hrm/models/employee_work_history.py:83
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
 #: apps/hrm/models/recruitment_candidate.py:76
 #: apps/hrm/models/recruitment_reports.py:29
@@ -677,7 +695,7 @@ msgstr ""
 #: apps/hrm/models/employee_certificate.py:53
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
-#: apps/hrm/models/employee_work_history.py:64
+#: apps/hrm/models/employee_work_history.py:65
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214
 msgid "Employee"
@@ -801,7 +819,7 @@ msgstr ""
 
 #: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:34
 #: apps/hrm/models/employee_report.py:102
-#: apps/hrm/models/employee_work_history.py:73
+#: apps/hrm/models/employee_work_history.py:74
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
 #: apps/hrm/models/organization.py:103
 #: apps/hrm/models/recruitment_candidate.py:68
@@ -812,7 +830,7 @@ msgstr ""
 
 #: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:46
 #: apps/hrm/models/employee_report.py:114
-#: apps/hrm/models/employee_work_history.py:91
+#: apps/hrm/models/employee_work_history.py:92
 #: apps/hrm/models/organization.py:133
 #: apps/hrm/models/recruitment_candidate.py:84
 #: apps/hrm/models/recruitment_reports.py:37
@@ -820,7 +838,7 @@ msgstr ""
 msgid "Department"
 msgstr ""
 
-#: apps/hrm/models/employee.py:166 apps/hrm/models/employee_work_history.py:100
+#: apps/hrm/models/employee.py:166 apps/hrm/models/employee_work_history.py:101
 #: apps/hrm/models/organization.py:264
 msgid "Position"
 msgstr ""
@@ -830,7 +848,7 @@ msgid "Start date"
 msgstr ""
 
 #: apps/hrm/models/employee.py:183 apps/hrm/models/employee_certificate.py:110
-#: apps/hrm/models/employee_work_history.py:113
+#: apps/hrm/models/employee_work_history.py:114
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
@@ -844,13 +862,13 @@ msgstr ""
 msgid "Resignation end date"
 msgstr ""
 
-#: apps/hrm/models/employee.py:200 apps/hrm/models/employee_work_history.py:139
+#: apps/hrm/models/employee.py:200 apps/hrm/models/employee_work_history.py:140
 msgid "Resignation reason"
 msgstr ""
 
 #: apps/hrm/models/employee.py:202 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
-#: apps/hrm/models/employee_work_history.py:105
+#: apps/hrm/models/employee_work_history.py:106
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/recruitment_candidate.py:118
@@ -1299,109 +1317,113 @@ msgstr ""
 msgid "Change Contract"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:46
-msgid "Date"
+#: apps/hrm/models/employee_work_history.py:44
+msgid "Return to Work"
 msgstr ""
 
 #: apps/hrm/models/employee_work_history.py:47
+msgid "Date"
+msgstr ""
+
+#: apps/hrm/models/employee_work_history.py:48
 msgid "Date of the work history event"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:52
+#: apps/hrm/models/employee_work_history.py:53
 msgid "Event type"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:53
+#: apps/hrm/models/employee_work_history.py:54
 msgid "Type of the work history event"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:57
+#: apps/hrm/models/employee_work_history.py:58
 msgid "Details"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:58
+#: apps/hrm/models/employee_work_history.py:59
 msgid "Detailed description of the work history event"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:65
+#: apps/hrm/models/employee_work_history.py:66
 msgid "Employee associated with this work history record"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:74
+#: apps/hrm/models/employee_work_history.py:75
 msgid "Branch (auto-populated from employee)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:83
+#: apps/hrm/models/employee_work_history.py:84
 msgid "Block (auto-populated from employee)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:92
+#: apps/hrm/models/employee_work_history.py:93
 msgid "Department (auto-populated from employee)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:101
+#: apps/hrm/models/employee_work_history.py:102
 msgid "Position (auto-populated from employee)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:106
+#: apps/hrm/models/employee_work_history.py:107
 msgid "Additional notes about the work history event"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:114
+#: apps/hrm/models/employee_work_history.py:115
 msgid "New employee status after the event (for state-change events)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:119
+#: apps/hrm/models/employee_work_history.py:120
 msgid "From date"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:120
+#: apps/hrm/models/employee_work_history.py:121
 msgid "Start date of the event period"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:125
+#: apps/hrm/models/employee_work_history.py:126
 msgid "To date"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:126
+#: apps/hrm/models/employee_work_history.py:127
 msgid "End date of the event period"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:131
+#: apps/hrm/models/employee_work_history.py:132
 msgid "Retain seniority"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:132
+#: apps/hrm/models/employee_work_history.py:133
 msgid "For return to work events, whether seniority is retained or reset"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:140
+#: apps/hrm/models/employee_work_history.py:141
 msgid "Reason for resignation (if applicable)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:148
+#: apps/hrm/models/employee_work_history.py:149
 msgid "Contract"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:149
+#: apps/hrm/models/employee_work_history.py:150
 msgid "New contract for contract-change event"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:154
+#: apps/hrm/models/employee_work_history.py:155
 msgid "Previous data"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:156
+#: apps/hrm/models/employee_work_history.py:157
 msgid ""
 "JSON data storing previous values (status, branch_id, block_id, "
 "department_id, contract_type, contract_id)"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:161
+#: apps/hrm/models/employee_work_history.py:162
 msgid "Employee work history"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:162
+#: apps/hrm/models/employee_work_history.py:163
 msgid "Employee work histories"
 msgstr ""
 

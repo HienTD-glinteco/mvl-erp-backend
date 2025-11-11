@@ -8,6 +8,7 @@ from .models import (
     ContractType,
     Department,
     Employee,
+    EmployeeWorkHistory,
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
@@ -43,6 +44,11 @@ class PositionAdmin(admin.ModelAdmin):
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ["code", "fullname", "username", "email", "status", "phone", "start_date"]
+
+
+@admin.register(EmployeeWorkHistory)
+class EmployeeWorkHistoryAdmin(admin.ModelAdmin):
+    list_display = ["date", "name", "employee", "status", "from_date", "to_date"]
 
 
 admin.site.register(Block)

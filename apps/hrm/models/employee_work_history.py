@@ -41,6 +41,7 @@ class EmployeeWorkHistory(BaseModel):
         CHANGE_STATUS = "Change Status", _("Change Status")
         TRANSFER = "Transfer", _("Transfer")
         CHANGE_CONTRACT = "Change Contract", _("Change Contract")
+        RETURN_TO_WORK = "Return to Work", _("Return to Work")
 
     date = models.DateField(
         verbose_name=_("Date"),
