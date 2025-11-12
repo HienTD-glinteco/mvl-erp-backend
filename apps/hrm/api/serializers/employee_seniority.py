@@ -59,31 +59,34 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             "work_history",
         ]
 
-    def _get_calculation_scope(self, work_histories):
+    def _get_calculation_scope(self, work_histories, employee_start_date=None):
         """Determine which work history periods to include in calculation.
 
         Simplified logic focusing only on 2 event types:
         1. "Return to Work" events
         2. "Change Status" events with status=Resigned
         
+        IMPORTANT: Always includes current employment period in the calculation
+        
         Logic:
         I. If no "Return to Work" events exist:
-           - Only include current employment period (synthetic)
+           - Only include current employment period (from employee start_date to now)
            
         II. If at least one "Return to Work" with retain_seniority=False exists:
             - Find most recent retain_seniority=False "Return to Work"
             - Ignore all events before that cutoff
             - After cutoff: include "Change Status" (Resigned) events
-            - Add current period if no resignation events after cutoff
+            - Add current employment period (from employee start_date to now)
             
         III. If "Return to Work" events exist but none with retain_seniority=False:
              - Include all "Change Status" (Resigned) events
-             - Add current employment period
+             - Add current employment period (from employee start_date to now)
         
         Finally, sort periods by start_date
         
         Args:
             work_histories (list): List of EmployeeWorkHistory objects
+            employee_start_date: Employee's start_date for current period
 
         Returns:
             tuple: (periods_to_include, sorted_all_histories)
@@ -150,9 +153,16 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
                 }
                 periods.append(period)
         
-        # Add current employment period if no resignation events or no events at all
-        # This will be handled in get_work_history by checking if periods is empty
-        # or if the most recent period has ended
+        # ALWAYS add current employment period for seniority calculation
+        # Current period always starts from employee start_date to now
+        if employee_start_date:
+            current_period = {
+                'event': None,  # Synthetic period
+                'from_date': employee_start_date,
+                'to_date': None,  # Current - no end date
+                'is_synthetic': True,
+            }
+            periods.append(current_period)
         
         return periods, sorted_histories
 
@@ -161,23 +171,25 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
         """Calculate employee seniority according to QTNV 5.5.7.
 
         Business Logic:
-        1. Follow the chain of work history events from most recent backwards
-        2. Include periods where retain_seniority=True
-        3. Stop at retain_seniority=False or None
+        1. Focus on "Return to Work" and "Change Status" (Resigned) events
+        2. Always include current employment period in calculation
+        3. Sum all relevant periods
 
         Returns:
             int: Total seniority in days
         """
         work_histories = getattr(obj, "cached_work_histories", [])
+        employee_start_date = getattr(obj, "start_date", None)
 
         if not work_histories:
             # Fallback: calculate from employee start_date
-            if hasattr(obj, "start_date") and obj.start_date:
-                return (date.today() - obj.start_date).days
+            if employee_start_date:
+                return (date.today() - employee_start_date).days
             return 0
 
         # Get periods to calculate (reuse helper method)
-        periods_to_calculate, __ = self._get_calculation_scope(work_histories)
+        # Pass employee_start_date so current period is always included
+        periods_to_calculate, __ = self._get_calculation_scope(work_histories, employee_start_date)
 
         # Calculate total days
         total_days = 0
@@ -255,15 +267,18 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
 
         Business Logic:
         - Only show periods from resignation events + current period
+        - Current period always starts from employee start_date
         - Ordered by from_date (ascending)
 
         Returns:
             list: Serialized work history ordered by from_date
         """
         work_histories = getattr(obj, "cached_work_histories", [])
+        employee_start_date = getattr(obj, "start_date", None)
 
         # Get periods to display (SAME as calculation scope)
-        periods_to_display, __ = self._get_calculation_scope(work_histories)
+        # Pass employee_start_date so current period is always included
+        periods_to_display, __ = self._get_calculation_scope(work_histories, employee_start_date)
 
         # Build serialized entries from period data
         serialized_histories = []
@@ -272,57 +287,28 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             event = period_data.get('event')
             from_date = period_data.get('from_date')
             to_date = period_data.get('to_date')
+            is_synthetic = period_data.get('is_synthetic', False)
             
             # Create entry for this period
-            entry = {
-                "name": event.name if hasattr(event, 'name') else "Change Status",
-                "date": event.date if hasattr(event, 'date') else from_date,
-                "detail": event.detail if hasattr(event, 'detail') else "",
-                "from_date": from_date,
-                "to_date": to_date,
-            }
-            serialized_histories.append(entry)
-        
-        # Check if we need to add current employment period
-        # Add if no periods exist OR if the most recent period has ended
-        needs_current_period = False
-        if not serialized_histories:
-            needs_current_period = True
-        else:
-            # Check if most recent period (by from_date) has ended
-            most_recent = max(serialized_histories, key=lambda x: x['from_date'] if x['from_date'] else date.min)
-            if most_recent.get('to_date') is not None:
-                needs_current_period = True
-        
-        if needs_current_period and hasattr(obj, "start_date") and obj.start_date:
-            # Determine start date for current period
-            # If we have periods, start from the day after the last to_date
-            # Otherwise start from employee start_date
-            if serialized_histories:
-                # Find the most recent period's end date
-                most_recent = max(serialized_histories, key=lambda x: x['from_date'] if x['from_date'] else date.min)
-                if most_recent.get('to_date'):
-                    # Parse if string
-                    to_date_val = most_recent['to_date']
-                    if isinstance(to_date_val, str):
-                        from dateutil.parser import parse
-                        to_date_val = parse(to_date_val).date()
-                    # Current period starts the day after resignation end
-                    from datetime import timedelta
-                    current_start = to_date_val + timedelta(days=1)
-                else:
-                    current_start = obj.start_date
+            if is_synthetic:
+                # Synthetic current period
+                entry = {
+                    "name": "Change Status",
+                    "date": from_date,
+                    "detail": _("Current employment period"),
+                    "from_date": from_date,
+                    "to_date": to_date,
+                }
             else:
-                current_start = obj.start_date
-            
-            current_period = {
-                "name": "Change Status",
-                "date": current_start,
-                "detail": _("Current employment period"),
-                "from_date": current_start,
-                "to_date": None,
-            }
-            serialized_histories.append(current_period)
+                # Real event from work history
+                entry = {
+                    "name": event.name if event and hasattr(event, 'name') else "Change Status",
+                    "date": event.date if event and hasattr(event, 'date') else from_date,
+                    "detail": event.detail if event and hasattr(event, 'detail') else "",
+                    "from_date": from_date,
+                    "to_date": to_date,
+                }
+            serialized_histories.append(entry)
         
         # Sort by from_date (ascending) for display
         serialized_histories.sort(key=lambda x: x['from_date'] if x['from_date'] else date.min)
