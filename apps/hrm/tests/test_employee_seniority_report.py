@@ -162,7 +162,9 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         # Check seniority_text exists and is a string
         self.assertIn("seniority_text", results[0])
         self.assertIsInstance(results[0]["seniority_text"], str)
-        self.assertIn("year(s)", results[0]["seniority_text"])
+        self.assertIn("year", results[0]["seniority_text"])
+        # Should not have parentheses anymore
+        self.assertNotIn("(s)", results[0]["seniority_text"])
 
         # Check work history includes current period (synthetic entry)
         self.assertEqual(len(results[0]["work_history"]), 1)
@@ -209,13 +211,13 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Check seniority_text
         self.assertIn("seniority_text", employee_data)
-        self.assertIn("year(s)", employee_data["seniority_text"])
+        self.assertIn("year", employee_data["seniority_text"])
 
-        # Check work history displays both periods (in reverse chronological order)
+        # Check work history displays both periods (ordered by creation time - ascending)
         self.assertEqual(len(employee_data["work_history"]), 2)
-        # Most recent first
-        self.assertEqual(employee_data["work_history"][0]["from_date"], "2021-01-01")
-        self.assertEqual(employee_data["work_history"][1]["from_date"], "2018-01-15")
+        # Ordered by date (ascending), so oldest first
+        self.assertEqual(employee_data["work_history"][0]["from_date"], "2018-01-15")
+        self.assertEqual(employee_data["work_history"][1]["from_date"], "2021-01-01")
 
     def test_seniority_calculation_with_non_continuous_period(self):
         """Test seniority calculation with non-continuous period (retain_seniority=False).
@@ -274,13 +276,13 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
 
         # Check seniority_text
         self.assertIn("seniority_text", employee_data)
-        self.assertIn("year(s)", employee_data["seniority_text"])
+        self.assertIn("year", employee_data["seniority_text"])
 
         # Check work history ONLY displays periods included in calculation (BR-4)
         self.assertEqual(len(employee_data["work_history"]), 2)
-        # Most recent first
-        self.assertEqual(employee_data["work_history"][0]["from_date"], "2022-01-01")
-        self.assertEqual(employee_data["work_history"][1]["from_date"], "2021-01-01")
+        # Ordered by date (ascending), so oldest included period first
+        self.assertEqual(employee_data["work_history"][0]["from_date"], "2021-01-01")
+        self.assertEqual(employee_data["work_history"][1]["from_date"], "2022-01-01")
 
     def test_work_history_display_matches_calculation_scope(self):
         """Test BR-4: Work history display matches calculation scope.
@@ -337,7 +339,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         # Should only show periods from most recent retain_seniority=False onwards
         self.assertEqual(len(employee_data["work_history"]), 2)
         displayed_dates = [wh["from_date"] for wh in employee_data["work_history"]]
-        # Most recent first
+        # Ordered by date (ascending)
         self.assertIn("2022-01-01", displayed_dates)
         self.assertIn("2021-01-01", displayed_dates)
         # Should NOT include older periods

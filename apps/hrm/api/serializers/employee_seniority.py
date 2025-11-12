@@ -6,8 +6,20 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.hrm.models.employee import Employee
+from apps.hrm.models.employee_work_history import EmployeeWorkHistory
 
-from .employee_work_history import EmployeeWorkHistorySerializer
+
+class SimplifiedWorkHistorySerializer(serializers.ModelSerializer):
+    """Simplified serializer for work history in seniority report.
+    
+    Only includes essential fields: name, date, detail, from_date, to_date.
+    Ordered by creation time (ascending).
+    """
+    
+    class Meta:
+        model = EmployeeWorkHistory
+        fields = ["name", "date", "detail", "from_date", "to_date"]
+        read_only_fields = ["name", "date", "detail", "from_date", "to_date"]
 
 
 class EmployeeSenioritySerializer(serializers.ModelSerializer):
@@ -128,21 +140,40 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
         """Get human-readable seniority text.
 
         Returns:
-            str: Formatted string like "5 year(s) 3 month(s), 15 day(s)"
+            str: Formatted string like "2 years 1 month 0 day" or "1 year 0 month 20 days"
         """
         total_days = self.get_seniority(obj)
         
         if total_days <= 0:
-            return _("0 year(s) 0 month(s), 0 day(s)")
+            return "0 year 0 month 0 day"
 
         # Calculate years, months, days
         years, months, days = self._days_to_ymd_tuple(total_days)
 
-        return _("{year} year(s) {month} month(s), {day} day(s)").format(
-            year=years, month=months, day=days
-        )
+        # Build parts with proper pluralization
+        parts = []
+        
+        # Years
+        if years == 1:
+            parts.append(f"{years} year")
+        else:
+            parts.append(f"{years} years")
+        
+        # Months
+        if months == 1:
+            parts.append(f"{months} month")
+        else:
+            parts.append(f"{months} months")
+        
+        # Days
+        if days == 1:
+            parts.append(f"{days} day")
+        else:
+            parts.append(f"{days} days")
+        
+        return " ".join(parts)
 
-    @extend_schema_field(EmployeeWorkHistorySerializer(many=True))
+    @extend_schema_field(SimplifiedWorkHistorySerializer(many=True))
     def get_work_history(self, obj):
         """Get work history periods that are included in seniority calculation.
 
@@ -156,15 +187,15 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
           Show all periods
         - If no work history exists for current status, add a synthetic entry
           from start_date to now
-        - Display in reverse chronological order (most recent first)
+        - Display ordered by creation time (ascending)
 
         Returns:
-            list: Serialized work history in reverse chronological order
+            list: Serialized work history ordered by creation time
         """
         work_histories = getattr(obj, "cached_work_histories", [])
 
         # Get periods to display (SAME as calculation scope)
-        periods_to_display, _ = self._get_calculation_scope(work_histories)
+        periods_to_display, __ = self._get_calculation_scope(work_histories)
 
         # Check if we need to add current employment period
         # If no work history exists OR if latest work history doesn't represent current status
@@ -185,51 +216,22 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
         
         if needs_current_period and hasattr(obj, "start_date") and obj.start_date:
             # Add synthetic current employment period
-            # We'll create a dict that matches the serializer structure
+            # We'll create a dict that matches the simplified serializer structure
             current_period = {
-                "id": None,
-                "date": obj.start_date,
                 "name": "Change Status",
-                "name_display": "Change Status",
+                "date": obj.start_date,
                 "detail": _("Current employment period"),
-                "employee": {
-                    "id": obj.id,
-                    "code": obj.code,
-                    "fullname": obj.fullname,
-                },
-                "branch": {
-                    "id": obj.branch.id,
-                    "name": obj.branch.name,
-                    "code": obj.branch.code,
-                } if obj.branch else None,
-                "block": {
-                    "id": obj.block.id,
-                    "name": obj.block.name,
-                    "code": obj.block.code,
-                } if obj.block else None,
-                "department": {
-                    "id": obj.department.id,
-                    "name": obj.department.name,
-                    "code": obj.department.code,
-                } if obj.department else None,
-                "position": {
-                    "id": obj.position.id,
-                    "name": obj.position.name,
-                } if obj.position else None,
                 "from_date": obj.start_date,
                 "to_date": None,
-                "retain_seniority": True,
-                "created_at": None,
-                "updated_at": None,
             }
             serialized_histories.append(current_period)
 
         # Add existing periods
         if periods_to_display:
-            # Return in reverse chronological order (most recent first)
-            periods_to_display_reversed = list(reversed(periods_to_display))
-            existing_serialized = EmployeeWorkHistorySerializer(
-                periods_to_display_reversed, many=True
+            # Order by creation time (ascending) - sort by date field
+            periods_sorted = sorted(periods_to_display, key=lambda x: x.date if x.date else date.min)
+            existing_serialized = SimplifiedWorkHistorySerializer(
+                periods_sorted, many=True
             ).data
             serialized_histories.extend(existing_serialized)
 
