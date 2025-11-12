@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 15:05+0700\n"
+"POT-Creation-Date: 2025-11-12 15:19+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,11 +60,11 @@ msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
 #: apps/hrm/api/serializers/employee.py:509
-#: apps/hrm/api/serializers/employee.py:551
+#: apps/hrm/api/serializers/employee.py:556
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:523
+#: apps/hrm/api/serializers/employee.py:528
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
