@@ -9,6 +9,7 @@ from .api.views import (
     ExportStatusView,
     LoginView,
     MePermissionsView,
+    MeUpdateAvatarView,
     MeView,
     NationalityViewSet,
     OTPVerificationView,
@@ -55,6 +56,7 @@ urlpatterns = [
     # User profile endpoints
     path("me/", MeView.as_view(), name="me"),
     path("me/permissions/", MePermissionsView.as_view(), name="me_permissions"),
+    path("me/update-avatar/", MeUpdateAvatarView.as_view(), name="me_update_avatar"),
     # Role management
     path("", include(router.urls)),
     # Constants endpoint

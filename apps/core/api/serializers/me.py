@@ -23,10 +23,19 @@ class EmployeeSummarySerializer(serializers.Serializer):
     fullname = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
     phone = serializers.CharField(read_only=True)
+    avatar = serializers.SerializerMethodField()
     department = serializers.SerializerMethodField()
     position = serializers.SerializerMethodField()
     status = serializers.CharField(read_only=True)
     start_date = serializers.DateField(read_only=True)
+
+    def get_avatar(self, obj):
+        """Get avatar information"""
+        if obj.avatar:
+            from apps.files.api.serializers import FileSerializer
+
+            return FileSerializer(obj.avatar).data
+        return None
 
     def get_department(self, obj):
         """Get department name"""

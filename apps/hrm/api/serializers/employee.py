@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
+from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import (
     Block,
     Branch,
@@ -94,6 +95,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
+    avatar = FileSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -187,7 +189,6 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "department",
             "position",
             "contract_type",
-            "avatar",
             "nationality",
             "user",
             "recruitment_candidate",

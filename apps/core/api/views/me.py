@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status
@@ -296,3 +297,150 @@ class MePermissionsView(APIView):
             response_data["permissions"] = [{"id": p.id, "code": p.code} for p in permissions_qs]
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class MeUpdateAvatarView(APIView):
+    """API view to update the authenticated user's avatar"""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Update my avatar",
+        description=(
+            "Upload and assign a new avatar to the currently logged-in user's employee profile. "
+            "Requires a file token obtained from the presign endpoint. "
+            "Only image files (PNG, JPEG, JPG, WEBP) are accepted. "
+            "The user must have an associated employee record."
+        ),
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "files": {
+                        "type": "object",
+                        "properties": {
+                            "avatar": {
+                                "type": "string",
+                                "description": "File token from presign response",
+                            }
+                        },
+                        "required": ["avatar"],
+                    }
+                },
+                "required": ["files"],
+            }
+        },
+        responses={
+            200: MeSerializer,
+            400: OpenApiExample(
+                "Bad Request",
+                value={"success": False, "error": "Invalid file token or file type"},
+                response_only=True,
+            ),
+            401: OpenApiExample(
+                "Unauthorized",
+                value={"success": False, "error": "Authentication credentials were not provided."},
+                response_only=True,
+            ),
+            404: OpenApiExample(
+                "Not Found",
+                value={"success": False, "error": "User does not have an employee record"},
+                response_only=True,
+            ),
+        },
+        tags=["Me"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                description="Avatar updated successfully",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 123,
+                        "username": "john",
+                        "email": "john@example.com",
+                        "employee": {
+                            "id": 55,
+                            "code": "MV-055",
+                            "fullname": "John Doe",
+                            "avatar": {
+                                "id": 115,
+                                "purpose": "employee_avatar",
+                                "file_name": "profile_picture.jpg",
+                                "view_url": "https://s3.amazonaws.com/...",
+                                "download_url": "https://s3.amazonaws.com/...",
+                            },
+                        },
+                    },
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    @transaction.atomic
+    def post(self, request):
+        """
+        Update authenticated user's employee avatar.
+
+        Workflow:
+        1. Client obtains presigned URL: POST /api/files/presign/
+           {
+             "file_name": "avatar.jpg",
+             "file_type": "image/jpeg",
+             "purpose": "employee_avatar"
+           }
+
+        2. Client uploads file to S3 using presigned URL
+
+        3. Client calls this endpoint with file token:
+           POST /api/me/update-avatar/
+           {
+             "files": {
+               "avatar": "file-token-from-step-1"
+             }
+           }
+
+        The serializer automatically:
+        - Validates the file token
+        - Confirms the file upload
+        - Moves file from temp to permanent storage
+        - Assigns the file to employee.avatar field
+        """
+        from django.http import Http404
+
+        from apps.hrm.api.serializers import EmployeeAvatarSerializer
+
+        user = request.user
+
+        # Check if user has an employee record
+        if not hasattr(user, "employee") or user.employee is None:
+            raise Http404("User does not have an employee record")
+
+        employee = user.employee
+
+        # Use EmployeeAvatarSerializer with the employee instance
+        serializer = EmployeeAvatarSerializer(
+            instance=employee,
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Refresh user to get updated employee data
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        user = (
+            User.objects.select_related(
+                "role",
+                "employee__department",
+                "employee__position",
+                "employee__avatar",
+            )
+            .filter(id=request.user.id)
+            .first()
+        )
+
+        # Return updated user profile with new avatar
+        return Response(MeSerializer(user, context={"request": request}).data)
