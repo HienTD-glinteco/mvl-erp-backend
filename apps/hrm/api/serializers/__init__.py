@@ -5,6 +5,7 @@ from .bank_account import BankAccountSerializer
 from .contract_type import ContractTypeSerializer
 from .employee import (
     EmployeeActiveActionSerializer,
+    EmployeeAvatarSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
     EmployeeResignedActionSerializer,
@@ -69,6 +70,7 @@ __all__ = [
     "EmployeeRoleListSerializer",
     "BulkUpdateRoleSerializer",
     "EmployeeActiveActionSerializer",
+    "EmployeeAvatarSerializer",
     "EmployeeMaternityLeaveActionSerializer",
     "EmployeeReactiveActionSerializer",
     "EmployeeResignedActionSerializer",
