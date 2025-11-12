@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 17:13+0700\n"
+"POT-Creation-Date: 2025-11-12 10:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -247,8 +247,22 @@ msgstr ""
 msgid "Import job not found"
 msgstr ""
 
+#: apps/imports/api/serializers.py:34
+#, python-brace-format
+msgid ""
+"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
+"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+msgstr ""
+
 #: apps/imports/api/serializers.py:40
 msgid "Whether to count total rows before processing (default: true)"
+msgstr ""
+
+#: apps/imports/api/serializers.py:48
+#, python-brace-format
+msgid ""
+"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
+"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 msgstr ""
 
 #: apps/imports/api/serializers.py:54
@@ -264,7 +278,6 @@ msgid "Override handler path (optional)"
 msgstr ""
 
 #: apps/imports/api/serializers.py:71
-#, python-brace-format
 msgid "Custom options for handler (default: {})"
 msgstr ""
 
@@ -939,8 +952,16 @@ msgstr ""
 msgid "This field is required"
 msgstr ""
 
-#: libs/models/base_model_mixin.py:60
+#: libs/models/base_model_mixin.py:63
 msgid "Report date"
+msgstr ""
+
+#: libs/models/base_model_mixin.py:67
+msgid "Needs refresh"
+msgstr ""
+
+#: libs/models/base_model_mixin.py:68
+msgid "Indicates if this report needs to be recalculated by batch task"
 msgstr ""
 
 #: libs/validators.py:6

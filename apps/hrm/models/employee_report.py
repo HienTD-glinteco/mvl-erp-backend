@@ -1,19 +1,20 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from libs.models import BaseModel
+from libs.models import BaseReportModel
 
 from .organization import Block, Branch, Department
 
 
-class EmployeeStatusBreakdownReport(BaseModel):
+class EmployeeStatusBreakdownReport(BaseReportModel):
     """Daily employee status breakdown report.
 
     Stores per-day headcount and resignation breakdowns for a specific organizational unit.
     Each record represents data for one day across branch, block, and department.
 
     Attributes:
-        report_date: Date of the report
+        report_date: Date of the report (inherited from BaseReportModel)
+        need_refresh: Flag indicating if report needs recalculation by batch task (inherited from BaseReportModel)
         branch: Branch in the organizational hierarchy
         block: Block within the branch
         department: Department within the block
@@ -26,7 +27,6 @@ class EmployeeStatusBreakdownReport(BaseModel):
         count_resigned_reasons: JSON field storing resignation reason counts
     """
 
-    report_date = models.DateField(verbose_name=_("Report date"), db_index=True)
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
@@ -67,7 +67,7 @@ class EmployeeStatusBreakdownReport(BaseModel):
         return f"Employee Status Breakdown - {self.report_date} - {self.branch} / {self.block} / {self.department}"
 
 
-class EmployeeResignedReasonReport(BaseModel):
+class EmployeeResignedReasonReport(BaseReportModel):
     """Daily employee resignation reason report.
 
     Stores pre-aggregated daily resignation reason counts per organizational unit.
@@ -94,7 +94,6 @@ class EmployeeResignedReasonReport(BaseModel):
         other: Count for Other reason
     """
 
-    report_date = models.DateField(verbose_name=_("Report date"), db_index=True)
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
