@@ -37,6 +37,9 @@ sudo apt update && sudo apt upgrade -y
 # Install required packages
 sudo apt install -y python3 python3-pip python3-venv nginx supervisor postgresql redis-server git
 
+# Install dependencies for exporting PDF/DOCX files
+sudo apt install -y weasyprint pandoc libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0 libharfbuzz-subset0 libffi-dev libjpeg-dev libopenjp2-7-dev
+
 # Install Poetry
 curl -sSL https://install.python-poetry.org | python3 -
 ```
