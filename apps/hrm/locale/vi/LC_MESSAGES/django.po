@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 16:01+0700\n"
+"POT-Creation-Date: 2025-11-12 14:46+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,6 +94,10 @@ msgstr ""
 msgid "Please select a new role."
 msgstr ""
 
+#: apps/hrm/api/serializers/employee_seniority.py:303
+msgid "Current employment period"
+msgstr ""
+
 #: apps/hrm/api/serializers/recruitment_request.py:156
 #: apps/hrm/models/recruitment_request.py:133
 msgid "Number of positions must be at least 1."
@@ -104,87 +108,87 @@ msgstr ""
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:46
+#: apps/hrm/api/views/employee_reports.py:57
 #: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
 #: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:66
+#: apps/hrm/api/views/employee_reports.py:77
 #: apps/hrm/api/views/recruitment_reports.py:126
 #: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
 #: apps/hrm/constants.py:45
 msgid "Month"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:92 apps/hrm/constants.py:46
+#: apps/hrm/api/views/employee_reports.py:103 apps/hrm/constants.py:46
 msgid "Quarter"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:113 apps/hrm/constants.py:47
+#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:47
 msgid "Year"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:318
+#: apps/hrm/api/views/employee_reports.py:329
 msgid "Average"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:521 apps/hrm/models/employee.py:86
+#: apps/hrm/api/views/employee_reports.py:532 apps/hrm/models/employee.py:86
 #: apps/hrm/models/employee_report.py:121
 msgid "Agreement Termination"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:522 apps/hrm/models/employee.py:87
+#: apps/hrm/api/views/employee_reports.py:533 apps/hrm/models/employee.py:87
 #: apps/hrm/models/employee_report.py:122
 msgid "Probation Fail"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:523 apps/hrm/models/employee.py:88
+#: apps/hrm/api/views/employee_reports.py:534 apps/hrm/models/employee.py:88
 #: apps/hrm/models/employee_report.py:123
 msgid "Job Abandonment"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:527 apps/hrm/models/employee.py:89
+#: apps/hrm/api/views/employee_reports.py:538 apps/hrm/models/employee.py:89
 #: apps/hrm/models/employee_report.py:124
 msgid "Disciplinary Termination"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:529 apps/hrm/models/employee.py:90
+#: apps/hrm/api/views/employee_reports.py:540 apps/hrm/models/employee.py:90
 #: apps/hrm/models/employee_report.py:125
 msgid "Workforce Reduction"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:530 apps/hrm/models/employee.py:91
+#: apps/hrm/api/views/employee_reports.py:541 apps/hrm/models/employee.py:91
 #: apps/hrm/models/employee_report.py:126
 msgid "Underperforming"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:531 apps/hrm/models/employee.py:92
+#: apps/hrm/api/views/employee_reports.py:542 apps/hrm/models/employee.py:92
 #: apps/hrm/models/employee_report.py:127
 msgid "Contract Expired"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:532 apps/hrm/models/employee.py:93
+#: apps/hrm/api/views/employee_reports.py:543 apps/hrm/models/employee.py:93
 #: apps/hrm/models/employee_report.py:128
 msgid "Voluntary - Health Reasons"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:533 apps/hrm/models/employee.py:94
+#: apps/hrm/api/views/employee_reports.py:544 apps/hrm/models/employee.py:94
 #: apps/hrm/models/employee_report.py:129
 msgid "Voluntary - Personal Reasons"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:537 apps/hrm/models/employee.py:95
+#: apps/hrm/api/views/employee_reports.py:548 apps/hrm/models/employee.py:95
 #: apps/hrm/models/employee_report.py:130
 msgid "Voluntary - Career Change"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:539 apps/hrm/models/employee.py:96
+#: apps/hrm/api/views/employee_reports.py:550 apps/hrm/models/employee.py:96
 #: apps/hrm/models/employee_report.py:131
 msgid "Voluntary - Other"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:540 apps/hrm/constants.py:73
+#: apps/hrm/api/views/employee_reports.py:551 apps/hrm/constants.py:73
 #: apps/hrm/constants.py:90 apps/hrm/models/employee.py:97
 #: apps/hrm/models/employee_report.py:132
 #: apps/hrm/models/recruitment_channel.py:22
