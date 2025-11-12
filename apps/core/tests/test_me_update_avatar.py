@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -18,6 +18,13 @@ from apps.hrm.models import Block, Branch, Department, Employee
 User = get_user_model()
 
 
+@override_settings(
+    AWS_ACCESS_KEY_ID="test-key",
+    AWS_SECRET_ACCESS_KEY="test-secret",
+    AWS_REGION_NAME="us-east-1",
+    AWS_STORAGE_BUCKET_NAME="test-bucket",
+    AWS_LOCATION="",
+)
 class MeUpdateAvatarTest(TestCase):
     """Test cases for /me/update-avatar/ endpoint"""
 
