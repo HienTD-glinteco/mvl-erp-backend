@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
+from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import (
     Block,
     Branch,
@@ -17,6 +18,7 @@ from apps.hrm.models import (
 )
 from apps.hrm.services.employee import create_position_change_event, create_state_change_event, create_transfer_event
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
+from libs.drf.serializers.mixins import FileConfirmSerializerMixin
 
 
 class EmployeeBranchNestedSerializer(serializers.ModelSerializer):
@@ -93,6 +95,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
+    avatar = FileSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -186,7 +189,6 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "department",
             "position",
             "contract_type",
-            "avatar",
             "nationality",
             "user",
             "recruitment_candidate",
@@ -615,3 +617,33 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
         )
+
+
+class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serializer):
+    """
+    Serializer for updating employee avatar.
+
+    Uses FileConfirmSerializerMixin to automatically handle file confirmation
+    and assignment to the employee.avatar field.
+
+    Expected request format:
+    {
+        "files": {
+            "avatar": "file-token-from-presign-response"
+        }
+    }
+    """
+
+    file_confirm_fields = ["avatar"]
+
+    class Meta:
+        fields: list[str] = []
+
+    def update(self, instance, validated_data):
+        """
+        Update method required by DRF Serializer.
+
+        The actual avatar assignment is handled by FileConfirmSerializerMixin
+        in the save() method, so we just return the instance here.
+        """
+        return instance

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 10:47+0700\n"
+"POT-Creation-Date: 2025-11-12 11:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,48 +23,48 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:243
+#: apps/hrm/api/serializers/employee.py:245
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:276
+#: apps/hrm/api/serializers/employee.py:278
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:290 apps/hrm/api/views/employee.py:351
+#: apps/hrm/api/serializers/employee.py:292 apps/hrm/api/views/employee.py:354
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:400
-#: apps/hrm/api/serializers/employee.py:425
+#: apps/hrm/api/serializers/employee.py:402
+#: apps/hrm/api/serializers/employee.py:427
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:456
+#: apps/hrm/api/serializers/employee.py:458
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:460
+#: apps/hrm/api/serializers/employee.py:462
 msgid "Seniority retained from previous employment period."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:478
+#: apps/hrm/api/serializers/employee.py:480
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:501
-#: apps/hrm/api/serializers/employee.py:539
+#: apps/hrm/api/serializers/employee.py:503
+#: apps/hrm/api/serializers/employee.py:541
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:515
+#: apps/hrm/api/serializers/employee.py:517
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
@@ -102,6 +102,27 @@ msgstr ""
 #: apps/hrm/api/views/attendance_device.py:272
 #, python-format
 msgid "Failed to connect to device: %(message)s"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:46
+#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
+#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:66
+#: apps/hrm/api/views/recruitment_reports.py:126
+#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
+#: apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:92 apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:113 apps/hrm/constants.py:47
+msgid "Year"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:318
@@ -215,22 +236,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:47
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53

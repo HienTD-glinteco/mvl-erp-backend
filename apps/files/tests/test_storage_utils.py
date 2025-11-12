@@ -38,8 +38,12 @@ class GetStoragePrefixTest(TestCase):
         self.assertEqual(result, "media")
 
     @override_settings(AWS_LOCATION="")
-    def test_get_storage_prefix_empty(self):
+    @patch("apps.files.utils.storage_utils.default_storage")
+    def test_get_storage_prefix_empty(self, mock_storage):
         """Test getting empty storage prefix when not configured."""
+        # Arrange: Make default_storage not have location attribute
+        del mock_storage.location
+
         # Act
         result = get_storage_prefix()
 
