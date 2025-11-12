@@ -55,7 +55,7 @@ class BaseReportModel(BaseModel):
 
     Provides common fields and behavior for report models including
     report_date, need_refresh flag, and standard ordering by report_date descending.
-    
+
     The need_refresh field is used by batch tasks to identify reports that need
     recalculation due to source data changes (including deletions).
     """

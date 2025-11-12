@@ -85,28 +85,39 @@ def mock_audit_logging(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_celery_tasks(monkeypatch):
+def mock_celery_tasks(monkeypatch, settings):
     """
     Mock Celery task execution to prevent broker connection attempts during tests.
 
     This fixture is automatically applied to all tests to avoid RabbitMQ/Redis
     connection errors. Tasks will execute synchronously as regular functions.
-    
+
     Tests that need to verify task calls should use @patch at the test level.
     """
-    from unittest.mock import MagicMock
-    
+
     def mock_delay(self, *args, **kwargs):
-        """Mock .delay() to execute task synchronously without broker."""
-        return self.apply(args=args, kwargs=kwargs)
-    
+        """Mock .delay() to either execute synchronously or noop depending on settings.
+
+        - If settings.CELERY_TASK_ALWAYS_EAGER is truthy: execute synchronously via
+          Task.apply() (existing behavior).
+        - If False: make .delay() a no-op (do not execute task) and return a MagicMock
+          to mimic an AsyncResult-like object. This lets tests opt-out of running
+          task business logic by setting CELERY_TASK_ALWAYS_EAGER = False.
+        """
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            return self.apply(args=args, kwargs=kwargs)
+
+        return MagicMock()
+
     def mock_apply_async(self, *args, **kwargs):
-        """Mock .apply_async() to execute task synchronously without broker."""
-        # Extract actual args from apply_async signature
-        task_args = kwargs.get('args', args)
-        task_kwargs = kwargs.get('kwargs', {})
-        return self.apply(args=task_args, kwargs=task_kwargs)
-    
+        """Mock .apply_async() similarly to mock_delay()."""
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            task_args = kwargs.get("args", args)
+            task_kwargs = kwargs.get("kwargs", {})
+            return self.apply(args=task_args, kwargs=task_kwargs)
+
+        return MagicMock()
+
     # Patch celery Task methods globally
     monkeypatch.setattr("celery.app.task.Task.delay", mock_delay)
     monkeypatch.setattr("celery.app.task.Task.apply_async", mock_apply_async)
@@ -116,7 +127,7 @@ def mock_celery_tasks(monkeypatch):
 def disable_throttling(settings):
     """
     Disable DRF throttling in all tests to avoid cache/Redis dependency.
-    
+
     Even though test.py disables throttling, this ensures it's disabled
     for all test cases regardless of settings overrides.
     """
@@ -127,7 +138,7 @@ def disable_throttling(settings):
             "LOCATION": "test-cache-fixture",
         },
     }
-    
+
     # Disable throttling
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}

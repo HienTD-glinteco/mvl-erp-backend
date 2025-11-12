@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 17:13+0700\n"
+"POT-Creation-Date: 2025-11-12 10:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -104,89 +104,68 @@ msgstr ""
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:46
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:66
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:92 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:113 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reports.py:318
 msgid "Average"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:521 apps/hrm/models/employee.py:86
-#: apps/hrm/models/employee_report.py:121
+#: apps/hrm/models/employee_report.py:120
 msgid "Agreement Termination"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:522 apps/hrm/models/employee.py:87
-#: apps/hrm/models/employee_report.py:122
+#: apps/hrm/models/employee_report.py:121
 msgid "Probation Fail"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:523 apps/hrm/models/employee.py:88
-#: apps/hrm/models/employee_report.py:123
+#: apps/hrm/models/employee_report.py:122
 msgid "Job Abandonment"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:527 apps/hrm/models/employee.py:89
-#: apps/hrm/models/employee_report.py:124
+#: apps/hrm/models/employee_report.py:123
 msgid "Disciplinary Termination"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:529 apps/hrm/models/employee.py:90
-#: apps/hrm/models/employee_report.py:125
+#: apps/hrm/models/employee_report.py:124
 msgid "Workforce Reduction"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:530 apps/hrm/models/employee.py:91
-#: apps/hrm/models/employee_report.py:126
+#: apps/hrm/models/employee_report.py:125
 msgid "Underperforming"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:531 apps/hrm/models/employee.py:92
-#: apps/hrm/models/employee_report.py:127
+#: apps/hrm/models/employee_report.py:126
 msgid "Contract Expired"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:532 apps/hrm/models/employee.py:93
-#: apps/hrm/models/employee_report.py:128
+#: apps/hrm/models/employee_report.py:127
 msgid "Voluntary - Health Reasons"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:533 apps/hrm/models/employee.py:94
-#: apps/hrm/models/employee_report.py:129
+#: apps/hrm/models/employee_report.py:128
 msgid "Voluntary - Personal Reasons"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:537 apps/hrm/models/employee.py:95
-#: apps/hrm/models/employee_report.py:130
+#: apps/hrm/models/employee_report.py:129
 msgid "Voluntary - Career Change"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:539 apps/hrm/models/employee.py:96
-#: apps/hrm/models/employee_report.py:131
+#: apps/hrm/models/employee_report.py:130
 msgid "Voluntary - Other"
 msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:540 apps/hrm/constants.py:73
 #: apps/hrm/constants.py:90 apps/hrm/models/employee.py:97
-#: apps/hrm/models/employee_report.py:132
+#: apps/hrm/models/employee_report.py:131
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr ""
@@ -481,12 +460,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -495,27 +472,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -548,7 +520,7 @@ msgid "Name for the device"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:152
-#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:108
+#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
 #: apps/hrm/models/employee_work_history.py:83
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
 #: apps/hrm/models/recruitment_candidate.py:76
@@ -841,7 +813,7 @@ msgid "Email"
 msgstr ""
 
 #: apps/hrm/models/employee.py:146 apps/hrm/models/employee_report.py:34
-#: apps/hrm/models/employee_report.py:102
+#: apps/hrm/models/employee_report.py:101
 #: apps/hrm/models/employee_work_history.py:74
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
 #: apps/hrm/models/organization.py:103
@@ -852,7 +824,7 @@ msgid "Branch"
 msgstr ""
 
 #: apps/hrm/models/employee.py:158 apps/hrm/models/employee_report.py:46
-#: apps/hrm/models/employee_report.py:114
+#: apps/hrm/models/employee_report.py:113
 #: apps/hrm/models/employee_work_history.py:92
 #: apps/hrm/models/organization.py:133
 #: apps/hrm/models/recruitment_candidate.py:84
@@ -1276,51 +1248,47 @@ msgstr ""
 msgid "Employee Relationships"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:29 apps/hrm/models/employee_report.py:97
-msgid "Report date"
-msgstr ""
-
 #: apps/hrm/models/employee_report.py:48
 msgid "Active count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:48
+#: apps/hrm/models/employee_report.py:49
 msgid "Onboarding count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:49
+#: apps/hrm/models/employee_report.py:50
 msgid "Maternity leave count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:50
+#: apps/hrm/models/employee_report.py:51
 msgid "Unpaid leave count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:52 apps/hrm/models/employee_report.py:118
+#: apps/hrm/models/employee_report.py:52 apps/hrm/models/employee_report.py:117
 msgid "Resigned count"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:52
+#: apps/hrm/models/employee_report.py:53
 msgid "Total not resigned"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:53
+#: apps/hrm/models/employee_report.py:54
 msgid "Resignation reasons breakdown"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:56
+#: apps/hrm/models/employee_report.py:57
 msgid "Employee Status Breakdown Report"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:57
+#: apps/hrm/models/employee_report.py:58
 msgid "Employee Status Breakdown Reports"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:135
+#: apps/hrm/models/employee_report.py:134
 msgid "Employee Resigned Reason Report"
 msgstr ""
 
-#: apps/hrm/models/employee_report.py:136
+#: apps/hrm/models/employee_report.py:135
 msgid "Employee Resigned Reason Reports"
 msgstr ""
 

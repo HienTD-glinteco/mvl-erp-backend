@@ -26,6 +26,7 @@ class EmployeeStatusBreakdownReport(BaseReportModel):
         total_not_resigned: Total count excluding resigned employees
         count_resigned_reasons: JSON field storing resignation reason counts
     """
+
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
@@ -66,7 +67,7 @@ class EmployeeStatusBreakdownReport(BaseReportModel):
         return f"Employee Status Breakdown - {self.report_date} - {self.branch} / {self.block} / {self.department}"
 
 
-class EmployeeResignedReasonReport(BaseModel):
+class EmployeeResignedReasonReport(BaseReportModel):
     """Daily employee resignation reason report.
 
     Stores pre-aggregated daily resignation reason counts per organizational unit.
@@ -93,7 +94,6 @@ class EmployeeResignedReasonReport(BaseModel):
         other: Count for Other reason
     """
 
-    report_date = models.DateField(verbose_name=_("Report date"), db_index=True)
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
