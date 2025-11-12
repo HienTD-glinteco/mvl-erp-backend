@@ -650,3 +650,12 @@ class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serialize
     class Meta:
         fields = []
 
+    def update(self, instance, validated_data):
+        """
+        Update method required by DRF Serializer.
+
+        The actual avatar assignment is handled by FileConfirmSerializerMixin
+        in the save() method, so we just return the instance here.
+        """
+        return instance
+
