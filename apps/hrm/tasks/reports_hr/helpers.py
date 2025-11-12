@@ -145,7 +145,7 @@ def _process_staff_growth_change(data: dict[str, Any], delta: int) -> None:
         elif status == Employee.Status.ACTIVE:
             # Check if it's a return (from onboarding or unpaid leave)
             old_status = previous_data.get("status")
-            if old_status in [Employee.Status.ONBOARDING, Employee.Status.UNPAID_LEAVE]:
+            if old_status in Employee.Status.get_leave_statuses():
                 _update_staff_growth_counter(
                     report_date, branch_id, block_id, department_id, "num_returns", delta, month_key, week_key
                 )
