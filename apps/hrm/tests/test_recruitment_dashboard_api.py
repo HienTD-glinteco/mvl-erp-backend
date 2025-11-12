@@ -48,19 +48,6 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
-        # Clear all existing data for clean tests
-        InterviewSchedule.objects.all().delete()
-        RecruitmentCandidate.objects.all().delete()
-        HiredCandidateReport.objects.all().delete()
-        RecruitmentCostReport.objects.all().delete()
-        JobDescription.objects.all().delete()
-        Employee.objects.all().delete()
-        Department.objects.all().delete()
-        Block.objects.all().delete()
-        Branch.objects.all().delete()
-        RecruitmentChannel.objects.all().delete()
-        User.objects.all().delete()
-
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
@@ -503,3 +490,354 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         # Assert: Verify response (DRF may handle invalid dates gracefully or return error)
         # We just check the API doesn't crash
         self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST])
+
+    def test_cost_by_branches_single_branch_single_month(self):
+        """Test cost_by_branches with single branch and single month"""
+        # Arrange: Create cost data for one branch and one month
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Act: Call the charts API
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(url)
+
+        # Assert: Verify cost_by_branches structure
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        self.assertIn("months", cost_by_branches)
+        self.assertIn("data", cost_by_branches)
+
+        months = cost_by_branches["months"]
+        branches_data = cost_by_branches["data"]
+
+        self.assertEqual(len(months), 1)
+        self.assertEqual(months[0], cost_month_key)
+        self.assertEqual(len(branches_data), 1)
+
+        branch_data = branches_data[0]
+        self.assertEqual(branch_data["type"], "branch")
+        self.assertEqual(branch_data["name"], "Hanoi Branch")
+        self.assertIn("statistics", branch_data)
+
+        statistics = branch_data["statistics"]
+        self.assertEqual(len(statistics), 1)
+        self.assertEqual(statistics[0]["total_cost"], 10000000.0)
+        self.assertEqual(statistics[0]["total_hires"], 5)
+        self.assertEqual(statistics[0]["avg_cost"], 2000000.0)
+
+    def test_cost_by_branches_multiple_branches_single_month(self):
+        """Test cost_by_branches with multiple branches in single month"""
+        # Arrange: Create second branch
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        # Branch 1 cost data
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("15000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("3000000.00"),
+        )
+
+        # Branch 2 cost data
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=branch2,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("8000000.00"),
+            num_hires=4,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Act: Call the charts API
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(url)
+
+        # Assert: Verify both branches are in result
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        branches_data = cost_by_branches["data"]
+        months = cost_by_branches["months"]
+
+        self.assertEqual(len(months), 1)
+        self.assertEqual(len(branches_data), 2)
+
+        # Verify branches are sorted by name
+        branch_names = [item["name"] for item in branches_data]
+        self.assertEqual(branch_names, ["HCMC Branch", "Hanoi Branch"])
+
+        # Verify each branch has correct statistics
+        hcmc_branch = next(item for item in branches_data if item["name"] == "HCMC Branch")
+        hanoi_branch = next(item for item in branches_data if item["name"] == "Hanoi Branch")
+
+        self.assertEqual(len(hcmc_branch["statistics"]), 1)
+        self.assertEqual(hcmc_branch["statistics"][0]["total_cost"], 8000000.0)
+        self.assertEqual(hcmc_branch["statistics"][0]["total_hires"], 4)
+
+        self.assertEqual(len(hanoi_branch["statistics"]), 1)
+        self.assertEqual(hanoi_branch["statistics"][0]["total_cost"], 15000000.0)
+        self.assertEqual(hanoi_branch["statistics"][0]["total_hires"], 5)
+
+    def test_cost_by_branches_multiple_months(self):
+        """Test cost_by_branches with multiple months"""
+        # Arrange: Create data for two months
+        month1 = self.first_day_month
+        month1_key = month1.strftime("%Y-%m")
+
+        if month1.month == 1:
+            month2 = month1.replace(year=month1.year - 1, month=12)
+        else:
+            month2 = month1.replace(month=month1.month - 1)
+        month2_key = month2.strftime("%Y-%m")
+
+        # Month 1 data
+        RecruitmentCostReport.objects.create(
+            report_date=month1,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month1_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Month 2 data
+        RecruitmentCostReport.objects.create(
+            report_date=month2,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=month2_key,
+            total_cost=Decimal("6000000.00"),
+            num_hires=3,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Act: Call the charts API with custom date range
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(
+            url,
+            {
+                "from_date": month2.isoformat(),
+                "to_date": month1.isoformat(),
+            },
+        )
+
+        # Assert: Verify branch has statistics for both months
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        branches_data = cost_by_branches["data"]
+        months = cost_by_branches["months"]
+
+        self.assertEqual(len(months), 2)
+        self.assertEqual(len(branches_data), 1)
+
+        branch_data = branches_data[0]
+        statistics = branch_data["statistics"]
+        self.assertEqual(len(statistics), 2)  # Two months
+
+        # Verify statistics are ordered by month_key
+        self.assertEqual(statistics[0]["total_cost"], 6000000.0)
+        self.assertEqual(statistics[0]["total_hires"], 3)
+        self.assertEqual(statistics[1]["total_cost"], 10000000.0)
+        self.assertEqual(statistics[1]["total_hires"], 5)
+
+    def test_cost_by_branches_missing_month_data_fills_default(self):
+        """Test cost_by_branches fills default values for missing month-branch combinations"""
+        # Arrange: Create two branches and data for only one branch in a month
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        month1 = self.first_day_month
+        month1_key = month1.strftime("%Y-%m")
+
+        if month1.month == 1:
+            month2 = month1.replace(year=month1.year - 1, month=12)
+        else:
+            month2 = month1.replace(month=month1.month - 1)
+        month2_key = month2.strftime("%Y-%m")
+
+        # Branch 1 has data for both months
+        RecruitmentCostReport.objects.create(
+            report_date=month1,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month1_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=month2,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=month2_key,
+            total_cost=Decimal("8000000.00"),
+            num_hires=4,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Branch 2 has data only for month 1
+        RecruitmentCostReport.objects.create(
+            report_date=month1,
+            branch=branch2,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month1_key,
+            total_cost=Decimal("5000000.00"),
+            num_hires=2,
+            avg_cost_per_hire=Decimal("2500000.00"),
+        )
+
+        # Act: Call the charts API
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(
+            url,
+            {
+                "from_date": month2.isoformat(),
+                "to_date": month1.isoformat(),
+            },
+        )
+
+        # Assert: Verify both branches have same number of statistics (with defaults)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        branches_data = cost_by_branches["data"]
+        months = cost_by_branches["months"]
+
+        self.assertEqual(len(months), 2)
+        self.assertEqual(len(branches_data), 2)
+
+        # Both branches should have 2 statistics items (one per month)
+        for branch in branches_data:
+            self.assertEqual(len(branch["statistics"]), 2)
+
+        # HCMC Branch should have default values for month2
+        hcmc_branch = next(item for item in branches_data if item["name"] == "HCMC Branch")
+        self.assertEqual(hcmc_branch["statistics"][0]["total_cost"], 0.0)
+        self.assertEqual(hcmc_branch["statistics"][0]["total_hires"], 0)
+        self.assertEqual(hcmc_branch["statistics"][0]["avg_cost"], 0.0)
+        self.assertEqual(hcmc_branch["statistics"][1]["total_cost"], 5000000.0)
+        self.assertEqual(hcmc_branch["statistics"][1]["total_hires"], 2)
+
+    def test_cost_by_branches_zero_hires_division(self):
+        """Test cost_by_branches handles zero hires (division by zero)"""
+        # Arrange: Create data with zero hires
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("5000000.00"),
+            num_hires=0,  # Zero hires
+            avg_cost_per_hire=Decimal("0.00"),
+        )
+
+        # Act: Call the charts API
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(url)
+
+        # Assert: Verify avg_cost is 0 when no hires
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        branches_data = cost_by_branches["data"]
+        self.assertEqual(len(branches_data), 1)
+
+        statistics = branches_data[0]["statistics"]
+        self.assertEqual(statistics[0]["total_hires"], 0)
+        self.assertEqual(statistics[0]["avg_cost"], 0.0)
+
+    def test_cost_by_branches_aggregates_multiple_source_types(self):
+        """Test cost_by_branches aggregates data from multiple source types in same month"""
+        # Arrange: Create multiple source types for same branch/month
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("5000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("1000000.00"),
+        )
+
+        # Act: Call the charts API
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(url)
+
+        # Assert: Verify aggregation
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        branches_data = cost_by_branches["data"]
+        self.assertEqual(len(branches_data), 1)
+
+        statistics = branches_data[0]["statistics"]
+        self.assertEqual(len(statistics), 1)
+
+        # Total cost should be sum: 10M + 5M = 15M
+        self.assertEqual(statistics[0]["total_cost"], 15000000.0)
+        # Total hires should be sum: 5 + 5 = 10
+        self.assertEqual(statistics[0]["total_hires"], 10)
+        # Average cost should be: 15M / 10 = 1.5M
+        self.assertEqual(statistics[0]["avg_cost"], 1500000.0)
+
+    def test_cost_by_branches_empty_data(self):
+        """Test cost_by_branches returns empty list when no data"""
+        # Act: Call the charts API with no cost data
+        url = reverse("hrm:recruitment-dashboard-charts")
+        response = self.client.get(url)
+
+        # Assert: Verify empty structure
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        cost_by_branches = data["cost_by_branches"]
+        self.assertIn("months", cost_by_branches)
+        self.assertIn("data", cost_by_branches)
+        self.assertEqual(len(cost_by_branches["data"]), 0)
+        self.assertEqual(len(cost_by_branches["months"]), 0)

@@ -195,11 +195,11 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:204
+#: apps/hrm/api/views/recruitment_dashboard.py:244
 msgid "Experienced"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:209
+#: apps/hrm/api/views/recruitment_dashboard.py:249
 msgid "Inexperienced"
 msgstr ""
 

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from libs.drf.serializers import BaseStatisticsSerializer
+
 
 class DashboardRealtimeDataSerializer(serializers.Serializer):
     """Serializer for dashboard realtime KPI data."""
@@ -26,12 +28,29 @@ class BranchBreakdownSerializer(serializers.Serializer):
     percentage = serializers.FloatField(help_text="Percent of hires for this branch")
 
 
-class CostBreakdownSerializer(serializers.Serializer):
+class CostBreakdownByCategorySerializer(serializers.Serializer):
     """Serializer for cost breakdown by source type."""
 
     source_type = serializers.CharField(help_text="Source type")
     total_cost = serializers.DecimalField(max_digits=15, decimal_places=2, help_text="Total cost")
     percentage = serializers.FloatField(help_text="Percent of cost per hire")
+
+
+class CostBreakdownByBranchItemSerializer(serializers.Serializer):
+    total_cost = serializers.FloatField(help_text="Total cost")
+    total_hires = serializers.IntegerField(help_text="Number of hires")
+    avg_cost = serializers.FloatField(help_text="Average cost")
+
+
+class CostBreakdownByBranchSerializer(BaseStatisticsSerializer):
+    """Serializer for cost breakdown by branches."""
+
+    statistics = serializers.ListField(child=CostBreakdownByBranchItemSerializer())
+
+
+class CostBreakdownByBranchAggregrationSerializer(serializers.Serializer):
+    months = serializers.ListField(child=serializers.CharField())
+    data = CostBreakdownByBranchSerializer(many=True)
 
 
 class SourceTypeBreakdownSerializer(serializers.Serializer):
@@ -68,7 +87,8 @@ class DashboardChartDataSerializer(serializers.Serializer):
 
     experience_breakdown = ExperienceBreakdownSerializer(many=True, help_text="Breakdown by experience level")
     branch_breakdown = BranchBreakdownSerializer(many=True, help_text="Breakdown by branch")
-    cost_breakdown = CostBreakdownSerializer(many=True, help_text="Cost breakdown by source type")
+    cost_breakdown = CostBreakdownByCategorySerializer(many=True, help_text="Cost breakdown by source type")
+    cost_by_branches = CostBreakdownByBranchAggregrationSerializer(help_text="Cost breakdown by branches")
     source_type_breakdown = SourceTypeBreakdownSerializer(many=True, help_text="Source type breakdown")
     monthly_trends = SourceTypesMonthlyTrendsSerializer(
         many=True,
