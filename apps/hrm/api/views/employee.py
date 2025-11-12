@@ -411,4 +411,3 @@ class EmployeeViewSet(
 
         # Return updated employee data with new avatar
         return Response(EmployeeSerializer(instance=employee).data)
-

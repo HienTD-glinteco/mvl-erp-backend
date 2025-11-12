@@ -103,7 +103,7 @@ class EmployeeAvatarUploadTest(TestCase):
         # Create mock S3 service instance
         mock_s3_service = MagicMock()
         mock_s3_service_class.return_value = mock_s3_service
-        
+
         # Mock S3 operations
         mock_s3_service.check_file_exists.return_value = True
         mock_s3_service.get_file_metadata.return_value = {
@@ -154,7 +154,7 @@ class EmployeeAvatarUploadTest(TestCase):
                 "avatar": "invalid-token",
             }
         }
-        
+
         # Patch S3 service to avoid initialization errors
         with patch("apps.files.utils.S3FileUploadService"):
             response = self.client.post(url, payload, format="json")
@@ -195,7 +195,7 @@ class EmployeeAvatarUploadTest(TestCase):
         # Create mock S3 service instance
         mock_s3_service = MagicMock()
         mock_s3_service_class.return_value = mock_s3_service
-        
+
         # Mock S3 operations - file exists but has wrong content type
         mock_s3_service.check_file_exists.return_value = True
         mock_s3_service.get_file_metadata.return_value = {
@@ -240,7 +240,7 @@ class EmployeeAvatarUploadTest(TestCase):
         # Create mock S3 service instance
         mock_s3_service = MagicMock()
         mock_s3_service_class.return_value = mock_s3_service
-        
+
         # Mock S3 operations for new avatar
         mock_s3_service.check_file_exists.return_value = True
         mock_s3_service.get_file_metadata.return_value = {

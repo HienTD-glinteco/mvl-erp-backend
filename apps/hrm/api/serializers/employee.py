@@ -648,7 +648,7 @@ class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serialize
     file_confirm_fields = ["avatar"]
 
     class Meta:
-        fields = []
+        fields: list[str] = []
 
     def update(self, instance, validated_data):
         """
@@ -658,4 +658,3 @@ class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serialize
         in the save() method, so we just return the instance here.
         """
         return instance
-
