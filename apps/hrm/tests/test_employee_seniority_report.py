@@ -153,14 +153,21 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["code"], "MV001")
 
-        # Check seniority (5 years from 2020-01-01 to 2025-01-01, then + ~10 months)
-        # Approximate check since exact calculation depends on test run date
-        seniority_parts = results[0]["seniority"].split("-")
-        years = int(seniority_parts[0])
-        self.assertGreaterEqual(years, 5)  # At least 5 years
+        # Check seniority (at least 5 years from 2020-01-01)
+        # Seniority is now an integer (total days)
+        seniority_days = results[0]["seniority"]
+        self.assertIsInstance(seniority_days, int)
+        self.assertGreaterEqual(seniority_days, 5 * 365)  # At least 5 years
 
-        # Check work history is empty
-        self.assertEqual(len(results[0]["work_history"]), 0)
+        # Check seniority_text exists and is a string
+        self.assertIn("seniority_text", results[0])
+        self.assertIsInstance(results[0]["seniority_text"], str)
+        self.assertIn("year(s)", results[0]["seniority_text"])
+
+        # Check work history includes current period (synthetic entry)
+        self.assertEqual(len(results[0]["work_history"]), 1)
+        self.assertEqual(results[0]["work_history"][0]["from_date"], "2020-01-01")
+        self.assertIsNone(results[0]["work_history"][0]["to_date"])
 
     def test_seniority_calculation_with_continuous_periods(self):
         """Test seniority calculation with all continuous periods (retain_seniority=True).
@@ -195,10 +202,14 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         employee_data = next((e for e in results if e["code"] == "MV002"), None)
         self.assertIsNotNone(employee_data)
 
-        # Check seniority includes both periods
-        seniority_parts = employee_data["seniority"].split("-")
-        years = int(seniority_parts[0])
-        self.assertGreaterEqual(years, 6)  # Approximately 2.5 + 4+ years
+        # Check seniority includes both periods (now integer days)
+        seniority_days = employee_data["seniority"]
+        self.assertIsInstance(seniority_days, int)
+        self.assertGreaterEqual(seniority_days, 6 * 365)  # At least 6 years
+
+        # Check seniority_text
+        self.assertIn("seniority_text", employee_data)
+        self.assertIn("year(s)", employee_data["seniority_text"])
 
         # Check work history displays both periods (in reverse chronological order)
         self.assertEqual(len(employee_data["work_history"]), 2)
@@ -255,12 +266,15 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         employee_data = next((e for e in results if e["code"] == "MV003"), None)
         self.assertIsNotNone(employee_data)
 
-        # Check seniority only includes Period 3 + Period 4
-        # Period 3: 365 days, Period 4: ~3+ years
-        seniority_parts = employee_data["seniority"].split("-")
-        years = int(seniority_parts[0])
-        self.assertGreaterEqual(years, 3)  # At least 3 years
-        self.assertLessEqual(years, 5)  # Should not include the old periods
+        # Check seniority only includes Period 3 + Period 4 (now integer days)
+        seniority_days = employee_data["seniority"]
+        self.assertIsInstance(seniority_days, int)
+        self.assertGreaterEqual(seniority_days, 3 * 365)  # At least 3 years
+        self.assertLessEqual(seniority_days, 5 * 365)  # Should not include the old periods
+
+        # Check seniority_text
+        self.assertIn("seniority_text", employee_data)
+        self.assertIn("year(s)", employee_data["seniority_text"])
 
         # Check work history ONLY displays periods included in calculation (BR-4)
         self.assertEqual(len(employee_data["work_history"]), 2)

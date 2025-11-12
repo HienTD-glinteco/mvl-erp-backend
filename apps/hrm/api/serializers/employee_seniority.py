@@ -1,6 +1,8 @@
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
+from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.hrm.models.employee import Employee
@@ -18,11 +20,18 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
     - Seniority is calculated based on employment periods in work history
     - If employee has retain_seniority=False event, only count from most recent such event onwards
     - Otherwise, count all employment periods
-    - Display format: "YEARS-MONTHS-DAYS" (e.g., "5-3-15")
+    - Display format: total days as integer, text as human-readable string
     """
 
-    seniority = serializers.SerializerMethodField()
-    work_history = serializers.SerializerMethodField()
+    seniority = serializers.SerializerMethodField(
+        help_text="Total seniority in days (integer)"
+    )
+    seniority_text = serializers.SerializerMethodField(
+        help_text="Human-readable seniority text (e.g., '5 year(s) 3 month(s), 15 day(s)')"
+    )
+    work_history = serializers.SerializerMethodField(
+        help_text="List of work history periods included in seniority calculation"
+    )
 
     class Meta:
         model = Employee
@@ -34,6 +43,7 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             "block",
             "department",
             "seniority",
+            "seniority_text",
             "work_history",
         ]
 
@@ -74,6 +84,7 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
 
         return periods, sorted_histories
 
+    @extend_schema_field(serializers.IntegerField)
     def get_seniority(self, obj):
         """Calculate employee seniority according to QTNV 5.5.7.
 
@@ -84,15 +95,15 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
            Calculate from all employment periods
 
         Returns:
-            str: Seniority in format "YEARS-MONTHS-DAYS" (e.g., "5-3-15")
+            int: Total seniority in days
         """
         work_histories = getattr(obj, "cached_work_histories", [])
 
         if not work_histories:
             # Fallback: calculate from employee start_date
             if hasattr(obj, "start_date") and obj.start_date:
-                return self._calculate_period(obj.start_date, date.today())
-            return "0-0-0"
+                return (date.today() - obj.start_date).days
+            return 0
 
         # Get periods to calculate (reuse helper method)
         periods_to_calculate, _ = self._get_calculation_scope(work_histories)
@@ -110,9 +121,28 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             period_days = (end_date - period.from_date).days
             total_days += period_days
 
-        # Convert to Year-Month-Day format
-        return self._format_days_to_ymd(total_days)
+        return total_days
 
+    @extend_schema_field(serializers.CharField)
+    def get_seniority_text(self, obj):
+        """Get human-readable seniority text.
+
+        Returns:
+            str: Formatted string like "5 year(s) 3 month(s), 15 day(s)"
+        """
+        total_days = self.get_seniority(obj)
+        
+        if total_days <= 0:
+            return _("0 year(s) 0 month(s), 0 day(s)")
+
+        # Calculate years, months, days
+        years, months, days = self._days_to_ymd_tuple(total_days)
+
+        return _("{year} year(s) {month} month(s), {day} day(s)").format(
+            year=years, month=months, day=days
+        )
+
+    @extend_schema_field(EmployeeWorkHistorySerializer(many=True))
     def get_work_history(self, obj):
         """Get work history periods that are included in seniority calculation.
 
@@ -124,6 +154,8 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
           Show only periods from the most recent such event onwards
         - Otherwise:
           Show all periods
+        - If no work history exists for current status, add a synthetic entry
+          from start_date to now
         - Display in reverse chronological order (most recent first)
 
         Returns:
@@ -134,22 +166,86 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
         # Get periods to display (SAME as calculation scope)
         periods_to_display, _ = self._get_calculation_scope(work_histories)
 
-        # Return in reverse chronological order (most recent first)
-        periods_to_display_reversed = list(reversed(periods_to_display))
+        # Check if we need to add current employment period
+        # If no work history exists OR if latest work history doesn't represent current status
+        needs_current_period = False
+        
+        if not periods_to_display:
+            # No work history at all - need to add current period
+            needs_current_period = True
+        else:
+            # Check if the most recent period (by from_date) covers current time
+            latest_period = max(periods_to_display, key=lambda x: x.from_date if x.from_date else date.min)
+            # If latest period has a to_date (meaning it ended), we need current period
+            if latest_period.to_date is not None:
+                needs_current_period = True
 
-        return EmployeeWorkHistorySerializer(periods_to_display_reversed, many=True).data
+        # Serialize existing periods
+        serialized_histories = []
+        
+        if needs_current_period and hasattr(obj, "start_date") and obj.start_date:
+            # Add synthetic current employment period
+            # We'll create a dict that matches the serializer structure
+            current_period = {
+                "id": None,
+                "date": obj.start_date,
+                "name": "Change Status",
+                "name_display": "Change Status",
+                "detail": _("Current employment period"),
+                "employee": {
+                    "id": obj.id,
+                    "code": obj.code,
+                    "fullname": obj.fullname,
+                },
+                "branch": {
+                    "id": obj.branch.id,
+                    "name": obj.branch.name,
+                    "code": obj.branch.code,
+                } if obj.branch else None,
+                "block": {
+                    "id": obj.block.id,
+                    "name": obj.block.name,
+                    "code": obj.block.code,
+                } if obj.block else None,
+                "department": {
+                    "id": obj.department.id,
+                    "name": obj.department.name,
+                    "code": obj.department.code,
+                } if obj.department else None,
+                "position": {
+                    "id": obj.position.id,
+                    "name": obj.position.name,
+                } if obj.position else None,
+                "from_date": obj.start_date,
+                "to_date": None,
+                "retain_seniority": True,
+                "created_at": None,
+                "updated_at": None,
+            }
+            serialized_histories.append(current_period)
 
-    def _format_days_to_ymd(self, total_days):
-        """Convert total days to Year-Month-Day format.
+        # Add existing periods
+        if periods_to_display:
+            # Return in reverse chronological order (most recent first)
+            periods_to_display_reversed = list(reversed(periods_to_display))
+            existing_serialized = EmployeeWorkHistorySerializer(
+                periods_to_display_reversed, many=True
+            ).data
+            serialized_histories.extend(existing_serialized)
+
+        return serialized_histories
+
+    def _days_to_ymd_tuple(self, total_days):
+        """Convert total days to (years, months, days) tuple.
 
         Args:
             total_days (int): Total number of days
 
         Returns:
-            str: Formatted string "YEARS-MONTHS-DAYS"
+            tuple: (years, months, days)
         """
         if total_days <= 0:
-            return "0-0-0"
+            return (0, 0, 0)
 
         # Calculate years (365 days per year)
         years = total_days // 365
@@ -159,17 +255,4 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
         months = remaining_days // 30
         days = remaining_days % 30
 
-        return f"{years}-{months}-{days}"
-
-    def _calculate_period(self, start_date, end_date):
-        """Calculate period using relativedelta for higher precision.
-
-        Args:
-            start_date (date): Start date
-            end_date (date): End date
-
-        Returns:
-            str: Formatted string "YEARS-MONTHS-DAYS"
-        """
-        delta = relativedelta(end_date, start_date)
-        return f"{delta.years}-{delta.months}-{delta.days}"
+        return (years, months, days)
