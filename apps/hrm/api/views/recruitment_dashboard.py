@@ -107,6 +107,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                         ],
                         "cost_by_branches": {
                             "months": ["10/2025", "11/2025"],
+                            "branch_names": ["Hanoi Branch", "HCMC Branch"],
                             "data": [
                                 {
                                     "name": "Hanoi Branch",
@@ -147,24 +148,27 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                             {"source_type": "marketing_channel", "count": 30, "percentage": 40.0},
                             {"source_type": "job_website_channel", "count": 20, "percentage": 26.7},
                         ],
-                        "monthly_trends": [
-                            {
-                                "month": "09/2025",
-                                "referral_source": 8,
-                                "marketing_channel": 10,
-                                "job_website_channel": 7,
-                                "recruitment_department_source": 5,
-                                "returning_employee": 2,
-                            },
-                            {
-                                "month": "10/2025",
-                                "referral_source": 10,
-                                "marketing_channel": 12,
-                                "job_website_channel": 8,
-                                "recruitment_department_source": 6,
-                                "returning_employee": 3,
-                            },
-                        ],
+                        "monthly_trends": {
+                            "months": ["09/2025", "10/2025"],
+                            "source_type_names": [
+                                "Referral Source",
+                                "Marketing Channel",
+                                "Job Website Channel",
+                                "Recruitment Department Source",
+                                "Returning Employee",
+                            ],
+                            "data": [
+                                {"type": "source_type", "name": "Referral Source", "statistics": [10, 20]},
+                                {"type": "source_type", "name": "Marketing Channel", "statistics": [10, 20]},
+                                {"type": "source_type", "name": "Job Website Channel", "statistics": [10, 20]},
+                                {
+                                    "type": "source_type",
+                                    "name": "Recruitment Department Source",
+                                    "statistics": [10, 20],
+                                },
+                                {"type": "source_type", "name": "Returning Employee", "statistics": [10, 20]},
+                            ],
+                        },
                     },
                     "error": None,
                 },
@@ -378,7 +382,8 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                     "statistics": statistics,
                 }
             )
-        return {"data": result, "months": all_month_keys}
+
+        return {"data": result, "months": all_month_keys, "branch_names": all_branches}
 
     def _get_source_type_breakdown(self, from_date, to_date):
         """Get source type breakdown from RecruitmentCostReport."""
@@ -407,28 +412,58 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
             RecruitmentCostReport.objects.filter(report_date__range=[from_date, to_date])
             .values("month_key", "source_type")
             .annotate(total=Sum("num_hires"))
-            .order_by("month_key")
+            .order_by("month_key", "source_type")
         )
 
-        months = {}
+        # Get all unique month keys and source types
+        all_month_keys = sorted({item["month_key"] for item in monthly_data})
+        all_source_types = [
+            RecruitmentSourceType.REFERRAL_SOURCE.value,
+            RecruitmentSourceType.MARKETING_CHANNEL.value,
+            RecruitmentSourceType.JOB_WEBSITE_CHANNEL.value,
+            RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE.value,
+            RecruitmentSourceType.RETURNING_EMPLOYEE.value,
+        ]
+
+        # Build source names list
+        source_type_names = [RecruitmentSourceType.get_label(source_type) for source_type in all_source_types]
+
+        # Return empty structure if no data
+        if not all_month_keys:
+            return {
+                "months": [],
+                "source_type_names": source_type_names,
+                "data": [],
+            }
+
+        # Build lookup dict for actual data
+        data_lookup = {}
         for item in monthly_data:
-            month = item["month_key"]
-            category = item["source_type"]
-            value = item["total"] or 0
+            key = (item["month_key"], item["source_type"])
+            data_lookup[key] = item["total"] or 0
 
-            if month not in months:
-                months[month] = {
-                    "month": month,
-                    "referral_source": 0,
-                    "marketing_channel": 0,
-                    "job_website_channel": 0,
-                    "recruitment_department_source": 0,
-                    "returning_employee": 0,
+        # Build result: one item per source type, with statistics across all months
+        result = []
+        for source_type in all_source_types:
+            statistics = []
+            for month_key in all_month_keys:
+                key = (month_key, source_type)
+                count = data_lookup.get(key, 0)
+                statistics.append(count)
+
+            result.append(
+                {
+                    "type": "source_type",
+                    "name": RecruitmentSourceType.get_label(source_type),
+                    "statistics": statistics,
                 }
+            )
 
-            months[month][category] = value
-
-        return list(months.values())
+        return {
+            "months": all_month_keys,
+            "source_type_names": source_type_names,
+            "data": result,
+        }
 
     def _get_date_range(self, request):
         """Extract date range from request or use defaults."""

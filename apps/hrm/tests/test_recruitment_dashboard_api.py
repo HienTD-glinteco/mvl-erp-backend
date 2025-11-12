@@ -320,15 +320,20 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
 
         # Verify monthly trends
         monthly_trends = data["monthly_trends"]
-        self.assertIsInstance(monthly_trends, list)
-        if len(monthly_trends) > 0:
-            trend = monthly_trends[0]
-            self.assertIn("month", trend)
-            self.assertIn("referral_source", trend)
-            self.assertIn("marketing_channel", trend)
-            self.assertIn("job_website_channel", trend)
-            self.assertIn("recruitment_department_source", trend)
-            self.assertIn("returning_employee", trend)
+        self.assertIsInstance(monthly_trends, dict)
+        self.assertIn("months", monthly_trends)
+        self.assertIn("source_type_names", monthly_trends)
+        self.assertIn("data", monthly_trends)
+        self.assertIsInstance(monthly_trends["months"], list)
+        self.assertIsInstance(monthly_trends["source_type_names"], list)
+        self.assertIsInstance(monthly_trends["data"], list)
+        if len(monthly_trends["data"]) > 0:
+            source_data = monthly_trends["data"][0]
+            self.assertIn("type", source_data)
+            self.assertIn("name", source_data)
+            self.assertIn("statistics", source_data)
+            self.assertEqual(source_data["type"], "source_type")
+            self.assertIsInstance(source_data["statistics"], list)
 
     def test_charts_dashboard_custom_date_range(self):
         """Test charts dashboard with custom date range"""
@@ -464,7 +469,10 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(data["branch_breakdown"]), 0)
         self.assertEqual(len(data["cost_breakdown"]), 0)
         self.assertEqual(len(data["source_type_breakdown"]), 0)
-        self.assertEqual(len(data["monthly_trends"]), 0)
+        # monthly_trends is a dict with empty lists
+        self.assertIsInstance(data["monthly_trends"], dict)
+        self.assertEqual(len(data["monthly_trends"]["months"]), 0)
+        self.assertEqual(len(data["monthly_trends"]["data"]), 0)
 
     def test_realtime_dashboard_no_data(self):
         """Test realtime dashboard with no data returns zeros"""

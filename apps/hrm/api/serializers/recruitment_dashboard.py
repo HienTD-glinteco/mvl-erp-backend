@@ -49,7 +49,8 @@ class CostBreakdownByBranchSerializer(BaseStatisticsSerializer):
 
 
 class CostBreakdownByBranchAggregrationSerializer(serializers.Serializer):
-    months = serializers.ListField(child=serializers.CharField())
+    months = serializers.ListField(child=serializers.CharField(), help_text="List of month keys")
+    branch_names = serializers.ListField(child=serializers.CharField(), help_text="List of all branch names in order")
     data = CostBreakdownByBranchSerializer(many=True)
 
 
@@ -61,6 +62,10 @@ class SourceTypeBreakdownSerializer(serializers.Serializer):
     percentage = serializers.FloatField(help_text="Percent of candidates from this source type")
 
 
+class SourceTypesMonthlyTrendsAggregationSerializer(BaseStatisticsSerializer):
+    statistics = serializers.ListField(child=serializers.IntegerField())
+
+
 class SourceTypesMonthlyTrendsSerializer(serializers.Serializer):
     """
     Serializer for monthly trends of candidate sources.
@@ -68,18 +73,14 @@ class SourceTypesMonthlyTrendsSerializer(serializers.Serializer):
     Represents the number of candidates from each recruitment source type for a specific month.
     """
 
-    month = serializers.CharField(help_text="Month in MM/YYYY format (e.g., 10/2025)")
-    referral_source = serializers.IntegerField(
-        help_text="Number of candidates referred by employees (referral program)"
+    months = serializers.ListField(child=serializers.CharField(), help_text="List of month keys")
+    source_type_names = serializers.ListField(
+        child=serializers.CharField(), help_text="List of all source type names in order"
     )
-    marketing_channel = serializers.IntegerField(
-        help_text="Number of candidates from marketing channels (ads, social media, etc.)"
+    data = SourceTypesMonthlyTrendsAggregationSerializer(
+        many=True,
+        help_text="List of monthly data with month key and source type statistics",
     )
-    job_website_channel = serializers.IntegerField(help_text="Number of candidates from job websites/portals")
-    recruitment_department_source = serializers.IntegerField(
-        help_text="Number of candidates sourced directly by the recruitment department"
-    )
-    returning_employee = serializers.IntegerField(help_text="Number of candidates who are returning employees")
 
 
 class DashboardChartDataSerializer(serializers.Serializer):
@@ -91,7 +92,6 @@ class DashboardChartDataSerializer(serializers.Serializer):
     cost_by_branches = CostBreakdownByBranchAggregrationSerializer(help_text="Cost breakdown by branches")
     source_type_breakdown = SourceTypeBreakdownSerializer(many=True, help_text="Source type breakdown")
     monthly_trends = SourceTypesMonthlyTrendsSerializer(
-        many=True,
         help_text="Monthly trends showing the number of candidates from each recruitment source type for every month",
     )
 
