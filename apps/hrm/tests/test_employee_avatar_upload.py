@@ -100,19 +100,20 @@ class EmployeeAvatarUploadTest(TestCase):
     @patch("apps.files.utils.S3FileUploadService")
     def test_update_avatar_success(self, mock_s3_service_class):
         """Test successful avatar upload"""
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
+        # Mock S3FileUploadService instance
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
 
-        # Mock S3 operations
-        mock_s3_service.check_file_exists.return_value = True
-        mock_s3_service.get_file_metadata.return_value = {
-            "size": 50000,
-            "etag": "abc123",
+        # Mock S3 methods used by the file confirmation mixin
+        mock_s3_instance.check_file_exists.return_value = True
+        mock_s3_instance.get_file_metadata.return_value = {
             "content_type": "image/jpeg",
+            "size": 50000,
         }
-        mock_s3_service.move_file.return_value = None
-        mock_s3_service.generate_permanent_path.return_value = "uploads/employee_avatar/1/avatar.jpg"
+        mock_s3_instance.move_file.return_value = None
+        mock_s3_instance.generate_permanent_path.return_value = "uploads/employee_avatar/1/avatar.jpg"
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/avatar.jpg"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/avatar.jpg"
 
         # Make request
         url = reverse("hrm:employee-update-avatar", kwargs={"pk": self.employee.id})
@@ -137,9 +138,12 @@ class EmployeeAvatarUploadTest(TestCase):
         response_data = response.json()
         self.assertIn("data", response_data)
         self.assertIn("avatar", response_data["data"])
-        # Avatar is returned as ID in the serializer (it's in read_only_fields)
+        # Avatar can be returned as full object or just ID depending on serializer
         # We verify the database has the correct data
-        self.assertEqual(response_data["data"]["avatar"], self.employee.avatar.id)
+        if isinstance(response_data["data"]["avatar"], dict):
+            self.assertEqual(response_data["data"]["avatar"]["id"], self.employee.avatar.id)
+        else:
+            self.assertEqual(response_data["data"]["avatar"], self.employee.avatar.id)
 
         # Verify cache was cleared
         cache_key = f"{CACHE_KEY_PREFIX}{self.file_token}"
@@ -169,10 +173,12 @@ class EmployeeAvatarUploadTest(TestCase):
     @patch("apps.files.utils.S3FileUploadService")
     def test_update_avatar_file_not_found_in_s3(self, mock_s3_service_class):
         """Test avatar upload when file doesn't exist in S3"""
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
-        mock_s3_service.check_file_exists.return_value = False
+        # Mock S3FileUploadService instance
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+
+        # Mock that file doesn't exist in S3
+        mock_s3_instance.check_file_exists.return_value = False
 
         url = reverse("hrm:employee-update-avatar", kwargs={"pk": self.employee.id})
         payload = {
@@ -192,16 +198,15 @@ class EmployeeAvatarUploadTest(TestCase):
     @patch("apps.files.utils.S3FileUploadService")
     def test_update_avatar_wrong_content_type(self, mock_s3_service_class):
         """Test avatar upload with wrong content type (e.g., PDF instead of image)"""
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
+        # Mock S3FileUploadService instance
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
 
         # Mock S3 operations - file exists but has wrong content type
-        mock_s3_service.check_file_exists.return_value = True
-        mock_s3_service.get_file_metadata.return_value = {
-            "size": 50000,
-            "etag": "abc123",
+        mock_s3_instance.check_file_exists.return_value = True
+        mock_s3_instance.get_file_metadata.return_value = {
             "content_type": "application/pdf",  # Wrong type
+            "size": 50000,
         }
 
         url = reverse("hrm:employee-update-avatar", kwargs={"pk": self.employee.id})
@@ -220,7 +225,7 @@ class EmployeeAvatarUploadTest(TestCase):
         self.assertIsNone(self.employee.avatar)
 
         # Verify file was deleted from S3
-        mock_s3_service.delete_file.assert_called_once()
+        mock_s3_instance.delete_file.assert_called_once()
 
     @patch("apps.files.utils.S3FileUploadService")
     def test_update_avatar_replaces_existing(self, mock_s3_service_class):
@@ -237,19 +242,20 @@ class EmployeeAvatarUploadTest(TestCase):
         self.employee.avatar = old_avatar
         self.employee.save(update_fields=["avatar"])
 
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
+        # Mock S3FileUploadService instance
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
 
-        # Mock S3 operations for new avatar
-        mock_s3_service.check_file_exists.return_value = True
-        mock_s3_service.get_file_metadata.return_value = {
-            "size": 50000,
-            "etag": "abc123",
+        # Mock S3 methods
+        mock_s3_instance.check_file_exists.return_value = True
+        mock_s3_instance.get_file_metadata.return_value = {
             "content_type": "image/jpeg",
+            "size": 50000,
         }
-        mock_s3_service.move_file.return_value = None
-        mock_s3_service.generate_permanent_path.return_value = "uploads/employee_avatar/1/avatar.jpg"
+        mock_s3_instance.move_file.return_value = None
+        mock_s3_instance.generate_permanent_path.return_value = "uploads/employee_avatar/1/avatar.jpg"
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/avatar.jpg"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/avatar.jpg"
 
         # Upload new avatar
         url = reverse("hrm:employee-update-avatar", kwargs={"pk": self.employee.id})

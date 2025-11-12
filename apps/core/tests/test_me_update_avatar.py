@@ -61,7 +61,7 @@ class MeUpdateAvatarTest(TestCase):
         self.user = User.objects.create_user(
             username="testuser",
             email="testuser@example.com",
-            ******,
+            password="testpass123",
         )
         self.employee = Employee.objects.create(
             fullname="Test User",
@@ -100,19 +100,20 @@ class MeUpdateAvatarTest(TestCase):
     @patch("apps.files.utils.S3FileUploadService")
     def test_me_update_avatar_success(self, mock_s3_service_class):
         """Test successful avatar upload for current user"""
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
+        # Mock S3FileUploadService instance
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
 
-        # Mock S3 operations
-        mock_s3_service.check_file_exists.return_value = True
-        mock_s3_service.get_file_metadata.return_value = {
-            "size": 50000,
-            "etag": "abc123",
+        # Mock S3 methods used by the file confirmation mixin
+        mock_s3_instance.check_file_exists.return_value = True
+        mock_s3_instance.get_file_metadata.return_value = {
             "content_type": "image/jpeg",
+            "size": 50000,
         }
-        mock_s3_service.move_file.return_value = None
-        mock_s3_service.generate_permanent_path.return_value = "uploads/employee_avatar/1/my_avatar.jpg"
+        mock_s3_instance.move_file.return_value = None
+        mock_s3_instance.generate_permanent_path.return_value = "uploads/employee_avatar/1/my_avatar.jpg"
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/my_avatar.jpg"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/my_avatar.jpg"
 
         # Make request
         url = reverse("core:me_update_avatar")
@@ -170,7 +171,7 @@ class MeUpdateAvatarTest(TestCase):
         user_no_employee = User.objects.create_user(
             username="noemployee",
             email="noemployee@example.com",
-            ******,
+            password="testpass123",
         )
         client = APIClient()
         client.force_authenticate(user=user_no_employee)
@@ -189,9 +190,9 @@ class MeUpdateAvatarTest(TestCase):
     @patch("apps.files.utils.S3FileUploadService")
     def test_me_update_avatar_invalid_token(self, mock_s3_service_class):
         """Test avatar upload with invalid file token"""
-        # Create mock S3 service instance
-        mock_s3_service = MagicMock()
-        mock_s3_service_class.return_value = mock_s3_service
+        # Mock S3FileUploadService instance (though it won't be used for invalid token)
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
 
         url = reverse("core:me_update_avatar")
         payload = {

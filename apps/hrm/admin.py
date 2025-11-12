@@ -45,6 +45,12 @@ class PositionAdmin(admin.ModelAdmin):
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ["code", "fullname", "username", "email", "status", "phone", "start_date"]
 
+    list_filter = [
+        "status",
+    ]
+
+    search_fields = ["code", "fullname", "email"]
+
 
 @admin.register(EmployeeWorkHistory)
 class EmployeeWorkHistoryAdmin(admin.ModelAdmin):

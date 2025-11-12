@@ -372,6 +372,7 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
         self.employee: Employee = self.context.get("employee", None)
         self.employee_update_fields = []
         self.old_status = self.employee.status if self.employee else None
+        self.old_start_date = self.employee.start_date if self.employee else None
 
     def _validate_employee(self):
         try:
@@ -518,7 +519,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
 
     def _create_work_history(self):
         """Create work history record for resignation."""
-        previous_data = {"status": self.old_status}
+        previous_data = {"status": self.old_status, "start_date": self.old_start_date}
 
         old_status_display = _(self.old_status)
         new_status_display = _(Employee.Status.RESIGNED)

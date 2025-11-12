@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 16:01+0700\n"
+"POT-Creation-Date: 2025-11-12 11:23+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,48 +23,48 @@ msgstr ""
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:243
+#: apps/hrm/api/serializers/employee.py:245
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:276
+#: apps/hrm/api/serializers/employee.py:278
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:290 apps/hrm/api/views/employee.py:351
+#: apps/hrm/api/serializers/employee.py:292 apps/hrm/api/views/employee.py:354
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:404
-#: apps/hrm/api/serializers/employee.py:429
+#: apps/hrm/api/serializers/employee.py:407
+#: apps/hrm/api/serializers/employee.py:432
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:460
+#: apps/hrm/api/serializers/employee.py:463
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:464
+#: apps/hrm/api/serializers/employee.py:467
 msgid "Seniority retained from previous employment period."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:482
+#: apps/hrm/api/serializers/employee.py:485
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:509
-#: apps/hrm/api/serializers/employee.py:551
+#: apps/hrm/api/serializers/employee.py:512
+#: apps/hrm/api/serializers/employee.py:554
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:523
+#: apps/hrm/api/serializers/employee.py:526
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
