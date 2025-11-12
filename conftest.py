@@ -84,6 +84,55 @@ def mock_audit_logging(monkeypatch):
     monkeypatch.setattr("apps.audit_logging.producer._audit_producer.log_event", MagicMock())
 
 
+@pytest.fixture(autouse=True)
+def mock_celery_tasks(monkeypatch):
+    """
+    Mock Celery task execution to prevent broker connection attempts during tests.
+
+    This fixture is automatically applied to all tests to avoid RabbitMQ/Redis
+    connection errors. Tasks will execute synchronously as regular functions.
+    
+    Tests that need to verify task calls should use @patch at the test level.
+    """
+    from unittest.mock import MagicMock
+    
+    def mock_delay(self, *args, **kwargs):
+        """Mock .delay() to execute task synchronously without broker."""
+        return self.apply(args=args, kwargs=kwargs)
+    
+    def mock_apply_async(self, *args, **kwargs):
+        """Mock .apply_async() to execute task synchronously without broker."""
+        # Extract actual args from apply_async signature
+        task_args = kwargs.get('args', args)
+        task_kwargs = kwargs.get('kwargs', {})
+        return self.apply(args=task_args, kwargs=task_kwargs)
+    
+    # Patch celery Task methods globally
+    monkeypatch.setattr("celery.app.task.Task.delay", mock_delay)
+    monkeypatch.setattr("celery.app.task.Task.apply_async", mock_apply_async)
+
+
+@pytest.fixture(autouse=True)
+def disable_throttling(settings):
+    """
+    Disable DRF throttling in all tests to avoid cache/Redis dependency.
+    
+    Even though test.py disables throttling, this ensures it's disabled
+    for all test cases regardless of settings overrides.
+    """
+    # Force local memory cache to avoid Redis dependency
+    settings.CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-cache-fixture",
+        },
+    }
+    
+    # Disable throttling
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
+    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}
+
+
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """
     Modify test items to optimize test execution.

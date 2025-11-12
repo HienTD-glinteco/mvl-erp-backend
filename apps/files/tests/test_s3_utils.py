@@ -152,7 +152,13 @@ class S3FileUploadServiceTest(TestCase):
 
         # Assert
         self.assertTrue(result)
-        mock_s3.copy_object.assert_called_once()
+        # Verify copy_object was called with correct structure
+        mock_s3.copy_object.assert_called_once_with(
+            CopySource={"Bucket": "test-bucket", "Key": "uploads/tmp/file.pdf"},
+            Bucket="test-bucket",
+            Key="uploads/final/file.pdf"
+        )
+        # Verify delete_object was called to remove the source file
         mock_s3.delete_object.assert_called_once_with(Bucket="test-bucket", Key="uploads/tmp/file.pdf")
 
     @patch("boto3.client")
