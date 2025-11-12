@@ -11,6 +11,7 @@ class EmployeeFilterSet(django_filters.FilterSet):
     username = django_filters.CharFilter(lookup_expr="icontains")
     email = django_filters.CharFilter(lookup_expr="icontains")
     phone = django_filters.CharFilter(lookup_expr="icontains")
+    citizen_id = django_filters.CharFilter(lookup_expr="icontains")
     statuses = django_filters.MultipleChoiceFilter(
         field_name="status",
         choices=Employee.Status.choices,
@@ -28,6 +29,7 @@ class EmployeeFilterSet(django_filters.FilterSet):
             "username",
             "email",
             "phone",
+            "citizen_id",
             "branch",
             "block",
             "department",
