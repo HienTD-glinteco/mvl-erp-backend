@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -97,9 +98,7 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "job_description",
             "job_description_id",
             "branch",
-            "branch_id",
             "block",
-            "block_id",
             "department",
             "department_id",
             "proposer",
@@ -143,6 +142,12 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
         """Get number of hired candidates for this recruitment request"""
         return obj.candidates.filter(status="HIRED").count()
 
+    def validate_number_of_positions(self, value):
+        """Validate the number of positions."""
+        if value is not None and value < 1:
+            raise serializers.ValidationError(_("Number of positions must be at least 1."))
+        return value
+
     def validate(self, attrs):
         """Validate recruitment request data.
 
@@ -150,9 +155,22 @@ class RecruitmentRequestSerializer(FieldFilteringSerializerMixin, serializers.Mo
         so we don't enforce validation here. The model's save method will
         handle setting these fields automatically.
         """
-        # Validate number of positions
-        number_of_positions = attrs.get("number_of_positions")
-        if number_of_positions is not None and number_of_positions < 1:
-            raise serializers.ValidationError({"number_of_positions": _("Number of positions must be at least 1.")})
+        # Validate using model's clean method
+        # Create a temporary instance with the provided data for validation
+        instance = self.instance or RecruitmentRequest()
+
+        # Apply attrs to the instance
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        # Perform model-level validation
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
 
         return attrs

@@ -62,6 +62,12 @@ ALLOWED_FILE_TYPES = {
         "image/jpg",
         "image/webp",
     ],
+    "employee_avatar": [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+    ],
     # Add more purposes as needed
     # If a purpose is not listed here, all file types are allowed
 }

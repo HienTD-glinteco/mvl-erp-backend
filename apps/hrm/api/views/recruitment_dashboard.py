@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from django.db.models import Sum
+from django.db.models import Case, DecimalField, F, Sum, When
+from django.db.models.functions import Coalesce
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import viewsets
@@ -104,29 +105,70 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                                 "percentage": 64.3,
                             },
                         ],
+                        "cost_by_branches": {
+                            "months": ["10/2025", "11/2025"],
+                            "branch_names": ["Hanoi Branch", "HCMC Branch"],
+                            "data": [
+                                {
+                                    "name": "Hanoi Branch",
+                                    "type": "branch",
+                                    "statistics": [
+                                        {
+                                            "total_cost": 25000000.0,
+                                            "total_hires": 5,
+                                            "avg_cost": 5000000.0,
+                                        },
+                                        {
+                                            "total_cost": 21000000.0,
+                                            "total_hires": 3,
+                                            "avg_cost": 7000000.0,
+                                        },
+                                    ],
+                                },
+                                {
+                                    "name": "HCMC Branch",
+                                    "type": "branch",
+                                    "statistics": [
+                                        {
+                                            "total_cost": 25000000.0,
+                                            "total_hires": 5,
+                                            "avg_cost": 5000000.0,
+                                        },
+                                        {
+                                            "total_cost": 21000000.0,
+                                            "total_hires": 3,
+                                            "avg_cost": 7000000.0,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
                         "source_type_breakdown": [
                             {"source_type": "referral_source", "count": 25, "percentage": 33.3},
                             {"source_type": "marketing_channel", "count": 30, "percentage": 40.0},
                             {"source_type": "job_website_channel", "count": 20, "percentage": 26.7},
                         ],
-                        "monthly_trends": [
-                            {
-                                "month": "09/2025",
-                                "referral_source": 8,
-                                "marketing_channel": 10,
-                                "job_website_channel": 7,
-                                "recruitment_department_source": 5,
-                                "returning_employee": 2,
-                            },
-                            {
-                                "month": "10/2025",
-                                "referral_source": 10,
-                                "marketing_channel": 12,
-                                "job_website_channel": 8,
-                                "recruitment_department_source": 6,
-                                "returning_employee": 3,
-                            },
-                        ],
+                        "monthly_trends": {
+                            "months": ["09/2025", "10/2025"],
+                            "source_type_names": [
+                                "Referral Source",
+                                "Marketing Channel",
+                                "Job Website Channel",
+                                "Recruitment Department Source",
+                                "Returning Employee",
+                            ],
+                            "data": [
+                                {"type": "source_type", "name": "Referral Source", "statistics": [10, 20]},
+                                {"type": "source_type", "name": "Marketing Channel", "statistics": [10, 20]},
+                                {"type": "source_type", "name": "Job Website Channel", "statistics": [10, 20]},
+                                {
+                                    "type": "source_type",
+                                    "name": "Recruitment Department Source",
+                                    "statistics": [10, 20],
+                                },
+                                {"type": "source_type", "name": "Returning Employee", "statistics": [10, 20]},
+                            ],
+                        },
                     },
                     "error": None,
                 },
@@ -152,14 +194,16 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
         experience_breakdown = self._get_experience_breakdown(from_date, to_date)
         branch_breakdown = self._get_branch_breakdown(from_date, to_date)
-        cost_breakdown = self._get_cost_breakdown(from_date, to_date)
+        cost_by_categories = self._get_cost_breakdown_by_categories(from_date, to_date)
+        cost_by_branches = self._get_average_cost_breakdown_by_branches(from_date, to_date)
         source_type_breakdown = self._get_source_type_breakdown(from_date, to_date)
         monthly_trends = self._get_monthly_trends(monthly_chart_from_date, monthly_chart_to_date)
 
         data = {
             "experience_breakdown": experience_breakdown,
             "branch_breakdown": branch_breakdown,
-            "cost_breakdown": cost_breakdown,
+            "cost_breakdown": cost_by_categories,
+            "cost_by_branches": cost_by_branches,
             "source_type_breakdown": source_type_breakdown,
             "monthly_trends": monthly_trends,
         }
@@ -233,9 +277,9 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
             if item["total"]
         ]
 
-    def _get_cost_breakdown(self, from_date, to_date):
-        """Get cost breakdown from RecruitmentCostReport."""
-        cost_by_category = (
+    def _get_cost_breakdown_by_categories(self, from_date, to_date):
+        """Get cost breakdown by cateogries from RecruitmentCostReport."""
+        cost_by_categories = (
             RecruitmentCostReport.objects.filter(
                 report_date__range=[from_date, to_date],
                 source_type__in=[
@@ -249,7 +293,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
             .order_by("-total_cost")
         )
 
-        total_cost_all = sum(item["total_cost"] for item in cost_by_category if item["total_cost"])
+        total_cost_all = sum(item["total_cost"] for item in cost_by_categories if item["total_cost"])
 
         return [
             {
@@ -259,8 +303,87 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                     (float(item["total_cost"]) / float(total_cost_all) * 100) if total_cost_all > 0 else 0, 1
                 ),
             }
-            for item in cost_by_category
+            for item in cost_by_categories
         ]
+
+    def _get_average_cost_breakdown_by_branches(self, from_date, to_date):
+        """Get average cost breakdown by branches from RecruitmentCostReport."""
+        cost_by_branches = (
+            RecruitmentCostReport.objects.filter(
+                report_date__range=[from_date, to_date],
+            )
+            .values("month_key", "branch__name", "branch")
+            .annotate(
+                total_cost=Coalesce(
+                    Sum("total_cost"),
+                    0,
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                ),
+                total_hires=Coalesce(
+                    Sum("num_hires"),
+                    0,
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                ),
+            )
+            .annotate(
+                avg_cost=Case(
+                    When(
+                        total_hires=0,
+                        then=0,
+                    ),
+                    default=F("total_cost") / F("total_hires"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                )
+            )
+            .order_by("month_key", "branch__name")
+        )
+
+        # Get all unique month keys and branches
+        all_month_keys = sorted({item["month_key"] for item in cost_by_branches})
+        all_branches = {}
+        for item in cost_by_branches:
+            branch_id = item["branch"]
+            branch_name = item["branch__name"]
+            if branch_id and branch_name:
+                all_branches[branch_id] = branch_name
+
+        # Build lookup dict for actual data
+        data_lookup = {}
+        for item in cost_by_branches:
+            key = (item["month_key"], item["branch"])
+            data_lookup[key] = {
+                "total_cost": float(item["total_cost"]),
+                "total_hires": int(item["total_hires"]),
+                "avg_cost": float(item["avg_cost"]),
+            }
+
+        # Build result list with default values for all combinations
+        result = []
+        for branch_id, branch_name in sorted(all_branches.items(), key=lambda x: x[1]):
+            statistics = []
+            for month_key in all_month_keys:
+                key = (month_key, branch_id)
+                if key in data_lookup:
+                    statistics.append(data_lookup[key])
+                else:
+                    # Default values when no data for this month-branch combination
+                    statistics.append(
+                        {
+                            "total_cost": 0.0,
+                            "total_hires": 0,
+                            "avg_cost": 0.0,
+                        }
+                    )
+
+            result.append(
+                {
+                    "type": "branch",
+                    "name": branch_name,
+                    "statistics": statistics,
+                }
+            )
+
+        return {"data": result, "months": all_month_keys, "branch_names": all_branches}
 
     def _get_source_type_breakdown(self, from_date, to_date):
         """Get source type breakdown from RecruitmentCostReport."""
@@ -289,28 +412,58 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
             RecruitmentCostReport.objects.filter(report_date__range=[from_date, to_date])
             .values("month_key", "source_type")
             .annotate(total=Sum("num_hires"))
-            .order_by("month_key")
+            .order_by("month_key", "source_type")
         )
 
-        months = {}
+        # Get all unique month keys and source types
+        all_month_keys = sorted({item["month_key"] for item in monthly_data})
+        all_source_types = [
+            RecruitmentSourceType.REFERRAL_SOURCE.value,
+            RecruitmentSourceType.MARKETING_CHANNEL.value,
+            RecruitmentSourceType.JOB_WEBSITE_CHANNEL.value,
+            RecruitmentSourceType.RECRUITMENT_DEPARTMENT_SOURCE.value,
+            RecruitmentSourceType.RETURNING_EMPLOYEE.value,
+        ]
+
+        # Build source names list
+        source_type_names = [RecruitmentSourceType.get_label(source_type) for source_type in all_source_types]
+
+        # Return empty structure if no data
+        if not all_month_keys:
+            return {
+                "months": [],
+                "source_type_names": source_type_names,
+                "data": [],
+            }
+
+        # Build lookup dict for actual data
+        data_lookup = {}
         for item in monthly_data:
-            month = item["month_key"]
-            category = item["source_type"]
-            value = item["total"] or 0
+            key = (item["month_key"], item["source_type"])
+            data_lookup[key] = item["total"] or 0
 
-            if month not in months:
-                months[month] = {
-                    "month": month,
-                    "referral_source": 0,
-                    "marketing_channel": 0,
-                    "job_website_channel": 0,
-                    "recruitment_department_source": 0,
-                    "returning_employee": 0,
+        # Build result: one item per source type, with statistics across all months
+        result = []
+        for source_type in all_source_types:
+            statistics = []
+            for month_key in all_month_keys:
+                key = (month_key, source_type)
+                count = data_lookup.get(key, 0)
+                statistics.append(count)
+
+            result.append(
+                {
+                    "type": "source_type",
+                    "name": RecruitmentSourceType.get_label(source_type),
+                    "statistics": statistics,
                 }
+            )
 
-            months[month][category] = value
-
-        return list(months.values())
+        return {
+            "months": all_month_keys,
+            "source_type_names": source_type_names,
+            "data": result,
+        }
 
     def _get_date_range(self, request):
         """Extract date range from request or use defaults."""

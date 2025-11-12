@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
+from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import (
     Block,
     Branch,
@@ -17,6 +18,7 @@ from apps.hrm.models import (
 )
 from apps.hrm.services.employee import create_position_change_event, create_state_change_event, create_transfer_event
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
+from libs.drf.serializers.mixins import FileConfirmSerializerMixin
 
 
 class EmployeeBranchNestedSerializer(serializers.ModelSerializer):
@@ -93,6 +95,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
+    avatar = FileSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -186,7 +189,6 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "department",
             "position",
             "contract_type",
-            "avatar",
             "nationality",
             "user",
             "recruitment_candidate",
@@ -315,11 +317,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         # Check for status change
         if old_status != employee.status:
             # Determine the effective date based on status
-            if employee.status in [
-                Employee.Status.RESIGNED,
-                Employee.Status.MATERNITY_LEAVE,
-                Employee.Status.UNPAID_LEAVE,
-            ]:
+            if employee.status in Employee.Status.get_leave_statuses():
                 effective_date = employee.resignation_start_date or date.today()
                 start_date = employee.resignation_start_date
                 end_date = (
@@ -501,11 +499,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
     resignation_reason = serializers.ChoiceField(choices=Employee.ResignationReason.choices, required=True)
 
     def validate(self, attrs):
-        if self.employee.status in [
-            Employee.Status.RESIGNED,
-            Employee.Status.UNPAID_LEAVE,
-            Employee.Status.MATERNITY_LEAVE,
-        ]:
+        if self.employee.status in Employee.Status.get_leave_statuses():
             raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
 
         self.employee.resignation_start_date = attrs["start_date"]
@@ -548,11 +542,7 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
     end_date = serializers.DateField(required=True)
 
     def validate(self, attrs):
-        if self.employee.status in [
-            Employee.Status.RESIGNED,
-            Employee.Status.UNPAID_LEAVE,
-            Employee.Status.MATERNITY_LEAVE,
-        ]:
+        if self.employee.status in Employee.Status.get_leave_statuses():
             raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
 
         self.employee.resignation_start_date = attrs["start_date"]
@@ -632,3 +622,33 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
         )
+
+
+class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serializer):
+    """
+    Serializer for updating employee avatar.
+
+    Uses FileConfirmSerializerMixin to automatically handle file confirmation
+    and assignment to the employee.avatar field.
+
+    Expected request format:
+    {
+        "files": {
+            "avatar": "file-token-from-presign-response"
+        }
+    }
+    """
+
+    file_confirm_fields = ["avatar"]
+
+    class Meta:
+        fields: list[str] = []
+
+    def update(self, instance, validated_data):
+        """
+        Update method required by DRF Serializer.
+
+        The actual avatar assignment is handled by FileConfirmSerializerMixin
+        in the save() method, so we just return the instance here.
+        """
+        return instance

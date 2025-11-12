@@ -8,10 +8,10 @@ from .models import (
     ContractType,
     Department,
     Employee,
-    EmployeeWorkHistory,
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
+    EmployeeWorkHistory,
     InterviewCandidate,
     InterviewSchedule,
     JobDescription,
@@ -44,6 +44,12 @@ class PositionAdmin(admin.ModelAdmin):
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = ["code", "fullname", "username", "email", "status", "phone", "start_date"]
+
+    list_filter = [
+        "status",
+    ]
+
+    search_fields = ["code", "fullname", "email"]
 
 
 @admin.register(EmployeeWorkHistory)

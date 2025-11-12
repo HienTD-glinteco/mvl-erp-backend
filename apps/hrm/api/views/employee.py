@@ -11,6 +11,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import (
     EmployeeActiveActionSerializer,
+    EmployeeAvatarSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
     EmployeeResignedActionSerializer,
@@ -72,7 +73,7 @@ class EmployeeViewSet(
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["code", "fullname", "username", "email", "attendance_code", "phone"]
+    search_fields = ["code", "fullname", "username", "email", "attendance_code", "phone", "citizen_id"]
     ordering_fields = ["code", "fullname", "start_date", "created_at"]
     ordering = ["code"]
 
@@ -95,6 +96,8 @@ class EmployeeViewSet(
             return EmployeeMaternityLeaveActionSerializer
         if self.action == "transfer":
             return EmployeeTransferActionSerializer
+        if self.action == "update_avatar":
+            return EmployeeAvatarSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -353,3 +356,58 @@ class EmployeeViewSet(
 
         serializer = self.get_serializer(copied)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Update employee avatar",
+        description=(
+            "Upload and assign a new avatar to an employee. "
+            "Requires a file token obtained from the presign endpoint. "
+            "Only image files (PNG, JPEG, JPG, WEBP) are accepted."
+        ),
+        request=EmployeeAvatarSerializer,
+        responses={200: EmployeeSerializer},
+        tags=["Employee"],
+    )
+    @action(detail=True, methods=["post"], url_path="update-avatar")
+    @transaction.atomic
+    def update_avatar(self, request, *args, **kwargs):
+        """
+        Update employee avatar using file upload system.
+
+        Workflow:
+        1. Client obtains presigned URL: POST /api/files/presign/
+           {
+             "file_name": "avatar.jpg",
+             "file_type": "image/jpeg",
+             "purpose": "employee_avatar"
+           }
+
+        2. Client uploads file to S3 using presigned URL
+
+        3. Client calls this endpoint with file token:
+           POST /api/hrm/employees/{id}/update-avatar/
+           {
+             "files": {
+               "avatar": "file-token-from-step-1"
+             }
+           }
+
+        The serializer automatically:
+        - Validates the file token
+        - Confirms the file upload
+        - Moves file from temp to permanent storage
+        - Assigns the file to employee.avatar field
+        """
+        employee = self.get_object()
+
+        # Use EmployeeAvatarSerializer with the employee instance
+        serializer = EmployeeAvatarSerializer(
+            instance=employee,
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return updated employee data with new avatar
+        return Response(EmployeeSerializer(instance=employee).data)

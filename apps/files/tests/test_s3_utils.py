@@ -138,10 +138,12 @@ class S3FileUploadServiceTest(TestCase):
         # Assert
         self.assertFalse(result)
 
+    @patch("apps.files.utils.storage_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_move_file_success(self, mock_boto_client):
+    def test_move_file_success(self, mock_boto_client, mock_get_prefix):
         """Test successful file move operation."""
         # Arrange
+        mock_get_prefix.return_value = ""  # No prefix for this test
         mock_s3 = MagicMock()
         mock_boto_client.return_value = mock_s3
 
@@ -152,7 +154,13 @@ class S3FileUploadServiceTest(TestCase):
 
         # Assert
         self.assertTrue(result)
-        mock_s3.copy_object.assert_called_once()
+        # Verify copy_object was called with correct structure
+        mock_s3.copy_object.assert_called_once_with(
+            CopySource={"Bucket": "test-bucket", "Key": "uploads/tmp/file.pdf"},
+            Bucket="test-bucket",
+            Key="uploads/final/file.pdf",
+        )
+        # Verify delete_object was called to remove the source file
         mock_s3.delete_object.assert_called_once_with(Bucket="test-bucket", Key="uploads/tmp/file.pdf")
 
     @patch("boto3.client")
