@@ -97,12 +97,14 @@ class EmployeeAvatarUploadTest(TestCase):
         """Clean up after tests"""
         cache.clear()
 
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
     @patch("apps.files.utils.S3FileUploadService")
-    def test_update_avatar_success(self, mock_s3_service_class):
+    def test_update_avatar_success(self, mock_s3_service_class, mock_s3_utils):
         """Test successful avatar upload"""
         # Mock S3FileUploadService instance
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_utils.return_value = mock_s3_instance
 
         # Mock S3 methods used by the file confirmation mixin
         mock_s3_instance.check_file_exists.return_value = True
@@ -227,8 +229,9 @@ class EmployeeAvatarUploadTest(TestCase):
         # Verify file was deleted from S3
         mock_s3_instance.delete_file.assert_called_once()
 
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
     @patch("apps.files.utils.S3FileUploadService")
-    def test_update_avatar_replaces_existing(self, mock_s3_service_class):
+    def test_update_avatar_replaces_existing(self, mock_s3_service_class, mock_s3_utils):
         """Test that uploading a new avatar replaces the old one"""
         # Create an existing avatar
         old_avatar = FileModel.objects.create(
@@ -245,6 +248,7 @@ class EmployeeAvatarUploadTest(TestCase):
         # Mock S3FileUploadService instance
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_utils.return_value = mock_s3_instance
 
         # Mock S3 methods
         mock_s3_instance.check_file_exists.return_value = True
