@@ -54,10 +54,19 @@ class BaseReportModel(BaseModel):
     """Base model for all report models.
 
     Provides common fields and behavior for report models including
-    report_date and standard ordering by report_date descending.
+    report_date, need_refresh flag, and standard ordering by report_date descending.
+
+    The need_refresh field is used by batch tasks to identify reports that need
+    recalculation due to source data changes (including deletions).
     """
 
     report_date = models.DateField(verbose_name=_("Report date"))
+    need_refresh = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name=_("Needs refresh"),
+        help_text=_("Indicates if this report needs to be recalculated by batch task"),
+    )
 
     class Meta:
         abstract = True

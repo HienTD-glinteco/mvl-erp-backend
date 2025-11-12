@@ -317,11 +317,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
         # Check for status change
         if old_status != employee.status:
             # Determine the effective date based on status
-            if employee.status in [
-                Employee.Status.RESIGNED,
-                Employee.Status.MATERNITY_LEAVE,
-                Employee.Status.UNPAID_LEAVE,
-            ]:
+            if employee.status in Employee.Status.get_leave_statuses():
                 effective_date = employee.resignation_start_date or date.today()
                 start_date = employee.resignation_start_date
                 end_date = (
@@ -503,11 +499,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
     resignation_reason = serializers.ChoiceField(choices=Employee.ResignationReason.choices, required=True)
 
     def validate(self, attrs):
-        if self.employee.status in [
-            Employee.Status.RESIGNED,
-            Employee.Status.UNPAID_LEAVE,
-            Employee.Status.MATERNITY_LEAVE,
-        ]:
+        if self.employee.status in Employee.Status.get_leave_statuses():
             raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
 
         self.employee.resignation_start_date = attrs["start_date"]
@@ -545,11 +537,7 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
     end_date = serializers.DateField(required=True)
 
     def validate(self, attrs):
-        if self.employee.status in [
-            Employee.Status.RESIGNED,
-            Employee.Status.UNPAID_LEAVE,
-            Employee.Status.MATERNITY_LEAVE,
-        ]:
+        if self.employee.status in Employee.Status.get_leave_statuses():
             raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
 
         self.employee.resignation_start_date = attrs["start_date"]

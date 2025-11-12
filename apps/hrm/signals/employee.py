@@ -1,48 +1,12 @@
-"""Signal handlers for HRM app."""
+"""Signal handlers for Employee model."""
 
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.models import (
-    Block,
-    Branch,
-    Department,
-    Employee,
-    EmployeeCertificate,
-    EmployeeDependent,
-    EmployeeRelationship,
-    JobDescription,
-    Position,
-    RecruitmentCandidate,
-    RecruitmentChannel,
-    RecruitmentExpense,
-    RecruitmentRequest,
-    RecruitmentSource,
-)
-from libs.code_generation import register_auto_code_signal
-
-from .constants import TEMP_CODE_PREFIX
+from apps.hrm.models import Employee
 
 User = get_user_model()
-
-register_auto_code_signal(
-    Branch,
-    Block,
-    Department,
-    Employee,
-    EmployeeCertificate,
-    EmployeeDependent,
-    EmployeeRelationship,
-    Position,
-    RecruitmentChannel,
-    RecruitmentSource,
-    JobDescription,
-    RecruitmentRequest,
-    RecruitmentCandidate,
-    RecruitmentExpense,
-    temp_code_prefix=TEMP_CODE_PREFIX,
-)
 
 
 @receiver(post_save, sender=Employee)

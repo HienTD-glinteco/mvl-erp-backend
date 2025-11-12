@@ -73,6 +73,10 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         MATERNITY_LEAVE = "Maternity Leave", _("Maternity Leave")
         UNPAID_LEAVE = "Unpaid Leave", _("Unpaid Leave")
 
+        @classmethod
+        def get_leave_statuses(cls):
+            return [cls.RESIGNED, cls.MATERNITY_LEAVE, cls.UNPAID_LEAVE]
+
     class Gender(models.TextChoices):
         MALE = "MALE", _("Male")
         FEMALE = "FEMALE", _("Female")

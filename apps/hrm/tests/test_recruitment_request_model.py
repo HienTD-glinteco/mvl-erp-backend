@@ -298,8 +298,9 @@ class RecruitmentRequestModelTest(TransactionTestCase):
             number_of_positions=1,
         )
 
-        with self.assertRaises(ValidationError):
-            request.save()
+        request.save()
+        self.assertEqual(request.branch, self.department.branch)
+        self.assertEqual(request.block, self.department.block)
 
     def test_code_uniqueness(self):
         """Test that code field is unique"""
