@@ -506,11 +506,16 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
         self.employee.status = Employee.Status.RESIGNED
         self.employee.resignation_reason = attrs["resignation_reason"]
         self.employee_update_fields.extend(["resignation_start_date", "status", "resignation_reason"])
+        self._old_start_date = self.employee.start_date
         return super().validate(attrs)
 
     def _create_work_history(self):
         """Create work history record for resignation."""
-        previous_data = {"status": self.old_status}
+        previous_data = {
+            "status": self.old_status,
+            "start_date": str(self._old_start_date) if self._old_start_date else None,
+            "end_date": str(self.validated_data["start_date"]),
+        }
 
         old_status_display = _(self.old_status)
         new_status_display = _(Employee.Status.RESIGNED)
