@@ -120,16 +120,54 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         return Employee.objects.create(**employee_data)
 
     def create_work_history(self, employee, from_date, to_date=None, retain_seniority=True):
-        """Helper to create work history"""
-        return EmployeeWorkHistory.objects.create(
-            employee=employee,
-            date=from_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            detail="Test work history",
-            from_date=from_date,
-            to_date=to_date,
-            retain_seniority=retain_seniority,
-        )
+        """Helper to create work history representing an employment period.
+
+        Creates appropriate events based on the period type:
+        - Resignation event for past employment (to_date provided)
+        - Return to Work event for ongoing or reset periods
+        """
+        if to_date is not None:
+            # Past employment period ending with resignation
+            # Create resignation event
+            EmployeeWorkHistory.objects.create(
+                employee=employee,
+                date=to_date,  # Date of resignation
+                name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+                detail="Test work history - resigned",
+                status=Employee.Status.RESIGNED,
+                from_date=from_date,
+                to_date=to_date,
+                retain_seniority=retain_seniority,
+                previous_data={
+                    "start_date": from_date.isoformat(),
+                    "end_date": to_date.isoformat(),
+                    "resignation_start_date": to_date.isoformat(),
+                },
+            )
+
+            # If this marks a seniority reset, also create a Return to Work event at the end
+            # with retain_seniority=False to mark the cutoff point
+            if not retain_seniority:
+                return EmployeeWorkHistory.objects.create(
+                    employee=employee,
+                    date=to_date,  # Same date as resignation - marks the reset point
+                    name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
+                    detail="Test work history - seniority reset point",
+                    from_date=to_date,
+                    to_date=to_date,
+                    retain_seniority=False,
+                )
+        else:
+            # Ongoing employment period - create return to work event
+            return EmployeeWorkHistory.objects.create(
+                employee=employee,
+                date=from_date,  # Date of return to work
+                name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
+                detail="Test work history - return to work",
+                from_date=from_date,
+                to_date=None,
+                retain_seniority=retain_seniority,
+            )
 
     def test_seniority_calculation_no_work_history(self):
         """Test seniority calculation when employee has no work history.
@@ -194,6 +232,10 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             retain_seniority=True,
         )
 
+        # Update employee's start_date to match the return to work date
+        employee.start_date = date(2021, 1, 1)
+        employee.save()
+
         # Act
         url = reverse("hrm:employee-reports-employee-seniority-report")
         response = self.client.get(url)
@@ -257,6 +299,10 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             to_date=None,
             retain_seniority=True,
         )
+
+        # Update employee's start_date to match the most recent return to work
+        employee.start_date = date(2022, 1, 1)
+        employee.save()
 
         # Act
         url = reverse("hrm:employee-reports-employee-seniority-report")
@@ -326,6 +372,10 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             to_date=None,
             retain_seniority=True,
         )
+
+        # Update employee's start_date to match the most recent return to work
+        employee.start_date = date(2022, 1, 1)
+        employee.save()
 
         # Act
         url = reverse("hrm:employee-reports-employee-seniority-report")

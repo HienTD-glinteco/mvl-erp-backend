@@ -96,7 +96,8 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
                     "to_date": None,  # Current - no end date
                     "is_synthetic": True,
                 }
-            return [current_period], [current_period]
+                return [current_period], [current_period]
+            return [], []
 
         # Sort by date (ascending for easier processing)
         sorted_histories = sorted(work_histories, key=lambda x: x.date if x.date else date.min)
