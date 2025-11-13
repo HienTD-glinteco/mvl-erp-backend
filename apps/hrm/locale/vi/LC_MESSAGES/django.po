@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 15:23+0700\n"
+"POT-Creation-Date: 2025-11-13 11:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/hrm/api/serializers/attendance_device.py:94
+#: apps/hrm/api/serializers/attendance_device.py:93
 #, python-brace-format
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
@@ -108,27 +108,6 @@ msgstr ""
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:57
-#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:77
-#: apps/hrm/api/views/recruitment_reports.py:126
-#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:103 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reports.py:329
 msgid "Average"
 msgstr ""
@@ -199,11 +178,11 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:248
+#: apps/hrm/api/views/recruitment_dashboard.py:256
 msgid "Experienced"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:253
+#: apps/hrm/api/views/recruitment_dashboard.py:261
 msgid "Inexperienced"
 msgstr ""
 
@@ -240,6 +219,22 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
+msgstr ""
+
+#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:47
+msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53
@@ -520,15 +515,23 @@ msgstr ""
 msgid "Attendance Devices"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:46
-msgid "Device name"
+#: apps/hrm/models/attendance_device.py:44
+#: apps/hrm/models/attendance_record.py:46
+#: apps/hrm/models/employee_certificate.py:46
+#: apps/hrm/models/employee_dependent.py:44
+#: apps/hrm/models/employee_relationship.py:48
+msgid "Code"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:47
+msgid "Device name"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:48
 msgid "Name for the device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:53 apps/hrm/models/employee.py:156
+#: apps/hrm/models/attendance_device.py:54 apps/hrm/models/employee.py:156
 #: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
 #: apps/hrm/models/employee_work_history.py:83
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
@@ -538,87 +541,87 @@ msgstr ""
 msgid "Block"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:54
+#: apps/hrm/models/attendance_device.py:55
 msgid "Organization Block where device is installed"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:60
+#: apps/hrm/models/attendance_device.py:61
 msgid "IP address or domain"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:61
+#: apps/hrm/models/attendance_device.py:62
 msgid "Network address for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:65
+#: apps/hrm/models/attendance_device.py:66
 msgid "Port"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:66
+#: apps/hrm/models/attendance_device.py:67
 msgid "Network port for device communication"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:71
+#: apps/hrm/models/attendance_device.py:72
 msgid "Password"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:72
+#: apps/hrm/models/attendance_device.py:73
 msgid "Authentication password for device access"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:77
+#: apps/hrm/models/attendance_device.py:78
 msgid "Serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:78
+#: apps/hrm/models/attendance_device.py:79
 msgid "Manufacturer's device serial number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:83
+#: apps/hrm/models/attendance_device.py:84
 msgid "Registration number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:84
+#: apps/hrm/models/attendance_device.py:85
 msgid "Device registration or license number"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:88
+#: apps/hrm/models/attendance_device.py:89
 msgid "Is enabled"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:89
+#: apps/hrm/models/attendance_device.py:90
 msgid "Whether the device is enabled for automatic synchronization"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:93
+#: apps/hrm/models/attendance_device.py:94
 msgid "Connection status"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:94
+#: apps/hrm/models/attendance_device.py:95
 msgid "Whether the device is currently online and reachable"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:98
+#: apps/hrm/models/attendance_device.py:99
 msgid "Realtime enabled"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:99
+#: apps/hrm/models/attendance_device.py:100
 msgid "Whether realtime listener is enabled for this device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:104
+#: apps/hrm/models/attendance_device.py:105
 msgid "Realtime disabled at"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:105
+#: apps/hrm/models/attendance_device.py:106
 msgid "Timestamp when realtime was disabled due to connection failures"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:110
+#: apps/hrm/models/attendance_device.py:111
 msgid "Last polling sync"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:111
+#: apps/hrm/models/attendance_device.py:112
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
@@ -630,52 +633,52 @@ msgstr ""
 msgid "Attendance Records"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:50
+#: apps/hrm/models/attendance_record.py:51
 msgid "Device"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:51
+#: apps/hrm/models/attendance_record.py:52
 msgid "Attendance device that captured this record"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:55 apps/hrm/models/employee.py:140
+#: apps/hrm/models/attendance_record.py:56 apps/hrm/models/employee.py:140
 msgid "Attendance code"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:56
+#: apps/hrm/models/attendance_record.py:57
 msgid "User ID from device, used to match with Employee.attendance_code"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:59
+#: apps/hrm/models/attendance_record.py:60
 msgid "Timestamp"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:60
+#: apps/hrm/models/attendance_record.py:61
 msgid "Date and time when attendance was recorded"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:64
+#: apps/hrm/models/attendance_record.py:65
 msgid "Is valid"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:65
+#: apps/hrm/models/attendance_record.py:66
 msgid "Whether this attendance record is valid"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:69
+#: apps/hrm/models/attendance_record.py:70
 #: apps/hrm/models/employee_certificate.py:103
 msgid "Notes"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:70
+#: apps/hrm/models/attendance_record.py:71
 msgid "Additional notes or comments about this attendance record"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:75
+#: apps/hrm/models/attendance_record.py:76
 msgid "Raw data"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:76
+#: apps/hrm/models/attendance_record.py:77
 msgid "Complete raw data from device for debugging purposes"
 msgstr ""
 
@@ -1005,12 +1008,6 @@ msgstr ""
 
 #: apps/hrm/models/employee_certificate.py:30
 msgid "Expired"
-msgstr ""
-
-#: apps/hrm/models/employee_certificate.py:46
-#: apps/hrm/models/employee_dependent.py:44
-#: apps/hrm/models/employee_relationship.py:48
-msgid "Code"
 msgstr ""
 
 #: apps/hrm/models/employee_certificate.py:47

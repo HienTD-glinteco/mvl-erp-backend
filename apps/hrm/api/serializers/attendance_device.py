@@ -45,7 +45,6 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         read_only_fields = [
             "id",
             "serial_number",
-            "registration_number",
             "is_connected",
             "realtime_enabled",
             "realtime_disabled_at",

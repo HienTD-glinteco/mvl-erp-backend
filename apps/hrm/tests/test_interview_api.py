@@ -319,6 +319,88 @@ class InterviewScheduleAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(row3[2], "Senior Python Developer")
         self.assertEqual(row3[3], 2)
 
+    def test_filter_interview_schedules_by_recruitment_candidate(self):
+        """Test filtering interview schedules by recruitment_candidate_id"""
+        # Create interview schedules
+        schedule1 = InterviewSchedule.objects.create(
+            title="First Round Interview",
+            recruitment_request=self.recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Office Meeting Room A",
+            time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+            note="Please bring portfolio",
+        )
+
+        schedule2 = InterviewSchedule.objects.create(
+            title="Second Round Interview",
+            recruitment_request=self.recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.ONLINE,
+            location="Zoom Meeting",
+            time=datetime(2025, 10, 26, 14, 0, 0, tzinfo=timezone.utc),
+            note="Technical interview",
+        )
+
+        schedule3 = InterviewSchedule.objects.create(
+            title="Third Round Interview",
+            recruitment_request=self.recruitment_request,
+            interview_type=InterviewSchedule.InterviewType.IN_PERSON,
+            location="Office Meeting Room B",
+            time=datetime(2025, 10, 27, 15, 0, 0, tzinfo=timezone.utc),
+            note="Final interview",
+        )
+
+        # Add candidate1 to schedule1 and schedule2
+        InterviewCandidate.objects.create(
+            recruitment_candidate=self.candidate1,
+            interview_schedule=schedule1,
+            interview_time=datetime(2025, 10, 25, 10, 0, 0, tzinfo=timezone.utc),
+        )
+        InterviewCandidate.objects.create(
+            recruitment_candidate=self.candidate1,
+            interview_schedule=schedule2,
+            interview_time=datetime(2025, 10, 26, 14, 0, 0, tzinfo=timezone.utc),
+        )
+
+        # Add candidate2 to schedule2 and schedule3
+        InterviewCandidate.objects.create(
+            recruitment_candidate=self.candidate2,
+            interview_schedule=schedule2,
+            interview_time=datetime(2025, 10, 26, 14, 0, 0, tzinfo=timezone.utc),
+        )
+        InterviewCandidate.objects.create(
+            recruitment_candidate=self.candidate2,
+            interview_schedule=schedule3,
+            interview_time=datetime(2025, 10, 27, 15, 0, 0, tzinfo=timezone.utc),
+        )
+
+        url = reverse("hrm:interview-schedule-list")
+
+        # Filter by candidate1 - should return schedule1 and schedule2
+        response = self.client.get(url, {"recruitment_candidate_id": self.candidate1.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 2)
+        schedule_ids = [item["id"] for item in data]
+        self.assertIn(schedule1.id, schedule_ids)
+        self.assertIn(schedule2.id, schedule_ids)
+        self.assertNotIn(schedule3.id, schedule_ids)
+
+        # Filter by candidate2 - should return schedule2 and schedule3
+        response = self.client.get(url, {"recruitment_candidate_id": self.candidate2.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 2)
+        schedule_ids = [item["id"] for item in data]
+        self.assertNotIn(schedule1.id, schedule_ids)
+        self.assertIn(schedule2.id, schedule_ids)
+        self.assertIn(schedule3.id, schedule_ids)
+
+        # Filter by non-existent candidate - should return empty list
+        response = self.client.get(url, {"recruitment_candidate_id": 99999})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 0)
+
 
 class InterviewCandidateAPITest(TransactionTestCase, APITestMixin):
     """Test cases for InterviewCandidate API endpoints"""
