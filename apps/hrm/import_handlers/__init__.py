@@ -8,8 +8,10 @@ from .employee import (
     import_handler as employee_import_handler,
     pre_import_initialize as employee_pre_import_initialize,
 )
+from .recruitment_candidate import import_handler as recruitment_candidate_import_handler
 
 __all__ = [
     "employee_import_handler",
     "employee_pre_import_initialize",
+    "recruitment_candidate_import_handler",
 ]
