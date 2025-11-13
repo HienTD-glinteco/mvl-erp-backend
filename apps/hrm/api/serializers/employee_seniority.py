@@ -7,6 +7,12 @@ from rest_framework import serializers
 from apps.hrm.models.employee import Employee
 from apps.hrm.models.employee_work_history import EmployeeWorkHistory
 
+from .common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    DepartmentNestedSerializer,
+)
+
 
 class SimplifiedWorkHistorySerializer(serializers.ModelSerializer):
     """Simplified serializer for work history in seniority report.
@@ -41,6 +47,10 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
     work_history = serializers.SerializerMethodField(
         help_text="List of work history periods included in seniority calculation"
     )
+
+    branch = BranchNestedSerializer(read_only=True)
+    block = BlockNestedSerializer(read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
 
     class Meta:
         model = Employee
