@@ -91,6 +91,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
             email="nguyenvana@example.com",
             phone="0123456789",
             attendance_code="EMP001",
+            citizen_id="000123456789",
             date_of_birth="1990-01-01",
             personal_email="nguyenvana.personal@example.com",
             start_date="2024-01-01",
@@ -227,12 +228,15 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("applicants_today", data)
         self.assertIn("hires_today", data)
         self.assertIn("interviews_today", data)
+        self.assertIn("employees_today", data)
 
         # We created 2 job descriptions + 1 for candidate + 1 for interview = 4 total
         self.assertEqual(data["open_positions"], 4)
         self.assertEqual(data["applicants_today"], 1)
         self.assertEqual(data["hires_today"], 3)
         self.assertEqual(data["interviews_today"], 1)
+        # 1 employee from setUp (default status is ONBOARDING)
+        self.assertEqual(data["employees_today"], 1)
 
     def test_charts_dashboard_default_date_range(self):
         """Test charts dashboard with default (current month) date range"""
@@ -488,6 +492,114 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(data["applicants_today"], 0)
         self.assertEqual(data["hires_today"], 0)
         self.assertEqual(data["interviews_today"], 0)
+        # Still has 1 employee from setUp with ONBOARDING status
+        self.assertEqual(data["employees_today"], 1)
+
+    def test_realtime_dashboard_active_employees_count(self):
+        """Test realtime dashboard counts only Active and Onboarding employees"""
+        # Arrange: Create employees with different statuses
+        # Active employee
+        Employee.objects.create(
+            fullname="Active Employee",
+            username="active_emp",
+            email="active@example.com",
+            phone="0111111111",
+            attendance_code="EMP002",
+            citizen_id="001234567890",
+            date_of_birth="1990-01-01",
+            personal_email="active.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Onboarding employee (already have 1 from setUp)
+        Employee.objects.create(
+            fullname="Onboarding Employee",
+            username="onboarding_emp",
+            email="onboarding@example.com",
+            phone="0222222222",
+            attendance_code="EMP003",
+            citizen_id="002234567890",
+            date_of_birth="1990-01-01",
+            personal_email="onboarding.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            status=Employee.Status.ONBOARDING,
+        )
+
+        # Resigned employee - should NOT be counted
+        Employee.objects.create(
+            fullname="Resigned Employee",
+            username="resigned_emp",
+            email="resigned@example.com",
+            phone="0333333333",
+            attendance_code="EMP004",
+            citizen_id="003234567890",
+            date_of_birth="1990-01-01",
+            personal_email="resigned.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            status=Employee.Status.RESIGNED,
+            resignation_start_date=self.today,
+            resignation_reason=Employee.ResignationReason.VOLUNTARY_PERSONAL,
+        )
+
+        # Maternity leave employee - should NOT be counted
+        Employee.objects.create(
+            fullname="Maternity Leave Employee",
+            username="maternity_emp",
+            email="maternity@example.com",
+            phone="0444444444",
+            attendance_code="EMP005",
+            citizen_id="004234567890",
+            date_of_birth="1990-01-01",
+            personal_email="maternity.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            status=Employee.Status.MATERNITY_LEAVE,
+            resignation_start_date=self.today,
+            resignation_end_date=self.today,
+        )
+
+        # Unpaid leave employee - should NOT be counted
+        Employee.objects.create(
+            fullname="Unpaid Leave Employee",
+            username="unpaid_emp",
+            email="unpaid@example.com",
+            phone="0555555555",
+            attendance_code="EMP006",
+            citizen_id="005234567890",
+            date_of_birth="1990-01-01",
+            personal_email="unpaid.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            status=Employee.Status.UNPAID_LEAVE,
+            resignation_start_date=self.today,
+            resignation_end_date=self.today,
+        )
+
+        # Act: Call the realtime API
+        url = reverse("hrm:recruitment-dashboard-realtime")
+        response = self.client.get(url)
+
+        # Assert: Verify only Active and Onboarding employees are counted
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Should count: 1 from setUp (ONBOARDING) + 1 ACTIVE + 1 ONBOARDING = 3
+        # Should NOT count: RESIGNED, MATERNITY_LEAVE, UNPAID_LEAVE
+        self.assertEqual(data["employees_today"], 3)
 
     def test_charts_dashboard_invalid_date_format(self):
         """Test charts dashboard with invalid date format"""
