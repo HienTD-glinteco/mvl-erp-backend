@@ -228,7 +228,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("applicants_today", data)
         self.assertIn("hires_today", data)
         self.assertIn("interviews_today", data)
-        self.assertIn("active_employees", data)
+        self.assertIn("employees_today", data)
 
         # We created 2 job descriptions + 1 for candidate + 1 for interview = 4 total
         self.assertEqual(data["open_positions"], 4)
@@ -236,7 +236,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(data["hires_today"], 3)
         self.assertEqual(data["interviews_today"], 1)
         # 1 employee from setUp (default status is ONBOARDING)
-        self.assertEqual(data["active_employees"], 1)
+        self.assertEqual(data["employees_today"], 1)
 
     def test_charts_dashboard_default_date_range(self):
         """Test charts dashboard with default (current month) date range"""
@@ -493,7 +493,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(data["hires_today"], 0)
         self.assertEqual(data["interviews_today"], 0)
         # Still has 1 employee from setUp with ONBOARDING status
-        self.assertEqual(data["active_employees"], 1)
+        self.assertEqual(data["employees_today"], 1)
 
     def test_realtime_dashboard_active_employees_count(self):
         """Test realtime dashboard counts only Active and Onboarding employees"""
@@ -599,7 +599,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
 
         # Should count: 1 from setUp (ONBOARDING) + 1 ACTIVE + 1 ONBOARDING = 3
         # Should NOT count: RESIGNED, MATERNITY_LEAVE, UNPAID_LEAVE
-        self.assertEqual(data["active_employees"], 3)
+        self.assertEqual(data["employees_today"], 3)
 
     def test_charts_dashboard_invalid_date_format(self):
         """Test charts dashboard with invalid date format"""

@@ -47,7 +47,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                         "applicants_today": 8,
                         "hires_today": 3,
                         "interviews_today": 5,
-                        "active_employees": 120,
+                        "employees_today": 120,
                     },
                     "error": None,
                 },
@@ -72,7 +72,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
             "applicants_today": applicants_today,
             "hires_today": hires_today,
             "interviews_today": interviews_today,
-            "active_employees": active_employees,
+            "employees_today": active_employees,
         }
 
         serializer = DashboardRealtimeDataSerializer(data)

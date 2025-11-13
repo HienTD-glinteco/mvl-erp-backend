@@ -10,7 +10,7 @@ class DashboardRealtimeDataSerializer(serializers.Serializer):
     applicants_today = serializers.IntegerField(help_text="Number of applicants today")
     hires_today = serializers.IntegerField(help_text="Number of hires today")
     interviews_today = serializers.IntegerField(help_text="Number of interviews scheduled for today")
-    active_employees = serializers.IntegerField(
+    employees_today = serializers.IntegerField(
         help_text="Number of currently active employees (Active or Onboarding status)"
     )
 
