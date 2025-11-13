@@ -2,17 +2,34 @@
 
 from django.db import migrations, models
 
-from libs.code_generation import generate_model_code
+
+def generate_model_code_migration(instance, code_prefix):
+    """Generate a code for a model instance based on its ID and class prefix.
+
+    This is a copy of the generate_model_code function for use in migrations.
+    """
+    if instance.id is None:
+        return None
+
+    instance_id = instance.id
+
+    # Format with at least 3 digits, but allow more if needed
+    if instance_id < 1000:
+        subcode = f"{instance_id:03d}"
+    else:
+        subcode = str(instance_id)
+
+    return f"{code_prefix}{subcode}"
 
 
 def set_code(apps, schema_editor):
     AttendanceDevice = apps.get_model("hrm", "AttendanceDevice")
     AttendanceRecord = apps.get_model("hrm", "AttendanceRecord")
 
-    all_models = [AttendanceDevice, AttendanceRecord]
-    for model in all_models:
+    all_models = [(AttendanceDevice, "MC"), (AttendanceRecord, "DD")]
+    for model, PREFIX in all_models:
         for record in model.objects.all():
-            record.code = generate_model_code(record)
+            record.code = generate_model_code_migration(record, PREFIX)
             record.save()
 
 
