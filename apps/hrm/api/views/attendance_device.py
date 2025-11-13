@@ -189,7 +189,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     serializer_class = AttendanceDeviceSerializer
     filterset_class = AttendanceDeviceFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["name"]
+    search_fields = ["code", "name"]
     ordering_fields = ["name", "created_at", "polling_synced_at"]
     ordering = ["name"]
 

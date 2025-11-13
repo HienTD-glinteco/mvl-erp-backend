@@ -32,7 +32,7 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         polling_synced_at: Timestamp of last successful polling sync (null if never synced)
     """
 
-    CODE_PREFIX = "TB"
+    CODE_PREFIX = "MC"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class Meta:
@@ -41,6 +41,7 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         db_table = "hrm_attendance_device"
         ordering = ["name"]
 
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
     name = models.CharField(
         max_length=200,
         verbose_name=_("Device name"),

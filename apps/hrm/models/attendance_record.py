@@ -43,6 +43,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
             models.Index(fields=["-timestamp"]),
         ]
 
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
     device = models.ForeignKey(
         "AttendanceDevice",
         on_delete=models.CASCADE,
