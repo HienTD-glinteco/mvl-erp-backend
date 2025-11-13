@@ -16,6 +16,7 @@ from apps.hrm.api.serializers import (
     UpdateReferrerSerializer,
 )
 from apps.hrm.models import Employee, EmployeeWorkHistory, RecruitmentCandidate
+from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -398,7 +399,9 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
 )
-class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class RecruitmentCandidateViewSet(
+    AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
+):
     """ViewSet for RecruitmentCandidate model"""
 
     queryset = RecruitmentCandidate.objects.select_related(
@@ -421,6 +424,9 @@ class RecruitmentCandidateViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "recruitment_candidate"
+
+    # Import handler path for AsyncImportProgressMixin
+    import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"  # type: ignore[assignment]
 
     def get_export_data(self, request):
         """Custom export data for RecruitmentCandidate.

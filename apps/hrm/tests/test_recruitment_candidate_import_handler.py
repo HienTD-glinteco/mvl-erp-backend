@@ -335,31 +335,34 @@ class TestImportHandler:
     """Test the main import handler function."""
 
     def test_import_handler_success(
-        self, sample_branch, sample_block, sample_department, sample_proposer
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test successful candidate import."""
         row = [
-            "Nguyễn Văn An",  # 0: name
-            "123456789001",  # 1: citizen_id
-            "nguyenvanan@example.com",  # 2: email
-            "0912345678",  # 3: phone
-            "Tuyển Backend Developer Senior",  # 4: recruitment_request_name
-            "LinkedIn",  # 5: recruitment_source_name
-            "Website Tuyển Dụng",  # 6: recruitment_channel_name
-            sample_department.name,  # 7: department_name
-            sample_block.name,  # 8: block_name
-            sample_branch.name,  # 9: branch_name
-            "",  # 10: referrer_code (empty)
-            84,  # 11: months_of_experience
-            "2025-11-01",  # 12: submitted_date
-            1,  # 13: status (CONTACTED)
-            "Ứng viên có 7 năm kinh nghiệm",  # 14: note
+            1,  # row_number
+            "Nguyễn Văn An",  # name
+            "123456789001",  # citizen_id
+            "nguyenvanan@example.com",  # email
+            "0912345678",  # phone
+            "Tuyển Backend Developer Senior",  # recruitment_request_name
+            "LinkedIn",  # recruitment_source_name
+            "Website Tuyển Dụng",  # recruitment_channel_name
+            sample_department.name,  # department_name
+            sample_block.name,  # block_name
+            sample_branch.name,  # branch_name
+            "",  # referrer_code (empty)
+            84,  # months_of_experience
+            "2025-11-01",  # submitted_date
+            1,  # status (CONTACTED)
+            "",  # onboard_date (empty for CONTACTED status)
+            "Ứng viên có 7 năm kinh nghiệm",  # note
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is True
+        assert result["action"] == "created"
         assert "result" in result
         assert "candidate_code" in result["result"]
         assert result["result"]["candidate_code"].startswith("UV")
@@ -384,7 +387,7 @@ class TestImportHandler:
         assert candidate.department == sample_department
 
     def test_import_handler_with_referrer(
-        self, sample_branch, sample_block, sample_department, sample_proposer
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test candidate import with referrer."""
         # Create referrer employee
@@ -400,8 +403,8 @@ class TestImportHandler:
             block=sample_block,
             department=sample_department,
         )
-
         row = [
+            1,
             "Hoàng Văn Em",
             "123456789005",
             "hoangvanem@example.com",
@@ -416,21 +419,24 @@ class TestImportHandler:
             72,
             "2025-11-08",
             4,  # INTERVIEW_SCHEDULED_2
+            "",  # onboard_date
             "6 năm kinh nghiệm",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is True
+        assert result["action"] == "created"
 
         candidate = RecruitmentCandidate.objects.get(citizen_id="123456789005")
         assert candidate.referrer == referrer
         assert candidate.status == RecruitmentCandidate.Status.INTERVIEW_SCHEDULED_2
 
-    def test_import_handler_missing_required_field(self):
-        """Test import with missing required field."""
+    def test_import_handler_missing_required_field(self, template_headers):
+        """Test import with missing required field - should skip row."""
         row = [
+            1,  # row_number
             "",  # Missing name
             "123456789001",
             "test@example.com",
@@ -446,17 +452,20 @@ class TestImportHandler:
             "2025-11-01",
             1,
             "",
+            "",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
-        assert result["ok"] is False
-        assert "Name is required" in result["error"]
+        assert result["ok"] is True
+        assert result["action"] == "skipped"
+        assert "Missing required field" in result["warnings"][0]
 
-    def test_import_handler_invalid_citizen_id(self):
+    def test_import_handler_invalid_citizen_id(self, template_headers):
         """Test import with invalid citizen ID."""
         row = [
+            1,
             "Test User",
             "12345",  # Too short
             "test@example.com",
@@ -472,16 +481,17 @@ class TestImportHandler:
             "2025-11-01",
             1,
             "",
+            "",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is False
         assert "12 digits" in result["error"]
 
     def test_import_handler_duplicate_citizen_id(
-        self, sample_branch, sample_block, sample_department, sample_proposer
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test import with duplicate citizen ID."""
         # Create existing candidate
@@ -515,8 +525,9 @@ class TestImportHandler:
             submitted_date=date.today(),
         )
 
-        # Try to import with same citizen ID
+        # Try to import with same citizen ID (should skip with allow_update=False)
         row = [
+            1,
             "New Candidate",
             "123456789001",  # Duplicate
             "new@example.com",
@@ -532,19 +543,23 @@ class TestImportHandler:
             "2025-11-01",
             1,
             "",
+            "",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
-        assert result["ok"] is False
-        assert "Duplicate Citizen ID" in result["error"]
+        # Should skip since allow_update=False
+        assert result["ok"] is True
+        assert result["action"] == "skipped"
+        assert "already exists" in result["warnings"][0]
 
     def test_import_handler_invalid_status_code(
-        self, sample_branch, sample_block, sample_department
+        self, sample_branch, sample_block, sample_department, template_headers
     ):
         """Test import with invalid status code."""
         row = [
+            1,
             "Test User",
             "123456789001",
             "test@example.com",
@@ -560,17 +575,19 @@ class TestImportHandler:
             "2025-11-01",
             10,  # Invalid status code
             "",
+            "",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is False
         assert "Status code" in result["error"] or "at most 7" in result["error"]
 
-    def test_import_handler_branch_not_found(self, sample_department):
+    def test_import_handler_branch_not_found(self, sample_department, template_headers):
         """Test import when branch is not found."""
         row = [
+            1,
             "Test User",
             "123456789001",
             "test@example.com",
@@ -586,32 +603,34 @@ class TestImportHandler:
             "2025-11-01",
             1,
             "",
+            "",
         ]
 
-        options = {}
+        options = {"headers": template_headers}
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is False
         assert "Branch" in result["error"] and "not found" in result["error"]
 
-    def test_import_handler_insufficient_columns(self):
-        """Test import with insufficient columns."""
+    def test_import_handler_insufficient_columns(self, template_headers):
+        """Test import with missing headers."""
         row = ["Test", "123456789001", "test@example.com"]  # Only 3 columns
 
-        options = {}
+        options = {}  # No headers
         result = import_handler(1, row, "test-job-id", options)
 
         assert result["ok"] is False
-        assert "insufficient columns" in result["error"].lower()
+        assert "Headers not provided" in result["error"]
 
     def test_import_handler_caching(
-        self, sample_branch, sample_block, sample_department, sample_proposer
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
     ):
         """Test that entities are cached across multiple imports."""
-        options = {}
+        options = {"headers": template_headers}
 
         # First import
         row1 = [
+            1,
             "Candidate 1",
             "123456789001",
             "candidate1@example.com",
@@ -627,12 +646,14 @@ class TestImportHandler:
             "2025-11-01",
             1,
             "",
+            "",
         ]
         result1 = import_handler(1, row1, "test-job-id", options)
         assert result1["ok"] is True
 
         # Second import with same source/channel/request
         row2 = [
+            2,
             "Candidate 2",
             "123456789002",
             "candidate2@example.com",
@@ -647,6 +668,7 @@ class TestImportHandler:
             36,
             "2025-11-02",
             2,
+            "",
             "",
         ]
         result2 = import_handler(2, row2, "test-job-id", options)
@@ -664,8 +686,165 @@ class TestImportHandler:
             RecruitmentRequest.objects.filter(name__iexact="Tuyển Backend Developer").count() == 1
         )
 
+    def test_import_handler_hired_without_onboard_date(
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
+    ):
+        """Test import with HIRED status but missing onboard_date."""
+        row = [
+            1,
+            "Test Candidate",
+            "123456789001",
+            "test@example.com",
+            "0912345678",
+            "Tuyển Backend Developer",
+            "LinkedIn",
+            "Website",
+            sample_department.name,
+            sample_block.name,
+            sample_branch.name,
+            "",
+            24,
+            "2025-11-01",
+            6,  # HIRED status
+            "",  # Missing onboard_date
+            "",
+        ]
+
+        options = {"headers": template_headers}
+        result = import_handler(1, row, "test-job-id", options)
+
+        assert result["ok"] is False
+        assert "Onboard date is required when status is HIRED" in result["error"]
+
+    def test_import_handler_hired_with_onboard_date(
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
+    ):
+        """Test import with HIRED status and onboard_date."""
+        row = [
+            1,
+            "Test Candidate",
+            "123456789001",
+            "test@example.com",
+            "0912345678",
+            "Tuyển Backend Developer",
+            "LinkedIn",
+            "Website",
+            sample_department.name,
+            sample_block.name,
+            sample_branch.name,
+            "",
+            24,
+            "2025-11-01",
+            6,  # HIRED status
+            "2025-11-15",  # onboard_date
+            "",
+        ]
+
+        options = {"headers": template_headers}
+        result = import_handler(1, row, "test-job-id", options)
+
+        assert result["ok"] is True
+        candidate = RecruitmentCandidate.objects.get(citizen_id="123456789001")
+        assert candidate.status == RecruitmentCandidate.Status.HIRED
+        assert candidate.onboard_date == date(2025, 11, 15)
+
+    def test_import_handler_allow_update(
+        self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
+    ):
+        """Test import with allow_update=True updates existing candidate."""
+        # Create existing candidate
+        source = RecruitmentSource.objects.create(name="Test Source")
+        channel = RecruitmentChannel.objects.create(name="Test Channel")
+        job_desc = JobDescription.objects.create(
+            title="Test Job",
+            position_title="Test Job",
+            responsibility="",
+            requirement="",
+            benefit="",
+            proposed_salary="Negotiable",
+        )
+        request = RecruitmentRequest.objects.create(
+            name="Test Request",
+            job_description=job_desc,
+            department=sample_department,
+            proposer=sample_proposer,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            status=RecruitmentRequest.Status.DRAFT,
+            proposed_salary="Negotiable",
+        )
+        existing = RecruitmentCandidate.objects.create(
+            name="Old Name",
+            citizen_id="123456789001",
+            email="old@example.com",
+            phone="0912345678",
+            recruitment_request=request,
+            recruitment_source=source,
+            recruitment_channel=channel,
+            submitted_date=date.today(),
+            status=RecruitmentCandidate.Status.CONTACTED,
+        )
+
+        # Import with allow_update=True
+        row = [
+            1,
+            "Updated Name",
+            "123456789001",  # Same citizen ID
+            "updated@example.com",
+            "0923456789",
+            "Tuyển Backend Developer",
+            "LinkedIn",
+            "Website",
+            sample_department.name,
+            sample_block.name,
+            sample_branch.name,
+            "",
+            24,
+            "2025-11-01",
+            2,  # Updated status
+            "",
+            "Updated note",
+        ]
+
+        options = {"headers": template_headers, "allow_update": True}
+        result = import_handler(1, row, "test-job-id", options)
+
+        assert result["ok"] is True
+        assert result["action"] == "updated"
+
+        # Verify candidate was updated
+        candidate = RecruitmentCandidate.objects.get(citizen_id="123456789001")
+        assert candidate.id == existing.id  # Same object
+        assert candidate.name == "Updated Name"
+        assert candidate.email == "updated@example.com"
+        assert candidate.status == RecruitmentCandidate.Status.INTERVIEW_SCHEDULED_1
+        assert candidate.note == "Updated note"
+
 
 # Fixtures
+
+
+@pytest.fixture
+def template_headers():
+    """Standard template headers for import tests."""
+    return [
+        "Số Thứ Tự",
+        "Họ và Tên",
+        "CMND/CCCD",
+        "Email",
+        "Số Điện Thoại",
+        "Tên Yêu Cầu Tuyển Dụng",
+        "Tên Nguồn Tuyển Dụng",
+        "Tên Kênh Tuyển Dụng",
+        "Tên Phòng Ban",
+        "Tên Khối",
+        "Tên Chi Nhánh",
+        "Mã Nhân Viên Giới Thiệu",
+        "Số Tháng Kinh Nghiệm",
+        "Ngày Nộp Hồ Sơ",
+        "Trạng Thái",
+        "Ngày Onboard",
+        "Ghi Chú",
+    ]
 
 
 @pytest.fixture

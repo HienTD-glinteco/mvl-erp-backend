@@ -21,6 +21,26 @@ from apps.hrm.models import (
 
 logger = logging.getLogger(__name__)
 
+# Column mapping for import template (Vietnamese headers to field names)
+COLUMN_MAPPING = {
+    "số thứ tự": "row_number",
+    "họ và tên": "name",
+    "cmnd/cccd": "citizen_id",
+    "email": "email",
+    "số điện thoại": "phone",
+    "tên yêu cầu tuyển dụng": "recruitment_request_name",
+    "tên nguồn tuyển dụng": "recruitment_source_name",
+    "tên kênh tuyển dụng": "recruitment_channel_name",
+    "tên phòng ban": "department_name",
+    "tên khối": "block_name",
+    "tên chi nhánh": "branch_name",
+    "mã nhân viên giới thiệu": "referrer_code",
+    "số tháng kinh nghiệm": "months_experience",
+    "ngày nộp hồ sơ": "submitted_date",
+    "trạng thái": "status_code",
+    "ngày onboard": "onboard_date",
+    "ghi chú": "note",
+}
 
 # Status code mapping (1-7 to Status enum)
 STATUS_CODE_MAPPING = {
@@ -32,6 +52,20 @@ STATUS_CODE_MAPPING = {
     6: RecruitmentCandidate.Status.HIRED,
     7: RecruitmentCandidate.Status.REJECTED,
 }
+
+
+def normalize_header(header: str) -> str:
+    """Normalize header name by stripping and lowercasing."""
+    if not header:
+        return ""
+    return str(header).strip().lower()
+
+
+def normalize_value(value: Any) -> str:
+    """Normalize cell value by converting to string and stripping."""
+    if value is None:
+        return ""
+    return str(value).strip()
 
 
 def normalize_text(text: Any) -> str:
@@ -391,7 +425,7 @@ def find_or_create_recruitment_request(
     return request, None
 
 
-def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:
+def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
     """
     Import handler for recruitment candidates.
 
@@ -399,31 +433,14 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
     Args:
         row_index: 1-based row index (excluding header)
-        row: List of 15 cell values from the row
+        row: List of cell values from the row
         import_job_id: UUID string of the ImportJob record
         options: Import options dictionary
 
     Returns:
         dict: Result with format:
-            Success: {"ok": True, "result": {...}}
+            Success: {"ok": True, "result": {...}, "action": "created"|"updated"|"skipped"}
             Failure: {"ok": False, "error": "..."}
-
-    Column indices:
-        0: Họ và Tên (Full Name)
-        1: CMND/CCCD (Citizen ID)
-        2: Email
-        3: Số Điện Thoại (Phone Number)
-        4: Tên Yêu Cầu Tuyển Dụng (Recruitment Request Name)
-        5: Tên Nguồn Tuyển Dụng (Recruitment Source Name)
-        6: Tên Kênh Tuyển Dụng (Recruitment Channel Name)
-        7: Tên Phòng Ban (Department Name)
-        8: Tên Khối (Block Name)
-        9: Tên Chi Nhánh (Branch Name)
-        10: Mã Nhân Viên Giới Thiệu (Referrer Employee Code)
-        11: Số Tháng Kinh Nghiệm (Months of Experience)
-        12: Ngày Nộp Hồ Sơ (Submission Date)
-        13: Trạng Thái (Status)
-        14: Ghi Chú (Notes)
     """
     try:
         # Initialize cache from options if not present
@@ -431,38 +448,56 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             options["_cache"] = {}
         cache = options["_cache"]
 
-        # STEP 1: Parse Row Data
-        if len(row) < 15:
+        # STEP 1: Parse Row Data using COLUMN_MAPPING
+        # Get headers from options (should be set by worker)
+        headers = options.get("headers", [])
+        if not headers:
             return {
                 "ok": False,
-                "error": f"Row has insufficient columns. Expected 15, got {len(row)}",
+                "row_index": row_index,
+                "error": "Headers not provided in options",
+                "action": "skipped",
             }
 
-        # Extract and normalize all columns
-        name = str(row[0]).strip() if row[0] else ""
-        citizen_id = str(row[1]).strip() if row[1] else ""
-        email = str(row[2]).strip() if row[2] else ""
-        phone = str(row[3]).strip() if row[3] else ""
-        request_name = str(row[4]).strip() if row[4] else ""
-        source_name = str(row[5]).strip() if row[5] else ""
-        channel_name = str(row[6]).strip() if row[6] else ""
-        department_name = str(row[7]).strip() if row[7] else ""
-        block_name = str(row[8]).strip() if row[8] else ""
-        branch_name = str(row[9]).strip() if row[9] else ""
-        referrer_code = str(row[10]).strip() if row[10] else ""
-        months_raw = row[11]
-        submitted_date_raw = row[12]
-        status_code_raw = row[13]
-        note = str(row[14]).strip() if row[14] else ""
+        # Map row to dictionary
+        row_dict = {}
+        for i, header in enumerate(headers):
+            if i < len(row):
+                normalized_header = normalize_header(header)
+                field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
+                row_dict[field_name] = row[i]
+
+        # Extract and normalize values
+        name = normalize_value(row_dict.get("name", ""))
+        citizen_id = normalize_value(row_dict.get("citizen_id", ""))
+        email = normalize_value(row_dict.get("email", ""))
+        phone = normalize_value(row_dict.get("phone", ""))
+        request_name = normalize_value(row_dict.get("recruitment_request_name", ""))
+        source_name = normalize_value(row_dict.get("recruitment_source_name", ""))
+        channel_name = normalize_value(row_dict.get("recruitment_channel_name", ""))
+        department_name = normalize_value(row_dict.get("department_name", ""))
+        block_name = normalize_value(row_dict.get("block_name", ""))
+        branch_name = normalize_value(row_dict.get("branch_name", ""))
+        referrer_code = normalize_value(row_dict.get("referrer_code", ""))
+        months_raw = row_dict.get("months_experience")
+        submitted_date_raw = row_dict.get("submitted_date")
+        status_code_raw = row_dict.get("status_code")
+        onboard_date_raw = row_dict.get("onboard_date")
+        note = normalize_value(row_dict.get("note", ""))
 
         # STEP 2: Validate Row Data
 
-        # Required fields
+        # If name is empty, skip the row (like employee.py)
         if not name:
-            return {"ok": False, "error": "Name is required (column 1)"}
+            return {
+                "ok": True,
+                "row_index": row_index,
+                "action": "skipped",
+                "warnings": ["Missing required field (name)"],
+            }
 
         if not citizen_id:
-            return {"ok": False, "error": "Citizen ID is required (column 2)"}
+            return {"ok": False, "error": "Citizen ID is required"}
 
         # Validate citizen ID format (exactly 12 digits)
         citizen_id_error = validate_citizen_id(citizen_id)
@@ -472,11 +507,21 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # Clean citizen ID (digits only)
         citizen_id_clean = re.sub(r"\D", "", citizen_id)
 
-        # Check for duplicate citizen ID
-        if RecruitmentCandidate.objects.filter(citizen_id=citizen_id_clean).exists():
+        # Check if candidate already exists and handle allow_update
+        allow_update = options.get("allow_update", False)
+        existing_candidate = RecruitmentCandidate.objects.filter(
+            citizen_id=citizen_id_clean
+        ).first()
+
+        if existing_candidate and not allow_update:
             return {
-                "ok": False,
-                "error": f"Duplicate Citizen ID '{citizen_id_clean}' already exists",
+                "ok": True,
+                "row_index": row_index,
+                "action": "skipped",
+                "candidate_code": existing_candidate.code,
+                "warnings": [
+                    f"Candidate with Citizen ID '{citizen_id_clean}' already exists (allow_update=False)"
+                ],
             }
 
         # Validate email
@@ -518,7 +563,21 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         if not status:
             return {
                 "ok": False,
-                "error": f"Invalid status code. Must be 1-7, got {status_code} (column 14)",
+                "error": f"Invalid status code. Must be 1-7, got {status_code}",
+            }
+
+        # Parse onboard_date (required if status is HIRED)
+        onboard_date = None
+        if onboard_date_raw:
+            onboard_date, onboard_date_error = parse_date_field(onboard_date_raw, "Onboard date")
+            if onboard_date_error:
+                return {"ok": False, "error": onboard_date_error}
+
+        # Validate onboard_date is required when status_code is 6 (HIRED)
+        if status_code == 6 and not onboard_date:
+            return {
+                "ok": False,
+                "error": "Onboard date is required when status is HIRED (status code 6)",
             }
 
         # STEP 3: Find Organizational Structure (Must Exist)
@@ -582,29 +641,47 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # STEP 8: Convert and Map Data
         years_of_experience = convert_months_to_experience(months)
 
-        # STEP 9: Create RecruitmentCandidate (Within Transaction)
+        # STEP 9: Create or Update RecruitmentCandidate (Within Transaction)
         with transaction.atomic():
-            candidate = RecruitmentCandidate.objects.create(
-                name=name,
-                citizen_id=citizen_id_clean,
-                email=email,
-                phone=phone,
-                recruitment_request=request,
-                recruitment_source=source,
-                recruitment_channel=channel,
-                referrer=referrer,
-                years_of_experience=years_of_experience,
-                submitted_date=submitted_date,
-                status=status,
-                note=note,
+            candidate_data = {
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "recruitment_request": request,
+                "recruitment_source": source,
+                "recruitment_channel": channel,
+                "referrer": referrer,
+                "years_of_experience": years_of_experience,
+                "submitted_date": submitted_date,
+                "status": status,
+                "note": note,
                 # branch, block, department will be auto-set from recruitment_request in save()
-            )
+            }
 
-            logger.info(f"Created candidate {candidate.code} - {candidate.name}")
+            # Add onboard_date if provided
+            if onboard_date:
+                candidate_data["onboard_date"] = onboard_date
+
+            if existing_candidate:
+                # Update existing candidate
+                for key, value in candidate_data.items():
+                    setattr(existing_candidate, key, value)
+                existing_candidate.save()
+                candidate = existing_candidate
+                action = "updated"
+                logger.info(f"Updated candidate {candidate.code} - {candidate.name}")
+            else:
+                # Create new candidate
+                candidate_data["citizen_id"] = citizen_id_clean
+                candidate = RecruitmentCandidate.objects.create(**candidate_data)
+                action = "created"
+                logger.info(f"Created candidate {candidate.code} - {candidate.name}")
 
         # STEP 10: Return Success Result
         return {
             "ok": True,
+            "row_index": row_index,
+            "action": action,
             "result": {
                 "candidate_id": str(candidate.id),
                 "candidate_code": candidate.code,
