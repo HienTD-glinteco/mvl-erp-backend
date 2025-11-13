@@ -7,6 +7,7 @@ from typing import Any
 from celery import shared_task
 from celery.exceptions import Retry
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
 from apps.devices.zk import ZKDeviceService
@@ -251,8 +252,14 @@ def _create_attendance_records_from_logs(
             raw_data = log.copy()
             raw_data["timestamp"] = log["timestamp"].isoformat()
 
+            # Ensure a unique temporary code is assigned since bulk_create bypasses
+            # model save() where AutoCodeMixin would normally populate it.
+            temp_prefix = getattr(AttendanceRecord, "TEMP_CODE_PREFIX", "TEMP_")
+            temp_code = f"{temp_prefix}{get_random_string(20)}"
+
             records_to_create.append(
                 AttendanceRecord(
+                    code=temp_code,
                     device=device,
                     attendance_code=log["user_id"],
                     timestamp=log["timestamp"],
