@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
+    Employee,
     HiredCandidateReport,
     InterviewSchedule,
     RecruitmentCandidate,
@@ -34,7 +35,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     @extend_schema(
         summary="Realtime Dashboard KPIs",
-        description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today.",
+        description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today, active employees.",
         responses={200: DashboardRealtimeDataSerializer},
         examples=[
             OpenApiExample(
@@ -46,6 +47,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
                         "applicants_today": 8,
                         "hires_today": 3,
                         "interviews_today": 5,
+                        "active_employees": 120,
                     },
                     "error": None,
                 },
@@ -63,12 +65,14 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
         open_positions = self._get_open_positions()
         applicants_today = self._get_applicants_today(today)
         interviews_today = self._get_interviews_today(today)
+        active_employees = self._get_active_employees()
 
         data = {
             "open_positions": open_positions,
             "applicants_today": applicants_today,
             "hires_today": hires_today,
             "interviews_today": interviews_today,
+            "active_employees": active_employees,
         }
 
         serializer = DashboardRealtimeDataSerializer(data)
@@ -231,6 +235,10 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
     def _get_interviews_today(self, today):
         """Get number of interviews today."""
         return InterviewSchedule.objects.filter(time__date=today).count()
+
+    def _get_active_employees(self):
+        """Get number of active employees (Active or Onboarding status)."""
+        return Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING]).count()
 
     def _get_experience_breakdown(self, from_date, to_date):
         """Get experience breakdown from HiredCandidateReport."""
