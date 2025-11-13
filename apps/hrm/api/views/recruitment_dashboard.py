@@ -35,7 +35,7 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
 
     @extend_schema(
         summary="Realtime Dashboard KPIs",
-        description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today, active employees.",
+        description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today, total employees except resigned.",
         responses={200: DashboardRealtimeDataSerializer},
         examples=[
             OpenApiExample(
@@ -65,14 +65,14 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
         open_positions = self._get_open_positions()
         applicants_today = self._get_applicants_today(today)
         interviews_today = self._get_interviews_today(today)
-        active_employees = self._get_active_employees()
+        total_employees = self._get_total_employees()
 
         data = {
             "open_positions": open_positions,
             "applicants_today": applicants_today,
             "hires_today": hires_today,
             "interviews_today": interviews_today,
-            "employees_today": active_employees,
+            "employees_today": total_employees,
         }
 
         serializer = DashboardRealtimeDataSerializer(data)
@@ -236,9 +236,9 @@ class RecruitmentDashboardViewSet(viewsets.ViewSet):
         """Get number of interviews today."""
         return InterviewSchedule.objects.filter(time__date=today).count()
 
-    def _get_active_employees(self):
-        """Get number of active employees (Active or Onboarding status)."""
-        return Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING]).count()
+    def _get_total_employees(self):
+        """Get total of employees except Resigned."""
+        return Employee.objects.exclude(status=Employee.Status.RESIGNED).count()
 
     def _get_experience_breakdown(self, from_date, to_date):
         """Get experience breakdown from HiredCandidateReport."""

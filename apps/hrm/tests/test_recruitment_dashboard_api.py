@@ -495,8 +495,8 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         # Still has 1 employee from setUp with ONBOARDING status
         self.assertEqual(data["employees_today"], 1)
 
-    def test_realtime_dashboard_active_employees_count(self):
-        """Test realtime dashboard counts only Active and Onboarding employees"""
+    def test_realtime_dashboard_total_employees_count(self):
+        """Test realtime dashboard counts total employees except RESIGNED"""
         # Arrange: Create employees with different statuses
         # Active employee
         Employee.objects.create(
@@ -593,13 +593,12 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-dashboard-realtime")
         response = self.client.get(url)
 
-        # Assert: Verify only Active and Onboarding employees are counted
+        # Assert: Verify total employees except RESIGNEDare counted
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
 
-        # Should count: 1 from setUp (ONBOARDING) + 1 ACTIVE + 1 ONBOARDING = 3
         # Should NOT count: RESIGNED, MATERNITY_LEAVE, UNPAID_LEAVE
-        self.assertEqual(data["employees_today"], 3)
+        self.assertEqual(data["employees_today"], 5)
 
     def test_charts_dashboard_invalid_date_format(self):
         """Test charts dashboard with invalid date format"""
