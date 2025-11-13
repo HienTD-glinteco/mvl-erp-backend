@@ -124,14 +124,14 @@ class Command(BaseCommand):
             try:
                 with transaction.atomic():
                     # Handle replacement - look for templates with the same final name prefix
+                    template_name_base = final_name.rsplit("_template.", 1)[0]
+                    existing = FileModel.objects.filter(
+                        purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
+                        file_name__istartswith=template_name_base,
+                        is_confirmed=True,
+                    )
                     if replace:
                         # Extract the template name without extension for matching
-                        template_name_base = final_name.rsplit("_template.", 1)[0]
-                        existing = FileModel.objects.filter(
-                            purpose=FILE_PURPOSE_IMPORT_TEMPLATE,
-                            file_name__istartswith=template_name_base,
-                            is_confirmed=True,
-                        )
                         if existing.exists():
                             replaced_count += existing.count()
                             # Mark existing templates as not confirmed (soft archive)
@@ -141,6 +141,14 @@ class Command(BaseCommand):
                                     f"  Archived {existing.count()} existing template(s): {template_name_base}"
                                 )
                             )
+                    else:
+                        if existing.exists():
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"  Found {existing.count()} existing template(s): {template_name_base}"
+                                )
+                            )
+                            continue
 
                     # Read file content
                     with open(template_path, "rb") as f:
