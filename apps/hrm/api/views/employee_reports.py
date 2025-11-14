@@ -23,6 +23,7 @@ from apps.hrm.utils import (
     get_current_month_range,
     get_current_week_range,
 )
+from libs.drf.mixin.permission import PermissionRegistrationMixin
 
 from ..filtersets.employee_seniority_filter import EmployeeSeniorityFilterSet
 from ..filtersets.seniority_ordering_filter import SeniorityOrderingFilter
@@ -34,7 +35,7 @@ from ..serializers import (
 )
 
 
-class EmployeeReportsViewSet(viewsets.GenericViewSet):
+class EmployeeReportsViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
     """
     ViewSet for employee reports with aggregated data.
 
@@ -45,6 +46,10 @@ class EmployeeReportsViewSet(viewsets.GenericViewSet):
     """
 
     pagination_class = None
+
+    module = "HRM"
+    submodule = "Employee Management"
+    permission_prefix = "employee_reports"
 
     def _generate_time_buckets_for_week(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
         buckets: list[tuple[str, date, date]] = []

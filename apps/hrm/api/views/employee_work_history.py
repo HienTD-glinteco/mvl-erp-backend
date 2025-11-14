@@ -108,3 +108,7 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     search_fields = ["name", "detail", "employee__code", "employee__fullname"]
     ordering_fields = ["date", "name", "created_at"]
     ordering = ["-date", "-created_at"]
+
+    module = "HRM"
+    submodule = "Employee Management"
+    permission_prefix = "employee_work_history"

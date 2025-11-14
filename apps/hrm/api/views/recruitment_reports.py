@@ -18,6 +18,7 @@ from apps.hrm.models import (
     StaffGrowthReport,
 )
 from apps.hrm.utils import get_current_month_range, get_current_week_range
+from libs.drf.mixin.permission import PermissionRegistrationMixin
 
 from ..serializers.recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
@@ -35,7 +36,7 @@ from ..serializers.recruitment_reports import (
 )
 
 
-class RecruitmentReportsViewSet(viewsets.GenericViewSet):
+class RecruitmentReportsViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
     """
     ViewSet for recruitment reports with aggregated data.
 
@@ -46,6 +47,10 @@ class RecruitmentReportsViewSet(viewsets.GenericViewSet):
     """
 
     pagination_class = None
+
+    module = "HRM"
+    submodule = "Recruitment"
+    permission_prefix = "recruitment_reports"
 
     @extend_schema(
         operation_id="hrm_reports_staff_growth_retrieve",

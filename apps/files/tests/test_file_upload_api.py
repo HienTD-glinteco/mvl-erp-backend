@@ -10,6 +10,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.core.models import Permission, Role
 from apps.files.constants import CACHE_KEY_PREFIX
 from apps.files.models import FileModel
 
@@ -35,12 +36,28 @@ class PresignURLAPITest(TestCase, APITestMixin):
         # Clear cache
         cache.clear()
 
+        # Create permissions
+        self.presign_permission = Permission.objects.create(
+            code="files.presign_url",
+            description="Generate presigned URL",
+        )
+
+        # Create role with permission
+        self.role = Role.objects.create(
+            code="TEST_FILE_ROLE",
+            name="Test File Role",
+        )
+        self.role.permissions.add(self.presign_permission)
+
         # Create test user
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = self.role
+        self.user.save()
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -129,7 +146,7 @@ class PresignURLAPITest(TestCase, APITestMixin):
         response = client.post(url, data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
@@ -141,12 +158,28 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         cache.clear()
         FileModel.objects.all().delete()
 
+        # Create permissions
+        self.confirm_permission = Permission.objects.create(
+            code="files.confirm_multiple_files",
+            description="Confirm multiple files",
+        )
+
+        # Create role with permission
+        self.role = Role.objects.create(
+            code="TEST_FILE_CONFIRM_ROLE",
+            name="Test File Confirm Role",
+        )
+        self.role.permissions.add(self.confirm_permission)
+
         # Create test user
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = self.role
+        self.user.save()
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -398,7 +431,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         response = client.post(url, data, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class FileModelTest(TestCase, APITestMixin):
@@ -407,11 +440,28 @@ class FileModelTest(TestCase, APITestMixin):
     def setUp(self):
         """Set up test data."""
         cache.clear()
+
+        # Create permissions
+        self.confirm_permission = Permission.objects.create(
+            code="files.confirm_multiple_files",
+            description="Confirm multiple files",
+        )
+
+        # Create role with permission
+        self.role = Role.objects.create(
+            code="TEST_FILE_MODEL_ROLE",
+            name="Test File Model Role",
+        )
+        self.role.permissions.add(self.confirm_permission)
+
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
+        self.user.role = self.role
+        self.user.save()
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

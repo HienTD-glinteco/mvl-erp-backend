@@ -1,11 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.core.api.filtersets.province import ProvinceFilterSet
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import Province
+from libs import BaseReadOnlyModelViewSet
 
 
 @extend_schema_view(
@@ -78,7 +78,7 @@ from apps.core.models import Province
         ],
     ),
 )
-class ProvinceViewSet(viewsets.ReadOnlyModelViewSet):
+class ProvinceViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for Province model - read-only with no pagination"""
 
     queryset = Province.objects.all()

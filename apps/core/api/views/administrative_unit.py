@@ -1,11 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.core.api.filtersets.administrative_unit import AdministrativeUnitFilterSet
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
 from apps.core.models import AdministrativeUnit
+from libs import BaseReadOnlyModelViewSet
 
 
 @extend_schema_view(
@@ -86,7 +86,7 @@ from apps.core.models import AdministrativeUnit
         ],
     ),
 )
-class AdministrativeUnitViewSet(viewsets.ReadOnlyModelViewSet):
+class AdministrativeUnitViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for AdministrativeUnit model - read-only with pagination"""
 
     queryset = AdministrativeUnit.objects.select_related("parent_province").all()
