@@ -8,10 +8,11 @@ from django.core.cache import cache
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.api.permissions import RoleBasedPermission
+from apps.core.utils.permissions import register_permission
 from apps.files.api.serializers import (
     ConfirmMultipleFilesResponseSerializer,
     ConfirmMultipleFilesSerializer,
@@ -91,8 +92,11 @@ class PresignURLView(APIView):
     for 1 hour and the file token is stored in cache for later confirmation.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [RoleBasedPermission]
 
+    @register_permission(
+        "files.presign_url", _("Generate presigned URL"), "Files", "Presign", _("Generate presigned URL")
+    )
     def post(self, request):
         """Generate presigned URL for file upload."""
         serializer = PresignRequestSerializer(data=request.data)
@@ -252,8 +256,11 @@ class ConfirmMultipleFilesView(APIView):
     All operations are performed in a single database transaction.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [RoleBasedPermission]
 
+    @register_permission(
+        "files.confirm_multiple_files", _("Confirm multiple files"), "Files", "Confirm", _("Confirm multiple files")
+    )
     def post(self, request):  # noqa: C901
         """Confirm multiple file uploads and create FileModel records."""
         serializer = ConfirmMultipleFilesSerializer(data=request.data)

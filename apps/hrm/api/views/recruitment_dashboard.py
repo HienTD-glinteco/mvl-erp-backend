@@ -18,6 +18,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
 )
 from apps.hrm.utils import get_current_month_range, get_last_6_months_range
+from libs.drf.mixin.permission import PermissionRegistrationMixin
 
 from ..serializers import (
     DashboardChartDataSerializer,
@@ -26,12 +27,16 @@ from ..serializers import (
 )
 
 
-class RecruitmentDashboardViewSet(viewsets.ViewSet):
+class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet):
     """ViewSet for recruitment dashboard metrics.
 
     Provides real-time KPIs and chart data for recruitment analytics.
     All data sourced from flat report models for performance.
     """
+
+    module = "HRM"
+    submodule = "Recruitment"
+    permission_prefix = "recruitment_dashboard"
 
     @extend_schema(
         summary="Realtime Dashboard KPIs",

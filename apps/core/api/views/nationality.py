@@ -1,11 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.core.api.filtersets.nationality import NationalityFilterSet
 from apps.core.api.serializers.nationality import NationalitySerializer
 from apps.core.models import Nationality
+from libs import BaseReadOnlyModelViewSet
 
 
 @extend_schema_view(
@@ -60,7 +60,7 @@ from apps.core.models import Nationality
         ],
     ),
 )
-class NationalityViewSet(viewsets.ReadOnlyModelViewSet):
+class NationalityViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for Nationality model - read-only with no pagination"""
 
     queryset = Nationality.objects.all()

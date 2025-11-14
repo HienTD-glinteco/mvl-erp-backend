@@ -254,6 +254,11 @@ class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["created_at", "dependent_name", "relationship"]
     ordering = ["-created_at"]
 
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Employee Management"
+    permission_prefix = "employee_dependent"
+
     def perform_destroy(self, instance):
         """Soft delete by setting is_active to False."""
         instance.is_active = False

@@ -215,6 +215,11 @@ class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
     search_fields = ["employee_code", "employee_name", "relative_name", "relation_type"]
 
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Employee Management"
+    permission_prefix = "employee_relationship"
+
     def get_queryset(self):
         """Filter to show only active relationships by default"""
         queryset = super().get_queryset()
