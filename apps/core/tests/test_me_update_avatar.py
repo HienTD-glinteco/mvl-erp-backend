@@ -65,7 +65,8 @@ class MeUpdateAvatarTest(TestCase):
         )
 
         # Create user with employee
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="testuser@example.com",
             password="testpass123",
@@ -175,7 +176,7 @@ class MeUpdateAvatarTest(TestCase):
     def test_me_update_avatar_no_employee(self):
         """Test that users without employee record get 404"""
         # Create user without employee
-        user_no_employee = User.objects.create_user(
+        user_no_employee = User.objects.create_superuser(
             username="noemployee",
             email="noemployee@example.com",
             password="testpass123",

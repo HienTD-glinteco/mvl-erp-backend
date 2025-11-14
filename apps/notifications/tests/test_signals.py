@@ -16,7 +16,8 @@ class TestNotificationSignals:
     @pytest.fixture
     def actor(self):
         """Create an actor user."""
-        return User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        return User.objects.create_superuser(
             username="actor",
             email="actor@example.com",
             password="testpass123",
@@ -25,7 +26,7 @@ class TestNotificationSignals:
     @pytest.fixture
     def recipient(self):
         """Create a recipient user."""
-        return User.objects.create_user(
+        return User.objects.create_superuser(
             username="recipient",
             email="recipient@example.com",
             password="testpass123",

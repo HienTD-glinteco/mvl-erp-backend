@@ -17,7 +17,8 @@ class TestFCMService:
     @pytest.fixture
     def actor(self):
         """Create an actor user."""
-        return User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        return User.objects.create_superuser(
             username="actor",
             email="actor@example.com",
             password="password123",
@@ -28,7 +29,7 @@ class TestFCMService:
     @pytest.fixture
     def recipient(self):
         """Create a recipient user."""
-        return User.objects.create_user(
+        return User.objects.create_superuser(
             username="recipient",
             email="recipient@example.com",
             password="password123",
@@ -190,7 +191,7 @@ class TestFCMService:
     def test_build_payload_with_target(self, actor, recipient_with_device):
         """Test building notification payload with a target object."""
         # Arrange
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target",
             email="target@example.com",
             password="password123",

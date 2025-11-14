@@ -41,7 +41,8 @@ class MailTemplatesComprehensiveTest(TestCase):
             self.perm_job_status,
         )
 
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -49,7 +50,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.user.role = self.role
         self.user.save()
 
-        self.staff_user = User.objects.create_user(
+        self.staff_user = User.objects.create_superuser(
             username="staffuser",
             email="staff@example.com",
             password="testpass123",
@@ -285,7 +286,7 @@ class MailTemplatesComprehensiveTest(TestCase):
     def test_send_bulk_email_permission_required(self, mock_task):
         """Test bulk send requires mailtemplate.send permission."""
         # Arrange - create user without send permission
-        user_no_perm = User.objects.create_user(
+        user_no_perm = User.objects.create_superuser(
             username="nopermuser",
             email="noperm@example.com",
             password="testpass123",

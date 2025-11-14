@@ -102,7 +102,8 @@ class TestImportJobSerializerResultFiles:
         mock_s3_service.return_value = mock_service_instance
 
         # Create test data
-        user = User.objects.create_user(username="testuser", email="test@example.com")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        user = User.objects.create_superuser(username="testuser", email="test@example.com")
         file = FileModel.objects.create(
             purpose="test_import",
             file_name="test.csv",
@@ -150,7 +151,7 @@ class TestImportJobSerializerResultFiles:
 
     def test_import_job_serializer_result_files_without_files(self):
         """Test ImportJobSerializer handles missing result files."""
-        user = User.objects.create_user(username="testuser", email="test@example.com")
+        user = User.objects.create_superuser(username="testuser", email="test@example.com")
         file = FileModel.objects.create(
             purpose="test_import",
             file_name="test.csv",

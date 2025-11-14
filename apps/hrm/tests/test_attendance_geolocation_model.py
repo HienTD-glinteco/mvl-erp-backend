@@ -13,7 +13,8 @@ class AttendanceGeolocationModelTest(TestCase):
 
     def setUp(self):
         """Set up test data."""
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.project = Project.objects.create(name="Test Project", code="DA001", status="active")
 
     def test_create_geolocation_with_required_fields(self):

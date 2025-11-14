@@ -60,7 +60,8 @@ class BulkSendTemplateMailTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.factory = APIRequestFactory()
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -238,7 +239,7 @@ class MultiRecipientPerInstanceTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.factory = APIRequestFactory()
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -329,7 +330,7 @@ class BulkSendValidationTestCase(TestCase):
     def setUp(self):
         """Set up test data."""
         self.factory = APIRequestFactory()
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

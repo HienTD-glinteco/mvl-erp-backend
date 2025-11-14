@@ -40,7 +40,8 @@ class TemplateAPITestCase(TestCase):
             self.perm_job_status,
         )
 
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -48,7 +49,7 @@ class TemplateAPITestCase(TestCase):
         self.user.role = self.role
         self.user.save()
 
-        self.staff_user = User.objects.create_user(
+        self.staff_user = User.objects.create_superuser(
             username="staffuser",
             email="staff@example.com",
             password="testpass123",

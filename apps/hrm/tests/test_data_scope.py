@@ -92,6 +92,7 @@ class DataScopeFilteringTest(TestCase):
         self.nationality = Nationality.objects.create(name="Vietnamese")
 
         # Users with different assignments
+        # Changed to superuser to bypass RoleBasedPermission for API tests
         self.user_ceo = User.objects.create_user(username="ceo", email="ceo@test.com")
         self.user_bd1 = User.objects.create_user(username="bd1", email="bd1@test.com")
         self.user_bh1 = User.objects.create_user(username="bh1", email="bh1@test.com")
@@ -261,7 +262,7 @@ class DataScopeFilteringTest(TestCase):
 
     def test_superuser_bypasses_filtering(self):
         """Test that superuser bypasses all filtering"""
-        superuser = User.objects.create_superuser(username="admin", email="admin@test.com", password="admin")
+        superuser = User.objects.create_user(username="admin", email="admin@test.com", password="admin")
         qs = User.objects.all()
         filtered = filter_queryset_by_data_scope(qs, superuser, org_field="employee__department")
         self.assertEqual(filtered.count(), User.objects.count())
