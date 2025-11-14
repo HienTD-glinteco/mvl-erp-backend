@@ -9,6 +9,8 @@ This package contains signal handlers organized by functional area:
 from django.contrib.auth import get_user_model
 
 from apps.hrm.models import (
+    AttendanceDevice,
+    AttendanceRecord,
     Block,
     Branch,
     Department,
@@ -39,6 +41,8 @@ from .recruitment_reports import *  # noqa: E402, F401, F403
 
 # Register auto-code generation for models
 register_auto_code_signal(
+    AttendanceDevice,
+    AttendanceRecord,
     Branch,
     Block,
     Department,

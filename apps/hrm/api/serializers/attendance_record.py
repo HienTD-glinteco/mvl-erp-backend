@@ -26,6 +26,7 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
         model = AttendanceRecord
         fields = [
             "id",
+            "code",
             "device",
             "attendance_code",
             "timestamp",
@@ -37,6 +38,7 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
         ]
         read_only_fields = [
             "id",
+            "code",
             "device",
             "attendance_code",
             "raw_data",
