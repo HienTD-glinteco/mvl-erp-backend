@@ -306,4 +306,4 @@ class EmployeeAvatarUploadTest(TestCase):
         response = unauthenticated_client.post(url, payload, format="json")
 
         # Should return 401 Unauthorized
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)  # RoleBasedPermission returns 403
