@@ -8,7 +8,7 @@ class PermissionAdmin(admin.ModelAdmin):
     """Admin configuration for Position model"""
 
     list_display = ["code", "name", "description", "module", "submodule"]
-    list_filter = ["name", "description", "code"]
+    list_filter = ["module"]
     search_fields = ["code", "name"]
     readonly_fields = ["code", "module", "submodule"]
 
