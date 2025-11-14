@@ -3,7 +3,8 @@ from rest_framework import serializers
 
 from apps.core.api.serializers.user import SimpleUserSerializer
 from apps.hrm.api.serializers.common_nested import SimpleNestedSerializerFactory
-from apps.hrm.models import Project, ProjectGeolocation
+from apps.hrm.models import AttendanceGeolocation
+from apps.realestate.models import Project
 
 ProjectNestedSerializer = SimpleNestedSerializerFactory(
     Project,
@@ -11,8 +12,8 @@ ProjectNestedSerializer = SimpleNestedSerializerFactory(
 )
 
 
-class ProjectGeolocationSerializer(serializers.ModelSerializer):
-    """Serializer for ProjectGeolocation model"""
+class AttendanceGeolocationSerializer(serializers.ModelSerializer):
+    """Serializer for AttendanceGeolocation model"""
 
     # Nested serializers for read operations
     project = ProjectNestedSerializer(read_only=True)
@@ -23,7 +24,7 @@ class ProjectGeolocationSerializer(serializers.ModelSerializer):
     project_id = serializers.IntegerField(write_only=True, required=True)
 
     class Meta:
-        model = ProjectGeolocation
+        model = AttendanceGeolocation
         fields = [
             "id",
             "code",
@@ -64,7 +65,7 @@ class ProjectGeolocationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Create a new ProjectGeolocation with audit fields"""
+        """Create a new AttendanceGeolocation with audit fields"""
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             validated_data["created_by"] = request.user
@@ -76,7 +77,7 @@ class ProjectGeolocationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(e.message_dict)
 
     def update(self, instance, validated_data):
-        """Update ProjectGeolocation with audit fields"""
+        """Update AttendanceGeolocation with audit fields"""
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             validated_data["updated_by"] = request.user

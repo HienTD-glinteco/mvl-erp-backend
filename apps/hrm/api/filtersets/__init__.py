@@ -1,4 +1,5 @@
 from .attendance_device import AttendanceDeviceFilterSet
+from .attendance_geolocation import AttendanceGeolocationFilterSet
 from .attendance_record import AttendanceRecordFilterSet
 from .bank import BankFilterSet
 from .bank_account import BankAccountFilterSet
@@ -16,7 +17,6 @@ from .organization import (
     DepartmentFilterSet,
     PositionFilterSet,
 )
-from .project_geolocation import ProjectGeolocationFilterSet
 from .recruitment_candidate import RecruitmentCandidateFilterSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogFilterSet
 from .recruitment_channel import RecruitmentChannelFilterSet
@@ -33,6 +33,7 @@ from .recruitment_source import RecruitmentSourceFilterSet
 
 __all__ = [
     "AttendanceDeviceFilterSet",
+    "AttendanceGeolocationFilterSet",
     "AttendanceRecordFilterSet",
     "BankFilterSet",
     "BankAccountFilterSet",
@@ -44,7 +45,6 @@ __all__ = [
     "EmployeeFilterSet",
     "EmployeeDependentFilterSet",
     "EmployeeWorkHistoryFilterSet",
-    "ProjectGeolocationFilterSet",
     "RecruitmentChannelFilterSet",
     "RecruitmentSourceFilterSet",
     "JobDescriptionFilterSet",

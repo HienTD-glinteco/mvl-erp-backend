@@ -3,19 +3,19 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets import ProjectGeolocationFilterSet
-from apps.hrm.api.serializers import ProjectGeolocationExportSerializer, ProjectGeolocationSerializer
-from apps.hrm.models import ProjectGeolocation
+from apps.hrm.api.filtersets import AttendanceGeolocationFilterSet
+from apps.hrm.api.serializers import AttendanceGeolocationExportSerializer, AttendanceGeolocationSerializer
+from apps.hrm.models import AttendanceGeolocation
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
     list=extend_schema(
-        summary="List all project geolocations",
-        description="Retrieve a paginated list of all project geolocations with support for filtering and search. "
+        summary="List all attendance geolocations",
+        description="Retrieve a paginated list of all attendance geolocations with support for filtering and search. "
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
-        tags=["Project Geolocation"],
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -60,10 +60,10 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     create=extend_schema(
-        summary="Create a new project geolocation",
-        description="Create a new project geolocation in the system. "
+        summary="Create a new attendance geolocation",
+        description="Create a new attendance geolocation in the system. "
         "The code is auto-generated server-side with pattern DV###.",
-        tags=["Project Geolocation"],
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -127,9 +127,9 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     retrieve=extend_schema(
-        summary="Get project geolocation details",
-        description="Retrieve detailed information about a specific project geolocation",
-        tags=["Project Geolocation"],
+        summary="Get attendance geolocation details",
+        description="Retrieve detailed information about a specific attendance geolocation",
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -167,9 +167,9 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     update=extend_schema(
-        summary="Update project geolocation",
-        description="Update project geolocation information. Code cannot be changed.",
-        tags=["Project Geolocation"],
+        summary="Update attendance geolocation",
+        description="Update attendance geolocation information. Code cannot be changed.",
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -221,9 +221,9 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     partial_update=extend_schema(
-        summary="Partially update project geolocation",
-        description="Partially update project geolocation information",
-        tags=["Project Geolocation"],
+        summary="Partially update attendance geolocation",
+        description="Partially update attendance geolocation information",
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -269,11 +269,11 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     destroy=extend_schema(
-        summary="Delete project geolocation",
-        description="Soft-delete a project geolocation from the system. "
+        summary="Delete attendance geolocation",
+        description="Soft-delete a attendance geolocation from the system. "
         "If the geolocation is referenced by other active resources (e.g., attendance rules), "
         "the deletion will be prevented.",
-        tags=["Project Geolocation"],
+        tags=["Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -301,14 +301,14 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
 )
-class ProjectGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for ProjectGeolocation model"""
+class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for AttendanceGeolocation model"""
 
-    queryset = ProjectGeolocation.objects.filter(deleted=False).select_related(
+    queryset = AttendanceGeolocation.objects.filter(deleted=False).select_related(
         "project", "created_by", "updated_by"
     )
-    serializer_class = ProjectGeolocationSerializer
-    filterset_class = ProjectGeolocationFilterSet
+    serializer_class = AttendanceGeolocationSerializer
+    filterset_class = AttendanceGeolocationFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["code", "name"]
     ordering_fields = ["name", "created_at"]
@@ -317,10 +317,10 @@ class ProjectGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
     # Permission registration attributes
     module = "HRM"
     submodule = "Project Geolocation Management"
-    permission_prefix = "project_geolocation"
+    permission_prefix = "attendance_geolocation"
 
     def get_export_data(self, request):
-        """Custom export data for ProjectGeolocation.
+        """Custom export data for AttendanceGeolocation.
 
         Exports the following fields:
         - code
@@ -336,13 +336,13 @@ class ProjectGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
         - updated_at
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = ProjectGeolocationExportSerializer(queryset, many=True)
+        serializer = AttendanceGeolocationExportSerializer(queryset, many=True)
         data = serializer.data
 
         return {
             "sheets": [
                 {
-                    "name": "Project Geolocations",
+                    "name": "Attendance Geolocations",
                     "headers": [
                         "Code",
                         "Name",

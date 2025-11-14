@@ -1,4 +1,5 @@
 from .attendance_device import AttendanceDeviceViewSet
+from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
@@ -19,7 +20,6 @@ from .organization import (
     DepartmentViewSet,
     PositionViewSet,
 )
-from .project_geolocation import ProjectGeolocationViewSet
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
@@ -31,6 +31,7 @@ from .recruitment_source import RecruitmentSourceViewSet
 
 __all__ = [
     "AttendanceDeviceViewSet",
+    "AttendanceGeolocationViewSet",
     "AttendanceRecordViewSet",
     "BankViewSet",
     "BankAccountViewSet",
@@ -45,7 +46,6 @@ __all__ = [
     "EmployeeDependentViewSet",
     "EmployeeWorkHistoryViewSet",
     "ContractTypeViewSet",
-    "ProjectGeolocationViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
     "JobDescriptionViewSet",

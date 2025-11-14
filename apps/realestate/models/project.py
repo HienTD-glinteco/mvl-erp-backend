@@ -2,14 +2,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
+from apps.hrm.constants import TEMP_CODE_PREFIX
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
-
-from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
 class Project(AutoCodeMixin, BaseModel):
-    """Project model for organizing work and geolocations"""
+    """Real estate project model"""
 
     CODE_PREFIX = "DA"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
@@ -21,6 +20,7 @@ class Project(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Project name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Project code"))
+    address = SafeTextField(blank=True, verbose_name=_("Address"))
     description = SafeTextField(blank=True, verbose_name=_("Description"))
     status = models.CharField(
         max_length=20,
@@ -33,7 +33,7 @@ class Project(AutoCodeMixin, BaseModel):
     class Meta:
         verbose_name = _("Project")
         verbose_name_plural = _("Projects")
-        db_table = "hrm_project"
+        db_table = "realestate_project"
         ordering = ["name"]
 
     def __str__(self):

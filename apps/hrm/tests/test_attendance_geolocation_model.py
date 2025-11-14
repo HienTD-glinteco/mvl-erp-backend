@@ -3,13 +3,13 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.hrm.models import Project, ProjectGeolocation
+from apps.realestate.models import Project, AttendanceGeolocation
 
 User = get_user_model()
 
 
-class ProjectGeolocationModelTest(TestCase):
-    """Test cases for ProjectGeolocation model."""
+class AttendanceGeolocationModelTest(TestCase):
+    """Test cases for AttendanceGeolocation model."""
 
     def setUp(self):
         """Set up test data."""
@@ -18,7 +18,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_create_geolocation_with_required_fields(self):
         """Test creating a geolocation with all required fields."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Test Geofence",
             project=self.project,
             latitude="10.7769000",
@@ -35,7 +35,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_code_auto_generation(self):
         """Test that code is auto-generated with DV prefix."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Auto Code Test",
             project=self.project,
             latitude="10.7769000",
@@ -50,7 +50,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_code_uniqueness(self):
         """Test that codes are unique."""
-        geo1 = ProjectGeolocation.objects.create(
+        geo1 = AttendanceGeolocation.objects.create(
             name="Geo 1",
             project=self.project,
             latitude="10.7769000",
@@ -59,7 +59,7 @@ class ProjectGeolocationModelTest(TestCase):
             created_by=self.user,
             updated_by=self.user,
         )
-        geo2 = ProjectGeolocation.objects.create(
+        geo2 = AttendanceGeolocation.objects.create(
             name="Geo 2",
             project=self.project,
             latitude="10.7800000",
@@ -73,7 +73,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_default_radius(self):
         """Test that default radius is 100 meters."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Default Radius Test",
             project=self.project,
             latitude="10.7769000",
@@ -86,7 +86,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_default_status(self):
         """Test that default status is 'active'."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Default Status Test",
             project=self.project,
             latitude="10.7769000",
@@ -99,7 +99,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_invalid_radius_validation(self):
         """Test that radius must be at least 1 meter."""
-        geolocation = ProjectGeolocation(
+        geolocation = AttendanceGeolocation(
             name="Invalid Radius Test",
             project=self.project,
             latitude="10.7769000",
@@ -114,7 +114,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_soft_delete(self):
         """Test soft delete functionality."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Soft Delete Test",
             project=self.project,
             latitude="10.7769000",
@@ -132,15 +132,15 @@ class ProjectGeolocationModelTest(TestCase):
         self.assertIsNotNone(geolocation.deleted_at)
 
         # Verify it still exists in database
-        self.assertTrue(ProjectGeolocation.objects.filter(id=geolocation.id).exists())
+        self.assertTrue(AttendanceGeolocation.objects.filter(id=geolocation.id).exists())
 
         # Verify it's excluded from default queryset
-        default_queryset = ProjectGeolocation.objects.filter(deleted=False)
+        default_queryset = AttendanceGeolocation.objects.filter(deleted=False)
         self.assertFalse(default_queryset.filter(id=geolocation.id).exists())
 
     def test_string_representation(self):
         """Test __str__ method."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="String Test Geofence",
             code="DV123",
             project=self.project,
@@ -155,7 +155,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_optional_fields(self):
         """Test that optional fields (address, notes) can be blank."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Optional Fields Test",
             project=self.project,
             latitude="10.7769000",
@@ -170,7 +170,7 @@ class ProjectGeolocationModelTest(TestCase):
 
     def test_audit_fields(self):
         """Test that audit fields are properly set."""
-        geolocation = ProjectGeolocation.objects.create(
+        geolocation = AttendanceGeolocation.objects.create(
             name="Audit Fields Test",
             project=self.project,
             latitude="10.7769000",

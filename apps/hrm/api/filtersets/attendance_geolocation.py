@@ -1,14 +1,14 @@
 import django_filters
 
-from apps.hrm.models import ProjectGeolocation
+from apps.hrm.models import AttendanceGeolocation
 
 
-class ProjectGeolocationFilterSet(django_filters.FilterSet):
-    """FilterSet for ProjectGeolocation model"""
+class AttendanceGeolocationFilterSet(django_filters.FilterSet):
+    """FilterSet for AttendanceGeolocation model"""
 
     project = django_filters.NumberFilter(field_name="project__id")
     status = django_filters.CharFilter(field_name="status")
 
     class Meta:
-        model = ProjectGeolocation
+        model = AttendanceGeolocation
         fields = ["project", "status"]

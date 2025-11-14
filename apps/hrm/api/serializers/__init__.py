@@ -1,4 +1,6 @@
 from .attendance_device import AttendanceDeviceSerializer
+from .attendance_geolocation import AttendanceGeolocationSerializer
+from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
@@ -39,8 +41,6 @@ from .organization import (
     DepartmentSerializer,
     PositionSerializer,
 )
-from .project_geolocation import ProjectGeolocationSerializer
-from .project_geolocation_export import ProjectGeolocationExportSerializer
 from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSerializer
 from .recruitment_candidate_export import RecruitmentCandidateExportSerializer
@@ -64,6 +64,8 @@ from .recruitment_source import RecruitmentSourceSerializer
 
 __all__ = [
     "AttendanceDeviceSerializer",
+    "AttendanceGeolocationSerializer",
+    "AttendanceGeolocationExportSerializer",
     "AttendanceRecordSerializer",
     "BankSerializer",
     "BankAccountSerializer",
@@ -85,8 +87,6 @@ __all__ = [
     "EmployeeExportXLSXSerializer",
     "EmployeeWorkHistorySerializer",
     "ContractTypeSerializer",
-    "ProjectGeolocationSerializer",
-    "ProjectGeolocationExportSerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",
     "JobDescriptionSerializer",

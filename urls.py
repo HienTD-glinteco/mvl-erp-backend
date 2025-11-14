@@ -25,6 +25,7 @@ urlpatterns += [
     path("health/", include("health_check.urls")),
     path("api/", include("apps.core.urls")),
     path("api/hrm/", include("apps.hrm.urls")),
+    path("api/realestate/", include("apps.realestate.urls")),
     path("api/audit-logs/", include("apps.audit_logging.urls")),
     path("api/notifications/", include("apps.notifications.urls")),
     path("api/files/", include("apps.files.urls")),

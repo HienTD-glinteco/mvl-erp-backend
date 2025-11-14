@@ -10,8 +10,8 @@ from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class ProjectGeolocation(AutoCodeMixin, BaseModel):
-    """Project geolocation with coordinates and radius for attendance/presence checks"""
+class AttendanceGeolocation(AutoCodeMixin, BaseModel):
+    """Attendance geolocation with coordinates and radius for attendance/presence checks"""
 
     CODE_PREFIX = "DV"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
@@ -24,9 +24,9 @@ class ProjectGeolocation(AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=200, verbose_name=_("Geolocation name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Geolocation code"))
     project = models.ForeignKey(
-        "hrm.Project",
+        "realestate.Project",
         on_delete=models.PROTECT,
-        related_name="geolocations",
+        related_name="attendance_geolocations",
         verbose_name=_("Project"),
     )
 
@@ -79,9 +79,9 @@ class ProjectGeolocation(AutoCodeMixin, BaseModel):
     deleted_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Deleted at"))
 
     class Meta:
-        verbose_name = _("Project Geolocation")
-        verbose_name_plural = _("Project Geolocations")
-        db_table = "hrm_project_geolocation"
+        verbose_name = _("Attendance Geolocation")
+        verbose_name_plural = _("Attendance Geolocations")
+        db_table = "hrm_attendance_geolocation"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["project", "status"]),

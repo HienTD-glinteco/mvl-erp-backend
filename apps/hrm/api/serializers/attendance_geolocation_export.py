@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
-from apps.hrm.models import ProjectGeolocation
+from apps.hrm.models import AttendanceGeolocation
 
 
-class ProjectGeolocationExportSerializer(serializers.ModelSerializer):
-    """Serializer for exporting ProjectGeolocation data to Excel.
+class AttendanceGeolocationExportSerializer(serializers.ModelSerializer):
+    """Serializer for exporting AttendanceGeolocation data to Excel.
 
     This serializer flattens related objects (project) to include their names
     directly in the export.
@@ -13,7 +13,7 @@ class ProjectGeolocationExportSerializer(serializers.ModelSerializer):
     project__name = serializers.CharField(source="project.name", read_only=True)
 
     class Meta:
-        model = ProjectGeolocation
+        model = AttendanceGeolocation
         fields = [
             "code",
             "name",
