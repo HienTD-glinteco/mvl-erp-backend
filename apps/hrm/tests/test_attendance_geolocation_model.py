@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from django.utils import timezone
 
-from apps.realestate.models import Project, AttendanceGeolocation
+from apps.hrm.models import AttendanceGeolocation
+from apps.realestate.models import Project
 
 User = get_user_model()
 

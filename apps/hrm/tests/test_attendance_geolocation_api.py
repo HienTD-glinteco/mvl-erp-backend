@@ -6,7 +6,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.realestate.models import Project, AttendanceGeolocation
+from apps.hrm.models import AttendanceGeolocation
+from apps.realestate.models import Project
 
 User = get_user_model()
 
