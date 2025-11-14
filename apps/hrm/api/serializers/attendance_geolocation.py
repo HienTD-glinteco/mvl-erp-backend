@@ -2,14 +2,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.core.api.serializers.user import SimpleUserSerializer
-from apps.hrm.api.serializers.common_nested import SimpleNestedSerializerFactory
 from apps.hrm.models import AttendanceGeolocation
-from apps.realestate.models import Project
-
-ProjectNestedSerializer = SimpleNestedSerializerFactory(
-    Project,
-    ["id", "code", "name"],
-)
+from apps.realestate.api.serializers.common_nested import ProjectNestedSerializer
 
 
 class AttendanceGeolocationSerializer(serializers.ModelSerializer):
