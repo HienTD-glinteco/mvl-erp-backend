@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 14:46+0700\n"
+"POT-Creation-Date: 2025-11-14 15:21+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -506,6 +506,80 @@ msgstr ""
 msgid "Real estate practice license"
 msgstr ""
 
+#: apps/hrm/management/commands/import_work_schedule.py:9
+msgid "Import work schedule data for specified weekdays"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:16
+msgid ""
+"Comma-separated list of weekday numbers (2=Monday, 3=Tuesday, ..., 8=Sunday)"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:22
+msgid ""
+"Morning session time range in format 'HH:MM-HH:MM' (e.g., '08:00-12:00')"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:28
+msgid "Noon session time range in format 'HH:MM-HH:MM' (e.g., '12:00-13:30')"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:34
+msgid ""
+"Afternoon session time range in format 'HH:MM-HH:MM' (e.g., '13:30-17:30')"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:40
+#: apps/hrm/models/work_schedule.py:76
+msgid "Allowed late minutes"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:46
+msgid "Note for the work schedule"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:61
+msgid "Invalid weekdays format. Must be comma-separated numbers (2-8)."
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:66
+#, python-format
+msgid "Invalid weekday number: %(num)s. Must be between 2 and 8."
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:97
+#, python-format
+msgid "Created work schedule for %(weekday)s"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:105
+#, python-format
+msgid "Updated work schedule for %(weekday)s"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:111
+#, python-format
+msgid "Validation error for %(weekday)s: %(error)s"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:117
+#, python-format
+msgid ""
+"Successfully imported work schedules. Created: %(created)s, Updated: "
+"%(updated)s"
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:141
+#, python-format
+msgid "Invalid %(session)s time format: %(value)s. Expected 'HH:MM-HH:MM'."
+msgstr ""
+
+#: apps/hrm/management/commands/import_work_schedule.py:151
+#, python-format
+msgid ""
+"Both start and end times must be provided for %(session)s session: %(value)s"
+msgstr ""
+
 #: apps/hrm/management/commands/setup_default_org_data.py:8
 msgid "Setup default organizational data"
 msgstr ""
@@ -813,6 +887,7 @@ msgstr ""
 #: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
+#: apps/hrm/models/work_schedule.py:84
 msgid "Note"
 msgstr ""
 
@@ -2263,6 +2338,124 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:16
+msgid "Monday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:17
+msgid "Tuesday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:18
+msgid "Wednesday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:19
+msgid "Thursday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:20
+msgid "Friday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:21
+msgid "Saturday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:22
+msgid "Sunday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:27
+msgid "Weekday"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:28
+msgid "Day of the week"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:34 apps/hrm/models/work_schedule.py:146
+msgid "Morning start time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:35
+msgid "Start time of morning session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:41 apps/hrm/models/work_schedule.py:147
+msgid "Morning end time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:42
+msgid "End time of morning session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:48 apps/hrm/models/work_schedule.py:148
+msgid "Noon start time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:49
+msgid "Start time of noon session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:55 apps/hrm/models/work_schedule.py:149
+msgid "Noon end time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:56
+msgid "End time of noon session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:62 apps/hrm/models/work_schedule.py:150
+msgid "Afternoon start time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:63
+msgid "Start time of afternoon session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:69 apps/hrm/models/work_schedule.py:151
+msgid "Afternoon end time"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:70
+msgid "End time of afternoon session"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:77
+msgid "Number of minutes late allowed"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:85
+msgid "Additional notes"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:89
+msgid "Work schedule"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:90
+msgid "Work schedules"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:124
+msgid "Invalid weekday value. Must be one of the predefined weekdays."
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:163
+#, python-format
+msgid ""
+"For weekdays Monday-Friday, all working time fields must be provided. "
+"Missing: %(fields)s"
+msgstr ""
+
+#: apps/hrm/models/work_schedule.py:195
+#, python-format
+msgid ""
+"%(next_field)s (%(next_time)s) must be greater than or equal to "
+"%(current_field)s (%(current_time)s)"
 msgstr ""
 
 #: apps/hrm/services/employee/work_history.py:39

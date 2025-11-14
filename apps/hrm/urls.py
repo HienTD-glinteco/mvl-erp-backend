@@ -30,6 +30,7 @@ from apps.hrm.api.views import (
     RecruitmentReportsViewSet,
     RecruitmentRequestViewSet,
     RecruitmentSourceViewSet,
+    WorkScheduleViewSet,
 )
 
 app_name = "hrm"
@@ -64,6 +65,7 @@ router.register(r"interview-candidates", InterviewCandidateViewSet, basename="in
 router.register(r"employee-relationships", EmployeeRelationshipViewSet, basename="employee-relationship")
 router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attendance-device")
 router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
+router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
 
 # Report endpoints (single ViewSet with custom actions)
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")
