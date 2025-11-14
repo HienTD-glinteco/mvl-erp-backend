@@ -21,6 +21,7 @@ from apps.hrm.api.views import (
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
     PositionViewSet,
+    ProjectGeolocationViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
     RecruitmentChannelViewSet,
@@ -46,6 +47,7 @@ router.register(r"employee-work-histories", EmployeeWorkHistoryViewSet, basename
 router.register(r"contract-types", ContractTypeViewSet, basename="contract-type")
 router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
+router.register(r"project-geolocations", ProjectGeolocationViewSet, basename="project-geolocation")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")
 router.register(r"job-descriptions", JobDescriptionViewSet, basename="job-description")

@@ -1,0 +1,380 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from rest_framework.filters import OrderingFilter, SearchFilter
+
+from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.hrm.api.filtersets import ProjectGeolocationFilterSet
+from apps.hrm.api.serializers import ProjectGeolocationExportSerializer, ProjectGeolocationSerializer
+from apps.hrm.models import ProjectGeolocation
+from libs import BaseModelViewSet
+from libs.drf.mixin import ProtectedDeleteMixin
+from libs.export_xlsx import ExportXLSXMixin
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all project geolocations",
+        description="Retrieve a paginated list of all project geolocations with support for filtering and search. "
+        "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DV001",
+                                "name": "Headquarters Geofence",
+                                "project": {
+                                    "id": 1,
+                                    "code": "DA001",
+                                    "name": "Main Office Project",
+                                },
+                                "address": "123 Main Street, District 1, Ho Chi Minh City",
+                                "latitude": "10.7769000",
+                                "longitude": "106.7009000",
+                                "radius_m": 100,
+                                "status": "active",
+                                "notes": "Main office geofence area",
+                                "created_by": {
+                                    "id": 1,
+                                    "username": "admin",
+                                },
+                                "updated_by": {
+                                    "id": 1,
+                                    "username": "admin",
+                                },
+                                "created_at": "2025-11-14T03:00:00Z",
+                                "updated_at": "2025-11-14T03:00:00Z",
+                            }
+                        ],
+                    },
+                },
+                response_only=True,
+            )
+        ],
+    ),
+    create=extend_schema(
+        summary="Create a new project geolocation",
+        description="Create a new project geolocation in the system. "
+        "The code is auto-generated server-side with pattern DV###.",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "name": "Headquarters Geofence",
+                    "project_id": 1,
+                    "address": "123 Main Street, District 1, Ho Chi Minh City",
+                    "latitude": "10.7769000",
+                    "longitude": "106.7009000",
+                    "radius_m": 100,
+                    "status": "active",
+                    "notes": "Main office geofence area",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DV001",
+                        "name": "Headquarters Geofence",
+                        "project": {
+                            "id": 1,
+                            "code": "DA001",
+                            "name": "Main Office Project",
+                        },
+                        "address": "123 Main Street, District 1, Ho Chi Minh City",
+                        "latitude": "10.7769000",
+                        "longitude": "106.7009000",
+                        "radius_m": 100,
+                        "status": "active",
+                        "notes": "Main office geofence area",
+                        "created_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "updated_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "created_at": "2025-11-14T03:00:00Z",
+                        "updated_at": "2025-11-14T03:00:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Validation",
+                value={
+                    "success": False,
+                    "error": {
+                        "name": ["This field is required."],
+                        "radius_m": ["Radius must be at least 1 meter"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get project geolocation details",
+        description="Retrieve detailed information about a specific project geolocation",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DV001",
+                        "name": "Headquarters Geofence",
+                        "project": {
+                            "id": 1,
+                            "code": "DA001",
+                            "name": "Main Office Project",
+                        },
+                        "address": "123 Main Street, District 1, Ho Chi Minh City",
+                        "latitude": "10.7769000",
+                        "longitude": "106.7009000",
+                        "radius_m": 100,
+                        "status": "active",
+                        "notes": "Main office geofence area",
+                        "created_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "updated_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "created_at": "2025-11-14T03:00:00Z",
+                        "updated_at": "2025-11-14T03:00:00Z",
+                    },
+                },
+                response_only=True,
+            )
+        ],
+    ),
+    update=extend_schema(
+        summary="Update project geolocation",
+        description="Update project geolocation information. Code cannot be changed.",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "name": "Headquarters Geofence Updated",
+                    "project_id": 1,
+                    "address": "123 Main Street, District 1, Ho Chi Minh City",
+                    "latitude": "10.7769000",
+                    "longitude": "106.7009000",
+                    "radius_m": 150,
+                    "status": "active",
+                    "notes": "Updated geofence radius",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DV001",
+                        "name": "Headquarters Geofence Updated",
+                        "project": {
+                            "id": 1,
+                            "code": "DA001",
+                            "name": "Main Office Project",
+                        },
+                        "address": "123 Main Street, District 1, Ho Chi Minh City",
+                        "latitude": "10.7769000",
+                        "longitude": "106.7009000",
+                        "radius_m": 150,
+                        "status": "active",
+                        "notes": "Updated geofence radius",
+                        "created_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "updated_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "created_at": "2025-11-14T03:00:00Z",
+                        "updated_at": "2025-11-14T03:05:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update project geolocation",
+        description="Partially update project geolocation information",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "radius_m": 200,
+                    "notes": "Increased geofence radius",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DV001",
+                        "name": "Headquarters Geofence",
+                        "project": {
+                            "id": 1,
+                            "code": "DA001",
+                            "name": "Main Office Project",
+                        },
+                        "address": "123 Main Street, District 1, Ho Chi Minh City",
+                        "latitude": "10.7769000",
+                        "longitude": "106.7009000",
+                        "radius_m": 200,
+                        "status": "active",
+                        "notes": "Increased geofence radius",
+                        "created_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "updated_by": {
+                            "id": 1,
+                            "username": "admin",
+                        },
+                        "created_at": "2025-11-14T03:00:00Z",
+                        "updated_at": "2025-11-14T03:10:00Z",
+                    },
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    destroy=extend_schema(
+        summary="Delete project geolocation",
+        description="Soft-delete a project geolocation from the system. "
+        "If the geolocation is referenced by other active resources (e.g., attendance rules), "
+        "the deletion will be prevented.",
+        tags=["Project Geolocation"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={"success": True, "data": None},
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Protected",
+                value={
+                    "success": False,
+                    "error": {
+                        "detail": "Cannot delete this Project Geolocation because it is referenced by: 3 Attendance Rules",
+                        "protected_objects": [
+                            {
+                                "count": 3,
+                                "name": "Attendance Rules",
+                                "protected_object_ids": [1, 2, 3],
+                            }
+                        ],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+)
+class ProjectGeolocationViewSet(ExportXLSXMixin, ProtectedDeleteMixin, AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for ProjectGeolocation model"""
+
+    queryset = ProjectGeolocation.objects.filter(deleted=False).select_related(
+        "project", "created_by", "updated_by"
+    )
+    serializer_class = ProjectGeolocationSerializer
+    filterset_class = ProjectGeolocationFilterSet
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ["code", "name"]
+    ordering_fields = ["name", "created_at"]
+    ordering = ["-created_at"]
+
+    # Permission registration attributes
+    module = "HRM"
+    submodule = "Project Geolocation Management"
+    permission_prefix = "project_geolocation"
+
+    def get_export_data(self, request):
+        """Custom export data for ProjectGeolocation.
+
+        Exports the following fields:
+        - code
+        - name
+        - project__name
+        - address
+        - latitude
+        - longitude
+        - radius_m
+        - status
+        - notes
+        - created_at
+        - updated_at
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = ProjectGeolocationExportSerializer(queryset, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Project Geolocations",
+                    "headers": [
+                        "Code",
+                        "Name",
+                        "Project",
+                        "Address",
+                        "Latitude",
+                        "Longitude",
+                        "Radius (m)",
+                        "Status",
+                        "Notes",
+                        "Created At",
+                        "Updated At",
+                    ],
+                    "field_names": [
+                        "code",
+                        "name",
+                        "project__name",
+                        "address",
+                        "latitude",
+                        "longitude",
+                        "radius_m",
+                        "status",
+                        "notes",
+                        "created_at",
+                        "updated_at",
+                    ],
+                    "data": data,
+                }
+            ]
+        }
+
+    def perform_destroy(self, instance):
+        """Perform soft delete instead of hard delete"""
+        instance.delete()

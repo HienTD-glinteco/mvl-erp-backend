@@ -19,6 +19,7 @@ from .organization import (
     DepartmentViewSet,
     PositionViewSet,
 )
+from .project_geolocation import ProjectGeolocationViewSet
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
@@ -44,6 +45,7 @@ __all__ = [
     "EmployeeDependentViewSet",
     "EmployeeWorkHistoryViewSet",
     "ContractTypeViewSet",
+    "ProjectGeolocationViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
     "JobDescriptionViewSet",

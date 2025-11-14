@@ -39,6 +39,8 @@ from .organization import (
     DepartmentSerializer,
     PositionSerializer,
 )
+from .project_geolocation import ProjectGeolocationSerializer
+from .project_geolocation_export import ProjectGeolocationExportSerializer
 from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSerializer
 from .recruitment_candidate_export import RecruitmentCandidateExportSerializer
@@ -83,6 +85,8 @@ __all__ = [
     "EmployeeExportXLSXSerializer",
     "EmployeeWorkHistorySerializer",
     "ContractTypeSerializer",
+    "ProjectGeolocationSerializer",
+    "ProjectGeolocationExportSerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",
     "JobDescriptionSerializer",

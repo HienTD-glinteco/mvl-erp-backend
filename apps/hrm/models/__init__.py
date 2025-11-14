@@ -18,6 +18,8 @@ from .organization import (
     Department,
     Position,
 )
+from .project import Project
+from .project_geolocation import ProjectGeolocation
 from .recruitment_candidate import RecruitmentCandidate
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLog
 from .recruitment_channel import RecruitmentChannel
@@ -46,6 +48,8 @@ __all__ = [
     "EmployeeDependent",
     "EmployeeWorkHistory",
     "ContractType",
+    "Project",
+    "ProjectGeolocation",
     "RecruitmentChannel",
     "RecruitmentSource",
     "JobDescription",
