@@ -11,6 +11,7 @@ from .employee_relationship import EmployeeRelationshipViewSet
 from .employee_reports import EmployeeReportsViewSet
 from .employee_role import EmployeeRoleViewSet
 from .employee_work_history import EmployeeWorkHistoryViewSet
+from .holiday import HolidayViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
@@ -46,6 +47,7 @@ __all__ = [
     "EmployeeDependentViewSet",
     "EmployeeWorkHistoryViewSet",
     "ContractTypeViewSet",
+    "HolidayViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
     "JobDescriptionViewSet",

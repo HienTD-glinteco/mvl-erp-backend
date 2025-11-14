@@ -8,6 +8,7 @@ from .employee_dependent import EmployeeDependentFilterSet
 from .employee_relationship import EmployeeRelationshipFilterSet
 from .employee_role import EmployeeRoleFilterSet
 from .employee_work_history import EmployeeWorkHistoryFilterSet
+from .holiday import HolidayFilterSet
 from .interview_candidate import InterviewCandidateFilterSet
 from .interview_schedule import InterviewScheduleFilterSet
 from .job_description import JobDescriptionFilterSet
@@ -45,6 +46,7 @@ __all__ = [
     "EmployeeFilterSet",
     "EmployeeDependentFilterSet",
     "EmployeeWorkHistoryFilterSet",
+    "HolidayFilterSet",
     "RecruitmentChannelFilterSet",
     "RecruitmentSourceFilterSet",
     "JobDescriptionFilterSet",

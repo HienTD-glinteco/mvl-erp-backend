@@ -28,6 +28,7 @@ from .employee_report import (
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
 from .employee_seniority import EmployeeSenioritySerializer
 from .employee_work_history import EmployeeWorkHistorySerializer
+from .holiday import CompensatoryWorkdaySerializer, HolidayDetailSerializer, HolidaySerializer
 from .interview_candidate import InterviewCandidateSerializer
 from .interview_schedule import (
     InterviewScheduleSerializer,
@@ -87,6 +88,9 @@ __all__ = [
     "EmployeeExportXLSXSerializer",
     "EmployeeWorkHistorySerializer",
     "ContractTypeSerializer",
+    "HolidaySerializer",
+    "HolidayDetailSerializer",
+    "CompensatoryWorkdaySerializer",
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",
     "JobDescriptionSerializer",
