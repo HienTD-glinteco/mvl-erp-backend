@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:59+0700\n"
+"POT-Creation-Date: 2025-11-13 15:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgstr ""
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:292 apps/hrm/api/views/employee.py:354
+#: apps/hrm/api/serializers/employee.py:292 apps/hrm/api/views/employee.py:357
 msgid "Employee created"
 msgstr ""
 
@@ -108,87 +108,257 @@ msgstr ""
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:62
-#: apps/hrm/api/views/recruitment_reports.py:675 apps/hrm/constants.py:39
+#: apps/hrm/api/views/employee.py:455
+msgid "No."
+msgstr "STT"
+
+#: apps/hrm/api/views/employee.py:456
+msgid "Employee Code"
+msgstr "Mã Nhân Viên"
+
+#: apps/hrm/api/views/employee.py:457
+msgid "Full Name"
+msgstr "Tên đầy đủ"
+
+#: apps/hrm/api/views/employee.py:458
+msgid "Attendance Code"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/api/views/employee.py:459 apps/hrm/models/employee.py:187
+#: apps/hrm/models/employee_certificate.py:110
+#: apps/hrm/models/employee_work_history.py:114
+#: apps/hrm/models/recruitment_candidate.py:111
+#: apps/hrm/models/recruitment_request.py:89
+msgid "Status"
+msgstr "Trạng Thái"
+
+#: apps/hrm/api/views/employee.py:460
+msgid "Start Date"
+msgstr "Ngày Bắt Đầu"
+
+#: apps/hrm/api/views/employee.py:461
+msgid "Resignation Reason"
+msgstr "Lý Do Nghỉ Việc"
+
+#: apps/hrm/api/views/employee.py:462
+msgid "Resignation Date"
+msgstr "Ngày Nghỉ Việc"
+
+#: apps/hrm/api/views/employee.py:463
+msgid "Contract Type"
+msgstr "Loại Hợp Đồng"
+
+#: apps/hrm/api/views/employee.py:464 apps/hrm/models/employee.py:170
+#: apps/hrm/models/employee_work_history.py:101
+#: apps/hrm/models/organization.py:264
+msgid "Position"
+msgstr "Chức Vụ"
+
+#: apps/hrm/api/views/employee.py:465 apps/hrm/models/employee.py:150
+#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
+#: apps/hrm/models/employee_work_history.py:74
+#: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
+#: apps/hrm/models/organization.py:103
+#: apps/hrm/models/recruitment_candidate.py:68
+#: apps/hrm/models/recruitment_reports.py:21
+#: apps/hrm/models/recruitment_request.py:54
+msgid "Branch"
+msgstr "Chi Nhánh"
+
+#: apps/hrm/api/views/employee.py:466 apps/hrm/models/attendance_device.py:54
+#: apps/hrm/models/employee.py:156 apps/hrm/models/employee_report.py:40
+#: apps/hrm/models/employee_report.py:107
+#: apps/hrm/models/employee_work_history.py:83
+#: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
+#: apps/hrm/models/recruitment_candidate.py:76
+#: apps/hrm/models/recruitment_reports.py:29
+#: apps/hrm/models/recruitment_request.py:62
+msgid "Block"
+msgstr "Khối"
+
+#: apps/hrm/api/views/employee.py:467 apps/hrm/models/employee.py:162
+#: apps/hrm/models/employee_report.py:46 apps/hrm/models/employee_report.py:113
+#: apps/hrm/models/employee_work_history.py:92
+#: apps/hrm/models/organization.py:133
+#: apps/hrm/models/recruitment_candidate.py:84
+#: apps/hrm/models/recruitment_reports.py:37
+#: apps/hrm/models/recruitment_request.py:70
+msgid "Department"
+msgstr "Phòng Ban"
+
+#: apps/hrm/api/views/employee.py:468
+#: apps/hrm/models/employee_relationship.py:128
+#: apps/hrm/models/recruitment_candidate.py:57
+msgid "Phone"
+msgstr "Số điện thoại"
+
+#: apps/hrm/api/views/employee.py:469
+msgid "Personal Email"
+msgstr "Email cá nhân"
+
+#: apps/hrm/api/views/employee.py:470 apps/hrm/models/employee.py:143
+#: apps/hrm/models/organization.py:22
+#: apps/hrm/models/recruitment_candidate.py:56
+msgid "Email"
+msgstr "Email"
+
+#: apps/hrm/api/views/employee.py:471
+msgid "Bank Name"
+msgstr "Tên Ngân Hàng"
+
+#: apps/hrm/api/views/employee.py:472
+msgid "Bank Account Number"
+msgstr "Số Tài Khoản Ngân Hàng"
+
+#: apps/hrm/api/views/employee.py:473
+msgid "Tax Code"
+msgstr "Mã Số Thuế"
+
+#: apps/hrm/api/views/employee.py:474
+msgid "Emergency Contact"
+msgstr "Liên Hệ Khẩn Cấp"
+
+#: apps/hrm/api/views/employee.py:475 apps/hrm/models/employee.py:218
+msgid "Gender"
+msgstr "Giới Tính"
+
+#: apps/hrm/api/views/employee.py:476
+msgid "Date of Birth"
+msgstr "Ngày Sinh"
+
+#: apps/hrm/api/views/employee.py:477
+msgid "Place of Birth"
+msgstr "Nơi Sinh"
+
+#: apps/hrm/api/views/employee.py:478
+msgid "Marital Status"
+msgstr "Tình Trạng Hôn Nhân"
+
+#: apps/hrm/api/views/employee.py:479 apps/hrm/models/employee.py:237
+msgid "Ethnicity"
+msgstr "Dân Tộc"
+
+#: apps/hrm/api/views/employee.py:480 apps/hrm/models/employee.py:242
+msgid "Religion"
+msgstr "Tôn giáo"
+
+#: apps/hrm/api/views/employee.py:481 apps/hrm/models/employee.py:232
+msgid "Nationality"
+msgstr "Quốc Tịch"
+
+#: apps/hrm/api/views/employee.py:482 apps/hrm/models/employee.py:250
+#: apps/hrm/models/employee_dependent.py:79
+#: apps/hrm/models/employee_relationship.py:100
+#: apps/hrm/models/recruitment_candidate.py:53
+msgid "Citizen ID"
+msgstr "Số CMND/CCCD"
+
+#: apps/hrm/api/views/employee.py:483
+msgid "ID Issued Date"
+msgstr "Ngày Cấp CMND/CCCD"
+
+#: apps/hrm/api/views/employee.py:484
+msgid "ID Issued Place"
+msgstr "Nơi Cấp CMND/CCCD"
+
+#: apps/hrm/api/views/employee.py:485
+msgid "Residential Address"
+msgstr "Địa Chỉ Cư Trú"
+
+#: apps/hrm/api/views/employee.py:486
+msgid "Permanent Address"
+msgstr "Địa Chỉ Thường Trú"
+
+#: apps/hrm/api/views/employee.py:487
+msgid "Login Username"
+msgstr "Tên Đăng Nhập"
+
+#: apps/hrm/api/views/employee.py:488 apps/hrm/models/attendance_record.py:70
+#: apps/hrm/models/employee_certificate.py:103
+msgid "Notes"
+msgstr "Ghi Chú"
+
+#: apps/hrm/api/views/employee_reports.py:57
+#: apps/hrm/api/views/recruitment_reports.py:670 apps/hrm/constants.py:39
 #: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:82
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:803 apps/hrm/constants.py:40
+#: apps/hrm/api/views/employee_reports.py:77
+#: apps/hrm/api/views/recruitment_reports.py:126
+#: apps/hrm/api/views/recruitment_reports.py:798 apps/hrm/constants.py:40
 #: apps/hrm/constants.py:45
 msgid "Month"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:108 apps/hrm/constants.py:46
+#: apps/hrm/api/views/employee_reports.py:103 apps/hrm/constants.py:46
 msgid "Quarter"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:129 apps/hrm/constants.py:47
+#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:47
 msgid "Year"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:334
+#: apps/hrm/api/views/employee_reports.py:329
 msgid "Average"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:537 apps/hrm/models/employee.py:90
+#: apps/hrm/api/views/employee_reports.py:532 apps/hrm/models/employee.py:90
 #: apps/hrm/models/employee_report.py:120
 msgid "Agreement Termination"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:538 apps/hrm/models/employee.py:91
+#: apps/hrm/api/views/employee_reports.py:533 apps/hrm/models/employee.py:91
 #: apps/hrm/models/employee_report.py:121
 msgid "Probation Fail"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:539 apps/hrm/models/employee.py:92
+#: apps/hrm/api/views/employee_reports.py:534 apps/hrm/models/employee.py:92
 #: apps/hrm/models/employee_report.py:122
 msgid "Job Abandonment"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:543 apps/hrm/models/employee.py:93
+#: apps/hrm/api/views/employee_reports.py:538 apps/hrm/models/employee.py:93
 #: apps/hrm/models/employee_report.py:123
 msgid "Disciplinary Termination"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:545 apps/hrm/models/employee.py:94
+#: apps/hrm/api/views/employee_reports.py:540 apps/hrm/models/employee.py:94
 #: apps/hrm/models/employee_report.py:124
 msgid "Workforce Reduction"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:546 apps/hrm/models/employee.py:95
+#: apps/hrm/api/views/employee_reports.py:541 apps/hrm/models/employee.py:95
 #: apps/hrm/models/employee_report.py:125
 msgid "Underperforming"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:547 apps/hrm/models/employee.py:96
+#: apps/hrm/api/views/employee_reports.py:542 apps/hrm/models/employee.py:96
 #: apps/hrm/models/employee_report.py:126
 msgid "Contract Expired"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:548 apps/hrm/models/employee.py:97
+#: apps/hrm/api/views/employee_reports.py:543 apps/hrm/models/employee.py:97
 #: apps/hrm/models/employee_report.py:127
 msgid "Voluntary - Health Reasons"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:549 apps/hrm/models/employee.py:98
+#: apps/hrm/api/views/employee_reports.py:544 apps/hrm/models/employee.py:98
 #: apps/hrm/models/employee_report.py:128
 msgid "Voluntary - Personal Reasons"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:553 apps/hrm/models/employee.py:99
+#: apps/hrm/api/views/employee_reports.py:548 apps/hrm/models/employee.py:99
 #: apps/hrm/models/employee_report.py:129
 msgid "Voluntary - Career Change"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/models/employee.py:100
+#: apps/hrm/api/views/employee_reports.py:550 apps/hrm/models/employee.py:100
 #: apps/hrm/models/employee_report.py:130
 msgid "Voluntary - Other"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:556 apps/hrm/constants.py:73
+#: apps/hrm/api/views/employee_reports.py:551 apps/hrm/constants.py:73
 #: apps/hrm/constants.py:90 apps/hrm/models/employee.py:101
 #: apps/hrm/models/employee_report.py:131
 #: apps/hrm/models/recruitment_channel.py:22
@@ -199,20 +369,20 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:261
+#: apps/hrm/api/views/recruitment_dashboard.py:256
 msgid "Experienced"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_dashboard.py:266
+#: apps/hrm/api/views/recruitment_dashboard.py:261
 msgid "Inexperienced"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_reports.py:625
+#: apps/hrm/api/views/recruitment_reports.py:620
 msgid "No Department"
 msgstr ""
 
-#: apps/hrm/api/views/recruitment_reports.py:651
-#: apps/hrm/api/views/recruitment_reports.py:680
+#: apps/hrm/api/views/recruitment_reports.py:646
+#: apps/hrm/api/views/recruitment_reports.py:675
 msgid "Total"
 msgstr ""
 
@@ -469,10 +639,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -481,22 +653,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -534,16 +711,6 @@ msgstr ""
 
 #: apps/hrm/models/attendance_device.py:48
 msgid "Name for the device"
-msgstr ""
-
-#: apps/hrm/models/attendance_device.py:54 apps/hrm/models/employee.py:156
-#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
-#: apps/hrm/models/employee_work_history.py:83
-#: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
-#: apps/hrm/models/recruitment_candidate.py:76
-#: apps/hrm/models/recruitment_reports.py:29
-#: apps/hrm/models/recruitment_request.py:62
-msgid "Block"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:55
@@ -668,11 +835,6 @@ msgstr ""
 
 #: apps/hrm/models/attendance_record.py:66
 msgid "Whether this attendance record is valid"
-msgstr ""
-
-#: apps/hrm/models/attendance_record.py:70
-#: apps/hrm/models/employee_certificate.py:103
-msgid "Notes"
 msgstr ""
 
 #: apps/hrm/models/attendance_record.py:71
@@ -824,46 +986,8 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: apps/hrm/models/employee.py:143 apps/hrm/models/organization.py:22
-#: apps/hrm/models/recruitment_candidate.py:56
-msgid "Email"
-msgstr ""
-
-#: apps/hrm/models/employee.py:150 apps/hrm/models/employee_report.py:34
-#: apps/hrm/models/employee_report.py:101
-#: apps/hrm/models/employee_work_history.py:74
-#: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
-#: apps/hrm/models/organization.py:103
-#: apps/hrm/models/recruitment_candidate.py:68
-#: apps/hrm/models/recruitment_reports.py:21
-#: apps/hrm/models/recruitment_request.py:54
-msgid "Branch"
-msgstr ""
-
-#: apps/hrm/models/employee.py:162 apps/hrm/models/employee_report.py:46
-#: apps/hrm/models/employee_report.py:113
-#: apps/hrm/models/employee_work_history.py:92
-#: apps/hrm/models/organization.py:133
-#: apps/hrm/models/recruitment_candidate.py:84
-#: apps/hrm/models/recruitment_reports.py:37
-#: apps/hrm/models/recruitment_request.py:70
-msgid "Department"
-msgstr ""
-
-#: apps/hrm/models/employee.py:170 apps/hrm/models/employee_work_history.py:101
-#: apps/hrm/models/organization.py:264
-msgid "Position"
-msgstr ""
-
 #: apps/hrm/models/employee.py:182
 msgid "Start date"
-msgstr ""
-
-#: apps/hrm/models/employee.py:187 apps/hrm/models/employee_certificate.py:110
-#: apps/hrm/models/employee_work_history.py:114
-#: apps/hrm/models/recruitment_candidate.py:111
-#: apps/hrm/models/recruitment_request.py:89
-msgid "Status"
 msgstr ""
 
 #: apps/hrm/models/employee.py:192
@@ -894,30 +1018,8 @@ msgstr ""
 msgid "Date of birth"
 msgstr ""
 
-#: apps/hrm/models/employee.py:218
-msgid "Gender"
-msgstr ""
-
 #: apps/hrm/models/employee.py:224
 msgid "Marital status"
-msgstr ""
-
-#: apps/hrm/models/employee.py:232
-msgid "Nationality"
-msgstr ""
-
-#: apps/hrm/models/employee.py:237
-msgid "Ethnicity"
-msgstr ""
-
-#: apps/hrm/models/employee.py:242
-msgid "Religion"
-msgstr ""
-
-#: apps/hrm/models/employee.py:250 apps/hrm/models/employee_dependent.py:79
-#: apps/hrm/models/employee_relationship.py:100
-#: apps/hrm/models/recruitment_candidate.py:53
-msgid "Citizen ID"
 msgstr ""
 
 #: apps/hrm/models/employee.py:255
@@ -1236,11 +1338,6 @@ msgstr ""
 
 #: apps/hrm/models/employee_relationship.py:121
 msgid "Residential address of the relative"
-msgstr ""
-
-#: apps/hrm/models/employee_relationship.py:128
-#: apps/hrm/models/recruitment_candidate.py:57
-msgid "Phone"
 msgstr ""
 
 #: apps/hrm/models/employee_relationship.py:129

@@ -12,6 +12,7 @@ from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import (
     EmployeeActiveActionSerializer,
     EmployeeAvatarSerializer,
+    EmployeeExportXLSXSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
     EmployeeResignedActionSerializer,
@@ -25,6 +26,7 @@ from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -61,6 +63,7 @@ from libs import BaseModelViewSet
 )
 class EmployeeViewSet(
     AsyncImportProgressMixin,
+    ExportXLSXMixin,
     EmailTemplateActionMixin,
     AuditLoggingMixin,
     BaseModelViewSet,
@@ -411,3 +414,81 @@ class EmployeeViewSet(
 
         # Return updated employee data with new avatar
         return Response(EmployeeSerializer(instance=employee).data)
+
+    def get_export_data(self, request):
+        """Custom export data for Employee.
+
+        Exports employee data with the following columns:
+        - No., Employee Code, Full Name, Attendance Code, Status, Start Date
+        - Resignation Reason, Resignation Date (from latest work history)
+        - Contract Type, Position, Branch, Block, Department
+        - Phone, Personal Email, Email
+        - Bank Name, Bank Account Number (from default bank account)
+        - Tax Code, Emergency Contact
+        - Gender, Date of Birth, Place of Birth, Marital Status
+        - Ethnicity, Religion, Nationality
+        - Citizen ID, ID Issued Date, ID Issued Place
+        - Residential Address, Permanent Address
+        - Login Username, Notes
+        """
+        # Optimize queryset with prefetch_related for related objects
+        queryset = self.filter_queryset(self.get_queryset()).prefetch_related(
+            "work_histories",
+            "bank_accounts",
+            "bank_accounts__bank",
+        )
+
+        # Add index to each employee for export
+        employees = list(queryset)
+        for index, employee in enumerate(employees, start=1):
+            employee._export_index = index
+
+        # Serialize data
+        serializer = EmployeeExportXLSXSerializer(employees, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Employees",
+                    "headers": [
+                        _("No."),
+                        _("Employee Code"),
+                        _("Full Name"),
+                        _("Attendance Code"),
+                        _("Status"),
+                        _("Start Date"),
+                        _("Resignation Reason"),
+                        _("Resignation Date"),
+                        _("Contract Type"),
+                        _("Position"),
+                        _("Branch"),
+                        _("Block"),
+                        _("Department"),
+                        _("Phone"),
+                        _("Personal Email"),
+                        _("Email"),
+                        _("Bank Name"),
+                        _("Bank Account Number"),
+                        _("Tax Code"),
+                        _("Emergency Contact"),
+                        _("Gender"),
+                        _("Date of Birth"),
+                        _("Place of Birth"),
+                        _("Marital Status"),
+                        _("Ethnicity"),
+                        _("Religion"),
+                        _("Nationality"),
+                        _("Citizen ID"),
+                        _("ID Issued Date"),
+                        _("ID Issued Place"),
+                        _("Residential Address"),
+                        _("Permanent Address"),
+                        _("Login Username"),
+                        _("Notes"),
+                    ],
+                    "field_names": EmployeeExportXLSXSerializer.Meta.fields,
+                    "data": data,
+                }
+            ]
+        }

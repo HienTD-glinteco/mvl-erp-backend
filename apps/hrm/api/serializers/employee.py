@@ -652,3 +652,118 @@ class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serialize
         in the save() method, so we just return the instance here.
         """
         return instance
+
+
+class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
+    """Serializer for exporting Employee data to Excel.
+
+    This serializer flattens related objects and provides additional computed fields
+    for comprehensive employee data export.
+    """
+
+    # Index field (will be computed in the view)
+    no = serializers.SerializerMethodField(read_only=True)
+
+    # Related fields
+    position__name = serializers.CharField(source="position.name", read_only=True)
+    branch__name = serializers.CharField(source="branch.name", read_only=True)
+    block__name = serializers.CharField(source="block.name", read_only=True)
+    department__name = serializers.CharField(source="department.name", read_only=True)
+    contract_type__name = serializers.CharField(source="contract_type.name", read_only=True)
+
+    # Latest EmployeeWorkHistory fields
+    latest_work_history_resignation_reason = serializers.SerializerMethodField(read_only=True)
+    latest_work_history_from_date = serializers.SerializerMethodField(read_only=True)
+
+    # Default BankAccount fields (using is_primary field per actual model implementation)
+    default_bank_name = serializers.SerializerMethodField(read_only=True)
+    default_bank_account_number = serializers.SerializerMethodField(read_only=True)
+
+    # Emergency contact combined field
+    emergency_contact = serializers.SerializerMethodField(read_only=True)
+
+    # Nationality name
+    nationality__name = serializers.CharField(source="nationality.name", read_only=True)
+
+    def get_no(self, obj: Employee):
+        """Get the index number from context (1-based)."""
+        # This will be set from the view when preparing the data
+        return getattr(obj, "_export_index", "")
+
+    def get_latest_work_history_resignation_reason(self, obj: Employee):
+        """Get resignation_reason from the latest EmployeeWorkHistory record."""
+        latest_history = obj.work_histories.order_by("-date", "-created_at").first()
+        if latest_history and latest_history.resignation_reason:
+            return latest_history.get_resignation_reason_display()
+        return ""
+
+    def get_latest_work_history_from_date(self, obj: Employee):
+        """Get from_date from the latest EmployeeWorkHistory record."""
+        latest_history = obj.work_histories.order_by("-date", "-created_at").first()
+        if latest_history and latest_history.from_date:
+            return latest_history.from_date.isoformat()
+        return ""
+
+    def get_default_bank_name(self, obj: Employee):
+        """Get bank name from the default BankAccount."""
+        default_bank_account = obj.bank_accounts.filter(is_primary=True).first()
+        if default_bank_account and default_bank_account.bank:
+            return default_bank_account.bank.name
+        return ""
+
+    def get_default_bank_account_number(self, obj: Employee):
+        """Get account number from the default BankAccount."""
+        default_bank_account = obj.bank_accounts.filter(is_primary=True).first()
+        if default_bank_account:
+            return default_bank_account.account_number
+        return ""
+
+    def get_emergency_contact(self, obj: Employee):
+        """Get emergency contact as 'name - phone' format."""
+        if obj.emergency_contact_name and obj.emergency_contact_phone:
+            return f"{obj.emergency_contact_name} - {obj.emergency_contact_phone}"
+        elif obj.emergency_contact_name:
+            return obj.emergency_contact_name
+        elif obj.emergency_contact_phone:
+            return obj.emergency_contact_phone
+        return ""
+
+    class Meta:
+        model = Employee
+        fields = [
+            "no",
+            "code",
+            "fullname",
+            "attendance_code",
+            "status",
+            "start_date",
+            "latest_work_history_resignation_reason",
+            "latest_work_history_from_date",
+            "contract_type__name",
+            "position__name",
+            "branch__name",
+            "block__name",
+            "department__name",
+            "phone",
+            "personal_email",
+            "email",
+            "default_bank_name",
+            "default_bank_account_number",
+            "tax_code",
+            "emergency_contact",
+            "gender",
+            "date_of_birth",
+            "place_of_birth",
+            "marital_status",
+            "ethnicity",
+            "religion",
+            "nationality__name",
+            "citizen_id",
+            "citizen_id_issued_date",
+            "citizen_id_issued_place",
+            "residential_address",
+            "permanent_address",
+            "username",
+            "note",
+        ]
+        read_only_fields = fields
