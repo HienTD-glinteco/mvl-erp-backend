@@ -1,4 +1,5 @@
 from .attendance_device import AttendanceDevice
+from .attendance_geolocation import AttendanceGeolocation
 from .attendance_record import AttendanceRecord
 from .bank import Bank
 from .bank_account import BankAccount
@@ -34,6 +35,7 @@ from .recruitment_source import RecruitmentSource
 
 __all__ = [
     "AttendanceDevice",
+    "AttendanceGeolocation",
     "AttendanceRecord",
     "Bank",
     "BankAccount",

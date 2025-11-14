@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from .models import (
+    AttendanceDevice,
+    AttendanceGeolocation,
+    AttendanceRecord,
     Bank,
     BankAccount,
     Block,
@@ -56,6 +59,10 @@ class EmployeeAdmin(admin.ModelAdmin):
 class EmployeeWorkHistoryAdmin(admin.ModelAdmin):
     list_display = ["date", "name", "employee", "status", "from_date", "to_date"]
 
+
+admin.site.register(AttendanceDevice)
+admin.site.register(AttendanceGeolocation)
+admin.site.register(AttendanceRecord)
 
 admin.site.register(Block)
 admin.site.register(Bank)

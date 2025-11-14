@@ -31,6 +31,7 @@ INTERNAL_APPS = [
     "apps.files",
     "apps.imports",
     "apps.mailtemplates",
+    "apps.realestate",
 ]
 
 INSTALLED_APPS = DJANGO_APPs + EXTERNAL_APPS + INTERNAL_APPS

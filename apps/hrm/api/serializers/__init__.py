@@ -1,4 +1,6 @@
 from .attendance_device import AttendanceDeviceSerializer
+from .attendance_geolocation import AttendanceGeolocationSerializer
+from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
@@ -62,6 +64,8 @@ from .recruitment_source import RecruitmentSourceSerializer
 
 __all__ = [
     "AttendanceDeviceSerializer",
+    "AttendanceGeolocationSerializer",
+    "AttendanceGeolocationExportSerializer",
     "AttendanceRecordSerializer",
     "BankSerializer",
     "BankAccountSerializer",

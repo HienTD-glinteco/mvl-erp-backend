@@ -7,6 +7,7 @@ from .auth import (
     PasswordResetOTPVerificationSerializer,
     PasswordResetSerializer,
 )
+from .common_nested import SimpleNestedSerializerFactory
 from .constants import ConstantsResponseSerializer
 from .me import (
     EmployeeSummarySerializer,
@@ -33,6 +34,7 @@ __all__ = [
     "AdministrativeUnitSerializer",
     "ConstantsResponseSerializer",
     "SimpleUserSerializer",
+    "SimpleNestedSerializerFactory",
     "NationalitySerializer",
     "MeSerializer",
     "MePermissionsSerializer",

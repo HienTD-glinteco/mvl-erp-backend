@@ -1,4 +1,5 @@
 from .attendance_device import AttendanceDeviceViewSet
+from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
@@ -30,6 +31,7 @@ from .recruitment_source import RecruitmentSourceViewSet
 
 __all__ = [
     "AttendanceDeviceViewSet",
+    "AttendanceGeolocationViewSet",
     "AttendanceRecordViewSet",
     "BankViewSet",
     "BankAccountViewSet",

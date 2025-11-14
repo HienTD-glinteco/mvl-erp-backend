@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 14:41+0700\n"
+"POT-Creation-Date: 2025-11-14 14:46+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -255,22 +255,8 @@ msgstr ""
 msgid "Import job not found"
 msgstr ""
 
-#: apps/imports/api/serializers.py:34
-#, python-brace-format
-msgid ""
-"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
-"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
-msgstr ""
-
 #: apps/imports/api/serializers.py:40
 msgid "Whether to count total rows before processing (default: true)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:48
-#, python-brace-format
-msgid ""
-"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
-"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 msgstr ""
 
 #: apps/imports/api/serializers.py:54
@@ -438,7 +424,7 @@ msgstr ""
 msgid "Celery task ID for tracking the background job"
 msgstr ""
 
-#: apps/imports/models.py:51
+#: apps/imports/models.py:51 apps/realestate/models/project.py:29
 msgid "Status"
 msgstr ""
 
@@ -574,7 +560,7 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
-#: apps/mailtemplates/models.py:22
+#: apps/mailtemplates/models.py:22 apps/realestate/models/project.py:19
 msgid "Completed"
 msgstr ""
 
@@ -840,6 +826,38 @@ msgstr ""
 
 #: apps/mailtemplates/views.py:554
 msgid "Job not found"
+msgstr ""
+
+#: apps/realestate/models/project.py:17 apps/realestate/models/project.py:31
+msgid "Active"
+msgstr ""
+
+#: apps/realestate/models/project.py:18
+msgid "Inactive"
+msgstr ""
+
+#: apps/realestate/models/project.py:21
+msgid "Project name"
+msgstr ""
+
+#: apps/realestate/models/project.py:22
+msgid "Project code"
+msgstr ""
+
+#: apps/realestate/models/project.py:23
+msgid "Address"
+msgstr ""
+
+#: apps/realestate/models/project.py:24
+msgid "Description"
+msgstr ""
+
+#: apps/realestate/models/project.py:34
+msgid "Project"
+msgstr ""
+
+#: apps/realestate/models/project.py:35
+msgid "Projects"
 msgstr ""
 
 #: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24
