@@ -111,6 +111,12 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         verbose_name=_("Last polling sync"),
         help_text=_("Timestamp of last successful polling sync from device"),
     )
+    note = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_("Note"),
+        help_text=_("Additional notes or comments about the device"),
+    )
 
     def __str__(self):
         """Return string representation showing device name."""
