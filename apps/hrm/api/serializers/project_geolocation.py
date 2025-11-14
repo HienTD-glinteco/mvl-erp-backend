@@ -1,10 +1,9 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from apps.core.api.serializers import UserNestedSerializer
+from apps.core.api.serializers.user import SimpleUserSerializer
 from apps.hrm.api.serializers.common_nested import SimpleNestedSerializerFactory
 from apps.hrm.models import Project, ProjectGeolocation
-
 
 ProjectNestedSerializer = SimpleNestedSerializerFactory(
     Project,
@@ -17,8 +16,8 @@ class ProjectGeolocationSerializer(serializers.ModelSerializer):
 
     # Nested serializers for read operations
     project = ProjectNestedSerializer(read_only=True)
-    created_by = UserNestedSerializer(read_only=True)
-    updated_by = UserNestedSerializer(read_only=True)
+    created_by = SimpleUserSerializer(read_only=True)
+    updated_by = SimpleUserSerializer(read_only=True)
 
     # Write-only fields for create/update operations
     project_id = serializers.IntegerField(write_only=True, required=True)
