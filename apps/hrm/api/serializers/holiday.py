@@ -22,6 +22,9 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_by", "updated_by", "created_at", "updated_at"]
+        extra_kwargs = {
+            "holiday": {"required": False},  # Not required since it's set from URL context
+        }
 
     def validate(self, attrs):
         """Validate compensatory workday data."""

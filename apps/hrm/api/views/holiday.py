@@ -198,7 +198,7 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
                 return self.get_paginated_response(serializer.data)
 
             serializer = CompensatoryWorkdaySerializer(queryset, many=True)
-            return Response({"success": True, "data": serializer.data, "error": None})
+            return Response(serializer.data)
 
         elif request.method == "POST":
             # Create compensatory day(s)
@@ -232,84 +232,43 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
             # Return response
             result_serializer = CompensatoryWorkdaySerializer(created_items, many=True)
             if is_bulk:
-                return Response(
-                    {"success": True, "data": result_serializer.data, "error": None},
-                    status=status.HTTP_201_CREATED,
-                )
+                return Response(result_serializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response(
-                    {"success": True, "data": result_serializer.data[0], "error": None},
-                    status=status.HTTP_201_CREATED,
-                )
+                return Response(result_serializer.data[0], status=status.HTTP_201_CREATED)
 
     @extend_schema(
-        summary="Get compensatory workday details",
-        description="Retrieve details of a specific compensatory workday",
+        summary="Manage a specific compensatory workday",
+        description="Get, update, or delete a specific compensatory workday",
         tags=["Holiday - Compensatory Workdays"],
     )
-    @action(detail=True, methods=["get"], url_path="compensatory-days/(?P<comp_id>[^/.]+)")
+    @action(detail=True, methods=["get", "put", "patch", "delete"], url_path="compensatory-days/(?P<comp_id>[^/.]+)")
     def compensatory_day_detail(self, request, pk=None, comp_id=None):
-        """Retrieve a specific compensatory workday."""
+        """Retrieve, update, or delete a specific compensatory workday."""
         holiday = self.get_object()
         try:
             comp_day = CompensatoryWorkday.objects.get(id=comp_id, holiday=holiday, deleted=False)
         except CompensatoryWorkday.DoesNotExist:
             return Response(
-                {"success": False, "data": None, "error": _("Compensatory workday not found")},
+                {"error": _("Compensatory workday not found")},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = CompensatoryWorkdaySerializer(comp_day)
-        return Response({"success": True, "data": serializer.data, "error": None})
+        if request.method == "GET":
+            serializer = CompensatoryWorkdaySerializer(comp_day)
+            return Response(serializer.data)
 
-    @extend_schema(
-        summary="Update compensatory workday",
-        description="Update a specific compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
-    )
-    @action(detail=True, methods=["put", "patch"], url_path="compensatory-days/(?P<comp_id>[^/.]+)")
-    def update_compensatory_day(self, request, pk=None, comp_id=None):
-        """Update a specific compensatory workday."""
-        holiday = self.get_object()
-        try:
-            comp_day = CompensatoryWorkday.objects.get(id=comp_id, holiday=holiday, deleted=False)
-        except CompensatoryWorkday.DoesNotExist:
-            return Response(
-                {"success": False, "data": None, "error": _("Compensatory workday not found")},
-                status=status.HTTP_404_NOT_FOUND,
+        elif request.method in ["PUT", "PATCH"]:
+            partial = request.method == "PATCH"
+            serializer = CompensatoryWorkdaySerializer(
+                comp_day, data=request.data, partial=partial, context={"request": request}
             )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(updated_by=request.user)
+            return Response(serializer.data)
 
-        partial = request.method == "PATCH"
-        serializer = CompensatoryWorkdaySerializer(
-            comp_day, data=request.data, partial=partial, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user)
-
-        return Response({"success": True, "data": serializer.data, "error": None})
-
-    @extend_schema(
-        summary="Delete compensatory workday",
-        description="Soft delete a specific compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
-    )
-    @action(detail=True, methods=["delete"], url_path="compensatory-days/(?P<comp_id>[^/.]+)")
-    def delete_compensatory_day(self, request, pk=None, comp_id=None):
-        """Delete a specific compensatory workday."""
-        holiday = self.get_object()
-        try:
-            comp_day = CompensatoryWorkday.objects.get(id=comp_id, holiday=holiday, deleted=False)
-        except CompensatoryWorkday.DoesNotExist:
-            return Response(
-                {"success": False, "data": None, "error": _("Compensatory workday not found")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        comp_day.delete()
-        return Response(
-            {"success": True, "data": None, "error": None},
-            status=status.HTTP_204_NO_CONTENT,
-        )
+        elif request.method == "DELETE":
+            comp_day.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         summary="Export compensatory workdays to XLSX",

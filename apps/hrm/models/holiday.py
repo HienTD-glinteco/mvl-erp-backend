@@ -80,8 +80,7 @@ class Holiday(BaseModel):
             raise ValidationError({"end_date": _("End date must be greater than or equal to start date")})
 
     def save(self, *args, **kwargs):
-        """Override save to run full_clean validation."""
-        self.full_clean()
+        """Override save method."""
         super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
@@ -177,8 +176,7 @@ class CompensatoryWorkday(BaseModel):
                 )
 
     def save(self, *args, **kwargs):
-        """Override save to run full_clean validation."""
-        self.full_clean()
+        """Override save method."""
         super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
