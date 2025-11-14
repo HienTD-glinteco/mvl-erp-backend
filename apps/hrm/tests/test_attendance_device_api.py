@@ -78,6 +78,11 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertTrue(device.is_connected)
         self.assertTrue(device.is_enabled)
 
+        # Verify code is returned in response
+        response_data = self.get_response_data(response)
+        self.assertIn("code", response_data)
+        self.assertIsNotNone(response_data["code"])
+
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
     def test_create_attendance_device_connection_failure(self, mock_service):
         """Test creating an attendance device with connection failure."""
@@ -308,23 +313,6 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[1]["name"], "M Device")
         self.assertEqual(response_data[2]["name"], "Z Device")
 
-    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
-    def test_password_not_returned_in_response(self, mock_service):
-        """Test that password is write-only and not returned in responses."""
-        # Arrange
-        device = AttendanceDevice.objects.create(
-            name="Secure Device", ip_address="192.168.1.100", password="secret123"
-        )
-
-        # Act
-        url = reverse("hrm:attendance-device-detail", kwargs={"pk": device.id})
-        response = self.client.get(url)
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = self.get_response_data(response)
-        self.assertNotIn("password", response_data)
-
     @patch("apps.hrm.models.attendance_device.ZKDeviceService")
     def test_toggle_enabled_enable_device_success(self, mock_service):
         """Test toggling device from disabled to enabled with successful connection."""
@@ -450,3 +438,132 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data["message"], "Network connection error: Connection timeout")
         device.refresh_from_db()
         self.assertFalse(device.is_connected)
+
+    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
+    def test_create_device_with_note(self, mock_service):
+        """Test creating a device with a note."""
+        # Arrange - Mock successful connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (True, "Connection successful")
+        mock_service_instance._zk_connection = MagicMock()
+        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
+        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
+        mock_service_instance.__exit__ = MagicMock(return_value=False)
+        mock_service.return_value = mock_service_instance
+
+        device_data = {
+            "name": "Test Device",
+            "ip_address": "192.168.1.100",
+            "port": 4370,
+            "password": "admin123",
+            "is_enabled": True,
+            "note": "This is a test device note",
+        }
+
+        # Act
+        url = reverse("hrm:attendance-device-list")
+        response = self.client.post(url, device_data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        device = AttendanceDevice.objects.first()
+        self.assertEqual(device.note, "This is a test device note")
+
+        # Verify note is returned in response
+        response_data = self.get_response_data(response)
+        self.assertIn("note", response_data)
+        self.assertEqual(response_data["note"], "This is a test device note")
+
+    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
+    def test_create_device_without_note_defaults_to_empty(self, mock_service):
+        """Test creating a device without a note defaults to empty string."""
+        # Arrange - Mock successful connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (True, "Connection successful")
+        mock_service_instance._zk_connection = MagicMock()
+        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
+        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
+        mock_service_instance.__exit__ = MagicMock(return_value=False)
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-list")
+        response = self.client.post(url, self.device_data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        device = AttendanceDevice.objects.first()
+        self.assertEqual(device.note, "")
+
+    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
+    def test_update_device_note(self, mock_service):
+        """Test updating a device's note."""
+        # Arrange
+        device = AttendanceDevice.objects.create(
+            name="Test Device",
+            ip_address="192.168.1.100",
+            port=4370,
+            note="Original note",
+        )
+
+        # Mock successful connection
+        mock_service_instance = MagicMock()
+        mock_service_instance.test_connection.return_value = (True, "Connection successful")
+        mock_service_instance._zk_connection = MagicMock()
+        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
+        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
+        mock_service_instance.__exit__ = MagicMock(return_value=False)
+        mock_service.return_value = mock_service_instance
+
+        # Act
+        url = reverse("hrm:attendance-device-detail", kwargs={"pk": device.id})
+        response = self.client.patch(url, {"note": "Updated note", "password": "admin123"}, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        device.refresh_from_db()
+        self.assertEqual(device.note, "Updated note")
+
+    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
+    def test_password_required_on_create(self, mock_service):
+        """Test that password is required when creating a device."""
+        # Arrange
+        device_data = {
+            "name": "Test Device",
+            "ip_address": "192.168.1.100",
+            "port": 4370,
+            "is_enabled": True,
+            # password is missing
+        }
+
+        # Act
+        url = reverse("hrm:attendance-device-list")
+        response = self.client.post(url, device_data, format="json")
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_content = json.loads(response.content.decode())
+        self.assertIn("error", response_content)
+
+    @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
+    def test_code_field_returned_in_response(self, mock_service):
+        """Test that code field is returned in API responses."""
+        # Arrange
+        device = AttendanceDevice.objects.create(
+            name="Test Device",
+            ip_address="192.168.1.100",
+            port=4370,
+        )
+
+        # Act
+        url = reverse("hrm:attendance-device-detail", kwargs={"pk": device.id})
+        response = self.client.get(url)
+
+        # Assert
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("code", response_data)
+        self.assertEqual(response_data["code"], device.code)

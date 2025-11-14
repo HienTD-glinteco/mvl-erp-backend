@@ -15,7 +15,6 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
     On create/update, validates device connection and updates device information.
     """
 
-    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     # Expose nested block data for reads, and accept block id for writes.
     block = BlockSerializer(read_only=True)
     block_id = serializers.PrimaryKeyRelatedField(
@@ -26,6 +25,7 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
         model = AttendanceDevice
         fields = [
             "id",
+            "code",
             "name",
             "block_id",
             "block",
@@ -39,11 +39,13 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "realtime_enabled",
             "realtime_disabled_at",
             "polling_synced_at",
+            "note",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
+            "code",
             "serial_number",
             "is_connected",
             "realtime_enabled",
@@ -52,6 +54,9 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "password": {"required": True},
+        }
 
     def validate(self, attrs):
         """Validate device connection on create/update.

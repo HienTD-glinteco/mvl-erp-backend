@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 13:54+0700\n"
+"POT-Creation-Date: 2025-11-14 14:46+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/hrm/api/serializers/attendance_device.py:93
+#: apps/hrm/api/serializers/attendance_device.py:98
 #, python-brace-format
 msgid "A device with IP {ip} and port {port} already exists."
 msgstr ""
@@ -103,7 +103,7 @@ msgstr ""
 msgid "Number of positions must be at least 1."
 msgstr ""
 
-#: apps/hrm/api/views/attendance_device.py:272
+#: apps/hrm/api/views/attendance_device.py:472
 #, python-format
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
@@ -804,6 +804,22 @@ msgstr ""
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
+#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/employee.py:206
+#: apps/hrm/models/employee_dependent.py:109
+#: apps/hrm/models/employee_relationship.py:144
+#: apps/hrm/models/employee_work_history.py:106
+#: apps/hrm/models/interview_schedule.py:31
+#: apps/hrm/models/job_description.py:25
+#: apps/hrm/models/recruitment_candidate.py:118
+#: apps/hrm/models/recruitment_candidate_contact_log.py:20
+#: apps/hrm/models/recruitment_expense.py:73
+msgid "Note"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:118
+msgid "Additional notes or comments about the device"
+msgstr ""
+
 #: apps/hrm/models/attendance_geolocation.py:20 apps/hrm/models/employee.py:70
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:68
 #: apps/hrm/models/organization.py:130 apps/hrm/models/organization.py:261
@@ -1083,17 +1099,6 @@ msgstr ""
 
 #: apps/hrm/models/employee.py:204 apps/hrm/models/employee_work_history.py:140
 msgid "Resignation reason"
-msgstr ""
-
-#: apps/hrm/models/employee.py:206 apps/hrm/models/employee_dependent.py:109
-#: apps/hrm/models/employee_relationship.py:144
-#: apps/hrm/models/employee_work_history.py:106
-#: apps/hrm/models/interview_schedule.py:31
-#: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/recruitment_candidate.py:118
-#: apps/hrm/models/recruitment_candidate_contact_log.py:20
-#: apps/hrm/models/recruitment_expense.py:73
-msgid "Note"
 msgstr ""
 
 #: apps/hrm/models/employee.py:212 apps/hrm/models/employee_dependent.py:71

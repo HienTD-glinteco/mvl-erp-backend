@@ -243,7 +243,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
 
     def _get_total_employees(self):
         """Get total of employees except Resigned."""
-        return Employee.objects.exclude(status=Employee.Status.RESIGNED).count()
+        return Employee.objects.exclude(status=Employee.Status.RESIGNED).exclude(code_type="OS").count()
 
     def _get_experience_breakdown(self, from_date, to_date):
         """Get experience breakdown from HiredCandidateReport."""
