@@ -322,7 +322,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         )
 
         url = reverse("hrm:attendance-exemption-list")
-        
+
         # Filter for dates from Jan to Mar
         response = self.client.get(url, {
             "effective_date_from": "2025-01-01",
@@ -375,7 +375,7 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
-        
+
         # Check employee structure
         employee = data["employee"]
         self.assertIn("id", employee)
@@ -384,12 +384,12 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("email", employee)
         self.assertIn("position", employee)
         self.assertIn("branch", employee)
-        
+
         # Check position structure
         self.assertIsNotNone(employee["position"])
         self.assertEqual(employee["position"]["code"], "MGR")
         self.assertEqual(employee["position"]["name"], "Manager")
-        
+
         # Check branch structure
         self.assertIsNotNone(employee["branch"])
         self.assertEqual(employee["branch"]["code"], "HQ")
