@@ -8,6 +8,9 @@ from apps.hrm.models import CompensatoryWorkday, Holiday
 class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
     """Serializer for CompensatoryWorkday model."""
 
+    morning_time = serializers.SerializerMethodField()
+    afternoon_time = serializers.SerializerMethodField()
+
     class Meta:
         model = CompensatoryWorkday
         fields = [
@@ -16,10 +19,24 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             "date",
             "session",
             "notes",
+            "morning_time",
+            "afternoon_time",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "holiday", "created_at", "updated_at"]
+        read_only_fields = ["id", "holiday", "morning_time", "afternoon_time", "created_at", "updated_at"]
+
+    def get_morning_time(self, obj):
+        """Get morning time range if session is morning or full_day."""
+        if obj.session in [CompensatoryWorkday.Session.MORNING, CompensatoryWorkday.Session.FULL_DAY]:
+            return "08:00-12:00"
+        return ""
+
+    def get_afternoon_time(self, obj):
+        """Get afternoon time range if session is afternoon or full_day."""
+        if obj.session in [CompensatoryWorkday.Session.AFTERNOON, CompensatoryWorkday.Session.FULL_DAY]:
+            return "13:30-17:30"
+        return ""
 
     def _get_holiday(self, attrs):
         """Get holiday from attrs, instance, or context."""

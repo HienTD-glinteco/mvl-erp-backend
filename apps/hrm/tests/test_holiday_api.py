@@ -785,3 +785,57 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         except Exception:
             # Expected: the endpoint should not exist
             pass
+
+    def test_compensatory_time_fields_morning(self):
+        """Test that morning_time and afternoon_time fields are correct for morning session."""
+        # Create a compensatory day with morning session
+        comp_day = CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 3, 8),  # Sunday
+            session=CompensatoryWorkday.Session.MORNING,
+            notes="Morning session test",
+        )
+
+        url = reverse("hrm:compensatory-day-detail", kwargs={"holiday_pk": self.holiday.pk, "pk": comp_day.pk})
+        response = self.client.get(url)
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["morning_time"], "08:00-12:00")
+        self.assertEqual(data["afternoon_time"], "")
+
+    def test_compensatory_time_fields_afternoon(self):
+        """Test that morning_time and afternoon_time fields are correct for afternoon session."""
+        # Create a compensatory day with afternoon session
+        comp_day = CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 3, 7),  # Saturday
+            session=CompensatoryWorkday.Session.AFTERNOON,
+            notes="Afternoon session test",
+        )
+
+        url = reverse("hrm:compensatory-day-detail", kwargs={"holiday_pk": self.holiday.pk, "pk": comp_day.pk})
+        response = self.client.get(url)
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["morning_time"], "")
+        self.assertEqual(data["afternoon_time"], "13:30-17:30")
+
+    def test_compensatory_time_fields_full_day(self):
+        """Test that morning_time and afternoon_time fields are correct for full_day session."""
+        # Create a compensatory day with full_day session
+        comp_day = CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 3, 15),  # Sunday
+            session=CompensatoryWorkday.Session.FULL_DAY,
+            notes="Full day session test",
+        )
+
+        url = reverse("hrm:compensatory-day-detail", kwargs={"holiday_pk": self.holiday.pk, "pk": comp_day.pk})
+        response = self.client.get(url)
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["morning_time"], "08:00-12:00")
+        self.assertEqual(data["afternoon_time"], "13:30-17:30")
