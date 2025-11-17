@@ -3,7 +3,6 @@ from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
-from .compensatory_workday import CompensatoryWorkdayViewSet
 from .contract_type import ContractTypeViewSet
 from .employee import EmployeeViewSet
 from .employee_certificate import EmployeeCertificateViewSet
@@ -12,7 +11,7 @@ from .employee_relationship import EmployeeRelationshipViewSet
 from .employee_reports import EmployeeReportsViewSet
 from .employee_role import EmployeeRoleViewSet
 from .employee_work_history import EmployeeWorkHistoryViewSet
-from .holiday import HolidayViewSet
+from .holiday import CompensatoryWorkdayViewSet, HolidayViewSet
 from .interview_candidate import InterviewCandidateViewSet
 from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet

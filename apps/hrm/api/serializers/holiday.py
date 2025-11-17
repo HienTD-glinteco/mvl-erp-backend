@@ -22,10 +22,7 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_by", "updated_by", "created_at", "updated_at"]
-        extra_kwargs = {
-            "holiday": {"required": False},  # Not required since it's set from URL context
-        }
+        read_only_fields = ["id", "holiday", "created_by", "updated_by", "created_at", "updated_at"]
 
     def validate(self, attrs):
         """Validate compensatory workday data."""
@@ -34,13 +31,7 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
         date = attrs.get("date")
         session = attrs.get("session", CompensatoryWorkday.Session.FULL_DAY)
 
-        if holiday and date:
-            # Check if date falls within holiday range
-            if holiday.start_date <= date <= holiday.end_date:
-                raise serializers.ValidationError(
-                    {"date": _("Compensatory workday date cannot fall within the holiday date range")}
-                )
-
+        if date:
             # Check if the date is Saturday (5) or Sunday (6)
             weekday = date.weekday()
             if weekday not in [5, 6]:  # 5 = Saturday, 6 = Sunday
@@ -54,6 +45,20 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
                     {"session": _("For Saturday compensatory workdays, only afternoon session is allowed")}
                 )
 
+            # Check if compensatory date overlaps with ANY active holiday
+            overlapping_holidays = Holiday.objects.filter(
+                deleted=False,
+                status=Holiday.Status.ACTIVE,
+                start_date__lte=date,
+                end_date__gte=date,
+            )
+            if overlapping_holidays.exists():
+                holiday_name = overlapping_holidays.first().name
+                raise serializers.ValidationError(
+                    {"date": _(f"Compensatory workday date overlaps with active holiday: {holiday_name}")}
+                )
+
+        if holiday and date:
             # Check for existing compensatory workdays with same date for this holiday
             # Exclude current instance if updating
             queryset = CompensatoryWorkday.objects.filter(holiday=holiday, date=date, deleted=False)

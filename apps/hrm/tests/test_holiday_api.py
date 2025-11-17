@@ -271,8 +271,8 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             "end_date": "2026-03-03",
             "notes": "Test holiday",
             "status": "active",
-            # This compensatory date overlaps with Lunar New Year (Feb 5-8)
-            "compensatory_dates": ["2026-02-06"],
+            # This compensatory date overlaps with Lunar New Year (Feb 5-8), Feb 8 is Sunday
+            "compensatory_dates": ["2026-02-08"],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -286,12 +286,12 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:holiday-list")
         payload = {
             "name": "Test Holiday",
-            "start_date": "2026-03-01",
-            "end_date": "2026-03-05",
+            "start_date": "2026-03-06",
+            "end_date": "2026-03-10",
             "notes": "Test holiday",
             "status": "active",
-            # This compensatory date falls within the holiday range itself
-            "compensatory_dates": ["2026-03-03"],
+            # This compensatory date falls within the holiday range itself (Mar 7 is Saturday)
+            "compensatory_dates": ["2026-03-07"],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -427,19 +427,30 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(data["session"], "afternoon")
         self.assertEqual(CompensatoryWorkday.objects.filter(holiday=self.holiday, deleted=False).count(), 3)
 
-    def test_create_compensatory_day_bulk(self):
-        """Test creating multiple compensatory days atomically."""
+    def test_create_compensatory_day_overlaps_active_holiday(self):
+        """Test that compensatory day cannot overlap with any active holiday."""
+        # Create an active holiday on Feb 21 (Saturday)
+        Holiday.objects.create(
+            name="Special Saturday Holiday",
+            start_date=date(2026, 2, 21),
+            end_date=date(2026, 2, 21),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
-        payload = [
-            {"date": "2026-02-21", "session": "afternoon", "notes": "Saturday comp day"},  # Saturday
-            {"date": "2026-02-22", "session": "full_day", "notes": "Sunday comp day"},  # Sunday
-        ]
+        payload = {
+            "date": "2026-02-21",  # This date is now a holiday
+            "session": "afternoon",
+            "notes": "Should fail",
+        }
         response = self.client.post(url, payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        data = self.get_response_data(response)
-        self.assertEqual(len(data), 2)
-        self.assertEqual(CompensatoryWorkday.objects.filter(holiday=self.holiday, deleted=False).count(), 4)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("date", str(content["error"]))
 
     def test_create_compensatory_day_within_holiday_range(self):
         """Test creating a compensatory day that falls within the holiday range (should fail)."""
