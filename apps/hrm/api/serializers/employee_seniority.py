@@ -1,5 +1,6 @@
 from datetime import date
 
+from dateutil.parser import parse
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -216,14 +217,10 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
 
             # Parse dates if they're strings
             if isinstance(from_date, str):
-                from dateutil.parser import parse
-
                 from_date = parse(from_date).date()
 
             if to_date:
                 if isinstance(to_date, str):
-                    from dateutil.parser import parse
-
                     to_date = parse(to_date).date()
                 end_date = to_date
             else:
@@ -332,8 +329,6 @@ class EmployeeSenioritySerializer(serializers.ModelSerializer):
             if not from_date:
                 return date.min
             if isinstance(from_date, str):
-                from dateutil.parser import parse
-
                 return parse(from_date).date()
             return from_date
 

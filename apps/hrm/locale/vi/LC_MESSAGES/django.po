@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 17:06+0700\n"
+"POT-Creation-Date: 2025-11-18 00:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "Please select a new role."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee_seniority.py:314
+#: apps/hrm/api/serializers/employee_seniority.py:311
 msgid "Current employment period"
 msgstr ""
 
