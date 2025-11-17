@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.hrm.api.views import (
     AttendanceDeviceViewSet,
+    AttendanceExemptionViewSet,
     AttendanceGeolocationViewSet,
     AttendanceRecordViewSet,
     BankAccountViewSet,
@@ -52,6 +53,7 @@ router.register(r"contract-types", ContractTypeViewSet, basename="contract-type"
 router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
 router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
+router.register(r"attendance-exemptions", AttendanceExemptionViewSet, basename="attendance-exemption")
 router.register(r"holidays", HolidayViewSet, basename="holiday")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")

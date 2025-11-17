@@ -1,4 +1,5 @@
 from .attendance_device import AttendanceDevice
+from .attendance_exemption import AttendanceExemption
 from .attendance_geolocation import AttendanceGeolocation
 from .attendance_record import AttendanceRecord
 from .bank import Bank
@@ -37,6 +38,7 @@ from .work_schedule import WorkSchedule
 
 __all__ = [
     "AttendanceDevice",
+    "AttendanceExemption",
     "AttendanceGeolocation",
     "AttendanceRecord",
     "Bank",
