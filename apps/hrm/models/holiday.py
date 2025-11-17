@@ -97,6 +97,7 @@ class CompensatoryWorkday(BaseModel):
     Attributes:
         holiday: Related holiday
         date: Date of the compensatory workday
+        session: Work session (morning, afternoon, or full day)
         notes: Additional notes
         status: Current status (active, inactive, archived)
         created_by: User who created this compensatory workday
@@ -110,6 +111,11 @@ class CompensatoryWorkday(BaseModel):
         INACTIVE = "inactive", _("Inactive")
         ARCHIVED = "archived", _("Archived")
 
+    class Session(models.TextChoices):
+        MORNING = "morning", _("Morning")
+        AFTERNOON = "afternoon", _("Afternoon")
+        FULL_DAY = "full_day", _("Full Day")
+
     holiday = models.ForeignKey(
         Holiday,
         on_delete=models.CASCADE,
@@ -117,6 +123,12 @@ class CompensatoryWorkday(BaseModel):
         verbose_name=_("Holiday"),
     )
     date = models.DateField(verbose_name=_("Compensatory workday date"))
+    session = models.CharField(
+        max_length=20,
+        choices=Session.choices,
+        default=Session.FULL_DAY,
+        verbose_name=_("Session"),
+    )
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
     status = models.CharField(
         max_length=20,
@@ -173,6 +185,20 @@ class CompensatoryWorkday(BaseModel):
             if self.holiday.start_date <= self.date <= self.holiday.end_date:
                 raise ValidationError(
                     {"date": _("Compensatory workday date cannot fall within the holiday date range")}
+                )
+
+            # Check if the date is Saturday (5) or Sunday (6)
+            # Python's weekday(): Monday=0, Sunday=6
+            weekday = self.date.weekday()
+            if weekday not in [5, 6]:  # 5 = Saturday, 6 = Sunday
+                raise ValidationError(
+                    {"date": _("Compensatory workday must be on Saturday or Sunday")}
+                )
+
+            # If Saturday, session can only be afternoon
+            if weekday == 5 and self.session != self.Session.AFTERNOON:
+                raise ValidationError(
+                    {"session": _("For Saturday compensatory workdays, only afternoon session is allowed")}
                 )
 
     def save(self, *args, **kwargs):

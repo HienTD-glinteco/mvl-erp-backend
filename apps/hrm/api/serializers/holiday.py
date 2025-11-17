@@ -14,6 +14,7 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             "id",
             "holiday",
             "date",
+            "session",
             "notes",
             "status",
             "created_by",
@@ -31,12 +32,26 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
         # Get the holiday from attrs or instance
         holiday = attrs.get("holiday") or (self.instance.holiday if self.instance else None)
         date = attrs.get("date")
+        session = attrs.get("session", CompensatoryWorkday.Session.FULL_DAY)
 
         if holiday and date:
             # Check if date falls within holiday range
             if holiday.start_date <= date <= holiday.end_date:
                 raise serializers.ValidationError(
                     {"date": _("Compensatory workday date cannot fall within the holiday date range")}
+                )
+
+            # Check if the date is Saturday (5) or Sunday (6)
+            weekday = date.weekday()
+            if weekday not in [5, 6]:  # 5 = Saturday, 6 = Sunday
+                raise serializers.ValidationError(
+                    {"date": _("Compensatory workday must be on Saturday or Sunday")}
+                )
+
+            # If Saturday, session can only be afternoon
+            if weekday == 5 and session != CompensatoryWorkday.Session.AFTERNOON:
+                raise serializers.ValidationError(
+                    {"session": _("For Saturday compensatory workdays, only afternoon session is allowed")}
                 )
 
             # Check for existing compensatory workdays with same date for this holiday
@@ -136,6 +151,13 @@ class HolidaySerializer(serializers.ModelSerializer):
         if compensatory_dates:
             # Check if any compensatory date falls within any active holiday range
             for comp_date in compensatory_dates:
+                # Validate that compensatory date is Saturday or Sunday
+                weekday = comp_date.weekday()
+                if weekday not in [5, 6]:  # 5 = Saturday, 6 = Sunday
+                    raise serializers.ValidationError(
+                        {"compensatory_dates": _(f"Compensatory date {comp_date} must be on Saturday or Sunday")}
+                    )
+
                 # Check against all active holidays (including the one being created/updated)
                 overlapping_holidays = Holiday.objects.filter(
                     deleted=False,
@@ -189,9 +211,18 @@ class HolidaySerializer(serializers.ModelSerializer):
         if compensatory_dates:
             user = self.context["request"].user
             for date in compensatory_dates:
+                # Determine session based on day of week
+                # Saturday (5) defaults to afternoon, Sunday (6) defaults to full day
+                weekday = date.weekday()
+                if weekday == 5:  # Saturday
+                    session = CompensatoryWorkday.Session.AFTERNOON
+                else:  # Sunday
+                    session = CompensatoryWorkday.Session.FULL_DAY
+                
                 CompensatoryWorkday.objects.create(
                     holiday=holiday,
                     date=date,
+                    session=session,
                     created_by=user,
                     updated_by=user,
                 )
