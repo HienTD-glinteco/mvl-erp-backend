@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 10:51+0700\n"
+"POT-Creation-Date: 2025-11-17 15:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,6 +96,46 @@ msgstr ""
 
 #: apps/hrm/api/serializers/employee_seniority.py:314
 msgid "Current employment period"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:112
+msgid "Compensatory workday must be on Saturday or Sunday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:118
+msgid "For Saturday compensatory workdays, only afternoon session is allowed"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
+msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:134
+msgid "Date of the compensatory workday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:138
+msgid ""
+"Work session (morning, afternoon, or full_day). Auto-set based on weekday if "
+"not provided."
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:143
+msgid "Additional notes about the compensatory workday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:156
+msgid ""
+"List of compensatory workdays to create with the holiday (date, session, "
+"notes)"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
+msgid "End date must be greater than or equal to start date"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:209
+msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_request.py:148
@@ -288,9 +328,31 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/api/views/employee.py:488
 #: apps/hrm/models/attendance_geolocation.py:61
 #: apps/hrm/models/attendance_record.py:70
-#: apps/hrm/models/employee_certificate.py:103
+#: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:23
+#: apps/hrm/models/holiday.py:75
 msgid "Notes"
 msgstr "Ghi Chú"
+
+#: apps/hrm/api/views/employee_reports.py:62
+#: apps/hrm/api/views/recruitment_reports.py:675 apps/hrm/constants.py:39
+#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:82
+#: apps/hrm/api/views/recruitment_reports.py:131
+#: apps/hrm/api/views/recruitment_reports.py:803 apps/hrm/constants.py:40
+#: apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:108 apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:129 apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:334
 msgid "Average"
@@ -362,6 +424,10 @@ msgstr ""
 msgid "Update successful"
 msgstr ""
 
+#: apps/hrm/api/views/holiday.py:212
+msgid "Holiday not found"
+msgstr ""
+
 #: apps/hrm/api/views/recruitment_dashboard.py:261
 msgid "Experienced"
 msgstr ""
@@ -403,22 +469,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:47
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53
@@ -1175,7 +1225,7 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: apps/hrm/models/employee.py:182
+#: apps/hrm/models/employee.py:182 apps/hrm/models/holiday.py:21
 msgid "Start date"
 msgstr ""
 
@@ -1692,6 +1742,56 @@ msgstr ""
 
 #: apps/hrm/models/employee_work_history.py:163
 msgid "Employee work histories"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:20
+msgid "Holiday name"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:22
+msgid "End date"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:26 apps/hrm/models/holiday.py:66
+msgid "Holiday"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:27
+msgid "Holidays"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:58
+msgid "Morning"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:59
+msgid "Afternoon"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:60
+#, fuzzy
+#| msgid "Full Name"
+msgid "Full Day"
+msgstr "Tên đầy đủ"
+
+#: apps/hrm/models/holiday.py:68
+msgid "Compensatory workday date"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:73
+msgid "Session"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:78
+msgid "Compensatory Workday"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:79
+msgid "Compensatory Workdays"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:104
+msgid "Compensatory workday date cannot fall within the holiday date range"
 msgstr ""
 
 #: apps/hrm/models/interview_candidate.py:16

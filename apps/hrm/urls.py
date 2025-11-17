@@ -9,6 +9,7 @@ from apps.hrm.api.views import (
     BankViewSet,
     BlockViewSet,
     BranchViewSet,
+    CompensatoryWorkdayViewSet,
     ContractTypeViewSet,
     DepartmentViewSet,
     EmployeeCertificateViewSet,
@@ -19,6 +20,7 @@ from apps.hrm.api.views import (
     EmployeeTimesheetViewSet,
     EmployeeViewSet,
     EmployeeWorkHistoryViewSet,
+    HolidayViewSet,
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
@@ -50,6 +52,7 @@ router.register(r"contract-types", ContractTypeViewSet, basename="contract-type"
 router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
 router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
+router.register(r"holidays", HolidayViewSet, basename="holiday")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")
 router.register(r"job-descriptions", JobDescriptionViewSet, basename="job-description")
@@ -76,6 +79,11 @@ router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-rep
 # Dashboard endpoints (single ViewSet with custom actions)
 router.register(r"dashboard", RecruitmentDashboardViewSet, basename="recruitment-dashboard")
 
+# Nested routes for compensatory workdays under holidays
+compensatory_router = DefaultRouter()
+compensatory_router.register(r"compensatory-days", CompensatoryWorkdayViewSet, basename="compensatory-day")
+
 urlpatterns = [
     path("", include(router.urls)),
+    path("holidays/<int:holiday_pk>/", include(compensatory_router.urls)),
 ]

@@ -10,6 +10,7 @@ from .employee_dependent import EmployeeDependent
 from .employee_relationship import EmployeeRelationship
 from .employee_report import EmployeeResignedReasonReport, EmployeeStatusBreakdownReport
 from .employee_work_history import EmployeeWorkHistory
+from .holiday import CompensatoryWorkday, Holiday
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
 from .job_description import JobDescription
@@ -49,6 +50,8 @@ __all__ = [
     "EmployeeDependent",
     "EmployeeWorkHistory",
     "ContractType",
+    "Holiday",
+    "CompensatoryWorkday",
     "RecruitmentChannel",
     "RecruitmentSource",
     "JobDescription",
