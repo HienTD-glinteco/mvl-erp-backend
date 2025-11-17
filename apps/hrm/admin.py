@@ -25,6 +25,7 @@ from .models import (
     RecruitmentExpense,
     RecruitmentRequest,
     RecruitmentSource,
+    WorkSchedule,
 )
 
 
@@ -83,3 +84,4 @@ admin.site.register(RecruitmentRequest)
 admin.site.register(RecruitmentCandidate)
 admin.site.register(RecruitmentCandidateContactLog)
 admin.site.register(RecruitmentExpense)
+admin.site.register(WorkSchedule)

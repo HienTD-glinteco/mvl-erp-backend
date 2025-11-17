@@ -35,7 +35,8 @@ class TestLogAuditEvent(TestCase):
         )
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")
@@ -260,7 +261,7 @@ class TestAuditContext(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
 
     def test_context_manager_stores_request(self):
         """Test that context manager stores request in thread-local storage."""
@@ -334,7 +335,7 @@ class TestAuditLoggingDecorator(TestCase):
     """Test cases for the @audit_logging decorator."""
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
         self.DecoratedModel = create_dummy_model(
@@ -452,7 +453,7 @@ class TestAuditLogDisabled(TestCase):
         )
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
     @patch("asyncio.run")

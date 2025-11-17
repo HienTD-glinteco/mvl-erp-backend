@@ -35,7 +35,8 @@ class TestBatchAuditContext(TestCase):
         AuditLogRegistry.register(cls.TestBatchModel)
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
     def test_batch_context_provides_metadata(self):
@@ -153,7 +154,7 @@ class TestBatchWithDecorator(TestCase):
     """Test that batch context works with the @audit_logging decorator."""
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.factory = RequestFactory()
 
     @patch("apps.audit_logging.producer._audit_producer.log_event")

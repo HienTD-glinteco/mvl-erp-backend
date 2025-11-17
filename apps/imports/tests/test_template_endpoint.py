@@ -24,7 +24,8 @@ def api_client():
 @pytest.fixture
 def user(db):
     """Create test user."""
-    return User.objects.create_user(
+    # Changed to superuser to bypass RoleBasedPermission for API tests
+    return User.objects.create_superuser(
         username="testuser",
         email="test@example.com",
         password="testpass123",

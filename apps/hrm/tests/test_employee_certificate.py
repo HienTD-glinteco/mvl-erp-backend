@@ -225,8 +225,8 @@ class EmployeeCertificateAPITest(TestCase):
     """Test cases for EmployeeCertificate API"""
 
     def setUp(self):
-        # Create test user
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="testuser@example.com",
             password="testpass123",

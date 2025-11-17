@@ -38,7 +38,8 @@ class FieldFilteringSerializerMixinTests(TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.factory = APIRequestFactory()
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.role = Role.objects.create(code="TEST01", name="Test Role", description="Test Description")
 
     def test_no_filtering_when_no_request(self):

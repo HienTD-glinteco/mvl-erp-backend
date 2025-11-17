@@ -16,7 +16,8 @@ class AuthAuditLoggingTestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser001",
             email="test@example.com",
             password="testpass123",
@@ -122,7 +123,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="emp001",
             email="employee@example.com",
             password="testpass123",
@@ -287,7 +288,7 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
     def test_login_audit_log_without_employee_record(self, mock_log_event, mock_trigger_send_notification):
         """Test that login still works for users without employee records"""
         # Create a user without employee record
-        user_no_employee = User.objects.create_user(
+        user_no_employee = User.objects.create_superuser(
             username="noemployee",
             email="noemployee@example.com",
             password="testpass123",

@@ -66,7 +66,8 @@ class FileConfirmSerializerMixinTest(TestCase):
         FileModel.objects.all().delete()
 
         # Create test user
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

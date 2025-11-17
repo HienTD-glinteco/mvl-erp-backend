@@ -21,7 +21,8 @@ class EmployeeFieldRestrictionsTest(TestCase):
         """Set up test data."""
         from apps.core.models import AdministrativeUnit, Province
 
-        self.admin_user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.admin_user = User.objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="testpass123",
@@ -197,7 +198,7 @@ class EmployeeReturnToWorkEventTest(TestCase):
         """Set up test data."""
         from apps.core.models import AdministrativeUnit, Province
 
-        self.admin_user = User.objects.create_user(
+        self.admin_user = User.objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="testpass123",

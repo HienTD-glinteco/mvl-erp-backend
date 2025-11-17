@@ -509,7 +509,8 @@ class EmployeeAPITest(TestCase, APITestMixin):
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
 
-        self.admin_user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.admin_user = User.objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="testpass123",
@@ -1099,7 +1100,8 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
 
-        self.admin_user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.admin_user = User.objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="testpass123",

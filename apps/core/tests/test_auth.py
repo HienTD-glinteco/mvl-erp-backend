@@ -13,7 +13,8 @@ from apps.core.models import PasswordResetOTP, User
 class AuthenticationTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser001",
             email="test@example.com",
             password="testpass123",

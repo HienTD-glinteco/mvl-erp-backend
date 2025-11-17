@@ -48,7 +48,8 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
 
     def setUp(self):
         """Set up test data"""
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

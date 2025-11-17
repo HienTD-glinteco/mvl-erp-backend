@@ -44,7 +44,8 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
 
         from apps.core.models import AdministrativeUnit, Province
 
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

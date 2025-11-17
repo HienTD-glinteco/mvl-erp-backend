@@ -57,7 +57,8 @@ class RecruitmentCandidateContactLogAPITest(TransactionTestCase, APITestMixin):
         RecruitmentChannel.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

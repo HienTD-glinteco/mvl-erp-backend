@@ -17,7 +17,8 @@ class TestNotificationEmailTasks:
     @pytest.fixture
     def actor(self):
         """Create an actor user."""
-        return User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        return User.objects.create_superuser(
             username="actor",
             email="actor@example.com",
             password="testpass123",
@@ -26,7 +27,7 @@ class TestNotificationEmailTasks:
     @pytest.fixture
     def recipient(self):
         """Create a recipient user."""
-        return User.objects.create_user(
+        return User.objects.create_superuser(
             username="recipient",
             email="recipient@example.com",
             password="testpass123",
@@ -94,7 +95,7 @@ class TestNotificationEmailTasks:
         # Arrange
 
         # Use another user as target for testing
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target",
             email="target@example.com",
             password="testpass123",
@@ -185,7 +186,7 @@ class TestNotificationEmailTasks:
     def test_send_notification_email_task_recipient_no_email(self, mock_send_mail, actor):
         """Test handling recipient without email address."""
         # Arrange
-        recipient_no_email = User.objects.create_user(
+        recipient_no_email = User.objects.create_superuser(
             username="no_email",
             email="noemail@example.com",  # Email is required
             password="testpass123",
@@ -215,7 +216,7 @@ class TestPushNotificationTasks:
     @pytest.fixture
     def actor(self):
         """Create an actor user."""
-        return User.objects.create_user(
+        return User.objects.create_superuser(
             username="actor",
             email="actor@example.com",
             password="testpass123",
@@ -224,7 +225,7 @@ class TestPushNotificationTasks:
     @pytest.fixture
     def recipient(self):
         """Create a recipient user."""
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient",
             email="recipient@example.com",
             password="testpass123",

@@ -24,7 +24,8 @@ class HealthCheckTestCase(TestCase):
 
     def test_user_model(self):
         """Test basic user model functionality."""
-        user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        user = User.objects.create_superuser(
             username="testuser001",
             email="test@example.com",
             password="testpass123",

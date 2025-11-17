@@ -62,6 +62,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
+from .work_schedule import WorkScheduleSerializer
 
 __all__ = [
     "AttendanceDeviceSerializer",
@@ -120,4 +121,5 @@ __all__ = [
     "EmployeeResignedReasonSummaryParamsSerializer",
     "EmployeeResignedReasonSummarySerializer",
     "ResignedReasonItemSerializer",
+    "WorkScheduleSerializer",
 ]
