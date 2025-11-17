@@ -108,7 +108,10 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             "end_date": "2026-12-24",
             "notes": "Test holiday with comp days",
             "status": "active",
-            "compensatory_dates": ["2026-12-26", "2026-12-27"],  # Saturday and Sunday
+            "compensatory_dates": [
+                {"date": "2026-12-26", "session": "afternoon", "notes": "Saturday makeup"},  # Saturday
+                {"date": "2026-12-27", "session": "full_day", "notes": "Sunday makeup"},  # Sunday
+            ],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -116,10 +119,14 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertEqual(data["compensatory_days_count"], 2)
 
-        # Verify compensatory days were created
+        # Verify compensatory days were created with correct sessions and notes
         holiday = Holiday.objects.get(pk=data["id"])
-        comp_days = CompensatoryWorkday.objects.filter(holiday=holiday, deleted=False)
+        comp_days = CompensatoryWorkday.objects.filter(holiday=holiday, deleted=False).order_by("date")
         self.assertEqual(comp_days.count(), 2)
+        self.assertEqual(comp_days[0].session, "afternoon")
+        self.assertEqual(comp_days[0].notes, "Saturday makeup")
+        self.assertEqual(comp_days[1].session, "full_day")
+        self.assertEqual(comp_days[1].notes, "Sunday makeup")
 
     def test_create_holiday_with_invalid_date_range(self):
         """Test creating a holiday with end_date before start_date."""
@@ -272,7 +279,7 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             "notes": "Test holiday",
             "status": "active",
             # This compensatory date overlaps with Lunar New Year (Feb 5-8), Feb 8 is Sunday
-            "compensatory_dates": ["2026-02-08"],
+            "compensatory_dates": [{"date": "2026-02-08"}],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -291,7 +298,7 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             "notes": "Test holiday",
             "status": "active",
             # This compensatory date falls within the holiday range itself (Mar 7 is Saturday)
-            "compensatory_dates": ["2026-03-07"],
+            "compensatory_dates": [{"date": "2026-03-07"}],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -301,7 +308,7 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("compensatory_dates", str(content["error"]))
 
     def test_compensatory_dates_duplicate_active_comp_day(self):
-        """Test that compensatory_dates cannot duplicate an existing active compensatory day."""
+        """Test that compensatory_dates with same session conflicts with existing compensatory day."""
         # First, create a holiday with a compensatory day
         existing_holiday = Holiday.objects.create(
             name="Existing Holiday",
@@ -320,7 +327,7 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             updated_by=self.user,
         )
 
-        # Try to create a new holiday with a compensatory date that already exists
+        # Try to create a new holiday with a compensatory date that has same date and session
         url = reverse("hrm:holiday-list")
         payload = {
             "name": "New Holiday",
@@ -328,8 +335,8 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
             "end_date": "2026-05-02",
             "notes": "Test holiday",
             "status": "active",
-            # This compensatory date already exists as an active comp day
-            "compensatory_dates": ["2026-04-11"],  # Saturday
+            # Same date and same session = conflict
+            "compensatory_dates": [{"date": "2026-04-11", "session": "afternoon"}],  # Saturday
         }
         response = self.client.post(url, payload, format="json")
 
@@ -621,6 +628,110 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         response = self.client.post(url, payload_full, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_compensatory_day_session_conflict_same_session(self):
+        """Test that creating compensatory day with same date and session fails."""
+        # Create another holiday
+        other_holiday = Holiday.objects.create(
+            name="Other Holiday",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        # Create a compensatory day for the other holiday
+        CompensatoryWorkday.objects.create(
+            holiday=other_holiday,
+            date=date(2026, 3, 14),  # Saturday
+            session=CompensatoryWorkday.Session.AFTERNOON,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Try to create a compensatory day for self.holiday with same date and session
+        url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
+        payload = {
+            "date": "2026-03-14",  # Same Saturday
+            "session": "afternoon",  # Same session
+            "notes": "Should conflict",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("session", str(content["error"]))
+
+    def test_create_compensatory_day_session_conflict_full_day(self):
+        """Test that full_day session conflicts with any existing session."""
+        # Create another holiday
+        other_holiday = Holiday.objects.create(
+            name="Other Holiday",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        # Create a compensatory day with morning session on Sunday
+        CompensatoryWorkday.objects.create(
+            holiday=other_holiday,
+            date=date(2026, 3, 15),  # Sunday
+            session=CompensatoryWorkday.Session.MORNING,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Try to create a compensatory day with full_day session on same date
+        url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
+        payload = {
+            "date": "2026-03-15",  # Same Sunday
+            "session": "full_day",  # Conflicts with morning
+            "notes": "Should conflict",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("session", str(content["error"]))
+
+    def test_create_compensatory_day_no_conflict_different_sessions(self):
+        """Test that different sessions on same date is allowed."""
+        # Create another holiday
+        other_holiday = Holiday.objects.create(
+            name="Other Holiday",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        # Create a compensatory day with morning session on Sunday
+        CompensatoryWorkday.objects.create(
+            holiday=other_holiday,
+            date=date(2026, 3, 22),  # Sunday
+            session=CompensatoryWorkday.Session.MORNING,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Create a compensatory day with afternoon session on same date - should succeed
+        url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
+        payload = {
+            "date": "2026-03-22",  # Same Sunday
+            "session": "afternoon",  # Different session
+            "notes": "No conflict",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+        self.assertEqual(data["session"], "afternoon")
+
     def test_create_holiday_with_compensatory_dates_validates_weekend(self):
         """Test that compensatory_dates in holiday creation validates weekend requirement."""
         url = reverse("hrm:holiday-list")
@@ -631,7 +742,7 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
             "notes": "Test holiday",
             "status": "active",
             # Include a weekday (2026-03-13 is Friday)
-            "compensatory_dates": ["2026-03-13"],
+            "compensatory_dates": [{"date": "2026-03-13"}],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -650,7 +761,10 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
             "notes": "Test holiday",
             "status": "active",
             # Saturday and Sunday (2026-03-14 is Saturday, 2026-03-15 is Sunday)
-            "compensatory_dates": ["2026-03-14", "2026-03-15"],
+            "compensatory_dates": [
+                {"date": "2026-03-14", "session": "afternoon"},
+                {"date": "2026-03-15", "session": "full_day"},
+            ],
         }
         response = self.client.post(url, payload, format="json")
 
@@ -666,6 +780,113 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(comp_days[0].session, CompensatoryWorkday.Session.AFTERNOON)
         # Sunday should have full_day session
         self.assertEqual(comp_days[1].session, CompensatoryWorkday.Session.FULL_DAY)
+
+    def test_compensatory_dates_session_conflict_same_session(self):
+        """Test that compensatory_dates with same date and session conflicts with existing comp day."""
+        # Create a holiday with a compensatory day
+        existing_holiday = Holiday.objects.create(
+            name="Existing Holiday",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        CompensatoryWorkday.objects.create(
+            holiday=existing_holiday,
+            date=date(2026, 5, 9),  # Saturday
+            session=CompensatoryWorkday.Session.AFTERNOON,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Try to create another holiday with compensatory date on same date and session
+        url = reverse("hrm:holiday-list")
+        payload = {
+            "name": "New Holiday",
+            "start_date": "2026-06-01",
+            "end_date": "2026-06-02",
+            "status": "active",
+            "compensatory_dates": [{"date": "2026-05-09", "session": "afternoon"}],  # Same date, same session
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("compensatory_dates", str(content["error"]))
+
+    def test_compensatory_dates_session_conflict_full_day(self):
+        """Test that compensatory_dates with full_day conflicts with any existing session."""
+        # Create a holiday with a compensatory day (morning session on Sunday)
+        existing_holiday = Holiday.objects.create(
+            name="Existing Holiday",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        CompensatoryWorkday.objects.create(
+            holiday=existing_holiday,
+            date=date(2026, 5, 10),  # Sunday
+            session=CompensatoryWorkday.Session.MORNING,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Try to create another holiday with full_day session on same date
+        url = reverse("hrm:holiday-list")
+        payload = {
+            "name": "New Holiday",
+            "start_date": "2026-06-01",
+            "end_date": "2026-06-02",
+            "status": "active",
+            "compensatory_dates": [{"date": "2026-05-10", "session": "full_day"}],  # full_day conflicts with morning
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("compensatory_dates", str(content["error"]))
+
+    def test_compensatory_dates_no_conflict_different_sessions(self):
+        """Test that compensatory_dates with different sessions on same date is allowed."""
+        # Create a holiday with a compensatory day (morning session on Sunday)
+        existing_holiday = Holiday.objects.create(
+            name="Existing Holiday",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 2),
+            status=Holiday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+        CompensatoryWorkday.objects.create(
+            holiday=existing_holiday,
+            date=date(2026, 5, 10),  # Sunday
+            session=CompensatoryWorkday.Session.MORNING,
+            status=CompensatoryWorkday.Status.ACTIVE,
+            created_by=self.user,
+            updated_by=self.user,
+        )
+
+        # Create another holiday with afternoon session on same date - should succeed
+        url = reverse("hrm:holiday-list")
+        payload = {
+            "name": "New Holiday",
+            "start_date": "2026-06-01",
+            "end_date": "2026-06-02",
+            "status": "active",
+            "compensatory_dates": [{"date": "2026-05-10", "session": "afternoon"}],  # Different session
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+        self.assertEqual(data["compensatory_days_count"], 1)
 
     def test_compensatory_day_not_found(self):
         """Test accessing a non-existent compensatory day."""
