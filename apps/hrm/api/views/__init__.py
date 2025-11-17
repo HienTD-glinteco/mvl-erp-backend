@@ -3,6 +3,7 @@ from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
+from .compensatory_workday import CompensatoryWorkdayViewSet
 from .contract_type import ContractTypeViewSet
 from .employee import EmployeeViewSet
 from .employee_certificate import EmployeeCertificateViewSet
@@ -49,6 +50,7 @@ __all__ = [
     "EmployeeWorkHistoryViewSet",
     "ContractTypeViewSet",
     "HolidayViewSet",
+    "CompensatoryWorkdayViewSet",
     "RecruitmentChannelViewSet",
     "RecruitmentSourceViewSet",
     "JobDescriptionViewSet",
