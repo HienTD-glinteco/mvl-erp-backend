@@ -1,6 +1,7 @@
 from .attendance_device import AttendanceDeviceViewSet
 from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
+from .attendance_wifi import AttendanceWifiViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
 from .contract_type import ContractTypeViewSet
@@ -36,6 +37,7 @@ __all__ = [
     "AttendanceDeviceViewSet",
     "AttendanceGeolocationViewSet",
     "AttendanceRecordViewSet",
+    "AttendanceWifiViewSet",
     "BankViewSet",
     "BankAccountViewSet",
     "BranchViewSet",
