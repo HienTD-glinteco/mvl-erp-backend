@@ -109,7 +109,7 @@ from libs.export_xlsx import ExportXLSXMixin
 class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Holiday model."""
 
-    queryset = Holiday.objects.filter(deleted=False).all()
+    queryset = Holiday.objects.all()
     serializer_class = HolidaySerializer
     filterset_class = HolidayFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -127,18 +127,6 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
         if self.action == "retrieve":
             return HolidayDetailSerializer
         return HolidaySerializer
-
-    def perform_create(self, serializer):
-        """Set created_by and updated_by when creating a holiday."""
-        serializer.save(created_by=self.request.user, updated_by=self.request.user)
-
-    def perform_update(self, serializer):
-        """Set updated_by when updating a holiday."""
-        serializer.save(updated_by=self.request.user)
-
-    def perform_destroy(self, instance):
-        """Soft delete the holiday."""
-        instance.delete()
 
 
 @extend_schema_view(
@@ -186,13 +174,13 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
     def get_queryset(self):
         """Get queryset filtered by holiday from URL."""
         holiday_id = self.kwargs.get("holiday_pk")
-        return CompensatoryWorkday.objects.filter(holiday_id=holiday_id, deleted=False).order_by("date")
+        return CompensatoryWorkday.objects.filter(holiday_id=holiday_id).order_by("date")
 
     def get_holiday(self):
         """Get the parent holiday from URL kwargs."""
         holiday_id = self.kwargs.get("holiday_pk")
         try:
-            return Holiday.objects.get(id=holiday_id, deleted=False)
+            return Holiday.objects.get(id=holiday_id)
         except Holiday.DoesNotExist:
             return None
 
@@ -204,10 +192,6 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
         date_filter = request.query_params.get("date")
         if date_filter:
             queryset = queryset.filter(date=date_filter)
-
-        status_filter = request.query_params.get("status")
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
 
         # Paginate results
         page = self.paginate_queryset(queryset)
@@ -233,16 +217,6 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
         # Create the item
         serializer.save(
             holiday=holiday,
-            created_by=request.user,
-            updated_by=request.user,
         )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_update(self, serializer):
-        """Set updated_by when updating a compensatory workday."""
-        serializer.save(updated_by=self.request.user)
-
-    def perform_destroy(self, instance):
-        """Soft delete the compensatory workday."""
-        instance.delete()

@@ -16,13 +16,10 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             "date",
             "session",
             "notes",
-            "status",
-            "created_by",
-            "updated_by",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "holiday", "created_by", "updated_by", "created_at", "updated_at"]
+        read_only_fields = ["id", "holiday", "created_at", "updated_at"]
 
     def _get_holiday(self, attrs):
         """Get holiday from attrs, instance, or context."""
@@ -45,22 +42,20 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
             )
 
     def _validate_no_holiday_overlap(self, date):
-        """Validate that compensatory date doesn't overlap with active holidays."""
+        """Validate that compensatory date doesn't overlap with holidays."""
         overlapping_holidays = Holiday.objects.filter(
-            deleted=False,
-            status=Holiday.Status.ACTIVE,
             start_date__lte=date,
             end_date__gte=date,
         )
         if overlapping_holidays.exists():
             holiday_name = overlapping_holidays.first().name
             raise serializers.ValidationError(
-                {"date": _(f"Compensatory workday date overlaps with active holiday: {holiday_name}")}
+                {"date": _(f"Compensatory workday date overlaps with holiday: {holiday_name}")}
             )
 
     def _validate_no_duplicate_for_holiday(self, holiday, date):
         """Validate no duplicate compensatory workday for the same holiday and date."""
-        queryset = CompensatoryWorkday.objects.filter(holiday=holiday, date=date, deleted=False)
+        queryset = CompensatoryWorkday.objects.filter(holiday=holiday, date=date)
         if self.instance:
             queryset = queryset.exclude(id=self.instance.id)
 
@@ -73,8 +68,6 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
         """Validate no session conflicts with compensatory workdays from other holidays."""
         conflicting_comp_days = CompensatoryWorkday.objects.filter(
             date=date,
-            deleted=False,
-            status=CompensatoryWorkday.Status.ACTIVE,
         ).exclude(holiday=holiday)
 
         if self.instance:
@@ -154,12 +147,9 @@ class HolidaySerializer(serializers.ModelSerializer):
             "start_date",
             "end_date",
             "notes",
-            "status",
             "compensatory_days_count",
             "total_days",
             "compensatory_dates",
-            "created_by",
-            "updated_by",
             "created_at",
             "updated_at",
         ]
@@ -167,15 +157,13 @@ class HolidaySerializer(serializers.ModelSerializer):
             "id",
             "compensatory_days_count",
             "total_days",
-            "created_by",
-            "updated_by",
             "created_at",
             "updated_at",
         ]
 
     def get_compensatory_days_count(self, obj):
         """Get the count of compensatory days for this holiday."""
-        return obj.compensatory_days.filter(deleted=False).count()
+        return obj.compensatory_days.count()
 
     def get_total_days(self, obj):
         """Get the total number of days in the holiday range."""
@@ -188,12 +176,10 @@ class HolidaySerializer(serializers.ModelSerializer):
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({"end_date": _("End date must be greater than or equal to start date")})
 
-    def _validate_no_overlapping_holidays(self, start_date, end_date, status):
-        """Validate no overlapping active holidays."""
-        if status == Holiday.Status.ACTIVE and start_date and end_date:
+    def _validate_no_overlapping_holidays(self, start_date, end_date):
+        """Validate no overlapping holidays."""
+        if start_date and end_date:
             overlapping = Holiday.objects.filter(
-                deleted=False,
-                status=Holiday.Status.ACTIVE,
                 start_date__lte=end_date,
                 end_date__gte=start_date,
             )
@@ -203,7 +189,7 @@ class HolidaySerializer(serializers.ModelSerializer):
 
             if overlapping.exists():
                 raise serializers.ValidationError(
-                    {"start_date": _("This holiday overlaps with an existing active holiday")}
+                    {"start_date": _("This holiday overlaps with an existing holiday")}
                 )
 
     def _validate_comp_date_is_weekend(self, comp_date, weekday):
@@ -244,10 +230,8 @@ class HolidaySerializer(serializers.ModelSerializer):
                 )
 
     def _validate_comp_date_no_holiday_overlap(self, comp_date):
-        """Validate compensatory date doesn't overlap with other active holidays."""
+        """Validate compensatory date doesn't overlap with other holidays."""
         overlapping_holidays = Holiday.objects.filter(
-            deleted=False,
-            status=Holiday.Status.ACTIVE,
             start_date__lte=comp_date,
             end_date__gte=comp_date,
         )
@@ -260,7 +244,7 @@ class HolidaySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {
                     "compensatory_dates": _(
-                        f"Compensatory date {comp_date} overlaps with active holiday: {holiday_name}"
+                        f"Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
                     )
                 }
             )
@@ -269,8 +253,6 @@ class HolidaySerializer(serializers.ModelSerializer):
         """Validate no session conflicts with existing compensatory workdays."""
         conflicting_comp_days = CompensatoryWorkday.objects.filter(
             date=comp_date,
-            deleted=False,
-            status=CompensatoryWorkday.Status.ACTIVE,
         )
 
         if self.instance:
@@ -313,10 +295,9 @@ class HolidaySerializer(serializers.ModelSerializer):
         """Validate holiday data."""
         start_date = attrs.get("start_date")
         end_date = attrs.get("end_date")
-        status = attrs.get("status", Holiday.Status.ACTIVE)
 
         self._validate_date_range(start_date, end_date)
-        self._validate_no_overlapping_holidays(start_date, end_date, status)
+        self._validate_no_overlapping_holidays(start_date, end_date)
 
         compensatory_dates = attrs.get("compensatory_dates", [])
         for comp_entry in compensatory_dates:
@@ -332,7 +313,6 @@ class HolidaySerializer(serializers.ModelSerializer):
 
         # Create compensatory workdays if provided
         if compensatory_dates:
-            user = self.context["request"].user
             for comp_entry in compensatory_dates:
                 # Extract fields from the entry (dict structure)
                 comp_date = comp_entry.get("date")
@@ -352,8 +332,6 @@ class HolidaySerializer(serializers.ModelSerializer):
                     date=comp_date,
                     session=comp_session,
                     notes=comp_notes,
-                    created_by=user,
-                    updated_by=user,
                 )
 
         return holiday

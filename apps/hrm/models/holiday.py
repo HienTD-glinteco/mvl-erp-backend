@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -16,46 +15,12 @@ class Holiday(BaseModel):
         start_date: Start date of the holiday (inclusive)
         end_date: End date of the holiday (inclusive)
         notes: Additional notes about the holiday
-        status: Current status of the holiday (active, inactive, archived)
-        created_by: User who created this holiday
-        updated_by: User who last updated this holiday
-        deleted: Soft delete flag
-        deleted_at: Timestamp when the holiday was soft deleted
     """
-
-    class Status(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        INACTIVE = "inactive", _("Inactive")
-        ARCHIVED = "archived", _("Archived")
 
     name = models.CharField(max_length=255, verbose_name=_("Holiday name"))
     start_date = models.DateField(verbose_name=_("Start date"))
     end_date = models.DateField(verbose_name=_("End date"))
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.ACTIVE,
-        verbose_name=_("Status"),
-    )
-
-    # Audit fields
-    created_by = models.ForeignKey(
-        "core.User",
-        on_delete=models.PROTECT,
-        related_name="created_holidays",
-        verbose_name=_("Created by"),
-    )
-    updated_by = models.ForeignKey(
-        "core.User",
-        on_delete=models.PROTECT,
-        related_name="updated_holidays",
-        verbose_name=_("Updated by"),
-    )
-
-    # Soft delete fields
-    deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
-    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Deleted at"))
 
     class Meta:
         verbose_name = _("Holiday")
@@ -64,8 +29,6 @@ class Holiday(BaseModel):
         ordering = ["-start_date"]
         indexes = [
             models.Index(fields=["start_date", "end_date"]),
-            models.Index(fields=["status"]),
-            models.Index(fields=["deleted"]),
         ]
 
     def __str__(self):
@@ -79,16 +42,6 @@ class Holiday(BaseModel):
         if self.start_date and self.end_date and self.start_date > self.end_date:
             raise ValidationError({"end_date": _("End date must be greater than or equal to start date")})
 
-    def save(self, *args, **kwargs):
-        """Override save method."""
-        super().save(*args, **kwargs)
-
-    def delete(self, using=None, keep_parents=False):
-        """Soft delete the holiday."""
-        self.deleted = True
-        self.deleted_at = timezone.now()
-        self.save(update_fields=["deleted", "deleted_at"])
-
 
 @audit_logging_register
 class CompensatoryWorkday(BaseModel):
@@ -99,17 +52,7 @@ class CompensatoryWorkday(BaseModel):
         date: Date of the compensatory workday
         session: Work session (morning, afternoon, or full day)
         notes: Additional notes
-        status: Current status (active, inactive, archived)
-        created_by: User who created this compensatory workday
-        updated_by: User who last updated this compensatory workday
-        deleted: Soft delete flag
-        deleted_at: Timestamp when the compensatory workday was soft deleted
     """
-
-    class Status(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        INACTIVE = "inactive", _("Inactive")
-        ARCHIVED = "archived", _("Archived")
 
     class Session(models.TextChoices):
         MORNING = "morning", _("Morning")
@@ -130,30 +73,6 @@ class CompensatoryWorkday(BaseModel):
         verbose_name=_("Session"),
     )
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.ACTIVE,
-        verbose_name=_("Status"),
-    )
-
-    # Audit fields
-    created_by = models.ForeignKey(
-        "core.User",
-        on_delete=models.PROTECT,
-        related_name="created_compensatory_days",
-        verbose_name=_("Created by"),
-    )
-    updated_by = models.ForeignKey(
-        "core.User",
-        on_delete=models.PROTECT,
-        related_name="updated_compensatory_days",
-        verbose_name=_("Updated by"),
-    )
-
-    # Soft delete fields
-    deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
-    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Deleted at"))
 
     class Meta:
         verbose_name = _("Compensatory Workday")
@@ -169,8 +88,6 @@ class CompensatoryWorkday(BaseModel):
         ]
         indexes = [
             models.Index(fields=["date"]),
-            models.Index(fields=["status"]),
-            models.Index(fields=["deleted"]),
         ]
 
     def __str__(self):
@@ -200,13 +117,3 @@ class CompensatoryWorkday(BaseModel):
                 raise ValidationError(
                     {"session": _("For Saturday compensatory workdays, only afternoon session is allowed")}
                 )
-
-    def save(self, *args, **kwargs):
-        """Override save method."""
-        super().save(*args, **kwargs)
-
-    def delete(self, using=None, keep_parents=False):
-        """Soft delete the compensatory workday."""
-        self.deleted = True
-        self.deleted_at = timezone.now()
-        self.save(update_fields=["deleted", "deleted_at"])
