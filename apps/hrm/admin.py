@@ -8,6 +8,7 @@ from .models import (
     BankAccount,
     Block,
     Branch,
+    CompensatoryWorkday,
     ContractType,
     Department,
     Employee,
@@ -15,6 +16,7 @@ from .models import (
     EmployeeDependent,
     EmployeeRelationship,
     EmployeeWorkHistory,
+    Holiday,
     InterviewCandidate,
     InterviewSchedule,
     JobDescription,
@@ -85,3 +87,6 @@ admin.site.register(RecruitmentCandidate)
 admin.site.register(RecruitmentCandidateContactLog)
 admin.site.register(RecruitmentExpense)
 admin.site.register(WorkSchedule)
+
+admin.site.register(CompensatoryWorkday)
+admin.site.register(Holiday)
