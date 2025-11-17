@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 14:41+0700\n"
+"POT-Creation-Date: 2025-11-17 15:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,43 +98,43 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:37 apps/hrm/models/holiday.py:112
+#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:112
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:41 apps/hrm/models/holiday.py:118
+#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:118
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:64 apps/hrm/models/holiday.py:86
+#: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:117
+#: apps/hrm/api/serializers/holiday.py:134
 msgid "Date of the compensatory workday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:121
+#: apps/hrm/api/serializers/holiday.py:138
 msgid ""
 "Work session (morning, afternoon, or full_day). Auto-set based on weekday if "
 "not provided."
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:126
+#: apps/hrm/api/serializers/holiday.py:143
 msgid "Additional notes about the compensatory workday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:139
+#: apps/hrm/api/serializers/holiday.py:156
 msgid ""
 "List of compensatory workdays to create with the holiday (date, session, "
 "notes)"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:177 apps/hrm/models/holiday.py:43
+#: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
 msgid "End date must be greater than or equal to start date"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:192
+#: apps/hrm/api/serializers/holiday.py:209
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
@@ -549,6 +549,26 @@ msgstr ""
 
 #: apps/hrm/constants.py:92
 msgid "Real estate practice license"
+msgstr ""
+
+#: apps/hrm/constants.py:106
+msgid "Salaried employee"
+msgstr ""
+
+#: apps/hrm/constants.py:107
+msgid "Unpaid / not contracted"
+msgstr ""
+
+#: apps/hrm/constants.py:125
+msgid "On time"
+msgstr ""
+
+#: apps/hrm/constants.py:126
+msgid "Not on time"
+msgstr ""
+
+#: apps/hrm/constants.py:127
+msgid "Absent"
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:9

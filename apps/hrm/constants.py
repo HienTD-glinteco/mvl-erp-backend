@@ -100,7 +100,28 @@ class CertificateType(models.TextChoices):
         return cls.dict_choices().get(raw_value, raw_value)
 
 
+class EmployeeSalaryType(models.TextChoices):
+    """Salary-type choices used for filtering and display."""
+
+    SALARIED = "salaried", _("Salaried employee")
+    UNSALARIED = "unsalaried", _("Unpaid / not contracted")
+
+    @classmethod
+    def dict_choices(cls) -> dict:
+        return dict(cls.choices)
+
+    @classmethod
+    def get_label(cls, raw_value: str) -> str:
+        return cls.dict_choices().get(raw_value, raw_value)
+
+
 class ActionType:
     ACTION_CREATE = "create"
     ACTION_UPDATE = "update"
     ACTION_DELETE = "delete"
+
+
+class TimesheetStatus(models.TextChoices):
+    ON_TIME = "on_time", _("On time")
+    NOT_ON_TIME = "not_on_time", _("Not on time")
+    ABSENT = "absent", _("Absent")
