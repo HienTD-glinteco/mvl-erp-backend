@@ -28,6 +28,7 @@ from .recruitment_expense import RecruitmentExpenseViewSet
 from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
+from .timesheet import EmployeeTimesheetViewSet
 from .work_schedule import WorkScheduleViewSet
 
 __all__ = [
@@ -59,5 +60,6 @@ __all__ = [
     "RecruitmentReportsViewSet",
     "RecruitmentDashboardViewSet",
     "EmployeeRelationshipViewSet",
+    "EmployeeTimesheetViewSet",
     "WorkScheduleViewSet",
 ]

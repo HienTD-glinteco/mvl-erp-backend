@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 15:21+0700\n"
+"POT-Creation-Date: 2025-11-17 10:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -292,27 +292,6 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
-#: apps/hrm/api/views/employee_reports.py:62
-#: apps/hrm/api/views/recruitment_reports.py:675 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:82
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:803 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:108 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:129 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reports.py:334
 msgid "Average"
 msgstr ""
@@ -426,6 +405,22 @@ msgstr ""
 msgid "Returning Employee"
 msgstr ""
 
+#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/constants.py:53
 msgid "All data"
 msgstr ""
@@ -506,6 +501,26 @@ msgstr ""
 msgid "Real estate practice license"
 msgstr ""
 
+#: apps/hrm/constants.py:106
+msgid "Salaried employee"
+msgstr ""
+
+#: apps/hrm/constants.py:107
+msgid "Unpaid / not contracted"
+msgstr ""
+
+#: apps/hrm/constants.py:125
+msgid "On time"
+msgstr ""
+
+#: apps/hrm/constants.py:126
+msgid "Not on time"
+msgstr ""
+
+#: apps/hrm/constants.py:127
+msgid "Absent"
+msgstr ""
+
 #: apps/hrm/management/commands/import_work_schedule.py:9
 msgid "Import work schedule data for specified weekdays"
 msgstr ""
@@ -530,7 +545,7 @@ msgid ""
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:40
-#: apps/hrm/models/work_schedule.py:76
+#: apps/hrm/models/work_schedule.py:74
 msgid "Allowed late minutes"
 msgstr ""
 
@@ -887,7 +902,7 @@ msgstr ""
 #: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
-#: apps/hrm/models/work_schedule.py:84
+#: apps/hrm/models/work_schedule.py:82
 msgid "Note"
 msgstr ""
 
@@ -2340,118 +2355,118 @@ msgstr ""
 msgid "Recruitment Sources"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:16
+#: apps/hrm/models/work_schedule.py:14
 msgid "Monday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:17
+#: apps/hrm/models/work_schedule.py:15
 msgid "Tuesday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:18
+#: apps/hrm/models/work_schedule.py:16
 msgid "Wednesday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:19
+#: apps/hrm/models/work_schedule.py:17
 msgid "Thursday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:20
+#: apps/hrm/models/work_schedule.py:18
 msgid "Friday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:21
+#: apps/hrm/models/work_schedule.py:19
 msgid "Saturday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:22
+#: apps/hrm/models/work_schedule.py:20
 msgid "Sunday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:27
+#: apps/hrm/models/work_schedule.py:25
 msgid "Weekday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:28
+#: apps/hrm/models/work_schedule.py:26
 msgid "Day of the week"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:34 apps/hrm/models/work_schedule.py:146
+#: apps/hrm/models/work_schedule.py:32 apps/hrm/models/work_schedule.py:144
 msgid "Morning start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:35
+#: apps/hrm/models/work_schedule.py:33
 msgid "Start time of morning session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:41 apps/hrm/models/work_schedule.py:147
+#: apps/hrm/models/work_schedule.py:39 apps/hrm/models/work_schedule.py:145
 msgid "Morning end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:42
+#: apps/hrm/models/work_schedule.py:40
 msgid "End time of morning session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:48 apps/hrm/models/work_schedule.py:148
+#: apps/hrm/models/work_schedule.py:46 apps/hrm/models/work_schedule.py:146
 msgid "Noon start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:49
+#: apps/hrm/models/work_schedule.py:47
 msgid "Start time of noon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:55 apps/hrm/models/work_schedule.py:149
+#: apps/hrm/models/work_schedule.py:53 apps/hrm/models/work_schedule.py:147
 msgid "Noon end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:56
+#: apps/hrm/models/work_schedule.py:54
 msgid "End time of noon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:62 apps/hrm/models/work_schedule.py:150
+#: apps/hrm/models/work_schedule.py:60 apps/hrm/models/work_schedule.py:148
 msgid "Afternoon start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:63
+#: apps/hrm/models/work_schedule.py:61
 msgid "Start time of afternoon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:69 apps/hrm/models/work_schedule.py:151
+#: apps/hrm/models/work_schedule.py:67 apps/hrm/models/work_schedule.py:149
 msgid "Afternoon end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:70
+#: apps/hrm/models/work_schedule.py:68
 msgid "End time of afternoon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:77
+#: apps/hrm/models/work_schedule.py:75
 msgid "Number of minutes late allowed"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:85
+#: apps/hrm/models/work_schedule.py:83
 msgid "Additional notes"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:89
+#: apps/hrm/models/work_schedule.py:87
 msgid "Work schedule"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:90
+#: apps/hrm/models/work_schedule.py:88
 msgid "Work schedules"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:124
+#: apps/hrm/models/work_schedule.py:122
 msgid "Invalid weekday value. Must be one of the predefined weekdays."
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:163
+#: apps/hrm/models/work_schedule.py:161
 #, python-format
 msgid ""
 "For weekdays Monday-Friday, all working time fields must be provided. "
 "Missing: %(fields)s"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:195
+#: apps/hrm/models/work_schedule.py:193
 #, python-format
 msgid ""
 "%(next_field)s (%(next_time)s) must be greater than or equal to "
