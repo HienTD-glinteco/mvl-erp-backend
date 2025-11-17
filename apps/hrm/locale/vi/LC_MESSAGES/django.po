@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 15:21+0700\n"
+"POT-Creation-Date: 2025-11-17 09:38+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,6 +98,26 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
+#: apps/hrm/api/serializers/holiday.py:39 apps/hrm/models/holiday.py:175
+msgid "Compensatory workday date cannot fall within the holiday date range"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:50 apps/hrm/models/holiday.py:155
+msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:64
+msgid "List of compensatory workday dates to create with the holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:103 apps/hrm/models/holiday.py:80
+msgid "End date must be greater than or equal to start date"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:122
+msgid "This holiday overlaps with an existing active holiday"
+msgstr ""
+
 #: apps/hrm/api/serializers/recruitment_request.py:148
 #: apps/hrm/models/recruitment_request.py:120
 msgid "Number of positions must be at least 1."
@@ -138,8 +158,8 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/api/views/employee.py:459
 #: apps/hrm/models/attendance_geolocation.py:59 apps/hrm/models/employee.py:187
 #: apps/hrm/models/employee_certificate.py:110
-#: apps/hrm/models/employee_work_history.py:114
-#: apps/hrm/models/recruitment_candidate.py:111
+#: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/holiday.py:39
+#: apps/hrm/models/holiday.py:125 apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89
 msgid "Status"
 msgstr "Trạng Thái"
@@ -288,7 +308,8 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/api/views/employee.py:488
 #: apps/hrm/models/attendance_geolocation.py:61
 #: apps/hrm/models/attendance_record.py:70
-#: apps/hrm/models/employee_certificate.py:103
+#: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:34
+#: apps/hrm/models/holiday.py:120
 msgid "Notes"
 msgstr "Ghi Chú"
 
@@ -381,6 +402,10 @@ msgstr ""
 
 #: apps/hrm/api/views/employee_role.py:195
 msgid "Update successful"
+msgstr ""
+
+#: apps/hrm/api/views/holiday.py:252
+msgid "Compensatory workday not found"
 msgstr ""
 
 #: apps/hrm/api/views/recruitment_dashboard.py:261
@@ -530,7 +555,7 @@ msgid ""
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:40
-#: apps/hrm/models/work_schedule.py:76
+#: apps/hrm/models/work_schedule.py:74
 msgid "Allowed late minutes"
 msgstr ""
 
@@ -887,7 +912,7 @@ msgstr ""
 #: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73
-#: apps/hrm/models/work_schedule.py:84
+#: apps/hrm/models/work_schedule.py:82
 msgid "Note"
 msgstr ""
 
@@ -896,13 +921,15 @@ msgid "Additional notes or comments about the device"
 msgstr ""
 
 #: apps/hrm/models/attendance_geolocation.py:20 apps/hrm/models/employee.py:70
+#: apps/hrm/models/holiday.py:27 apps/hrm/models/holiday.py:109
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:68
 #: apps/hrm/models/organization.py:130 apps/hrm/models/organization.py:261
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:21
+#: apps/hrm/models/attendance_geolocation.py:21 apps/hrm/models/holiday.py:28
+#: apps/hrm/models/holiday.py:110
 msgid "Inactive"
 msgstr ""
 
@@ -950,19 +977,23 @@ msgstr ""
 
 #: apps/hrm/models/attendance_geolocation.py:68
 #: apps/hrm/models/employee_dependent.py:125
-#: apps/hrm/models/employee_relationship.py:160
+#: apps/hrm/models/employee_relationship.py:160 apps/hrm/models/holiday.py:47
+#: apps/hrm/models/holiday.py:133
 msgid "Created by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:74
+#: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/holiday.py:53
+#: apps/hrm/models/holiday.py:139
 msgid "Updated by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:78
+#: apps/hrm/models/attendance_geolocation.py:78 apps/hrm/models/holiday.py:57
+#: apps/hrm/models/holiday.py:143
 msgid "Deleted"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:79
+#: apps/hrm/models/attendance_geolocation.py:79 apps/hrm/models/holiday.py:58
+#: apps/hrm/models/holiday.py:144
 msgid "Deleted at"
 msgstr ""
 
@@ -1160,7 +1191,7 @@ msgstr ""
 msgid "Username"
 msgstr ""
 
-#: apps/hrm/models/employee.py:182
+#: apps/hrm/models/employee.py:182 apps/hrm/models/holiday.py:32
 msgid "Start date"
 msgstr ""
 
@@ -1677,6 +1708,38 @@ msgstr ""
 
 #: apps/hrm/models/employee_work_history.py:163
 msgid "Employee work histories"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:29 apps/hrm/models/holiday.py:111
+msgid "Archived"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:31
+msgid "Holiday name"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:33
+msgid "End date"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:61 apps/hrm/models/holiday.py:117
+msgid "Holiday"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:62
+msgid "Holidays"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:119
+msgid "Compensatory workday date"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:147
+msgid "Compensatory Workday"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:148
+msgid "Compensatory Workdays"
 msgstr ""
 
 #: apps/hrm/models/interview_candidate.py:16
@@ -2340,118 +2403,118 @@ msgstr ""
 msgid "Recruitment Sources"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:16
+#: apps/hrm/models/work_schedule.py:14
 msgid "Monday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:17
+#: apps/hrm/models/work_schedule.py:15
 msgid "Tuesday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:18
+#: apps/hrm/models/work_schedule.py:16
 msgid "Wednesday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:19
+#: apps/hrm/models/work_schedule.py:17
 msgid "Thursday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:20
+#: apps/hrm/models/work_schedule.py:18
 msgid "Friday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:21
+#: apps/hrm/models/work_schedule.py:19
 msgid "Saturday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:22
+#: apps/hrm/models/work_schedule.py:20
 msgid "Sunday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:27
+#: apps/hrm/models/work_schedule.py:25
 msgid "Weekday"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:28
+#: apps/hrm/models/work_schedule.py:26
 msgid "Day of the week"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:34 apps/hrm/models/work_schedule.py:146
+#: apps/hrm/models/work_schedule.py:32 apps/hrm/models/work_schedule.py:144
 msgid "Morning start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:35
+#: apps/hrm/models/work_schedule.py:33
 msgid "Start time of morning session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:41 apps/hrm/models/work_schedule.py:147
+#: apps/hrm/models/work_schedule.py:39 apps/hrm/models/work_schedule.py:145
 msgid "Morning end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:42
+#: apps/hrm/models/work_schedule.py:40
 msgid "End time of morning session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:48 apps/hrm/models/work_schedule.py:148
+#: apps/hrm/models/work_schedule.py:46 apps/hrm/models/work_schedule.py:146
 msgid "Noon start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:49
+#: apps/hrm/models/work_schedule.py:47
 msgid "Start time of noon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:55 apps/hrm/models/work_schedule.py:149
+#: apps/hrm/models/work_schedule.py:53 apps/hrm/models/work_schedule.py:147
 msgid "Noon end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:56
+#: apps/hrm/models/work_schedule.py:54
 msgid "End time of noon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:62 apps/hrm/models/work_schedule.py:150
+#: apps/hrm/models/work_schedule.py:60 apps/hrm/models/work_schedule.py:148
 msgid "Afternoon start time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:63
+#: apps/hrm/models/work_schedule.py:61
 msgid "Start time of afternoon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:69 apps/hrm/models/work_schedule.py:151
+#: apps/hrm/models/work_schedule.py:67 apps/hrm/models/work_schedule.py:149
 msgid "Afternoon end time"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:70
+#: apps/hrm/models/work_schedule.py:68
 msgid "End time of afternoon session"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:77
+#: apps/hrm/models/work_schedule.py:75
 msgid "Number of minutes late allowed"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:85
+#: apps/hrm/models/work_schedule.py:83
 msgid "Additional notes"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:89
+#: apps/hrm/models/work_schedule.py:87
 msgid "Work schedule"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:90
+#: apps/hrm/models/work_schedule.py:88
 msgid "Work schedules"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:124
+#: apps/hrm/models/work_schedule.py:122
 msgid "Invalid weekday value. Must be one of the predefined weekdays."
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:163
+#: apps/hrm/models/work_schedule.py:161
 #, python-format
 msgid ""
 "For weekdays Monday-Friday, all working time fields must be provided. "
 "Missing: %(fields)s"
 msgstr ""
 
-#: apps/hrm/models/work_schedule.py:195
+#: apps/hrm/models/work_schedule.py:193
 #, python-format
 msgid ""
 "%(next_field)s (%(next_time)s) must be greater than or equal to "
