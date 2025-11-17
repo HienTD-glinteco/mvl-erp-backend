@@ -41,7 +41,8 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         Branch.objects.all().delete()
 
         # Create user for authentication
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

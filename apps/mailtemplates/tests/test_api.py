@@ -40,6 +40,8 @@ class TemplateAPITestCase(TestCase):
             self.perm_job_status,
         )
 
+        # Create users with role that has all mailtemplate permissions
+        # Using create_user (not superuser) to allow permission/ownership tests to work
         self.user = User.objects.create_user(
             username="testuser",
             email="test@example.com",

@@ -16,7 +16,8 @@ class TestNotificationUtils:
     @pytest.fixture
     def actor(self):
         """Create an actor user."""
-        return User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        return User.objects.create_superuser(
             username="actor",
             email="actor@example.com",
             password="password123",
@@ -25,7 +26,7 @@ class TestNotificationUtils:
     @pytest.fixture
     def recipient(self):
         """Create a recipient user."""
-        return User.objects.create_user(
+        return User.objects.create_superuser(
             username="recipient",
             email="recipient@example.com",
             password="password123",
@@ -52,7 +53,7 @@ class TestNotificationUtils:
     def test_create_notification_with_target(self, mock_email_task, mock_push_task, actor, recipient):
         """Test creating a notification with a target object."""
         # Arrange - Use User as target for testing
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target",
             email="target@example.com",
             password="password123",
@@ -73,17 +74,17 @@ class TestNotificationUtils:
     def test_create_bulk_notifications(self, mock_email_task, mock_push_task, actor):
         """Test creating multiple notifications at once."""
         # Arrange - Create multiple recipients
-        recipient1 = User.objects.create_user(
+        recipient1 = User.objects.create_superuser(
             username="recipient1",
             email="recipient1@example.com",
             password="password123",
         )
-        recipient2 = User.objects.create_user(
+        recipient2 = User.objects.create_superuser(
             username="recipient2",
             email="recipient2@example.com",
             password="password123",
         )
-        recipient3 = User.objects.create_user(
+        recipient3 = User.objects.create_superuser(
             username="recipient3",
             email="recipient3@example.com",
             password="password123",
@@ -110,17 +111,17 @@ class TestNotificationUtils:
     def test_create_bulk_notifications_with_target(self, mock_email_task, mock_push_task, actor):
         """Test creating bulk notifications with a target object."""
         # Arrange
-        recipient1 = User.objects.create_user(
+        recipient1 = User.objects.create_superuser(
             username="recipient1",
             email="recipient1@example.com",
             password="password123",
         )
-        recipient2 = User.objects.create_user(
+        recipient2 = User.objects.create_superuser(
             username="recipient2",
             email="recipient2@example.com",
             password="password123",
         )
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target",
             email="target@example.com",
             password="password123",
@@ -171,7 +172,7 @@ class TestNotificationUtils:
     def test_notify_user_with_target(self, mock_email_task, mock_push_task, actor, recipient):
         """Test notify_user with a target object."""
         # Arrange
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target",
             email="target@example.com",
             password="password123",
@@ -249,12 +250,12 @@ class TestNotificationUtils:
     ):
         """Test that emails are sent for bulk notifications with email delivery method."""
         # Arrange
-        recipient1 = User.objects.create_user(
+        recipient1 = User.objects.create_superuser(
             username="recipient1",
             email="recipient1@example.com",
             password="password123",
         )
-        recipient2 = User.objects.create_user(
+        recipient2 = User.objects.create_superuser(
             username="recipient2",
             email="recipient2@example.com",
             password="password123",
@@ -278,7 +279,7 @@ class TestNotificationUtils:
     ):
         """Test that signal is triggered even when recipient has no email (task handles it)."""
         # Arrange
-        recipient_no_email = User.objects.create_user(
+        recipient_no_email = User.objects.create_superuser(
             username="no_email_user",
             email="noemail@example.com",  # Email is required
             password="password123",

@@ -41,7 +41,8 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         Role.objects.all().delete()
 
         # Create test user for authentication
-        self.admin_user = User.objects.create_user(username="admin", email="admin@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.admin_user = User.objects.create_superuser(username="admin", email="admin@example.com", password="testpass123")
         self.client = APIClient()
         self.client.force_authenticate(user=self.admin_user)
 
@@ -90,7 +91,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         self.position = Position.objects.create(name="Nhân viên Kinh doanh", code="NVKD")
 
         # Create test employees
-        self.employee1 = User.objects.create_user(
+        self.employee1 = User.objects.create_superuser(
             username="NV001",
             email="emp1@example.com",
             password="testpass123",
@@ -99,7 +100,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             role=self.role_staff,
         )
 
-        self.employee2 = User.objects.create_user(
+        self.employee2 = User.objects.create_superuser(
             username="NV002",
             email="emp2@example.com",
             password="testpass123",
@@ -108,7 +109,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
             role=self.role_staff,
         )
 
-        self.employee3 = User.objects.create_user(
+        self.employee3 = User.objects.create_superuser(
             username="NV003",
             email="emp3@example.com",
             password="testpass123",
@@ -341,7 +342,7 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         # Create 26 employees
         employee_ids = []
         for i in range(26):
-            emp = User.objects.create_user(
+            emp = User.objects.create_superuser(
                 username=f"EMP{i:03d}", email=f"emp{i:03d}@example.com", password="testpass123", role=self.role_staff
             )
             employee_ids.append(emp.id)

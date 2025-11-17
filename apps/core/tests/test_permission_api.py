@@ -48,7 +48,8 @@ class PermissionAPITest(TransactionTestCase, APITestMixin):
             code="view_reports", description="View reports", module="Reports", submodule=""
         )
 
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

@@ -12,12 +12,13 @@ class TestNotificationModel:
     def test_create_notification(self):
         """Test creating a basic notification."""
         # Arrange
-        actor = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        actor = User.objects.create_superuser(
             username="actor_user",
             email="actor@example.com",
             password="password123",
         )
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient_user",
             email="recipient@example.com",
             password="password123",
@@ -42,17 +43,17 @@ class TestNotificationModel:
     def test_create_notification_with_target(self):
         """Test creating a notification with a target object."""
         # Arrange
-        actor = User.objects.create_user(
+        actor = User.objects.create_superuser(
             username="actor_user",
             email="actor@example.com",
             password="password123",
         )
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient_user",
             email="recipient@example.com",
             password="password123",
         )
-        target_user = User.objects.create_user(
+        target_user = User.objects.create_superuser(
             username="target_user",
             email="target@example.com",
             password="password123",
@@ -76,12 +77,12 @@ class TestNotificationModel:
     def test_mark_as_read(self):
         """Test marking a notification as read."""
         # Arrange
-        actor = User.objects.create_user(
+        actor = User.objects.create_superuser(
             username="actor_user",
             email="actor@example.com",
             password="password123",
         )
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient_user",
             email="recipient@example.com",
             password="password123",
@@ -103,12 +104,12 @@ class TestNotificationModel:
     def test_mark_as_unread(self):
         """Test marking a notification as unread."""
         # Arrange
-        actor = User.objects.create_user(
+        actor = User.objects.create_superuser(
             username="actor_user",
             email="actor@example.com",
             password="password123",
         )
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient_user",
             email="recipient@example.com",
             password="password123",
@@ -131,12 +132,12 @@ class TestNotificationModel:
     def test_notification_ordering(self):
         """Test that notifications are ordered by creation time (newest first)."""
         # Arrange
-        actor = User.objects.create_user(
+        actor = User.objects.create_superuser(
             username="actor_user",
             email="actor@example.com",
             password="password123",
         )
-        recipient = User.objects.create_user(
+        recipient = User.objects.create_superuser(
             username="recipient_user",
             email="recipient@example.com",
             password="password123",

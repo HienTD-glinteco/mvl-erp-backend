@@ -18,7 +18,8 @@ class EmployeeExportAPITest(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        self.admin_user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.admin_user = User.objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="testpass123",

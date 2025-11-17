@@ -17,6 +17,7 @@ Modes:
 """
 
 import os
+import secrets
 from unittest.mock import MagicMock
 
 import pytest
@@ -142,6 +143,54 @@ def disable_throttling(settings):
     # Disable throttling
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
     settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}
+
+
+@pytest.fixture
+def superuser(db):
+    """
+    Fixture that creates a superuser for testing.
+
+    This superuser is used for auto-authentication in tests that don't
+    explicitly test RoleBasedPermission behavior.
+    """
+    from apps.core.models import User
+
+    password = secrets.token_urlsafe(16)
+
+    return User.objects.create_superuser(
+        username="test_superuser",
+        email="superuser@test.com",
+        password=password,
+    )
+
+
+@pytest.fixture
+def api_client(request, superuser):
+    """
+    Fixture that provides a DRF APIClient with auto-authentication.
+
+    By default, the client is authenticated as a superuser to bypass
+    RoleBasedPermission checks. Tests that need to verify permission
+    behavior should be marked with @pytest.mark.rbp to receive an
+    unauthenticated client instead.
+
+    Usage:
+        - Regular tests: use api_client as normal, it's auto-authenticated
+        - Permission tests: mark with @pytest.mark.rbp to get unauthenticated client
+        - Custom user tests: create and authenticate your own user in the test
+    """
+    from rest_framework.test import APIClient
+
+    client = APIClient()
+
+    # Check if the test is marked with 'rbp' (Role-Based Permission)
+    # If marked, do not auto-authenticate to allow permission testing
+    marker_names = {marker.name for marker in request.node.iter_markers()}
+    if "rbp" not in marker_names:
+        # Auto-authenticate as superuser for non-permission tests
+        client.force_authenticate(user=superuser)
+
+    return client
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:

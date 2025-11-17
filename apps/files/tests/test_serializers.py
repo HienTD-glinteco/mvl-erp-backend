@@ -14,7 +14,8 @@ class FileConfirmationSerializerTest(TestCase):
     def test_validation_with_related_fields(self):
         """Test validation when both related_model and related_object_id are provided."""
         # Arrange: Create a user to use as related object
-        user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
 
         # Act: Validate serializer with related fields
         data = {

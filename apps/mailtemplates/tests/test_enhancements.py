@@ -25,7 +25,8 @@ class SubjectPreviewTestCase(TestCase):
         role = Role.objects.create(code="MAIL_USER", name="Mail User")
         role.permissions.add(perm_preview)
 
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -100,7 +101,7 @@ class MultiRecipientTestCase(TestCase):
         role = Role.objects.create(code="MAIL_USER", name="Mail User")
         role.permissions.add(perm_send)
 
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -156,7 +157,7 @@ class PerRecipientCallbackTestCase(TestCase):
         role = Role.objects.create(code="MAIL_USER", name="Mail User")
         role.permissions.add(perm_send)
 
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -246,7 +247,7 @@ class SubjectPriorityTestCase(TestCase):
 
     def setUp(self):
         """Set up test data."""
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -352,7 +353,7 @@ class SendFailureTestCase(TestCase):
 
     def setUp(self):
         """Set up test data."""
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

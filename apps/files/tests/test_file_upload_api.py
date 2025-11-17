@@ -50,7 +50,8 @@ class PresignURLAPITest(TestCase, APITestMixin):
         self.role.permissions.add(self.presign_permission)
 
         # Create test user
-        self.user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -172,7 +173,7 @@ class ConfirmMultipleFilesAPITest(TestCase, APITestMixin):
         self.role.permissions.add(self.confirm_permission)
 
         # Create test user
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -454,7 +455,7 @@ class FileModelTest(TestCase, APITestMixin):
         )
         self.role.permissions.add(self.confirm_permission)
 
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

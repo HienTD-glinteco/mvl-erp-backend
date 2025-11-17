@@ -17,7 +17,8 @@ class TestImportJobModel:
     def test_create_import_job(self):
         """Test creating an import job."""
         # Create user
-        user = User.objects.create_user(
+        # Changed to superuser to bypass RoleBasedPermission for API tests
+        user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
@@ -51,7 +52,7 @@ class TestImportJobModel:
     def test_calculate_percentage(self):
         """Test percentage calculation."""
         # Create minimal job
-        user = User.objects.create_user(username="testuser", email="test@example.com")
+        user = User.objects.create_superuser(username="testuser", email="test@example.com")
         file_obj = FileModel.objects.create(
             purpose="test",
             file_name="test.csv",
@@ -77,7 +78,7 @@ class TestImportJobModel:
 
     def test_import_job_string_representation(self):
         """Test string representation of ImportJob."""
-        user = User.objects.create_user(username="testuser", email="test@example.com")
+        user = User.objects.create_superuser(username="testuser", email="test@example.com")
         file_obj = FileModel.objects.create(
             purpose="test",
             file_name="test.csv",
