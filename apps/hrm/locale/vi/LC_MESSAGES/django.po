@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 12:04+0700\n"
+"POT-Creation-Date: 2025-11-17 13:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,31 +98,43 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:41 apps/hrm/models/holiday.py:187
-msgid "Compensatory workday date cannot fall within the holiday date range"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:48 apps/hrm/models/holiday.py:195
+#: apps/hrm/api/serializers/holiday.py:40 apps/hrm/models/holiday.py:195
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:201
+#: apps/hrm/api/serializers/holiday.py:44 apps/hrm/models/holiday.py:201
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:65 apps/hrm/models/holiday.py:167
+#: apps/hrm/api/serializers/holiday.py:69 apps/hrm/models/holiday.py:167
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:80
-msgid "List of compensatory workday dates to create with the holiday"
+#: apps/hrm/api/serializers/holiday.py:124
+msgid "Date of the compensatory workday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:127 apps/hrm/models/holiday.py:80
-msgid "End date must be greater than or equal to start date"
+#: apps/hrm/api/serializers/holiday.py:128
+msgid ""
+"Work session (morning, afternoon, or full_day). Auto-set based on weekday if "
+"not provided."
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:133
+msgid "Additional notes about the compensatory workday"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:146
+msgid ""
+"List of compensatory workdays to create with the holiday (date, session, "
+"notes)"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:189 apps/hrm/models/holiday.py:80
+msgid "End date must be greater than or equal to start date"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:206
 msgid "This holiday overlaps with an existing active holiday"
 msgstr ""
 
@@ -145,10 +157,6 @@ msgstr ""
 #: apps/hrm/api/views/attendance_geolocation.py:439
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
-msgstr ""
-
-#: apps/hrm/api/views/compensatory_workday.py:99
-msgid "Holiday not found"
 msgstr ""
 
 #: apps/hrm/api/views/employee.py:455
@@ -414,6 +422,10 @@ msgstr ""
 
 #: apps/hrm/api/views/employee_role.py:195
 msgid "Update successful"
+msgstr ""
+
+#: apps/hrm/api/views/holiday.py:225
+msgid "Holiday not found"
 msgstr ""
 
 #: apps/hrm/api/views/recruitment_dashboard.py:261
@@ -1766,6 +1778,10 @@ msgstr ""
 
 #: apps/hrm/models/holiday.py:160
 msgid "Compensatory Workdays"
+msgstr ""
+
+#: apps/hrm/models/holiday.py:187
+msgid "Compensatory workday date cannot fall within the holiday date range"
 msgstr ""
 
 #: apps/hrm/models/interview_candidate.py:16

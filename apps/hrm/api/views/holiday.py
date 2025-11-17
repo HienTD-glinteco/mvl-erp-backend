@@ -1,9 +1,7 @@
-from django.db import transaction
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
@@ -188,10 +186,7 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
     def get_queryset(self):
         """Get queryset filtered by holiday from URL."""
         holiday_id = self.kwargs.get("holiday_pk")
-        return CompensatoryWorkday.objects.filter(
-            holiday_id=holiday_id,
-            deleted=False
-        ).order_by("date")
+        return CompensatoryWorkday.objects.filter(holiday_id=holiday_id, deleted=False).order_by("date")
 
     def get_holiday(self):
         """Get the parent holiday from URL kwargs."""
@@ -204,22 +199,22 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
     def list(self, request, *args, **kwargs):
         """List compensatory days with optional filtering."""
         queryset = self.get_queryset()
-        
+
         # Apply filters if provided
         date_filter = request.query_params.get("date")
         if date_filter:
             queryset = queryset.filter(date=date_filter)
-        
+
         status_filter = request.query_params.get("status")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        
+
         # Paginate results
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -227,22 +222,21 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
         """Create a single compensatory day."""
         holiday = self.get_holiday()
         if not holiday:
-            return Response(
-                {"error": _("Holiday not found")},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Set the holiday for the item
-        serializer = self.get_serializer(data=request.data)
+            return Response({"error": _("Holiday not found")}, status=status.HTTP_404_NOT_FOUND)
+
+        # Set the holiday in the serializer context for validation
+        serializer = self.get_serializer(
+            data=request.data, context={**self.get_serializer_context(), "holiday": holiday}
+        )
         serializer.is_valid(raise_exception=True)
-        
+
         # Create the item
         serializer.save(
             holiday=holiday,
             created_by=request.user,
             updated_by=request.user,
         )
-        
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
