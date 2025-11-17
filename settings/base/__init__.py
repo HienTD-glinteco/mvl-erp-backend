@@ -25,3 +25,4 @@ from .static import *
 from .export import *
 from .import_xlsx import *
 from .imports import *
+from .newrelic import *
