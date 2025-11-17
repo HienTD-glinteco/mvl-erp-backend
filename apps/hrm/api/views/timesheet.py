@@ -1,5 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
@@ -16,7 +19,10 @@ from libs import BaseReadOnlyModelViewSet
 @extend_schema_view(
     list=extend_schema(
         summary="List employee timesheets",
-        description="Retrieve timesheet summaries for employees. Filters: employee, branch, block, department, position, employee_type. Search by employee code or fullname.",
+        description=(
+            "Retrieve timesheet summaries for employees. Filters: employee, branch, block, "
+            "department, position, employee_salary_type. Search by employee code or fullname."
+        ),
         tags=["Timesheet"],
     ),
     retrieve=extend_schema(summary="Get employee timesheet details", tags=["Timesheet"]),
