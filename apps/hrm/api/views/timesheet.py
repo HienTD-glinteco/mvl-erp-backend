@@ -35,9 +35,9 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = TimesheetFilterSet
     # Search by employee code OR fullname
-    search_fields = ["employee__code", "employee__fullname"]
-    ordering_fields = ["employee__code", "employee__fullname"]
-    ordering = "employee__fullname"
+    search_fields = ["code", "fullname"]
+    ordering_fields = ["code", "fullname"]
+    ordering = "fullname"
 
     module = "HRM"
     submodule = "Timesheet"
