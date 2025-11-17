@@ -262,7 +262,7 @@ class DataScopeFilteringTest(TestCase):
 
     def test_superuser_bypasses_filtering(self):
         """Test that superuser bypasses all filtering"""
-        superuser = User.objects.create_user(username="admin", email="admin@test.com", password="admin")
+        superuser = User.objects.create_superuser(username="admin", email="admin@test.com", password="admin")
         qs = User.objects.all()
         filtered = filter_queryset_by_data_scope(qs, superuser, org_field="employee__department")
         self.assertEqual(filtered.count(), User.objects.count())
