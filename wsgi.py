@@ -24,11 +24,12 @@ if getattr(settings, "NEWRELIC_ENABLED", False):
     logging.info("Initializing New Relic WSGI application wrapper")
     import newrelic.agent
 
-    newrelic.agent.initialize(
-        config_file=None,
-        environment=None,
-        ignore_errors=[],
-        log_file=None,
-        log_level=settings.NEWRELIC_LOG_LEVEL,
-    )
+    newrelic.agent.initialize()
+    config = newrelic.agent.global_settings()
+    config.license_key = settings.NEWRELIC_LICENSE_KEY
+    config.app_name = settings.NEWRELIC_APP_NAME
+    config.log_level = settings.NEWRELIC_LOG_LEVEL
+    config.distributed_tracing.enabled = getattr(settings, "NEWRELIC_DISTRIBUTED_TRACING", True)
+    config.error_collector.enabled = getattr(settings, "NEWRELIC_ERROR_COLLECTOR", True)
+
     application = newrelic.agent.wsgi_application()(application)
