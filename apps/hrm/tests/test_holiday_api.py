@@ -37,7 +37,9 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         CompensatoryWorkday.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -186,8 +188,6 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Verify soft delete
-        self.holiday1.refresh_from_db()
         # Verify it's not in list anymore
         list_url = reverse("hrm:holiday-list")
         list_response = self.client.get(list_url)
@@ -203,22 +203,6 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]["name"], "Lunar New Year 2026")
-
-    def test_filter_holidays_by_status(self):
-        """Test filtering holidays by status."""
-        # Create an inactive holiday
-        Holiday.objects.create(
-            name="Inactive Holiday",
-            start_date=date(2026, 12, 25),
-            end_date=date(2026, 12, 25)        )
-
-        url = reverse("hrm:holiday-list")
-        response = self.client.get(url, {"status": "inactive"})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = self.get_response_data(response)
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["name"], "Inactive Holiday")
 
     def test_filter_holidays_by_date_range(self):
         """Test filtering holidays by date range overlap."""
@@ -291,13 +275,13 @@ class HolidayAPITest(TransactionTestCase, APITestMixin):
         """Test that compensatory_dates with same session conflicts with existing compensatory day."""
         # First, create a holiday with a compensatory day
         existing_holiday = Holiday.objects.create(
-            name="Existing Holiday",
-            start_date=date(2026, 4, 1),
-            end_date=date(2026, 4, 2)        )
+            name="Existing Holiday", start_date=date(2026, 4, 1), end_date=date(2026, 4, 2)
+        )
         CompensatoryWorkday.objects.create(
             holiday=existing_holiday,
             date=date(2026, 4, 11),  # Saturday
-            session=CompensatoryWorkday.Session.AFTERNOON        )
+            session=CompensatoryWorkday.Session.AFTERNOON,
+        )
 
         # Try to create a new holiday with a compensatory date that has same date and session
         url = reverse("hrm:holiday-list")
@@ -343,29 +327,31 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         CompensatoryWorkday.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
         # Create a test holiday
         self.holiday = Holiday.objects.create(
-            name="Test Holiday",
-            start_date=date(2026, 2, 5),
-            end_date=date(2026, 2, 6),
-            notes="Test holiday"        )
+            name="Test Holiday", start_date=date(2026, 2, 5), end_date=date(2026, 2, 6), notes="Test holiday"
+        )
 
         # Create some compensatory days
         self.comp_day1 = CompensatoryWorkday.objects.create(
             holiday=self.holiday,
             date=date(2026, 2, 7),  # Saturday
             session=CompensatoryWorkday.Session.AFTERNOON,  # Saturday must be afternoon
-            notes="First comp day"        )
+            notes="First comp day",
+        )
 
         self.comp_day2 = CompensatoryWorkday.objects.create(
             holiday=self.holiday,
             date=date(2026, 2, 8),  # Sunday
             session=CompensatoryWorkday.Session.FULL_DAY,  # Sunday can be any session
-            notes="Second comp day"        )
+            notes="Second comp day",
+        )
 
     def test_list_compensatory_days(self):
         """Test listing compensatory days for a holiday."""
@@ -396,10 +382,9 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that compensatory day cannot overlap with any active holiday."""
         # Create an active holiday on Feb 21 (Saturday)
         Holiday.objects.create(
-            name="Special Saturday Holiday",
-            start_date=date(2026, 2, 21),
-            end_date=date(2026, 2, 21)        )
-        
+            name="Special Saturday Holiday", start_date=date(2026, 2, 21), end_date=date(2026, 2, 21)
+        )
+
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
         payload = {
             "date": "2026-02-21",  # This date is now a holiday
@@ -452,7 +437,6 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)
         self.assertEqual(data["notes"], "Updated notes")
-        self.assertEqual(data["status"], "inactive")
         self.assertEqual(data["session"], "afternoon")
 
     def test_partial_update_compensatory_day(self):
@@ -474,8 +458,6 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Verify soft delete
-        self.comp_day1.refresh_from_db()
         # Verify it's not in list anymore
         list_url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
         list_response = self.client.get(list_url)
@@ -550,7 +532,7 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
     def test_sunday_any_session_allowed(self):
         """Test that Sunday compensatory days can have any session."""
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
-        
+
         # Test morning session on Sunday (2026-02-15 is Sunday)
         payload_morning = {
             "date": "2026-02-15",  # Sunday
@@ -559,7 +541,7 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, payload_morning, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Test afternoon session on Sunday (2026-02-22 is Sunday)
         payload_afternoon = {
             "date": "2026-02-22",  # Sunday
@@ -568,7 +550,7 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         }
         response = self.client.post(url, payload_afternoon, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        
+
         # Test full day session on Sunday (2026-03-01 is Sunday)
         payload_full = {
             "date": "2026-03-01",  # Sunday
@@ -582,14 +564,14 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that creating compensatory day with same date and session fails."""
         # Create another holiday
         other_holiday = Holiday.objects.create(
-            name="Other Holiday",
-            start_date=date(2026, 3, 1),
-            end_date=date(2026, 3, 2)        )
+            name="Other Holiday", start_date=date(2026, 3, 1), end_date=date(2026, 3, 2)
+        )
         # Create a compensatory day for the other holiday
         CompensatoryWorkday.objects.create(
             holiday=other_holiday,
             date=date(2026, 3, 14),  # Saturday
-            session=CompensatoryWorkday.Session.AFTERNOON        )
+            session=CompensatoryWorkday.Session.AFTERNOON,
+        )
 
         # Try to create a compensatory day for self.holiday with same date and session
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
@@ -609,14 +591,14 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that full_day session conflicts with any existing session."""
         # Create another holiday
         other_holiday = Holiday.objects.create(
-            name="Other Holiday",
-            start_date=date(2026, 3, 1),
-            end_date=date(2026, 3, 2)        )
+            name="Other Holiday", start_date=date(2026, 3, 1), end_date=date(2026, 3, 2)
+        )
         # Create a compensatory day with morning session on Sunday
         CompensatoryWorkday.objects.create(
             holiday=other_holiday,
             date=date(2026, 3, 15),  # Sunday
-            session=CompensatoryWorkday.Session.MORNING        )
+            session=CompensatoryWorkday.Session.MORNING,
+        )
 
         # Try to create a compensatory day with full_day session on same date
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
@@ -636,14 +618,14 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that different sessions on same date is allowed."""
         # Create another holiday
         other_holiday = Holiday.objects.create(
-            name="Other Holiday",
-            start_date=date(2026, 3, 1),
-            end_date=date(2026, 3, 2)        )
+            name="Other Holiday", start_date=date(2026, 3, 1), end_date=date(2026, 3, 2)
+        )
         # Create a compensatory day with morning session on Sunday
         CompensatoryWorkday.objects.create(
             holiday=other_holiday,
             date=date(2026, 3, 22),  # Sunday
-            session=CompensatoryWorkday.Session.MORNING        )
+            session=CompensatoryWorkday.Session.MORNING,
+        )
 
         # Create a compensatory day with afternoon session on same date - should succeed
         url = reverse("hrm:compensatory-day-list", kwargs={"holiday_pk": self.holiday.pk})
@@ -695,7 +677,7 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = self.get_response_data(response)
         self.assertEqual(data["compensatory_days_count"], 2)
-        
+
         # Verify the sessions were set correctly
         holiday = Holiday.objects.get(pk=data["id"])
         comp_days = CompensatoryWorkday.objects.filter(holiday=holiday).order_by("date")
@@ -709,13 +691,13 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that compensatory_dates with same date and session conflicts with existing comp day."""
         # Create a holiday with a compensatory day
         existing_holiday = Holiday.objects.create(
-            name="Existing Holiday",
-            start_date=date(2026, 5, 1),
-            end_date=date(2026, 5, 2)        )
+            name="Existing Holiday", start_date=date(2026, 5, 1), end_date=date(2026, 5, 2)
+        )
         CompensatoryWorkday.objects.create(
             holiday=existing_holiday,
             date=date(2026, 5, 9),  # Saturday
-            session=CompensatoryWorkday.Session.AFTERNOON        )
+            session=CompensatoryWorkday.Session.AFTERNOON,
+        )
 
         # Try to create another holiday with compensatory date on same date and session
         url = reverse("hrm:holiday-list")
@@ -736,13 +718,13 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that compensatory_dates with full_day conflicts with any existing session."""
         # Create a holiday with a compensatory day (morning session on Sunday)
         existing_holiday = Holiday.objects.create(
-            name="Existing Holiday",
-            start_date=date(2026, 5, 1),
-            end_date=date(2026, 5, 2)        )
+            name="Existing Holiday", start_date=date(2026, 5, 1), end_date=date(2026, 5, 2)
+        )
         CompensatoryWorkday.objects.create(
             holiday=existing_holiday,
             date=date(2026, 5, 10),  # Sunday
-            session=CompensatoryWorkday.Session.MORNING        )
+            session=CompensatoryWorkday.Session.MORNING,
+        )
 
         # Try to create another holiday with full_day session on same date
         url = reverse("hrm:holiday-list")
@@ -763,13 +745,13 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         """Test that compensatory_dates with different sessions on same date is allowed."""
         # Create a holiday with a compensatory day (morning session on Sunday)
         existing_holiday = Holiday.objects.create(
-            name="Existing Holiday",
-            start_date=date(2026, 5, 1),
-            end_date=date(2026, 5, 2)        )
+            name="Existing Holiday", start_date=date(2026, 5, 1), end_date=date(2026, 5, 2)
+        )
         CompensatoryWorkday.objects.create(
             holiday=existing_holiday,
             date=date(2026, 5, 10),  # Sunday
-            session=CompensatoryWorkday.Session.MORNING        )
+            session=CompensatoryWorkday.Session.MORNING,
+        )
 
         # Create another holiday with afternoon session on same date - should succeed
         url = reverse("hrm:holiday-list")

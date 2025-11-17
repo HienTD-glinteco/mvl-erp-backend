@@ -60,7 +60,10 @@ from libs.export_xlsx import ExportXLSXMixin
                     "end_date": "2026-02-06",
                     "notes": "Vietnamese New Year holiday",
                     "status": "active",
-                    "compensatory_dates": ["2026-02-07", "2026-02-08"],
+                    "compensatory_dates": [
+                        {"date": "2026-02-07", "session": "afternoon", "notes": "notes"},
+                        {"date": "2026-02-08", "session": "full_day", "notes": "notes"},
+                    ],
                 },
                 request_only=True,
             ),
