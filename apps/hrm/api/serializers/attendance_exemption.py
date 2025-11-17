@@ -103,17 +103,15 @@ class AttendanceExemptionSerializer(serializers.ModelSerializer):
             }
         return None
 
-    def validate_employee(self, value):
-        """Validate that the employee is active."""
-        if value.status not in [Employee.Status.ACTIVE, Employee.Status.ONBOARDING]:
-            raise serializers.ValidationError(
-                _("Only active or onboarding employees can be exempt from attendance tracking")
-            )
-        return value
-
     def validate(self, attrs):
         """Validate the exemption data."""
         employee = attrs.get("employee")
+
+        # Validate employee status
+        if employee and employee.status not in [Employee.Status.ACTIVE, Employee.Status.ONBOARDING]:
+            raise serializers.ValidationError(
+                {"employee_id": _("Only active or onboarding employees can be exempt from attendance tracking")}
+            )
 
         # Check for duplicate exemption when creating
         if not self.instance and employee:

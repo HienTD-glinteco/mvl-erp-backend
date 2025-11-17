@@ -7,7 +7,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import AttendanceExemption, Branch, Employee, Position
+from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.models import AttendanceExemption, Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -35,8 +36,12 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         # Clear all existing data for clean tests
         AttendanceExemption.objects.all().delete()
         Employee.objects.all().delete()
+        Department.objects.all().delete()
+        Block.objects.all().delete()
         Branch.objects.all().delete()
         Position.objects.all().delete()
+        Province.objects.all().delete()
+        AdministrativeUnit.objects.all().delete()
         User.objects.all().delete()
 
         self.user = User.objects.create_superuser(
@@ -47,10 +52,43 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        # Create Province and AdministrativeUnit for Branch
+        self.province = Province.objects.create(
+            code="01",
+            name="Hanoi",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Ba Dinh District",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
         # Create test organizational structure
         self.branch = Branch.objects.create(
             code="HQ",
             name="Head Office",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
+
+        self.block = Block.objects.create(
+            code="TECH",
+            name="Technology",
+            block_type=Block.BlockType.SUPPORT,
+            branch=self.branch,
+        )
+
+        self.department = Department.objects.create(
+            code="IT",
+            name="Information Technology",
+            function=Department.DepartmentFunction.HR_ADMIN,
+            branch=self.branch,
+            block=self.block,
         )
 
         self.position = Position.objects.create(
@@ -66,8 +104,12 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             username="johndoe",
             email="john.doe@example.com",
             branch=self.branch,
+            block=self.block,
+            department=self.department,
             position=self.position,
             status=Employee.Status.ACTIVE,
+            start_date=date(2024, 1, 1),
+            citizen_id="001234567890",
         )
 
         self.employee2 = Employee.objects.create(
@@ -77,8 +119,12 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             username="janesmith",
             email="jane.smith@example.com",
             branch=self.branch,
+            block=self.block,
+            department=self.department,
             position=self.position,
             status=Employee.Status.ACTIVE,
+            start_date=date(2024, 1, 1),
+            citizen_id="001234567891",
         )
 
         # Create test exemption
@@ -166,8 +212,14 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
             username="inactive",
             email="inactive@example.com",
             branch=self.branch,
+            block=self.block,
+            department=self.department,
             position=self.position,
             status=Employee.Status.RESIGNED,
+            start_date=date(2024, 1, 1),
+            resignation_start_date=date(2024, 12, 1),
+            resignation_reason=Employee.ResignationReason.VOLUNTARY_OTHER,
+            citizen_id="001234567892",
         )
 
         url = reverse("hrm:attendance-exemption-list")
