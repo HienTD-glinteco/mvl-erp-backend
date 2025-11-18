@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-17 15:12+0700\n"
+"POT-Creation-Date: 2025-11-18 10:38+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,19 @@ msgstr ""
 #: apps/hrm/api/serializers/attendance_device.py:98
 #, python-brace-format
 msgid "A device with IP {ip} and port {port} already exists."
+msgstr ""
+
+#: apps/hrm/api/serializers/attendance_exemption.py:45
+msgid "Employee ID to be exempt from attendance tracking"
+msgstr ""
+
+#: apps/hrm/api/serializers/attendance_exemption.py:80
+msgid ""
+"Only active or onboarding employees can be exempt from attendance tracking"
+msgstr ""
+
+#: apps/hrm/api/serializers/attendance_exemption.py:86
+msgid "Employee already has an active exemption."
 msgstr ""
 
 #: apps/hrm/api/serializers/employee.py:245
@@ -326,6 +339,7 @@ msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
 #: apps/hrm/api/views/employee.py:488
+#: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:61
 #: apps/hrm/models/attendance_record.py:70
 #: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:23
@@ -960,6 +974,45 @@ msgstr ""
 msgid "Additional notes or comments about the device"
 msgstr ""
 
+#: apps/hrm/models/attendance_exemption.py:26
+#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:336
+#: apps/hrm/models/employee_certificate.py:53
+#: apps/hrm/models/employee_dependent.py:51
+#: apps/hrm/models/employee_relationship.py:55
+#: apps/hrm/models/employee_work_history.py:65
+#: apps/hrm/models/recruitment_candidate_contact_log.py:16
+#: apps/hrm/models/recruitment_reports.py:214
+msgid "Employee"
+msgstr ""
+
+#: apps/hrm/models/attendance_exemption.py:27
+msgid "Employee to be exempt from attendance tracking"
+msgstr ""
+
+#: apps/hrm/models/attendance_exemption.py:32
+msgid "Effective Date"
+msgstr ""
+
+#: apps/hrm/models/attendance_exemption.py:33
+msgid "Date when exemption becomes active"
+msgstr ""
+
+#: apps/hrm/models/attendance_exemption.py:39
+msgid "Additional notes or remarks"
+msgstr ""
+
+#: apps/hrm/models/attendance_exemption.py:44
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance Exemption"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/attendance_exemption.py:45
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance Exemptions"
+msgstr "Mã Chấm Công"
+
 #: apps/hrm/models/attendance_geolocation.py:20 apps/hrm/models/employee.py:70
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:68
 #: apps/hrm/models/organization.py:130 apps/hrm/models/organization.py:261
@@ -1109,16 +1162,6 @@ msgstr ""
 
 #: apps/hrm/models/bank.py:22
 msgid "Banks"
-msgstr ""
-
-#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:336
-#: apps/hrm/models/employee_certificate.py:53
-#: apps/hrm/models/employee_dependent.py:51
-#: apps/hrm/models/employee_relationship.py:55
-#: apps/hrm/models/employee_work_history.py:65
-#: apps/hrm/models/recruitment_candidate_contact_log.py:16
-#: apps/hrm/models/recruitment_reports.py:214
-msgid "Employee"
 msgstr ""
 
 #: apps/hrm/models/bank_account.py:33

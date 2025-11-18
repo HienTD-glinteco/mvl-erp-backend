@@ -1,5 +1,5 @@
 from .attendance_device import AttendanceDeviceSerializer
-from .attendance_exemption import AttendanceExemptionSerializer
+from .attendance_exemption import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from .attendance_geolocation import AttendanceGeolocationSerializer
 from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
@@ -68,6 +68,7 @@ from .work_schedule import WorkScheduleSerializer
 
 __all__ = [
     "AttendanceDeviceSerializer",
+    "AttendanceExemptionExportSerializer",
     "AttendanceExemptionSerializer",
     "AttendanceGeolocationSerializer",
     "AttendanceGeolocationExportSerializer",

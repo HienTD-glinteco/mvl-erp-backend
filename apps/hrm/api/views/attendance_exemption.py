@@ -4,7 +4,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceExemptionFilterSet
-from apps.hrm.api.serializers import AttendanceExemptionSerializer
+from apps.hrm.api.serializers import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from apps.hrm.models import AttendanceExemption
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
@@ -165,3 +165,40 @@ class AttendanceExemptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVi
     module = "HRM"
     submodule = "Attendance Management"
     permission_prefix = "attendance_exemption"
+
+    def get_export_data(self, request):
+        """Custom export data for AttendanceExemption.
+
+        Exports the following fields:
+        - employee__code
+        - employee__fullname
+        - employee__position__name
+        - effective_date
+        - notes
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = AttendanceExemptionExportSerializer(queryset, many=True)
+        data = serializer.data
+
+        return {
+            "sheets": [
+                {
+                    "name": "Attendance Exemption",
+                    "headers": [
+                        "Employee Code",
+                        "Employee Name",
+                        "Position",
+                        "Effective Date",
+                        "Notes",
+                    ],
+                    "field_names": [
+                        "employee__code",
+                        "employee__fullname",
+                        "employee__position__name",
+                        "effective_date",
+                        "notes",
+                    ],
+                    "data": data,
+                }
+            ]
+        }

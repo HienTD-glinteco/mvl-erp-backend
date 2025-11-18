@@ -3,14 +3,21 @@ from rest_framework import serializers
 
 from apps.hrm.models import AttendanceExemption, Employee
 
+from .common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    DepartmentNestedSerializer,
+    PositionNestedSerializer,
+)
+
 
 class EmployeeDetailNestedSerializer(serializers.ModelSerializer):
     """Nested serializer for Employee with organizational details."""
 
-    position = serializers.SerializerMethodField()
-    branch = serializers.SerializerMethodField()
-    block = serializers.SerializerMethodField()
-    department = serializers.SerializerMethodField()
+    position = PositionNestedSerializer(read_only=True)
+    branch = BranchNestedSerializer(read_only=True)
+    block = BlockNestedSerializer(read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
 
     class Meta:
         model = Employee
@@ -25,46 +32,6 @@ class EmployeeDetailNestedSerializer(serializers.ModelSerializer):
             "department",
         ]
         read_only_fields = fields
-
-    def get_position(self, obj):
-        """Get position details."""
-        if obj.position:
-            return {
-                "id": obj.position.id,
-                "code": obj.position.code,
-                "name": obj.position.name,
-            }
-        return None
-
-    def get_branch(self, obj):
-        """Get branch details."""
-        if obj.branch:
-            return {
-                "id": obj.branch.id,
-                "code": obj.branch.code,
-                "name": obj.branch.name,
-            }
-        return None
-
-    def get_block(self, obj):
-        """Get block details."""
-        if obj.block:
-            return {
-                "id": obj.block.id,
-                "code": obj.block.code,
-                "name": obj.block.name,
-            }
-        return None
-
-    def get_department(self, obj):
-        """Get department details."""
-        if obj.department:
-            return {
-                "id": obj.department.id,
-                "code": obj.department.code,
-                "name": obj.department.name,
-            }
-        return None
 
 
 class AttendanceExemptionSerializer(serializers.ModelSerializer):
@@ -116,8 +83,24 @@ class AttendanceExemptionSerializer(serializers.ModelSerializer):
         # Check for duplicate exemption when creating
         if not self.instance and employee:
             if AttendanceExemption.objects.filter(employee=employee).exists():
-                raise serializers.ValidationError(
-                    {"employee_id": _("Employee already has an active exemption.")}
-                )
+                raise serializers.ValidationError({"employee_id": _("Employee already has an active exemption.")})
 
         return attrs
+
+
+class AttendanceExemptionExportSerializer(serializers.ModelSerializer):
+    """Serializer for exporting AttendanceExemption data to Excel."""
+
+    employee__code = serializers.CharField(source="employee.code", read_only=True)
+    employee__fullname = serializers.CharField(source="employee.fullname", read_only=True)
+    employee__position__name = serializers.CharField(source="employee.position.name", read_only=True)
+
+    class Meta:
+        model = AttendanceExemption
+        fields = [
+            "employee__code",
+            "employee__fullname",
+            "employee__position__name",
+            "effective_date",
+            "notes",
+        ]
