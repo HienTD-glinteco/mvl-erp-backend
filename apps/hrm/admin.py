@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     AttendanceDevice,
+    AttendanceExemption,
     AttendanceGeolocation,
     AttendanceRecord,
     Bank,
@@ -64,6 +65,7 @@ class EmployeeWorkHistoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AttendanceDevice)
+admin.site.register(AttendanceExemption)
 admin.site.register(AttendanceGeolocation)
 admin.site.register(AttendanceRecord)
 
