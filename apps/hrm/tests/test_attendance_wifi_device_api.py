@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, WifiAttendanceDevice
+from apps.hrm.models import AttendanceWifiDevice, Block, Branch
 
 User = get_user_model()
 
@@ -27,12 +27,12 @@ class APITestMixin:
         return content
 
 
-class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
-    """Test cases for WifiAttendanceDevice API endpoints."""
+class AttendanceWifiDeviceAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for AttendanceWifiDevice API endpoints."""
 
     def setUp(self):
         # Clear all existing data for clean tests
-        WifiAttendanceDevice.objects.all().delete()
+        AttendanceWifiDevice.objects.all().delete()
         Block.objects.all().delete()
         Branch.objects.all().delete()
         Province.objects.all().delete()
@@ -99,7 +99,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         )
 
         # Create test WiFis
-        self.wifi1 = WifiAttendanceDevice.objects.create(
+        self.wifi1 = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -108,7 +108,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
             state="in_use",
             notes="Main office WiFi network",
         )
-        self.wifi2 = WifiAttendanceDevice.objects.create(
+        self.wifi2 = AttendanceWifiDevice.objects.create(
             name="Office WiFi Guest",
             code="WF002",
             branch=self.branch1,
@@ -120,7 +120,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_list_wifis(self):
         """Test listing all WiFi attendance devices."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -129,7 +129,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_retrieve_wifi(self):
         """Test retrieving a single attendance WiFi."""
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": self.wifi1.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": self.wifi1.pk})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -140,7 +140,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi(self):
         """Test creating a new attendance WiFi with auto-generated code."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "New WiFi Network",
             "branch_id": self.branch1.id,
@@ -159,7 +159,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_without_branch_block(self):
         """Test creating WiFi without branch and block."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Standalone WiFi",
             "bssid": "11:22:33:44:55:66",
@@ -176,7 +176,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_missing_required_fields(self):
         """Test creating WiFi with missing required fields."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Incomplete WiFi",
             # Missing bssid
@@ -187,7 +187,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_invalid_bssid_format(self):
         """Test creating WiFi with invalid BSSID format."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Invalid BSSID WiFi",
             "bssid": "invalid-bssid-format",
@@ -199,7 +199,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_duplicate_bssid(self):
         """Test creating WiFi with duplicate BSSID."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Duplicate BSSID WiFi",
             "bssid": "00:11:22:33:44:55",  # Already used by wifi1
@@ -211,7 +211,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_with_block_auto_sets_branch(self):
         """Test that creating WiFi with block automatically sets branch from block."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Auto Branch WiFi",
             "block_id": self.block1.id,
@@ -229,7 +229,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_create_wifi_block_overrides_branch(self):
         """Test that when both block and branch provided, block's branch wins."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Override Branch WiFi",
             "branch_id": self.branch1.id,
@@ -247,7 +247,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_update_wifi(self):
         """Test updating an attendance WiFi."""
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": self.wifi1.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": self.wifi1.pk})
         payload = {
             "name": "Updated WiFi Name",
             "branch_id": self.branch1.id,
@@ -268,7 +268,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_partial_update_wifi(self):
         """Test partially updating an attendance WiFi."""
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": self.wifi1.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": self.wifi1.pk})
         payload = {
             "state": "not_in_use",
             "notes": "Temporarily disabled",
@@ -284,18 +284,18 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_delete_wifi(self):
         """Test deleting an attendance WiFi."""
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": self.wifi1.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": self.wifi1.pk})
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # Verify hard delete - object should not exist anymore
-        with self.assertRaises(WifiAttendanceDevice.DoesNotExist):
-            WifiAttendanceDevice.objects.get(pk=self.wifi1.pk)
+        with self.assertRaises(AttendanceWifiDevice.DoesNotExist):
+            AttendanceWifiDevice.objects.get(pk=self.wifi1.pk)
 
     def test_filter_by_branch(self):
         """Test filtering WiFis by branch."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"branch": self.branch1.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -304,7 +304,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_filter_by_block(self):
         """Test filtering WiFis by block."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"block": self.block1.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -313,7 +313,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_filter_by_state(self):
         """Test filtering WiFis by state."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"state": "in_use"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -322,7 +322,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_name(self):
         """Test searching WiFis by name."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"search": "Main"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -332,7 +332,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_search_by_bssid(self):
         """Test searching WiFis by BSSID."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"search": "00:11:22"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -342,7 +342,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_ordering_by_name(self):
         """Test ordering WiFis by name."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         response = self.client.get(url, {"ordering": "name"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -352,7 +352,7 @@ class WifiAttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
 
     def test_bssid_normalization(self):
         """Test that BSSID is normalized to uppercase with colons."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Normalized BSSID WiFi",
             "bssid": "aa-bb-cc-dd-ee-00",  # Using hyphens instead of colons

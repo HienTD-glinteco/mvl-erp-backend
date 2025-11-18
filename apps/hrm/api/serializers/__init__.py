@@ -3,6 +3,7 @@ from .attendance_exemption import AttendanceExemptionExportSerializer, Attendanc
 from .attendance_geolocation import AttendanceGeolocationSerializer
 from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
+from .attendance_wifi_device import AttendanceWifiDeviceExportSerializer, AttendanceWifiDeviceSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
 from .contract_type import ContractTypeSerializer
@@ -64,7 +65,6 @@ from .recruitment_reports import (
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
 from .timesheet import EmployeeTimesheetSerializer
-from .wifi_attendance_device import WifiAttendanceDeviceExportSerializer, WifiAttendanceDeviceSerializer
 from .work_schedule import WorkScheduleSerializer
 
 __all__ = [
@@ -74,8 +74,8 @@ __all__ = [
     "AttendanceGeolocationSerializer",
     "AttendanceGeolocationExportSerializer",
     "AttendanceRecordSerializer",
-    "WifiAttendanceDeviceSerializer",
-    "WifiAttendanceDeviceExportSerializer",
+    "AttendanceWifiDeviceSerializer",
+    "AttendanceWifiDeviceExportSerializer",
     "BankSerializer",
     "BankAccountSerializer",
     "BranchSerializer",

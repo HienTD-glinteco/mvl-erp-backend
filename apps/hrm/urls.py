@@ -6,6 +6,7 @@ from apps.hrm.api.views import (
     AttendanceExemptionViewSet,
     AttendanceGeolocationViewSet,
     AttendanceRecordViewSet,
+    AttendanceWifiDeviceViewSet,
     BankAccountViewSet,
     BankViewSet,
     BlockViewSet,
@@ -34,7 +35,6 @@ from apps.hrm.api.views import (
     RecruitmentReportsViewSet,
     RecruitmentRequestViewSet,
     RecruitmentSourceViewSet,
-    WifiAttendanceDeviceViewSet,
     WorkScheduleViewSet,
 )
 
@@ -55,7 +55,7 @@ router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
 router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
 router.register(r"attendance-exemptions", AttendanceExemptionViewSet, basename="attendance-exemption")
-router.register(r"wifi-attendance-devices", WifiAttendanceDeviceViewSet, basename="wifi-attendance-device")
+router.register(r"attendance-wifi-devices", AttendanceWifiDeviceViewSet, basename="attendance-wifi-device")
 router.register(r"holidays", HolidayViewSet, basename="holiday")
 router.register(r"recruitment-channels", RecruitmentChannelViewSet, basename="recruitment-channel")
 router.register(r"recruitment-sources", RecruitmentSourceViewSet, basename="recruitment-source")

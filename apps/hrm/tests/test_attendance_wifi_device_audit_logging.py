@@ -1,7 +1,7 @@
 """
-Tests for WiFi Attendance Device audit logging functionality.
+Tests for Attendance WiFiDevice audit logging functionality.
 
-This module tests the AuditLoggingMixin integration with WifiAttendanceDeviceViewSet.
+This module tests the AuditLoggingMixin integration with AttendanceWifiDeviceViewSet.
 """
 
 import json
@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, WifiAttendanceDevice
+from apps.hrm.models import AttendanceWifiDevice, Block, Branch
 
 User = get_user_model()
 
@@ -35,13 +35,13 @@ class APITestMixin:
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
-    """Test cases for WifiAttendanceDevice audit logging via AuditLoggingMixin."""
+class AttendanceWifiDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
+    """Test cases for AttendanceWifiDevice audit logging via AuditLoggingMixin."""
 
     def setUp(self):
         """Set up test data."""
         # Clear all existing data for clean tests
-        WifiAttendanceDevice.objects.all().delete()
+        AttendanceWifiDevice.objects.all().delete()
         Block.objects.all().delete()
         Branch.objects.all().delete()
         Province.objects.all().delete()
@@ -89,7 +89,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
     @patch("apps.audit_logging.decorators.log_audit_event")
     def test_create_wifi_logs_audit_event(self, mock_log_audit_event):
         """Test that creating a WiFi attendance device logs an audit event."""
-        url = reverse("hrm:wifi-attendance-device-list")
+        url = reverse("hrm:attendance-wifi-device-list")
         payload = {
             "name": "Office WiFi Main",
             "branch_id": self.branch1.id,
@@ -119,7 +119,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
     def test_update_wifi_logs_audit_event(self, mock_log_audit_event):
         """Test that updating a WiFi attendance device logs an audit event."""
         # Create a WiFi device first
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -133,7 +133,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
         mock_log_audit_event.reset_mock()
 
         # Update the WiFi device
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": wifi.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": wifi.pk})
         payload = {
             "name": "Office WiFi Main Updated",
             "branch_id": self.branch1.id,
@@ -164,7 +164,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
     def test_partial_update_wifi_logs_audit_event(self, mock_log_audit_event):
         """Test that partially updating a WiFi attendance device logs an audit event."""
         # Create a WiFi device first
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -178,7 +178,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
         mock_log_audit_event.reset_mock()
 
         # Partially update the WiFi device
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": wifi.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": wifi.pk})
         payload = {
             "state": "not_in_use",
             "notes": "Disabled for maintenance",
@@ -205,7 +205,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
     def test_delete_wifi_logs_audit_event(self, mock_log_audit_event):
         """Test that deleting a WiFi attendance device logs an audit event."""
         # Create a WiFi device first
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -219,7 +219,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
         mock_log_audit_event.reset_mock()
 
         # Delete the WiFi device
-        url = reverse("hrm:wifi-attendance-device-detail", kwargs={"pk": wifi.pk})
+        url = reverse("hrm:attendance-wifi-device-detail", kwargs={"pk": wifi.pk})
         response = self.client.delete(url)
 
         # Assert response is successful
@@ -240,7 +240,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
     def test_histories_endpoint_exists(self):
         """Test that histories endpoint is available from AuditLoggingMixin."""
         # Create a WiFi device
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -251,7 +251,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
         )
 
         # Try to access histories endpoint
-        url = reverse("hrm:wifi-attendance-device-histories", kwargs={"pk": wifi.pk})
+        url = reverse("hrm:attendance-wifi-device-histories", kwargs={"pk": wifi.pk})
         response = self.client.get(url)
 
         # Endpoint should exist (may return empty results if OpenSearch is not available)
@@ -268,7 +268,7 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
 
         with patch("apps.audit_logging.decorators.log_audit_event") as mock_log_audit_event:
             # Make API request
-            url = reverse("hrm:wifi-attendance-device-list")
+            url = reverse("hrm:attendance-wifi-device-list")
             payload = {
                 "name": "Office WiFi Main",
                 "branch_id": self.branch1.id,
@@ -296,13 +296,13 @@ class WifiAttendanceDeviceAuditLoggingTest(TransactionTestCase, APITestMixin):
 
 
 @override_settings(AUDIT_LOG_DISABLED=False)
-class WifiAttendanceDeviceHistoryDetailTest(TransactionTestCase, APITestMixin):
-    """Test cases for WiFi Attendance Device history detail endpoint."""
+class AttendanceWifiDeviceHistoryDetailTest(TransactionTestCase, APITestMixin):
+    """Test cases for Attendance WiFiDevice history detail endpoint."""
 
     def setUp(self):
         """Set up test data."""
         # Clear all existing data for clean tests
-        WifiAttendanceDevice.objects.all().delete()
+        AttendanceWifiDevice.objects.all().delete()
         Block.objects.all().delete()
         Branch.objects.all().delete()
         Province.objects.all().delete()
@@ -348,7 +348,7 @@ class WifiAttendanceDeviceHistoryDetailTest(TransactionTestCase, APITestMixin):
         )
 
         # Create a WiFi device
-        self.wifi = WifiAttendanceDevice.objects.create(
+        self.wifi = AttendanceWifiDevice.objects.create(
             name="Office WiFi Main",
             code="WF001",
             branch=self.branch1,
@@ -372,13 +372,13 @@ class WifiAttendanceDeviceHistoryDetailTest(TransactionTestCase, APITestMixin):
             "user_id": str(self.user.id),
             "username": self.user.username,
             "action": "CREATE",
-            "object_type": "wifiattendancedevice",
+            "object_type": "attendancewifidevice",
             "object_id": str(self.wifi.id),
             "object_repr": str(self.wifi),
         }
 
         # Try to access history detail endpoint
-        url = reverse("hrm:wifi-attendance-device-history-detail", kwargs={"pk": self.wifi.pk, "log_id": "log123"})
+        url = reverse("hrm:attendance-wifi-device-history-detail", kwargs={"pk": self.wifi.pk, "log_id": "log123"})
         response = self.client.get(url)
 
         # Endpoint should exist and return the log detail
@@ -402,7 +402,7 @@ class WifiAttendanceDeviceHistoryDetailTest(TransactionTestCase, APITestMixin):
 
         # Try to access non-existent history detail
         url = reverse(
-            "hrm:wifi-attendance-device-history-detail", kwargs={"pk": self.wifi.pk, "log_id": "nonexistent"}
+            "hrm:attendance-wifi-device-history-detail", kwargs={"pk": self.wifi.pk, "log_id": "nonexistent"}
         )
         response = self.client.get(url)
 

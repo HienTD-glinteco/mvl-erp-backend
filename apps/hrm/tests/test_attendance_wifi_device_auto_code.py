@@ -1,14 +1,14 @@
 from django.test import TestCase
 
-from apps.hrm.models import WifiAttendanceDevice
+from apps.hrm.models import AttendanceWifiDevice
 
 
-class WifiAttendanceDeviceAutoCodeTest(TestCase):
-    """Test auto-code generation for WifiAttendanceDevice model."""
+class AttendanceWifiDeviceAutoCodeTest(TestCase):
+    """Test auto-code generation for AttendanceWifiDevice model."""
 
     def test_code_generation_starts_with_prefix(self):
         """Test that auto-generated code starts with WF prefix."""
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Test WiFi",
             bssid="00:11:22:33:44:55",
         )
@@ -17,11 +17,11 @@ class WifiAttendanceDeviceAutoCodeTest(TestCase):
 
     def test_sequential_code_generation(self):
         """Test that codes are generated sequentially."""
-        wifi1 = WifiAttendanceDevice.objects.create(
+        wifi1 = AttendanceWifiDevice.objects.create(
             name="WiFi 1",
             bssid="00:11:22:33:44:55",
         )
-        wifi2 = WifiAttendanceDevice.objects.create(
+        wifi2 = AttendanceWifiDevice.objects.create(
             name="WiFi 2",
             bssid="AA:BB:CC:DD:EE:FF",
         )
@@ -37,7 +37,7 @@ class WifiAttendanceDeviceAutoCodeTest(TestCase):
         """Test that each WiFi gets a unique code."""
         codes = set()
         for i in range(10):
-            wifi = WifiAttendanceDevice.objects.create(
+            wifi = AttendanceWifiDevice.objects.create(
                 name=f"WiFi {i}",
                 bssid=f"{i:02d}:11:22:33:44:55",
             )
@@ -48,7 +48,7 @@ class WifiAttendanceDeviceAutoCodeTest(TestCase):
 
     def test_code_not_null(self):
         """Test that code is never null."""
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Test WiFi",
             bssid="00:11:22:33:44:55",
         )
@@ -58,7 +58,7 @@ class WifiAttendanceDeviceAutoCodeTest(TestCase):
 
     def test_code_readonly_after_creation(self):
         """Test that code can be manually changed if needed (not readonly)."""
-        wifi = WifiAttendanceDevice.objects.create(
+        wifi = AttendanceWifiDevice.objects.create(
             name="Test WiFi",
             bssid="00:11:22:33:44:55",
         )

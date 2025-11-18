@@ -2,6 +2,7 @@ from .attendance_device import AttendanceDeviceViewSet
 from .attendance_exemption import AttendanceExemptionViewSet
 from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
+from .attendance_wifi_device import AttendanceWifiDeviceViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
 from .contract_type import ContractTypeViewSet
@@ -31,7 +32,6 @@ from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
 from .timesheet import EmployeeTimesheetViewSet
-from .wifi_attendance_device import WifiAttendanceDeviceViewSet
 from .work_schedule import WorkScheduleViewSet
 
 __all__ = [
@@ -39,7 +39,7 @@ __all__ = [
     "AttendanceExemptionViewSet",
     "AttendanceGeolocationViewSet",
     "AttendanceRecordViewSet",
-    "WifiAttendanceDeviceViewSet",
+    "AttendanceWifiDeviceViewSet",
     "BankViewSet",
     "BankAccountViewSet",
     "BranchViewSet",

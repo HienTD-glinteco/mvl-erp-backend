@@ -3,9 +3,9 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets import WifiAttendanceDeviceFilterSet
-from apps.hrm.api.serializers import WifiAttendanceDeviceExportSerializer, WifiAttendanceDeviceSerializer
-from apps.hrm.models import WifiAttendanceDevice
+from apps.hrm.api.filtersets import AttendanceWifiDeviceFilterSet
+from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer, AttendanceWifiDeviceSerializer
+from apps.hrm.models import AttendanceWifiDevice
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -15,7 +15,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="List all WiFi attendance devices",
         description="Retrieve a paginated list of all WiFi attendance devices with support for filtering and search. "
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -58,7 +58,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Create a new WiFi attendance device configuration in the system. "
         "The code is auto-generated server-side with pattern WF###. "
         "BSSID must be in MAC address format (XX:XX:XX:XX:XX:XX).",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -116,7 +116,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get WiFi attendance device details",
         description="Retrieve detailed information about a specific WiFi attendance device configuration",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -150,7 +150,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update WiFi attendance device",
         description="Update WiFi attendance device configuration. Code cannot be changed.",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -196,7 +196,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update WiFi attendance device",
         description="Partially update WiFi attendance device configuration",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -240,7 +240,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Delete a WiFi attendance device configuration from the system. "
         "If the device is referenced by other active resources (e.g., attendance records), "
         "the deletion will be prevented.",
-        tags=["WiFi Attendance Device"],
+        tags=["Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -252,7 +252,7 @@ from libs.export_xlsx import ExportXLSXMixin
                 value={
                     "success": False,
                     "error": {
-                        "detail": "Cannot delete this WiFi Attendance Device because it is referenced by: 5 Attendance Records",
+                        "detail": "Cannot delete this Attendance WiFiDevice because it is referenced by: 5 Attendance Records",
                         "protected_objects": [
                             {
                                 "count": 5,
@@ -268,12 +268,12 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
 )
-class WifiAttendanceDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for WifiAttendanceDevice model"""
+class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for AttendanceWifiDevice model"""
 
-    queryset = WifiAttendanceDevice.objects.select_related("branch", "block")
-    serializer_class = WifiAttendanceDeviceSerializer
-    filterset_class = WifiAttendanceDeviceFilterSet
+    queryset = AttendanceWifiDevice.objects.select_related("branch", "block")
+    serializer_class = AttendanceWifiDeviceSerializer
+    filterset_class = AttendanceWifiDeviceFilterSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["code", "name", "bssid"]
     ordering_fields = ["name", "created_at"]
@@ -281,11 +281,11 @@ class WifiAttendanceDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "WiFi Attendance Device Management"
+    submodule = "Attendance WiFiDevice Management"
     permission_prefix = "wifi_attendance_device"
 
     def get_export_data(self, request):
-        """Custom export data for WifiAttendanceDevice.
+        """Custom export data for AttendanceWifiDevice.
 
         Exports the following fields:
         - code
@@ -299,13 +299,13 @@ class WifiAttendanceDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
         - updated_at
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = WifiAttendanceDeviceExportSerializer(queryset, many=True)
+        serializer = AttendanceWifiDeviceExportSerializer(queryset, many=True)
         data = serializer.data
 
         return {
             "sheets": [
                 {
-                    "name": "WiFi Attendance Devices",
+                    "name": "Attendance WiFiDevices",
                     "headers": [
                         "Code",
                         "Name",
