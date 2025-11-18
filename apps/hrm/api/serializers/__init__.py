@@ -3,6 +3,7 @@ from .attendance_exemption import AttendanceExemptionExportSerializer, Attendanc
 from .attendance_geolocation import AttendanceGeolocationSerializer
 from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
+from .attendance_wifi import AttendanceWifiExportSerializer, AttendanceWifiSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
 from .contract_type import ContractTypeSerializer
@@ -73,6 +74,8 @@ __all__ = [
     "AttendanceGeolocationSerializer",
     "AttendanceGeolocationExportSerializer",
     "AttendanceRecordSerializer",
+    "AttendanceWifiSerializer",
+    "AttendanceWifiExportSerializer",
     "BankSerializer",
     "BankAccountSerializer",
     "BranchSerializer",

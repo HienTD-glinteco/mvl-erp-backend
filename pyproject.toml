@@ -132,6 +132,7 @@ weasyprint = "^62.3"
 
 # Attendance device integration
 pyzk = "^0.9"
+newrelic = "^11.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"

@@ -2,6 +2,7 @@ from .attendance_device import AttendanceDeviceFilterSet
 from .attendance_exemption import AttendanceExemptionFilterSet
 from .attendance_geolocation import AttendanceGeolocationFilterSet
 from .attendance_record import AttendanceRecordFilterSet
+from .attendance_wifi import AttendanceWifiFilterSet
 from .bank import BankFilterSet
 from .bank_account import BankAccountFilterSet
 from .employee import EmployeeFilterSet
@@ -38,6 +39,7 @@ __all__ = [
     "AttendanceExemptionFilterSet",
     "AttendanceGeolocationFilterSet",
     "AttendanceRecordFilterSet",
+    "AttendanceWifiFilterSet",
     "BankFilterSet",
     "BankAccountFilterSet",
     "BranchFilterSet",
