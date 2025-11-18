@@ -2,7 +2,7 @@ from .attendance_device import AttendanceDevice
 from .attendance_exemption import AttendanceExemption
 from .attendance_geolocation import AttendanceGeolocation
 from .attendance_record import AttendanceRecord
-from .attendance_wifi import AttendanceWifi
+from .wifi_attendance_device import WifiAttendanceDevice
 from .bank import Bank
 from .bank_account import BankAccount
 from .contract_type import ContractType
@@ -42,7 +42,7 @@ __all__ = [
     "AttendanceExemption",
     "AttendanceGeolocation",
     "AttendanceRecord",
-    "AttendanceWifi",
+    "WifiAttendanceDevice",
     "Bank",
     "BankAccount",
     "Branch",

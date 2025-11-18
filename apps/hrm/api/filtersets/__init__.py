@@ -2,7 +2,6 @@ from .attendance_device import AttendanceDeviceFilterSet
 from .attendance_exemption import AttendanceExemptionFilterSet
 from .attendance_geolocation import AttendanceGeolocationFilterSet
 from .attendance_record import AttendanceRecordFilterSet
-from .attendance_wifi import AttendanceWifiFilterSet
 from .bank import BankFilterSet
 from .bank_account import BankAccountFilterSet
 from .employee import EmployeeFilterSet
@@ -33,13 +32,14 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequestFilterSet
 from .recruitment_source import RecruitmentSourceFilterSet
+from .wifi_attendance_device import WifiAttendanceDeviceFilterSet
 
 __all__ = [
     "AttendanceDeviceFilterSet",
     "AttendanceExemptionFilterSet",
     "AttendanceGeolocationFilterSet",
     "AttendanceRecordFilterSet",
-    "AttendanceWifiFilterSet",
+    "WifiAttendanceDeviceFilterSet",
     "BankFilterSet",
     "BankAccountFilterSet",
     "BranchFilterSet",

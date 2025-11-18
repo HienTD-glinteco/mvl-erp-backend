@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from apps.hrm.api.serializers.common_nested import BlockNestedSerializer, BranchNestedSerializer
-from apps.hrm.models import AttendanceWifi
+from apps.hrm.models import WifiAttendanceDevice
 
 
-class AttendanceWifiSerializer(serializers.ModelSerializer):
-    """Serializer for AttendanceWifi model"""
+class WifiAttendanceDeviceSerializer(serializers.ModelSerializer):
+    """Serializer for WifiAttendanceDevice model"""
 
     # Nested serializers for read operations
     branch = BranchNestedSerializer(read_only=True)
@@ -16,7 +16,7 @@ class AttendanceWifiSerializer(serializers.ModelSerializer):
     block_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
 
     class Meta:
-        model = AttendanceWifi
+        model = WifiAttendanceDevice
         fields = [
             "id",
             "code",
@@ -52,14 +52,14 @@ class AttendanceWifiSerializer(serializers.ModelSerializer):
         return normalized_bssid
 
 
-class AttendanceWifiExportSerializer(serializers.ModelSerializer):
-    """Serializer for exporting AttendanceWifi data to Excel"""
+class WifiAttendanceDeviceExportSerializer(serializers.ModelSerializer):
+    """Serializer for exporting WifiAttendanceDevice data to Excel"""
 
     branch__name = serializers.CharField(source="branch.name", default="")
     block__name = serializers.CharField(source="block.name", default="")
 
     class Meta:
-        model = AttendanceWifi
+        model = WifiAttendanceDevice
         fields = [
             "code",
             "name",

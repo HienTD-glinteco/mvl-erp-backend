@@ -20,7 +20,6 @@ from apps.hrm.models import (
     RecruitmentSource,
 )
 
-
 # Predefined nested serializers for common use cases
 EmployeeNestedSerializer = SimpleNestedSerializerFactory(
     Employee,

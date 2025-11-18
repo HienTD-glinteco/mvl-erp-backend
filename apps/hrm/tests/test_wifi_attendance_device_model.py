@@ -2,13 +2,13 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import AttendanceWifi, Block, Branch
+from apps.hrm.models import WifiAttendanceDevice, Block, Branch
 
 User = get_user_model()
 
 
-class AttendanceWifiModelTest(TestCase):
-    """Test cases for AttendanceWifi model."""
+class WifiAttendanceDeviceModelTest(TestCase):
+    """Test cases for WifiAttendanceDevice model."""
 
     def setUp(self):
         """Set up test data."""
@@ -44,8 +44,8 @@ class AttendanceWifiModelTest(TestCase):
         self.block = Block.objects.create(name="Test Block", code="KH001", block_type="business", branch=self.branch)
 
     def test_create_wifi_with_required_fields(self):
-        """Test creating a WiFi with all required fields."""
-        wifi = AttendanceWifi.objects.create(
+        """Test creating a WiFi device with all required fields."""
+        wifi = WifiAttendanceDevice.objects.create(
             name="Office WiFi",
             bssid="00:11:22:33:44:55",
         )
@@ -54,11 +54,11 @@ class AttendanceWifiModelTest(TestCase):
         self.assertEqual(wifi.name, "Office WiFi")
         self.assertEqual(wifi.bssid, "00:11:22:33:44:55")
         self.assertTrue(wifi.code.startswith("WF"))
-        self.assertEqual(wifi.state, AttendanceWifi.State.IN_USE)
+        self.assertEqual(wifi.state, WifiAttendanceDevice.State.IN_USE)
 
     def test_code_auto_generation(self):
         """Test that code is auto-generated with WF prefix."""
-        wifi = AttendanceWifi.objects.create(
+        wifi = WifiAttendanceDevice.objects.create(
             name="Auto Code WiFi",
             bssid="AA:BB:CC:DD:EE:FF",
         )
@@ -68,11 +68,11 @@ class AttendanceWifiModelTest(TestCase):
 
     def test_code_uniqueness(self):
         """Test that codes are unique."""
-        wifi1 = AttendanceWifi.objects.create(
+        wifi1 = WifiAttendanceDevice.objects.create(
             name="WiFi 1",
             bssid="00:11:22:33:44:55",
         )
-        wifi2 = AttendanceWifi.objects.create(
+        wifi2 = WifiAttendanceDevice.objects.create(
             name="WiFi 2",
             bssid="AA:BB:CC:DD:EE:FF",
         )
@@ -81,29 +81,29 @@ class AttendanceWifiModelTest(TestCase):
 
     def test_bssid_uniqueness(self):
         """Test that BSSID must be unique."""
-        AttendanceWifi.objects.create(
+        WifiAttendanceDevice.objects.create(
             name="WiFi 1",
             bssid="00:11:22:33:44:55",
         )
 
         with self.assertRaises(Exception):  # IntegrityError wrapped in different ways
-            AttendanceWifi.objects.create(
+            WifiAttendanceDevice.objects.create(
                 name="WiFi 2",
                 bssid="00:11:22:33:44:55",  # Duplicate BSSID
             )
 
     def test_default_state(self):
         """Test that default state is 'in_use'."""
-        wifi = AttendanceWifi.objects.create(
+        wifi = WifiAttendanceDevice.objects.create(
             name="Default State WiFi",
             bssid="00:11:22:33:44:55",
         )
 
-        self.assertEqual(wifi.state, AttendanceWifi.State.IN_USE)
+        self.assertEqual(wifi.state, WifiAttendanceDevice.State.IN_USE)
 
     def test_wifi_with_branch(self):
-        """Test creating WiFi with branch."""
-        wifi = AttendanceWifi.objects.create(
+        """Test creating WiFi device with branch."""
+        wifi = WifiAttendanceDevice.objects.create(
             name="Branch WiFi",
             bssid="00:11:22:33:44:55",
             branch=self.branch,
@@ -112,8 +112,8 @@ class AttendanceWifiModelTest(TestCase):
         self.assertEqual(wifi.branch, self.branch)
 
     def test_wifi_with_branch_and_block(self):
-        """Test creating WiFi with branch and block."""
-        wifi = AttendanceWifi.objects.create(
+        """Test creating WiFi device with branch and block."""
+        wifi = WifiAttendanceDevice.objects.create(
             name="Block WiFi",
             bssid="00:11:22:33:44:55",
             branch=self.branch,
@@ -125,7 +125,7 @@ class AttendanceWifiModelTest(TestCase):
 
     def test_block_auto_sets_branch(self):
         """Test that when block is provided, branch is automatically set from block."""
-        wifi = AttendanceWifi.objects.create(
+        wifi = WifiAttendanceDevice.objects.create(
             name="Auto Branch WiFi",
             bssid="00:11:22:33:44:55",
             block=self.block,
@@ -136,26 +136,26 @@ class AttendanceWifiModelTest(TestCase):
 
     def test_colored_state(self):
         """Test colored state property."""
-        wifi = AttendanceWifi.objects.create(
+        wifi = WifiAttendanceDevice.objects.create(
             name="Colored State WiFi",
             bssid="00:11:22:33:44:55",
-            state=AttendanceWifi.State.IN_USE,
+            state=WifiAttendanceDevice.State.IN_USE,
         )
 
         colored_state = wifi.colored_state
-        self.assertEqual(colored_state["value"], AttendanceWifi.State.IN_USE)
+        self.assertEqual(colored_state["value"], WifiAttendanceDevice.State.IN_USE)
         self.assertEqual(colored_state["variant"], "green")
 
-        wifi.state = AttendanceWifi.State.NOT_IN_USE
+        wifi.state = WifiAttendanceDevice.State.NOT_IN_USE
         wifi.save()
 
         colored_state = wifi.colored_state
-        self.assertEqual(colored_state["value"], AttendanceWifi.State.NOT_IN_USE)
+        self.assertEqual(colored_state["value"], WifiAttendanceDevice.State.NOT_IN_USE)
         self.assertEqual(colored_state["variant"], "red")
 
     def test_str_representation(self):
-        """Test string representation of WiFi."""
-        wifi = AttendanceWifi.objects.create(
+        """Test string representation of WiFi device."""
+        wifi = WifiAttendanceDevice.objects.create(
             name="String Test WiFi",
             bssid="00:11:22:33:44:55",
         )

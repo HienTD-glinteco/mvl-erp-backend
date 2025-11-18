@@ -8,8 +8,8 @@ from ..constants import TEMP_CODE_PREFIX
 
 
 @audit_logging_register
-class AttendanceWifi(ColoredValueMixin, AutoCodeMixin, BaseModel):
-    """Attendance WiFi configuration for WiFi-based attendance tracking"""
+class WifiAttendanceDevice(ColoredValueMixin, AutoCodeMixin, BaseModel):
+    """WiFi Attendance Device configuration for WiFi-based attendance tracking"""
 
     CODE_PREFIX = "WF"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
@@ -61,8 +61,8 @@ class AttendanceWifi(ColoredValueMixin, AutoCodeMixin, BaseModel):
     notes = SafeTextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:
-        verbose_name = _("Attendance WiFi")
-        verbose_name_plural = _("Attendance WiFis")
+        verbose_name = _("WiFi Attendance Device")
+        verbose_name_plural = _("WiFi Attendance Devices")
         db_table = "hrm_attendance_wifi"
         ordering = ["-created_at"]
 

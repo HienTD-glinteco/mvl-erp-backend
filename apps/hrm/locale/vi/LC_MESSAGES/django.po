@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:43+0700\n"
+"POT-Creation-Date: 2025-11-18 14:55+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -162,14 +162,14 @@ msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
 #: apps/hrm/api/views/attendance_geolocation.py:435
-#: apps/hrm/api/views/attendance_wifi.py:393
+#: apps/hrm/api/views/wifi_attendance_device.py:394
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
 msgstr ""
 
 #: apps/hrm/api/views/attendance_geolocation.py:439
-#: apps/hrm/api/views/attendance_wifi.py:397
+#: apps/hrm/api/views/wifi_attendance_device.py:398
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr ""
@@ -221,26 +221,27 @@ msgstr "Loại Hợp Đồng"
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:465 apps/hrm/models/attendance_wifi.py:37
-#: apps/hrm/models/employee.py:150 apps/hrm/models/employee_report.py:34
-#: apps/hrm/models/employee_report.py:101
+#: apps/hrm/api/views/employee.py:465 apps/hrm/models/employee.py:150
+#: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
 #: apps/hrm/models/employee_work_history.py:74
 #: apps/hrm/models/organization.py:39 apps/hrm/models/organization.py:65
 #: apps/hrm/models/organization.py:103
 #: apps/hrm/models/recruitment_candidate.py:68
 #: apps/hrm/models/recruitment_reports.py:21
 #: apps/hrm/models/recruitment_request.py:54
+#: apps/hrm/models/wifi_attendance_device.py:37
 msgid "Branch"
 msgstr "Chi Nhánh"
 
 #: apps/hrm/api/views/employee.py:466 apps/hrm/models/attendance_device.py:54
-#: apps/hrm/models/attendance_wifi.py:46 apps/hrm/models/employee.py:156
-#: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
+#: apps/hrm/models/employee.py:156 apps/hrm/models/employee_report.py:40
+#: apps/hrm/models/employee_report.py:107
 #: apps/hrm/models/employee_work_history.py:83
 #: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:104
 #: apps/hrm/models/recruitment_candidate.py:76
 #: apps/hrm/models/recruitment_reports.py:29
 #: apps/hrm/models/recruitment_request.py:62
+#: apps/hrm/models/wifi_attendance_device.py:46
 msgid "Block"
 msgstr "Khối"
 
@@ -345,9 +346,8 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:61
 #: apps/hrm/models/attendance_record.py:70
-#: apps/hrm/models/attendance_wifi.py:61
 #: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:23
-#: apps/hrm/models/holiday.py:75
+#: apps/hrm/models/holiday.py:75 apps/hrm/models/wifi_attendance_device.py:61
 msgid "Notes"
 msgstr "Ghi Chú"
 
@@ -810,10 +810,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -822,22 +824,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1151,56 +1158,6 @@ msgstr ""
 #: apps/hrm/models/attendance_record.py:77
 msgid "Complete raw data from device for debugging purposes"
 msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:18
-msgid "In use"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:19
-msgid "Not in use"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:29
-msgid "WiFi name"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:30
-msgid "WiFi code"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:38
-msgid "Branch where this WiFi is located"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:47
-msgid "Block where this WiFi is located (must belong to selected branch)"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:52
-msgid "BSSID"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:53
-msgid "WiFi hardware identifier (MAC address format: XX:XX:XX:XX:XX:XX)"
-msgstr ""
-
-#: apps/hrm/models/attendance_wifi.py:59
-#, fuzzy
-#| msgid "Status"
-msgid "State"
-msgstr "Trạng Thái"
-
-#: apps/hrm/models/attendance_wifi.py:64
-#, fuzzy
-#| msgid "Attendance Code"
-msgid "Attendance WiFi"
-msgstr "Mã Chấm Công"
-
-#: apps/hrm/models/attendance_wifi.py:65
-#, fuzzy
-#| msgid "Attendance Code"
-msgid "Attendance WiFis"
-msgstr "Mã Chấm Công"
 
 #: apps/hrm/models/bank.py:17
 msgid "Bank name"
@@ -2551,6 +2508,56 @@ msgstr ""
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
 msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:18
+msgid "In use"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:19
+msgid "Not in use"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:29
+msgid "WiFi name"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:30
+msgid "WiFi code"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:38
+msgid "Branch where this WiFi is located"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:47
+msgid "Block where this WiFi is located (must belong to selected branch)"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:52
+msgid "BSSID"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:53
+msgid "WiFi hardware identifier (MAC address format: XX:XX:XX:XX:XX:XX)"
+msgstr ""
+
+#: apps/hrm/models/wifi_attendance_device.py:59
+#, fuzzy
+#| msgid "Status"
+msgid "State"
+msgstr "Trạng Thái"
+
+#: apps/hrm/models/wifi_attendance_device.py:64
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "WiFi Attendance Device"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/wifi_attendance_device.py:65
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "WiFi Attendance Devices"
+msgstr "Mã Chấm Công"
 
 #: apps/hrm/models/work_schedule.py:14
 msgid "Monday"
