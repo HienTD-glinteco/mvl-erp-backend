@@ -18,7 +18,7 @@ class Branch(AutoCodeMixin, BaseModel):
     name = models.CharField(max_length=200, verbose_name=_("Branch name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
     address = SafeTextField(blank=True, verbose_name=_("Address"))
-    phone = models.CharField(max_length=15, blank=True, verbose_name=_("Phone number"))
+    phone = models.CharField(max_length=1000, blank=True, verbose_name=_("Phone number"))
     email = models.EmailField(blank=True, verbose_name=_("Email"))
     province = models.ForeignKey(
         "core.Province",

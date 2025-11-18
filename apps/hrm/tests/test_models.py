@@ -53,6 +53,56 @@ class BranchModelTest(TestCase):
         with self.assertRaises(Exception):  # IntegrityError
             Branch.objects.create(**self.branch_data)
 
+    def test_branch_phone_field_max_length(self):
+        """Test phone field accepts up to 1000 characters"""
+        # Test with exactly 1000 characters
+        long_phone = "0" * 1000
+        branch_data = self.branch_data.copy()
+        branch_data["phone"] = long_phone
+        branch_data["code"] = "TEST1000"
+
+        branch = Branch.objects.create(**branch_data)
+        self.assertEqual(len(branch.phone), 1000)
+        self.assertEqual(branch.phone, long_phone)
+
+    def test_branch_phone_field_accepts_empty_string(self):
+        """Test phone field accepts empty string (blank=True)"""
+        branch_data = self.branch_data.copy()
+        branch_data["phone"] = ""
+        branch_data["code"] = "TESTEMPTY"
+
+        branch = Branch.objects.create(**branch_data)
+        self.assertEqual(branch.phone, "")
+
+    def test_branch_phone_field_accepts_multiple_numbers(self):
+        """Test phone field can store multiple phone numbers separated by commas"""
+        multiple_phones = "024-12345678, 091-234-5678, +84-28-7654321"
+        branch_data = self.branch_data.copy()
+        branch_data["phone"] = multiple_phones
+        branch_data["code"] = "TESTMULTI"
+
+        branch = Branch.objects.create(**branch_data)
+        self.assertEqual(branch.phone, multiple_phones)
+
+    def test_branch_phone_field_accepts_various_formats(self):
+        """Test phone field accepts various phone number formats"""
+        test_cases = [
+            ("0243456789", "Simple 10-digit format"),
+            ("024-345-6789", "Format with dashes"),
+            ("+84-24-345-6789", "International format with country code"),
+            ("(024) 345 6789", "Format with parentheses and spaces"),
+            ("024.345.6789", "Format with dots"),
+            ("Hotline: 1900-1234, Office: 024-567-8901", "Mixed text and numbers"),
+        ]
+
+        for i, (phone_format, description) in enumerate(test_cases):
+            branch_data = self.branch_data.copy()
+            branch_data["phone"] = phone_format
+            branch_data["code"] = f"TESTFMT{i}"
+
+            branch = Branch.objects.create(**branch_data)
+            self.assertEqual(branch.phone, phone_format, f"Failed for: {description}")
+
 
 class BlockModelTest(TestCase):
     """Test cases for Block model"""
