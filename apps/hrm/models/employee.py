@@ -19,13 +19,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     This model stores comprehensive employee information including personal details,
     organizational hierarchy, and employment status. Employee codes are automatically
-    generated with a prefix based on code_type (MV or CTV).
+    generated with a prefix based on code_type (MV, CTV, or OS).
 
     A User account is automatically created when an Employee is created,
     using the employee's username and email fields.
 
     Attributes:
-        code_type: Employee type (MV or CTV)
+        code_type: Employee type (MV, CTV, or OS)
         code: Auto-generated unique employee code with prefix based on code_type
         avatar: Employee photo/avatar file
         fullname: Employee's full name
@@ -51,6 +51,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         citizen_id: National ID/CCCD number (digits only)
         citizen_id_issued_date: Date when citizen ID was issued
         citizen_id_issued_place: Place where citizen ID was issued
+        citizen_id_file: Citizen ID document file
         phone: Primary contact phone number (digits only)
         personal_email: Personal email address (different from work email)
         tax_code: Tax identification number
@@ -65,6 +66,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     class CodeType(models.TextChoices):
         MV = "MV", _("MV")
         CTV = "CTV", _("CTV")
+        OS = "OS", _("OS")
 
     class Status(models.TextChoices):
         ACTIVE = "Active", _("Active")
@@ -104,6 +106,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "code_type": {
             CodeType.MV: ColorVariant.RED,
             CodeType.CTV: ColorVariant.PURPLE,
+            CodeType.OS: ColorVariant.BLUE,
         },
         "status": {
             Status.ACTIVE: ColorVariant.GREEN,
@@ -258,6 +261,14 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=100,
         blank=True,
         verbose_name=_("Citizen ID issued place"),
+    )
+    citizen_id_file = models.ForeignKey(
+        "files.FileModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employee_citizen_id_files",
+        verbose_name=_("Citizen ID file"),
     )
     tax_code = models.CharField(
         max_length=12,

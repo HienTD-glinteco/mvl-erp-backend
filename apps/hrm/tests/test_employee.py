@@ -494,6 +494,138 @@ class EmployeeModelTest(TestCase):
         self.assertIn("variant", colored_value)
         self.assertEqual(colored_value["value"], "Active")
 
+    def test_employee_code_type_os_option(self):
+        """Test that OS code type option can be set and retrieved"""
+        # Arrange & Act: Create employee with OS code type
+        employee = Employee.objects.create(
+            fullname="Test Employee OS",
+            username="testemployeeos",
+            email="testemployeeos@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeeos.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            code_type=Employee.CodeType.OS,
+            citizen_id="123456789",
+        )
+
+        # Assert: Verify OS code type is set correctly
+        self.assertEqual(employee.code_type, Employee.CodeType.OS)
+        self.assertEqual(employee.code_type.label, "OS")
+
+    def test_employee_code_type_os_colored_property(self):
+        """Test that colored_code_type property returns correct format for OS type with BLUE variant"""
+        # Arrange & Act: Create employee with OS code type
+        employee = Employee.objects.create(
+            fullname="Test Employee OS Color",
+            username="testemployeeoscolor",
+            email="testemployeeoscolor@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeeoscolor.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            code_type=Employee.CodeType.OS,
+            citizen_id="123456789",
+        )
+
+        # Assert: Verify colored_code_type returns correct value and BLUE variant
+        colored_value = employee.colored_code_type
+        self.assertIsNotNone(colored_value)
+        self.assertIn("value", colored_value)
+        self.assertIn("variant", colored_value)
+        self.assertEqual(colored_value["value"], "OS")
+        self.assertEqual(colored_value["variant"], "BLUE")
+
+    def test_employee_citizen_id_file_can_be_null(self):
+        """Test that citizen_id_file can be null"""
+        # Arrange & Act: Create employee without citizen_id_file
+        employee = Employee.objects.create(
+            fullname="Test Employee No File",
+            username="testemployeenofile",
+            email="testemployeenofile@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeenofile.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=None,
+        )
+
+        # Assert: Verify citizen_id_file is None
+        self.assertIsNone(employee.citizen_id_file)
+
+    def test_employee_citizen_id_file_foreign_key_relationship(self):
+        """Test that citizen_id_file can be linked to FileModel"""
+        from apps.files.models import FileModel
+
+        # Arrange: Create a FileModel instance
+        file_instance = FileModel.objects.create(
+            file_name="citizen_id_document.pdf",
+            file_path="documents/citizen_ids/citizen_id_document.pdf",
+            size=102400,
+        )
+
+        # Act: Create employee with citizen_id_file
+        employee = Employee.objects.create(
+            fullname="Test Employee With File",
+            username="testemployeewithfile",
+            email="testemployeewithfile@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeewithfile.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=file_instance,
+        )
+
+        # Assert: Verify the foreign key relationship
+        self.assertIsNotNone(employee.citizen_id_file)
+        self.assertEqual(employee.citizen_id_file.id, file_instance.id)
+        self.assertEqual(employee.citizen_id_file.file_name, "citizen_id_document.pdf")
+
+    def test_employee_citizen_id_file_set_null_on_delete(self):
+        """Test that citizen_id_file is set to null when FileModel is deleted"""
+        from apps.files.models import FileModel
+
+        # Arrange: Create FileModel and Employee with that file
+        file_instance = FileModel.objects.create(
+            file_name="citizen_id_to_delete.pdf",
+            file_path="documents/citizen_ids/citizen_id_to_delete.pdf",
+            size=102400,
+        )
+
+        employee = Employee.objects.create(
+            fullname="Test Employee File Delete",
+            username="testemployeefiledelete",
+            email="testemployeefiledelete@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeefiledelete.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=file_instance,
+        )
+
+        # Verify file is linked
+        self.assertIsNotNone(employee.citizen_id_file)
+
+        # Act: Delete the FileModel
+        file_instance.delete()
+
+        # Assert: Refresh employee and verify citizen_id_file is now null
+        employee.refresh_from_db()
+        self.assertIsNone(employee.citizen_id_file)
+
 
 class EmployeeAPITest(TestCase, APITestMixin):
     """Test cases for Employee API endpoints"""
