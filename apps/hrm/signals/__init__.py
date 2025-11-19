@@ -37,6 +37,7 @@ User = get_user_model()
 # Import libs after models to avoid circular imports
 from libs.code_generation import register_auto_code_signal  # noqa: E402
 
+from .attendance import *  # noqa: E402, F401, F403
 from .employee import *  # noqa: E402, F401, F403
 from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403

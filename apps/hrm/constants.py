@@ -125,3 +125,19 @@ class TimesheetStatus(models.TextChoices):
     ON_TIME = "on_time", _("On time")
     NOT_ON_TIME = "not_on_time", _("Not on time")
     ABSENT = "absent", _("Absent")
+
+
+class TimesheetReason(models.TextChoices):
+    PAID_LEAVE = "paid_leave", _("Paid leave")
+    UNPAID_LEAVE = "unpaid_leave", _("Unpaid leave")
+    MATERNITY_LEAVE = "maternity_leave", _("Maternity leave")
+    PUBLIC_HOLIDAY = "public_holiday", _("Public holiday")
+    UNEXCUSED_ABSENCE = "unexcused_absence", _("Unexcused Absence")
+
+    @classmethod
+    def dict_choices(cls) -> dict:
+        return dict(cls.choices)
+
+    @classmethod
+    def get_label(cls, raw_value: str) -> str:
+        return cls.dict_choices().get(raw_value, raw_value)

@@ -9,6 +9,8 @@ from apps.hrm.tasks.reports_recruitment import (
     aggregate_recruitment_reports_for_candidate,
 )
 
+from .timesheets import increment_available_leave_days
+
 __all__ = [
     "sync_all_attendance_devices",
     "sync_attendance_logs_for_device",
@@ -17,4 +19,5 @@ __all__ = [
     "aggregate_hr_reports_batch",
     "aggregate_recruitment_reports_for_candidate",
     "aggregate_recruitment_reports_batch",
+    "increment_available_leave_days",
 ]

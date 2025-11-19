@@ -343,6 +343,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Recruitment Candidate"),
     )
 
+    # Available leave days (e.g., remaining annual leave)
+    available_leave_days = models.IntegerField(
+        default=0,
+        verbose_name=_("Available leave days"),
+        help_text=_("Number of available leave days for the employee"),
+    )
+
     class Meta:
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")

@@ -119,8 +119,27 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
+#: apps/hrm/api/serializers/holiday.py:70
+#, python-brace-format
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr ""
+
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:98
+#, python-brace-format
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:109
+#, python-brace-format
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -149,6 +168,42 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:216
+#, python-brace-format
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:236
+#, python-brace-format
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:246
+#, python-brace-format
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:264
+#, python-brace-format
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:283
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:294
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_request.py:148
@@ -195,7 +250,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/models/employee_certificate.py:110
 #: apps/hrm/models/employee_work_history.py:114
 #: apps/hrm/models/recruitment_candidate.py:111
-#: apps/hrm/models/recruitment_request.py:89
+#: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:46
 msgid "Status"
 msgstr "Trạng Thái"
 
@@ -351,27 +406,6 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
-#: apps/hrm/api/views/employee_reports.py:62
-#: apps/hrm/api/views/recruitment_reports.py:675 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:82
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:803 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:108 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:129 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reports.py:334
 msgid "Average"
 msgstr ""
@@ -489,6 +523,22 @@ msgstr ""
 msgid "Returning Employee"
 msgstr ""
 
+#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/constants.py:53
 msgid "All data"
 msgstr ""
@@ -587,6 +637,26 @@ msgstr ""
 
 #: apps/hrm/constants.py:127
 msgid "Absent"
+msgstr ""
+
+#: apps/hrm/constants.py:131
+msgid "Paid leave"
+msgstr ""
+
+#: apps/hrm/constants.py:132
+msgid "Unpaid leave"
+msgstr ""
+
+#: apps/hrm/constants.py:133
+msgid "Maternity leave"
+msgstr ""
+
+#: apps/hrm/constants.py:134
+msgid "Public holiday"
+msgstr ""
+
+#: apps/hrm/constants.py:135
+msgid "Unexcused Absence"
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:9
@@ -810,12 +880,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -824,27 +892,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -974,9 +1037,10 @@ msgstr ""
 #: apps/hrm/models/employee_work_history.py:106
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
+#: apps/hrm/models/monthly_timesheet.py:91
 #: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
-#: apps/hrm/models/recruitment_expense.py:73
+#: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:58
 #: apps/hrm/models/work_schedule.py:82
 msgid "Note"
 msgstr ""
@@ -1760,7 +1824,7 @@ msgstr ""
 msgid "Return to Work"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:47
+#: apps/hrm/models/employee_work_history.py:47 apps/hrm/models/timesheet.py:30
 msgid "Date"
 msgstr ""
 
@@ -2019,6 +2083,83 @@ msgstr ""
 
 #: apps/hrm/models/job_description.py:37
 msgid "Job Descriptions"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:32
+msgid "Report date"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:34
+#: apps/hrm/models/recruitment_reports.py:57
+#: apps/hrm/models/recruitment_reports.py:152
+#: apps/hrm/models/recruitment_reports.py:198
+msgid "Month key"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:38
+msgid "Probation working days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:41
+msgid "Official working days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:44
+msgid "Total working days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:49
+msgid "Total worked hours"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:52
+msgid "Overtime hours"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:57
+msgid "Paid leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:60
+msgid "Unpaid leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:63
+msgid "Maternity leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:66
+msgid "Public holiday days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:69
+msgid "Unexcused absence days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:78
+msgid ""
+"Carried over leave from last year. Only applied for Januray. After that, "
+"this field must be set to 0."
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:82
+msgid "Opening balance leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:85
+msgid "Consumed leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:88
+msgid "Remaining leave days"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:95
+msgid "Employee monthly timesheet"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:96
+msgid "Employee monthly timesheets"
 msgstr ""
 
 #: apps/hrm/models/organization.py:18
@@ -2384,12 +2525,6 @@ msgstr ""
 msgid "Referrer and referee cannot be the same person."
 msgstr ""
 
-#: apps/hrm/models/recruitment_reports.py:57
-#: apps/hrm/models/recruitment_reports.py:152
-#: apps/hrm/models/recruitment_reports.py:198
-msgid "Month key"
-msgstr ""
-
 #: apps/hrm/models/recruitment_reports.py:58
 #: apps/hrm/models/recruitment_reports.py:199
 msgid "Format: MM/YYYY for monthly aggregation"
@@ -2575,6 +2710,48 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_source.py:28
 msgid "Recruitment Sources"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:32
+#, fuzzy
+#| msgid "Start Date"
+msgid "Start time"
+msgstr "Ngày Bắt Đầu"
+
+#: apps/hrm/models/timesheet.py:33
+msgid "End time"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:36
+msgid "Morning hours"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:39
+msgid "Afternoon hours"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:42
+msgid "Total hours"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:50
+msgid "Absent reason"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:54
+msgid "Is full salary"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:56
+msgid "Count for payroll"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:62
+msgid "Timesheet"
+msgstr ""
+
+#: apps/hrm/models/timesheet.py:63
+msgid "Timesheets"
 msgstr ""
 
 #: apps/hrm/models/work_schedule.py:14

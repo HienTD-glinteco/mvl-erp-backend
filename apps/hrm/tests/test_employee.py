@@ -83,11 +83,19 @@ class EmployeeModelTest(TestCase):
             "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
+        # Patch the timesheet prepare task
+        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay")
+        self.mock_prepare_timesheet_delay = self.prepare_timesheet_patcher.start()
+        # Patch increment_available_leave_days task
+        self.increment_leave_patcher = patch("apps.hrm.tasks.timesheets.increment_available_leave_days.delay")
+        self.mock_increment_leave_delay = self.increment_leave_patcher.start()
 
     def tearDown(self):
         # Stop patchers
         self.hr_report_patcher.stop()
         self.recruitment_report_patcher.stop()
+        self.prepare_timesheet_patcher.stop()
+        self.increment_leave_patcher.stop()
         return super().tearDown()
 
     def test_create_employee(self):
@@ -113,6 +121,10 @@ class EmployeeModelTest(TestCase):
         self.assertIsNotNone(employee.user)
         self.assertEqual(employee.user.username, "johndoe")
         self.assertEqual(employee.user.email, "john@example.com")
+        # The prepare_monthly_timesheets task should have been scheduled for new employee
+        self.mock_prepare_timesheet_delay.assert_called()
+        # Monthly leave increment task shouldn't be scheduled on create by default
+        self.mock_increment_leave_delay.assert_not_called()
         self.assertIn("John Doe", str(employee))
 
     def test_delete_employee_with_user(self):
@@ -178,6 +190,31 @@ class EmployeeModelTest(TestCase):
 
         # Assert: Employee should be deleted without errors
         self.assertFalse(Employee.objects.filter(id=employee_id).exists())
+
+    def test_resigned_to_active_triggers_timesheet_task(self):
+        # Create resigned employee
+        employee = Employee.objects.create(
+            fullname="Resigned User",
+            username="resigned",
+            email="resigned@example.com",
+            phone="0123456711",
+            attendance_code="RES001",
+            start_date="2020-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="123456900",
+            status=Employee.Status.RESIGNED,
+        )
+
+        # Simulate update to Active (return to work)
+        old_status = employee.status
+        employee.status = Employee.Status.ACTIVE
+        employee.save(update_fields=["status"])
+        employee.old_status = old_status
+
+        # Handler should have scheduled prepare task
+        self.mock_prepare_timesheet_delay.assert_called()
 
     def test_employee_code_unique(self):
         """Test employee code uniqueness"""
