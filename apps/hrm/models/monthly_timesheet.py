@@ -139,23 +139,29 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         qs = TimeSheetEntry.objects.filter(employee_id=employee_id, date__range=(first_day, last_day))
 
         aggregates_expr = {
-            # Hour aggregates
-            "official_hours": Coalesce(Sum("official_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())),
-            "overtime_hours": Coalesce(Sum("overtime_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())),
-            "total_worked_hours": Coalesce(
-                Sum("total_worked_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())
+            # Hour aggregates - calculate from base fields
+            # Use temp keys to avoid conflict with field names
+            "_official_hours": Coalesce(
+                Sum(F("morning_hours") + F("afternoon_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())
             ),
-            # Working days - sum the working_days_value from each entry
-            "probation_working_days": Coalesce(
-                Sum("official_hours", filter=Q(is_full_salary=False)) / Value(STANDARD_WORKING_HOURS_PER_DAY),
+            "_overtime_hours": Coalesce(Sum(F("overtime_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
+            "_total_worked_hours": Coalesce(
+                Sum(F("morning_hours") + F("afternoon_hours") + F("overtime_hours")),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
-            "official_working_days": Coalesce(
-                Sum("official_hours", filter=Q(is_full_salary=True)) / Value(STANDARD_WORKING_HOURS_PER_DAY),
+            # Working days - calculate from hours divided by 8
+            "_probation_working_days": Coalesce(
+                Sum(F("morning_hours") + F("afternoon_hours"), filter=Q(is_full_salary=False))
+                / Value(STANDARD_WORKING_HOURS_PER_DAY),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
-            "total_working_days": Coalesce(
-                Sum("official_hours") / Value(STANDARD_WORKING_HOURS_PER_DAY),
+            "_official_working_days": Coalesce(
+                Sum(F("morning_hours") + F("afternoon_hours"), filter=Q(is_full_salary=True))
+                / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
+            ),
+            "_total_working_days": Coalesce(
+                Sum(F("morning_hours") + F("afternoon_hours")) / Value(STANDARD_WORKING_HOURS_PER_DAY),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             # Leaves day
@@ -177,10 +183,29 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         }
 
         if fields:
-            aggregates_expr = {field: expr for field, expr in aggregates_expr.items() if field in fields}
+            # Map field names to temp keys for filtering
+            field_mapping = {
+                "official_hours": "_official_hours",
+                "overtime_hours": "_overtime_hours",
+                "total_worked_hours": "_total_worked_hours",
+                "probation_working_days": "_probation_working_days",
+                "official_working_days": "_official_working_days",
+                "total_working_days": "_total_working_days",
+            }
+            temp_fields = [field_mapping.get(f, f) for f in fields]
+            aggregates_expr = {field: expr for field, expr in aggregates_expr.items() if field in temp_fields}
 
         raw_aggs = qs.aggregate(**aggregates_expr) if aggregates_expr else {}
-        aggregates = {field: quantize_decimal(value) for field, value in raw_aggs.items()}
+        
+        # Rename temp keys back to original field names
+        aggregates = {}
+        for field, value in raw_aggs.items():
+            if field.startswith("_"):
+                # Remove the underscore prefix
+                clean_field = field[1:]
+                aggregates[clean_field] = quantize_decimal(value)
+            else:
+                aggregates[field] = quantize_decimal(value)
 
         # Calculate working_days_value: official_hours / 8, rounded to 2 decimals
         # TODO: Check logic after SRS is updated
