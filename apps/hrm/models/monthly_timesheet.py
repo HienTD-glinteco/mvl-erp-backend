@@ -4,7 +4,7 @@ from typing import Dict
 
 from django.db import models
 from django.db.models import Count, DecimalField, F, Q, Sum, Value
-from django.db.models.functions import Coalesce, Greatest
+from django.db.models.functions import Coalesce
 from django.utils.translation import gettext_lazy as _
 
 from apps.hrm.constants import STANDARD_WORKING_HOURS_PER_DAY, TimesheetReason
@@ -196,7 +196,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             aggregates_expr = {field: expr for field, expr in aggregates_expr.items() if field in temp_fields}
 
         raw_aggs = qs.aggregate(**aggregates_expr) if aggregates_expr else {}
-        
+
         # Rename temp keys back to original field names
         aggregates = {}
         for field, value in raw_aggs.items():

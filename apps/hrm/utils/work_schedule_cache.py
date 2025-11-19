@@ -28,7 +28,7 @@ def get_all_work_schedules(use_cache: bool = True):
         QuerySet or list of WorkSchedule objects.
     """
     WorkSchedule = _get_work_schedule_model()
-    
+
     if not use_cache:
         return WorkSchedule.objects.all()
 
@@ -52,7 +52,7 @@ def get_work_schedule_by_weekday(weekday: int, use_cache: bool = True):
         WorkSchedule instance or None if not found.
     """
     WorkSchedule = _get_work_schedule_model()
-    
+
     if not use_cache:
         return WorkSchedule.objects.filter(weekday=weekday).first()
 
@@ -73,7 +73,7 @@ def invalidate_work_schedule_cache():
     This should be called whenever WorkSchedule records are created, updated, or deleted.
     """
     WorkSchedule = _get_work_schedule_model()
-    
+
     # Clear the all schedules cache
     cache.delete(WORK_SCHEDULE_CACHE_KEY)
 
