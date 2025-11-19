@@ -36,4 +36,9 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.reports_recruitment.aggregate_recruitment_reports_batch",
         "schedule": crontab(hour=0, minute=10),  # Daily at 00:10 (after HR reports)
     },
+    # Update certificate statuses based on expiry dates
+    "update_certificate_statuses": {
+        "task": "apps.hrm.tasks.certificates.update_certificate_statuses",
+        "schedule": crontab(hour=1, minute=0),  # Daily at 01:00
+    },
 }
