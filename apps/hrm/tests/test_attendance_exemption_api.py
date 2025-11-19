@@ -324,10 +324,13 @@ class AttendanceExemptionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:attendance-exemption-list")
 
         # Filter for dates from Jan to Mar
-        response = self.client.get(url, {
-            "effective_date_from": "2025-01-01",
-            "effective_date_to": "2025-03-31",
-        })
+        response = self.client.get(
+            url,
+            {
+                "effective_date_from": "2025-01-01",
+                "effective_date_to": "2025-03-31",
+            },
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = self.get_response_data(response)

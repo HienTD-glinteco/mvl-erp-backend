@@ -40,7 +40,9 @@ class FixedBranchAPITest(TransactionTestCase, APITestMixin):
         # Clear existing users but keep one for authentication
         User.objects.all().delete()
         # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -155,7 +157,9 @@ class FixedBlockAPITest(TransactionTestCase, APITestMixin):
         Block.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -279,7 +283,9 @@ class FixedPositionAPITest(TransactionTestCase, APITestMixin):
         Position.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -323,7 +329,9 @@ class FixedDepartmentAPITest(TransactionTestCase, APITestMixin):
         Department.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

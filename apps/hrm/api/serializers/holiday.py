@@ -205,9 +205,7 @@ class HolidaySerializer(serializers.ModelSerializer):
                 overlapping = overlapping.exclude(id=self.instance.id)
 
             if overlapping.exists():
-                raise serializers.ValidationError(
-                    {"start_date": _("This holiday overlaps with an existing holiday")}
-                )
+                raise serializers.ValidationError({"start_date": _("This holiday overlaps with an existing holiday")})
 
     def _validate_comp_date_is_weekend(self, comp_date, weekday):
         """Validate compensatory date is on weekend."""
@@ -259,11 +257,7 @@ class HolidaySerializer(serializers.ModelSerializer):
         if overlapping_holidays.exists():
             holiday_name = overlapping_holidays.first().name
             raise serializers.ValidationError(
-                {
-                    "compensatory_dates": _(
-                        f"Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
-                    )
-                }
+                {"compensatory_dates": _(f"Compensatory date {comp_date} overlaps with holiday: {holiday_name}")}
             )
 
     def _validate_comp_date_no_session_conflicts(self, comp_date, comp_session):

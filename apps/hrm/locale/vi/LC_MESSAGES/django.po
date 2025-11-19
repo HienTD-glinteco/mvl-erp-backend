@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-19 10:32+0700\n"
+"POT-Creation-Date: 2025-11-19 10:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,11 +111,11 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:112
+#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:118
+#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:116
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
@@ -147,7 +147,7 @@ msgstr ""
 msgid "End date must be greater than or equal to start date"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:209
+#: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 

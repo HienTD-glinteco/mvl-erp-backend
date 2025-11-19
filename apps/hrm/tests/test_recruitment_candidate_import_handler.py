@@ -138,42 +138,15 @@ class TestUtilityFunctions:
 
     def test_convert_months_to_experience(self):
         """Test months to experience conversion."""
-        assert (
-            convert_months_to_experience(0)
-            == RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE
-        )
-        assert (
-            convert_months_to_experience(6)
-            == RecruitmentCandidate.YearsOfExperience.LESS_THAN_ONE_YEAR
-        )
-        assert (
-            convert_months_to_experience(11)
-            == RecruitmentCandidate.YearsOfExperience.LESS_THAN_ONE_YEAR
-        )
-        assert (
-            convert_months_to_experience(18)
-            == RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS
-        )
-        assert (
-            convert_months_to_experience(36)
-            == RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS
-        )
-        assert (
-            convert_months_to_experience(48)
-            == RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS
-        )
-        assert (
-            convert_months_to_experience(60)
-            == RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS
-        )
-        assert (
-            convert_months_to_experience(84)
-            == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
-        )
-        assert (
-            convert_months_to_experience(120)
-            == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
-        )
+        assert convert_months_to_experience(0) == RecruitmentCandidate.YearsOfExperience.NO_EXPERIENCE
+        assert convert_months_to_experience(6) == RecruitmentCandidate.YearsOfExperience.LESS_THAN_ONE_YEAR
+        assert convert_months_to_experience(11) == RecruitmentCandidate.YearsOfExperience.LESS_THAN_ONE_YEAR
+        assert convert_months_to_experience(18) == RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS
+        assert convert_months_to_experience(36) == RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS
+        assert convert_months_to_experience(48) == RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS
+        assert convert_months_to_experience(60) == RecruitmentCandidate.YearsOfExperience.THREE_TO_FIVE_YEARS
+        assert convert_months_to_experience(84) == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
+        assert convert_months_to_experience(120) == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
 
 
 @pytest.mark.django_db
@@ -183,9 +156,7 @@ class TestEntityCreation:
     def test_get_or_create_recruitment_source_existing(self):
         """Test getting existing recruitment source."""
         # Create existing source
-        existing_source = RecruitmentSource.objects.create(
-            name="LinkedIn", allow_referral=False
-        )
+        existing_source = RecruitmentSource.objects.create(name="LinkedIn", allow_referral=False)
 
         cache = {}
         source, error = get_or_create_recruitment_source("LinkedIn", cache)
@@ -200,9 +171,7 @@ class TestEntityCreation:
     def test_get_or_create_recruitment_source_case_insensitive(self):
         """Test case-insensitive lookup for recruitment source."""
         # Create source with mixed case
-        existing_source = RecruitmentSource.objects.create(
-            name="LinkedIn", allow_referral=False
-        )
+        existing_source = RecruitmentSource.objects.create(name="LinkedIn", allow_referral=False)
 
         cache = {}
         # Lookup with different case
@@ -246,9 +215,7 @@ class TestEntityCreation:
         assert channel.belong_to == RecruitmentChannel.BelongTo.JOB_WEBSITE
         assert channel.description == "Auto-created from import"
 
-    def test_find_or_create_recruitment_request_existing(
-        self, sample_department, sample_branch, sample_block
-    ):
+    def test_find_or_create_recruitment_request_existing(self, sample_department, sample_branch, sample_block):
         """Test finding existing recruitment request."""
         # Create job description
         job_desc = JobDescription.objects.create(
@@ -286,16 +253,12 @@ class TestEntityCreation:
         )
 
         cache = {}
-        request, error = find_or_create_recruitment_request(
-            "Tuyển Backend Developer Senior", sample_department, cache
-        )
+        request, error = find_or_create_recruitment_request("Tuyển Backend Developer Senior", sample_department, cache)
 
         assert error is None
         assert request.id == existing_request.id
 
-    def test_find_or_create_recruitment_request_new(
-        self, sample_department, sample_branch, sample_block
-    ):
+    def test_find_or_create_recruitment_request_new(self, sample_department, sample_branch, sample_block):
         """Test creating new recruitment request."""
         # Create proposer
         proposer = Employee.objects.create(
@@ -312,9 +275,7 @@ class TestEntityCreation:
         )
 
         cache = {}
-        request, error = find_or_create_recruitment_request(
-            "Tuyển Frontend Developer", sample_department, cache
-        )
+        request, error = find_or_create_recruitment_request("Tuyển Frontend Developer", sample_department, cache)
 
         assert error is None
         assert request is not None
@@ -373,10 +334,7 @@ class TestImportHandler:
         assert candidate.email == "nguyenvanan@example.com"
         assert candidate.phone == "0912345678"
         assert candidate.status == RecruitmentCandidate.Status.CONTACTED
-        assert (
-            candidate.years_of_experience
-            == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
-        )
+        assert candidate.years_of_experience == RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
         assert candidate.submitted_date == date(2025, 11, 1)
         assert candidate.note == "Ứng viên có 7 năm kinh nghiệm"
         assert candidate.referrer is None
@@ -682,9 +640,7 @@ class TestImportHandler:
         # Verify only one source/channel/request was created
         assert RecruitmentSource.objects.filter(name__iexact="LinkedIn").count() == 1
         assert RecruitmentChannel.objects.filter(name__iexact="Website").count() == 1
-        assert (
-            RecruitmentRequest.objects.filter(name__iexact="Tuyển Backend Developer").count() == 1
-        )
+        assert RecruitmentRequest.objects.filter(name__iexact="Tuyển Backend Developer").count() == 1
 
     def test_import_handler_hired_without_onboard_date(
         self, sample_branch, sample_block, sample_department, sample_proposer, template_headers
@@ -860,9 +816,7 @@ def sample_administrative_unit(sample_province):
     """Create a sample administrative unit."""
     from apps.core.models import AdministrativeUnit
 
-    return AdministrativeUnit.objects.create(
-        name="Test Administrative Unit", parent_province=sample_province
-    )
+    return AdministrativeUnit.objects.create(name="Test Administrative Unit", parent_province=sample_province)
 
 
 @pytest.fixture
@@ -878,9 +832,7 @@ def sample_branch(sample_province, sample_administrative_unit):
 @pytest.fixture
 def sample_block(sample_branch):
     """Create a sample block."""
-    return Block.objects.create(
-        name="Khối Kinh Doanh", branch=sample_branch, block_type=Block.BlockType.BUSINESS
-    )
+    return Block.objects.create(name="Khối Kinh Doanh", branch=sample_branch, block_type=Block.BlockType.BUSINESS)
 
 
 @pytest.fixture
