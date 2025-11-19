@@ -10,6 +10,7 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 if TYPE_CHECKING:
@@ -92,29 +93,23 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             This implementation uses the cached WorkSchedule to calculate hours.
             - Morning hours: time worked during morning session
             - Afternoon hours: time worked during afternoon session (including noon)
-            - Overtime hours: time worked outside official schedule
+            - Overtime hours: TODO - Complex business logic pending clarification
+
+        Raises:
+            ValueError: If start_time or end_time is not set, or if no work schedule is found.
         """
         if not self.start_time or not self.end_time:
-            return
+            raise ValueError("start_time and end_time must be set before calculating hours")
 
         # Get work schedule if not provided
         if work_schedule is None:
-            from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
-
             weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
             work_schedule = get_work_schedule_by_weekday(weekday)
 
         if not work_schedule:
-            # No schedule defined for this day, treat all hours as official hours
-            total_hours = (self.end_time - self.start_time).total_seconds() / 3600
-            self.morning_hours = Decimal(str(total_hours / 2))
-            self.afternoon_hours = Decimal(str(total_hours / 2))
-            self.overtime_hours = Decimal("0.00")
-            return
+            raise ValueError(f"No work schedule found for weekday {self.date.strftime('%A')}")
 
         # Calculate hours based on schedule
-        # This is a simplified implementation - actual logic may need to be more sophisticated
-
         work_date = self.date
         start = self.start_time
         end = self.end_time
@@ -127,28 +122,30 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
         morning_hours = Decimal("0.00")
         afternoon_hours = Decimal("0.00")
-        overtime_hours = Decimal("0.00")
 
         # Calculate morning session hours
         if morning_start and morning_end:
             morning_actual_start = max(start, morning_start)
             morning_actual_end = min(end, morning_end)
             if morning_actual_start < morning_actual_end:
-                morning_hours = Decimal(str((morning_actual_end - morning_actual_start).total_seconds() / 3600))
+                morning_hours = Decimal((morning_actual_end - morning_actual_start).total_seconds() / 3600)
 
         # Calculate afternoon session hours (including noon)
         if afternoon_start and afternoon_end:
             afternoon_actual_start = max(start, afternoon_start)
             afternoon_actual_end = min(end, afternoon_end)
             if afternoon_actual_start < afternoon_actual_end:
-                afternoon_hours = Decimal(str((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600))
+                afternoon_hours = Decimal((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600)
 
-        # Calculate overtime (time outside official hours)
-        # Before morning start or after afternoon end
-        if morning_start and start < morning_start:
-            overtime_hours += Decimal(str((morning_start - start).total_seconds() / 3600))
-        if afternoon_end and end > afternoon_end:
-            overtime_hours += Decimal(str((end - afternoon_end).total_seconds() / 3600))
+        # TODO: Calculate overtime hours - complex business logic pending clarification
+        # The calculation of overtime is more complex than simply time outside official hours.
+        # It needs to consider:
+        # - Company policies on overtime calculation
+        # - Break times and their handling
+        # - Different overtime rates (1.5x, 2x, etc.)
+        # - Maximum daily/weekly overtime limits
+        # - Weekend and holiday overtime rules
+        overtime_hours = Decimal("0.00")
 
         self.morning_hours = self._quantize(morning_hours)
         self.afternoon_hours = self._quantize(afternoon_hours)

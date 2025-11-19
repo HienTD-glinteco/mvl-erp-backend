@@ -8,10 +8,12 @@ from apps.hrm.tasks.timesheets import update_monthly_timesheet_async
 
 @receiver(post_save, sender=AttendanceRecord)
 def handle_attendance_record_save(sender, instance: AttendanceRecord, created, **kwargs):
-    # When an attendance record is created or updated, update the corresponding TimeSheetEntry
-    # by setting start_time (if missing), end_time (latest), and recalculating hours.
-    # Also flag the monthly timesheet to need_refresh and schedule a task.
+    """Handle attendance record save event.
 
+    When an attendance record is created or updated, update the corresponding TimeSheetEntry
+    by setting start_time (if missing), end_time (latest), and recalculating hours.
+    Also flag the monthly timesheet to need_refresh and schedule a task.
+    """
     # Match employee by attendance_code
     employee = Employee.objects.filter(attendance_code=instance.attendance_code).first()
     if not employee:
@@ -20,7 +22,6 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
     # find or create timesheet entry for the date
     entry, _ = TimeSheetEntry.objects.get_or_create(employee_id=employee.id, date=instance.timestamp.date())
 
-    # Update start_time and end_time using the new method
     if not entry.start_time or instance.timestamp < entry.start_time:
         entry.start_time = instance.timestamp
     if not entry.end_time or instance.timestamp > entry.end_time:
@@ -58,7 +59,10 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
 
 @receiver(post_delete, sender=AttendanceRecord)
 def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs):
-    # When attendance record is deleted, we should recalculate the timesheet entry for that date.
+    """Handle attendance record delete event.
+
+    When attendance record is deleted, recalculate the timesheet entry for that date.
+    """
     employee = Employee.objects.filter(attendance_code=instance.attendance_code).first()
     if not employee:
         return
@@ -75,12 +79,11 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
     first = records.first().timestamp
     last = records.last().timestamp
 
-    # Update times and calculate hours using the new methods
     entry.update_times(first, last)
     entry.calculate_hours_from_schedule()
     entry.save()
 
-    # mark monthly timesheet need_refresh and schedule update
+    # Mark monthly timesheet for refresh and schedule update
     yr = instance.timestamp.date().year
     mo = instance.timestamp.date().month
 
