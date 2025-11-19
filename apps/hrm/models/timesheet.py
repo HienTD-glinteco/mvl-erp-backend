@@ -1,4 +1,6 @@
+from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +11,9 @@ from apps.hrm.constants import (
     TimesheetStatus,
 )
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
+
+if TYPE_CHECKING:
+    from apps.hrm.models import WorkSchedule
 
 
 @audit_logging_register
@@ -47,10 +52,6 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     total_worked_hours = models.DecimalField(
         max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total worked hours")
     )
-    # Deprecated: kept for backward compatibility, use total_worked_hours instead
-    total_hours = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total hours")
-    )
 
     status = models.CharField(
         max_length=32, choices=TimesheetStatus.choices, default=TimesheetStatus.ON_TIME, verbose_name=_("Status")
@@ -67,7 +68,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     note = SafeTextField(blank=True, verbose_name=_("Note"))
 
-    def update_times(self, start_time, end_time):
+    def update_times(self, start_time: datetime, end_time: datetime) -> None:
         """Update start_time and end_time for this timesheet entry.
 
         Args:
@@ -77,25 +78,81 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         self.start_time = start_time
         self.end_time = end_time
 
-    def calculate_hours_from_schedule(self, work_schedule=None):
-        """Calculate morning_hours, afternoon_hours, and total_hours based on WorkSchedule.
+    def calculate_hours_from_schedule(self, work_schedule: Optional["WorkSchedule"] = None) -> None:
+        """Calculate morning_hours, afternoon_hours, and overtime_hours based on WorkSchedule.
 
         This method integrates with the WorkSchedule model to determine official working hours
-        and splits them into morning and afternoon sessions.
+        and splits them into morning and afternoon sessions based on the work schedule.
 
         Args:
             work_schedule: Optional WorkSchedule instance for this date's weekday.
                           If not provided, will be fetched from cache/database.
 
         Note:
-            TODO: Implement logic after WorkSchedule integration and caching is complete.
-                  - Determine morning/afternoon split based on schedule
-                  - Calculate overtime based on hours outside official schedule
-                  - Handle edge cases (holidays, weekends, partial days)
+            This implementation uses the cached WorkSchedule to calculate hours.
+            - Morning hours: time worked during morning session
+            - Afternoon hours: time worked during afternoon session (including noon)
+            - Overtime hours: time worked outside official schedule
         """
-        # TODO: Implement full WorkSchedule integration
-        # For now, maintain existing behavior
-        pass
+        if not self.start_time or not self.end_time:
+            return
+
+        # Get work schedule if not provided
+        if work_schedule is None:
+            from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
+
+            weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
+            work_schedule = get_work_schedule_by_weekday(weekday)
+
+        if not work_schedule:
+            # No schedule defined for this day, treat all hours as official hours
+            total_hours = (self.end_time - self.start_time).total_seconds() / 3600
+            self.morning_hours = Decimal(str(total_hours / 2))
+            self.afternoon_hours = Decimal(str(total_hours / 2))
+            self.overtime_hours = Decimal("0.00")
+            return
+
+        # Calculate hours based on schedule
+        # This is a simplified implementation - actual logic may need to be more sophisticated
+
+        work_date = self.date
+        start = self.start_time
+        end = self.end_time
+
+        # Convert schedule times to datetime for comparison
+        morning_start = datetime.combine(work_date, work_schedule.morning_start_time) if work_schedule.morning_start_time else None
+        morning_end = datetime.combine(work_date, work_schedule.morning_end_time) if work_schedule.morning_end_time else None
+        afternoon_start = datetime.combine(work_date, work_schedule.afternoon_start_time) if work_schedule.afternoon_start_time else None
+        afternoon_end = datetime.combine(work_date, work_schedule.afternoon_end_time) if work_schedule.afternoon_end_time else None
+
+        morning_hours = Decimal("0.00")
+        afternoon_hours = Decimal("0.00")
+        overtime_hours = Decimal("0.00")
+
+        # Calculate morning session hours
+        if morning_start and morning_end:
+            morning_actual_start = max(start, morning_start)
+            morning_actual_end = min(end, morning_end)
+            if morning_actual_start < morning_actual_end:
+                morning_hours = Decimal(str((morning_actual_end - morning_actual_start).total_seconds() / 3600))
+
+        # Calculate afternoon session hours (including noon)
+        if afternoon_start and afternoon_end:
+            afternoon_actual_start = max(start, afternoon_start)
+            afternoon_actual_end = min(end, afternoon_end)
+            if afternoon_actual_start < afternoon_actual_end:
+                afternoon_hours = Decimal(str((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600))
+
+        # Calculate overtime (time outside official hours)
+        # Before morning start or after afternoon end
+        if morning_start and start < morning_start:
+            overtime_hours += Decimal(str((morning_start - start).total_seconds() / 3600))
+        if afternoon_end and end > afternoon_end:
+            overtime_hours += Decimal(str((end - afternoon_end).total_seconds() / 3600))
+
+        self.morning_hours = self._quantize(morning_hours)
+        self.afternoon_hours = self._quantize(afternoon_hours)
+        self.overtime_hours = self._quantize(overtime_hours)
 
     class Meta:
         db_table = "hrm_timesheet"
@@ -136,9 +193,6 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
         # Calculate total_worked_hours as official_hours + overtime_hours
         self.total_worked_hours = self._quantize(self.official_hours + self.overtime_hours)
-
-        # Keep total_hours in sync for backward compatibility
-        self.total_hours = self.total_worked_hours
 
         super().clean()
 

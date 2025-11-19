@@ -89,20 +89,3 @@ def update_monthly_timesheet_async(
         except Exception as e:
             logger.exception("Failed to refresh monthly timesheet for %s: %s", row, e)
     return {"success": True, "processed": count}
-
-
-@shared_task
-def increment_available_leave_days():
-    """DEPRECATED: Use prepare_monthly_timesheets with increment_leave=True instead.
-
-    Monthly scheduled task: increment available_leave_days by 1 for eligible employees.
-    Eligible employees: Status Active or Onboarding (not Resigned).
-
-    This task has been merged into prepare_monthly_timesheets for better cohesion.
-    """
-    # TODO: rework on this after SRS for avaliable leave day is clear.
-    updated = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING]).update(
-        available_leave_days=F("available_leave_days") + 1
-    )
-    logger.info("increment_available_leave_days: updated %s employees", updated)
-    return {"success": True, "updated": updated}

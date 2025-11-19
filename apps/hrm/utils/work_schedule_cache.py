@@ -10,7 +10,7 @@ from django.core.cache import cache
 # Cache keys
 WORK_SCHEDULE_CACHE_KEY = "work_schedule:all"
 WORK_SCHEDULE_BY_WEEKDAY_KEY = "work_schedule:weekday:{weekday}"
-WORK_SCHEDULE_CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
+WORK_SCHEDULE_CACHE_TIMEOUT = 60 * 60 * 24 * 365  # 1 year
 
 
 def _get_work_schedule_model():

@@ -83,19 +83,6 @@ class TestTimeSheetEntryNewFields:
         assert entry.official_hours == Decimal("8.00")
         assert entry.total_worked_hours == Decimal("10.00")
 
-    def test_backward_compatibility_with_total_hours(self, test_employee):
-        """Test that total_hours is kept in sync with total_worked_hours."""
-        entry = TimeSheetEntry.objects.create(
-            employee=test_employee,
-            date=date(2025, 3, 1),
-            morning_hours=Decimal("4.00"),
-            afternoon_hours=Decimal("4.00"),
-            overtime_hours=Decimal("1.50"),
-        )
-
-        assert entry.total_hours == entry.total_worked_hours
-        assert entry.total_hours == Decimal("9.50")
-
     def test_update_times_method(self, test_employee):
         """Test the update_times method."""
         from django.utils import timezone

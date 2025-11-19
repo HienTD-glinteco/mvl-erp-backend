@@ -48,13 +48,6 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     official_hours = models.DecimalField(
         max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Official hours")
     )
-    working_days_value = models.DecimalField(
-        max_digits=8,
-        decimal_places=2,
-        default=DECIMAL_ZERO,
-        verbose_name=_("Working days value"),
-        help_text=_("Calculated as official_hours / 8, rounded to 2 decimal places"),
-    )
     overtime_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
@@ -206,13 +199,6 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 aggregates[clean_field] = quantize_decimal(value)
             else:
                 aggregates[field] = quantize_decimal(value)
-
-        # Calculate working_days_value: official_hours / 8, rounded to 2 decimals
-        # TODO: Check logic after SRS is updated
-        if "official_hours" in aggregates:
-            official_hours = aggregates.get("official_hours", DECIMAL_ZERO)
-            working_days_value = quantize_decimal(official_hours / STANDARD_WORKING_HOURS_PER_DAY)
-            aggregates["working_days_value"] = working_days_value
 
         # report_date is the first day of the month; month_key is YYYYMM
         report_date = first_day
