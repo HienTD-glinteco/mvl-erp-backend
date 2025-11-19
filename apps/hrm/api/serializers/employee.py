@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
 from apps.files.api.serializers import FileSerializer
+from apps.files.models import FileModel
 from apps.hrm.models import (
     Block,
     Branch,
@@ -96,6 +97,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     user = SimpleUserSerializer(read_only=True)
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
     avatar = FileSerializer(read_only=True)
+    citizen_id_file = FileSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -121,6 +123,13 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     recruitment_candidate_id = serializers.PrimaryKeyRelatedField(
         queryset=RecruitmentCandidate.objects.all(),
         source="recruitment_candidate",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    citizen_id_file_id = serializers.PrimaryKeyRelatedField(
+        queryset=FileModel.objects.all(),
+        source="citizen_id_file",
         write_only=True,
         required=False,
         allow_null=True,
@@ -166,6 +175,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "citizen_id",
             "citizen_id_issued_date",
             "citizen_id_issued_place",
+            "citizen_id_file",
+            "citizen_id_file_id",
             "phone",
             "personal_email",
             "tax_code",
@@ -192,6 +203,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "nationality",
             "user",
             "recruitment_candidate",
+            "citizen_id_file",
             "colored_code_type",
             "colored_status",
             "is_onboarding_email_sent",
