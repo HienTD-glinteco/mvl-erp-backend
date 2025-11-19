@@ -108,9 +108,7 @@ def trigger_hr_reports_aggregation_on_delete(sender, instance, **kwargs):  # noq
         aggregate_hr_reports_for_work_history.delay("delete", snapshot)
 
 
-def _mark_hr_reports_for_refresh(
-    report_date, branch_id, block_id, department_id
-):  # noqa: ANN001, ANN201
+def _mark_hr_reports_for_refresh(report_date, branch_id, block_id, department_id):  # noqa: ANN001, ANN201
     """Mark affected HR report records with need_refresh=True.
 
     Only marks the specific report record matching the exact date and org unit,
@@ -136,6 +134,4 @@ def _mark_hr_reports_for_refresh(
     StaffGrowthReport.objects.filter(**filter_criteria).update(need_refresh=True)
 
     # Mark EmployeeStatusBreakdownReport records
-    EmployeeStatusBreakdownReport.objects.filter(**filter_criteria).update(
-        need_refresh=True
-    )
+    EmployeeStatusBreakdownReport.objects.filter(**filter_criteria).update(need_refresh=True)

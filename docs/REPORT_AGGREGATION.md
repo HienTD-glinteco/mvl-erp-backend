@@ -33,7 +33,7 @@ This dual approach ensures:
 **Workflow:**
 
 ```
-EmployeeWorkHistory.save() 
+EmployeeWorkHistory.save()
     → post_save signal
     → aggregate_hr_reports_for_work_history.delay(work_history_id)
     → Update StaffGrowthReport and EmployeeStatusBreakdownReport
@@ -65,7 +65,7 @@ Daily at 00:05
 **Workflow:**
 
 ```
-RecruitmentCandidate.save() 
+RecruitmentCandidate.save()
     → post_save signal
     → aggregate_recruitment_reports_for_candidate.delay(candidate_id)
     → Update all recruitment reports (only for HIRED status)

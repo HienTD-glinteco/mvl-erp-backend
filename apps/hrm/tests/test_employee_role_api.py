@@ -42,7 +42,9 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
 
         # Create test user for authentication
         # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.admin_user = User.objects.create_superuser(username="admin", email="admin@example.com", password="testpass123")
+        self.admin_user = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="testpass123"
+        )
         self.client = APIClient()
         self.client.force_authenticate(user=self.admin_user)
 

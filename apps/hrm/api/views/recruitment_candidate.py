@@ -399,9 +399,7 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
 )
-class RecruitmentCandidateViewSet(
-    AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
-):
+class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for RecruitmentCandidate model"""
 
     queryset = RecruitmentCandidate.objects.select_related(
