@@ -6,32 +6,26 @@ tested separately in integration tests that use PostgreSQL.
 """
 
 from datetime import date, timedelta
-from decimal import Decimal
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
     Block,
     Branch,
     Department,
     Employee,
-    EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
     HiredCandidateReport,
     JobDescription,
     Position,
     RecruitmentCandidate,
     RecruitmentChannel,
-    RecruitmentChannelReport,
-    RecruitmentCostReport,
     RecruitmentRequest,
     RecruitmentSource,
-    RecruitmentSourceReport,
     StaffGrowthReport,
 )
 from apps.hrm.tasks import (
@@ -189,7 +183,7 @@ class TestHRReportsAggregationTasks(TestCase):
             block=self.block,
             department=self.department,
         )
-        
+
         StaffGrowthReport.objects.create(
             report_date=yesterday,
             branch=self.branch,
@@ -211,7 +205,7 @@ class TestHRReportsAggregationTasks(TestCase):
         # The actual counting logic is tested in integration tests with PostgreSQL
         with patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create transfer work history
             EmployeeWorkHistory.objects.create(
                 employee=self.employee,
@@ -221,7 +215,7 @@ class TestHRReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -230,7 +224,7 @@ class TestHRReportsAggregationTasks(TestCase):
         # This test is for signal integration - verify signal fires
         with patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create resignation work history
             EmployeeWorkHistory.objects.create(
                 employee=self.employee,
@@ -241,7 +235,7 @@ class TestHRReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -251,7 +245,7 @@ class TestHRReportsAggregationTasks(TestCase):
         # Counting logic requires PostgreSQL for DISTINCT ON queries
         with patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create work history
             EmployeeWorkHistory.objects.create(
                 employee=self.employee,
@@ -262,7 +256,7 @@ class TestHRReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -379,7 +373,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
                 "department_id": self.candidate.department_id,
             },
         }
-        
+
         # Act
         result = aggregate_recruitment_reports_for_candidate("create", snapshot)
 
@@ -446,7 +440,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
         """Test batch aggregation processes reports marked for refresh."""
         # Arrange - create report for yesterday and mark for refresh
         yesterday = (timezone.now() - timedelta(days=1)).date()
-        
+
         HiredCandidateReport.objects.create(
             report_date=yesterday,
             branch=self.branch,
@@ -467,7 +461,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
         # This test verifies signal integration
         with patch("apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create hired candidate with experience
             RecruitmentCandidate.objects.create(
                 code="CAN002",
@@ -486,7 +480,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -495,7 +489,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
         # This test verifies signal integration
         with patch("apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create hired candidate without experience
             RecruitmentCandidate.objects.create(
                 code="CAN003",
@@ -514,7 +508,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -523,7 +517,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
         # This test verifies signal integration
         with patch("apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate") as mock_task:
             mock_task.delay = MagicMock()
-            
+
             # Act - create hired candidate
             RecruitmentCandidate.objects.create(
                 code="CAN004",
@@ -541,7 +535,7 @@ class TestRecruitmentReportsAggregationTasks(TestCase):
                 block=self.block,
                 department=self.department,
             )
-            
+
             # Assert - task should be called
             mock_task.delay.assert_called()
 
@@ -637,7 +631,7 @@ class TestSignalIntegration(TestCase):
             block=self.block,
             department=self.department,
         )
-        
+
         # Clear the create call
         mock_task.delay.reset_mock()
 
@@ -657,7 +651,7 @@ class TestSignalIntegration(TestCase):
 
         source = RecruitmentSource.objects.create(code="SRC01", name="Source 1", allow_referral=False)
         channel = RecruitmentChannel.objects.create(code="CH01", name="Channel 1", belong_to="marketing")
-        
+
         # Create job description
         job_description = JobDescription.objects.create(
             code="JD001",
@@ -666,7 +660,7 @@ class TestSignalIntegration(TestCase):
             responsibility="",
             proposed_salary="10.000.000 VND",
         )
-        
+
         # Create a proposer employee
         proposer = Employee.objects.create(
             fullname="Proposer User",
@@ -681,7 +675,7 @@ class TestSignalIntegration(TestCase):
             start_date=date.today(),
             citizen_id="000000020014",
         )
-        
+
         request = RecruitmentRequest.objects.create(
             code="REQ01",
             name="Developer",

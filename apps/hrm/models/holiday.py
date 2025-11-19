@@ -108,9 +108,7 @@ class CompensatoryWorkday(BaseModel):
             # Python's weekday(): Monday=0, Sunday=6
             weekday = self.date.weekday()
             if weekday not in [5, 6]:  # 5 = Saturday, 6 = Sunday
-                raise ValidationError(
-                    {"date": _("Compensatory workday must be on Saturday or Sunday")}
-                )
+                raise ValidationError({"date": _("Compensatory workday must be on Saturday or Sunday")})
 
             # If Saturday, session can only be afternoon
             if weekday == 5 and self.session != self.Session.AFTERNOON:

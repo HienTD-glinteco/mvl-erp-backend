@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 21:53+0700\n"
+"POT-Creation-Date: 2025-11-19 10:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,11 +111,11 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:112
+#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:118
+#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:116
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
@@ -147,7 +147,7 @@ msgstr ""
 msgid "End date must be greater than or equal to start date"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:209
+#: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
 #: apps/hrm/api/views/employee.py:459
-#: apps/hrm/models/attendance_geolocation.py:59 apps/hrm/models/employee.py:187
+#: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/employee.py:187
 #: apps/hrm/models/employee_certificate.py:110
 #: apps/hrm/models/employee_work_history.py:114
 #: apps/hrm/models/recruitment_candidate.py:111
@@ -343,7 +343,7 @@ msgstr "Tên Đăng Nhập"
 
 #: apps/hrm/api/views/employee.py:488
 #: apps/hrm/models/attendance_exemption.py:38
-#: apps/hrm/models/attendance_geolocation.py:61
+#: apps/hrm/models/attendance_geolocation.py:76
 #: apps/hrm/models/attendance_record.py:70
 #: apps/hrm/models/attendance_wifi_device.py:61
 #: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:23
@@ -810,12 +810,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -824,27 +822,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1024,84 +1017,92 @@ msgstr "Mã Chấm Công"
 msgid "Attendance Exemptions"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_geolocation.py:20 apps/hrm/models/employee.py:70
+#: apps/hrm/models/attendance_geolocation.py:16
+msgid "Latitude must be between -90 and 90 degrees"
+msgstr ""
+
+#: apps/hrm/models/attendance_geolocation.py:22
+msgid "Longitude must be between -180 and 180 degrees"
+msgstr ""
+
+#: apps/hrm/models/attendance_geolocation.py:33 apps/hrm/models/employee.py:70
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:68
 #: apps/hrm/models/organization.py:130 apps/hrm/models/organization.py:261
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:21
+#: apps/hrm/models/attendance_geolocation.py:34
 msgid "Inactive"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:24
+#: apps/hrm/models/attendance_geolocation.py:37
 msgid "Geolocation name"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:25
+#: apps/hrm/models/attendance_geolocation.py:38
 msgid "Geolocation code"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:30
+#: apps/hrm/models/attendance_geolocation.py:43
 msgid "Project"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:34
+#: apps/hrm/models/attendance_geolocation.py:47
 #: apps/hrm/models/employee_relationship.py:120
 #: apps/hrm/models/organization.py:20
 msgid "Address"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:38
+#: apps/hrm/models/attendance_geolocation.py:51
 msgid "Latitude"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:39
+#: apps/hrm/models/attendance_geolocation.py:52
 msgid "Latitude coordinate"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:44
+#: apps/hrm/models/attendance_geolocation.py:58
 msgid "Longitude"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:45
+#: apps/hrm/models/attendance_geolocation.py:59
 msgid "Longitude coordinate"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:50
+#: apps/hrm/models/attendance_geolocation.py:65
 msgid "Radius (meters)"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:51
+#: apps/hrm/models/attendance_geolocation.py:66
 msgid "Radius in meters for geofencing"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:68
+#: apps/hrm/models/attendance_geolocation.py:83
 #: apps/hrm/models/employee_dependent.py:125
 #: apps/hrm/models/employee_relationship.py:160
 msgid "Created by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:74
+#: apps/hrm/models/attendance_geolocation.py:89
 msgid "Updated by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:78
+#: apps/hrm/models/attendance_geolocation.py:93
 msgid "Deleted"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:79
+#: apps/hrm/models/attendance_geolocation.py:94
 msgid "Deleted at"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:82
+#: apps/hrm/models/attendance_geolocation.py:97
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Attendance Geolocation"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_geolocation.py:83
+#: apps/hrm/models/attendance_geolocation.py:98
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Attendance Geolocations"

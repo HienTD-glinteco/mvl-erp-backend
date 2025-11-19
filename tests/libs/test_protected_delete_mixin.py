@@ -38,7 +38,9 @@ class ProtectedDeleteMixinTest(TransactionTestCase):
 
         self.factory = APIRequestFactory()
         # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
 
         # Create test province
         self.province = Province.objects.create(name="Test Province", code="TP01")

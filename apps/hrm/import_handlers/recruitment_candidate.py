@@ -259,9 +259,7 @@ def convert_months_to_experience(months: int) -> str:
         return RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS
 
 
-def get_or_create_recruitment_source(
-    name: str, cache: dict
-) -> tuple[RecruitmentSource | None, str | None]:
+def get_or_create_recruitment_source(name: str, cache: dict) -> tuple[RecruitmentSource | None, str | None]:
     """
     Get or create RecruitmentSource by name (case-insensitive).
 
@@ -302,9 +300,7 @@ def get_or_create_recruitment_source(
     return source, None
 
 
-def get_or_create_recruitment_channel(
-    name: str, cache: dict
-) -> tuple[RecruitmentChannel | None, str | None]:
+def get_or_create_recruitment_channel(name: str, cache: dict) -> tuple[RecruitmentChannel | None, str | None]:
     """
     Get or create RecruitmentChannel by name (case-insensitive).
 
@@ -509,9 +505,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Check if candidate already exists and handle allow_update
         allow_update = options.get("allow_update", False)
-        existing_candidate = RecruitmentCandidate.objects.filter(
-            citizen_id=citizen_id_clean
-        ).first()
+        existing_candidate = RecruitmentCandidate.objects.filter(citizen_id=citizen_id_clean).first()
 
         if existing_candidate and not allow_update:
             return {
@@ -519,9 +513,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "row_index": row_index,
                 "action": "skipped",
                 "candidate_code": existing_candidate.code,
-                "warnings": [
-                    f"Candidate with Citizen ID '{citizen_id_clean}' already exists (allow_update=False)"
-                ],
+                "warnings": [f"Candidate with Citizen ID '{citizen_id_clean}' already exists (allow_update=False)"],
             }
 
         # Validate email
@@ -549,9 +541,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {"ok": False, "error": "Submission date is required (column 13)"}
 
         # Parse and validate status code
-        status_code, status_error = parse_integer_field(
-            status_code_raw, "Status code", min_value=1, max_value=7
-        )
+        status_code, status_error = parse_integer_field(status_code_raw, "Status code", min_value=1, max_value=7)
         if status_error:
             return {"ok": False, "error": f"{status_error} (column 14)"}
 
@@ -623,9 +613,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             return {"ok": False, "error": channel_error}
 
         # STEP 6: Find or Create Recruitment Request
-        request, request_error = find_or_create_recruitment_request(
-            request_name, department, cache
-        )
+        request, request_error = find_or_create_recruitment_request(request_name, department, cache)
         if request_error:
             return {"ok": False, "error": request_error}
 

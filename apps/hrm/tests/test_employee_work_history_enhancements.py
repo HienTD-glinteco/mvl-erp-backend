@@ -37,7 +37,9 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
         User.objects.all().delete()
 
         # Changed to superuser to bypass RoleBasedPermission for API tests
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
 
         # Create organizational structure
         self.province = Province.objects.create(code="01", name="Test Province")
@@ -157,7 +159,9 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
         Employee.objects.all().delete()
         User.objects.all().delete()
 
-        self.user = User.objects.create_superuser(username="testuser", email="test@example.com", password="testpass123")
+        self.user = User.objects.create_superuser(
+            username="testuser", email="test@example.com", password="testpass123"
+        )
 
         # Create organizational structure
         self.province = Province.objects.create(code="02", name="Test Province 2")

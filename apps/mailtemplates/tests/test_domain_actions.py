@@ -131,7 +131,9 @@ class EmployeeEmailActionTests(TestCase):
         response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/preview/", {}, format="json")
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)  # RoleBasedPermission returns 403 for unauthenticated
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )  # RoleBasedPermission returns 403 for unauthenticated
 
 
 class InterviewScheduleEmailActionTests(TestCase):
@@ -382,4 +384,6 @@ class InterviewScheduleEmailActionTests(TestCase):
         )
 
         # Assert
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)  # RoleBasedPermission returns 403 for unauthenticated
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )  # RoleBasedPermission returns 403 for unauthenticated

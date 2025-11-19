@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -7,6 +8,18 @@ from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 from ..constants import TEMP_CODE_PREFIX
+
+
+def validate_latitude(value):
+    """Validate latitude is between -90 and 90"""
+    if value < -90 or value > 90:
+        raise ValidationError(_("Latitude must be between -90 and 90 degrees"))
+
+
+def validate_longitude(value):
+    """Validate longitude is between -180 and 180"""
+    if value < -180 or value > 180:
+        raise ValidationError(_("Longitude must be between -180 and 180 degrees"))
 
 
 @audit_logging_register
@@ -33,16 +46,18 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
     # Location fields
     address = SafeTextField(blank=True, verbose_name=_("Address"))
     latitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=7,
+        max_digits=20,
+        decimal_places=17,
         verbose_name=_("Latitude"),
         help_text=_("Latitude coordinate"),
+        validators=[validate_latitude],
     )
     longitude = models.DecimalField(
-        max_digits=10,
-        decimal_places=7,
+        max_digits=20,
+        decimal_places=17,
         verbose_name=_("Longitude"),
         help_text=_("Longitude coordinate"),
+        validators=[validate_longitude],
     )
     radius_m = models.IntegerField(
         default=100,
