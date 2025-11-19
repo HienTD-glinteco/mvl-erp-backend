@@ -45,11 +45,29 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     )
 
     # Hour aggregates
-    total_worked_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Total worked hours")
+    official_hours = models.DecimalField(
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Official hours")
+    )
+    working_days_value = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name=_("Working days value"),
+        help_text=_("Calculated as official_hours / 8, rounded to 2 decimal places"),
     )
     overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Overtime hours")
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name=_("Overtime hours"),
+        help_text=_("TODO: Check logic after SRS is updated"),
+    )
+    total_worked_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name=_("Total worked hours"),
+        help_text=_("Sum of official_hours and overtime_hours"),
     )
 
     # Leave counts (days) - use decimal to allow partial days
@@ -122,15 +140,24 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
 
         aggregates_expr = {
             # Hour aggregates
-            "total_worked_hours": Coalesce(Sum("total_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())),
-            "overtime_hours": Coalesce(
-                Sum(Greatest(F("total_hours") - Value(STANDARD_WORKING_HOURS_PER_DAY), Value(DECIMAL_ZERO))),
+            "official_hours": Coalesce(Sum("official_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())),
+            "overtime_hours": Coalesce(Sum("overtime_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())),
+            "total_worked_hours": Coalesce(
+                Sum("total_worked_hours"), Value(DECIMAL_ZERO, output_field=DecimalField())
+            ),
+            # Working days - sum the working_days_value from each entry
+            "probation_working_days": Coalesce(
+                Sum("official_hours", filter=Q(is_full_salary=False)) / Value(STANDARD_WORKING_HOURS_PER_DAY),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
-            # Working day
-            "total_working_days": Coalesce(Count("date", distinct=True), Value(0)),
-            "probation_working_days": Coalesce(Count("date", filter=Q(is_full_salary=False), distinct=True), Value(0)),
-            "official_working_days": Coalesce(Count("date", filter=Q(is_full_salary=True), distinct=True), Value(0)),
+            "official_working_days": Coalesce(
+                Sum("official_hours", filter=Q(is_full_salary=True)) / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
+            ),
+            "total_working_days": Coalesce(
+                Sum("official_hours") / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Value(DECIMAL_ZERO, output_field=DecimalField()),
+            ),
             # Leaves day
             "paid_leave_days": Coalesce(
                 Count("date", filter=Q(absent_reason=TimesheetReason.PAID_LEAVE), distinct=True), Value(0)
@@ -154,6 +181,13 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
 
         raw_aggs = qs.aggregate(**aggregates_expr) if aggregates_expr else {}
         aggregates = {field: quantize_decimal(value) for field, value in raw_aggs.items()}
+
+        # Calculate working_days_value: official_hours / 8, rounded to 2 decimals
+        # TODO: Check logic after SRS is updated
+        if "official_hours" in aggregates:
+            official_hours = aggregates.get("official_hours", DECIMAL_ZERO)
+            working_days_value = quantize_decimal(official_hours / STANDARD_WORKING_HOURS_PER_DAY)
+            aggregates["working_days_value"] = working_days_value
 
         # report_date is the first day of the month; month_key is YYYYMM
         report_date = first_day

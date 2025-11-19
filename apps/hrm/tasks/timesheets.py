@@ -23,11 +23,19 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def prepare_monthly_timesheets(employee_id: int | None = None, year: int | None = None, month: int | None = None):
+def prepare_monthly_timesheets(
+    employee_id: int | None = None,
+    year: int | None = None,
+    month: int | None = None,
+    increment_leave: bool = True,
+):
     """Prepare timesheet entries and monthly rows either for a single employee or all active employees.
+
+    Also handles incrementing available_leave_days for eligible employees when processing all employees.
 
     - If employee_id is None: create entries for all active employees for given year/month (defaults to current)
     - If employee_id provided: create entries for that employee and month
+    - If increment_leave is True (default): increment available_leave_days by 1 for eligible employees
     """
     today = date.today()
     if not year or not month:
@@ -42,7 +50,17 @@ def prepare_monthly_timesheets(employee_id: int | None = None, year: int | None 
     # otherwise do for all employees
     create_entries_for_month_all(year, month)
     create_monthly_timesheets_for_month_all(year, month)
-    return {"success": True, "employee_id": None, "year": year, "month": month}
+
+    # Increment available leave days for eligible employees
+    # TODO: rework on this after SRS for available leave day is clear.
+    updated_leave = 0
+    if increment_leave:
+        updated_leave = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING]).update(
+            available_leave_days=F("available_leave_days") + 1
+        )
+        logger.info("prepare_monthly_timesheets: incremented leave days for %s employees", updated_leave)
+
+    return {"success": True, "employee_id": None, "year": year, "month": month, "leave_incremented": updated_leave}
 
 
 @shared_task
@@ -75,9 +93,12 @@ def update_monthly_timesheet_async(
 
 @shared_task
 def increment_available_leave_days():
-    """Monthly scheduled task: increment available_leave_days by 1 for eligible employees.
+    """DEPRECATED: Use prepare_monthly_timesheets with increment_leave=True instead.
 
+    Monthly scheduled task: increment available_leave_days by 1 for eligible employees.
     Eligible employees: Status Active or Onboarding (not Resigned).
+
+    This task has been merged into prepare_monthly_timesheets for better cohesion.
     """
     # TODO: rework on this after SRS for avaliable leave day is clear.
     updated = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING]).update(
