@@ -5,6 +5,8 @@ from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 
+from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
+
 
 class PasswordResetOTPManager(models.Manager):
     def create_request(self, user, channel: str = "email", ttl_seconds: int = 180):
@@ -16,7 +18,10 @@ class PasswordResetOTPManager(models.Manager):
         self.filter(user=user, is_used=False, is_verified=False).update(is_used=True)
 
         reset_token = secrets.token_urlsafe(32)
-        otp = f"{secrets.randbelow(1000000):06d}"
+        if user.username == APP_TESTER_USERNAME:
+            otp = APP_TESTER_OTP_CODE
+        else:
+            otp = f"{secrets.randbelow(1000000):06d}"
         otp_hash = hashlib.sha256(otp.encode()).hexdigest()
 
         obj = self.create(

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-20 14:45+0700\n"
+"POT-Creation-Date: 2025-11-20 16:02+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -27,7 +27,7 @@ msgstr ""
 # models/user.py:13
 #: apps/core/api/serializers/auth/login.py:17
 #: apps/core/api/serializers/auth/otp_verification.py:15
-#: apps/core/models/user.py:14
+#: apps/core/models/user.py:15
 msgid "Username"
 msgstr "Tên đăng nhập"
 
@@ -95,7 +95,7 @@ msgstr "Mật khẩu không đúng."
 
 # models/user.py:28
 #: apps/core/api/serializers/auth/otp_verification.py:24
-#: apps/core/models/user.py:39
+#: apps/core/models/user.py:40
 msgid "OTP code"
 msgstr "Mã OTP"
 
@@ -681,7 +681,7 @@ msgstr ""
 
 # models/user.py:41
 #: apps/core/models/device.py:13 apps/core/models/role.py:39
-#: apps/core/models/user.py:62 apps/core/tests/test_role_api.py:272
+#: apps/core/models/user.py:63 apps/core/tests/test_role_api.py:272
 msgid "User"
 msgstr "Người dùng"
 
@@ -722,7 +722,7 @@ msgid "Device platform (iOS, Android, or Web)"
 msgstr "Nền tảng thiết bị (iOS, Android hoặc Web)"
 
 # models/user.py:19
-#: apps/core/models/device.py:45 apps/core/models/user.py:20
+#: apps/core/models/device.py:45 apps/core/models/user.py:21
 msgid "Active"
 msgstr "Hoạt động"
 
@@ -752,7 +752,7 @@ msgid "Nationalities"
 msgstr ""
 
 # models/user.py:14
-#: apps/core/models/password_reset.py:20 apps/core/models/user.py:15
+#: apps/core/models/password_reset.py:20 apps/core/models/user.py:16
 msgid "Email"
 msgstr "Email"
 
@@ -904,8 +904,8 @@ msgstr "Tên vai trò"
 msgid "System role"
 msgstr "Vai trò hệ thống"
 
-#: apps/core/models/role.py:27 apps/core/models/user.py:31
-#: apps/core/models/user.py:53
+#: apps/core/models/role.py:27 apps/core/models/user.py:32
+#: apps/core/models/user.py:54
 msgid "Role"
 msgstr "Vai trò"
 
@@ -926,57 +926,57 @@ msgid "Role is currently being used by employees"
 msgstr "Vai trò đang được sử dụng bởi nhân viên"
 
 # models/user.py:15
-#: apps/core/models/user.py:16
+#: apps/core/models/user.py:17
 msgid "Phone number"
 msgstr "Số điện thoại"
 
 # models/user.py:16
-#: apps/core/models/user.py:17
+#: apps/core/models/user.py:18
 msgid "First name"
 msgstr "Tên"
 
 # models/user.py:17
-#: apps/core/models/user.py:18
+#: apps/core/models/user.py:19
 msgid "Last name"
 msgstr "Họ"
 
 # models/user.py:20
-#: apps/core/models/user.py:21
+#: apps/core/models/user.py:22
 msgid "Staff"
 msgstr "Nhân viên"
 
 # models/user.py:21
-#: apps/core/models/user.py:22
+#: apps/core/models/user.py:23
 msgid "Date joined"
 msgstr "Ngày tham gia"
 
 # models/user.py:24
-#: apps/core/models/user.py:35
+#: apps/core/models/user.py:36
 msgid "Failed login attempts"
 msgstr "Số lần đăng nhập thất bại"
 
 # models/user.py:25
-#: apps/core/models/user.py:36
+#: apps/core/models/user.py:37
 msgid "Locked until"
 msgstr "Khóa tài khoản đến"
 
 # models/user.py:29
-#: apps/core/models/user.py:40
+#: apps/core/models/user.py:41
 msgid "OTP expires at"
 msgstr "OTP hết hạn lúc"
 
 # models/user.py:30
-#: apps/core/models/user.py:41
+#: apps/core/models/user.py:42
 msgid "OTP verified"
 msgstr "OTP đã xác thực"
 
 # models/user.py:33
-#: apps/core/models/user.py:44
+#: apps/core/models/user.py:45
 msgid "Active session"
 msgstr "Phiên hoạt động"
 
 # models/user.py:42
-#: apps/core/models/user.py:63
+#: apps/core/models/user.py:64
 msgid "Users"
 msgstr "Người dùng"
 

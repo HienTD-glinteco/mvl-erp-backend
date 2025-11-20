@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
 from apps.core.querysets import UserManager
 from libs.models import BaseModel
 
@@ -100,7 +101,12 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
 
     def generate_otp(self):
         """Generate a new OTP code valid for 5 minutes"""
-        self.otp_code = f"{secrets.randbelow(1000000):06d}"
+        if self.username == APP_TESTER_USERNAME:
+            otp_code = APP_TESTER_OTP_CODE
+        else:
+            otp_code = f"{secrets.randbelow(1000000):06d}"
+
+        self.otp_code = otp_code
         self.otp_expires_at = timezone.now() + timedelta(minutes=5)
         self.otp_verified = False
         self.save(update_fields=["otp_code", "otp_expires_at", "otp_verified"])
