@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -10,11 +10,9 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
-
-if TYPE_CHECKING:
-    from apps.hrm.models import WorkSchedule
 
 
 @audit_logging_register
@@ -69,13 +67,14 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     note = SafeTextField(blank=True, verbose_name=_("Note"))
 
-    def update_times(self, start_time: datetime, end_time: datetime) -> None:
+    def update_times(self, start_time: datetime | None, end_time: datetime | None) -> None:
         """Update start_time and end_time for this timesheet entry.
 
         Args:
             start_time: DateTime for when work started
             end_time: DateTime for when work ended
         """
+
         self.start_time = start_time
         self.end_time = end_time
 
@@ -115,10 +114,20 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         end = self.end_time
 
         # Convert schedule times to datetime for comparison
-        morning_start = datetime.combine(work_date, work_schedule.morning_start_time) if work_schedule.morning_start_time else None
-        morning_end = datetime.combine(work_date, work_schedule.morning_end_time) if work_schedule.morning_end_time else None
-        afternoon_start = datetime.combine(work_date, work_schedule.afternoon_start_time) if work_schedule.afternoon_start_time else None
-        afternoon_end = datetime.combine(work_date, work_schedule.afternoon_end_time) if work_schedule.afternoon_end_time else None
+        morning_start = (
+            datetime.combine(work_date, work_schedule.morning_start_time) if work_schedule.morning_start_time else None
+        )
+        morning_end = (
+            datetime.combine(work_date, work_schedule.morning_end_time) if work_schedule.morning_end_time else None
+        )
+        afternoon_start = (
+            datetime.combine(work_date, work_schedule.afternoon_start_time)
+            if work_schedule.afternoon_start_time
+            else None
+        )
+        afternoon_end = (
+            datetime.combine(work_date, work_schedule.afternoon_end_time) if work_schedule.afternoon_end_time else None
+        )
 
         morning_hours = Decimal("0.00")
         afternoon_hours = Decimal("0.00")

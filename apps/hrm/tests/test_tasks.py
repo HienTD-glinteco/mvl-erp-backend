@@ -1,6 +1,6 @@
 """Tests for HRM attendance synchronization tasks."""
 
-from datetime import date, timedelta
+from datetime import timedelta
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,10 +8,9 @@ from celery.exceptions import Retry
 from django.test import TestCase
 from django.utils import timezone as django_timezone
 
-from apps.core.models import AdministrativeUnit, Province
 from apps.devices import DeviceConnectionError
-from apps.hrm.models import AttendanceDevice, AttendanceRecord, Block, Branch, Department, Employee
-from apps.hrm.tasks import increment_available_leave_days, sync_all_attendance_devices, sync_attendance_logs_for_device
+from apps.hrm.models import AttendanceDevice, AttendanceRecord
+from apps.hrm.tasks import sync_all_attendance_devices, sync_attendance_logs_for_device
 
 
 @pytest.mark.django_db
@@ -392,58 +391,3 @@ class TestSyncAllAttendanceDevices(TestCase):
         mock_sync_task.delay.assert_called_once_with(self.device1.id)
         self.assertIn(self.device1.id, result["device_ids"])
         self.assertNotIn(self.device2.id, result["device_ids"])
-
-
-def test_increment_available_leave_days(db):
-    # Create minimal org structure for employee creation
-    province = Province.objects.create(name="P", code="P")
-    admin_unit = AdministrativeUnit.objects.create(
-        name="U", code="U", parent_province=province, level=AdministrativeUnit.UnitLevel.DISTRICT
-    )
-    branch = Branch.objects.create(name="B", province=province, administrative_unit=admin_unit)
-    block = Block.objects.create(name="Blk", branch=branch, block_type=Block.BlockType.BUSINESS)
-    department = Department.objects.create(
-        name="D", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
-    )
-
-    # Create employees with differing initial available_leave_days
-    emp_a = Employee.objects.create(
-        code="MV100",
-        fullname="A",
-        username="a",
-        email="a@example.com",
-        attendance_code="A",
-        citizen_id="123100",
-        branch=branch,
-        block=block,
-        department=department,
-        start_date=date(2020, 1, 1),
-        status=Employee.Status.ACTIVE,
-        available_leave_days=2,
-    )
-    emp_b = Employee.objects.create(
-        code="MV101",
-        fullname="B",
-        username="b",
-        email="b@example.com",
-        attendance_code="B",
-        citizen_id="123101",
-        branch=branch,
-        block=block,
-        department=department,
-        start_date=date(2020, 1, 1),
-        status=Employee.Status.RESIGNED,
-        available_leave_days=5,
-    )
-
-    # Run task
-    result = increment_available_leave_days()
-
-    emp_a.refresh_from_db()
-    emp_b.refresh_from_db()
-
-    # emp_a (active) should be incremented
-    assert emp_a.available_leave_days == 3
-    # emp_b (resigned) should NOT be incremented
-    assert emp_b.available_leave_days == 5
-    assert result["success"] is True

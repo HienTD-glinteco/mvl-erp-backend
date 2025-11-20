@@ -35,12 +35,12 @@ class TimesheetFilterSet(django_filters.FilterSet):
         fields = ["employee", "branch", "block", "department", "position", "employee_salary_type"]
 
     @classmethod
-    def extract_month_year(cls, month_key: str) -> tuple[int, int] | None:
+    def extract_month_year(cls, month_key: str | None) -> tuple[int, int] | None:
         # Expect MM/YYYY where MM is 01-12 and YYYY is four digits
-        if not re.match(r"^(0[1-9]|1[0-2])/\d{4}$", month_key):
+        if not month_key or not re.match(r"^(0[1-9]|1[0-2])/\d{4}$", month_key):
             # Invalid format: ignore the filter (no-op). The view can still
             # detect and return a 400 if stricter validation is desired.
-            return None, None
+            return None
 
         month_str, year_str = month_key.split("/")
         return int(month_str), int(year_str)

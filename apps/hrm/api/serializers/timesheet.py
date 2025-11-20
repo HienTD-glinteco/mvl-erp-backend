@@ -28,7 +28,7 @@ class TimesheetEntrySerializer(serializers.Serializer):
         required=False,
         help_text="End time",
     )
-    complaint = TimesheetEntryComplain(required=False, allow_null=True, help_text="Complain of this timsheet entry")
+    has_complaint = serializers.BooleanField(default=False, required=False, allow_null=True)
 
 
 class EmployeeTimesheetSerializer(serializers.Serializer):

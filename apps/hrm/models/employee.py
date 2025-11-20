@@ -63,6 +63,9 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         user: Associated User account (auto-created, nullable)
     """
 
+    # Type hint for runtime attribute tracked by signals
+    old_status: str | None = None
+
     class CodeType(models.TextChoices):
         MV = "MV", _("MV")
         CTV = "CTV", _("CTV")

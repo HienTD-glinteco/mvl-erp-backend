@@ -86,16 +86,12 @@ class EmployeeModelTest(TestCase):
         # Patch the timesheet prepare task
         self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay")
         self.mock_prepare_timesheet_delay = self.prepare_timesheet_patcher.start()
-        # Patch increment_available_leave_days task
-        self.increment_leave_patcher = patch("apps.hrm.tasks.timesheets.increment_available_leave_days.delay")
-        self.mock_increment_leave_delay = self.increment_leave_patcher.start()
 
     def tearDown(self):
         # Stop patchers
         self.hr_report_patcher.stop()
         self.recruitment_report_patcher.stop()
         self.prepare_timesheet_patcher.stop()
-        self.increment_leave_patcher.stop()
         return super().tearDown()
 
     def test_create_employee(self):
@@ -123,8 +119,6 @@ class EmployeeModelTest(TestCase):
         self.assertEqual(employee.user.email, "john@example.com")
         # The prepare_monthly_timesheets task should have been scheduled for new employee
         self.mock_prepare_timesheet_delay.assert_called()
-        # Monthly leave increment task shouldn't be scheduled on create by default
-        self.mock_increment_leave_delay.assert_not_called()
         self.assertIn("John Doe", str(employee))
 
     def test_delete_employee_with_user(self):

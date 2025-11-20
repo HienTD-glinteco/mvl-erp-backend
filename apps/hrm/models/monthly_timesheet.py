@@ -1,6 +1,7 @@
 import calendar
 from datetime import date
-from typing import Dict
+from decimal import Decimal
+from typing import Any, Dict, cast
 
 from django.db import models
 from django.db.models import Count, DecimalField, F, Q, Sum, Value
@@ -12,6 +13,10 @@ from apps.hrm.models.timesheet import TimeSheetEntry
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
 from libs.models.base_model_mixin import BaseReportModel
 from libs.models.fields import SafeTextField
+
+# Values returned by compute_aggregates: Decimal for numeric fields, int for ids,
+# date for report_date and str for month_key.
+AggregateValue = Decimal | int | date | str
 
 
 class EmployeeMonthlyTimesheet(BaseReportModel):
@@ -119,7 +124,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     @classmethod
     def compute_aggregates(
         cls, employee_id: int, year: int, month: int, fields: list[str] | None = None
-    ) -> Dict[str, object]:
+    ) -> Dict[str, AggregateValue]:
         """Compute aggregates from TimeSheetEntry for given employee/month.
 
         Returns a dict with keys matching model fields (except PK) and raw
@@ -188,10 +193,10 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             temp_fields = [field_mapping.get(f, f) for f in fields]
             aggregates_expr = {field: expr for field, expr in aggregates_expr.items() if field in temp_fields}
 
-        raw_aggs = qs.aggregate(**aggregates_expr) if aggregates_expr else {}
+        raw_aggs: dict[str, Any] = qs.aggregate(**aggregates_expr) if aggregates_expr else {}
 
         # Rename temp keys back to original field names
-        aggregates = {}
+        aggregates: Dict[str, AggregateValue] = {}
         for field, value in raw_aggs.items():
             if field.startswith("_"):
                 # Remove the underscore prefix
@@ -228,11 +233,10 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
 
         # Handle leave balance calculations
         if "paid_leave_days" in aggregates:
-            consumed_leave_days = aggregates["paid_leave_days"]
+            consumed_leave_days: Decimal = quantize_decimal(cast(Decimal, aggregates["paid_leave_days"]))
             aggregates["consumed_leave_days"] = consumed_leave_days
-            aggregates["remaining_leave_days"] = max(
-                quantize_decimal(obj.carried_over_leave + obj.opening_balance_leave_days - consumed_leave_days), 0
-            )
+            delta = quantize_decimal(obj.carried_over_leave + obj.opening_balance_leave_days - consumed_leave_days)
+            aggregates["remaining_leave_days"] = max(delta, DECIMAL_ZERO)
 
         # Apply aggregates to object fields
         for field, value in aggregates.items():

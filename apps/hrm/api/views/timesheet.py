@@ -1,6 +1,7 @@
 import calendar
 from collections import defaultdict
 from datetime import date
+from typing import Any, Iterable
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -105,7 +106,12 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     def _get_first_last_days(self, request):
         # Determine month/year from filterset (fallback to current month)
-        year, month = TimesheetFilterSet.extract_month_year(request.GET.get("month"))
+        rv = TimesheetFilterSet.extract_month_year(request.GET.get("month"))
+        if rv is None:
+            year = None
+            month = None
+        else:
+            year, month = rv
         if not year or not month:
             today = date.today()
             year = today.year
@@ -118,7 +124,12 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
         return first_day, last_day, month_key
 
-    def _prepare_employee_data(self, employee, timesheet_entries: list, monthly_timesheet=None):
+    def _prepare_employee_data(
+        self,
+        employee: Employee,
+        timesheet_entries: Iterable[TimeSheetEntry],
+        monthly_timesheet: EmployeeMonthlyTimesheet | None = None,
+    ) -> dict[str, Any]:
         payload = {
             "employee": employee,
             "dates": [],

@@ -46,14 +46,9 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.timesheets.prepare_monthly_timesheets",
         "schedule": crontab(day_of_month="1", hour=0, minute=1),
     },
-    # Update EmployeeMonthlyTimesheet rows marked with need_refresh every 30 seconds
+    # Update EmployeeMonthlyTimesheet rows marked with need_refresh every 60 seconds
     "update_monthly_timesheet_async": {
         "task": "apps.hrm.tasks.timesheets.update_monthly_timesheet_async",
-        "schedule": 30.0,
-    },
-    # Increment available leave days at the beginning of each month
-    "increment_available_leave_days": {
-        "task": "apps.hrm.tasks.timesheets.increment_available_leave_days",
-        "schedule": crontab(day_of_month="1", hour=0, minute=2),
+        "schedule": 60.0,
     },
 }

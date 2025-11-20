@@ -62,7 +62,7 @@ def create_monthly_timesheet_for_employee(
         ).first()
         opening = (prev.remaining_leave_days + quantize_decimal(1)) if prev else quantize_decimal(1)
         obj.opening_balance_leave_days = quantize_decimal(opening)
-        obj.carried_over_leave = quantize_decimal(0)
+        obj.carried_over_leave = quantize_decimal(DECIMAL_ZERO)
 
     return obj
 

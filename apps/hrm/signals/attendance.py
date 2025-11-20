@@ -1,9 +1,7 @@
-
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from apps.hrm.models import AttendanceRecord, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
-from apps.hrm.tasks.timesheets import update_monthly_timesheet_async
 
 
 @receiver(post_save, sender=AttendanceRecord)
@@ -39,22 +37,7 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
     m_obj, _ = EmployeeMonthlyTimesheet.objects.get_or_create(
         employee=employee, month_key=month_key, report_date=entry.date.replace(day=1)
     )
-    m_obj.need_refresh = True
-    m_obj.save(update_fields=["need_refresh"])
-
-    # schedule async update
-    update_monthly_timesheet_async.delay(
-        employee.id,
-        yr,
-        mo,
-        [
-            "probation_working_days",
-            "official_working_days",
-            "total_working_days",
-            "total_worked_hours",
-            "overtime_hours",
-        ],
-    )
+    m_obj.mark_refresh()
 
 
 @receiver(post_delete, sender=AttendanceRecord)
@@ -76,10 +59,16 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
         attendance_code=instance.attendance_code, timestamp__date=instance.timestamp.date()
     ).order_by("timestamp")
 
-    first = records.first().timestamp
-    last = records.last().timestamp
+    first = records.first()
+    last = records.last()
 
-    entry.update_times(first, last)
+    if not first or not last:
+        entry.update_times(None, None)
+    else:
+        start_time = first.timestamp
+        end_time = last.timestamp
+        entry.update_times(start_time, end_time)
+
     entry.calculate_hours_from_schedule()
     entry.save()
 
@@ -89,17 +78,4 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
 
     m_obj = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee.id, month_key=f"{yr:04d}{mo:02d}").first()
     if m_obj:
-        m_obj.need_refresh = True
-        m_obj.save(update_fields=["need_refresh"])
-        update_monthly_timesheet_async.delay(
-            employee.id,
-            yr,
-            mo,
-            [
-                "probation_working_days",
-                "official_working_days",
-                "total_working_days",
-                "total_worked_hours",
-                "overtime_hours",
-            ],
-        )
+        m_obj.mark_refresh()
