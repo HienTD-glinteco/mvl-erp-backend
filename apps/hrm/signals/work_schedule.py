@@ -11,6 +11,8 @@ from django.dispatch import receiver
 from apps.hrm.models import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import invalidate_work_schedule_cache
 
+__all__ = ["invalidate_cache_on_work_schedule_save", "invalidate_cache_on_work_schedule_delete"]
+
 logger = logging.getLogger(__name__)
 
 

@@ -86,12 +86,18 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         """Update start_time and end_time for this timesheet entry.
 
         Args:
-            start_time: DateTime for when work started
-            end_time: DateTime for when work ended
+            start_time: DateTime for when work started. If None, do not update.
+            end_time: DateTime for when work ended. If None, do not update.
         """
-
-        self.start_time = start_time
-        self.end_time = end_time
+        # Only update if argument is not None
+        if start_time is not None:
+            self.start_time = start_time
+        if end_time is not None:
+            self.end_time = end_time
+        # Basic validation: if both are set, ensure start_time <= end_time
+        if self.start_time is not None and self.end_time is not None:
+            if self.start_time > self.end_time:
+                raise ValueError("start_time cannot be after end_time")
 
     def calculate_hours_from_schedule(self, work_schedule: Optional["WorkSchedule"] = None) -> None:
         """Calculate morning_hours, afternoon_hours, and overtime_hours based on WorkSchedule.
@@ -125,8 +131,12 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             return
 
         # TODO: implement case missing end time, that means employee doesn't make enough attendance, at least 2 must be considered as valid.
+        # If end time is missing, no reliable work hours can be computed; set to 0 and exit early.
         if not self.end_time:
-            raise NotImplementedError("Must implement logic for case missing end time.")
+            self.morning_hours = Decimal(0)
+            self.afternoon_hours = Decimal(0)
+            self.overtime_hours = Decimal(0)
+            return
 
         # Calculate hours based on schedule
         work_date = self.date

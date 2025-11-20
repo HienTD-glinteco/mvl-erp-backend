@@ -120,7 +120,7 @@ class Migration(migrations.Migration):
                         decimal_places=2,
                         default=Decimal("0.00"),
                         max_digits=8,
-                        verbose_name="Carried over leave from last year. Only applied for Januray. After that, this field must be set to 0.",
+                        verbose_name="Carried over leave from last year. Only applied for January. After that, this field must be set to 0.",
                     ),
                 ),
                 (

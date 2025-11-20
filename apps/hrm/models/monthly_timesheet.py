@@ -91,7 +91,7 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         decimal_places=2,
         default=DECIMAL_ZERO,
         verbose_name=_(
-            "Carried over leave from last year. Only applied for Januray. After that, this field must be set to 0."
+            "Carried over leave from last year. Only applied for January. After that, this field must be set to 0."
         ),
     )
     opening_balance_leave_days = models.DecimalField(

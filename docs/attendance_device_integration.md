@@ -364,7 +364,7 @@ CELERY_BEAT_SCHEDULE = {
 
 Additional timesheet-specific tasks:
 
-- `apps.hrm.tasks.timesheets.prepare_monthly_timesheets` (cron: 1st of month at 00:01): prepares `TimeSheetEntry` rows and monthly aggregates for all active employees, also increments `available_leave_days` for eligible employees by 1..
+- `apps.hrm.tasks.timesheets.prepare_monthly_timesheets` (cron: 1st of month at 00:01): prepares `TimeSheetEntry` rows and monthly aggregates for all active employees, also increments `available_leave_days` for eligible employees by 1.
 - `apps.hrm.tasks.timesheets.update_monthly_timesheet_async` (interval: 30s): processes `EmployeeMonthlyTimesheet` rows flagged with `need_refresh`.
 
 

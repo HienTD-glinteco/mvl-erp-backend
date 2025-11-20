@@ -3,6 +3,8 @@ from django.dispatch import receiver
 
 from apps.hrm.models import AttendanceRecord, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 
+__all__ = ["handle_attendance_record_save", "handle_attendance_record_delete"]
+
 
 @receiver(post_save, sender=AttendanceRecord)
 def handle_attendance_record_save(sender, instance: AttendanceRecord, created, **kwargs):
@@ -20,11 +22,15 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
     # find or create timesheet entry for the date
     entry, _ = TimeSheetEntry.objects.get_or_create(employee_id=employee.id, date=instance.timestamp.date())
 
-    start_time, end_time = None, None
+    # Determine new start_time and end_time, preserving existing values if not updating
     if not entry.start_time or instance.timestamp < entry.start_time:
         start_time = instance.timestamp
+    else:
+        start_time = entry.start_time
     if not entry.end_time or instance.timestamp > entry.end_time:
         end_time = instance.timestamp
+    else:
+        end_time = entry.end_time
     entry.update_times(start_time, end_time)
 
     # Calculate hours using the WorkSchedule integration
@@ -64,7 +70,7 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
     first = records.first()
     last = records.last()
 
-    # If there are no records (first is None) or something unexpected (last is None), clear the times
+    # If there are no records, clear the times; otherwise, use first and last timestamps
     if not first or not last:
         entry.update_times(None, None)
     else:

@@ -15,7 +15,11 @@ class Command(BaseCommand):
         parser.add_argument("--end-year", type=int, required=True)
         parser.add_argument("--end-month", type=int, required=True)
         parser.add_argument("--batch-size", type=int, default=500)
-        parser.add_argument("--dry-run", action="store_true", help="Do not write to DB; just simulate", default=True)
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Simulate only; do not write to DB (default: Only compute no actual change anything)",
+        )
 
     def handle(self, *args, **options):
         start_year = options["start_year"]
