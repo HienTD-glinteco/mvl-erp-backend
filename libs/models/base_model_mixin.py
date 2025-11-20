@@ -71,3 +71,8 @@ class BaseReportModel(BaseModel):
     class Meta:
         abstract = True
         ordering = ["-report_date"]
+
+    def mark_refresh(self, force_save: bool = True):
+        self.need_refresh = True
+        if force_save:
+            self.save(update_fields=["need_refresh"])

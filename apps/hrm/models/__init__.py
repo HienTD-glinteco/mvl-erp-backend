@@ -16,6 +16,7 @@ from .holiday import CompensatoryWorkday, Holiday
 from .interview_candidate import InterviewCandidate
 from .interview_schedule import InterviewSchedule
 from .job_description import JobDescription
+from .monthly_timesheet import EmployeeMonthlyTimesheet
 from .organization import (
     Block,
     Branch,
@@ -35,6 +36,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequest
 from .recruitment_source import RecruitmentSource
+from .timesheet import TimeSheetEntry
 from .work_schedule import WorkSchedule
 
 __all__ = [
@@ -74,4 +76,6 @@ __all__ = [
     "EmployeeStatusBreakdownReport",
     "EmployeeResignedReasonReport",
     "WorkSchedule",
+    "TimeSheetEntry",
+    "EmployeeMonthlyTimesheet",
 ]

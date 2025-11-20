@@ -63,6 +63,9 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         user: Associated User account (auto-created, nullable)
     """
 
+    # Type hint for runtime attribute tracked by signals
+    old_status: str | None = None
+
     class CodeType(models.TextChoices):
         MV = "MV", _("MV")
         CTV = "CTV", _("CTV")
@@ -341,6 +344,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         related_name="employees",
         verbose_name=_("Recruitment Candidate"),
+    )
+
+    # Available leave days (e.g., remaining annual leave)
+    available_leave_days = models.IntegerField(
+        default=0,
+        verbose_name=_("Available leave days"),
+        help_text=_("Number of available leave days for the employee"),
     )
 
     class Meta:

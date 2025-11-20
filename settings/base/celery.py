@@ -40,5 +40,15 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
     "update_certificate_statuses": {
         "task": "apps.hrm.tasks.certificates.update_certificate_statuses",
         "schedule": crontab(hour=1, minute=0),  # Daily at 01:00
+        # Prepare timesheet entries and monthly model at the beginning of month
+    },
+    "prepare_monthly_timesheets": {
+        "task": "apps.hrm.tasks.timesheets.prepare_monthly_timesheets",
+        "schedule": crontab(day_of_month="1", hour=0, minute=1),
+    },
+    # Update EmployeeMonthlyTimesheet rows marked with need_refresh every 60 seconds
+    "update_monthly_timesheet_async": {
+        "task": "apps.hrm.tasks.timesheets.update_monthly_timesheet_async",
+        "schedule": 60.0,
     },
 }
