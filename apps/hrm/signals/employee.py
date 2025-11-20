@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.hrm.models import Employee
+from apps.hrm.tasks.timesheets import prepare_monthly_timesheets
 
 User = get_user_model()
 
@@ -28,3 +29,24 @@ def create_user_for_employee(sender, instance, created, **kwargs):  # noqa: ARG0
         # Update the employee with the created user
         instance.user = user
         instance.save(update_fields=["user"])
+
+
+@receiver(post_save, sender=Employee)
+def prepare_timesheet_on_hire_post_save(sender, instance: Employee, created, **kwargs):
+    """Prepare timesheet rows when an employee is created or returns to an active status.
+
+    - If the employee is newly created and has an active status, schedule timesheet preparation for the current month.
+    - If the employee's status changes from a leave status (e.g., resigned) to an active status, schedule timesheet preparation.
+    """
+    working_statuses = Employee.Status.get_working_statuses()
+    leave_statuses = Employee.Status.get_leave_statuses()
+
+    # If the employee was just created and is in an active status, schedule timesheet preparation for the current month.
+    if created and instance.status in working_statuses:
+        prepare_monthly_timesheets.delay(employee_id=instance.id)
+        return
+
+    # If this is an update and the employee's status changed from a leave status to an active status, schedule timesheet preparation.
+    old_status = getattr(instance, "old_status", None)
+    if old_status in leave_statuses and instance.status in working_statuses:
+        prepare_monthly_timesheets.delay(employee_id=instance.id, increment_leave=False)

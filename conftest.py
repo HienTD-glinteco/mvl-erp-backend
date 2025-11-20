@@ -193,6 +193,44 @@ def api_client(request, superuser):
     return client
 
 
+@pytest.fixture
+def work_schedules(db):
+    """Create work schedules for all weekdays.
+
+    This fixture creates standard work schedules for Monday through Friday:
+    - Morning: 08:00-12:00
+    - Noon: 12:00-13:00
+    - Afternoon: 13:00-17:00
+
+    Returns:
+        list: A list of WorkSchedule instances for weekdays.
+    """
+    from apps.hrm.models import WorkSchedule
+
+    schedules = []
+    weekdays = [
+        WorkSchedule.Weekday.MONDAY,
+        WorkSchedule.Weekday.TUESDAY,
+        WorkSchedule.Weekday.WEDNESDAY,
+        WorkSchedule.Weekday.THURSDAY,
+        WorkSchedule.Weekday.FRIDAY,
+    ]
+
+    for weekday in weekdays:
+        schedule = WorkSchedule.objects.create(
+            weekday=weekday,
+            morning_start_time="08:00",
+            morning_end_time="12:00",
+            noon_start_time="12:00",
+            noon_end_time="13:00",
+            afternoon_start_time="13:00",
+            afternoon_end_time="17:00",
+        )
+        schedules.append(schedule)
+
+    return schedules
+
+
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """
     Modify test items to optimize test execution.

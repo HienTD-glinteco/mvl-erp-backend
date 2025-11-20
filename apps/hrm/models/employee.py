@@ -76,6 +76,10 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         UNPAID_LEAVE = "Unpaid Leave", _("Unpaid Leave")
 
         @classmethod
+        def get_working_statuses(cls):
+            return [cls.ACTIVE, cls.ONBOARDING]
+
+        @classmethod
         def get_leave_statuses(cls):
             return [cls.RESIGNED, cls.MATERNITY_LEAVE, cls.UNPAID_LEAVE]
 
@@ -343,6 +347,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Recruitment Candidate"),
     )
 
+    # Available leave days (e.g., remaining annual leave)
+    available_leave_days = models.IntegerField(
+        default=0,
+        verbose_name=_("Available leave days"),
+        help_text=_("Number of available leave days for the employee"),
+    )
+
     class Meta:
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
@@ -391,7 +402,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             user.delete()
 
     def _clean_working_statuses(self):
-        working_statuses = [self.Status.ACTIVE, self.Status.ONBOARDING]
+        working_statuses = Employee.Status.get_working_statuses()
 
         if self.status in working_statuses:
             if self.status == self.Status.ONBOARDING and self.old_status != self.Status.ONBOARDING:
@@ -404,11 +415,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             self.resignation_reason = None
 
     def _clean_resigned_statuses(self):
-        resigned_statuses = [
-            self.Status.RESIGNED,
-            self.Status.MATERNITY_LEAVE,
-            self.Status.UNPAID_LEAVE,
-        ]
+        resigned_statuses = Employee.Status.get_leave_statuses()
 
         if self.status in resigned_statuses:
             if not self.resignation_start_date:

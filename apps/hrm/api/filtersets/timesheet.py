@@ -6,7 +6,7 @@ from apps.hrm.constants import EmployeeSalaryType
 from apps.hrm.models import Employee
 
 
-class TimesheetFilterSet(django_filters.FilterSet):
+class EmployeeTimesheetFilterSet(django_filters.FilterSet):
     """FilterSet for timesheet endpoints.
 
     Provides filters for employee id and related organizational fields
@@ -25,33 +25,35 @@ class TimesheetFilterSet(django_filters.FilterSet):
     block = django_filters.NumberFilter(field_name="block_id")
     department = django_filters.NumberFilter(field_name="department_id")
     position = django_filters.NumberFilter(field_name="position_id")
+    employee_salary_type = django_filters.ChoiceFilter(
+        choices=EmployeeSalaryType.choices,
+        method="filter_employee_salary_type",
+    )
 
-    # TODO: implement actual filter logic
-    employee_salary_type = django_filters.ChoiceFilter(choices=EmployeeSalaryType.choices)
+    class Meta:
+        model = Employee
+        fields = ["id", "branch", "block", "department", "position", "employee_salary_type"]
+
+    @classmethod
+    def extract_month_year(cls, month_key: str | None) -> tuple[int, int] | None:
+        # Expect MM/YYYY where MM is 01-12 and YYYY is four digits
+        if not month_key or not re.match(r"^(0[1-9]|1[0-2])/\d{4}$", month_key):
+            # Invalid format: ignore the filter (no-op). The view can still
+            # detect and return a 400 if stricter validation is desired.
+            return None
+
+        month_str, year_str = month_key.split("/")
+        return int(month_str), int(year_str)
 
     def filter_month(self, queryset, name, value):
         """Validate month parameter in MM/YYYY format and store parsed values.
 
         This does not directly filter employees (timesheet logic may live in the
-        view or a separate Timesheet model). Instead, it validates the input
-        and exposes parsed month/year via the filterset instance as
-        `self._timesheet_month` and `self._timesheet_year` for downstream use.
+        view or a separate Timesheet model). Instead, it only validates the input
         """
-        if not value:
-            return queryset
-
-        # Expect MM/YYYY where MM is 01-12 and YYYY is four digits
-        if not re.match(r"^(0[1-9]|1[0-2])/\d{4}$", value):
-            # Invalid format: ignore the filter (no-op). The view can still
-            # detect and return a 400 if stricter validation is desired.
-            return queryset
-
-        month_str, year_str = value.split("/")
-        self._timesheet_month = int(month_str)
-        self._timesheet_year = int(year_str)
-
         return queryset
 
-    class Meta:
-        model = Employee
-        fields = ["employee", "branch", "block", "department", "position", "employee_salary_type"]
+    def filter_employee_salary_type(self, queryset, name, value):
+        """This does not directly filter employees (timesheet logic may live in the
+        view or a separate Timesheet model). Instead, it only validates the input"""
+        return queryset
