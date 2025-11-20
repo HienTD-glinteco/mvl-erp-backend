@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
+from apps.files.models import FileModel
 from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
@@ -596,7 +597,6 @@ class EmployeeModelTest(TestCase):
 
     def test_employee_citizen_id_file_foreign_key_relationship(self):
         """Test that citizen_id_file can be linked to FileModel"""
-        from apps.files.models import FileModel
 
         # Arrange: Create a FileModel instance
         file_instance = FileModel.objects.create(
@@ -628,7 +628,6 @@ class EmployeeModelTest(TestCase):
 
     def test_employee_citizen_id_file_set_null_on_delete(self):
         """Test that citizen_id_file is set to null when FileModel is deleted"""
-        from apps.files.models import FileModel
 
         # Arrange: Create FileModel and Employee with that file
         file_instance = FileModel.objects.create(
@@ -940,8 +939,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_create_employee_with_citizen_id_file(self, mock_s3_service_class):
         """Test creating an employee with citizen_id_file_id"""
-        from apps.files.models import FileModel
-
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -994,8 +991,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_update_employee_citizen_id_file(self, mock_s3_service_class):
         """Test updating an employee's citizen_id_file_id"""
-        from apps.files.models import FileModel
-
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -1045,8 +1040,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_partial_update_employee_citizen_id_file(self, mock_s3_service_class):
         """Test partially updating an employee with citizen_id_file_id"""
-        from apps.files.models import FileModel
-
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -1085,8 +1078,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_get_employee_with_citizen_id_file(self, mock_s3_service_class):
         """Test retrieving an employee with citizen_id_file returns FileSerializer data"""
-        from apps.files.models import FileModel
-
         # Mock S3 service for view/download URLs in FileModel properties
         mock_s3_instance = MagicMock()
         mock_s3_service_class.return_value = mock_s3_instance
@@ -1126,8 +1117,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
     def test_update_employee_remove_citizen_id_file(self):
         """Test removing citizen_id_file by setting citizen_id_file_id to null"""
-        from apps.files.models import FileModel
-
         # Arrange: Create FileModel and link to employee
         file_instance = FileModel.objects.create(
             purpose="citizen_id",
@@ -1604,8 +1593,24 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             citizen_id="123456782",
         )
 
-    def test_filter_by_position_is_leadership_true(self):
+        # Link a citizen ID file to the leader employee for filter tests
+        self.leader_citizen_id_file = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="leader_citizen_id.pdf",
+            file_path="documents/citizen_ids/leader_citizen_id.pdf",
+            size=1024,
+        )
+        self.leader_employee.citizen_id_file = self.leader_citizen_id_file
+        self.leader_employee.save(update_fields=["citizen_id_file"])
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_position_is_leadership_true(self, mock_s3_service_class):
         """Test filtering employees by leadership positions"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true"})
 
@@ -1636,8 +1641,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_filter_by_is_onboarding_email_sent_true(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_is_onboarding_email_sent_true(self, mock_s3_service_class):
         """Test filtering employees who received onboarding email"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"is_onboarding_email_sent": "true"})
 
@@ -1668,8 +1679,52 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
 
-    def test_filter_by_date_of_birth_month_march(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_has_citizen_id_file_true(self, mock_s3_service_class):
+        """Test filtering employees with uploaded citizen ID files"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"has_citizen_id_file": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 1)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_filter_by_has_citizen_id_file_false(self):
+        """Test filtering employees without citizen ID files"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"has_citizen_id_file": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 3)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_date_of_birth_month_march(self, mock_s3_service_class):
         """Test filtering employees born in March (month 3)"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"date_of_birth__month": "3"})
 
@@ -1700,8 +1755,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.staff_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_combined_filter_leadership_and_onboarding(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_combined_filter_leadership_and_onboarding(self, mock_s3_service_class):
         """Test combining leadership and onboarding email filters"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true", "is_onboarding_email_sent": "true"})
 
@@ -1716,8 +1777,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.onboarding_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_combined_filter_leadership_and_birth_month(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_combined_filter_leadership_and_birth_month(self, mock_s3_service_class):
         """Test combining leadership and birth month filters"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true", "date_of_birth__month": "3"})
 
@@ -1732,8 +1799,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.staff_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
 
-    def test_filter_by_citizen_id_exact(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_citizen_id_exact(self, mock_s3_service_class):
         """Test filtering employees by exact citizen_id"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"citizen_id": "123456789"})
 
@@ -1745,8 +1818,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertEqual(results[0]["citizen_id"], "123456789")
         self.assertEqual(results[0]["code"], self.leader_employee.code)
 
-    def test_filter_by_citizen_id_partial(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_citizen_id_partial(self, mock_s3_service_class):
         """Test filtering employees by partial citizen_id (icontains)"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"citizen_id": "12345678"})
 
