@@ -205,12 +205,12 @@ class AuthenticationTestCase(TestCase):
         self.assertEqual(self.user.get_full_name(), "Doe John")
         self.assertEqual(self.user.get_short_name(), "John")
 
-    def test_google_tester_login_otp_is_constant(self):
+    def test_mobile_app_tester_login_otp_is_constant(self):
         tester = User.objects.create_superuser(
             username=APP_TESTER_USERNAME,
-            email="google.tester@example.com",
+            email="mobile.tester@example.com",
             password="testpass123",
-            first_name="Google",
+            first_name="Mobile",
             last_name="Tester",
         )
 
@@ -219,12 +219,12 @@ class AuthenticationTestCase(TestCase):
         self.assertEqual(otp, APP_TESTER_OTP_CODE)
         self.assertEqual(tester.otp_code, APP_TESTER_OTP_CODE)
 
-    def test_google_tester_password_reset_otp_is_constant(self):
+    def test_mobile_app_tester_password_reset_otp_is_constant(self):
         tester = User.objects.create_superuser(
             username=APP_TESTER_USERNAME,
-            email="google.tester.reset@example.com",
+            email="mobile.tester.reset@example.com",
             password="testpass123",
-            first_name="Google",
+            first_name="Mobile",
             last_name="Tester",
         )
 
