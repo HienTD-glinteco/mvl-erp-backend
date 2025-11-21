@@ -3,7 +3,14 @@ from .attendance_exemption import AttendanceExemptionExportSerializer, Attendanc
 from .attendance_geolocation import AttendanceGeolocationSerializer
 from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
-from .attendance_report import AttendanceMethodReportParameterSerializer, AttendanceMethodReportSerializer
+from .attendance_report import (
+    AttendanceMethodReportParameterSerializer,
+    AttendanceMethodReportSerializer,
+    AttendanceProjectOrgReportAggregrationSerializer,
+    AttendanceProjectOrgReportParameterSerializer,
+    AttendanceProjectReportAggregrationSerializer,
+    AttendanceProjectReportParameterSerializer,
+)
 from .attendance_wifi_device import AttendanceWifiDeviceExportSerializer, AttendanceWifiDeviceSerializer
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
@@ -77,6 +84,10 @@ __all__ = [
     "AttendanceRecordSerializer",
     "AttendanceMethodReportParameterSerializer",
     "AttendanceMethodReportSerializer",
+    "AttendanceProjectReportAggregrationSerializer",
+    "AttendanceProjectReportParameterSerializer",
+    "AttendanceProjectOrgReportAggregrationSerializer",
+    "AttendanceProjectOrgReportParameterSerializer",
     "AttendanceWifiDeviceSerializer",
     "AttendanceWifiDeviceExportSerializer",
     "BankSerializer",
