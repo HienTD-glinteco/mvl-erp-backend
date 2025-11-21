@@ -60,7 +60,7 @@ class Block(AutoCodeMixin, BaseModel):
     block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name=_("Block type"))
     branch = models.ForeignKey(
         Branch,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="blocks",
         verbose_name=_("Branch"),
     )
@@ -100,11 +100,11 @@ class Department(AutoCodeMixin, BaseModel):
 
     name = models.CharField(max_length=200, verbose_name=_("Department name"))
     code = models.CharField(max_length=50, verbose_name=_("Department code"))
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Branch"))
-    block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="departments", verbose_name=_("Block"))
+    branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name="departments", verbose_name=_("Branch"))
+    block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name="departments", verbose_name=_("Block"))
     parent_department = models.ForeignKey(
         "self",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="sub_departments",

@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -17,6 +17,7 @@ from apps.hrm.models import InterviewSchedule
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
 
@@ -294,7 +295,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     )
     serializer_class = InterviewScheduleSerializer
     filterset_class = InterviewScheduleFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["title", "location"]
     ordering_fields = ["title", "time", "created_at"]
     ordering = ["-time"]

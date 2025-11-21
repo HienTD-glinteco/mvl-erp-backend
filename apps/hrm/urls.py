@@ -6,6 +6,7 @@ from apps.hrm.api.views import (
     AttendanceExemptionViewSet,
     AttendanceGeolocationViewSet,
     AttendanceRecordViewSet,
+    AttendanceReportViewSet,
     AttendanceWifiDeviceViewSet,
     BankAccountViewSet,
     BankViewSet,
@@ -73,6 +74,7 @@ router.register(r"interview-candidates", InterviewCandidateViewSet, basename="in
 router.register(r"employee-relationships", EmployeeRelationshipViewSet, basename="employee-relationship")
 router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attendance-device")
 router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
+router.register(r"attendance-reports", AttendanceReportViewSet, basename="attendance-report")
 router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
 router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
 

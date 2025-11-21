@@ -4,7 +4,6 @@ from datetime import date, timedelta
 from django.db.models import Prefetch, Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
-from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -23,7 +22,7 @@ from apps.hrm.utils import (
     get_current_month_range,
     get_current_week_range,
 )
-from libs.drf.mixin.permission import PermissionRegistrationMixin
+from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..filtersets.employee_seniority_filter import EmployeeSeniorityFilterSet
 from ..filtersets.seniority_ordering_filter import SeniorityOrderingFilter
@@ -35,7 +34,7 @@ from ..serializers import (
 )
 
 
-class EmployeeReportsViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+class EmployeeReportsViewSet(BaseGenericViewSet):
     """
     ViewSet for employee reports with aggregated data.
 
@@ -47,8 +46,8 @@ class EmployeeReportsViewSet(PermissionRegistrationMixin, viewsets.GenericViewSe
 
     pagination_class = None
 
-    module = "HRM"
-    submodule = "Employee Management"
+    module = "REPORT"
+    submodule = "Employee"
     permission_prefix = "employee_reports"
 
     def _generate_time_buckets_for_week(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:

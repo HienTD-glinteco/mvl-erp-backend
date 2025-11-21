@@ -1,14 +1,16 @@
 import json
 from datetime import date
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
+from apps.files.models import FileModel
 from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
@@ -83,11 +85,15 @@ class EmployeeModelTest(TestCase):
             "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
+        # Patch the timesheet prepare task
+        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay")
+        self.mock_prepare_timesheet_delay = self.prepare_timesheet_patcher.start()
 
     def tearDown(self):
         # Stop patchers
         self.hr_report_patcher.stop()
         self.recruitment_report_patcher.stop()
+        self.prepare_timesheet_patcher.stop()
         return super().tearDown()
 
     def test_create_employee(self):
@@ -113,6 +119,8 @@ class EmployeeModelTest(TestCase):
         self.assertIsNotNone(employee.user)
         self.assertEqual(employee.user.username, "johndoe")
         self.assertEqual(employee.user.email, "john@example.com")
+        # The prepare_monthly_timesheets task should have been scheduled for new employee
+        self.mock_prepare_timesheet_delay.assert_called()
         self.assertIn("John Doe", str(employee))
 
     def test_delete_employee_with_user(self):
@@ -178,6 +186,33 @@ class EmployeeModelTest(TestCase):
 
         # Assert: Employee should be deleted without errors
         self.assertFalse(Employee.objects.filter(id=employee_id).exists())
+
+    def test_resigned_to_active_triggers_timesheet_task(self):
+        # Create resigned employee
+        employee = Employee.objects.create(
+            fullname="Resigned User",
+            username="resigned",
+            email="resigned@example.com",
+            phone="0123456711",
+            attendance_code="RES001",
+            start_date="2020-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="123456900",
+            resignation_start_date=timezone.now(),
+            resignation_reason="Personal reasons",
+            status=Employee.Status.RESIGNED,
+        )
+
+        # Simulate update to Active (return to work)
+        old_status = employee.status
+        employee.status = Employee.Status.ACTIVE
+        employee.save(update_fields=["status"])
+        employee.old_status = old_status
+
+        # Handler should have scheduled prepare task
+        self.mock_prepare_timesheet_delay.assert_called()
 
     def test_employee_code_unique(self):
         """Test employee code uniqueness"""
@@ -494,6 +529,138 @@ class EmployeeModelTest(TestCase):
         self.assertIn("variant", colored_value)
         self.assertEqual(colored_value["value"], "Active")
 
+    def test_employee_code_type_os_option(self):
+        """Test that OS code type option can be set and retrieved"""
+        # Arrange & Act: Create employee with OS code type
+        employee = Employee.objects.create(
+            fullname="Test Employee OS",
+            username="testemployeeos",
+            email="testemployeeos@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeeos.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            code_type=Employee.CodeType.OS,
+            citizen_id="123456789",
+        )
+
+        # Assert: Verify OS code type is set correctly
+        self.assertEqual(employee.code_type, Employee.CodeType.OS)
+        self.assertEqual(employee.code_type.label, "OS")
+
+    def test_employee_code_type_os_colored_property(self):
+        """Test that colored_code_type property returns correct format for OS type with BLUE variant"""
+        # Arrange & Act: Create employee with OS code type
+        employee = Employee.objects.create(
+            fullname="Test Employee OS Color",
+            username="testemployeeoscolor",
+            email="testemployeeoscolor@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeeoscolor.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            code_type=Employee.CodeType.OS,
+            citizen_id="123456789",
+        )
+
+        # Assert: Verify colored_code_type returns correct value and BLUE variant
+        colored_value = employee.colored_code_type
+        self.assertIsNotNone(colored_value)
+        self.assertIn("value", colored_value)
+        self.assertIn("variant", colored_value)
+        self.assertEqual(colored_value["value"], "OS")
+        self.assertEqual(colored_value["variant"], "BLUE")
+
+    def test_employee_citizen_id_file_can_be_null(self):
+        """Test that citizen_id_file can be null"""
+        # Arrange & Act: Create employee without citizen_id_file
+        employee = Employee.objects.create(
+            fullname="Test Employee No File",
+            username="testemployeenofile",
+            email="testemployeenofile@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeenofile.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=None,
+        )
+
+        # Assert: Verify citizen_id_file is None
+        self.assertIsNone(employee.citizen_id_file)
+
+    def test_employee_citizen_id_file_foreign_key_relationship(self):
+        """Test that citizen_id_file can be linked to FileModel"""
+
+        # Arrange: Create a FileModel instance
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="citizen_id_document.pdf",
+            file_path="documents/citizen_ids/citizen_id_document.pdf",
+            size=102400,
+        )
+
+        # Act: Create employee with citizen_id_file
+        employee = Employee.objects.create(
+            fullname="Test Employee With File",
+            username="testemployeewithfile",
+            email="testemployeewithfile@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeewithfile.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=file_instance,
+        )
+
+        # Assert: Verify the foreign key relationship
+        self.assertIsNotNone(employee.citizen_id_file)
+        self.assertEqual(employee.citizen_id_file.id, file_instance.id)
+        self.assertEqual(employee.citizen_id_file.file_name, "citizen_id_document.pdf")
+
+    def test_employee_citizen_id_file_set_null_on_delete(self):
+        """Test that citizen_id_file is set to null when FileModel is deleted"""
+
+        # Arrange: Create FileModel and Employee with that file
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="citizen_id_to_delete.pdf",
+            file_path="documents/citizen_ids/citizen_id_to_delete.pdf",
+            size=102400,
+        )
+
+        employee = Employee.objects.create(
+            fullname="Test Employee File Delete",
+            username="testemployeefiledelete",
+            email="testemployeefiledelete@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="testemployeefiledelete.personal@example.com",
+            start_date="2024-01-01",
+            department=self.department,
+            citizen_id="123456789",
+            citizen_id_file=file_instance,
+        )
+
+        # Verify file is linked
+        self.assertIsNotNone(employee.citizen_id_file)
+
+        # Act: Delete the FileModel
+        file_instance.delete()
+
+        # Assert: Refresh employee and verify citizen_id_file is now null
+        employee.refresh_from_db()
+        self.assertIsNone(employee.citizen_id_file)
+
 
 class EmployeeAPITest(TestCase, APITestMixin):
     """Test cases for Employee API endpoints"""
@@ -552,7 +719,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp001",
             email="emp1@example.com",
             phone="1234567890",
-            attendance_code="EMP001",
+            attendance_code="0000000000001",
             date_of_birth="1990-01-01",
             personal_email="emp1.personal@example.com",
             start_date="2024-01-01",
@@ -567,7 +734,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp002",
             email="emp2@example.com",
             phone="2234567890",
-            attendance_code="EMP002",
+            attendance_code="0000000000002",
             date_of_birth="1991-01-01",
             personal_email="emp2.personal@example.com",
             start_date="2024-01-01",
@@ -582,7 +749,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             username="emp003",
             email="emp3@example.com",
             phone="3234567890",
-            attendance_code="EMP003",
+            attendance_code="0000000000003",
             date_of_birth="1992-01-01",
             personal_email="emp3.personal@example.com",
             start_date="2024-01-01",
@@ -768,6 +935,218 @@ class EmployeeAPITest(TestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Employee.objects.filter(id=self.employee3.id).exists())
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_create_employee_with_citizen_id_file(self, mock_s3_service_class):
+        """Test creating an employee with citizen_id_file_id"""
+        # Mock S3 service for view/download URLs in FileModel properties
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        # Arrange: Create a FileModel instance
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="citizen_id_api_test.pdf",
+            file_path="documents/citizen_ids/citizen_id_api_test.pdf",
+            size=102400,
+        )
+
+        # Act: Create employee with citizen_id_file_id
+        url = reverse("hrm:employee-list")
+        payload = {
+            "fullname": "Employee With Citizen ID File",
+            "username": "empwithfile",
+            "email": "empwithfile@example.com",
+            "phone": "1234567890",
+            "attendance_code": "58607083146091314661",
+            "date_of_birth": "1995-01-01",
+            "personal_email": "empwithfile.personal@example.com",
+            "start_date": "2024-01-01",
+            "department_id": self.department.id,
+            "citizen_id": "123456788",
+            "citizen_id_file_id": file_instance.id,
+        }
+        response = self.client.post(url, payload, format="json")
+
+        # Assert: Verify employee was created with citizen_id_file
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = self.get_response_data(response)
+
+        # Verify citizen_id_file is returned in response (read-only field)
+        self.assertIn("citizen_id_file", data)
+        self.assertIsNotNone(data["citizen_id_file"])
+        self.assertEqual(data["citizen_id_file"]["id"], file_instance.id)
+        self.assertEqual(data["citizen_id_file"]["file_name"], "citizen_id_api_test.pdf")
+
+        # Verify citizen_id_file_id is not in response (write-only field)
+        self.assertNotIn("citizen_id_file_id", data)
+
+        # Verify in database
+        employee = Employee.objects.get(username="empwithfile")
+        self.assertIsNotNone(employee.citizen_id_file)
+        self.assertEqual(employee.citizen_id_file.id, file_instance.id)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_update_employee_citizen_id_file(self, mock_s3_service_class):
+        """Test updating an employee's citizen_id_file_id"""
+        # Mock S3 service for view/download URLs in FileModel properties
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        # Arrange: Create a new FileModel instance
+        new_file = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="updated_citizen_id.pdf",
+            file_path="documents/citizen_ids/updated_citizen_id.pdf",
+            size=204800,
+        )
+
+        # Act: Update employee with new citizen_id_file_id
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        payload = {
+            "fullname": self.employee1.fullname,
+            "username": self.employee1.username,
+            "email": self.employee1.email,
+            "phone": self.employee1.phone,
+            "attendance_code": self.employee1.attendance_code,
+            "date_of_birth": str(self.employee1.date_of_birth),
+            "personal_email": self.employee1.personal_email,
+            "start_date": str(self.employee1.start_date),
+            "department_id": self.department.id,
+            "citizen_id": self.employee1.citizen_id,
+            "citizen_id_file_id": new_file.id,
+        }
+        response = self.client.put(url, payload, format="json")
+
+        # Assert: Verify update was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Verify citizen_id_file is returned with new file data
+        self.assertIn("citizen_id_file", data)
+        self.assertIsNotNone(data["citizen_id_file"])
+        self.assertEqual(data["citizen_id_file"]["id"], new_file.id)
+        self.assertEqual(data["citizen_id_file"]["file_name"], "updated_citizen_id.pdf")
+
+        # Verify in database
+        self.employee1.refresh_from_db()
+        self.assertIsNotNone(self.employee1.citizen_id_file)
+        self.assertEqual(self.employee1.citizen_id_file.id, new_file.id)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_partial_update_employee_citizen_id_file(self, mock_s3_service_class):
+        """Test partially updating an employee with citizen_id_file_id"""
+        # Mock S3 service for view/download URLs in FileModel properties
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        # Arrange: Create a FileModel instance
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="partial_update_citizen_id.pdf",
+            file_path="documents/citizen_ids/partial_update_citizen_id.pdf",
+            size=153600,
+        )
+
+        # Act: Partially update employee with citizen_id_file_id
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee2.id})
+        payload = {
+            "citizen_id_file_id": file_instance.id,
+        }
+        response = self.client.patch(url, payload, format="json")
+
+        # Assert: Verify update was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        # Verify citizen_id_file is returned
+        self.assertIn("citizen_id_file", data)
+        self.assertIsNotNone(data["citizen_id_file"])
+        self.assertEqual(data["citizen_id_file"]["id"], file_instance.id)
+
+        # Verify in database
+        self.employee2.refresh_from_db()
+        self.assertIsNotNone(self.employee2.citizen_id_file)
+        self.assertEqual(self.employee2.citizen_id_file.id, file_instance.id)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_get_employee_with_citizen_id_file(self, mock_s3_service_class):
+        """Test retrieving an employee with citizen_id_file returns FileSerializer data"""
+        # Mock S3 service for view/download URLs in FileModel properties
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        # Arrange: Create FileModel and link to employee
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="get_test_citizen_id.pdf",
+            file_path="documents/citizen_ids/get_test_citizen_id.pdf",
+            size=122880,
+        )
+        self.employee1.citizen_id_file = file_instance
+        self.employee1.save(update_fields=["citizen_id_file"])
+
+        # Act: Retrieve employee
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        response = self.client.get(url)
+
+        # Assert: Verify citizen_id_file is properly serialized
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIn("citizen_id_file", data)
+        self.assertIsNotNone(data["citizen_id_file"])
+        self.assertEqual(data["citizen_id_file"]["id"], file_instance.id)
+        self.assertEqual(data["citizen_id_file"]["file_name"], "get_test_citizen_id.pdf")
+        self.assertEqual(data["citizen_id_file"]["size"], 122880)
+        self.assertEqual(data["citizen_id_file"]["file_path"], "documents/citizen_ids/get_test_citizen_id.pdf")
+
+        # Verify FileSerializer includes expected fields
+        self.assertIn("view_url", data["citizen_id_file"])
+        self.assertIn("download_url", data["citizen_id_file"])
+        self.assertIn("created_at", data["citizen_id_file"])
+        self.assertIn("updated_at", data["citizen_id_file"])
+
+    def test_update_employee_remove_citizen_id_file(self):
+        """Test removing citizen_id_file by setting citizen_id_file_id to null"""
+        # Arrange: Create FileModel and link to employee
+        file_instance = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="to_be_removed.pdf",
+            file_path="documents/citizen_ids/to_be_removed.pdf",
+            size=102400,
+        )
+        self.employee1.citizen_id_file = file_instance
+        self.employee1.save(update_fields=["citizen_id_file"])
+
+        # Verify file is linked
+        self.assertIsNotNone(self.employee1.citizen_id_file)
+
+        # Act: Remove citizen_id_file by setting to null
+        url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})
+        payload = {
+            "citizen_id_file_id": None,
+        }
+        response = self.client.patch(url, payload, format="json")
+
+        # Assert: Verify file was removed
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIn("citizen_id_file", data)
+        self.assertIsNone(data["citizen_id_file"])
+
+        # Verify in database
+        self.employee1.refresh_from_db()
+        self.assertIsNone(self.employee1.citizen_id_file)
 
     def test_create_employee_invalid_block(self):
         """Test that branch and block are auto-set from department"""
@@ -1214,8 +1593,24 @@ class EmployeeFilterTest(TestCase, APITestMixin):
             citizen_id="123456782",
         )
 
-    def test_filter_by_position_is_leadership_true(self):
+        # Link a citizen ID file to the leader employee for filter tests
+        self.leader_citizen_id_file = FileModel.objects.create(
+            purpose="citizen_id",
+            file_name="leader_citizen_id.pdf",
+            file_path="documents/citizen_ids/leader_citizen_id.pdf",
+            size=1024,
+        )
+        self.leader_employee.citizen_id_file = self.leader_citizen_id_file
+        self.leader_employee.save(update_fields=["citizen_id_file"])
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_position_is_leadership_true(self, mock_s3_service_class):
         """Test filtering employees by leadership positions"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true"})
 
@@ -1246,8 +1641,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_filter_by_is_onboarding_email_sent_true(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_is_onboarding_email_sent_true(self, mock_s3_service_class):
         """Test filtering employees who received onboarding email"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"is_onboarding_email_sent": "true"})
 
@@ -1278,8 +1679,52 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
 
-    def test_filter_by_date_of_birth_month_march(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_has_citizen_id_file_true(self, mock_s3_service_class):
+        """Test filtering employees with uploaded citizen ID files"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"has_citizen_id_file": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 1)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+
+    def test_filter_by_has_citizen_id_file_false(self):
+        """Test filtering employees without citizen ID files"""
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"has_citizen_id_file": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 3)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_date_of_birth_month_march(self, mock_s3_service_class):
         """Test filtering employees born in March (month 3)"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"date_of_birth__month": "3"})
 
@@ -1310,8 +1755,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.staff_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_combined_filter_leadership_and_onboarding(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_combined_filter_leadership_and_onboarding(self, mock_s3_service_class):
         """Test combining leadership and onboarding email filters"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true", "is_onboarding_email_sent": "true"})
 
@@ -1326,8 +1777,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.onboarding_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
-    def test_combined_filter_leadership_and_birth_month(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_combined_filter_leadership_and_birth_month(self, mock_s3_service_class):
         """Test combining leadership and birth month filters"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"position__is_leadership": "true", "date_of_birth__month": "3"})
 
@@ -1342,8 +1799,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertNotIn(self.staff_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
 
-    def test_filter_by_citizen_id_exact(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_citizen_id_exact(self, mock_s3_service_class):
         """Test filtering employees by exact citizen_id"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"citizen_id": "123456789"})
 
@@ -1355,8 +1818,14 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertEqual(results[0]["citizen_id"], "123456789")
         self.assertEqual(results[0]["code"], self.leader_employee.code)
 
-    def test_filter_by_citizen_id_partial(self):
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_citizen_id_partial(self, mock_s3_service_class):
         """Test filtering employees by partial citizen_id (icontains)"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
         url = reverse("hrm:employee-list")
         response = self.client.get(url, {"citizen_id": "12345678"})
 

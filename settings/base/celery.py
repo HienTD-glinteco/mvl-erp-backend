@@ -22,9 +22,14 @@ CELERY_TASK_EAGER_PROPAGATES = config("CELERY_TASK_EAGER_PROPAGATES", default=Fa
 
 CELERY_BEAT_SCHEDULE: dict[str, dict] = {
     # Sync attendance logs from all devices once a day at midnight
+    "backup_database": {
+        "task": "apps.core.tasks.dbbackup.run_dbbackup",
+        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+    },
+    # Sync attendance logs from all devices once a day at midnight
     "sync_all_attendance_devices": {
         "task": "apps.hrm.tasks.attendances.sync_all_attendance_devices",
-        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+        "schedule": crontab(hour=0, minute=2),  # Daily at midnight
     },
     # Aggregate HR reports batch at midnight
     "aggregate_hr_reports_batch": {
@@ -40,5 +45,15 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
     "update_certificate_statuses": {
         "task": "apps.hrm.tasks.certificates.update_certificate_statuses",
         "schedule": crontab(hour=1, minute=0),  # Daily at 01:00
+    },
+    # Prepare timesheet entries and monthly model at the beginning of month
+    "prepare_monthly_timesheets": {
+        "task": "apps.hrm.tasks.timesheets.prepare_monthly_timesheets",
+        "schedule": crontab(day_of_month="1", hour=0, minute=1),
+    },
+    # Update EmployeeMonthlyTimesheet rows marked with need_refresh every short period
+    "update_monthly_timesheet_async": {
+        "task": "apps.hrm.tasks.timesheets.update_monthly_timesheet_async",
+        "schedule": 30.0,
     },
 }

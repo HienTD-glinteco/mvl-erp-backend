@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentChannelFilterSet
 from apps.hrm.api.serializers import RecruitmentChannelSerializer
 from apps.hrm.models import RecruitmentChannel
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -47,7 +48,7 @@ class RecruitmentChannelViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = RecruitmentChannel.objects.all()
     serializer_class = RecruitmentChannelSerializer
     filterset_class = RecruitmentChannelFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["-created_at"]

@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
 from apps.core.models import PasswordResetOTP, User
 
 
@@ -203,6 +204,35 @@ class AuthenticationTestCase(TestCase):
         # Test full name
         self.assertEqual(self.user.get_full_name(), "Doe John")
         self.assertEqual(self.user.get_short_name(), "John")
+
+    def test_mobile_app_tester_login_otp_is_constant(self):
+        tester = User.objects.create_superuser(
+            username=APP_TESTER_USERNAME,
+            email="mobile.tester@example.com",
+            password="testpass123",
+            first_name="Mobile",
+            last_name="Tester",
+        )
+
+        otp = tester.generate_otp()
+
+        self.assertEqual(otp, APP_TESTER_OTP_CODE)
+        self.assertEqual(tester.otp_code, APP_TESTER_OTP_CODE)
+
+    def test_mobile_app_tester_password_reset_otp_is_constant(self):
+        tester = User.objects.create_superuser(
+            username=APP_TESTER_USERNAME,
+            email="mobile.tester.reset@example.com",
+            password="testpass123",
+            first_name="Mobile",
+            last_name="Tester",
+        )
+
+        reset_request, otp = PasswordResetOTP.objects.create_request(tester, channel="email")
+
+        self.assertEqual(otp, APP_TESTER_OTP_CODE)
+        self.assertEqual(len(otp), 6)
+        self.assertTrue(reset_request.otp_hash)
 
     def test_inactive_user_login(self):
         """Test login attempt with inactive user"""

@@ -19,13 +19,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     This model stores comprehensive employee information including personal details,
     organizational hierarchy, and employment status. Employee codes are automatically
-    generated with a prefix based on code_type (MV or CTV).
+    generated with a prefix based on code_type (MV, CTV, or OS).
 
     A User account is automatically created when an Employee is created,
     using the employee's username and email fields.
 
     Attributes:
-        code_type: Employee type (MV or CTV)
+        code_type: Employee type (MV, CTV, or OS)
         code: Auto-generated unique employee code with prefix based on code_type
         avatar: Employee photo/avatar file
         fullname: Employee's full name
@@ -51,6 +51,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         citizen_id: National ID/CCCD number (digits only)
         citizen_id_issued_date: Date when citizen ID was issued
         citizen_id_issued_place: Place where citizen ID was issued
+        citizen_id_file: Citizen ID document file
         phone: Primary contact phone number (digits only)
         personal_email: Personal email address (different from work email)
         tax_code: Tax identification number
@@ -65,6 +66,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     class CodeType(models.TextChoices):
         MV = "MV", _("MV")
         CTV = "CTV", _("CTV")
+        OS = "OS", _("OS")
 
     class Status(models.TextChoices):
         ACTIVE = "Active", _("Active")
@@ -72,6 +74,10 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         RESIGNED = "Resigned", _("Resigned")
         MATERNITY_LEAVE = "Maternity Leave", _("Maternity Leave")
         UNPAID_LEAVE = "Unpaid Leave", _("Unpaid Leave")
+
+        @classmethod
+        def get_working_statuses(cls):
+            return [cls.ACTIVE, cls.ONBOARDING]
 
         @classmethod
         def get_leave_statuses(cls):
@@ -104,6 +110,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "code_type": {
             CodeType.MV: ColorVariant.RED,
             CodeType.CTV: ColorVariant.PURPLE,
+            CodeType.OS: ColorVariant.BLUE,
         },
         "status": {
             Status.ACTIVE: ColorVariant.GREEN,
@@ -259,6 +266,14 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Citizen ID issued place"),
     )
+    citizen_id_file = models.ForeignKey(
+        "files.FileModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employee_citizen_id_files",
+        verbose_name=_("Citizen ID file"),
+    )
     tax_code = models.CharField(
         max_length=12,
         blank=True,
@@ -332,6 +347,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Recruitment Candidate"),
     )
 
+    # Available leave days (e.g., remaining annual leave)
+    available_leave_days = models.IntegerField(
+        default=0,
+        verbose_name=_("Available leave days"),
+        help_text=_("Number of available leave days for the employee"),
+    )
+
     class Meta:
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
@@ -380,7 +402,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             user.delete()
 
     def _clean_working_statuses(self):
-        working_statuses = [self.Status.ACTIVE, self.Status.ONBOARDING]
+        working_statuses = Employee.Status.get_working_statuses()
 
         if self.status in working_statuses:
             if self.status == self.Status.ONBOARDING and self.old_status != self.Status.ONBOARDING:
@@ -393,11 +415,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             self.resignation_reason = None
 
     def _clean_resigned_statuses(self):
-        resigned_statuses = [
-            self.Status.RESIGNED,
-            self.Status.MATERNITY_LEAVE,
-            self.Status.UNPAID_LEAVE,
-        ]
+        resigned_statuses = Employee.Status.get_leave_statuses()
 
         if self.status in resigned_statuses:
             if not self.resignation_start_date:

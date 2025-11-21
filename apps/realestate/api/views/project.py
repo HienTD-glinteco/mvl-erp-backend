@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.realestate.api.filtersets import ProjectFilterSet
 from apps.realestate.api.serializers import ProjectSerializer
 from apps.realestate.models import Project
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -111,7 +112,7 @@ class ProjectViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     filterset_class = ProjectFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["name"]

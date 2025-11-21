@@ -19,6 +19,7 @@ class EmployeeFilterSet(django_filters.FilterSet):
     position__is_leadership = django_filters.BooleanFilter()
     is_onboarding_email_sent = django_filters.BooleanFilter()
     date_of_birth__month = django_filters.NumberFilter(field_name="date_of_birth", lookup_expr="month")
+    has_citizen_id_file = django_filters.BooleanFilter(method="filter_has_citizen_id_file")
 
     class Meta:
         model = Employee
@@ -42,4 +43,10 @@ class EmployeeFilterSet(django_filters.FilterSet):
             "position__is_leadership",
             "is_onboarding_email_sent",
             "date_of_birth__month",
+            "has_citizen_id_file",
         ]
+
+    def filter_has_citizen_id_file(self, queryset, name, value):
+        if value is None:
+            return queryset
+        return queryset.filter(citizen_id_file__isnull=not value)

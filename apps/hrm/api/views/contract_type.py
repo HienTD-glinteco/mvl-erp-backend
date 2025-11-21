@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.contract_type import ContractTypeFilterSet
 from apps.hrm.api.serializers import ContractTypeSerializer
 from apps.hrm.models import ContractType
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -47,7 +48,7 @@ class ContractTypeViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = ContractType.objects.all()
     serializer_class = ContractTypeSerializer
     filterset_class = ContractTypeFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]

@@ -67,3 +67,7 @@ class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyMod
             "description_template": _("View details of a {model_name}"),
         },
     }
+
+
+class BaseGenericViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+    pass

@@ -224,3 +224,39 @@ class PermissionAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertIn("name", response_data)
         self.assertEqual(response_data["name"], "Test Permission")
+
+    def test_permission_structure_tree(self):
+        """Test permission structure endpoint returns tree format"""
+        url = reverse("core:permission-structure")
+        response = self.client.get(url, {"type": "both"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        # Should be a tree: {"HRM": ["Employee Profile"], "Reports": []}
+        self.assertIn("HRM", response_data)
+        self.assertIn("Reports", response_data)
+        self.assertIsInstance(response_data["HRM"], list)
+        self.assertIn("Employee Profile", response_data["HRM"])
+
+    def test_permission_structure_modules_only(self):
+        """Test permission structure endpoint returns modules only"""
+        url = reverse("core:permission-structure")
+        response = self.client.get(url, {"type": "module"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("modules", response_data)
+        self.assertIsInstance(response_data["modules"], list)
+        self.assertIn("HRM", response_data["modules"])
+        self.assertIn("Reports", response_data["modules"])
+
+    def test_permission_structure_submodules_only(self):
+        """Test permission structure endpoint returns submodules only"""
+        url = reverse("core:permission-structure")
+        response = self.client.get(url, {"type": "submodule"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("submodules", response_data)
+        self.assertIsInstance(response_data["submodules"], list)
+        self.assertIn("Employee Profile", response_data["submodules"])

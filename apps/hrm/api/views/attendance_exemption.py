@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceExemptionFilterSet
 from apps.hrm.api.serializers import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from apps.hrm.models import AttendanceExemption
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
 
@@ -156,7 +157,7 @@ class AttendanceExemptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVi
     ).all()
     serializer_class = AttendanceExemptionSerializer
     filterset_class = AttendanceExemptionFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__code", "employee__fullname"]
     ordering_fields = ["employee__code", "effective_date", "created_at"]
     ordering = ["-employee__code"]

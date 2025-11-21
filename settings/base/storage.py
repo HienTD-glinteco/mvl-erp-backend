@@ -1,4 +1,4 @@
-from .aws import AWS_STORAGE_BUCKET_NAME
+from .aws import AWS_DB_STORAGE_BUCKET_NAME, AWS_STORAGE_BUCKET_NAME
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
@@ -12,6 +12,10 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+    "dbbackup": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {"bucket_name": AWS_DB_STORAGE_BUCKET_NAME, "default_acl": "private", "location": "dbbackups"},
     },
 }
 

@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceWifiDeviceFilterSet
 from apps.hrm.api.serializers import AttendanceWifiDeviceExportSerializer, AttendanceWifiDeviceSerializer
 from apps.hrm.models import AttendanceWifiDevice
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
 
@@ -274,7 +275,7 @@ class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     queryset = AttendanceWifiDevice.objects.select_related("branch", "block")
     serializer_class = AttendanceWifiDeviceSerializer
     filterset_class = AttendanceWifiDeviceFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "name", "bssid"]
     ordering_fields = ["name", "created_at"]
     ordering = ["-created_at"]

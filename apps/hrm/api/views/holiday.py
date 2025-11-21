@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -10,6 +10,7 @@ from apps.hrm.api.filtersets import HolidayFilterSet
 from apps.hrm.api.serializers import CompensatoryWorkdaySerializer, HolidayDetailSerializer, HolidaySerializer
 from apps.hrm.models import CompensatoryWorkday, Holiday
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
 
@@ -115,7 +116,7 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     queryset = Holiday.objects.all()
     serializer_class = HolidaySerializer
     filterset_class = HolidayFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name", "start_date", "end_date", "created_at"]
     ordering = ["-start_date"]

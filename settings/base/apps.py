@@ -20,6 +20,7 @@ EXTERNAL_APPS = [
     "drf_spectacular",
     "django_celery_beat",
     "django_celery_results",
+    "dbbackup",
 ]
 
 INTERNAL_APPS = [

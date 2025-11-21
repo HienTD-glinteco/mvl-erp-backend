@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.employee_certificate import EmployeeCertificateFilterSet
 from apps.hrm.api.serializers.employee_certificate import EmployeeCertificateSerializer
 from apps.hrm.models import EmployeeCertificate
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -236,7 +237,7 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = EmployeeCertificate.objects.select_related("employee", "attachment").all()
     serializer_class = EmployeeCertificateSerializer
     filterset_class = EmployeeCertificateFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
     ordering_fields = ["certificate_type", "certificate_code", "issue_date", "expiry_date", "status", "created_at"]
     ordering = ["certificate_type", "-created_at"]

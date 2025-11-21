@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging import LogAction, batch_audit_context
@@ -13,6 +13,7 @@ from apps.core.models import User
 from apps.hrm.api.filtersets.employee_role import EmployeeRoleFilterSet
 from apps.hrm.api.serializers.employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
 from libs import BaseReadOnlyModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -93,7 +94,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     )
     serializer_class = EmployeeRoleListSerializer
     filterset_class = EmployeeRoleFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["username", "first_name", "last_name", "role__name"]
     ordering_fields = ["username", "first_name", "last_name", "role__name", "created_at"]
     ordering = ["-username"]  # Default ordering: descending by employee code
