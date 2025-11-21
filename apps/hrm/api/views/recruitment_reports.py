@@ -4,7 +4,6 @@ from decimal import Decimal
 from django.db.models import Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
-from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -18,7 +17,7 @@ from apps.hrm.models import (
     StaffGrowthReport,
 )
 from apps.hrm.utils import get_current_month_range, get_current_week_range
-from libs.drf.mixin.permission import PermissionRegistrationMixin
+from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..serializers.recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
@@ -36,7 +35,7 @@ from ..serializers.recruitment_reports import (
 )
 
 
-class RecruitmentReportsViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+class RecruitmentReportsViewSet(BaseGenericViewSet):
     """
     ViewSet for recruitment reports with aggregated data.
 
@@ -48,7 +47,7 @@ class RecruitmentReportsViewSet(PermissionRegistrationMixin, viewsets.GenericVie
 
     pagination_class = None
 
-    module = "HRM"
+    module = "REPORT"
     submodule = "Recruitment"
     permission_prefix = "recruitment_reports"
 

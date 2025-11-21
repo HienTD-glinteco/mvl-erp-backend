@@ -2,6 +2,7 @@ from .attendance_device import AttendanceDeviceViewSet
 from .attendance_exemption import AttendanceExemptionViewSet
 from .attendance_geolocation import AttendanceGeolocationViewSet
 from .attendance_record import AttendanceRecordViewSet
+from .attendance_report import AttendanceReportViewSet
 from .attendance_wifi_device import AttendanceWifiDeviceViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
@@ -39,6 +40,7 @@ __all__ = [
     "AttendanceExemptionViewSet",
     "AttendanceGeolocationViewSet",
     "AttendanceRecordViewSet",
+    "AttendanceReportViewSet",
     "AttendanceWifiDeviceViewSet",
     "BankViewSet",
     "BankAccountViewSet",

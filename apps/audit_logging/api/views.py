@@ -1,12 +1,12 @@
 import logging
 
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from libs.drf.mixin.permission import PermissionRegistrationMixin
+from libs.drf.base_viewset import BaseGenericViewSet
 
 from ..exceptions import AuditLogException
 from ..opensearch_client import get_opensearch_client
@@ -15,7 +15,7 @@ from .serializers import AuditLogSearchResponseSerializer, AuditLogSearchSeriali
 logger = logging.getLogger(__name__)
 
 
-class AuditLogViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+class AuditLogViewSet(BaseGenericViewSet):
     """ViewSet for audit log operations."""
 
     permission_classes = [IsAuthenticated]

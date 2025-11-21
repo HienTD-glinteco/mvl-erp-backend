@@ -3,12 +3,12 @@
 from django.conf import settings
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.core.api.permissions import RoleBasedPermission
-from libs.drf.mixin.permission import PermissionRegistrationMixin
+from libs.drf.base_viewset import BaseGenericViewSet
 
 from .constants import TEMPLATE_REGISTRY
 from .models import EmailSendJob
@@ -35,7 +35,7 @@ from .services import (
 from .tasks import send_email_job_task
 
 
-class MailTemplateViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+class MailTemplateViewSet(BaseGenericViewSet):
     """ViewSet for mail template operations."""
 
     permission_classes = [RoleBasedPermission]
