@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentExpenseFilterSet
 from apps.hrm.api.serializers import RecruitmentExpenseExportSerializer, RecruitmentExpenseSerializer
 from apps.hrm.models import RecruitmentExpense
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
 
@@ -328,7 +329,7 @@ class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
     )
     serializer_class = RecruitmentExpenseSerializer
     filterset_class = RecruitmentExpenseFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["activity", "note"]
     ordering_fields = ["date", "total_cost", "created_at"]
     ordering = ["-created_at"]

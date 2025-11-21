@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -10,6 +10,7 @@ from apps.hrm.api.filtersets import RecruitmentRequestFilterSet
 from apps.hrm.api.serializers import RecruitmentRequestSerializer
 from apps.hrm.models import RecruitmentRequest
 from libs import BaseModelViewSet, ExportDocumentMixin
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -378,7 +379,7 @@ class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseMode
     ).all()
     serializer_class = RecruitmentRequestSerializer
     filterset_class = RecruitmentRequestFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code"]
     ordering_fields = ["code", "name", "created_at", "status"]
     ordering = ["-created_at"]

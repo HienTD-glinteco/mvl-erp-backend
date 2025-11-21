@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentCandidateContactLogFilterSet
 from apps.hrm.api.serializers import RecruitmentCandidateContactLogSerializer
 from apps.hrm.models import RecruitmentCandidateContactLog
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -231,7 +232,7 @@ class RecruitmentCandidateContactLogViewSet(AuditLoggingMixin, BaseModelViewSet)
     queryset = RecruitmentCandidateContactLog.objects.select_related("employee", "recruitment_candidate").all()
     serializer_class = RecruitmentCandidateContactLogSerializer
     filterset_class = RecruitmentCandidateContactLogFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["recruitment_candidate__name", "recruitment_candidate__code", "note"]
     ordering_fields = ["date", "created_at", "method"]
     ordering = ["-date", "-created_at"]

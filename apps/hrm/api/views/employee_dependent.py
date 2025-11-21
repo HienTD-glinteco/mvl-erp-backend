@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeDependentFilterSet
 from apps.hrm.api.serializers import EmployeeDependentSerializer
 from apps.hrm.models import EmployeeDependent
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -249,7 +250,7 @@ class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = EmployeeDependent.objects.select_related("employee", "attachment", "created_by").all()
     serializer_class = EmployeeDependentSerializer
     filterset_class = EmployeeDependentFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["dependent_name", "relationship", "employee__code", "employee__fullname"]
     ordering_fields = ["created_at", "dependent_name", "relationship"]
     ordering = ["-created_at"]

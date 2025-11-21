@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -20,6 +20,7 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.models import Block, Branch, Department, Position
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -222,7 +223,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = Branch.objects.select_related("province", "administrative_unit")
     serializer_class = BranchSerializer
     filterset_class = BranchFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "address"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["code"]
@@ -271,7 +272,7 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = Block.objects.select_related("branch__province", "branch__administrative_unit").all()
     serializer_class = BlockSerializer
     filterset_class = BlockFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at", "block_type"]
     ordering = ["branch__code", "code"]
@@ -322,7 +323,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ).all()
     serializer_class = DepartmentSerializer
     filterset_class = DepartmentFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["block__code", "code"]
@@ -464,7 +465,7 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
     filterset_class = PositionFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["name", "code", "created_at"]
     ordering = ["name", "code"]

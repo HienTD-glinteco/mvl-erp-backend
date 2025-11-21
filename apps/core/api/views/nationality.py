@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.core.api.filtersets.nationality import NationalityFilterSet
 from apps.core.api.serializers.nationality import NationalitySerializer
 from apps.core.models import Nationality
 from libs import BaseReadOnlyModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -66,7 +67,7 @@ class NationalityViewSet(BaseReadOnlyModelViewSet):
     queryset = Nationality.objects.all()
     serializer_class = NationalitySerializer
     filterset_class = NationalityFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name", "created_at"]
     ordering = ["name"]

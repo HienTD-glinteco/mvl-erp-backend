@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeWorkHistoryFilterSet
 from apps.hrm.api.serializers import EmployeeWorkHistorySerializer
 from apps.hrm.models import EmployeeWorkHistory
 from libs import BaseReadOnlyModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -104,7 +105,7 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ).all()
     serializer_class = EmployeeWorkHistorySerializer
     filterset_class = EmployeeWorkHistoryFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "detail", "employee__code", "employee__fullname"]
     ordering_fields = ["date", "name", "created_at"]
     ordering = ["-date", "-created_at"]

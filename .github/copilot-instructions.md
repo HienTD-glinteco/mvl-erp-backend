@@ -10,13 +10,24 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
 - All instructions are provided in both human-readable (this summary) and machine-readable (JSON below) formats
 - The JSON section below contains the complete, expanded set of rules and guidelines
 
+**Critical Rules:**
+- NO Vietnamese text in code, comments, or docstrings - All code must be in English
+- ALL API documentation (@extend_schema) must be in English
+- ALL API endpoints must include request and response examples using OpenApiExample
+- ALL response examples must use envelope format: {success: true/false, data: ..., error: ...}
+- ALL user-facing strings must be wrapped in gettext() or gettext_lazy()
+- ALWAYS use PhraseSearchFilter for ViewSets instead of SearchFilter
+- ALWAYS use SafeTextField instead of model.TextField
+- ALWAYS activate Python environment before running any Python command
+- ALWAYS set ENVIRONMENT=test when running pytest
+
 ## JSON Prompting Section
 
 ```json
 {
   "meta": {
-    "version": "1.0.0",
-    "last_updated": "2025-11-01",
+    "version": "1.1.0",
+    "last_updated": "2025-11-21",
     "project_type": "django_rest_api",
     "primary_language": "python",
     "framework": "django",
@@ -80,6 +91,16 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
         "rule": "Update translations: Run makemessages and add Vietnamese translations to .po files",
         "severity": "high",
         "description": "Keep translation files synchronized with code changes"
+      },
+      {
+        "rule": "ALWAYS use PhraseSearchFilter for ViewSets instead of SearchFilter",
+        "severity": "critical",
+        "description": "Use PhraseSearchFilter from libs.drf.filtersets.search for whole-phrase searching in all ViewSets"
+      },
+      {
+        "rule": "ALWAYS use SafeTextField instead of model.TextField",
+        "severity": "critical",
+        "description": "Use SafeTextField from libs.django.db.models for all text fields to prevent XSS attacks"
       }
     ],
     "rejection_message": "If you violate these rules, your code WILL be rejected."
@@ -417,6 +438,29 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       "run_specific_test": "poetry run pytest apps/core/tests/test_models.py -v",
       "run_app_tests": "poetry run pytest apps/hrm/ -v",
       "type_check": "poetry run mypy apps/hrm/models.py"
+    }
+  },
+  "vscode_environment_setup": {
+    "python_environment_activation": {
+      "critical": true,
+      "rule": "ALWAYS activate Python environment before running any Python command",
+      "description": "Never run Python commands without activating the virtual environment first",
+      "default_directories": ["venv", ".venv"],
+      "fallback_action": "If default directories not found, check VS Code Python interpreter configuration or ask user",
+      "examples": {
+        "activate_venv": "source venv/bin/activate  # Linux/Mac",
+        "activate_conda": "conda activate myenv  # If using conda",
+        "check_interpreter": "Check VS Code settings for python.pythonPath or python.defaultInterpreterPath"
+      }
+    },
+    "pytest_environment_variable": {
+      "critical": true,
+      "rule": "ALWAYS set ENVIRONMENT=test when running pytest",
+      "description": "Set the ENVIRONMENT environment variable to 'test' for all pytest executions",
+      "examples": {
+        "correct": "ENVIRONMENT=test pytest apps/core/tests/",
+        "with_activation": "source venv/bin/activate && ENVIRONMENT=test pytest apps/core/tests/"
+      }
     }
   },
   "enforcement": {

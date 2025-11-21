@@ -1,13 +1,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.core.api.filtersets import PermissionFilterSet
 from apps.core.api.serializers.role import PermissionSerializer
 from apps.core.models import Permission
 from libs import BaseReadOnlyModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 
 
 @extend_schema_view(
@@ -28,7 +29,7 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
     filterset_class = PermissionFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "description", "module", "submodule"]
     ordering_fields = ["code", "created_at"]
     ordering = ["code"]
