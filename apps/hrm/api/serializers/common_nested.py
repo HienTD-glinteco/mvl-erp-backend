@@ -7,6 +7,7 @@ compact representations of related models.
 
 from apps.core.api.serializers.common_nested import SimpleNestedSerializerFactory
 from apps.hrm.models import (
+    Bank,
     Block,
     Branch,
     ContractType,
@@ -24,6 +25,11 @@ from apps.hrm.models import (
 EmployeeNestedSerializer = SimpleNestedSerializerFactory(
     Employee,
     ["id", "code", "fullname"],
+)
+
+BankNestedSerializer = SimpleNestedSerializerFactory(
+    Bank,
+    ["id", "name", "code"],
 )
 
 BranchNestedSerializer = SimpleNestedSerializerFactory(

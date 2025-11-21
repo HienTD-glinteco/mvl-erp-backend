@@ -470,6 +470,15 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """Get colored value representation for status field."""
         return self.get_colored_value("status")
 
+    @property
+    def default_bank_account(self):
+        """Get the default bank account for the employee.
+
+        Returns:
+            BankAccount | None: The default BankAccount instance or None if not set
+        """
+        return self.bank_accounts.filter(is_primary=True).first()
+
     def copy(self, save: bool = True) -> "Employee":
         """Create a copy of the Employee instance.
 

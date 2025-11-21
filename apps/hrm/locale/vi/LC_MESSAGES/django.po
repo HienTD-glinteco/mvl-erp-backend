@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-21 15:08+0700\n"
+"POT-Creation-Date: 2025-11-21 16:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,48 +36,48 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:257
+#: apps/hrm/api/serializers/employee.py:273
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:290
+#: apps/hrm/api/serializers/employee.py:306
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:304 apps/hrm/api/views/employee.py:358
+#: apps/hrm/api/serializers/employee.py:320 apps/hrm/api/views/employee.py:362
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:414
-#: apps/hrm/api/serializers/employee.py:439
+#: apps/hrm/api/serializers/employee.py:430
+#: apps/hrm/api/serializers/employee.py:455
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:470
+#: apps/hrm/api/serializers/employee.py:486
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:474
+#: apps/hrm/api/serializers/employee.py:490
 msgid "Seniority retained from previous employment period."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:492
+#: apps/hrm/api/serializers/employee.py:508
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:515
-#: apps/hrm/api/serializers/employee.py:558
+#: apps/hrm/api/serializers/employee.py:531
+#: apps/hrm/api/serializers/employee.py:574
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:534
+#: apps/hrm/api/serializers/employee.py:550
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
@@ -119,27 +119,8 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:70
-#, python-brace-format
-msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
-msgstr ""
-
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:98
-#, python-brace-format
-msgid ""
-"A compensatory workday with the same date and session already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:109
-#, python-brace-format
-msgid ""
-"A compensatory workday with full_day session conflicts with existing session "
-"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -170,42 +151,6 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:214
-#, python-brace-format
-msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:234
-#, python-brace-format
-msgid ""
-"For Saturday compensatory workday {comp_date}, only afternoon session is "
-"allowed"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:244
-#, python-brace-format
-msgid "Compensatory date {comp_date} falls within the holiday date range"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:260
-#, python-brace-format
-msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:277
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with session {comp_session} already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:288
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with full_day session conflicts with existing "
-"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
-msgstr ""
-
 #: apps/hrm/api/serializers/recruitment_request.py:148
 #: apps/hrm/models/recruitment_request.py:120
 msgid "Number of positions must be at least 1."
@@ -229,54 +174,54 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr ""
 
-#: apps/hrm/api/views/employee.py:456
+#: apps/hrm/api/views/employee.py:460
 msgid "No."
 msgstr "STT"
 
-#: apps/hrm/api/views/employee.py:457
+#: apps/hrm/api/views/employee.py:461
 msgid "Employee Code"
 msgstr "Mã Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:458
+#: apps/hrm/api/views/employee.py:462
 msgid "Full Name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/api/views/employee.py:459
+#: apps/hrm/api/views/employee.py:463
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:460
+#: apps/hrm/api/views/employee.py:464
 #: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/employee.py:194
-#: apps/hrm/models/employee_certificate.py:110
+#: apps/hrm/models/employee_certificate.py:107
 #: apps/hrm/models/employee_work_history.py:114
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:57
 msgid "Status"
 msgstr "Trạng Thái"
 
-#: apps/hrm/api/views/employee.py:461
+#: apps/hrm/api/views/employee.py:465
 msgid "Start Date"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/api/views/employee.py:462
+#: apps/hrm/api/views/employee.py:466
 msgid "Resignation Reason"
 msgstr "Lý Do Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:463
+#: apps/hrm/api/views/employee.py:467
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:464
+#: apps/hrm/api/views/employee.py:468
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:465 apps/hrm/models/employee.py:177
+#: apps/hrm/api/views/employee.py:469 apps/hrm/models/employee.py:177
 #: apps/hrm/models/employee_work_history.py:101
 #: apps/hrm/models/organization.py:264
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:466
+#: apps/hrm/api/views/employee.py:470
 #: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:157
 #: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
 #: apps/hrm/models/employee_work_history.py:74
@@ -288,7 +233,7 @@ msgstr "Chức Vụ"
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:467 apps/hrm/models/attendance_device.py:54
+#: apps/hrm/api/views/employee.py:471 apps/hrm/models/attendance_device.py:54
 #: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:163
 #: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
 #: apps/hrm/models/employee_work_history.py:83
@@ -299,7 +244,7 @@ msgstr "Chi Nhánh"
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:468 apps/hrm/models/employee.py:169
+#: apps/hrm/api/views/employee.py:472 apps/hrm/models/employee.py:169
 #: apps/hrm/models/employee_report.py:46 apps/hrm/models/employee_report.py:113
 #: apps/hrm/models/employee_work_history.py:92
 #: apps/hrm/models/organization.py:133
@@ -309,102 +254,123 @@ msgstr "Khối"
 msgid "Department"
 msgstr "Phòng Ban"
 
-#: apps/hrm/api/views/employee.py:469
+#: apps/hrm/api/views/employee.py:473
 #: apps/hrm/models/employee_relationship.py:128
 #: apps/hrm/models/recruitment_candidate.py:57
 msgid "Phone"
 msgstr "Số điện thoại"
 
-#: apps/hrm/api/views/employee.py:470
+#: apps/hrm/api/views/employee.py:474
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:471 apps/hrm/models/employee.py:150
+#: apps/hrm/api/views/employee.py:475 apps/hrm/models/employee.py:150
 #: apps/hrm/models/organization.py:22
 #: apps/hrm/models/recruitment_candidate.py:56
 msgid "Email"
 msgstr "Email"
 
-#: apps/hrm/api/views/employee.py:472
+#: apps/hrm/api/views/employee.py:476
 msgid "Bank Name"
 msgstr "Tên Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:473
+#: apps/hrm/api/views/employee.py:477
 msgid "Bank Account Number"
 msgstr "Số Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:474
+#: apps/hrm/api/views/employee.py:478
 msgid "Tax Code"
 msgstr "Mã Số Thuế"
 
-#: apps/hrm/api/views/employee.py:475
+#: apps/hrm/api/views/employee.py:479
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:476 apps/hrm/models/employee.py:225
+#: apps/hrm/api/views/employee.py:480 apps/hrm/models/employee.py:225
 msgid "Gender"
 msgstr "Giới Tính"
 
-#: apps/hrm/api/views/employee.py:477
+#: apps/hrm/api/views/employee.py:481
 msgid "Date of Birth"
 msgstr "Ngày Sinh"
 
-#: apps/hrm/api/views/employee.py:478
+#: apps/hrm/api/views/employee.py:482
 msgid "Place of Birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/api/views/employee.py:479
+#: apps/hrm/api/views/employee.py:483
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:480 apps/hrm/models/employee.py:244
+#: apps/hrm/api/views/employee.py:484 apps/hrm/models/employee.py:244
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:481 apps/hrm/models/employee.py:249
+#: apps/hrm/api/views/employee.py:485 apps/hrm/models/employee.py:249
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:482 apps/hrm/models/employee.py:239
+#: apps/hrm/api/views/employee.py:486 apps/hrm/models/employee.py:239
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:483 apps/hrm/models/employee.py:257
+#: apps/hrm/api/views/employee.py:487 apps/hrm/models/employee.py:257
 #: apps/hrm/models/employee_dependent.py:79
 #: apps/hrm/models/employee_relationship.py:100
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:484
+#: apps/hrm/api/views/employee.py:488
 msgid "ID Issued Date"
 msgstr "Ngày Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:485
+#: apps/hrm/api/views/employee.py:489
 msgid "ID Issued Place"
 msgstr "Nơi Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:486
+#: apps/hrm/api/views/employee.py:490
 msgid "Residential Address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/api/views/employee.py:487
+#: apps/hrm/api/views/employee.py:491
 msgid "Permanent Address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/api/views/employee.py:488
+#: apps/hrm/api/views/employee.py:492
 msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
-#: apps/hrm/api/views/employee.py:489
+#: apps/hrm/api/views/employee.py:493
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:76
 #: apps/hrm/models/attendance_record.py:70
 #: apps/hrm/models/attendance_wifi_device.py:61
-#: apps/hrm/models/employee_certificate.py:103 apps/hrm/models/holiday.py:23
+#: apps/hrm/models/employee_certificate.py:100 apps/hrm/models/holiday.py:23
 #: apps/hrm/models/holiday.py:75
 msgid "Notes"
 msgstr "Ghi Chú"
+
+#: apps/hrm/api/views/employee_reports.py:61
+#: apps/hrm/api/views/recruitment_reports.py:674 apps/hrm/constants.py:39
+#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:81
+#: apps/hrm/api/views/recruitment_reports.py:130
+#: apps/hrm/api/views/recruitment_reports.py:802 apps/hrm/constants.py:40
+#: apps/hrm/constants.py:45
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:46
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:47
+msgid "Year"
+msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
@@ -521,22 +487,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:27
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:39 apps/hrm/constants.py:44
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:40 apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:47
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:53
@@ -880,10 +830,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -892,22 +844,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1572,51 +1529,51 @@ msgstr ""
 msgid "Specific name of the certificate or exam"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:77
+#: apps/hrm/models/employee_certificate.py:75
 msgid "Issue date"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:78
+#: apps/hrm/models/employee_certificate.py:76
 msgid "Date when the certificate was issued"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:83
+#: apps/hrm/models/employee_certificate.py:81
 msgid "Expiry date"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:84
+#: apps/hrm/models/employee_certificate.py:82
 msgid "Date when the certificate expires (if applicable)"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:89
+#: apps/hrm/models/employee_certificate.py:86
 msgid "Issuing organization"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:90
+#: apps/hrm/models/employee_certificate.py:87
 msgid "Organization that issued the certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:98
+#: apps/hrm/models/employee_certificate.py:95
 msgid "Certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:99
+#: apps/hrm/models/employee_certificate.py:96
 msgid "Uploaded certificate file"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:104
+#: apps/hrm/models/employee_certificate.py:101
 msgid "Additional notes about the certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:111
+#: apps/hrm/models/employee_certificate.py:108
 msgid "Certificate status based on expiry date"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:116
+#: apps/hrm/models/employee_certificate.py:113
 msgid "Employee certificate"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:117
+#: apps/hrm/models/employee_certificate.py:114
 msgid "Employee certificates"
 msgstr ""
 

@@ -8,6 +8,7 @@ from apps.core.api.serializers import SimpleUserSerializer
 from apps.files.api.serializers import FileSerializer
 from apps.files.models import FileModel
 from apps.hrm.models import (
+    BankAccount,
     Block,
     Branch,
     ContractType,
@@ -20,6 +21,8 @@ from apps.hrm.models import (
 from apps.hrm.services.employee import create_position_change_event, create_state_change_event, create_transfer_event
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 from libs.drf.serializers.mixins import FileConfirmSerializerMixin
+
+from .common_nested import BankNestedSerializer
 
 
 class EmployeeBranchNestedSerializer(serializers.ModelSerializer):
@@ -76,6 +79,17 @@ class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "code"]
 
 
+class EmployeeBankAccountNestedSerializer(serializers.ModelSerializer):
+    """Simplified serializer for nested bank account references"""
+
+    bank = BankNestedSerializer(read_only=True)
+
+    class Meta:
+        model = BankAccount
+        fields = ["id", "account_number", "account_name", "bank"]
+        read_only_fields = fields
+
+
 class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model.
 
@@ -98,6 +112,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
     avatar = FileSerializer(read_only=True)
     citizen_id_file = FileSerializer(read_only=True)
+    default_bank_account = EmployeeBankAccountNestedSerializer(read_only=True)
 
     # Write-only fields for POST/PUT/PATCH operations
     department_id = serializers.PrimaryKeyRelatedField(
@@ -155,6 +170,7 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
             "block",
             "department",
             "department_id",
+            "default_bank_account",
             "position",
             "position_id",
             "contract_type",
@@ -718,16 +734,14 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
 
     def get_default_bank_name(self, obj: Employee):
         """Get bank name from the default BankAccount."""
-        default_bank_account = obj.bank_accounts.filter(is_primary=True).first()
-        if default_bank_account and default_bank_account.bank:
-            return default_bank_account.bank.name
+        if obj.default_bank_account and obj.default_bank_account.bank:
+            return obj.default_bank_account.bank.name
         return ""
 
     def get_default_bank_account_number(self, obj: Employee):
         """Get account number from the default BankAccount."""
-        default_bank_account = obj.bank_accounts.filter(is_primary=True).first()
-        if default_bank_account:
-            return default_bank_account.account_number
+        if obj.default_bank_account:
+            return obj.default_bank_account.account_number
         return ""
 
     def get_emergency_contact(self, obj: Employee):
