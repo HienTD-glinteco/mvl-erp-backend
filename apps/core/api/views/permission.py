@@ -41,11 +41,11 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
     @extend_schema(
         summary="Get permission structure (modules/submodules)",
         description=(
-            "Return distinct module and/or submodule names from permissions. "
+            "Return permission structure. "
             "Use `type` query param to specify which data to return:\n\n"
-            "- `type=module`: return modules only\n"
-            "- `type=submodule`: return submodules only\n"
-            "- omit or `type=both`: return both"
+            "- `type=module`: return list of modules\n"
+            "- `type=submodule`: return list of submodules\n"
+            "- omit or `type=both`: return tree structure with modules as keys and their submodules as values"
         ),
         tags=["Permissions"],
         parameters=[
@@ -59,29 +59,47 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
         ],
         responses={
             200: {
-                "type": "object",
-                "properties": {
-                    "modules": {"type": "array", "items": {"type": "string"}},
-                    "submodules": {"type": "array", "items": {"type": "string"}},
-                },
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "modules": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "submodules": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
+                    {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+                ]
             }
         },
     )
     @action(detail=False, methods=["get"], url_path="structure")
     def structure(self, request):
-        """Return distinct module and/or submodule values."""
+        """Return permission structure as tree or lists."""
         query_type = request.query_params.get("type", "both").lower()
 
-        response_data = {}
-
-        if query_type in ["module", "both"]:
+        if query_type == "module":
             modules = Permission.objects.exclude(module="").order_by().values_list("module", flat=True).distinct()
-            response_data["modules"] = list(modules)
-
-        if query_type in ["submodule", "both"]:
+            response_data = {"modules": list(modules)}
+        elif query_type == "submodule":
             submodules = (
                 Permission.objects.exclude(submodule="").order_by().values_list("submodule", flat=True).distinct()
             )
-            response_data["submodules"] = list(submodules)
+            response_data = {"submodules": list(submodules)}
+        else:  # both
+            permissions = Permission.objects.exclude(module="").values("module", "submodule").distinct()
+            tree = {}
+            for perm in permissions:
+                module = perm["module"]
+                submodule = perm["submodule"]
+                if module not in tree:
+                    tree[module] = []
+                if submodule and submodule not in tree[module]:
+                    tree[module].append(submodule)
+            response_data = tree
 
         return Response(response_data)
