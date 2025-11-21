@@ -22,9 +22,14 @@ CELERY_TASK_EAGER_PROPAGATES = config("CELERY_TASK_EAGER_PROPAGATES", default=Fa
 
 CELERY_BEAT_SCHEDULE: dict[str, dict] = {
     # Sync attendance logs from all devices once a day at midnight
+    "backup_database": {
+        "task": "apps.core.tasks.dbbackup.run_dbbackup",
+        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+    },
+    # Sync attendance logs from all devices once a day at midnight
     "sync_all_attendance_devices": {
         "task": "apps.hrm.tasks.attendances.sync_all_attendance_devices",
-        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+        "schedule": crontab(hour=0, minute=2),  # Daily at midnight
     },
     # Aggregate HR reports batch at midnight
     "aggregate_hr_reports_batch": {
