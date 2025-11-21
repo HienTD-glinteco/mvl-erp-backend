@@ -20,24 +20,23 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def run_dbbackup(backup_type: str = "full") -> dict[str, Any]:
+def run_dbbackup() -> dict[str, Any]:
     """Run the `dbbackup` management command.
 
-    Args:
-        backup_type: Optional label for the backup (informational only).
+    This task invokes `manage.py dbbackup --compress` non-interactively.
 
     Returns:
-        dict with keys: `success` (bool), `backup_type` (str) and optionally
-        `error` (str) when `success` is False.
+        dict with keys: `success` (bool) and optionally `error` (str) when
+        `success` is False.
     """
     try:
-        # django-dbbackup accepts `noinput=True` to avoid interactive prompts
-        call_command("dbbackup", noinput=True)
-        logger.info("run_dbbackup: dbbackup completed successfully (type=%s)", backup_type)
-        return {"success": True, "backup_type": backup_type}
+        # Pass compress=True to enable the --compress flag
+        call_command("dbbackup", noinput=True, compress=True)
+        logger.info("run_dbbackup: dbbackup completed successfully")
+        return {"success": True}
     except CommandError as e:
         logger.exception("run_dbbackup: dbbackup command failed: %s", e)
-        return {"success": False, "backup_type": backup_type, "error": str(e)}
+        return {"success": False, "error": str(e)}
     except Exception as e:  # pragma: no cover - defensive logging
         logger.exception("run_dbbackup: unexpected error: %s", e)
-        return {"success": False, "backup_type": backup_type, "error": str(e)}
+        return {"success": False, "error": str(e)}
