@@ -93,7 +93,7 @@ djangorestframework-simplejwt = "^5.5.0"
 drf-spectacular = "^0.28.0"
 django-cors-headers = "^4.7.0"
 
-django-storages = {extras = ["s3"], version = "^1.14.5"}
+django-storages = {extras = ["boto3"], version = "^1.14.6"}
 
 celery = "^5.4.0"
 flower = "^2.0.1"
@@ -133,6 +133,7 @@ weasyprint = "^62.3"
 # Attendance device integration
 pyzk = "^0.9"
 newrelic = "^11.1.0"
+django-dbbackup = "^5.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3"
