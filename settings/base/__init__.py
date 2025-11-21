@@ -7,6 +7,7 @@ from .aws import *
 from .cache import *
 from .celery import *
 from .database import *
+from .dbbackup import *
 from .drf import *
 from .email import *
 from .firebase import *
