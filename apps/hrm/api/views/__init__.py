@@ -24,6 +24,7 @@ from .organization import (
     DepartmentViewSet,
     PositionViewSet,
 )
+from .proposal import ProposalViewSet
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
@@ -32,7 +33,7 @@ from .recruitment_expense import RecruitmentExpenseViewSet
 from .recruitment_reports import RecruitmentReportsViewSet
 from .recruitment_request import RecruitmentRequestViewSet
 from .recruitment_source import RecruitmentSourceViewSet
-from .timesheet import EmployeeTimesheetViewSet
+from .timesheet import EmployeeTimesheetViewSet, TimeSheetEntryViewSet
 from .work_schedule import WorkScheduleViewSet
 
 __all__ = [
@@ -70,5 +71,7 @@ __all__ = [
     "RecruitmentDashboardViewSet",
     "EmployeeRelationshipViewSet",
     "EmployeeTimesheetViewSet",
+    "TimeSheetEntryViewSet",
     "WorkScheduleViewSet",
+    "ProposalViewSet",
 ]

@@ -5,6 +5,7 @@ from typing import Any, Iterable
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
+    OpenApiExample,
     extend_schema,
     extend_schema_view,
 )
@@ -15,6 +16,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.timesheet import EmployeeTimesheetFilterSet
 from apps.hrm.api.serializers.timesheet import (
     EmployeeTimesheetSerializer,
+    TimeSheetEntryDetailSerializer,
 )
 from apps.hrm.constants import EmployeeSalaryType
 from apps.hrm.models import Employee
@@ -180,3 +182,55 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             payload["remaining_leave_balance"] = monthly_timesheet.remaining_leave_days
 
         return payload
+
+
+@extend_schema_view(
+    retrieve=extend_schema(
+        summary="Get timesheet entry details",
+        description="Retrieve detailed information for a specific timesheet entry",
+        tags=["Timesheet"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "NC000001",
+                        "employee": {
+                            "id": 1,
+                            "code": "EMP001",
+                            "fullname": "John Doe",
+                        },
+                        "date": "2025-01-15",
+                        "start_time": "2025-01-15T08:00:00Z",
+                        "end_time": "2025-01-15T17:00:00Z",
+                        "morning_hours": "4.00",
+                        "afternoon_hours": "4.00",
+                        "official_hours": "8.00",
+                        "overtime_hours": "0.00",
+                        "total_worked_hours": "8.00",
+                        "status": "on_time",
+                        "absent_reason": None,
+                        "is_full_salary": True,
+                        "count_for_payroll": True,
+                        "note": "",
+                        "created_at": "2025-01-15T00:00:00Z",
+                        "updated_at": "2025-01-15T00:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+)
+class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+    """Read-only ViewSet for TimeSheetEntry detail view."""
+
+    queryset = TimeSheetEntry.objects.select_related("employee").all()
+    serializer_class = TimeSheetEntryDetailSerializer
+
+    module = "HRM"
+    submodule = "Timesheet"
+    permission_prefix = "timesheet"

@@ -23,6 +23,7 @@ from .organization import (
     Department,
     Position,
 )
+from .proposal import Proposal, ProposalTimeSheetEntry
 from .recruitment_candidate import RecruitmentCandidate
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLog
 from .recruitment_channel import RecruitmentChannel
@@ -78,4 +79,6 @@ __all__ = [
     "WorkSchedule",
     "TimeSheetEntry",
     "EmployeeMonthlyTimesheet",
+    "Proposal",
+    "ProposalTimeSheetEntry",
 ]

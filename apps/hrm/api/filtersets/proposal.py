@@ -1,0 +1,33 @@
+from django.db.models import Exists, OuterRef
+from django_filters import rest_framework as filters
+
+from apps.hrm.models import Proposal, ProposalTimeSheetEntry
+
+
+class ProposalFilterSet(filters.FilterSet):
+    """FilterSet for Proposal model."""
+
+    timesheet_entry = filters.NumberFilter(
+        method="filter_timesheet_entry",
+        help_text="Filter by TimeSheetEntry ID",
+    )
+
+    def filter_timesheet_entry(self, queryset, name, value):
+        """Filter proposals that have a specific timesheet entry using EXISTS subquery."""
+        if not value:
+            return queryset
+
+        # Use EXISTS subquery for optimal performance
+        subquery = ProposalTimeSheetEntry.objects.filter(
+            proposal=OuterRef("pk"),
+            timesheet_entry=value,
+        )
+        return queryset.filter(Exists(subquery))
+
+    class Meta:
+        model = Proposal
+        fields = {
+            "proposal_type": ["exact", "in"],
+            "proposal_status": ["exact", "in"],
+            "proposal_date": ["exact", "gte", "lte"],
+        }

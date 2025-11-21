@@ -28,6 +28,7 @@ from apps.hrm.api.views import (
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
     PositionViewSet,
+    ProposalViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
     RecruitmentChannelViewSet,
@@ -36,6 +37,7 @@ from apps.hrm.api.views import (
     RecruitmentReportsViewSet,
     RecruitmentRequestViewSet,
     RecruitmentSourceViewSet,
+    TimeSheetEntryViewSet,
     WorkScheduleViewSet,
 )
 
@@ -76,7 +78,9 @@ router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attend
 router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
 router.register(r"attendance-reports", AttendanceReportViewSet, basename="attendance-report")
 router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
+router.register(r"timesheet-entries", TimeSheetEntryViewSet, basename="timesheet-entry")
 router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
+router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 # Report endpoints (single ViewSet with custom actions)
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")

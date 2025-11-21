@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-21 16:51+0700\n"
+"POT-Creation-Date: 2025-11-21 18:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -589,15 +589,15 @@ msgstr ""
 msgid "Absent"
 msgstr ""
 
-#: apps/hrm/constants.py:131
+#: apps/hrm/constants.py:131 apps/hrm/constants.py:152
 msgid "Paid leave"
 msgstr ""
 
-#: apps/hrm/constants.py:132
+#: apps/hrm/constants.py:132 apps/hrm/constants.py:153
 msgid "Unpaid leave"
 msgstr ""
 
-#: apps/hrm/constants.py:133
+#: apps/hrm/constants.py:133 apps/hrm/constants.py:154
 msgid "Maternity leave"
 msgstr ""
 
@@ -607,6 +607,42 @@ msgstr ""
 
 #: apps/hrm/constants.py:135
 msgid "Unexcused Absence"
+msgstr ""
+
+#: apps/hrm/constants.py:149
+msgid "Post-maternity benefits"
+msgstr ""
+
+#: apps/hrm/constants.py:150
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Late exemption"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/constants.py:151
+msgid "Overtime work"
+msgstr ""
+
+#: apps/hrm/constants.py:155
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance exemption"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/constants.py:156
+msgid "Timesheet entry complaint"
+msgstr ""
+
+#: apps/hrm/constants.py:162
+msgid "Pending"
+msgstr ""
+
+#: apps/hrm/constants.py:163
+msgid "Approved"
+msgstr ""
+
+#: apps/hrm/constants.py:164 apps/hrm/models/recruitment_candidate.py:27
+msgid "Rejected"
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:9
@@ -994,7 +1030,7 @@ msgstr ""
 #: apps/hrm/models/employee_work_history.py:106
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/monthly_timesheet.py:107
+#: apps/hrm/models/monthly_timesheet.py:107 apps/hrm/models/proposal.py:45
 #: apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:69
@@ -2302,6 +2338,74 @@ msgstr ""
 msgid "Positions"
 msgstr ""
 
+#: apps/hrm/models/proposal.py:16
+#, fuzzy
+#| msgid "Marital Status"
+msgid "Proposal code"
+msgstr "Tình Trạng Hôn Nhân"
+
+#: apps/hrm/models/proposal.py:18
+msgid "Proposal date"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:25
+msgid "Proposal type"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:32
+#, fuzzy
+#| msgid "Marital Status"
+msgid "Proposal status"
+msgstr "Tình Trạng Hôn Nhân"
+
+#: apps/hrm/models/proposal.py:35
+msgid "Complaint reason"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:37
+msgid "Proposed check-in time"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:39
+msgid "Proposed check-out time"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:41
+msgid "Approved check-in time"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:43
+msgid "Approved check-out time"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:49 apps/hrm/models/proposal.py:87
+msgid "Proposal"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:50
+msgid "Proposals"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:65
+msgid "Complaint reason is required for complaint proposals"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:70
+msgid "Note is required when rejecting a proposal"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:95
+msgid "Timesheet entry"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:100
+msgid "Proposal Timesheet Entry"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:101
+msgid "Proposal Timesheet Entries"
+msgstr ""
+
 #: apps/hrm/models/recruitment_candidate.py:21
 msgid "Contacted"
 msgstr ""
@@ -2324,10 +2428,6 @@ msgstr ""
 
 #: apps/hrm/models/recruitment_candidate.py:26
 msgid "Hired"
-msgstr ""
-
-#: apps/hrm/models/recruitment_candidate.py:27
-msgid "Rejected"
 msgstr ""
 
 #: apps/hrm/models/recruitment_candidate.py:30
