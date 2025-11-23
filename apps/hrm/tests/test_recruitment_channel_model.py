@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from apps.hrm.models import RecruitmentChannel
+from libs.models import SafeTextField
 
 
 class RecruitmentChannelModelTest(TestCase):
@@ -111,3 +112,16 @@ class RecruitmentChannelModelTest(TestCase):
         self.assertEqual(RecruitmentChannel.BelongTo.HUNT, "hunt")
         self.assertEqual(RecruitmentChannel.BelongTo.SCHOOL, "school")
         self.assertEqual(RecruitmentChannel.BelongTo.OTHER, "other")
+
+    def test_name_field_max_length_is_250(self):
+        """Test that name field enforces the 250 character limit"""
+        name_field = RecruitmentChannel._meta.get_field("name")
+
+        self.assertEqual(name_field.max_length, 250)
+
+    def test_description_field_is_safe_text_with_max_length(self):
+        """Test that description uses SafeTextField with 500 character limit"""
+        description_field = RecruitmentChannel._meta.get_field("description")
+
+        self.assertIsInstance(description_field, SafeTextField)
+        self.assertEqual(description_field.max_length, 500)

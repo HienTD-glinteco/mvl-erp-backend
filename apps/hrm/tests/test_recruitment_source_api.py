@@ -316,3 +316,50 @@ class RecruitmentSourceAPITest(TransactionTestCase, APITestMixin):
         # Assert: Verify the second source has allow_referral=True
         self.assertIn("allow_referral", response_data[1])
         self.assertTrue(response_data[1]["allow_referral"])
+
+    def test_source_name_cannot_exceed_250_characters(self):
+        """Test that creating a source with name longer than 250 characters fails"""
+        url = reverse("hrm:recruitment-source-list")
+        data = {
+            **self.source_data,
+            "name": "S" * 251,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("name", content["error"]["errors"][0]["attr"])
+        self.assertIn("250", content["error"]["errors"][0]["detail"])
+
+    def test_source_description_accepts_500_characters(self):
+        """Test that a 500 character description is accepted for recruitment sources"""
+        url = reverse("hrm:recruitment-source-list")
+        long_description = "D" * 500
+        data = {
+            **self.source_data,
+            "description": long_description,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        source = RecruitmentSource.objects.first()
+        self.assertEqual(source.description, long_description)
+
+    def test_source_description_cannot_exceed_500_characters(self):
+        """Test that descriptions longer than 500 characters are rejected"""
+        url = reverse("hrm:recruitment-source-list")
+        data = {
+            **self.source_data,
+            "description": "X" * 501,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("description", content["error"]["errors"][0]["attr"])
+        self.assertIn("500", content["error"]["errors"][0]["detail"])

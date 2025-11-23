@@ -294,3 +294,50 @@ class RecruitmentChannelAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["name"], "University Fair")
+
+    def test_channel_name_cannot_exceed_250_characters(self):
+        """Test that creating a channel with a name over 250 characters fails validation"""
+        url = reverse("hrm:recruitment-channel-list")
+        data = {
+            **self.channel_data,
+            "name": "N" * 251,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertIn("name", content["error"]["errors"][0]["attr"])
+        self.assertIn("250", content["error"]["errors"][0]["detail"])
+
+    def test_channel_description_allows_up_to_500_characters(self):
+        """Test that a 500 character description is accepted"""
+        url = reverse("hrm:recruitment-channel-list")
+        long_description = "D" * 500
+        data = {
+            **self.channel_data,
+            "description": long_description,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        channel = RecruitmentChannel.objects.first()
+        self.assertEqual(channel.description, long_description)
+
+    def test_channel_description_cannot_exceed_500_characters(self):
+        """Test that descriptions longer than 500 characters are rejected"""
+        url = reverse("hrm:recruitment-channel-list")
+        data = {
+            **self.channel_data,
+            "description": "E" * 501,
+        }
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = json.loads(response.content.decode())
+        self.assertFalse(content["success"])
+        self.assertEqual("description", content["error"]["errors"][0]["attr"])
+        self.assertIn("500", content["error"]["errors"][0]["detail"])

@@ -14,9 +14,9 @@ class RecruitmentSource(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "RS"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
-    name = models.CharField(max_length=200, verbose_name=_("Source name"))
+    name = models.CharField(max_length=250, verbose_name=_("Source name"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Source code"))
-    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"), max_length=500)
     allow_referral = models.BooleanField(
         default=False,
         verbose_name=_("Allow referral"),
