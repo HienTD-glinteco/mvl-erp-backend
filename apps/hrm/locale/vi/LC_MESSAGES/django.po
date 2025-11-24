@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 11:17+0700\n"
+"POT-Creation-Date: 2025-11-24 15:41+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1083,6 +1083,11 @@ msgstr ""
 
 #: apps/hrm/models/attendance_device.py:118
 msgid "Additional notes or comments about the device"
+msgstr ""
+
+#: apps/hrm/models/attendance_device.py:197
+#, python-format
+msgid "Connection successful. Firmware: %(firmware)s"
 msgstr ""
 
 #: apps/hrm/models/attendance_exemption.py:26

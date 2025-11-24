@@ -244,6 +244,8 @@ class TestFileConfirmMixinSchemaGenerationWithDjango(TestCase):
             employee=employee,
             certificate_type=CertificateType.FOREIGN_LANGUAGE,
             certificate_name="Test Certificate",
+            issue_date=date(2020, 1, 1),
+            issuing_organization="Test Organization",
         )
 
         serializer = TestCertificateSerializer(certificate)

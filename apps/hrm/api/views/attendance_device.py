@@ -563,7 +563,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
         device = self.get_object()
 
         # Check connection and update device info
-        is_connected, message = device.check_and_update_connection()
+        _, message = device.check_and_update_connection()
 
         # Return device data with connection status
         serializer = self.get_serializer(device)

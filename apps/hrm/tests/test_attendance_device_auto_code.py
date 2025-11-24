@@ -52,8 +52,11 @@ class AttendanceDeviceAutoCodeGenerationAPITest(TransactionTestCase):
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
-        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.get_device_info.return_value = {
+            "serial_number": "SN123",
+            "registration_number": "REG123",
+            "firmware_version": "6.60",
+        }
         mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance
@@ -82,8 +85,11 @@ class AttendanceDeviceAutoCodeGenerationAPITest(TransactionTestCase):
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
-        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.get_device_info.return_value = {
+            "serial_number": "SN123",
+            "registration_number": "REG123",
+            "firmware_version": "6.60",
+        }
         mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance
@@ -116,8 +122,11 @@ class AttendanceDeviceAutoCodeGenerationAPITest(TransactionTestCase):
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
-        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.get_device_info.return_value = {
+            "serial_number": "SN123",
+            "registration_number": "REG123",
+            "firmware_version": "6.60",
+        }
         mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance
@@ -155,8 +164,11 @@ class AttendanceDeviceAutoCodeGenerationAPITest(TransactionTestCase):
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
-        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.get_device_info.return_value = {
+            "serial_number": "SN123",
+            "registration_number": "REG123",
+            "firmware_version": "6.60",
+        }
         mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance
@@ -200,8 +212,11 @@ class AttendanceDeviceAutoCodeGenerationAPITest(TransactionTestCase):
         mock_service_instance = MagicMock()
         mock_service_instance.test_connection.return_value = (True, "Connection successful")
         mock_service_instance._zk_connection = MagicMock()
-        mock_service_instance._zk_connection.get_serialnumber.return_value = "SN123"
-        mock_service_instance._zk_connection.get_device_name.return_value = "REG123"
+        mock_service_instance.get_device_info.return_value = {
+            "serial_number": "SN123",
+            "registration_number": "REG123",
+            "firmware_version": "6.60",
+        }
         mock_service_instance.__enter__ = MagicMock(return_value=mock_service_instance)
         mock_service_instance.__exit__ = MagicMock(return_value=False)
         mock_service.return_value = mock_service_instance

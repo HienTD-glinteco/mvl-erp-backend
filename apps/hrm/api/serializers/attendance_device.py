@@ -105,28 +105,18 @@ class AttendanceDeviceSerializer(FieldFilteringSerializerMixin, serializers.Mode
             port=port,
             password=password,
         )
-        is_connected, __ = service.test_connection()
 
-        if not is_connected:
+        # If connection successful, get device details
+        try:
+            with service:
+                if not service._zk_connection:
+                    raise Exception("No zk connection set")
+
+                # Get serial number and registration number from device
+                device_info = service.get_device_info()
+                attrs["serial_number"] = device_info.get("serial_number")
+
+                # Mark as connected
+                attrs["is_connected"] = True
+        except Exception:
             attrs["is_connected"] = False
-        else:
-            # If connection successful, get device details
-            try:
-                with service:
-                    if not service._zk_connection:
-                        raise Exception("No zk connection set")
-
-                    # Get serial number and registration number from device
-                    serial = service._zk_connection.get_serialnumber()
-                    if serial:
-                        attrs["serial_number"] = serial
-
-                    # Get device name/registration as registration_number
-                    device_name = service._zk_connection.get_device_name()
-                    if device_name:
-                        attrs["registration_number"] = device_name
-
-                    # Mark as connected
-                    attrs["is_connected"] = True
-            except Exception:
-                attrs["is_connected"] = False
