@@ -20,6 +20,7 @@ class EmployeeFilterSet(django_filters.FilterSet):
     is_onboarding_email_sent = django_filters.BooleanFilter()
     date_of_birth__month = django_filters.NumberFilter(field_name="date_of_birth", lookup_expr="month")
     has_citizen_id_file = django_filters.BooleanFilter(method="filter_has_citizen_id_file")
+    is_os_code_type = django_filters.BooleanFilter(method="filter_is_os_code_type")
 
     class Meta:
         model = Employee
@@ -44,9 +45,17 @@ class EmployeeFilterSet(django_filters.FilterSet):
             "is_onboarding_email_sent",
             "date_of_birth__month",
             "has_citizen_id_file",
+            "is_os_code_type",
         ]
 
     def filter_has_citizen_id_file(self, queryset, name, value):
         if value is None:
             return queryset
         return queryset.filter(citizen_id_file__isnull=not value)
+
+    def filter_is_os_code_type(self, queryset, name, value):
+        if value is None:
+            return queryset
+        if value:
+            return queryset.filter(code_type=Employee.CodeType.OS)
+        return queryset.exclude(code_type=Employee.CodeType.OS)
