@@ -330,7 +330,7 @@ class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
     serializer_class = RecruitmentExpenseSerializer
     filterset_class = RecruitmentExpenseFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["activity", "note"]
+    search_fields = ["activity", "note", "recruitment_source__name", "recruitment_channel__name"]
     ordering_fields = ["date", "total_cost", "created_at"]
     ordering = ["-created_at"]
 

@@ -202,7 +202,7 @@ class AuthenticationTestCase(TestCase):
         self.assertFalse(self.user.verify_otp("000000"))
 
         # Test full name
-        self.assertEqual(self.user.get_full_name(), "Doe John")
+        self.assertEqual(self.user.get_full_name(), "John Doe")
         self.assertEqual(self.user.get_short_name(), "John")
 
     def test_mobile_app_tester_login_otp_is_constant(self):

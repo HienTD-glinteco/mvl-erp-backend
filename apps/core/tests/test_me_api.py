@@ -82,7 +82,7 @@ class MeAPITest(TestCase, APITestMixin):
         self.assertEqual(data["phone_number"], "+84901234567")
         self.assertEqual(data["first_name"], "Test")
         self.assertEqual(data["last_name"], "User")
-        self.assertEqual(data["full_name"], "User Test")
+        self.assertEqual(data["full_name"], "Test User")
         self.assertTrue(data["is_active"])
         self.assertFalse(data["is_staff"])
 

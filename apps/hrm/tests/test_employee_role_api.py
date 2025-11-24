@@ -251,6 +251,19 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         # Should find employee3 (Manager role) with case-insensitive search
         self.assertEqual(len(response_data), 1)
 
+    def test_search_by_employee_fullname(self):
+        """Test searching employees by fullname from employee record"""
+        url = reverse("hrm:employee-role-list")
+        # Search for partial match in fullname
+        response = self.client.get(url, {"search": "Thị B"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+
+        # Should find employee2 (Trần Thị B from Employee.fullname)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["employee_code"], "NV002")
+
     def test_filter_by_branch(self):
         """Test QTNV 3.2.1.3 - Lọc theo Chi nhánh"""
         url = reverse("hrm:employee-role-list")

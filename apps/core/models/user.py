@@ -68,7 +68,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         return f"{self.username} - {self.get_full_name()}"
 
     def get_full_name(self):
-        return f"{self.last_name} {self.first_name}".strip()
+        return f"{self.first_name} {self.last_name}".strip()
 
     def get_short_name(self):
         return self.first_name

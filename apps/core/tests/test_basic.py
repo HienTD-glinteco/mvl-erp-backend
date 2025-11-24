@@ -35,5 +35,5 @@ class HealthCheckTestCase(TestCase):
         self.assertEqual(user.username, "testuser001")
         self.assertEqual(user.email, "test@example.com")
         self.assertTrue(user.check_password("testpass123"))
-        self.assertEqual(user.get_full_name(), "Doe John")
+        self.assertEqual(user.get_full_name(), "John Doe")
         self.assertEqual(user.get_short_name(), "John")
