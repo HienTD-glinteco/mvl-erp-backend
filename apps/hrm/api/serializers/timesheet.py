@@ -13,6 +13,7 @@ class TimesheetEntryComplain(serializers.Serializer):
 
 
 class TimesheetEntrySerializer(serializers.Serializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
     date = serializers.DateField(required=True)
     status = serializers.ChoiceField(
         choices=TimesheetStatus,

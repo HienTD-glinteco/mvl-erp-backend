@@ -1,14 +1,17 @@
 import calendar
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Iterable
 
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
     extend_schema,
     extend_schema_view,
 )
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
@@ -84,7 +87,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         for emp in employees:
             entries = entries_by_employee.get(emp.id, [])
             monthly = monthly_map.get(emp.id)
-            payload = self._prepare_employee_data(emp, entries, monthly)
+            payload = self._prepare_employee_data(emp, entries, monthly, first_day, last_day)
             results.append(payload)
 
         # Serialize the results to ensure Decimal fields are handled and types match
@@ -107,7 +110,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         # Fill aggregates from monthly timesheet
         monthly = EmployeeMonthlyTimesheet.objects.filter(employee_id=emp.id, month_key=month_key).first()
 
-        payload = self._prepare_employee_data(emp, entries, monthly)
+        payload = self._prepare_employee_data(emp, entries, monthly, first_day, last_day)
 
         serializer = self.get_serializer(payload)
         return Response(serializer.data)
@@ -122,12 +125,15 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
         year_month = filterset.extract_month_year(cleaned_params.get("month"))
         if year_month is None:
-            today = date.today()
+            today = timezone.localdate()
             year = today.year
             month = today.month
         else:
             month, year = year_month
-
+        # Disallow selecting months in the future
+        today = timezone.localdate()
+        if (year, month) > (today.year, today.month):
+            raise ValidationError({"month": _("Month filter cannot be in the future.")})
         first_day = date(year, month, 1)
         last_day = date(year, month, calendar.monthrange(year, month)[1])
 
@@ -142,6 +148,8 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         employee: Employee,
         timesheet_entries: Iterable[TimeSheetEntry],
         monthly_timesheet: EmployeeMonthlyTimesheet | None = None,
+        first_day: date | None = None,
+        last_day: date | None = None,
     ) -> dict[str, Any]:
         payload = {
             "employee": employee,
@@ -158,16 +166,52 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             "remaining_leave_balance": 0,
         }
 
-        payload["dates"] = [
-            {
-                "date": entry.date,
-                "status": entry.status,
-                "start_time": entry.start_time,
-                "end_time": entry.end_time,
-                "has_complaint": None,  # TODO: correct this field after implementing timesheet complaint feature
-            }
-            for entry in timesheet_entries
-        ]
+        # Build a full list of dates for the month. If first_day/last_day are not provided,
+        # use the dates present in the timesheet_entries only.
+        if first_day is not None and last_day is not None:
+            total_days = (last_day - first_day).days + 1
+            # Map existing entries by date for quick lookup
+            entries_by_date = {e.date: e for e in timesheet_entries}
+
+            dates_list: list[dict[str, Any]] = []
+            for i in range(total_days):
+                current_date = first_day + timedelta(days=i)
+                entry = entries_by_date.get(current_date)
+                if entry:
+                    dates_list.append(
+                        {
+                            "id": entry.id,
+                            "date": entry.date,
+                            "status": entry.status,
+                            "start_time": entry.start_time,
+                            "end_time": entry.end_time,
+                            "has_complaint": None,  # TODO: implement complaints
+                        }
+                    )
+                else:
+                    dates_list.append(
+                        {
+                            "date": current_date,
+                            "status": None,
+                            "start_time": None,
+                            "end_time": None,
+                            "has_complaint": None,
+                        }
+                    )
+
+            payload["dates"] = dates_list
+        else:
+            # Fallback: keep current behaviour when no month range provided
+            payload["dates"] = [
+                {
+                    "date": entry.date,
+                    "status": entry.status,
+                    "start_time": entry.start_time,
+                    "end_time": entry.end_time,
+                    "has_complaint": None,  # TODO: correct this field after implementing timesheet complaint feature
+                }
+                for entry in timesheet_entries
+            ]
 
         if monthly_timesheet:
             payload["probation_days"] = monthly_timesheet.probation_working_days

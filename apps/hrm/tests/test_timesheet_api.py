@@ -120,3 +120,56 @@ def test_create_empty_entries_for_month_and_refresh(db):
 
     result = prepare_monthly_timesheets(employee_id=emp.id, year=year, month=month)
     assert result["success"]
+
+
+def test_list_timesheets_returns_full_month_dates_nov_2025(db, api_client):
+    client = api_client
+
+    province = Province.objects.create(name="Prov A", code="PA")
+    admin_unit = AdministrativeUnit.objects.create(
+        name="Unit A", code="UA", parent_province=province, level=AdministrativeUnit.UnitLevel.DISTRICT
+    )
+    branch = Branch.objects.create(name="Branch A", province=province, administrative_unit=admin_unit)
+    block = Block.objects.create(name="Block A", branch=branch, block_type=Block.BlockType.BUSINESS)
+    department = Department.objects.create(
+        name="Dept A", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+    )
+    position = Position.objects.create(name="Dev A")
+
+    emp = Employee.objects.create(
+        code="MV100",
+        fullname="Full Month User",
+        username="fullmonth",
+        email="fullmonth@example.com",
+        attendance_code="100",
+        citizen_id="000000000100",
+        branch=branch,
+        block=block,
+        department=department,
+        position=position,
+        start_date=date(2020, 1, 1),
+        status=Employee.Status.ACTIVE,
+    )
+
+    url = reverse("hrm:employee-timesheet-list")
+    resp = client.get(url, {"month": "11/2025"})
+    assert resp.status_code == status.HTTP_200_OK
+    data = resp.json()
+    results = data["data"]["results"]
+
+    item = next((i for i in results if i["employee"]["id"] == emp.id), None)
+    assert item is not None
+    dates = item["dates"]
+    assert len(dates) == 30
+    assert dates[0]["date"] == "2025-11-01"
+    assert dates[-1]["date"] == "2025-11-30"
+
+
+def test_month_filter_future_disallowed_raises_400(db, api_client):
+    client = api_client
+    url = reverse("hrm:employee-timesheet-list")
+    resp = client.get(url, {"month": "12/2025"})
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    content = resp.json()
+    # Ensure message is present somewhere in error payload
+    assert "Month filter cannot be in the future" in str(content)
