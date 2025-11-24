@@ -6,7 +6,7 @@ from rest_framework import serializers
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
 
 User = get_user_model()
 
@@ -53,6 +53,38 @@ class BranchSerializer(serializers.ModelSerializer):
             "province",
             "administrative_unit",
             "is_active",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class BranchContactInfoSerializer(serializers.ModelSerializer):
+    """Serializer for BranchContactInfo model"""
+
+    branch_id = serializers.PrimaryKeyRelatedField(
+        source="branch",
+        queryset=Branch.objects.all(),
+        required=True,
+        write_only=True,
+    )
+    branch = BranchSerializer(read_only=True)
+
+    class Meta:
+        model = BranchContactInfo
+        fields = [
+            "id",
+            "branch_id",
+            "branch",
+            "business_line",
+            "name",
+            "phone_number",
+            "email",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "branch",
             "created_at",
             "updated_at",
         ]

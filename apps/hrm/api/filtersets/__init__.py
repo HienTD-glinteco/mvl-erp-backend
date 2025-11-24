@@ -16,6 +16,7 @@ from .interview_schedule import InterviewScheduleFilterSet
 from .job_description import JobDescriptionFilterSet
 from .organization import (
     BlockFilterSet,
+    BranchContactInfoFilterSet,
     BranchFilterSet,
     DepartmentFilterSet,
     PositionFilterSet,
@@ -43,6 +44,7 @@ __all__ = [
     "BankFilterSet",
     "BankAccountFilterSet",
     "BranchFilterSet",
+    "BranchContactInfoFilterSet",
     "BlockFilterSet",
     "DepartmentFilterSet",
     "PositionFilterSet",

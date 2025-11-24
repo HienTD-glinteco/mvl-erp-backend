@@ -45,6 +45,31 @@ class Branch(AutoCodeMixin, BaseModel):
 
 
 @audit_logging_register
+class BranchContactInfo(BaseModel):
+    """Contact information for branch business lines"""
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.CASCADE,
+        related_name="contact_infos",
+        verbose_name=_("Branch"),
+    )
+    business_line = models.CharField(max_length=50, verbose_name=_("Business line"))
+    name = models.CharField(max_length=100, verbose_name=_("Contact name"))
+    phone_number = models.CharField(max_length=10, verbose_name=_("Phone number"))
+    email = models.EmailField(verbose_name=_("Email"))
+
+    class Meta:
+        verbose_name = _("Branch contact info")
+        verbose_name_plural = _("Branch contact info")
+        db_table = "hrm_branch_contact_info"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.branch.code} - {self.name} ({self.business_line})"
+
+
+@audit_logging_register
 class Block(AutoCodeMixin, BaseModel):
     """Business unit/block"""
 

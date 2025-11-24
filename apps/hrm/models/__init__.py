@@ -20,6 +20,7 @@ from .monthly_timesheet import EmployeeMonthlyTimesheet
 from .organization import (
     Block,
     Branch,
+    BranchContactInfo,
     Department,
     Position,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "Bank",
     "BankAccount",
     "Branch",
+    "BranchContactInfo",
     "Block",
     "Department",
     "Position",

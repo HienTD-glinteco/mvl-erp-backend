@@ -48,6 +48,7 @@ from .interview_schedule_export import InterviewScheduleExportSerializer
 from .job_description import JobDescriptionSerializer
 from .organization import (
     BlockSerializer,
+    BranchContactInfoSerializer,
     BranchSerializer,
     DepartmentSerializer,
     PositionSerializer,
@@ -93,6 +94,7 @@ __all__ = [
     "BankSerializer",
     "BankAccountSerializer",
     "BranchSerializer",
+    "BranchContactInfoSerializer",
     "BlockSerializer",
     "DepartmentSerializer",
     "PositionSerializer",

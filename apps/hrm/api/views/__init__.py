@@ -20,6 +20,7 @@ from .interview_schedule import InterviewScheduleViewSet
 from .job_description import JobDescriptionViewSet
 from .organization import (
     BlockViewSet,
+    BranchContactInfoViewSet,
     BranchViewSet,
     DepartmentViewSet,
     PositionViewSet,
@@ -46,6 +47,7 @@ __all__ = [
     "BankViewSet",
     "BankAccountViewSet",
     "BranchViewSet",
+    "BranchContactInfoViewSet",
     "BlockViewSet",
     "DepartmentViewSet",
     "PositionViewSet",

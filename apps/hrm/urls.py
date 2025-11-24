@@ -11,6 +11,7 @@ from apps.hrm.api.views import (
     BankAccountViewSet,
     BankViewSet,
     BlockViewSet,
+    BranchContactInfoViewSet,
     BranchViewSet,
     CompensatoryWorkdayViewSet,
     ContractTypeViewSet,
@@ -45,6 +46,7 @@ app_name = "hrm"
 
 router = DefaultRouter()
 router.register(r"branches", BranchViewSet, basename="branch")
+router.register(r"branch-contact-infos", BranchContactInfoViewSet, basename="branch-contact-info")
 router.register(r"blocks", BlockViewSet, basename="block")
 router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"positions", PositionViewSet, basename="position")
