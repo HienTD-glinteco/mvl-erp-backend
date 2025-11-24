@@ -54,7 +54,7 @@ class AttendanceProjectReportAggregrationSerializer(serializers.Serializer):
 
 
 class AttendanceProjectReportParameterSerializer(AttendanceReportBaseParameterSerializer):
-    block_type = serializers.ChoiceField(choices=Block.BlockType.choices)
+    block_type = serializers.ChoiceField(choices=Block.BlockType.choices, required=False)
 
 
 ####
@@ -81,5 +81,5 @@ class AttendanceProjectOrgReportAggregrationSerializer(serializers.Serializer):
     children = AttendanceProjectOrgReportBranchSerializer(many=True)
 
 
-class AttendanceProjectOrgReportParameterSerializer(serializers.Serializer):
+class AttendanceProjectOrgReportParameterSerializer(AttendanceReportBaseParameterSerializer):
     project = serializers.IntegerField(required=False)
