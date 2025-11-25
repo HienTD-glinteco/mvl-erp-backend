@@ -53,7 +53,11 @@ from .organization import (
     DepartmentSerializer,
     PositionSerializer,
 )
-from .recruitment_candidate import RecruitmentCandidateSerializer, UpdateReferrerSerializer
+from .recruitment_candidate import (
+    CandidateToEmployeeSerializer,
+    RecruitmentCandidateSerializer,
+    UpdateReferrerSerializer,
+)
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSerializer
 from .recruitment_candidate_export import RecruitmentCandidateExportSerializer
 from .recruitment_channel import RecruitmentChannelSerializer
@@ -120,6 +124,7 @@ __all__ = [
     "JobDescriptionSerializer",
     "RecruitmentRequestSerializer",
     "RecruitmentCandidateSerializer",
+    "CandidateToEmployeeSerializer",
     "UpdateReferrerSerializer",
     "RecruitmentCandidateContactLogSerializer",
     "RecruitmentCandidateExportSerializer",

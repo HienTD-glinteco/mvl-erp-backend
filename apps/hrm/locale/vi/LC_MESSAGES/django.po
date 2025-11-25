@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 13:49+0700\n"
+"POT-Creation-Date: 2025-11-25 14:06+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -149,6 +149,31 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:207
+msgid "Employee type code (MV, CTV, or OS)"
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:217
+msgid "Candidate not found in context."
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:222
+msgid "This candidate has already been converted to an employee."
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:227
+msgid "An employee with this email already exists."
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:231
+msgid "An employee with this citizen ID already exists."
+msgstr ""
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:273
+#, python-brace-format
+msgid "Converted from recruitment candidate {code}"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_request.py:148
@@ -1066,6 +1091,7 @@ msgstr ""
 #: apps/hrm/models/employee_relationship.py:55
 #: apps/hrm/models/employee_work_history.py:65
 #: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:145
+#: apps/hrm/models/recruitment_candidate.py:133
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:33
 msgid "Employee"
@@ -1505,7 +1531,7 @@ msgstr ""
 msgid "Is onboarding email sent"
 msgstr ""
 
-#: apps/hrm/models/employee.py:347 apps/hrm/models/recruitment_candidate.py:129
+#: apps/hrm/models/employee.py:347 apps/hrm/models/recruitment_candidate.py:137
 msgid "Recruitment Candidate"
 msgstr ""
 
@@ -2540,11 +2566,11 @@ msgstr ""
 msgid "Referrer"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:130
+#: apps/hrm/models/recruitment_candidate.py:138
 msgid "Recruitment Candidates"
 msgstr ""
 
-#: apps/hrm/models/recruitment_candidate.py:149
+#: apps/hrm/models/recruitment_candidate.py:157
 msgid "Onboard date is required when status is HIRED."
 msgstr ""
 

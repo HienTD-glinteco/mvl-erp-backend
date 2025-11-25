@@ -1,8 +1,14 @@
+import secrets
+from datetime import date
+
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.hrm.api.serializers import EmployeeSerializer
 from apps.hrm.models import (
     Employee,
+    EmployeeWorkHistory,
     RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentRequest,
@@ -14,6 +20,7 @@ from .common_nested import (
     BlockNestedSerializer,
     BranchNestedSerializer,
     DepartmentNestedSerializer,
+    EmployeeNestedSerializer,
     RecruitmentChannelNestedSerializer,
     RecruitmentRequestNestedSerializer,
     RecruitmentSourceNestedSerializer,
@@ -54,6 +61,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
     recruitment_source = RecruitmentSourceNestedSerializer(read_only=True)
     recruitment_channel = RecruitmentChannelNestedSerializer(read_only=True)
     referrer = RecruitmentCandidateEmployeeNestedSerializer(read_only=True)
+    employee = EmployeeNestedSerializer(read_only=True)
 
     # Colored value field
     colored_status = ColoredValueSerializer(read_only=True)
@@ -98,6 +106,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
         "onboard_date",
         "note",
         "referrer",
+        "employee",
     ]
 
     class Meta:
@@ -125,6 +134,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             "onboard_date",
             "note",
             "referrer",
+            "employee",
             "created_at",
             "updated_at",
         ]
@@ -138,6 +148,7 @@ class RecruitmentCandidateSerializer(FieldFilteringSerializerMixin, serializers.
             "recruitment_source",
             "recruitment_channel",
             "referrer",
+            "employee",
             "colored_status",
             "created_at",
             "updated_at",
@@ -181,3 +192,85 @@ class UpdateReferrerSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
     )
+
+
+class CandidateToEmployeeSerializer(serializers.Serializer):
+    """Serializer for converting a recruitment candidate to an employee.
+
+    This serializer validates the request data and handles the business logic
+    for converting a candidate to an employee.
+    """
+
+    code_type = serializers.ChoiceField(
+        choices=Employee.CodeType.choices,
+        required=True,
+        help_text=_("Employee type code (MV, CTV, or OS)"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.candidate: RecruitmentCandidate = self.context.get("candidate", None)
+
+    def validate(self, attrs):
+        """Validate conversion from candidate to employee."""
+        if not self.candidate:
+            raise serializers.ValidationError({"non_field_errors": [_("Candidate not found in context.")]})
+
+        # Check if candidate is already converted
+        if self.candidate.employee:
+            raise serializers.ValidationError(
+                {"non_field_errors": [_("This candidate has already been converted to an employee.")]}
+            )
+
+        # Check if email already exists in Employee
+        if Employee.objects.filter(email=self.candidate.email).exists():
+            raise serializers.ValidationError({"email": [_("An employee with this email already exists.")]})
+
+        # Check if citizen_id already exists in Employee
+        if Employee.objects.filter(citizen_id=self.candidate.citizen_id).exists():
+            raise serializers.ValidationError({"citizen_id": [_("An employee with this citizen ID already exists.")]})
+
+        # Generate random 6-digit attendance code
+        attendance_code = str(secrets.randbelow(900000) + 100000)  # nosec B311
+
+        # Prepare employee data from candidate
+        # Note: recruitment_candidate_id links the Employee to this candidate (Employee -> Candidate)
+        # and candidate.employee links the candidate to the Employee (Candidate -> Employee)
+        employee_data = {
+            "code_type": attrs["code_type"],
+            "fullname": self.candidate.name,
+            "username": self.candidate.email,
+            "email": self.candidate.email,
+            "department_id": self.candidate.department_id,
+            "start_date": date.today(),
+            "attendance_code": attendance_code,
+            "status": Employee.Status.ONBOARDING,
+            "citizen_id": self.candidate.citizen_id,
+            "phone": self.candidate.phone,
+            "recruitment_candidate_id": self.candidate.id,
+        }
+
+        # Create employee using serializer
+        serializer = EmployeeSerializer(data=employee_data)
+        serializer.is_valid(raise_exception=True)
+
+        attrs["employee_serializer"] = serializer
+
+        return attrs
+
+    def create(self, validated_data):
+        """Create an employee from the candidate data."""
+        employee_serializer: EmployeeSerializer = validated_data["employee_serializer"]
+        employee = employee_serializer.save()
+
+        # Link the candidate to the employee
+        self.candidate.employee = employee
+        self.candidate.save(update_fields=["employee"])
+
+        # Update the automatically created work history to include candidate info
+        work_history = EmployeeWorkHistory.objects.filter(employee=employee).first()
+        if work_history:
+            work_history.note = _("Converted from recruitment candidate {code}").format(code=self.candidate.code)
+            work_history.save(update_fields=["note"])
+
+        return employee
