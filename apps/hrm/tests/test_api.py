@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
 
 User = get_user_model()
 
@@ -160,6 +160,98 @@ class BranchAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Branch.objects.count(), 0)
+
+
+class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for BranchContactInfo API endpoints"""
+
+    def setUp(self):
+        BranchContactInfo.objects.all().delete()
+        Branch.objects.all().delete()
+        Block.objects.all().delete()
+        Department.objects.all().delete()
+        Position.objects.all().delete()
+        User.objects.all().delete()
+
+        self.user = User.objects.create_superuser(
+            username="contact-info-user",
+            email="contact-info@example.com",
+            password="testpass123",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.province = Province.objects.create(
+            code="01",
+            name="Ha Noi",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Ba Dinh",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Hanoi Branch",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
+
+        self.contact_payload = {
+            "branch_id": str(self.branch.id),
+            "business_line": "Mortgage",
+            "name": "Alice Nguyen",
+            "phone_number": "0912345678",
+            "email": "alice.nguyen@example.com",
+        }
+
+    def test_create_branch_contact_info(self):
+        url = reverse("hrm:branch-contact-info-list")
+        response = self.client.post(url, self.contact_payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(BranchContactInfo.objects.count(), 1)
+        contact = BranchContactInfo.objects.first()
+        self.assertEqual(contact.name, self.contact_payload["name"])
+
+    def test_list_branch_contact_info(self):
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Mortgage",
+            name="Alice Nguyen",
+            phone_number="0912345678",
+            email="alice.nguyen@example.com",
+        )
+
+        url = reverse("hrm:branch-contact-info-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["business_line"], "Mortgage")
+
+    def test_update_branch_contact_info(self):
+        contact = BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Mortgage",
+            name="Alice Nguyen",
+            phone_number="0912345678",
+            email="alice.nguyen@example.com",
+        )
+
+        url = reverse("hrm:branch-contact-info-detail", kwargs={"pk": contact.pk})
+        response = self.client.patch(url, {"phone_number": "0999999999"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        contact.refresh_from_db()
+        self.assertEqual(contact.phone_number, "0999999999")
 
 
 class BlockAPITest(TransactionTestCase, APITestMixin):

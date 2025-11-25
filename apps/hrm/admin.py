@@ -9,6 +9,7 @@ from .models import (
     BankAccount,
     Block,
     Branch,
+    BranchContactInfo,
     CompensatoryWorkday,
     ContractType,
     Department,
@@ -73,6 +74,7 @@ admin.site.register(Block)
 admin.site.register(Bank)
 admin.site.register(BankAccount)
 admin.site.register(Branch)
+admin.site.register(BranchContactInfo)
 admin.site.register(Department)
 admin.site.register(RecruitmentChannel)
 admin.site.register(RecruitmentSource)

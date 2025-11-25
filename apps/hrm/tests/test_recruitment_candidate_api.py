@@ -774,7 +774,7 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         )
 
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, format="json")
+        response = self.client.post(url, {"code_type": "MV"}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
@@ -802,6 +802,84 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(employee.citizen_id, "123456789014")
         self.assertEqual(employee.phone, "0123456790")
         self.assertEqual(employee.status, Employee.Status.ONBOARDING)
+
+        # Verify candidate is linked to employee
+        candidate.refresh_from_db()
+        self.assertEqual(candidate.employee, employee)
+
+    def test_convert_candidate_to_employee_requires_code_type(self):
+        """Test converting candidate without code_type returns error"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van E",
+            citizen_id="123456789018",
+            email="nguyenvane@example.com",
+            phone="0123456796",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(url, {}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertIn("code_type", response_data["error"])
+
+    def test_convert_candidate_to_employee_with_ctv_code_type(self):
+        """Test converting candidate with CTV code type"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van CTV",
+            citizen_id="123456789019",
+            email="nguyenvanctv@example.com",
+            phone="0123456797",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(url, {"code_type": "CTV"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["colored_code_type"]["value"], "CTV")
+
+    def test_convert_candidate_already_converted(self):
+        """Test converting candidate that is already converted returns error"""
+        # Create a candidate and an employee
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van Already",
+            citizen_id="123456789020",
+            email="nguyenvanalready@example.com",
+            phone="0123456798",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        # First conversion should succeed
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response1 = self.client.post(url, {"code_type": "MV"}, format="json")
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+
+        # Second conversion should fail
+        response2 = self.client.post(url, {"code_type": "MV"}, format="json")
+        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response2.json()
+        self.assertIn("non_field_errors", response_data["error"])
 
     def test_convert_candidate_to_employee_duplicate_email(self):
         """Test converting candidate when email already exists as employee"""
@@ -835,12 +913,12 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         )
 
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, format="json")
+        response = self.client.post(url, {"code_type": "MV"}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
-        # Should get an error about duplicate email or username
-        self.assertTrue("email" in response_data["error"] or "username" in response_data["error"])
+        # Should get an error about duplicate email
+        self.assertIn("email", response_data["error"])
 
     def test_convert_candidate_generates_unique_attendance_code(self):
         """Test that converting multiple candidates generates unique attendance codes"""
@@ -875,8 +953,8 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         url1 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate1.pk})
         url2 = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate2.pk})
 
-        response1 = self.client.post(url1, format="json")
-        response2 = self.client.post(url2, format="json")
+        response1 = self.client.post(url1, {"code_type": "MV"}, format="json")
+        response2 = self.client.post(url2, {"code_type": "MV"}, format="json")
 
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
@@ -894,3 +972,42 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
 
         self.assertIsNotNone(employee1.attendance_code)
         self.assertIsNotNone(employee2.attendance_code)
+
+    def test_employee_field_in_candidate_response(self):
+        """Test that employee field is included in candidate API response"""
+        # Create a candidate
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van Test",
+            citizen_id="123456789021",
+            email="nguyenvantest@example.com",
+            phone="0123456799",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.HIRED,
+            onboard_date=date(2025, 11, 1),
+        )
+
+        # Check employee is None initially
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("employee", response_data)
+        self.assertIsNone(response_data["employee"])
+
+        # Convert candidate to employee
+        convert_url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        self.client.post(convert_url, {"code_type": "MV"}, format="json")
+
+        # Check employee is now present
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertIn("employee", response_data)
+        self.assertIsNotNone(response_data["employee"])
+        self.assertIn("id", response_data["employee"])
+        self.assertIn("code", response_data["employee"])
+        self.assertIn("fullname", response_data["employee"])

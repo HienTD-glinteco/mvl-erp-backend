@@ -170,12 +170,6 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
             port=self.port,
             password=self.password,
         )
-        is_connected, message = service.test_connection()
-
-        if not is_connected:
-            self.is_connected = False
-            self.save(update_fields=["is_connected", "updated_at"])
-            return False, message
 
         # If connection successful, get device details
         try:
@@ -186,14 +180,9 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
                     return False, "No connection established"
 
                 # Get serial number and registration number from device
-                serial = service._zk_connection.get_serialnumber()
-                if serial:
-                    self.serial_number = serial
-
-                # Get device name/registration as registration_number
-                device_name = service._zk_connection.get_device_name()
-                if device_name:
-                    self.registration_number = device_name
+                device_info = service.get_device_info()
+                self.serial_number = device_info.get("serial_number")
+                firmware = device_info["firmware_version"]
 
                 # Mark as connected
                 self.is_connected = True
@@ -205,7 +194,8 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
                         "updated_at",
                     ]
                 )
-                return True, message
+                success_msg = _("Connection successful. Firmware: %(firmware)s") % {"firmware": firmware}
+                return True, success_msg
         except Exception as e:
             self.is_connected = False
             self.save(update_fields=["is_connected", "updated_at"])

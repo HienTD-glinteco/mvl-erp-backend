@@ -91,6 +91,7 @@ class EmployeeCertificateAutoCodeAPITest(TransactionTestCase):
             "certificate_code": "IELTS-123456",
             "certificate_name": "IELTS 7.0",
             "issue_date": "2024-06-01",
+            "issuing_organization": "CertOrg",
         }
 
         # Act
@@ -156,6 +157,7 @@ class EmployeeCertificateAutoCodeAPITest(TransactionTestCase):
             "certificate_code": "MOS-123456",
             "certificate_name": "MS Office",
             "issue_date": "2024-06-01",
+            "issuing_organization": "CertOrg",
             "code": "CUSTOM_CODE",  # This should be ignored
         }
 

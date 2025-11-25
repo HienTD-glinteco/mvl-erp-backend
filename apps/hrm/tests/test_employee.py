@@ -1603,6 +1603,39 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.leader_employee.citizen_id_file = self.leader_citizen_id_file
         self.leader_employee.save(update_fields=["citizen_id_file"])
 
+        # Create employees with different code types for code_type filter tests
+        self.os_employee = Employee.objects.create(
+            fullname="OS Employee",
+            username="os001",
+            email="os1@example.com",
+            phone="5555555555",
+            attendance_code="OS001",
+            date_of_birth=date(1991, 5, 15),
+            start_date=date(2022, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.regular_position,
+            code_type=Employee.CodeType.OS,
+            citizen_id="123456783",
+        )
+
+        self.ctv_employee = Employee.objects.create(
+            fullname="CTV Employee",
+            username="ctv001",
+            email="ctv1@example.com",
+            phone="6666666666",
+            attendance_code="CTV001",
+            date_of_birth=date(1993, 7, 20),
+            start_date=date(2023, 1, 1),
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=self.regular_position,
+            code_type=Employee.CodeType.CTV,
+            citizen_id="123456784",
+        )
+
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_filter_by_position_is_leadership_true(self, mock_s3_service_class):
         """Test filtering employees by leadership positions"""
@@ -1634,10 +1667,12 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
 
-        self.assertEqual(count, 2)
+        self.assertEqual(count, 4)
         codes = {item["code"] for item in results}
         self.assertIn(self.staff_employee.code, codes)
         self.assertIn(self.onboarding_employee.code, codes)
+        self.assertIn(self.os_employee.code, codes)
+        self.assertIn(self.ctv_employee.code, codes)
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.march_birthday_employee.code, codes)
 
@@ -1672,10 +1707,12 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
 
-        self.assertEqual(count, 2)
+        self.assertEqual(count, 4)
         codes = {item["code"] for item in results}
         self.assertIn(self.staff_employee.code, codes)
         self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertIn(self.os_employee.code, codes)
+        self.assertIn(self.ctv_employee.code, codes)
         self.assertNotIn(self.leader_employee.code, codes)
         self.assertNotIn(self.onboarding_employee.code, codes)
 
@@ -1710,11 +1747,13 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
 
-        self.assertEqual(count, 3)
+        self.assertEqual(count, 5)
         codes = {item["code"] for item in results}
         self.assertIn(self.staff_employee.code, codes)
         self.assertIn(self.onboarding_employee.code, codes)
         self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertIn(self.os_employee.code, codes)
+        self.assertIn(self.ctv_employee.code, codes)
         self.assertNotIn(self.leader_employee.code, codes)
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
@@ -1833,13 +1872,15 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         data = self.get_response_data(response)
         results, count = self.normalize_list_response(data)
 
-        # Should match all 4 employees whose citizen_id starts with 12345678
-        self.assertEqual(count, 4)
+        # Should match all 6 employees whose citizen_id starts with 12345678
+        self.assertEqual(count, 6)
         citizen_ids = {item["citizen_id"] for item in results}
         self.assertIn("123456789", citizen_ids)
         self.assertIn("123456780", citizen_ids)
         self.assertIn("123456781", citizen_ids)
         self.assertIn("123456782", citizen_ids)
+        self.assertIn("123456783", citizen_ids)
+        self.assertIn("123456784", citizen_ids)
 
     def test_search_by_citizen_id(self):
         """Test searching employees by citizen_id using search parameter"""
@@ -1853,6 +1894,55 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         self.assertEqual(count, 1)
         self.assertEqual(results[0]["citizen_id"], "123456782")
         self.assertEqual(results[0]["code"], self.march_birthday_employee.code)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_is_os_code_type_true(self, mock_s3_service_class):
+        """Test filtering employees with code_type == OS"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"is_os_code_type": "true"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 1)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.os_employee.code, codes)
+        self.assertNotIn(self.leader_employee.code, codes)
+        self.assertNotIn(self.staff_employee.code, codes)
+        self.assertNotIn(self.onboarding_employee.code, codes)
+        self.assertNotIn(self.march_birthday_employee.code, codes)
+        self.assertNotIn(self.ctv_employee.code, codes)
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_is_os_code_type_false(self, mock_s3_service_class):
+        """Test filtering employees with code_type != OS"""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/citizen_id.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/citizen_id.pdf"
+
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"is_os_code_type": "false"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        # Should return all employees except the OS type
+        self.assertEqual(count, 5)
+        codes = {item["code"] for item in results}
+        self.assertIn(self.leader_employee.code, codes)
+        self.assertIn(self.staff_employee.code, codes)
+        self.assertIn(self.onboarding_employee.code, codes)
+        self.assertIn(self.march_birthday_employee.code, codes)
+        self.assertIn(self.ctv_employee.code, codes)
+        self.assertNotIn(self.os_employee.code, codes)
 
     def tearDown(self):
         # Stop signal patchers

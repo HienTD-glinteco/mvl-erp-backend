@@ -124,6 +124,14 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="referred_candidates",
         verbose_name=_("Referrer"),
     )
+    employee = models.OneToOneField(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="related_candidate",
+        verbose_name=_("Employee"),
+    )
 
     class Meta:
         verbose_name = _("Recruitment Candidate")

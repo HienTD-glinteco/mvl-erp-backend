@@ -71,9 +71,13 @@ class EmployeeViewSet(
 ):
     """ViewSet for Employee model"""
 
-    queryset = Employee.objects.select_related(
-        "user", "branch", "block", "department", "position", "contract_type", "nationality", "avatar"
-    ).all()
+    queryset = (
+        Employee.objects.select_related(
+            "user", "branch", "block", "department", "position", "contract_type", "nationality", "avatar"
+        )
+        .prefetch_related("bank_accounts", "bank_accounts__bank")
+        .all()
+    )
     serializer_class = EmployeeSerializer
     filterset_class = EmployeeFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]

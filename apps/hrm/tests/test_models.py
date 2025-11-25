@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
 
 User = get_user_model()
 
@@ -102,6 +102,63 @@ class BranchModelTest(TestCase):
 
             branch = Branch.objects.create(**branch_data)
             self.assertEqual(branch.phone, phone_format, f"Failed for: {description}")
+
+
+class BranchContactInfoModelTest(TestCase):
+    """Test cases for BranchContactInfo model"""
+
+    def setUp(self):
+        self.province = Province.objects.create(
+            code="01",
+            name="Ha Noi",
+            english_name="Hanoi",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="001",
+            name="Ba Dinh",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+        self.branch = Branch.objects.create(
+            name="Hanoi Branch",
+            code="HN",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
+
+    def test_create_branch_contact_info(self):
+        """Ensure a BranchContactInfo can be created"""
+
+        contact = BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Mortgage",
+            name="Alice Nguyen",
+            phone_number="0912345678",
+            email="alice.nguyen@example.com",
+        )
+
+        self.assertEqual(contact.branch, self.branch)
+        self.assertEqual(contact.business_line, "Mortgage")
+        self.assertEqual(contact.phone_number, "0912345678")
+
+    def test_str_representation(self):
+        """__str__ should include branch code, name, and business line"""
+
+        contact = BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Corporate",
+            name="Bob Tran",
+            phone_number="0987654321",
+            email="bob.tran@example.com",
+        )
+
+        str_value = str(contact)
+        self.assertIn(self.branch.code, str_value)
+        self.assertIn("Bob Tran", str_value)
+        self.assertIn("Corporate", str_value)
 
 
 class BlockModelTest(TestCase):

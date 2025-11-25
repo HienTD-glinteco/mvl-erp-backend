@@ -542,7 +542,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
 
         # Act - Call to_employee action
         url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
-        response = self.client.post(url, format="json")
+        response = self.client.post(url, {"code_type": "MV"}, format="json")
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

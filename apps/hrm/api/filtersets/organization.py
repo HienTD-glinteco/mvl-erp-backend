@@ -1,6 +1,6 @@
 import django_filters
 
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
 
 
 class BranchFilterSet(django_filters.FilterSet):
@@ -13,6 +13,21 @@ class BranchFilterSet(django_filters.FilterSet):
     class Meta:
         model = Branch
         fields = ["name", "code", "is_active"]
+
+
+class BranchContactInfoFilterSet(django_filters.FilterSet):
+    """FilterSet for BranchContactInfo model"""
+
+    business_line = django_filters.CharFilter(lookup_expr="icontains")
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    phone_number = django_filters.CharFilter(lookup_expr="icontains")
+    email = django_filters.CharFilter(lookup_expr="icontains")
+    branch = django_filters.ModelChoiceFilter(queryset=Branch.objects.all())
+    branch_code = django_filters.CharFilter(field_name="branch__code", lookup_expr="icontains")
+
+    class Meta:
+        model = BranchContactInfo
+        fields = ["business_line", "name", "phone_number", "email", "branch", "branch_code"]
 
 
 class BlockFilterSet(django_filters.FilterSet):

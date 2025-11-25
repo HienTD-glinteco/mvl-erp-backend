@@ -1,5 +1,3 @@
-from datetime import date
-
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -10,12 +8,13 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import RecruitmentCandidateFilterSet
 from apps.hrm.api.serializers import (
+    CandidateToEmployeeSerializer,
     EmployeeSerializer,
     RecruitmentCandidateExportSerializer,
     RecruitmentCandidateSerializer,
     UpdateReferrerSerializer,
 )
-from apps.hrm.models import Employee, EmployeeWorkHistory, RecruitmentCandidate
+from apps.hrm.models import RecruitmentCandidate
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -411,6 +410,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
         "recruitment_source",
         "recruitment_channel",
         "referrer",
+        "employee",
     ).all()
     serializer_class = RecruitmentCandidateSerializer
     filterset_class = RecruitmentCandidateFilterSet
@@ -562,10 +562,15 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
 
     @extend_schema(
         summary="Convert candidate to employee",
-        description="Convert a recruitment candidate to an employee. Copies shared fields, sets start_date to today, generates random attendance_code, and sets username to email.",
+        description="Convert a recruitment candidate to an employee. Requires code_type in request body. Copies shared fields (name, email, citizen_id, phone, department), sets start_date to today, generates random 6-digit attendance_code, and sets username to candidate's email.",
         tags=["Recruitment Candidate"],
-        request=None,
+        request=CandidateToEmployeeSerializer,
         examples=[
+            OpenApiExample(
+                "Request",
+                value={"code_type": "MV"},
+                request_only=True,
+            ),
             OpenApiExample(
                 "Success",
                 value={
@@ -611,10 +616,19 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
                 response_only=True,
             ),
             OpenApiExample(
+                "Error - Already Converted",
+                value={
+                    "success": False,
+                    "error": {"non_field_errors": ["This candidate has already been converted to an employee."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
                 "Error - Validation Failed",
                 value={
                     "success": False,
-                    "error": {"citizen_id": ["Citizen ID must contain only digits"]},
+                    "error": {"code_type": ["This field is required."]},
                 },
                 response_only=True,
                 status_codes=["400"],
@@ -624,39 +638,15 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     @action(detail=True, methods=["post"], url_path="to-employee")
     def to_employee(self, request, pk=None):
         """Convert recruitment candidate to employee"""
-        import secrets
-
         candidate = self.get_object()
 
-        # Generate random 6-digit attendance code
-        attendance_code = str(secrets.randbelow(900000) + 100000)  # nosec B311
+        serializer = CandidateToEmployeeSerializer(
+            data=request.data,
+            context={"candidate": candidate},
+        )
 
-        # Prepare employee data from candidate
-        employee_data = {
-            "fullname": candidate.name,
-            "username": candidate.email,
-            "email": candidate.email,
-            "department_id": candidate.department_id,
-            "start_date": date.today(),
-            "attendance_code": attendance_code,
-            "status": Employee.Status.ONBOARDING,
-            "citizen_id": candidate.citizen_id,
-            "phone": candidate.phone,
-        }
-
-        # Create employee using serializer
-        serializer = EmployeeSerializer(data=employee_data)
         if serializer.is_valid():
             employee = serializer.save()
-
-            # Note: Work history is already created by EmployeeSerializer.create()
-            # but we need to add a note about the conversion from candidate
-            # Update the automatically created work history to include candidate info
-            work_history = EmployeeWorkHistory.objects.filter(employee=employee).first()
-            if work_history:
-                work_history.note = f"Converted from recruitment candidate {candidate.code}"
-                work_history.save(update_fields=["note"])
-
             return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

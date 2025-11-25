@@ -66,14 +66,12 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Certificate number or code issued by the certifying organization"),
     )
     certificate_name = models.CharField(
-        max_length=255,
+        max_length=100,
         blank=True,
         verbose_name=_("Certificate name"),
         help_text=_("Specific name of the certificate or exam"),
     )
     issue_date = models.DateField(
-        null=True,
-        blank=True,
         verbose_name=_("Issue date"),
         help_text=_("Date when the certificate was issued"),
     )
@@ -84,8 +82,7 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Date when the certificate expires (if applicable)"),
     )
     issuing_organization = models.CharField(
-        max_length=255,
-        blank=True,
+        max_length=100,
         verbose_name=_("Issuing organization"),
         help_text=_("Organization that issued the certificate"),
     )

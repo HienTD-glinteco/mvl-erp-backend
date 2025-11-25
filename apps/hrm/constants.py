@@ -141,3 +141,31 @@ class TimesheetReason(models.TextChoices):
     @classmethod
     def get_label(cls, raw_value: str) -> str:
         return cls.dict_choices().get(raw_value, raw_value)
+
+
+class ProposalType(models.TextChoices):
+    """Proposal type choices for employee proposals."""
+
+    POST_MATERNITY_BENEFITS = "post_maternity_benefits", _("Post-maternity benefits")
+    LATE_EXEMPTION = "late_exemption", _("Late exemption")
+    OVERTIME_WORK = "overtime_work", _("Overtime work")
+    PAID_LEAVE = "paid_leave", _("Paid leave")
+    UNPAID_LEAVE = "unpaid_leave", _("Unpaid leave")
+    MATERNITY_LEAVE = "maternity_leave", _("Maternity leave")
+    ATTENDANCE_EXEMPTION = "attendance_exemption", _("Attendance exemption")
+    TIMESHEET_ENTRY_COMPLAINT = "timesheet_entry_complaint", _("Timesheet entry complaint")
+
+
+class ProposalStatus(models.TextChoices):
+    """Proposal status choices."""
+
+    PENDING = "pending", _("Pending")
+    APPROVED = "approved", _("Approved")
+    REJECTED = "rejected", _("Rejected")
+
+
+class ProposalVerifierStatus(models.TextChoices):
+    """Proposal verifier status choices."""
+
+    VERIFIED = "verified", _("Verified")
+    NOT_VERIFIED = "not_verified", _("Not verified")

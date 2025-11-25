@@ -574,7 +574,7 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
 
         # Create expenses with different activities
         data1 = self.expense_data.copy()
-        data1["activity"] = "LinkedIn advertising campaign"
+        data1["activity"] = "Job board advertising campaign"
         data1["date"] = "2025-10-10"
         self.client.post(url, data1, format="json")
 
@@ -583,12 +583,12 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         data2["date"] = "2025-10-15"
         self.client.post(url, data2, format="json")
 
-        # Search for "LinkedIn"
-        response = self.client.get(url, {"search": "LinkedIn"})
+        # Search for "Job board"
+        response = self.client.get(url, {"search": "Job board"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
-        self.assertIn("LinkedIn", response_data[0]["activity"])
+        self.assertIn("Job board", response_data[0]["activity"])
 
     def test_search_by_note(self):
         """Test searching expenses by note field"""
@@ -611,6 +611,63 @@ class RecruitmentExpenseAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
         self.assertIn("quality", response_data[0]["note"])
+
+    def test_search_by_recruitment_source_name(self):
+        """Test searching expenses by recruitment source name field"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create expenses with different recruitment sources
+        data1 = self.expense_data.copy()
+        data1["recruitment_source_id"] = self.source_no_referral.id
+        data1["date"] = "2025-10-10"
+        data1["activity"] = "Job posting campaign"
+        data1["note"] = "Good response"
+        self.client.post(url, data1, format="json")
+
+        # Create another source
+        source2 = RecruitmentSource.objects.create(
+            name="Facebook",
+            allow_referral=False,
+        )
+        data2 = self.expense_data.copy()
+        data2["recruitment_source_id"] = source2.id
+        data2["date"] = "2025-10-15"
+        data2["activity"] = "Social media advertising"
+        data2["note"] = "Average response"
+        self.client.post(url, data2, format="json")
+
+        # Search for "LinkedIn"
+        response = self.client.get(url, {"search": "LinkedIn"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["recruitment_source"]["name"], "LinkedIn")
+
+    def test_search_by_recruitment_channel_name(self):
+        """Test searching expenses by recruitment channel name field"""
+        url = reverse("hrm:recruitment-expense-list")
+
+        # Create expenses with different recruitment channels
+        data1 = self.expense_data.copy()
+        data1["recruitment_channel_id"] = self.channel.id
+        data1["date"] = "2025-10-10"
+        self.client.post(url, data1, format="json")
+
+        # Create another channel
+        channel2 = RecruitmentChannel.objects.create(
+            name="Social Media",
+        )
+        data2 = self.expense_data.copy()
+        data2["recruitment_channel_id"] = channel2.id
+        data2["date"] = "2025-10-15"
+        self.client.post(url, data2, format="json")
+
+        # Search for "Online Advertising"
+        response = self.client.get(url, {"search": "Online Advertising"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 1)
+        self.assertEqual(response_data[0]["recruitment_channel"]["name"], "Online Advertising")
 
     def test_export_recruitment_expense_direct(self):
         """Test exporting recruitment expenses with direct delivery"""

@@ -345,6 +345,23 @@ class EmployeeCertificateAPITest(TestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_certificate_missing_issuing_organization(self):
+        """Test creating a certificate without required issuing_organization"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": "2024-06-01",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = json.loads(response.content.decode())
+        self.assertFalse(response_data["success"])
+        self.assertEqual(response_data["error"]["type"], "validation_error")
+        error_attrs = [err["attr"] for err in response_data["error"]["errors"]]
+        self.assertIn("issuing_organization", error_attrs)
+
     def test_list_certificates(self):
         """Test listing certificates"""
         # Create test certificates
@@ -479,6 +496,7 @@ class EmployeeCertificateAPITest(TestCase):
             "certificate_code": "IELTS-987654",
             "certificate_name": "IELTS 8.0",
             "issue_date": "2024-06-01",
+            "issuing_organization": "British Council",
         }
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -537,6 +555,7 @@ class EmployeeCertificateAPITest(TestCase):
                     "certificate_code": f"TEST-{cert_type}",
                     "certificate_name": f"Test {display_name}",
                     "issue_date": "2024-06-01",
+                    "issuing_organization": "Test Org",
                 }
                 response = self.client.post(url, data, format="json")
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -765,6 +784,7 @@ class EmployeeCertificateAPITest(TestCase):
             "certificate_name": "IELTS 7.0",
             "issue_date": date.today().strftime("%Y-%m-%d"),
             "expiry_date": (date.today() + timedelta(days=60)).strftime("%Y-%m-%d"),
+            "issuing_organization": "British Council",
             "status": "expired",  # Try to set status manually
         }
         response = self.client.post(url, data, format="json")

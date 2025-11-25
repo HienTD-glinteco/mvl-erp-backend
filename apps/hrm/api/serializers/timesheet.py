@@ -3,6 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from apps.hrm.constants import TimesheetStatus
+from apps.hrm.models import TimeSheetEntry
 
 from .employee import EmployeeSerializer
 
@@ -12,6 +13,7 @@ class TimesheetEntryComplain(serializers.Serializer):
 
 
 class TimesheetEntrySerializer(serializers.Serializer):
+    id = serializers.IntegerField(allow_null=True, required=False)
     date = serializers.DateField(required=True)
     status = serializers.ChoiceField(
         choices=TimesheetStatus,
@@ -29,6 +31,42 @@ class TimesheetEntrySerializer(serializers.Serializer):
         help_text="End time",
     )
     has_complaint = serializers.BooleanField(default=False, required=False, allow_null=True)
+
+
+class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
+    """Serializer for TimeSheetEntry detail view."""
+
+    employee = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = TimeSheetEntry
+        fields = [
+            "id",
+            "employee",
+            "date",
+            "start_time",
+            "end_time",
+            "morning_hours",
+            "afternoon_hours",
+            "official_hours",
+            "overtime_hours",
+            "total_worked_hours",
+            "status",
+            "absent_reason",
+            "is_full_salary",
+            "count_for_payroll",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "employee",
+            "official_hours",
+            "total_worked_hours",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class EmployeeTimesheetSerializer(serializers.Serializer):

@@ -8,17 +8,19 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import (
     BlockFilterSet,
+    BranchContactInfoFilterSet,
     BranchFilterSet,
     DepartmentFilterSet,
     PositionFilterSet,
 )
 from apps.hrm.api.serializers import (
     BlockSerializer,
+    BranchContactInfoSerializer,
     BranchSerializer,
     DepartmentSerializer,
     PositionSerializer,
 )
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
@@ -232,6 +234,238 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = "Organization"
     permission_prefix = "branch"
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List branch contact info",
+        description="Retrieve a paginated list of branch contact information entries",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Branch contact info list success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": "550e8400-e29b-41d4-a716-446655440010",
+                                "branch": {
+                                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                                    "code": "CN001",
+                                    "name": "Hanoi Branch",
+                                },
+                                "business_line": "Mortgage",
+                                "name": "Alice Nguyen",
+                                "phone_number": "0912345678",
+                                "email": "alice.nguyen@example.com",
+                                "created_at": "2025-01-20T08:00:00Z",
+                                "updated_at": "2025-01-20T08:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Branch contact info list forbidden",
+                value={"success": False, "data": None, "error": {"detail": "Permission denied."}},
+                response_only=True,
+                status_codes=["403"],
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create branch contact info",
+        description="Create a new branch contact information entry",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Create branch contact info request",
+                value={
+                    "branch_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "business_line": "Mortgage",
+                    "name": "Alice Nguyen",
+                    "phone_number": "0912345678",
+                    "email": "alice.nguyen@example.com",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Create branch contact info success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                        "branch": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "code": "CN001",
+                            "name": "Hanoi Branch",
+                        },
+                        "business_line": "Mortgage",
+                        "name": "Alice Nguyen",
+                        "phone_number": "0912345678",
+                        "email": "alice.nguyen@example.com",
+                        "created_at": "2025-01-20T08:00:00Z",
+                        "updated_at": "2025-01-20T08:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Create branch contact info validation error",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"phone_number": ["Ensure this field has no more than 10 characters."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve branch contact info",
+        description="Get details for a branch contact information entry",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Retrieve branch contact info success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                        "branch": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "code": "CN001",
+                            "name": "Hanoi Branch",
+                        },
+                        "business_line": "Mortgage",
+                        "name": "Alice Nguyen",
+                        "phone_number": "0912345678",
+                        "email": "alice.nguyen@example.com",
+                        "created_at": "2025-01-20T08:00:00Z",
+                        "updated_at": "2025-01-20T08:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Retrieve branch contact info not found",
+                value={"success": False, "data": None, "error": {"detail": "Not found."}},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update branch contact info",
+        description="Fully update a branch contact information entry",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Update branch contact info request",
+                value={
+                    "branch_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "business_line": "Corporate",
+                    "name": "Alice Nguyen",
+                    "phone_number": "0912345678",
+                    "email": "alice.nguyen@example.com",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Update branch contact info success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                        "branch": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "code": "CN001",
+                            "name": "Hanoi Branch",
+                        },
+                        "business_line": "Corporate",
+                        "name": "Alice Nguyen",
+                        "phone_number": "0912345678",
+                        "email": "alice.nguyen@example.com",
+                        "created_at": "2025-01-20T08:00:00Z",
+                        "updated_at": "2025-01-21T09:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update branch contact info",
+        description="Update selected fields of a branch contact information entry",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Partial update branch contact info request",
+                value={"phone_number": "0912999888"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Partial update branch contact info success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": "550e8400-e29b-41d4-a716-446655440010",
+                        "branch": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "code": "CN001",
+                            "name": "Hanoi Branch",
+                        },
+                        "business_line": "Mortgage",
+                        "name": "Alice Nguyen",
+                        "phone_number": "0912999888",
+                        "email": "alice.nguyen@example.com",
+                        "created_at": "2025-01-20T08:00:00Z",
+                        "updated_at": "2025-01-21T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    destroy=extend_schema(
+        summary="Delete branch contact info",
+        description="Delete a branch contact information entry",
+        tags=["BranchContactInfo"],
+        examples=[
+            OpenApiExample(
+                "Delete branch contact info success",
+                value={"success": True, "data": None, "error": None},
+                response_only=True,
+                status_codes=["204"],
+            )
+        ],
+    ),
+)
+class BranchContactInfoViewSet(AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for BranchContactInfo model"""
+
+    queryset = BranchContactInfo.objects.select_related("branch", "branch__province", "branch__administrative_unit")
+    serializer_class = BranchContactInfoSerializer
+    filterset_class = BranchContactInfoFilterSet
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
+    search_fields = ["business_line", "name", "phone_number", "email", "branch__name", "branch__code"]
+    ordering_fields = ["name", "business_line", "created_at"]
+    ordering = ["branch__code", "name"]
+
+    module = "HRM"
+    submodule = "Organization"
+    permission_prefix = "branchcontactinfo"
 
 
 @extend_schema_view(

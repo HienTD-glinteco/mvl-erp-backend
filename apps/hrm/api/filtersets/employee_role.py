@@ -1,5 +1,4 @@
 import django_filters
-from django.db import models
 
 from apps.core.models import Role, User
 from apps.hrm.models import Block, Branch, Department, Position
@@ -7,9 +6,6 @@ from apps.hrm.models import Block, Branch, Department, Position
 
 class EmployeeRoleFilterSet(django_filters.FilterSet):
     """FilterSet for filtering employees by role and organizational structure"""
-
-    # Text search on employee name or role name
-    search = django_filters.CharFilter(method="filter_search")
 
     # Organization filters
     branch = django_filters.ModelChoiceFilter(
@@ -38,18 +34,4 @@ class EmployeeRoleFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ["search", "branch", "block", "department", "position", "role"]
-
-    def filter_search(self, queryset, name, value):
-        """
-        Filter by employee name or role name.
-        Searches for continuous substring match (case-insensitive).
-        """
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            models.Q(first_name__icontains=value)
-            | models.Q(last_name__icontains=value)
-            | models.Q(role__name__icontains=value)
-        )
+        fields = ["branch", "block", "department", "position", "role"]

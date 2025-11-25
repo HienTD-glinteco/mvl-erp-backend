@@ -20,9 +20,11 @@ from .monthly_timesheet import EmployeeMonthlyTimesheet
 from .organization import (
     Block,
     Branch,
+    BranchContactInfo,
     Department,
     Position,
 )
+from .proposal import Proposal, ProposalTimeSheetEntry, ProposalVerifier
 from .recruitment_candidate import RecruitmentCandidate
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLog
 from .recruitment_channel import RecruitmentChannel
@@ -48,6 +50,7 @@ __all__ = [
     "Bank",
     "BankAccount",
     "Branch",
+    "BranchContactInfo",
     "Block",
     "Department",
     "Position",
@@ -78,4 +81,7 @@ __all__ = [
     "WorkSchedule",
     "TimeSheetEntry",
     "EmployeeMonthlyTimesheet",
+    "Proposal",
+    "ProposalTimeSheetEntry",
+    "ProposalVerifier",
 ]
