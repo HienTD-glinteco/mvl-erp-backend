@@ -132,7 +132,18 @@ class TemplateAPITestCase(TestCase):
         """Test previewing template with sample data."""
         # Arrange
         self.client.force_authenticate(user=self.user)
-        data = {"data": {"fullname": "John Doe", "start_date": "2025-11-01"}}
+        data = {
+            "data": {
+                "employee_fullname": "John Doe",
+                "employee_email": "john.doe@example.com",
+                "employee_username": "john.doe",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL001",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            }
+        }
 
         # Act
         response = self.client.post("/api/mailtemplates/welcome/preview/", data, format="json")
@@ -168,7 +179,21 @@ class TemplateAPITestCase(TestCase):
         self.client.force_authenticate(user=basic_user)
         data = {
             "subject": "Test",
-            "recipients": [{"email": "test@example.com", "data": {"fullname": "John", "start_date": "2025-11-01"}}],
+            "recipients": [
+                {
+                    "email": "test@example.com",
+                    "data": {
+                        "employee_fullname": "John",
+                        "employee_email": "john@example.com",
+                        "employee_username": "john",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL001",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                }
+            ],
         }
 
         # Act
@@ -187,8 +212,32 @@ class TemplateAPITestCase(TestCase):
             "subject": "Test Subject",
             "sender": "sender@example.com",
             "recipients": [
-                {"email": "user1@example.com", "data": {"fullname": "John Doe", "start_date": "2025-11-01"}},
-                {"email": "user2@example.com", "data": {"fullname": "Jane Doe", "start_date": "2025-11-02"}},
+                {
+                    "email": "user1@example.com",
+                    "data": {
+                        "employee_fullname": "John Doe",
+                        "employee_email": "john.doe@example.com",
+                        "employee_username": "john.doe",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL001",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                },
+                {
+                    "email": "user2@example.com",
+                    "data": {
+                        "employee_fullname": "Jane Doe",
+                        "employee_email": "jane.doe@example.com",
+                        "employee_username": "jane.doe",
+                        "employee_start_date": "2025-11-02",
+                        "employee_code": "MVL002",
+                        "employee_department_name": "Marketing",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                },
             ],
         }
 

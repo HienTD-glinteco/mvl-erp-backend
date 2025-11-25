@@ -45,8 +45,14 @@ class MockViewSet(EmailTemplateActionMixin):
     def get_template_action_data(self, instance, template_slug):
         """Extract data from mock instance."""
         return {
-            "fullname": instance.name,
-            "start_date": "2025-11-01",
+            "employee_fullname": instance.name,
+            "employee_email": instance.email,
+            "employee_username": instance.email.split("@")[0],
+            "employee_start_date": "2025-11-01",
+            "employee_code": f"MVL{instance.pk:03d}",
+            "employee_department_name": "Sales",
+            "new_password": "Abc12345",
+            "logo_image_url": "/static/img/email_logo.png",
         }
 
     def get_template_action_email(self, instance, template_slug):

@@ -31,7 +31,7 @@ class TemplateServicesTestCase(TestCase):
         # Assert
         self.assertEqual(metadata["slug"], "welcome")
         self.assertEqual(metadata["filename"], "welcome.html")
-        self.assertIn("fullname", [v["name"] for v in metadata["variables"]])
+        self.assertIn("employee_fullname", [v["name"] for v in metadata["variables"]])
 
     def test_get_template_metadata_not_found(self):
         """Test getting non-existent template raises error."""
@@ -107,8 +107,14 @@ class TemplateServicesTestCase(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "fullname": "John Doe",
-            "start_date": "2025-11-01",
+            "employee_fullname": "John Doe",
+            "employee_email": "john.doe@example.com",
+            "employee_username": "john.doe",
+            "employee_start_date": "2025-11-01",
+            "employee_code": "MVL001",
+            "employee_department_name": "Sales",
+            "new_password": "Abc12345",
+            "logo_image_url": "/static/img/email_logo.png",
         }
 
         # Act & Assert (should not raise)
@@ -170,10 +176,14 @@ class RenderAndPrepareEmailTestCase(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "fullname": "Jane Doe",
-            "start_date": "2025-12-01",
-            "position": "Engineer",
-            "department": "IT",
+            "employee_fullname": "Jane Doe",
+            "employee_email": "jane.doe@example.com",
+            "employee_username": "jane.doe",
+            "employee_start_date": "2025-12-01",
+            "employee_code": "MVL001",
+            "employee_department_name": "IT",
+            "new_password": "Abc12345",
+            "logo_image_url": "/static/img/email_logo.png",
         }
 
         # Act
@@ -184,7 +194,6 @@ class RenderAndPrepareEmailTestCase(TestCase):
         self.assertIn("text", result)
         self.assertIn("Jane", result["html"])
         self.assertIn("Jane", result["text"])
-        self.assertIn("Engineer", result["html"])
 
     def test_render_and_prepare_email_validation_error(self):
         """Test rendering fails with invalid data."""

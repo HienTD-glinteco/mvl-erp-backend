@@ -59,7 +59,18 @@ class SubjectPreviewTestCase(TestCase):
         """TC2: Preview returns default_subject from TEMPLATE_REGISTRY when data has no subject."""
         # Arrange
         self.client.force_authenticate(user=self.user)
-        data = {"data": {"fullname": "John Doe", "start_date": "2025-11-01"}}
+        data = {
+            "data": {
+                "employee_fullname": "John Doe",
+                "employee_email": "john.doe@example.com",
+                "employee_username": "john.doe",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL001",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            }
+        }
 
         # Act
         response = self.client.post("/api/mailtemplates/welcome/preview/", data, format="json")
@@ -118,9 +129,45 @@ class MultiRecipientTestCase(TestCase):
         data = {
             "subject": "Test Subject",
             "recipients": [
-                {"email": "user1@example.com", "data": {"fullname": "User 1", "start_date": "2025-11-01"}},
-                {"email": "user2@example.com", "data": {"fullname": "User 2", "start_date": "2025-11-02"}},
-                {"email": "user3@example.com", "data": {"fullname": "User 3", "start_date": "2025-11-03"}},
+                {
+                    "email": "user1@example.com",
+                    "data": {
+                        "employee_fullname": "User 1",
+                        "employee_email": "user1@example.com",
+                        "employee_username": "user1",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL001",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                },
+                {
+                    "email": "user2@example.com",
+                    "data": {
+                        "employee_fullname": "User 2",
+                        "employee_email": "user2@example.com",
+                        "employee_username": "user2",
+                        "employee_start_date": "2025-11-02",
+                        "employee_code": "MVL002",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                },
+                {
+                    "email": "user3@example.com",
+                    "data": {
+                        "employee_fullname": "User 3",
+                        "employee_email": "user3@example.com",
+                        "employee_username": "user3",
+                        "employee_start_date": "2025-11-03",
+                        "employee_code": "MVL003",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                },
             ],
         }
 
@@ -176,12 +223,30 @@ class PerRecipientCallbackTestCase(TestCase):
             "recipients": [
                 {
                     "email": "user1@example.com",
-                    "data": {"fullname": "User 1", "start_date": "2025-11-01"},
+                    "data": {
+                        "employee_fullname": "User 1",
+                        "employee_email": "user.1@example.com",
+                        "employee_username": "user.1",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL01",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
                     "callback_data": {"candidate_id": 123, "action": "mark_invited"},
                 },
                 {
                     "email": "user2@example.com",
-                    "data": {"fullname": "User 2", "start_date": "2025-11-02"},
+                    "data": {
+                        "employee_fullname": "User 2",
+                        "employee_email": "user.2@example.com",
+                        "employee_username": "user.2",
+                        "employee_start_date": "2025-11-02",
+                        "employee_code": "MVL02",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
                     "callback_data": {"candidate_id": 456, "action": "mark_invited"},
                 },
             ],
@@ -215,7 +280,16 @@ class PerRecipientCallbackTestCase(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test User", "start_date": "2025-11-01"},
+            data={
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL01",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            },
             callback_data={
                 "path": "apps.mailtemplates.tests.test_enhancements.dummy_callback",
                 "app_label": "core",
@@ -268,7 +342,17 @@ class SubjectPriorityTestCase(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test User", "start_date": "2025-11-01", "subject": "Recipient Level Subject"},
+            data={
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL001",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+                "subject": "Recipient Level Subject",
+            },
         )
 
         mock_email_instance = MagicMock()
@@ -300,7 +384,16 @@ class SubjectPriorityTestCase(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test User", "start_date": "2025-11-01"},
+            data={
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL01",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            },
         )
 
         mock_email_instance = MagicMock()
@@ -331,7 +424,16 @@ class SubjectPriorityTestCase(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test User", "start_date": "2025-11-01"},
+            data={
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL01",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            },
         )
 
         mock_email_instance = MagicMock()
@@ -374,7 +476,16 @@ class SendFailureTestCase(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test User", "start_date": "2025-11-01"},
+            data={
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL01",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            },
         )
 
         # Mock email to raise exception

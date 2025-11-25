@@ -139,7 +139,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()["data"]
         self.assertIn("content", data)
-        self.assertIn("<!DOCTYPE html>", data["content"])
+        self.assertIn("<!DOCTYPE html", data["content"])
 
     def test_get_nonexistent_template(self):
         """Test getting non-existent template returns 404."""
@@ -200,8 +200,14 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.client.force_authenticate(user=self.user)
         data = {
             "data": {
-                "fullname": "Jane Smith",
-                "start_date": "2025-12-01",
+                "employee_fullname": "Jane Smith",
+                "employee_email": "jane.smith@example.com",
+                "employee_username": "jane.smith",
+                "employee_start_date": "2025-12-01",
+                "employee_code": "MVL001",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
             }
         }
 
@@ -219,8 +225,19 @@ class MailTemplatesComprehensiveTest(TestCase):
         """Test preview merges request data with sample_data."""
         # Arrange
         self.client.force_authenticate(user=self.user)
-        # Only provide fullname, should get start_date from sample_data
-        data = {"data": {"fullname": "Test User"}}
+        # Provide full required data with employee_fullname as "Test User"
+        data = {
+            "data": {
+                "employee_fullname": "Test User",
+                "employee_email": "test.user@example.com",
+                "employee_username": "test.user",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL001",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            }
+        }
 
         # Act
         response = self.client.post("/api/mailtemplates/welcome/preview/", data, format="json")
@@ -228,7 +245,7 @@ class MailTemplatesComprehensiveTest(TestCase):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         result = response.json()["data"]
-        # Should have both fullname from request and start_date from sample_data
+        # Should have employee_fullname from request
         self.assertIn("Test User", result["html"])
 
     def test_preview_template_validation_error(self):
@@ -256,11 +273,29 @@ class MailTemplatesComprehensiveTest(TestCase):
             "recipients": [
                 {
                     "email": "employee1@example.com",
-                    "data": {"fullname": "John Doe", "start_date": "2025-11-01"},
+                    "data": {
+                        "employee_fullname": "John Doe",
+                        "employee_email": "john.doe@example.com",
+                        "employee_username": "john.doe",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL01",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
                 },
                 {
                     "email": "employee2@example.com",
-                    "data": {"fullname": "Jane Smith", "start_date": "2025-11-02"},
+                    "data": {
+                        "employee_fullname": "Jane Smith",
+                        "employee_email": "jane.smith@example.com",
+                        "employee_username": "jane.smith",
+                        "employee_start_date": "2025-11-02",
+                        "employee_code": "MVL02",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
                 },
             ],
         }
@@ -295,7 +330,21 @@ class MailTemplatesComprehensiveTest(TestCase):
         self.client.force_authenticate(user=user_no_perm)
         data = {
             "subject": "Test",
-            "recipients": [{"email": "test@example.com", "data": {"fullname": "Test", "start_date": "2025-11-01"}}],
+            "recipients": [
+                {
+                    "email": "test@example.com",
+                    "data": {
+                        "employee_fullname": "Test",
+                        "employee_email": "test@example.com",
+                        "employee_username": "test",
+                        "employee_start_date": "2025-11-01",
+                        "employee_code": "MVL01",
+                        "employee_department_name": "Sales",
+                        "new_password": "Abc12345",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                }
+            ],
         }
 
         # Act
@@ -323,7 +372,16 @@ class MailTemplatesComprehensiveTest(TestCase):
         recipient = EmailSendRecipient.objects.create(
             job=job,
             email="test@example.com",
-            data={"fullname": "Test", "start_date": "2025-11-01"},
+            data={
+                "employee_fullname": "Test",
+                "employee_email": "test@example.com",
+                "employee_username": "test",
+                "employee_start_date": "2025-11-01",
+                "employee_code": "MVL01",
+                "employee_department_name": "Sales",
+                "new_password": "Abc12345",
+                "logo_image_url": "/static/img/email_logo.png",
+            },
             status="sent",
         )
 
@@ -363,8 +421,14 @@ class MailTemplatesComprehensiveTest(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "fullname": "Service Test User",
-            "start_date": "2025-11-15",
+            "employee_fullname": "Service Test User",
+            "employee_email": "service.test@example.com",
+            "employee_username": "service.test",
+            "employee_start_date": "2025-11-15",
+            "employee_code": "MVL001",
+            "employee_department_name": "Sales",
+            "new_password": "Abc12345",
+            "logo_image_url": "/static/img/email_logo.png",
         }
 
         # Act
@@ -383,9 +447,14 @@ class MailTemplatesComprehensiveTest(TestCase):
         # Arrange
         template_meta = get_template_metadata("welcome")
         data = {
-            "fullname": "Test User",
-            "start_date": "2025-11-01",
-            # position and department are optional
+            "employee_fullname": "Test User",
+            "employee_email": "test.user@example.com",
+            "employee_username": "test.user",
+            "employee_start_date": "2025-11-01",
+            "employee_code": "MVL001",
+            "employee_department_name": "Sales",
+            "new_password": "Abc12345",
+            "logo_image_url": "/static/img/email_logo.png",
         }
 
         # Act

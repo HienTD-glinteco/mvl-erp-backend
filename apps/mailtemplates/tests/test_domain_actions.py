@@ -93,8 +93,31 @@ class EmployeeEmailActionTests(TestCase):
         # Arrange
         self.client.force_authenticate(user=self.staff_user)
 
+        # Provide recipients data matching the template variables schema
+        request_data = {
+            "recipients": [
+                {
+                    "email": self.employee.email,
+                    "data": {
+                        "employee_fullname": self.employee.fullname,
+                        "employee_email": self.employee.email,
+                        "employee_username": self.employee.username,
+                        "employee_start_date": self.employee.start_date.isoformat(),
+                        "employee_code": self.employee.code
+                        if hasattr(self.employee, "code") and self.employee.code
+                        else "MVL001",
+                        "employee_department_name": self.employee.department.name if self.employee.department else "",
+                        "new_password": "TestPass123",
+                        "logo_image_url": "/static/img/email_logo.png",
+                    },
+                }
+            ],
+        }
+
         # Act
-        response = self.client.post(f"/api/hrm/employees/{self.employee.id}/welcome_email/send/", {}, format="json")
+        response = self.client.post(
+            f"/api/hrm/employees/{self.employee.id}/welcome_email/send/", request_data, format="json"
+        )
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -110,8 +133,14 @@ class EmployeeEmailActionTests(TestCase):
         # Act
         custom_data = {
             "data": {
-                "fullname": "Custom Name",
-                "start_date": "2026-01-01",
+                "employee_fullname": "Custom Name",
+                "employee_email": "custom@example.com",
+                "employee_username": "custom",
+                "employee_start_date": "2026-01-01",
+                "employee_code": "MVL999",
+                "employee_department_name": "Custom Dept",
+                "new_password": "CustomPass123",
+                "logo_image_url": "/static/img/email_logo.png",
             }
         }
         response = self.client.post(
