@@ -26,8 +26,92 @@ from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
 
 
-class ProposalBaseViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
-    """Base ViewSet for all Proposal types with common configuration."""
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all proposals",
+        description="Retrieve a list of all proposals regardless of type with optional filtering",
+        tags=["6.5: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "timesheet_entry_complaint",
+                                "proposal_status": "pending",
+                                "complaint_reason": "Incorrect check-in time recorded",
+                                "proposed_check_in_time": "08:00:00",
+                                "proposed_check_out_time": "17:00:00",
+                                "approved_check_in_time": None,
+                                "approved_check_out_time": None,
+                                "note": "",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "code": "DX000002",
+                                "proposal_date": "2025-01-16",
+                                "proposal_type": "paid_leave",
+                                "proposal_status": "approved",
+                                "complaint_reason": None,
+                                "proposed_check_in_time": None,
+                                "proposed_check_out_time": None,
+                                "approved_check_in_time": None,
+                                "approved_check_out_time": None,
+                                "note": "Annual leave",
+                                "created_at": "2025-01-16T09:00:00Z",
+                                "updated_at": "2025-01-16T14:00:00Z",
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get proposal details",
+        description="Retrieve detailed information for a specific proposal",
+        tags=["6.5: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "timesheet_entry_complaint",
+                        "proposal_status": "pending",
+                        "complaint_reason": "Incorrect check-in time recorded",
+                        "proposed_check_in_time": "08:00:00",
+                        "proposed_check_out_time": "17:00:00",
+                        "approved_check_in_time": None,
+                        "approved_check_out_time": None,
+                        "note": "",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+)
+class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+    """Base ViewSet for specific Proposal types with common configuration."""
 
     serializer_class = ProposalSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -123,7 +207,7 @@ class ProposalBaseViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         ],
     ),
 )
-class ProposalTimesheetEntryComplaintViewSet(ProposalBaseViewSet):
+class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
@@ -253,7 +337,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalBaseViewSet):
         tags=["6.5.2: Post-Maternity Benefits Proposals"],
     ),
 )
-class ProposalPostMaternityBenefitsViewSet(ProposalBaseViewSet):
+class ProposalPostMaternityBenefitsViewSet(ProposalViewSet):
     """ViewSet for Post-Maternity Benefits proposals."""
 
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
@@ -272,7 +356,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalBaseViewSet):
         tags=["6.5.3: Late Exemption Proposals"],
     ),
 )
-class ProposalLateExemptionViewSet(ProposalBaseViewSet):
+class ProposalLateExemptionViewSet(ProposalViewSet):
     """ViewSet for Late Exemption proposals."""
 
     proposal_type = ProposalType.LATE_EXEMPTION
@@ -291,7 +375,7 @@ class ProposalLateExemptionViewSet(ProposalBaseViewSet):
         tags=["6.5.4: Overtime Work Proposals"],
     ),
 )
-class ProposalOvertimeWorkViewSet(ProposalBaseViewSet):
+class ProposalOvertimeWorkViewSet(ProposalViewSet):
     """ViewSet for Overtime Work proposals."""
 
     proposal_type = ProposalType.OVERTIME_WORK
@@ -310,7 +394,7 @@ class ProposalOvertimeWorkViewSet(ProposalBaseViewSet):
         tags=["6.5.5: Paid Leave Proposals"],
     ),
 )
-class ProposalPaidLeaveViewSet(ProposalBaseViewSet):
+class ProposalPaidLeaveViewSet(ProposalViewSet):
     """ViewSet for Paid Leave proposals."""
 
     proposal_type = ProposalType.PAID_LEAVE
@@ -329,7 +413,7 @@ class ProposalPaidLeaveViewSet(ProposalBaseViewSet):
         tags=["6.5.6: Unpaid Leave Proposals"],
     ),
 )
-class ProposalUnpaidLeaveViewSet(ProposalBaseViewSet):
+class ProposalUnpaidLeaveViewSet(ProposalViewSet):
     """ViewSet for Unpaid Leave proposals."""
 
     proposal_type = ProposalType.UNPAID_LEAVE
@@ -348,7 +432,7 @@ class ProposalUnpaidLeaveViewSet(ProposalBaseViewSet):
         tags=["6.5.7: Maternity Leave Proposals"],
     ),
 )
-class ProposalMaternityLeaveViewSet(ProposalBaseViewSet):
+class ProposalMaternityLeaveViewSet(ProposalViewSet):
     """ViewSet for Maternity Leave proposals."""
 
     proposal_type = ProposalType.MATERNITY_LEAVE
@@ -367,7 +451,7 @@ class ProposalMaternityLeaveViewSet(ProposalBaseViewSet):
         tags=["6.5.8: Attendance Exemption Proposals"],
     ),
 )
-class ProposalAttendanceExemptionViewSet(ProposalBaseViewSet):
+class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     """ViewSet for Attendance Exemption proposals."""
 
     proposal_type = ProposalType.ATTENDANCE_EXEMPTION

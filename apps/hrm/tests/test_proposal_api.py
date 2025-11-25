@@ -8,6 +8,93 @@ from apps.hrm.models import Proposal
 pytestmark = pytest.mark.django_db
 
 
+class TestProposalAPI:
+    """Tests for Proposal API that lists all proposals regardless of type."""
+
+    def test_list_all_proposals(self, api_client, superuser):
+        """Test listing all proposals returns proposals of all types."""
+        Proposal.objects.create(
+            code="DX000001", proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT, complaint_reason="Test 1"
+        )
+        Proposal.objects.create(code="DX000002", proposal_type=ProposalType.PAID_LEAVE, note="Test 2")
+        Proposal.objects.create(code="DX000003", proposal_type=ProposalType.OVERTIME_WORK, note="Test 3")
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        # Should return all proposals regardless of type
+        assert data["data"]["count"] == 3
+
+    def test_list_all_proposals_filter_by_status(self, api_client, superuser):
+        """Test filtering all proposals by status."""
+        Proposal.objects.create(
+            code="DX000004",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Test 1",
+            proposal_status=ProposalStatus.PENDING,
+        )
+        Proposal.objects.create(
+            code="DX000005",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Test 2",
+            proposal_status=ProposalStatus.APPROVED,
+        )
+        Proposal.objects.create(
+            code="DX000006",
+            proposal_type=ProposalType.OVERTIME_WORK,
+            note="Test 3",
+            proposal_status=ProposalStatus.PENDING,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"proposal_status": ProposalStatus.PENDING})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        # Should return only pending proposals (2 items)
+        assert data["data"]["count"] == 2
+        for result in data["data"]["results"]:
+            assert result["proposal_status"] == ProposalStatus.PENDING
+
+    def test_list_all_proposals_filter_by_type(self, api_client, superuser):
+        """Test filtering all proposals by proposal type."""
+        Proposal.objects.create(
+            code="DX000007", proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT, complaint_reason="Test 1"
+        )
+        Proposal.objects.create(code="DX000008", proposal_type=ProposalType.PAID_LEAVE, note="Test 2")
+        Proposal.objects.create(code="DX000009", proposal_type=ProposalType.PAID_LEAVE, note="Test 3")
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"proposal_type": ProposalType.PAID_LEAVE})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        # Should return only paid leave proposals (2 items)
+        assert data["data"]["count"] == 2
+        for result in data["data"]["results"]:
+            assert result["proposal_type"] == ProposalType.PAID_LEAVE
+
+    def test_retrieve_proposal(self, api_client, superuser):
+        """Test retrieving a single proposal by ID."""
+        proposal = Proposal.objects.create(
+            code="DX000010", proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT, complaint_reason="Test complaint"
+        )
+
+        url = reverse("hrm:proposal-detail", args=[proposal.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["id"] == proposal.id
+        assert data["data"]["proposal_type"] == ProposalType.TIMESHEET_ENTRY_COMPLAINT
+
+
 class TestTimesheetEntryComplaintProposalAPI:
     """Tests for Timesheet Entry Complaint Proposal API."""
 
@@ -17,8 +104,8 @@ class TestTimesheetEntryComplaintProposalAPI:
         )
         Proposal.objects.create(code="DX000002", proposal_type=ProposalType.PAID_LEAVE, note="Test 2")
 
-        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
-        response = api_client.get(url)
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"proposal_type": ProposalType.TIMESHEET_ENTRY_COMPLAINT})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -41,8 +128,10 @@ class TestTimesheetEntryComplaintProposalAPI:
             proposal_status=ProposalStatus.APPROVED,
         )
 
-        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
-        response = api_client.get(url, {"status": ProposalStatus.PENDING})
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(
+            url, {"proposal_type": ProposalType.TIMESHEET_ENTRY_COMPLAINT, "proposal_status": ProposalStatus.PENDING}
+        )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -123,8 +212,8 @@ class TestPaidLeaveProposalAPI:
         )
         Proposal.objects.create(code="DX000009", proposal_type=ProposalType.PAID_LEAVE, note="Test 2")
 
-        url = reverse("hrm:proposal-paid-leave-list")
-        response = api_client.get(url)
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"proposal_type": ProposalType.PAID_LEAVE})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -141,8 +230,8 @@ class TestOvertimeWorkProposalAPI:
         Proposal.objects.create(code="DX000010", proposal_type=ProposalType.PAID_LEAVE, note="Test 1")
         Proposal.objects.create(code="DX000011", proposal_type=ProposalType.OVERTIME_WORK, note="Test 2")
 
-        url = reverse("hrm:proposal-overtime-work-list")
-        response = api_client.get(url)
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"proposal_type": ProposalType.OVERTIME_WORK})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

@@ -38,6 +38,7 @@ from apps.hrm.api.views import (
     ProposalTimesheetEntryComplaintViewSet,
     ProposalUnpaidLeaveViewSet,
     ProposalVerifierViewSet,
+    ProposalViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
     RecruitmentChannelViewSet,
@@ -90,6 +91,9 @@ router.register(r"attendance-reports", AttendanceReportViewSet, basename="attend
 router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
 router.register(r"timesheet-entries", TimeSheetEntryViewSet, basename="timesheet-entry")
 router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
+
+# Proposal endpoints
+router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 # Proposal endpoints - nested under proposals/
 router.register(

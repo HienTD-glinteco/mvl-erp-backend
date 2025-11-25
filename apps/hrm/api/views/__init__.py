@@ -35,6 +35,7 @@ from .proposal import (
     ProposalTimesheetEntryComplaintViewSet,
     ProposalUnpaidLeaveViewSet,
     ProposalVerifierViewSet,
+    ProposalViewSet,
 )
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
@@ -94,4 +95,5 @@ __all__ = [
     "ProposalMaternityLeaveViewSet",
     "ProposalAttendanceExemptionViewSet",
     "ProposalVerifierViewSet",
+    "ProposalViewSet",
 ]
