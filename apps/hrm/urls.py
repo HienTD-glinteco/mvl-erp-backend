@@ -29,7 +29,15 @@ from apps.hrm.api.views import (
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
     PositionViewSet,
-    ProposalViewSet,
+    ProposalAttendanceExemptionViewSet,
+    ProposalLateExemptionViewSet,
+    ProposalMaternityLeaveViewSet,
+    ProposalOvertimeWorkViewSet,
+    ProposalPaidLeaveViewSet,
+    ProposalPostMaternityBenefitsViewSet,
+    ProposalTimesheetEntryComplaintViewSet,
+    ProposalUnpaidLeaveViewSet,
+    ProposalVerifierViewSet,
     RecruitmentCandidateContactLogViewSet,
     RecruitmentCandidateViewSet,
     RecruitmentChannelViewSet,
@@ -82,7 +90,51 @@ router.register(r"attendance-reports", AttendanceReportViewSet, basename="attend
 router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
 router.register(r"timesheet-entries", TimeSheetEntryViewSet, basename="timesheet-entry")
 router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
-router.register(r"proposals", ProposalViewSet, basename="proposal")
+
+# Proposal endpoints - nested under proposals/
+router.register(
+    r"proposals/timesheet-entry-complaint",
+    ProposalTimesheetEntryComplaintViewSet,
+    basename="proposal-timesheet-entry-complaint",
+)
+router.register(
+    r"proposals/post-maternity-benefits",
+    ProposalPostMaternityBenefitsViewSet,
+    basename="proposal-post-maternity-benefits",
+)
+router.register(
+    r"proposals/late-exemption",
+    ProposalLateExemptionViewSet,
+    basename="proposal-late-exemption",
+)
+router.register(
+    r"proposals/overtime-work",
+    ProposalOvertimeWorkViewSet,
+    basename="proposal-overtime-work",
+)
+router.register(
+    r"proposals/paid-leave",
+    ProposalPaidLeaveViewSet,
+    basename="proposal-paid-leave",
+)
+router.register(
+    r"proposals/unpaid-leave",
+    ProposalUnpaidLeaveViewSet,
+    basename="proposal-unpaid-leave",
+)
+router.register(
+    r"proposals/maternity-leave",
+    ProposalMaternityLeaveViewSet,
+    basename="proposal-maternity-leave",
+)
+router.register(
+    r"proposals/attendance-exemption",
+    ProposalAttendanceExemptionViewSet,
+    basename="proposal-attendance-exemption",
+)
+
+# Proposal verifiers
+router.register(r"proposal-verifiers", ProposalVerifierViewSet, basename="proposal-verifier")
 
 # Report endpoints (single ViewSet with custom actions)
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")

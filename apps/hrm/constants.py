@@ -162,3 +162,10 @@ class ProposalStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
     APPROVED = "approved", _("Approved")
     REJECTED = "rejected", _("Rejected")
+
+
+class ProposalVerifierStatus(models.TextChoices):
+    """Proposal verifier status choices."""
+
+    VERIFIED = "verified", _("Verified")
+    NOT_VERIFIED = "not_verified", _("Not verified")

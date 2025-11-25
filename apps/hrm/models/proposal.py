@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.constants import ProposalStatus, ProposalType, ProposalVerifierStatus
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 
@@ -43,6 +43,24 @@ class Proposal(AutoCodeMixin, BaseModel):
     approved_check_out_time = models.TimeField(null=True, blank=True, verbose_name=_("Approved check-out time"))
 
     note = SafeTextField(null=True, blank=True, verbose_name=_("Note"))
+
+    created_by = models.ForeignKey(
+        "Employee",
+        on_delete=models.PROTECT,
+        related_name="created_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("Created by"),
+    )
+
+    approved_by = models.ForeignKey(
+        "Employee",
+        on_delete=models.PROTECT,
+        related_name="approved_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("Approved by"),
+    )
 
     class Meta:
         db_table = "hrm_proposal"
@@ -107,3 +125,54 @@ class ProposalTimeSheetEntry(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Proposal {self.proposal_id} - TimeSheetEntry {self.timesheet_entry_id}"
+
+
+@audit_logging_register
+class ProposalVerifier(BaseModel):
+    """Model linking proposals to employees who can verify them."""
+
+    proposal = models.ForeignKey(
+        "Proposal",
+        on_delete=models.CASCADE,
+        related_name="verifiers",
+        verbose_name=_("Proposal"),
+    )
+
+    employee = models.ForeignKey(
+        "Employee",
+        on_delete=models.CASCADE,
+        related_name="verifiable_proposals",
+        verbose_name=_("Employee"),
+    )
+
+    status = models.CharField(
+        max_length=32,
+        choices=ProposalVerifierStatus.choices,
+        default=ProposalVerifierStatus.NOT_VERIFIED,
+        verbose_name=_("Status"),
+    )
+
+    verified_time = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Verified time"),
+    )
+
+    note = SafeTextField(
+        null=True,
+        blank=True,
+        verbose_name=_("Note"),
+    )
+
+    class Meta:
+        db_table = "hrm_proposal_verifier"
+        verbose_name = _("Proposal Verifier")
+        verbose_name_plural = _("Proposal Verifiers")
+        unique_together = [["proposal", "employee"]]
+        indexes = [
+            models.Index(fields=["proposal"], name="pv_proposal_idx"),
+            models.Index(fields=["employee"], name="pv_employee_idx"),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return f"Proposal {self.proposal_id} - Verifier {self.employee_id}"

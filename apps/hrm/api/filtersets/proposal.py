@@ -31,3 +31,35 @@ class ProposalFilterSet(filters.FilterSet):
             "proposal_status": ["exact", "in"],
             "proposal_date": ["exact", "gte", "lte"],
         }
+
+
+class TimesheetEntryComplaintProposalFilterSet(ProposalFilterSet):
+    """FilterSet for TimesheetEntryComplaint proposal with additional filters."""
+
+    created_by_department = filters.NumberFilter(
+        field_name="created_by__department",
+        help_text="Filter by creator's department ID",
+    )
+
+    created_by_branch = filters.NumberFilter(
+        field_name="created_by__branch",
+        help_text="Filter by creator's branch ID",
+    )
+
+    created_by_block = filters.NumberFilter(
+        field_name="created_by__block",
+        help_text="Filter by creator's block (Employee ID)",
+    )
+
+    status = filters.CharFilter(
+        field_name="proposal_status",
+        help_text="Filter by proposal status",
+    )
+
+    class Meta(ProposalFilterSet.Meta):
+        model = Proposal
+        fields = {
+            **ProposalFilterSet.Meta.fields,
+            "created_by": ["exact"],
+            "approved_by": ["exact"],
+        }

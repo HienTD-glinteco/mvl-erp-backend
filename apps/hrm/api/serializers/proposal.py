@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Proposal
+from apps.hrm.models import Proposal, ProposalVerifier
 
 
 class ProposalSerializer(serializers.ModelSerializer):
@@ -99,3 +99,71 @@ class ProposalRejectSerializer(ProposalBaseComplaintStatusActionSerializer):
 
     def get_target_status(self):
         return ProposalStatus.REJECTED
+
+
+class ProposalVerifierSerializer(serializers.ModelSerializer):
+    """Serializer for ProposalVerifier model."""
+
+    class Meta:
+        model = ProposalVerifier
+        fields = [
+            "id",
+            "proposal",
+            "employee",
+            "status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
+    """Serializer for verifying a proposal."""
+
+    note = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text="Optional note for verification",
+    )
+
+    class Meta:
+        model = ProposalVerifier
+        fields = ["note"]
+
+    def validate(self, attrs):
+        """Validate that the proposal is a timesheet entry complaint."""
+        # self.instance is the ProposalVerifier object being updated
+        if not self.instance:
+            raise serializers.ValidationError("This serializer requires an existing verifier instance")
+
+        proposal = self.instance.proposal
+        if proposal.proposal_type != ProposalType.TIMESHEET_ENTRY_COMPLAINT:
+            raise serializers.ValidationError(
+                "Verification is only applicable for timesheet entry complaint proposals"
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        """Update the verifier instance with verified status and timestamp."""
+        from django.utils import timezone
+
+        from apps.hrm.constants import ProposalVerifierStatus
+
+        # Update status and timestamp
+        instance.status = ProposalVerifierStatus.VERIFIED
+        instance.verified_time = timezone.now()
+
+        # Update note if provided
+        if validated_data.get("note"):
+            instance.note = validated_data["note"]
+
+        instance.save()
+        return instance

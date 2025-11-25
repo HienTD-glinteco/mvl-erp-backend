@@ -25,7 +25,17 @@ from .organization import (
     DepartmentViewSet,
     PositionViewSet,
 )
-from .proposal import ProposalViewSet
+from .proposal import (
+    ProposalAttendanceExemptionViewSet,
+    ProposalLateExemptionViewSet,
+    ProposalMaternityLeaveViewSet,
+    ProposalOvertimeWorkViewSet,
+    ProposalPaidLeaveViewSet,
+    ProposalPostMaternityBenefitsViewSet,
+    ProposalTimesheetEntryComplaintViewSet,
+    ProposalUnpaidLeaveViewSet,
+    ProposalVerifierViewSet,
+)
 from .recruitment_candidate import RecruitmentCandidateViewSet
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogViewSet
 from .recruitment_channel import RecruitmentChannelViewSet
@@ -75,5 +85,13 @@ __all__ = [
     "EmployeeTimesheetViewSet",
     "TimeSheetEntryViewSet",
     "WorkScheduleViewSet",
-    "ProposalViewSet",
+    "ProposalTimesheetEntryComplaintViewSet",
+    "ProposalPostMaternityBenefitsViewSet",
+    "ProposalLateExemptionViewSet",
+    "ProposalOvertimeWorkViewSet",
+    "ProposalPaidLeaveViewSet",
+    "ProposalUnpaidLeaveViewSet",
+    "ProposalMaternityLeaveViewSet",
+    "ProposalAttendanceExemptionViewSet",
+    "ProposalVerifierViewSet",
 ]
