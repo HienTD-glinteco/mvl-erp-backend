@@ -334,7 +334,7 @@ class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModel
     )
     serializer_class = AttendanceGeolocationSerializer
     filterset_class = AttendanceGeolocationFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, DistanceOrderingFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter, DistanceOrderingFilterBackend]
     search_fields = ["code", "name"]
     ordering_fields = ["name", "created_at", "distance"]
     ordering = ["-created_at"]

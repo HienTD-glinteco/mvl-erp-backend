@@ -7,6 +7,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.files.models import FileModel
+from apps.hrm.constants import AttendanceType
 from apps.hrm.models import AttendanceGeolocation, AttendanceRecord, AttendanceWifiDevice
 from apps.hrm.utils.geolocation import is_within_radius
 
@@ -99,7 +100,7 @@ class GPSAttendanceSerializer(serializers.Serializer):
 
         # Create attendance record
         attendance_record = AttendanceRecord.objects.create(
-            attendance_type="gps",
+            attendance_type=AttendanceType.GPS,
             employee=employee,
             attendance_code=employee.attendance_code if employee else "",
             timestamp=timezone.now(),
@@ -150,7 +151,7 @@ class WiFiAttendanceSerializer(serializers.Serializer):
 
         # Create attendance record
         attendance_record = AttendanceRecord.objects.create(
-            attendance_type="wifi",
+            attendance_type=AttendanceType.WIFI,
             employee=employee,
             attendance_code=employee.attendance_code if employee else "",
             timestamp=timezone.now(),

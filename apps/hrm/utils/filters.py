@@ -1,5 +1,6 @@
 """DRF FilterBackends for data scope and leadership filtering."""
 
+import math
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import ExpressionWrapper, F, FloatField, Func, Value
@@ -95,14 +96,10 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
 
         # Calculate distance using Haversine formula in SQL
         # Convert to radians
-        lat1 = ExpressionWrapper(
-            Value(float(user_lat)) * Value(3.141592653589793) / Value(180), output_field=FloatField()
-        )
-        lon1 = ExpressionWrapper(
-            Value(float(user_lon)) * Value(3.141592653589793) / Value(180), output_field=FloatField()
-        )
-        lat2 = ExpressionWrapper(F("latitude") * Value(3.141592653589793) / Value(180), output_field=FloatField())
-        lon2 = ExpressionWrapper(F("longitude") * Value(3.141592653589793) / Value(180), output_field=FloatField())
+        lat1 = ExpressionWrapper(Value(float(user_lat)) * Value(math.pi) / Value(180), output_field=FloatField())
+        lon1 = ExpressionWrapper(Value(float(user_lon)) * Value(math.pi) / Value(180), output_field=FloatField())
+        lat2 = ExpressionWrapper(F("latitude") * Value(math.pi) / Value(180), output_field=FloatField())
+        lon2 = ExpressionWrapper(F("longitude") * Value(math.pi) / Value(180), output_field=FloatField())
 
         # Calculate differences
         dlat = ExpressionWrapper(lat2 - lat1, output_field=FloatField())
@@ -130,5 +127,3 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
             return queryset.order_by("-distance")
         else:
             return queryset.order_by("distance")
-
-        return queryset
