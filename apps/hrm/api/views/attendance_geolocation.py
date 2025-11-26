@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -18,29 +18,6 @@ from libs.export_xlsx import ExportXLSXMixin
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20). "
         "Distance-based sorting: Provide user_latitude and user_longitude parameters with ordering=distance to sort by nearest location.",
         tags=["Attendance Geolocation"],
-        parameters=[
-            OpenApiParameter(
-                name="user_latitude",
-                type=float,
-                location=OpenApiParameter.QUERY,
-                description="User's current latitude for distance-based sorting",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="user_longitude",
-                type=float,
-                location=OpenApiParameter.QUERY,
-                description="User's current longitude for distance-based sorting",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="ordering",
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description="Order by field. Use 'distance' to sort by nearest location (requires user_latitude and user_longitude)",
-                required=False,
-            ),
-        ],
         examples=[
             OpenApiExample(
                 "Success",

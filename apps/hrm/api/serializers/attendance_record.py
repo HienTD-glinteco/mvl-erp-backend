@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.hrm.models import AttendanceDevice, AttendanceGeolocation, AttendanceRecord, AttendanceWifiDevice, Employee
+from apps.hrm.api.serializers.attendance_device import AttendanceDeviceSerializer
+from apps.hrm.api.serializers.attendance_geolocation import AttendanceGeolocationSerializer
+from apps.hrm.api.serializers.attendance_wifi_device import AttendanceWifiDeviceSerializer
+from apps.hrm.api.serializers.employee import EmployeeSerializer
+from apps.hrm.models import AttendanceDevice, AttendanceRecord
 from libs import FieldFilteringSerializerMixin
 
 
@@ -14,45 +18,18 @@ class AttendanceDeviceNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name"]
 
 
-class SimpleEmployeeSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested employee references in attendance records."""
-
-    class Meta:
-        model = Employee
-        fields = ["id", "code", "fullname", "attendance_code"]
-        read_only_fields = ["id", "code", "fullname", "attendance_code"]
-
-
-class AttendanceGeolocationNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested geolocation references in attendance records."""
-
-    class Meta:
-        model = AttendanceGeolocation
-        fields = ["id", "code", "name"]
-        read_only_fields = ["id", "code", "name"]
-
-
-class AttendanceWifiDeviceNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested wifi device references in attendance records."""
-
-    class Meta:
-        model = AttendanceWifiDevice
-        fields = ["id", "code", "name"]
-        read_only_fields = ["id", "code", "name"]
-
-
 class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for AttendanceRecord model.
 
-    Provides access to attendance records with nested references for device, employee,
+    Provides access to attendance records with nested references for biometric_device, employee,
     geolocation, image, and wifi device. Allows editing of timestamp, is_valid status, and notes.
     """
 
-    device = AttendanceDeviceNestedSerializer(read_only=True)
-    employee = SimpleEmployeeSerializer(read_only=True)
-    attendance_geolocation = AttendanceGeolocationNestedSerializer(read_only=True)
+    biometric_device = AttendanceDeviceNestedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+    attendance_geolocation = AttendanceGeolocationSerializer(read_only=True)
     image = FileSerializer(read_only=True)
-    attendance_wifi_device = AttendanceWifiDeviceNestedSerializer(read_only=True)
+    attendance_wifi_device = AttendanceWifiDeviceSerializer(read_only=True)
 
     class Meta:
         model = AttendanceRecord
@@ -60,7 +37,7 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "id",
             "code",
             "attendance_type",
-            "device",
+            "biometric_device",
             "employee",
             "attendance_code",
             "timestamp",
@@ -79,7 +56,7 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "id",
             "code",
             "attendance_type",
-            "device",
+            "biometric_device",
             "employee",
             "attendance_code",
             "latitude",

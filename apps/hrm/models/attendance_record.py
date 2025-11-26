@@ -27,15 +27,15 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
     }
 
     Attributes:
-        attendance_type: Type of attendance (biometric_device, wifi, gps, other)
-        device: Foreign key to AttendanceDevice (for biometric device records)
+        attendance_type: Type of attendance (biometric_device, wifi, geolocation, other)
+        biometric_device: Foreign key to AttendanceDevice (for biometric device records)
         employee: Foreign key to Employee (nullable, matched by attendance_code if available)
         attendance_code: User ID from device (matches Employee.attendance_code)
         timestamp: Date and time when attendance was recorded
-        latitude: GPS latitude coordinate (for GPS attendance)
-        longitude: GPS longitude coordinate (for GPS attendance)
-        attendance_geolocation: Reference to AttendanceGeolocation (for GPS attendance)
-        image: Reference to FileModel for attendance photo (for GPS attendance)
+        latitude: GeoLocation latitude coordinate (for geolocation attendance)
+        longitude: GeoLocation longitude coordinate (for geolocation attendance)
+        attendance_geolocation: Reference to AttendanceGeolocation (for geolocation attendance)
+        image: Reference to FileModel for attendance photo (for geolocation attendance)
         attendance_wifi_device: Reference to AttendanceWifiDevice (for WiFi attendance)
         raw_data: JSON field storing complete raw data from device for debugging
     """
@@ -50,7 +50,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         ordering = ["-timestamp"]
         indexes = [
             models.Index(fields=["attendance_code", "-timestamp"]),
-            models.Index(fields=["device", "-timestamp"]),
+            models.Index(fields=["biometric_device", "-timestamp"]),
             models.Index(fields=["employee", "-timestamp"]),
             models.Index(fields=["attendance_type", "-timestamp"]),
             models.Index(fields=["-timestamp"]),
@@ -67,14 +67,14 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         help_text=_("Type of attendance method used"),
     )
 
-    # Device reference (for biometric device attendance)
-    device = models.ForeignKey(
+    # Biometric device reference (for biometric device attendance)
+    biometric_device = models.ForeignKey(
         "AttendanceDevice",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("Device"),
+        verbose_name=_("Biometric Device"),
         help_text=_("Attendance device that captured this record (for biometric device type)"),
     )
 
@@ -101,7 +101,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         help_text=_("Date and time when attendance was recorded"),
     )
 
-    # GPS fields
+    # GeoLocation fields
     latitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
@@ -109,7 +109,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         blank=True,
         validators=[MinValueValidator(-90), MaxValueValidator(90)],
         verbose_name=_("Latitude"),
-        help_text=_("GPS latitude coordinate (for GPS attendance)"),
+        help_text=_("GeoLocation latitude coordinate (for geolocation attendance)"),
     )
     longitude = models.DecimalField(
         max_digits=20,
@@ -118,7 +118,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         blank=True,
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
         verbose_name=_("Longitude"),
-        help_text=_("GPS longitude coordinate (for GPS attendance)"),
+        help_text=_("GeoLocation longitude coordinate (for geolocation attendance)"),
     )
     attendance_geolocation = models.ForeignKey(
         "AttendanceGeolocation",
@@ -127,7 +127,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         blank=True,
         related_name="attendance_records",
         verbose_name=_("Attendance geolocation"),
-        help_text=_("Geolocation reference (for GPS attendance)"),
+        help_text=_("Geolocation reference (for geolocation attendance)"),
     )
     image = models.ForeignKey(
         "files.FileModel",
@@ -136,7 +136,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         blank=True,
         related_name="attendance_records",
         verbose_name=_("Image"),
-        help_text=_("Attendance photo (for GPS attendance)"),
+        help_text=_("Attendance photo (for geolocation attendance)"),
     )
 
     # WiFi fields

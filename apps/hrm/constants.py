@@ -24,7 +24,7 @@ class AttendanceType(models.TextChoices):
 
     BIOMETRIC_DEVICE = "biometric_device", _("Biometric Device")
     WIFI = "wifi", _("WiFi")
-    GPS = "gps", _("GPS")
+    GEOLOCATION = "geolocation", _("GeoLocation")
     OTHER = "other", _("Other")
 
 

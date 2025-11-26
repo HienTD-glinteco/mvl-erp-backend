@@ -1,9 +1,10 @@
-from .attendance_advanced import GPSAttendanceSerializer, WiFiAttendanceSerializer
 from .attendance_device import AttendanceDeviceSerializer
 from .attendance_exemption import AttendanceExemptionExportSerializer, AttendanceExemptionSerializer
 from .attendance_geolocation import AttendanceGeolocationSerializer
 from .attendance_geolocation_export import AttendanceGeolocationExportSerializer
 from .attendance_record import AttendanceRecordSerializer
+from .geolocation_attendance import GeoLocationAttendanceSerializer
+from .wifi_attendance import WiFiAttendanceSerializer
 from .attendance_report import (
     AttendanceMethodReportParameterSerializer,
     AttendanceMethodReportSerializer,
@@ -82,7 +83,7 @@ from .timesheet import EmployeeTimesheetSerializer
 from .work_schedule import WorkScheduleSerializer
 
 __all__ = [
-    "GPSAttendanceSerializer",
+    "GeoLocationAttendanceSerializer",
     "WiFiAttendanceSerializer",
     "AttendanceDeviceSerializer",
     "AttendanceExemptionExportSerializer",
