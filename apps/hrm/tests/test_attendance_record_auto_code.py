@@ -32,7 +32,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         """Test creating a record without code field auto-generates code."""
         # Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP001",
             timestamp=datetime(2025, 11, 14, 8, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -48,7 +48,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         codes = []
         for i in range(3):
             record = AttendanceRecord.objects.create(
-                device=self.device,
+                biometric_device=self.device,
                 attendance_code=f"EMP00{i + 1}",
                 timestamp=datetime(2025, 11, 14, 8, i, 0, tzinfo=timezone.utc),
                 is_valid=True,
@@ -73,7 +73,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         """Test that code is not changed when record is updated."""
         # Arrange - Create initial record
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP001",
             timestamp=datetime(2025, 11, 14, 8, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -93,7 +93,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         """Test that generated code uses correct prefix (DD)."""
         # Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP001",
             timestamp=datetime(2025, 11, 14, 8, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -111,7 +111,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         """Test that code generation continues from last code when records exist."""
         # Arrange - Create first record
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP001",
             timestamp=datetime(2025, 11, 14, 8, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -120,7 +120,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
 
         # Act - Create second record
         record2 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP002",
             timestamp=datetime(2025, 11, 14, 9, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -141,7 +141,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         """Test that duplicate codes cannot be created."""
         # Arrange - Create first record
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="EMP001",
             timestamp=datetime(2025, 11, 14, 8, 0, 0, tzinfo=timezone.utc),
             is_valid=True,
@@ -150,7 +150,7 @@ class AttendanceRecordAutoCodeGenerationTest(TestCase):
         # Act & Assert - Try to create another record with same code should fail
         with self.assertRaises(Exception):
             AttendanceRecord.objects.create(
-                device=self.device,
+                biometric_device=self.device,
                 code=record1.code,  # Use same code
                 attendance_code="EMP002",
                 timestamp=datetime(2025, 11, 14, 9, 0, 0, tzinfo=timezone.utc),

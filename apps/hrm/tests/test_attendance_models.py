@@ -274,7 +274,7 @@ class AttendanceRecordModelTest(TestCase):
         """Test creating attendance record with only required fields."""
         # Arrange & Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
@@ -298,17 +298,17 @@ class AttendanceRecordModelTest(TestCase):
         """Test records are ordered by timestamp descending (newest first)."""
         # Arrange & Act
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
         record2 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="200",
             timestamp=datetime(2025, 10, 28, 12, 0, 0, tzinfo=timezone.utc),
         )
         record3 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="300",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
@@ -337,7 +337,7 @@ class AttendanceRecordModelTest(TestCase):
         # Arrange & Act - Create multiple records with same attendance code
         for i in range(5):
             AttendanceRecord.objects.create(
-                device=self.device,
+                biometric_device=self.device,
                 attendance_code="531",
                 timestamp=datetime(2025, 10, 28, 10 + i, 0, 0, tzinfo=timezone.utc),
             )
@@ -359,12 +359,12 @@ class AttendanceRecordModelTest(TestCase):
         """Test creating multiple records with same attendance code."""
         # Arrange & Act
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
         record2 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
@@ -387,7 +387,7 @@ class AttendanceRecordModelTest(TestCase):
             "reserved": "",
         }
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 11, 49, 38, tzinfo=timezone.utc),
             raw_data=complex_raw_data,
@@ -425,7 +425,7 @@ class AttendanceRecordModelTest(TestCase):
         """Test notes field can store text."""
         # Arrange & Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
             notes="Manual entry - device was offline",
@@ -442,23 +442,23 @@ class AttendanceRecordModelTest(TestCase):
 
         # Create records within and outside the range
         record_in_range = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
         record_before = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="200",
             timestamp=datetime(2025, 10, 28, 9, 0, 0, tzinfo=timezone.utc),
         )
         record_after = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="300",
             timestamp=datetime(2025, 10, 28, 13, 0, 0, tzinfo=timezone.utc),
         )
 
         # Act
-        records = AttendanceRecord.objects.filter(device=self.device, timestamp__range=(start_time, end_time))
+        records = AttendanceRecord.objects.filter(biometric_device=self.device, timestamp__range=(start_time, end_time))
 
         # Assert
         self.assertEqual(records.count(), 1)

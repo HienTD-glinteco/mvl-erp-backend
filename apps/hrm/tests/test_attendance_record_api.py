@@ -50,19 +50,19 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
 
         # Create test records
         self.record1 = AttendanceRecord.objects.create(
-            device=self.device1,
+            biometric_device=self.device1,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 8, 30, 15, tzinfo=timezone.utc),
             raw_data={"uid": 3525, "user_id": "531", "timestamp": "2025-10-28T08:30:15", "status": 1, "punch": 0},
         )
         self.record2 = AttendanceRecord.objects.create(
-            device=self.device1,
+            biometric_device=self.device1,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 11, 49, 38, tzinfo=timezone.utc),
             raw_data={"uid": 3525, "user_id": "531", "timestamp": "2025-10-28T11:49:38", "status": 1, "punch": 0},
         )
         self.record3 = AttendanceRecord.objects.create(
-            device=self.device2,
+            biometric_device=self.device2,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 9, 0, 0, tzinfo=timezone.utc),
             raw_data={"uid": 1000, "user_id": "100", "timestamp": "2025-10-28T09:00:00", "status": 1, "punch": 0},
@@ -94,7 +94,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(response_data["attendance_code"], "531")
-        self.assertEqual(response_data["device"]["name"], "Main Entrance Device")
+        self.assertEqual(response_data["biometric_device"]["name"], "Main Entrance Device")
         self.assertIn("raw_data", response_data)
         self.assertEqual(response_data["raw_data"]["user_id"], "531")
 
@@ -137,14 +137,14 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(self.record1.notes, "Updated by admin")
 
     def test_attendance_records_readonly_fields_cannot_be_changed(self):
-        """Test that read-only fields (attendance_code, device) cannot be modified."""
+        """Test that read-only fields (attendance_code, biometric_device) cannot be modified."""
         # Arrange
         original_code = self.record1.attendance_code
-        original_device = self.record1.device
+        original_device = self.record1.biometric_device
 
         update_data = {
             "attendance_code": "999",  # Try to change read-only field
-            "device": self.device2.id,  # Try to change read-only field
+            "biometric_device": self.device2.id,  # Try to change read-only field
             "timestamp": self.record1.timestamp.isoformat(),
         }
 
@@ -156,7 +156,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.record1.refresh_from_db()
         self.assertEqual(self.record1.attendance_code, original_code)  # Unchanged
-        self.assertEqual(self.record1.device, original_device)  # Unchanged
+        self.assertEqual(self.record1.biometric_device, original_device)  # Unchanged
 
     def test_attendance_records_cannot_be_deleted(self):
         """Test that attendance records cannot be deleted via API."""
@@ -170,17 +170,17 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.assertTrue(AttendanceRecord.objects.filter(id=self.record1.id).exists())
 
     def test_filter_by_device(self):
-        """Test filtering attendance records by device."""
+        """Test filtering attendance records by biometric device."""
         # Act
         url = reverse("hrm:attendance-record-list")
-        response = self.client.get(url, {"device": self.device1.id})
+        response = self.client.get(url, {"biometric_device": self.device1.id})
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 2)
         for record in response_data:
-            self.assertEqual(record["device"]["id"], self.device1.id)
+            self.assertEqual(record["biometric_device"]["id"], self.device1.id)
 
     def test_filter_by_attendance_code(self):
         """Test filtering attendance records by attendance code."""
@@ -223,7 +223,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         """Test filtering attendance records by specific date."""
         # Arrange - Create record on different date
         AttendanceRecord.objects.create(
-            device=self.device1,
+            biometric_device=self.device1,
             attendance_code="531",
             timestamp=datetime(2025, 10, 27, 10, 0, 0, tzinfo=timezone.utc),
         )
@@ -239,16 +239,16 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
 
     def test_combined_filters(self):
         """Test combining multiple filters."""
-        # Act - Filter by device and attendance code
+        # Act - Filter by biometric device and attendance code
         url = reverse("hrm:attendance-record-list")
-        response = self.client.get(url, {"device": self.device1.id, "attendance_code": "531"})
+        response = self.client.get(url, {"biometric_device": self.device1.id, "attendance_code": "531"})
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 2)
         for record in response_data:
-            self.assertEqual(record["device"]["id"], self.device1.id)
+            self.assertEqual(record["biometric_device"]["id"], self.device1.id)
             self.assertIn("531", record["attendance_code"])
 
     def test_search_by_attendance_code(self):
@@ -294,7 +294,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data[2]["id"], self.record1.id)
 
     def test_nested_device_information(self):
-        """Test that device information is properly nested in response."""
+        """Test that biometric device information is properly nested in response."""
         # Act
         url = reverse("hrm:attendance-record-detail", kwargs={"pk": self.record1.id})
         response = self.client.get(url)
@@ -302,10 +302,10 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
-        self.assertIn("device", response_data)
-        self.assertIsInstance(response_data["device"], dict)
-        self.assertEqual(response_data["device"]["id"], self.device1.id)
-        self.assertEqual(response_data["device"]["name"], "Main Entrance Device")
+        self.assertIn("biometric_device", response_data)
+        self.assertIsInstance(response_data["biometric_device"], dict)
+        self.assertEqual(response_data["biometric_device"]["id"], self.device1.id)
+        self.assertEqual(response_data["biometric_device"]["name"], "Main Entrance Device")
 
     def test_raw_data_preserved(self):
         """Test that raw_data from device is preserved in response."""
@@ -327,7 +327,7 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         # Arrange - Create many records to test pagination
         for i in range(15):
             AttendanceRecord.objects.create(
-                device=self.device1,
+                biometric_device=self.device1,
                 attendance_code=f"{i:03d}",
                 timestamp=datetime(2025, 10, 28, 10, i, 0, tzinfo=timezone.utc),
             )
