@@ -1,3 +1,4 @@
+from .attendance_advanced import AttendanceAdvancedViewSet
 from .attendance_device import AttendanceDeviceViewSet
 from .attendance_exemption import AttendanceExemptionViewSet
 from .attendance_geolocation import AttendanceGeolocationViewSet
@@ -49,6 +50,7 @@ from .timesheet import EmployeeTimesheetViewSet, TimeSheetEntryViewSet
 from .work_schedule import WorkScheduleViewSet
 
 __all__ = [
+    "AttendanceAdvancedViewSet",
     "AttendanceDeviceViewSet",
     "AttendanceExemptionViewSet",
     "AttendanceGeolocationViewSet",
