@@ -1,8 +1,9 @@
 """DRF FilterBackends for data scope and leadership filtering."""
 
-import math
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
 from django.db.models import ExpressionWrapper, F, FloatField, Func, Value
 from rest_framework.filters import BaseFilterBackend
 
@@ -57,8 +58,9 @@ class LeadershipFilterBackend(BaseFilterBackend):
 
 
 class DistanceOrderingFilterBackend(BaseFilterBackend):
-    """
-    Filter backend that orders geolocations by distance from a given point.
+    """Filter backend that orders geolocations by distance from a given point.
+
+    Uses PostGIS Distance function for efficient spatial queries.
 
     Usage in ViewSet:
         class MyViewSet(viewsets.ModelViewSet):
@@ -94,33 +96,12 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
         except (InvalidOperation, ValueError):
             return queryset
 
-        # Calculate distance using Haversine formula in SQL
-        # Convert to radians
-        lat1 = ExpressionWrapper(Value(float(user_lat)) * Value(math.pi) / Value(180), output_field=FloatField())
-        lon1 = ExpressionWrapper(Value(float(user_lon)) * Value(math.pi) / Value(180), output_field=FloatField())
-        lat2 = ExpressionWrapper(F("latitude") * Value(math.pi) / Value(180), output_field=FloatField())
-        lon2 = ExpressionWrapper(F("longitude") * Value(math.pi) / Value(180), output_field=FloatField())
+        # Create Point from user's location (longitude, latitude order for PostGIS)
+        user_location = Point(float(user_lon), float(user_lat), srid=4326)
 
-        # Calculate differences
-        dlat = ExpressionWrapper(lat2 - lat1, output_field=FloatField())
-        dlon = ExpressionWrapper(lon2 - lon1, output_field=FloatField())
-
-        # Haversine formula using SQL functions
-        a = ExpressionWrapper(
-            Func(dlat / Value(2), function="SIN") ** Value(2)
-            + Func(lat1, function="COS")
-            * Func(lat2, function="COS")
-            * (Func(dlon / Value(2), function="SIN") ** Value(2)),
-            output_field=FloatField(),
-        )
-
-        # Calculate distance in meters (Earth radius = 6371000 meters)
-        distance = ExpressionWrapper(
-            Value(6371000) * Value(2) * Func(Func(a, function="SQRT"), function="ASIN"), output_field=FloatField()
-        )
-
-        # Annotate queryset with distance
-        queryset = queryset.annotate(distance=distance)
+        # Use PostGIS Distance function to calculate distance
+        # Distance returns meters when using geography=True
+        queryset = queryset.annotate(distance=Distance("location", user_location))
 
         # Apply ordering
         if ordering.startswith("-distance"):
