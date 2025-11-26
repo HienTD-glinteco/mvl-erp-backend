@@ -40,7 +40,7 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
     }
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Request code"))
-    name = models.CharField(max_length=200, verbose_name=_("Request name"))
+    name = models.CharField(max_length=255, verbose_name=_("Request name"))
     job_description = models.ForeignKey(
         "JobDescription",
         on_delete=models.PROTECT,

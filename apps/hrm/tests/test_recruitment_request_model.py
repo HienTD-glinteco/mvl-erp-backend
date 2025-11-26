@@ -424,3 +424,18 @@ class RecruitmentRequestModelTest(TransactionTestCase):
             colored_recruitment_type = request.colored_recruitment_type
             self.assertEqual(colored_recruitment_type["value"], recruitment_type)
             self.assertEqual(colored_recruitment_type["variant"], expected_variant)
+
+    def test_name_max_length_255(self):
+        """Test that name field accepts up to 255 characters"""
+        long_name = "A" * 255
+        request = RecruitmentRequest.objects.create(
+            name=long_name,
+            job_description=self.job_description,
+            department=self.department,
+            proposer=self.employee,
+            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
+            proposed_salary="2000-3000 USD",
+        )
+
+        self.assertEqual(request.name, long_name)
+        self.assertEqual(len(request.name), 255)

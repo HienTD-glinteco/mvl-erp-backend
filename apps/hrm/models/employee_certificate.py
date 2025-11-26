@@ -100,6 +100,20 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Notes"),
         help_text=_("Additional notes about the certificate"),
     )
+    training_specialization = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name=_("Training specialization"),
+        help_text=_("Training specialization or major"),
+    )
+    graduation_diploma = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name=_("Graduation diploma"),
+        help_text=_("Graduation diploma or degree"),
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

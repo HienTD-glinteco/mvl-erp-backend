@@ -307,11 +307,16 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertEqual(result_data["certificate_type"], "foreign_language")
         self.assertEqual(result_data["certificate_code"], "IELTS-123456789")
         self.assertEqual(result_data["certificate_name"], "IELTS 7.0")
-        # Verify nested employee is returned in response
+        # Verify nested employee is returned using full EmployeeSerializer
         self.assertIn("employee", result_data)
         self.assertEqual(result_data["employee"]["id"], self.employee.id)
         self.assertEqual(result_data["employee"]["code"], self.employee.code)
         self.assertEqual(result_data["employee"]["fullname"], self.employee.fullname)
+        # EmployeeSerializer includes these additional fields
+        self.assertIn("branch", result_data["employee"])
+        self.assertIn("block", result_data["employee"])
+        self.assertIn("department", result_data["employee"])
+        self.assertIn("email", result_data["employee"])
 
     def test_create_certificate_without_code(self):
         """Test creating a certificate without certificate code"""
@@ -876,3 +881,132 @@ class EmployeeCertificateAPITest(TestCase):
         result_data = self.get_response_data(response)
         self.assertEqual(len(result_data), 1)
         self.assertEqual(result_data[0]["certificate_name"], "Expired Certificate")
+
+    def test_create_certificate_with_training_specialization(self):
+        """Test creating a certificate with training_specialization field"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "diploma",
+            "certificate_name": "Bachelor of Science",
+            "issue_date": "2020-06-01",
+            "issuing_organization": "Test University",
+            "training_specialization": "Computer Science",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["training_specialization"], "Computer Science")
+
+    def test_create_certificate_with_graduation_diploma(self):
+        """Test creating a certificate with graduation_diploma field"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "diploma",
+            "certificate_name": "Bachelor of Engineering",
+            "issue_date": "2020-06-01",
+            "issuing_organization": "Test University",
+            "graduation_diploma": "Bachelor's Degree",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["graduation_diploma"], "Bachelor's Degree")
+
+    def test_create_certificate_with_all_new_fields(self):
+        """Test creating a certificate with both training_specialization and graduation_diploma"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "diploma",
+            "certificate_name": "Master of Science",
+            "issue_date": "2022-06-01",
+            "issuing_organization": "Test University",
+            "training_specialization": "Software Engineering",
+            "graduation_diploma": "Master's Degree",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["training_specialization"], "Software Engineering")
+        self.assertEqual(result_data["graduation_diploma"], "Master's Degree")
+
+    def test_update_certificate_with_new_fields(self):
+        """Test updating a certificate's new fields"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Bachelor's Degree",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "diploma",
+            "certificate_name": "Bachelor's Degree",
+            "issue_date": date.today().strftime("%Y-%m-%d"),
+            "issuing_organization": "Test University",
+            "training_specialization": "Information Technology",
+            "graduation_diploma": "Bachelor's Degree",
+        }
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["training_specialization"], "Information Technology")
+        self.assertEqual(result_data["graduation_diploma"], "Bachelor's Degree")
+
+        # Verify in database
+        certificate.refresh_from_db()
+        self.assertEqual(certificate.training_specialization, "Information Technology")
+        self.assertEqual(certificate.graduation_diploma, "Bachelor's Degree")
+
+    def test_certificate_new_fields_are_optional(self):
+        """Test that training_specialization and graduation_diploma are optional"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "TOEFL",
+            "issue_date": "2024-06-01",
+            "issuing_organization": "ETS",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        # New fields should be None when not provided
+        self.assertIsNone(result_data["training_specialization"])
+        self.assertIsNone(result_data["graduation_diploma"])
+
+    def test_employee_serializer_in_response(self):
+        """Test that employee field uses full EmployeeSerializer instead of nested"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Test Certificate",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+
+        # Verify employee field uses EmployeeSerializer
+        employee_data = result_data["employee"]
+        self.assertIn("id", employee_data)
+        self.assertIn("code", employee_data)
+        self.assertIn("fullname", employee_data)
+        # These fields are specific to EmployeeSerializer (not in EmployeeNestedSerializer)
+        self.assertIn("branch", employee_data)
+        self.assertIn("block", employee_data)
+        self.assertIn("department", employee_data)
+        self.assertIn("email", employee_data)
+        self.assertIn("start_date", employee_data)
