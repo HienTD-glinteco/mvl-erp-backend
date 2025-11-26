@@ -21,7 +21,7 @@ class Bank(BaseModel):
         verbose_name = _("Bank")
         verbose_name_plural = _("Banks")
         db_table = "hrm_bank"
-        ordering = ["name"]
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.code} - {self.name}"

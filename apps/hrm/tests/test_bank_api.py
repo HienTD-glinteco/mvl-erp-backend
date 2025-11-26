@@ -93,6 +93,31 @@ class BankAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertEqual(len(data), 1)
 
+    def test_search_banks_by_name(self):
+        """Test searching banks by partial name."""
+        url = reverse("hrm:bank-list")
+        response = self.client.get(url, {"search": "Vietcom"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["code"], "VCB")
+
+    def test_search_banks_phrase(self):
+        """Test phrase search filter treats multi-word queries as single phrase."""
+        # Create a bank with a multi-word name
+        Bank.objects.create(name="Vietnam Bank for Agriculture", code="VBARD")
+
+        url = reverse("hrm:bank-list")
+        # PhraseSearchFilter should search for the entire phrase
+        response = self.client.get(url, {"search": "Bank for"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        # Should find the bank with "Bank for" in its name
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["code"], "VBARD")
+
     def test_ordering_banks_by_name(self):
         """Test ordering banks by name."""
         url = reverse("hrm:bank-list")
@@ -102,6 +127,16 @@ class BankAPITest(TransactionTestCase, APITestMixin):
         data = self.get_response_data(response)
         self.assertEqual(data[0]["code"], "BIDV")
         self.assertEqual(data[1]["code"], "VCB")
+
+    def test_ordering_banks_by_code_descending(self):
+        """Test ordering banks by code in descending order."""
+        url = reverse("hrm:bank-list")
+        response = self.client.get(url, {"ordering": "-code"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertEqual(data[0]["code"], "VCB")
+        self.assertEqual(data[1]["code"], "BIDV")
 
     def test_create_bank_not_allowed(self):
         """Test that creating a bank via API is not allowed (read-only)."""
