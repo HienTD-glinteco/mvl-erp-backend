@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.devices.zk import ZKAttendanceEvent, ZKDeviceInfo, ZKRealtimeDeviceListener
-from apps.hrm.models import AttendanceDevice, AttendanceRecord
+from apps.hrm.models import AttendanceDevice, AttendanceRecord, Employee
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +119,6 @@ def handle_attendance_event(event: ZKAttendanceEvent) -> None:
         # Create attendance record
         # Try to find matching employee by attendance_code
         try:
-            from apps.hrm.models import Employee
             employee = Employee.objects.get(attendance_code=event.user_id)
         except Employee.DoesNotExist:
             employee = None

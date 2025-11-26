@@ -102,7 +102,9 @@ class AttendanceRecordViewSet(AuditLoggingMixin, BaseModelViewSet):
     Includes custom actions for GeoLocation and WiFi-based attendance recording.
     """
 
-    queryset = AttendanceRecord.objects.select_related("biometric_device", "employee").all()
+    queryset = AttendanceRecord.objects.select_related(
+        "biometric_device", "employee", "attendance_geolocation", "attendance_wifi_device"
+    ).all()
     serializer_class = AttendanceRecordSerializer
     filterset_class = AttendanceRecordFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]

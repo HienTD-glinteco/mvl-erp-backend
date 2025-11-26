@@ -11,7 +11,7 @@ from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
 from apps.devices.zk import ZKDeviceService
-from apps.hrm.models import AttendanceDevice, AttendanceRecord
+from apps.hrm.models import AttendanceDevice, AttendanceRecord, Employee
 
 logger = logging.getLogger(__name__)
 
@@ -243,8 +243,6 @@ def _create_attendance_records_from_logs(
     Returns:
         list: List of AttendanceRecord objects to create
     """
-    from apps.hrm.models import Employee
-
     # Get all attendance codes from logs
     attendance_codes = {log["user_id"] for log in today_logs}
     
