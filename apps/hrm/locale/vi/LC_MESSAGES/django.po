@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 10:31+0700\n"
+"POT-Creation-Date: 2025-11-26 10:42+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -218,7 +218,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/api/views/employee.py:510
 #: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/employee.py:194
 #: apps/hrm/models/employee_certificate.py:107
-#: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/proposal.py:152
+#: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/proposal.py:150
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:57
 msgid "Status"
@@ -1061,7 +1061,7 @@ msgstr ""
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
 #: apps/hrm/models/monthly_timesheet.py:107 apps/hrm/models/proposal.py:45
-#: apps/hrm/models/proposal.py:164 apps/hrm/models/recruitment_candidate.py:118
+#: apps/hrm/models/proposal.py:162 apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:69
 #: apps/hrm/models/work_schedule.py:82
@@ -1083,7 +1083,7 @@ msgstr ""
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
 #: apps/hrm/models/employee_work_history.py:65
-#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:145
+#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:143
 #: apps/hrm/models/recruitment_candidate.py:133
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:33
@@ -1181,7 +1181,7 @@ msgstr ""
 
 #: apps/hrm/models/attendance_geolocation.py:83
 #: apps/hrm/models/employee_dependent.py:125
-#: apps/hrm/models/employee_relationship.py:160 apps/hrm/models/proposal.py:53
+#: apps/hrm/models/employee_relationship.py:160 apps/hrm/models/proposal.py:51
 msgid "Created by"
 msgstr ""
 
@@ -2443,50 +2443,50 @@ msgstr ""
 msgid "Approved check-out time"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:62
+#: apps/hrm/models/proposal.py:60
 msgid "Approved by"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:67 apps/hrm/models/proposal.py:105
-#: apps/hrm/models/proposal.py:138
+#: apps/hrm/models/proposal.py:65 apps/hrm/models/proposal.py:103
+#: apps/hrm/models/proposal.py:136
 msgid "Proposal"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:68
+#: apps/hrm/models/proposal.py:66
 msgid "Proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:83
+#: apps/hrm/models/proposal.py:81
 msgid "Complaint reason is required for complaint proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:88
+#: apps/hrm/models/proposal.py:86
 msgid "Note is required when rejecting a proposal"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:113
+#: apps/hrm/models/proposal.py:111
 msgid "Timesheet entry"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:118
+#: apps/hrm/models/proposal.py:116
 msgid "Proposal Timesheet Entry"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:119
+#: apps/hrm/models/proposal.py:117
 msgid "Proposal Timesheet Entries"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:158
+#: apps/hrm/models/proposal.py:156
 msgid "Verified time"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:169
+#: apps/hrm/models/proposal.py:167
 #, fuzzy
 #| msgid "Marital Status"
 msgid "Proposal Verifier"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/models/proposal.py:170
+#: apps/hrm/models/proposal.py:168
 #, fuzzy
 #| msgid "Marital Status"
 msgid "Proposal Verifiers"

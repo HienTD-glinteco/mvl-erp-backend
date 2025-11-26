@@ -3,9 +3,14 @@ from rest_framework import serializers
 from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
 
+from .employee import EmployeeSerializer
+
 
 class ProposalSerializer(serializers.ModelSerializer):
     """Serializer for Proposal model."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
 
     class Meta:
         model = Proposal
@@ -19,6 +24,8 @@ class ProposalSerializer(serializers.ModelSerializer):
             "proposed_check_out_time",
             "approved_check_in_time",
             "approved_check_out_time",
+            "created_by",
+            "approved_by",
             "note",
             "created_at",
             "updated_at",
@@ -29,6 +36,8 @@ class ProposalSerializer(serializers.ModelSerializer):
             "proposal_status",
             "approved_check_in_time",
             "approved_check_out_time",
+            "created_by",
+            "approved_by",
             "created_at",
             "updated_at",
         ]

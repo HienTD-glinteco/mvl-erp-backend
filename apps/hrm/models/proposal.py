@@ -48,8 +48,6 @@ class Proposal(AutoCodeMixin, BaseModel):
         "Employee",
         on_delete=models.PROTECT,
         related_name="created_proposals",
-        null=True,
-        blank=True,
         verbose_name=_("Created by"),
     )
 

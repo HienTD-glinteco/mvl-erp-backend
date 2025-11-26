@@ -79,13 +79,14 @@ class TestProposalVerifierModel:
         )
 
     @pytest.fixture
-    def timesheet_complaint_proposal(self):
+    def timesheet_complaint_proposal(self, employee):
         """Create a timesheet entry complaint proposal for testing."""
         return Proposal.objects.create(
             code="DX000001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
             complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
+            created_by=employee,
         )
 
     def test_create_proposal_verifier_with_default_status(self, timesheet_complaint_proposal, employee):
@@ -207,22 +208,24 @@ class TestProposalVerifierAPI:
         )
 
     @pytest.fixture
-    def timesheet_complaint_proposal(self):
+    def timesheet_complaint_proposal(self, employee):
         """Create a timesheet entry complaint proposal for testing."""
         return Proposal.objects.create(
             code="DX000003",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
             complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
+            created_by=employee,
         )
 
     @pytest.fixture
-    def paid_leave_proposal(self):
+    def paid_leave_proposal(self, employee):
         """Create a paid leave proposal for testing."""
         return Proposal.objects.create(
             code="DX000002",
             proposal_type=ProposalType.PAID_LEAVE,
             proposal_status=ProposalStatus.PENDING,
+            created_by=employee,
         )
 
     @pytest.fixture
