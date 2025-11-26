@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.proposal import (
     ProposalFilterSet,
-    TimesheetEntryComplaintProposalFilterSet,
+    ProposalTimesheetEntryComplaintFilterSet,
 )
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
@@ -121,6 +121,7 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     module = "HRM"
     submodule = "Proposal"
+    permission_prefix = "proposal"
 
     # Subclasses must define this
     proposal_type: ProposalType = None  # type: ignore
@@ -211,7 +212,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
-    filterset_class = TimesheetEntryComplaintProposalFilterSet
+    filterset_class = ProposalTimesheetEntryComplaintFilterSet
     permission_prefix = "proposal_timesheet_entry_complaint"
 
     @extend_schema(

@@ -34,6 +34,14 @@ class Branch(AutoCodeMixin, BaseModel):
     )
     description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    director = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="directed_branches",
+        verbose_name=_("Branch director"),
+    )
 
     class Meta:
         verbose_name = _("Branch")
@@ -91,6 +99,14 @@ class Block(AutoCodeMixin, BaseModel):
     )
     description = SafeTextField(blank=True, verbose_name=_("Description"))
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    director = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="directed_blocks",
+        verbose_name=_("Block director"),
+    )
 
     class Meta:
         verbose_name = _("Block")
@@ -123,6 +139,14 @@ class Department(AutoCodeMixin, BaseModel):
         PROJECT_PROMOTION = "project_promotion", _("Project Promotion")
         PROJECT_DEVELOPMENT = "project_development", _("Project Development")
 
+    leader = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="led_departments",
+        verbose_name=_("Department leader"),
+    )
     name = models.CharField(max_length=200, verbose_name=_("Department name"))
     code = models.CharField(max_length=50, verbose_name=_("Department code"))
     branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name="departments", verbose_name=_("Branch"))

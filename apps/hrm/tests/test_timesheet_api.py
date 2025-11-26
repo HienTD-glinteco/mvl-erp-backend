@@ -173,3 +173,12 @@ def test_month_filter_future_disallowed_raises_400(db, api_client):
     content = resp.json()
     # Ensure message is present somewhere in error payload
     assert "Month filter cannot be in the future" in str(content)
+
+
+def test_retrieve_employee_timesheet_not_found(db, api_client):
+    """Test that retrieve returns 404 for non-existent employee."""
+    client = api_client
+    url = reverse("hrm:employee-timesheet-detail", args=[99999])
+    resp = client.get(url)
+
+    assert resp.status_code == status.HTTP_404_NOT_FOUND

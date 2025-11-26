@@ -89,11 +89,8 @@ router.register(r"attendance-devices", AttendanceDeviceViewSet, basename="attend
 router.register(r"attendance-records", AttendanceRecordViewSet, basename="attendance-record")
 router.register(r"attendance-reports", AttendanceReportViewSet, basename="attendance-report")
 router.register(r"timesheets", EmployeeTimesheetViewSet, basename="employee-timesheet")
-router.register(r"timesheet-entries", TimeSheetEntryViewSet, basename="timesheet-entry")
+router.register(r"timesheet/entries", TimeSheetEntryViewSet, basename="timesheet-entry")
 router.register(r"work-schedules", WorkScheduleViewSet, basename="work-schedule")
-
-# Proposal endpoints
-router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 # Proposal endpoints - nested under proposals/
 router.register(
@@ -139,6 +136,9 @@ router.register(
 
 # Proposal verifiers
 router.register(r"proposal-verifiers", ProposalVerifierViewSet, basename="proposal-verifier")
+
+# Proposal endpoints
+router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 # Report endpoints (single ViewSet with custom actions)
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")

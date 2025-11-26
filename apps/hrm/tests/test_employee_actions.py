@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -9,7 +9,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Employee, EmployeeWorkHistory, Position
+from apps.hrm.api.views.employee import EmployeeViewSet
+from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Employee, EmployeeWorkHistory, Position
 
 User = get_user_model()
 
@@ -428,3 +429,237 @@ class EmployeeActionAPITest(TestCase):
         response = self.client.post(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class EmployeeEmailTemplateContextTest(TestCase):
+    """Validate get_template_action_data context construction."""
+
+    def setUp(self):
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Test Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001",
+            name="Support Block",
+            branch=self.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        self.department = Department.objects.create(
+            code="PB001",
+            name="HR Department",
+            branch=self.branch,
+            block=self.block,
+        )
+        self.employee_counter = 0
+
+        # Patch Celery-triggered tasks invoked by employee signals
+        self.hr_report_patcher = patch(
+            "apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay"
+        ).start()
+        self.recruitment_report_patcher = patch(
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+        ).start()
+        self.timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay").start()
+
+        self.department_leader = self._create_employee(fullname="Leader One")
+        self.department.leader = self.department_leader
+        self.department.save(update_fields=["leader"])
+
+    def tearDown(self):
+        self.hr_report_patcher.stop()
+        self.recruitment_report_patcher.stop()
+        self.timesheet_patcher.stop()
+        super().tearDown()
+
+    def _create_employee(self, **overrides):
+        self.employee_counter += 1
+        suffix = f"{self.employee_counter:03d}"
+        defaults = {
+            "fullname": f"Employee {suffix}",
+            "username": f"employee{suffix}",
+            "email": f"employee{suffix}@example.com",
+            "phone": f"09{self.employee_counter:08d}",
+            "attendance_code": f"{self.employee_counter:05d}",
+            "start_date": date(2024, 1, 1),
+            "department": self.department,
+            "branch": self.branch,
+            "block": self.block,
+            "citizen_id": f"987654{self.employee_counter:04d}",
+        }
+        defaults.update(overrides)
+        return Employee.objects.create(**defaults)
+
+    @patch("apps.hrm.api.views.employee.get_random_string")
+    def test_welcome_email_send_populates_context_and_updates_password(self, mock_random_string):
+        mock_random_string.return_value = "TempPass99"
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Sales",
+            name="Alice",
+            phone_number="0912345678",
+            email="alice@example.com",
+        )
+        employee = self._create_employee(fullname="New Hire")
+        employee.user.set_password = MagicMock()
+        employee.user.save = MagicMock()
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_send"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertEqual(context["new_password"], "TempPass99")
+        employee.user.set_password.assert_called_once_with("TempPass99")
+        employee.user.save.assert_called_once()
+        self.assertEqual(context["employee_department_name"], self.department.name)
+        self.assertEqual(context["leader_fullname"], self.department_leader.fullname)
+        self.assertEqual(len(context["branch_contact_infos"]), 1)
+        self.assertEqual(context["branch_contact_infos"][0]["email"], "alice@example.com")
+
+    def test_welcome_email_preview_returns_placeholder_and_skips_password_reset(self):
+        employee = self._create_employee(fullname="Preview User")
+        employee.user.set_password = MagicMock()
+        employee.user.save = MagicMock()
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_preview"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertEqual(
+            context["new_password"],
+            "new password will be set when the email is sent",
+        )
+        employee.user.set_password.assert_not_called()
+        employee.user.save.assert_not_called()
+        self.assertEqual(context["branch_contact_infos"], [])
+
+    def test_context_includes_logo_image_url(self):
+        """Test that logo_image_url is included in context"""
+        employee = self._create_employee(fullname="Logo Test User")
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_preview"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertIn("logo_image_url", context)
+        self.assertIn("img/email_logo.png", context["logo_image_url"])
+
+    def test_context_with_department_without_leader(self):
+        """Test context when department has no leader"""
+        self.department.leader = None
+        self.department.save(update_fields=["leader"])
+
+        employee = self._create_employee(fullname="No Leader User")
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_preview"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertNotIn("leader_fullname", context)
+
+    def test_context_with_multiple_branch_contact_infos(self):
+        """Test context with multiple branch contact information entries"""
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Sales",
+            name="Alice",
+            phone_number="0912345678",
+            email="alice@example.com",
+        )
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Support",
+            name="Bob",
+            phone_number="0987654321",
+            email="bob@example.com",
+        )
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="HR",
+            name="Charlie",
+            phone_number="0901234567",
+            email="charlie@example.com",
+        )
+
+        employee = self._create_employee(fullname="Multi Contact User")
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_send"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertEqual(len(context["branch_contact_infos"]), 3)
+        self.assertEqual(context["branch_contact_infos"][0]["name"], "Alice")
+        self.assertEqual(context["branch_contact_infos"][1]["name"], "Bob")
+        self.assertEqual(context["branch_contact_infos"][2]["name"], "Charlie")
+        self.assertEqual(context["branch_contact_infos"][0]["business_line"], "Sales")
+        self.assertEqual(context["branch_contact_infos"][1]["email"], "bob@example.com")
+        self.assertEqual(context["branch_contact_infos"][2]["phone_number"], "0901234567")
+
+    def test_context_structure_matches_expected_schema(self):
+        """Test that context structure matches the expected schema for template"""
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Sales",
+            name="Alice",
+            phone_number="0912345678",
+            email="alice@example.com",
+        )
+
+        employee = self._create_employee(fullname="Schema Test User")
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_send"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        # Check top-level keys (flat structure)
+        self.assertIn("employee_fullname", context)
+        self.assertIn("employee_email", context)
+        self.assertIn("employee_username", context)
+        self.assertIn("employee_start_date", context)
+        self.assertIn("employee_code", context)
+        self.assertIn("employee_department_name", context)
+        self.assertIn("new_password", context)
+        self.assertIn("logo_image_url", context)
+        self.assertIn("branch_contact_infos", context)
+
+        # Check leader keys (flat structure)
+        self.assertIn("leader_fullname", context)
+        self.assertIn("leader_department_name", context)
+        self.assertIn("leader_block_name", context)
+        self.assertIn("leader_branch_name", context)
+
+        # Check branch_contact_infos structure
+        self.assertIsInstance(context["branch_contact_infos"], list)
+        self.assertGreater(len(context["branch_contact_infos"]), 0)
+        contact_info = context["branch_contact_infos"][0]
+        self.assertIn("business_line", contact_info)
+        self.assertIn("name", contact_info)
+        self.assertIn("phone_number", contact_info)
+        self.assertIn("email", contact_info)
+
+    def test_employee_start_date_is_isoformat(self):
+        """Test that employee start_date is converted to ISO format string"""
+        employee = self._create_employee(fullname="Date Format User", start_date=date(2024, 6, 15))
+
+        viewset = EmployeeViewSet()
+        viewset.action = "welcome_email_preview"
+
+        context = viewset.get_template_action_data(employee, "welcome")
+
+        self.assertEqual(context["employee_start_date"], "2024-06-15")
+        self.assertIsInstance(context["employee_start_date"], str)

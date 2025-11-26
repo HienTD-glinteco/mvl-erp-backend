@@ -1,61 +1,356 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to MaiVietLand</title>
-    <style>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quy định hội nhập</title>
+    <style type="text/css">
+        /* Base Reset */
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #0066cc;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .content {
-            padding: 30px 20px;
-            background-color: #f9f9f9;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-        h1 {
             margin: 0;
+            padding: 0;
+            min-width: 100%;
+            background-color: #ffffff;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            color: #000000;
+            line-height: 1.4;
         }
+        table {
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 0;
+            vertical-align: top;
+        }
+        img {
+            border: 0;
+        }
+        a {
+            color: #0000ff;
+            text-decoration: underline;
+        }
+
+        /* Container */
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #ffffff;
+            padding-bottom: 40px;
+        }
+        .main-table {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 800px;
+            border: 1px solid #000000;
+        }
+
+        /* Header */
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+        .header-info {
+            font-size: 11pt;
+            padding: 5px;
+            border-bottom: 1px solid #000000;
+        }
+        .header-label {
+            font-weight: bold;
+        }
+
+        /* Content */
+        .content-cell {
+            padding: 20px;
+        }
+        .greeting {
+            margin-bottom: 15px;
+        }
+        .highlight-red {
+            color: #e06666;
+            font-style: italic;
+        }
+        .highlight-blue {
+            color: #0070c0;
+        }
+        .note {
+            font-style: italic;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 13pt;
+        }
+        .sub-section {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+        .list-item {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border: 1px solid #000000;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .data-table th {
+            background-color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #000000;
+            padding: 5px;
+        }
+        .data-table td {
+            border: 1px solid #000000;
+            padding: 5px;
+        }
+        .bg-green {
+            background-color: #d9ead3;
+        }
+
+        /* Utility */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .bold { font-weight: bold; }
+        .italic { font-style: italic; }
+        .underline { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Welcome to MaiVietLand!</h1>
-    </div>
-    <div class="content">
-        <p>Dear {{ fullname }},</p>
+    <div class="wrapper">
+        <table class="main-table" align="center">
+            <!-- Header Section -->
+            <tr>
+                <td colspan="2">
+                    <table width="100%">
+                        <tr>
+                            <td width="150" style="padding: 10px; text-align: center;">
+                                <!-- Logo Placeholder -->
+                                <img src="{{ logo_image_url }}" alt="Logo" width="100" style="display: block; margin: 0 auto;" />
+                            </td>
+                            <td class="header-title">
+                                QUY ĐỊNH HỘI NHẬP DÀNH CHO NHÂN VIÊN MỚI
+                            </td>
+                            <td width="200">
+                                <table width="100%">
+                                    <tr>
+                                        <td class="header-info">Mã hiệu</td>
+                                        <td class="header-info"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="header-info">Lần ban hành</td>
+                                        <td class="header-info">01</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="header-info">Ngày ban hành</td>
+                                        <td class="header-info"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="header-info" style="border-bottom: none;">Trang</td>
+                                        <td class="header-info" style="border-bottom: none;"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
 
-        <p>We are thrilled to welcome you to the MaiVietLand team! Your journey with us begins on <strong>{{ start_date }}</strong>.</p>
+            <!-- Body Content -->
+            <tr>
+                <td class="content-cell">
 
-        {% if position %}
-        <p>As our new <strong>{{ position }}</strong>{% if department %} in the {{ department }} department{% endif %}, you will play a vital role in our organization's success.</p>
-        {% endif %}
+                    <!-- Greeting -->
+                    <div class="greeting">
+                        Dear Anh/Chị: <span class="highlight-red">{{ employee_fullname }}</span> – Mã Nhân viên: <span class="highlight-red">{{ employee_code }}</span>;
+                    </div>
 
-        <p>We look forward to working with you and seeing you grow with our company.</p>
+                    <div class="note">
+                        (Nhận được mail này anh chị vui lòng xác nhận qua email cho phòng Hành chính Nhân sự)
+                    </div>
 
-        <p>If you have any questions before your start date, please don't hesitate to reach out.</p>
+                    <div style="margin-bottom: 20px;">
+                        Thay mặt Công ty Cổ phần Địa ốc Mai Việt, Phòng Hành chính Nhân sự (HCNS) chào mừng anh chị đến với
+                        <span class="highlight-red bold italic">{{ employee_department_name }}</span> của công ty từ ngày
+                        <span class="highlight-red bold italic">{{ employee_start_date }}</span>!
+                    </div>
 
-        <p>Best regards,<br>
-        The MaiVietLand HR Team</p>
-    </div>
-    <div class="footer">
-        <p>&copy; 2025 MaiVietLand. All rights reserved.</p>
+                    <div style="margin-bottom: 20px;">
+                        Phòng HCNS xin gửi anh chị một số lưu ý như sau:
+                    </div>
+
+                    <!-- Section 1 -->
+                    <div class="section-title">1. Các quy định liên quan đến giờ làm việc, xin đi muộn, về sớm, công tác và đồng phục:</div>
+
+                    <div class="sub-section italic underline">* Thời gian làm việc: Từ thứ hai đến thứ sáu và sáng thứ bảy hàng tuần</div>
+                    <div class="list-item">- Sáng: từ 8h00 đến 12h00</div>
+                    <div class="list-item">- Chiều: từ 13h30 đến 17h30</div>
+                    <div class="list-item">- Nghỉ trưa: 12h00 đến 13h30</div>
+
+                    <div class="sub-section italic underline" style="margin-top: 10px;">* Về việc đi muộn, xin phép nghỉ, đi tiếp khách, đồng phục:</div>
+                    <div class="list-item bg-green" style="padding: 5px;">- Các trường hợp vắng mặt tại văn phòng trong thời gian làm việc đều phải được sự đồng ý của trưởng phòng phụ trách trực tiếp, sau đó làm phiếu trên phần mềm</div>
+
+                    <div class="list-item">- User đăng nhập: <span class="highlight-red bold italic">{{ employee_username }}</span></div>
+                    <div class="list-item">- Pass đăng nhập: <span class="highlight-red bold italic">{{ new_password }}</span></div>
+
+                    <div class="list-item">- Chuyên cần: Một tháng, nhân viên được đi làm muộn dưới 5 phút 2 lần, được xin phép đi muộn 2 lần, từ lần thứ 3 cho dù có xin phép vẫn bị tính phạt đi muộn.</div>
+                    <div class="list-item">- Khi trở thành nhân viên chính thức, mỗi tháng nhân viên có 1 ngày nghỉ phép được tính lương.</div>
+                    <div class="list-item">- Từ thứ 2 đến thứ 6 anh chị thực hiện đồng phục theo quy định: áo sơ mi trắng, quần/váy tối màu. Thứ 7 trang phục tự do.</div>
+
+                    <!-- Section 2 -->
+                    <div class="section-title">2. Các công việc cần thực hiện trong vòng 7 ngày đầu tiên làm việc tại Mai Việt:</div>
+
+                    <div class="sub-section italic underline">* Hoàn thiện hồ sơ nhân sự gồm:</div>
+                    <div class="list-item">- 01 Sơ yếu lý lịch có xác nhận địa phương (công chứng trong vòng 6 tháng)</div>
+                    <div class="list-item">- 01 bản sao Giấy khai sinh (công chứng trong vòng 6 tháng)</div>
+                    <div class="list-item">- 01 Sổ hộ khẩu photo (công chứng trong vòng 6 tháng)</div>
+                    <div class="list-item">- 01 Giấy khám sức khoẻ có dấu bệnh viên (trong vòng 6 tháng)</div>
+                    <div class="list-item">- 01 CMND/ thẻ căn cước photo (công chứng trong vòng 6 tháng)</div>
+                    <div class="list-item">- Các văn bằng photo (công chứng trong vòng 6 tháng)</div>
+                    <div class="list-item">- 02 ảnh màu 4*6</div>
+
+                    <div class="sub-section italic underline" style="margin-top: 10px;">* Đăng nhập email nội bộ và sử dụng (outlook/webmail)</div>
+                    <div class="list-item">- Email nội bộ của anh/chị là: <span class="italic">{{ employee_email }}</span> - pass mặc định trong hướng dẫn sử dụng mail</div>
+                    <div class="list-item">
+                        - Hướng dẫn sử dụng mail nội bộ:
+                        <a href="https://drive.google.com/drive/u/1/folders/1xDWzAPZ7kGtyqumWbcgSNAORBJWHsgho" target="_blank">HƯỚNG DẪN SỬ DỤNG MAIL NỘI BỘ CTY MAI VIỆT - Google Drive</a>
+                    </div>
+
+                    <div class="sub-section italic underline" style="margin-top: 10px;">* Làm Tài khoản ngân hàng VPBank và gửi lại trước ngày 8 tháng tiếp theo</div>
+                    <div class="list-item">Công ty chi trả lương, thưởng, hoa hồng và các khoản khác 100% bằng hình thức chuyển khoản qua VPBank nên các anh chị lưu ý chuyển lại STK đúng thời hạn</div>
+
+                    <div class="sub-section italic underline" style="margin-top: 10px;">* Lấy vân tay chấm công vào 17h00 hàng ngày tại quầy lễ tân</div>
+
+                    <div class="sub-section italic underline" style="margin-top: 10px;">* Upload 01 ảnh cá nhân</div>
+                    <div class="list-item">(Tên ảnh ghi rõ họ và tên, phòng ban) để sử dụng làm thẻ dự án, làm các ấn phẩm cho nhân viên khi phát sinh lên link này: <a href="https://drive.google.com/drive/folders/1-hCu5DjCehbQEwgtn-MTN2cD-yE3CjRO?usp=sharing" target="_blank">Link Upload Ảnh</a></div>
+
+                    <!-- Section 3 -->
+                    <div class="section-title">3. Các nội quy, quy định của công ty</div>
+
+                    <div class="list-item">
+                        * Nội quy công ty: <a href="https://drive.google.com/file/d/17N8OTuuGSH90AONYdjjMHpviFbqVdasD/view?usp=sharing" target="_blank">Link</a>
+                    </div>
+                    <div class="list-item">
+                        * Nội quy lao động: <a href="https://drive.google.com/file/d/1q3jkoLEi85Z7mIOQN-jo7_Yf2JlKJjR6/view?usp=sharing" target="_blank">Link</a>
+                    </div>
+                    <div class="list-item">
+                        * Quy chế sử dụng mẫu phiếu: <a href="https://drive.google.com/file/d/1fb5K2P9PmGSDARG6ie7C4MoVYkUFKidy/view?usp=sharing" target="_blank">Link</a>
+                    </div>
+                    <div class="list-item">
+                        * Thông báo về việc chấm công bằng vân tay: <a href="https://drive.google.com/file/d/1dVeJATpdROFygDgfGPu9kb_SrdX8sFwn/view" target="_blank">Link</a>
+                    </div>
+                    <div class="list-item bg-green" style="padding: 5px;">
+                        * Hướng dẫn cách làm phiếu trên phần mềm TaViCo: <a href="https://docs.google.com/document/d/1d1aVX5Px8udG0c6VNnT4SXoX1dVPTNjR8KdY-RWjYJY/edit" target="_blank">Link</a>
+                    </div>
+                    <div class="list-item bg-green" style="padding: 5px;">
+                        * Hướng dẫn sử dụng chức năng theo dõi & CSKH trên phần mềm TaViCo: <a href="https://drive.google.com/file/d/1_AGY5VonWjpVlYDBYDWr2_X9XiIewqyI/view?usp=sharing" target="_blank">Link</a>
+                    </div>
+
+                    <!-- Section 4 -->
+                    <div class="section-title">4. Thông tin Ban lãnh đạo và các liên hệ cần biết:</div>
+
+                    <div class="sub-section underline">* Quản lý trực tiếp:</div>
+                    <div class="list-item">- Ông/Bà <span class="highlight-red italic">
+                        {{ leader_fullname }} - {{ leader_department_name }} - {{ leader_block_name }} - {{ leader_branch_name }}
+                    </span></div>
+
+                    <div class="sub-section underline" style="margin-top: 10px;">* Thông tin Ban lãnh đạo:</div>
+
+                    <table class="data-table">
+                        <tr>
+                            <th colspan="2">Chức vụ</th>
+                            <th>Họ tên</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Tổng Giám đốc</td>
+                            <td>Ông Mai Viết Vĩnh</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="bold text-center">KHỐI KINH DOANH</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 2</td>
+                            <td>Ông. Nguyễn Văn Long</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 3</td>
+                            <td>Ông. Nguyễn Đình Đức</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 7</td>
+                            <td>Ông. Phạm Văn Thuật</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 8</td>
+                            <td>Ông. Nguyễn Trường Giang</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 9</td>
+                            <td>Ông. Nguyễn Thạc Cường</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Giám đốc Kinh doanh Khối 12</td>
+                            <td>Bà. Nguyễn Thị Phượng</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="bold text-center">KHỐI HỖ TRỢ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Trưởng phòng Hành chính Nhân sự</td>
+                            <td>Ông. Nguyễn Vĩnh Toàn</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Trưởng phòng Tuyển dụng - Đào tạo</td>
+                            <td>Ông. Nguyễn Vĩnh Toàn</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Trưởng phòng Kế toán</td>
+                            <td>Bà. Nguyễn Thị Tố Loan</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Trưởng phòng Thư ký Kinh doanh</td>
+                            <td>Bà. Phạm Thị Thu Hà</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Trưởng phòng Marketing</td>
+                            <td>Bà. Lê Thị Vân Anh</td>
+                        </tr>
+                    </table>
+
+                    {% if branch_contact_infos %}
+                    <div class="sub-section underline" style="margin-top: 10px;">* Thông tin liên hệ Phòng Hành chính Nhân sự:</div>
+                        <table class="data-table">
+                            <tr>
+                                <th width="30%">Nghiệp vụ</th>
+                                <th width="25%">Họ tên</th>
+                                <th width="20%">Số điện thoại</th>
+                                <th width="25%">Email</th>
+                            </tr>
+                            {% for branch_contact_info in branch_contact_infos %}
+                                <tr>
+                                    <td>- {{ branch_contact_info.business_line }}</td>
+                                    <td>{{ branch_contact_info.name }}</td>
+                                    <td>{{ branch_contact_info.phone_number }}</td>
+                                    <td>{{ branch_contact_info.email }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

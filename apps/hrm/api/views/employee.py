@@ -1,4 +1,8 @@
+from typing import Any, Dict
+
 from django.db import transaction
+from django.templatetags.static import static
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -107,6 +111,53 @@ class EmployeeViewSet(
         if self.action == "update_avatar":
             return EmployeeAvatarSerializer
         return super().get_serializer_class()
+
+    def get_template_action_data(self, instance: Employee, template_slug: str) -> Dict[str, Any]:
+        """Get context data for employee email templates."""
+        new_password_condition = self.action == "welcome_email_send"
+        new_password = (
+            get_random_string(length=8)
+            if new_password_condition
+            else "new password will be set when the email is sent"
+        )
+        if new_password_condition and instance.user:
+            instance.user.set_password(new_password)
+            instance.user.save()
+
+        logo_image_url = static("img/email_logo.png")
+
+        context = {
+            "employee_fullname": instance.fullname,
+            "employee_email": instance.email,
+            "employee_username": instance.username,
+            "employee_start_date": instance.start_date.isoformat() if instance.start_date else "",
+            "employee_code": instance.code,
+            "employee_department_name": instance.department.name,
+            "new_password": new_password,
+            "logo_image_url": logo_image_url,
+            "branch_contact_infos": [],
+        }
+
+        department_leader = instance.department.leader
+        if department_leader:
+            context["leader_fullname"] = department_leader.fullname
+            context["leader_department_name"] = department_leader.department.name
+            context["leader_block_name"] = department_leader.block.name
+            context["leader_branch_name"] = department_leader.branch.name
+
+        branch_contact_infos = instance.branch.contact_infos.all()
+        if branch_contact_infos:
+            context["branch_contact_infos"] = [
+                {  # type: ignore
+                    "business_line": info.business_line,
+                    "name": info.name,
+                    "phone_number": info.phone_number,
+                    "email": info.email,
+                }
+                for info in branch_contact_infos
+            ]
+
+        return context
 
     @extend_schema(
         summary="Active an employee",
@@ -331,12 +382,9 @@ class EmployeeViewSet(
         return [
             {
                 "email": instance.email,
-                "data": {
-                    "fullname": instance.fullname,
-                    "start_date": instance.start_date.isoformat() if instance.start_date else "",
-                    "position": instance.position.name if instance.position else "",
-                    "department": instance.department.name if instance.department else "",
-                },
+                "data": self.get_template_action_data(
+                    instance, template_slug=request.data.get("template_slug", "welcome")
+                ),
             }
         ]
 

@@ -97,24 +97,6 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
         return Response(serialized)
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        emp = self.get_object()
-
-        first_day, last_day, month_key, employee_salary_type = self._get_timesheet_params(request)
-
-        # Fill dates from TimeSheetEntry
-        entries = TimeSheetEntry.objects.filter(employee_id=emp.id, date__range=(first_day, last_day)).order_by("date")
-        if employee_salary_type:
-            entries = entries.filter(count_for_payroll=employee_salary_type == EmployeeSalaryType.SALARIED)
-
-        # Fill aggregates from monthly timesheet
-        monthly = EmployeeMonthlyTimesheet.objects.filter(employee_id=emp.id, month_key=month_key).first()
-
-        payload = self._prepare_employee_data(emp, entries, monthly, first_day, last_day)
-
-        serializer = self.get_serializer(payload)
-        return Response(serializer.data)
-
     def _get_timesheet_params(self, request):
         # Determine month/year from filterset (fallback to current month)
         filterset = EmployeeTimesheetFilterSet(data=request.GET)
