@@ -1,7 +1,5 @@
 """Serializer for GeoLocation-based attendance recording."""
 
-from decimal import Decimal
-
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -35,7 +33,7 @@ class GeoLocationAttendanceSerializer(FileConfirmSerializerMixin, serializers.Mo
             "latitude",
             "longitude",
             "attendance_geolocation_id",
-            "image_id",
+            "image",
         ]
 
     def validate(self, attrs):
@@ -48,12 +46,14 @@ class GeoLocationAttendanceSerializer(FileConfirmSerializerMixin, serializers.Mo
             raise serializers.ValidationError(_("Latitude, longitude, and geolocation are required"))
 
         # Check if coordinates are within radius
-        if not is_within_radius(latitude, longitude, geolocation.latitude, geolocation.longitude, geolocation.radius_m):
+        if not is_within_radius(
+            latitude, longitude, geolocation.latitude, geolocation.longitude, geolocation.radius_m
+        ):
             raise serializers.ValidationError(
                 {
-                    "location": _(
-                        "Your location is outside the allowed radius ({radius}m) of the geolocation"
-                    ).format(radius=geolocation.radius_m)
+                    "location": _("Your location is outside the allowed radius ({radius}m) of the geolocation").format(
+                        radius=geolocation.radius_m
+                    )
                 }
             )
 
