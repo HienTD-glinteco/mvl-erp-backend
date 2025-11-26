@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 14:55+0700\n"
+"POT-Creation-Date: 2025-11-26 10:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,48 +36,48 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:273
+#: apps/hrm/api/serializers/employee.py:275
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:306
+#: apps/hrm/api/serializers/employee.py:308
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:320 apps/hrm/api/views/employee.py:410
+#: apps/hrm/api/serializers/employee.py:322 apps/hrm/api/views/employee.py:408
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:430
-#: apps/hrm/api/serializers/employee.py:455
+#: apps/hrm/api/serializers/employee.py:432
+#: apps/hrm/api/serializers/employee.py:457
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:486
+#: apps/hrm/api/serializers/employee.py:488
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:490
+#: apps/hrm/api/serializers/employee.py:492
 msgid "Seniority retained from previous employment period."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:508
+#: apps/hrm/api/serializers/employee.py:510
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:531
-#: apps/hrm/api/serializers/employee.py:574
+#: apps/hrm/api/serializers/employee.py:533
+#: apps/hrm/api/serializers/employee.py:576
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:550
+#: apps/hrm/api/serializers/employee.py:552
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
@@ -199,23 +199,23 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr ""
 
-#: apps/hrm/api/views/employee.py:508
+#: apps/hrm/api/views/employee.py:506
 msgid "No."
 msgstr "STT"
 
-#: apps/hrm/api/views/employee.py:509
+#: apps/hrm/api/views/employee.py:507
 msgid "Employee Code"
 msgstr "Mã Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:510
+#: apps/hrm/api/views/employee.py:508
 msgid "Full Name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/api/views/employee.py:511
+#: apps/hrm/api/views/employee.py:509
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:512
+#: apps/hrm/api/views/employee.py:510
 #: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/employee.py:194
 #: apps/hrm/models/employee_certificate.py:107
 #: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/proposal.py:152
@@ -224,29 +224,29 @@ msgstr "Mã Chấm Công"
 msgid "Status"
 msgstr "Trạng Thái"
 
-#: apps/hrm/api/views/employee.py:513
+#: apps/hrm/api/views/employee.py:511
 msgid "Start Date"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/api/views/employee.py:514
+#: apps/hrm/api/views/employee.py:512
 msgid "Resignation Reason"
 msgstr "Lý Do Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:515
+#: apps/hrm/api/views/employee.py:513
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:516
+#: apps/hrm/api/views/employee.py:514
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:517 apps/hrm/models/employee.py:177
+#: apps/hrm/api/views/employee.py:515 apps/hrm/models/employee.py:177
 #: apps/hrm/models/employee_work_history.py:101
 #: apps/hrm/models/organization.py:313
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:518
+#: apps/hrm/api/views/employee.py:516
 #: apps/hrm/models/attendance_wifi_device.py:37 apps/hrm/models/employee.py:157
 #: apps/hrm/models/employee_report.py:34 apps/hrm/models/employee_report.py:101
 #: apps/hrm/models/employee_work_history.py:74
@@ -258,7 +258,7 @@ msgstr "Chức Vụ"
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:519 apps/hrm/models/attendance_device.py:54
+#: apps/hrm/api/views/employee.py:517 apps/hrm/models/attendance_device.py:54
 #: apps/hrm/models/attendance_wifi_device.py:46 apps/hrm/models/employee.py:163
 #: apps/hrm/models/employee_report.py:40 apps/hrm/models/employee_report.py:107
 #: apps/hrm/models/employee_work_history.py:83
@@ -269,7 +269,7 @@ msgstr "Chi Nhánh"
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:520 apps/hrm/models/employee.py:169
+#: apps/hrm/api/views/employee.py:518 apps/hrm/models/employee.py:169
 #: apps/hrm/models/employee_report.py:46 apps/hrm/models/employee_report.py:113
 #: apps/hrm/models/employee_work_history.py:92
 #: apps/hrm/models/organization.py:182
@@ -279,94 +279,94 @@ msgstr "Khối"
 msgid "Department"
 msgstr "Phòng Ban"
 
-#: apps/hrm/api/views/employee.py:521
+#: apps/hrm/api/views/employee.py:519
 #: apps/hrm/models/employee_relationship.py:128
 #: apps/hrm/models/recruitment_candidate.py:57
 msgid "Phone"
 msgstr "Số điện thoại"
 
-#: apps/hrm/api/views/employee.py:522
+#: apps/hrm/api/views/employee.py:520
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:523 apps/hrm/models/employee.py:150
+#: apps/hrm/api/views/employee.py:521 apps/hrm/models/employee.py:150
 #: apps/hrm/models/organization.py:22 apps/hrm/models/organization.py:68
 #: apps/hrm/models/recruitment_candidate.py:56
 msgid "Email"
 msgstr "Email"
 
-#: apps/hrm/api/views/employee.py:524
+#: apps/hrm/api/views/employee.py:522
 msgid "Bank Name"
 msgstr "Tên Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:525
+#: apps/hrm/api/views/employee.py:523
 msgid "Bank Account Number"
 msgstr "Số Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:526
+#: apps/hrm/api/views/employee.py:524
 msgid "Tax Code"
 msgstr "Mã Số Thuế"
 
-#: apps/hrm/api/views/employee.py:527
+#: apps/hrm/api/views/employee.py:525
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:528 apps/hrm/models/employee.py:225
+#: apps/hrm/api/views/employee.py:526 apps/hrm/models/employee.py:225
 msgid "Gender"
 msgstr "Giới Tính"
 
-#: apps/hrm/api/views/employee.py:529
+#: apps/hrm/api/views/employee.py:527
 msgid "Date of Birth"
 msgstr "Ngày Sinh"
 
-#: apps/hrm/api/views/employee.py:530
+#: apps/hrm/api/views/employee.py:528
 msgid "Place of Birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/api/views/employee.py:531
+#: apps/hrm/api/views/employee.py:529
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:532 apps/hrm/models/employee.py:244
+#: apps/hrm/api/views/employee.py:530 apps/hrm/models/employee.py:244
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:533 apps/hrm/models/employee.py:249
+#: apps/hrm/api/views/employee.py:531 apps/hrm/models/employee.py:249
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:534 apps/hrm/models/employee.py:239
+#: apps/hrm/api/views/employee.py:532 apps/hrm/models/employee.py:239
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:535 apps/hrm/models/employee.py:257
+#: apps/hrm/api/views/employee.py:533 apps/hrm/models/employee.py:257
 #: apps/hrm/models/employee_dependent.py:79
 #: apps/hrm/models/employee_relationship.py:100
 #: apps/hrm/models/recruitment_candidate.py:53
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:536
+#: apps/hrm/api/views/employee.py:534
 msgid "ID Issued Date"
 msgstr "Ngày Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:537
+#: apps/hrm/api/views/employee.py:535
 msgid "ID Issued Place"
 msgstr "Nơi Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:538
+#: apps/hrm/api/views/employee.py:536
 msgid "Residential Address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/api/views/employee.py:539
+#: apps/hrm/api/views/employee.py:537
 msgid "Permanent Address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/api/views/employee.py:540
+#: apps/hrm/api/views/employee.py:538
 msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
-#: apps/hrm/api/views/employee.py:541
+#: apps/hrm/api/views/employee.py:539
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:76
 #: apps/hrm/models/attendance_record.py:70
@@ -903,12 +903,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -917,27 +915,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 

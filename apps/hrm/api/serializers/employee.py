@@ -90,7 +90,7 @@ class EmployeeBankAccountNestedSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for Employee model.
 
     This serializer provides nested object representation for read operations
@@ -153,6 +153,8 @@ class EmployeeSerializer(FieldFilteringSerializerMixin, serializers.ModelSeriali
     # Colored value properties
     colored_code_type = ColoredValueSerializer(read_only=True)
     colored_status = ColoredValueSerializer(read_only=True)
+
+    file_confirm_fields = ["avatar", "citizen_id_file"]
 
     class Meta:
         model = Employee

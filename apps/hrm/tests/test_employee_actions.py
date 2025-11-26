@@ -3,7 +3,7 @@ from datetime import date
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -544,6 +544,7 @@ class EmployeeEmailTemplateContextTest(TestCase):
         employee.user.save.assert_not_called()
         self.assertEqual(context["branch_contact_infos"], [])
 
+    @override_settings(SMS_API_URL="https://maivietland.com/logo.png")
     def test_context_includes_logo_image_url(self):
         """Test that logo_image_url is included in context"""
         employee = self._create_employee(fullname="Logo Test User")
@@ -554,7 +555,7 @@ class EmployeeEmailTemplateContextTest(TestCase):
         context = viewset.get_template_action_data(employee, "welcome")
 
         self.assertIn("logo_image_url", context)
-        self.assertIn("img/email_logo.png", context["logo_image_url"])
+        self.assertIn("/logo.png", context["logo_image_url"])
 
     def test_context_with_department_without_leader(self):
         """Test context when department has no leader"""

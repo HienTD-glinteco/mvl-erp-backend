@@ -28,3 +28,7 @@ AUTH_USER_MODEL = "core.User"
 
 # HRM Module Settings
 HRM_CERTIFICATE_NEAR_EXPIRY_DAYS = config("HRM_CERTIFICATE_NEAR_EXPIRY_DAYS", default=30, cast=int)
+
+FRONTEND_URL = config("FRONTEND_URL", default="")
+
+LOGO_URL = FRONTEND_URL + "/logo.png"

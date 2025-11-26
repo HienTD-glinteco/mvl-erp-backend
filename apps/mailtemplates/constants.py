@@ -6,6 +6,8 @@ All templates must be registered here with their metadata.
 
 from typing import Any, TypedDict
 
+from django.conf import settings
+
 
 class TemplateVariable(TypedDict):
     """Variable descriptor for template variables."""
@@ -127,7 +129,7 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
             "employee_code": "MVL12345",
             "employee_department_name": "Sales",
             "new_password": "Abc12345",
-            "logo_image_url": "/static/img/email_logo.png",
+            "logo_image_url": settings.LOGO_URL,
             "leader_fullname": "Jane Smith",
             "leader_department_name": "Sales",
             "leader_block_name": "North Block",
