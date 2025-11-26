@@ -57,7 +57,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         ]
 
     code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
-    
+
     # Attendance type and method
     attendance_type = models.CharField(
         max_length=20,
@@ -66,7 +66,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         verbose_name=_("Attendance type"),
         help_text=_("Type of attendance method used"),
     )
-    
+
     # Device reference (for biometric device attendance)
     device = models.ForeignKey(
         "AttendanceDevice",
@@ -77,7 +77,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         verbose_name=_("Device"),
         help_text=_("Attendance device that captured this record (for biometric device type)"),
     )
-    
+
     # Employee reference (nullable, matched by attendance_code)
     employee = models.ForeignKey(
         "Employee",
@@ -88,19 +88,19 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         verbose_name=_("Employee"),
         help_text=_("Employee associated with this attendance record"),
     )
-    
+
     attendance_code = models.CharField(
         max_length=20,
         blank=True,
         verbose_name=_("Attendance code"),
         help_text=_("User ID from device, used to match with Employee.attendance_code"),
     )
-    
+
     timestamp = models.DateTimeField(
         verbose_name=_("Timestamp"),
         help_text=_("Date and time when attendance was recorded"),
     )
-    
+
     # GPS fields
     latitude = models.DecimalField(
         max_digits=20,
@@ -138,7 +138,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         verbose_name=_("Image"),
         help_text=_("Attendance photo (for GPS attendance)"),
     )
-    
+
     # WiFi fields
     attendance_wifi_device = models.ForeignKey(
         "AttendanceWifiDevice",
@@ -149,7 +149,7 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         verbose_name=_("WiFi device"),
         help_text=_("WiFi device reference (for WiFi attendance)"),
     )
-    
+
     is_valid = models.BooleanField(
         default=True,
         verbose_name=_("Is valid"),

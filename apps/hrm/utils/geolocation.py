@@ -24,7 +24,7 @@ def haversine_distance(lat1: Decimal, lon1: Decimal, lat2: Decimal, lon2: Decima
         Distance between the two points in meters
 
     Example:
-        >>> haversine_distance(Decimal('10.7769'), Decimal('106.7009'), 
+        >>> haversine_distance(Decimal('10.7769'), Decimal('106.7009'),
         ...                    Decimal('10.7800'), Decimal('106.7050'))
         450.23  # approximately 450 meters
     """

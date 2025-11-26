@@ -2,7 +2,7 @@
 
 from decimal import Decimal, InvalidOperation
 
-from django.db.models import Case, DecimalField, ExpressionWrapper, F, FloatField, Func, Value, When
+from django.db.models import ExpressionWrapper, F, FloatField, Func, Value
 from rest_framework.filters import BaseFilterBackend
 
 from .data_scope import filter_by_leadership, filter_queryset_by_data_scope

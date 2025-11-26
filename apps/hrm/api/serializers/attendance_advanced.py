@@ -1,6 +1,6 @@
 """Serializers for GPS and WiFi-based attendance recording."""
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.utils import timezone
 from django.utils.translation import gettext as _
