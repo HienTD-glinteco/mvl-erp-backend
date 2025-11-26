@@ -87,7 +87,7 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
             {
                 "name": "logo_image_url",
                 "type": "string",
-                "required": False,
+                "required": True,
                 "description": "URL of the logo image",
             },
             {
@@ -220,6 +220,30 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
                 "required": False,
                 "description": "Interview location or meeting link",
             },
+            {
+                "name": "logo_image_url",
+                "type": "string",
+                "required": False,
+                "description": "URL of the logo image",
+            },
+            {
+                "name": "contact_fullname",
+                "type": "string",
+                "required": False,
+                "description": "Contact person's full name",
+            },
+            {
+                "name": "contact_phone",
+                "type": "string",
+                "required": False,
+                "description": "Contact person's phone number",
+            },
+            {
+                "name": "contact_position",
+                "type": "string",
+                "required": False,
+                "description": "Contact person's position",
+            },
         ],
         "sample_data": {
             "candidate_name": "Jane Doe",
@@ -227,6 +251,10 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
             "interview_date": "2025-11-05",
             "interview_time": "10:00 AM",
             "location": "https://meet.example.com/interview-123",
+            "logo_image_url": settings.LOGO_URL,
+            "contact_fullname": "Emily Tran",
+            "contact_phone": "+84 987 654 321",
+            "contact_position": "HR Manager",
         },
         "variables_schema": {
             "type": "object",
@@ -236,6 +264,10 @@ TEMPLATE_REGISTRY: list[TemplateMetadata] = [
                 "interview_date": {"type": "string", "format": "date"},
                 "interview_time": {"type": "string"},
                 "location": {"type": "string"},
+                "logo_image_url": {"type": "string", "format": "uri"},
+                "contact_fullname": {"type": "string"},
+                "contact_phone": {"type": "string"},
+                "contact_position": {"type": "string"},
             },
             "required": ["candidate_name", "position", "interview_date", "interview_time"],
         },

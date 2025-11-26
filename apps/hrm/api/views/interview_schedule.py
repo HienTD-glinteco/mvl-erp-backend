@@ -1,3 +1,4 @@
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -463,48 +464,67 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
 
         recipients = []
         for interview_candidate in interview_candidates:
-            candidate = interview_candidate.recruitment_candidate
-            schedule = interview_candidate.interview_schedule
+            recipient = self.get_recipient_for_interview_candidate(request, interview_candidate)
 
-            if not candidate.email:
+            if not recipient:
                 continue  # Skip candidates without email
 
-            # Format interview time
-            interview_time_str = (
-                interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
-            )
-            interview_date_str = (
-                interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
-            )
-
-            # Get position from recruitment request
-            position_name = ""
-            if schedule.recruitment_request:
-                if (
-                    hasattr(schedule.recruitment_request, "job_description")
-                    and schedule.recruitment_request.job_description
-                ):
-                    position_name = schedule.recruitment_request.job_description.position_title
-                elif hasattr(schedule.recruitment_request, "position_title"):
-                    position_name = schedule.recruitment_request.position_title
-
-            recipients.append(
-                {
-                    "email": candidate.email,
-                    "data": {
-                        "candidate_name": candidate.name,
-                        "position": position_name,
-                        "interview_date": interview_date_str,
-                        "interview_time": interview_time_str,
-                        "location": schedule.location,
-                    },
-                    "callback_data": {
-                        "interview_candidate_id": interview_candidate.id,
-                    },
-                }
-            )
+            recipients.append(recipient)
 
         return recipients
+
+    def get_recipient_for_interview_candidate(self, request, interview_candidate):
+        """Get recipient dict for a specific InterviewCandidate."""
+        candidate = interview_candidate.recruitment_candidate
+        schedule = interview_candidate.interview_schedule
+
+        if not candidate.email:
+            return  # Skip candidates without email
+
+        # Format interview time
+        interview_time_str = (
+            interview_candidate.interview_time.strftime("%H:%M") if interview_candidate.interview_time else ""
+        )
+        interview_date_str = (
+            interview_candidate.interview_time.strftime("%Y-%m-%d") if interview_candidate.interview_time else ""
+        )
+
+        # Get position from recruitment request
+        position_name = ""
+        if schedule.recruitment_request:
+            if (
+                hasattr(schedule.recruitment_request, "job_description")
+                and schedule.recruitment_request.job_description
+            ):
+                position_name = schedule.recruitment_request.job_description.position_title
+            elif hasattr(schedule.recruitment_request, "position_title"):
+                position_name = schedule.recruitment_request.position_title
+
+        recipient_data = {
+            "email": candidate.email,
+            "data": {
+                "candidate_name": candidate.name,
+                "position": position_name,
+                "interview_date": interview_date_str,
+                "interview_time": interview_time_str,
+                "location": schedule.location,
+                "logo_image_url": settings.LOGO_URL,
+            },
+            "callback_data": {
+                "interview_candidate_id": interview_candidate.id,
+            },
+        }
+
+        user = request.user
+        if getattr(user, "employee", None):
+            employee = user.employee
+            recipient_data["contact_fullname"] = employee.fullname
+            if employee.phone:
+                recipient_data["contact_phone"] = employee.phone
+            if employee.position:
+                recipient_data["contact_position"] = employee.position.name
+
+        return recipient_data
 
     @extend_schema(
         summary="Update interviewers in interview schedule",

@@ -1,76 +1,375 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Invitation</title>
-    <style>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Interview Invite</title>
+    <style type="text/css">
+        /* Email Client Resets */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            border-collapse: collapse !important;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+        }
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
         }
-        .header {
-            background-color: #28a745;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        .content {
-            padding: 30px 20px;
-            background-color: #f9f9f9;
-        }
-        .details {
-            background-color: #fff;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-        h1 {
+
+        /* Base Styles */
+        .email-body {
             margin: 0;
+            padding: 0;
+            min-width: 100%;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #ffffff;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        .wrapper-table {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #ffffff;
+            padding-bottom: 40px;
+        }
+        .container-cell {
+            padding: 20px;
+            vertical-align: top;
+        }
+        .main-table {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Header */
+        .header-cell {
+            padding-bottom: 20px;
+            vertical-align: top;
+        }
+        .logo-cell {
+            width: 150px;
+            padding: 10px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .title-cell {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px;
+            font-family: "Times New Roman", Times, serif;
+            color: #000000;
+        }
+        .spacer-cell {
+            width: 150px;
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .logo-img {
+            border: 0;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Content */
+        .content-cell {
+            padding-bottom: 11pt;
+            text-align: justify;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+            vertical-align: top;
+        }
+        .content-cell-no-padding {
+            padding-bottom: 0;
+            text-align: justify;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+            vertical-align: top;
+        }
+
+        /* Text Styles */
+        .text-bold {
+            font-weight: 700;
+        }
+        .text-normal {
+            font-weight: 400;
+        }
+
+        /* Links */
+        .email-link {
+            text-decoration: none;
+            color: #000000;
         }
     </style>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td, p, a {
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+    </style>
+    <![endif]-->
 </head>
-<body>
-    <div class="header">
-        <h1>Interview Invitation</h1>
-    </div>
-    <div class="content">
-        <p>Dear {{ candidate_name }},</p>
+<body class="email-body">
+    <!-- Duplicate styles inside body for email clients that strip head styles -->
+    <style type="text/css">
+        .email-body {
+            margin: 0;
+            padding: 0;
+            min-width: 100%;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #ffffff;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+        }
+        .wrapper-table {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #ffffff;
+            padding-bottom: 40px;
+        }
+        .container-cell {
+            padding: 20px;
+            vertical-align: top;
+        }
+        .main-table {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+        }
+        .header-cell {
+            padding-bottom: 20px;
+            vertical-align: top;
+        }
+        .logo-cell {
+            width: 150px;
+            padding: 10px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .title-cell {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            padding: 10px;
+            font-family: "Times New Roman", Times, serif;
+            color: #000000;
+        }
+        .spacer-cell {
+            width: 150px;
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .logo-img {
+            border: 0;
+            display: block;
+            margin: 0 auto;
+        }
+        .content-cell {
+            padding-bottom: 11pt;
+            text-align: justify;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+            vertical-align: top;
+        }
+        .content-cell-no-padding {
+            padding-bottom: 0;
+            text-align: justify;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 13pt;
+            color: #000000;
+            line-height: 1.5;
+            vertical-align: top;
+        }
+        .text-bold {
+            font-weight: 700;
+        }
+        .text-normal {
+            font-weight: 400;
+        }
+        .email-link {
+            text-decoration: none;
+            color: #000000;
+        }
+    </style>
 
-        <p>Thank you for your interest in the <strong>{{ position }}</strong> position at MaiVietLand.</p>
+    <table class="wrapper-table" role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td class="container-cell" align="center">
+                <table class="main-table" role="presentation" border="0" cellpadding="0" cellspacing="0" width="600">
 
-        <p>We are pleased to invite you for an interview to discuss your qualifications and learn more about you.</p>
+                    <!-- Header -->
+                    <tr>
+                        <td class="header-cell">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td class="logo-cell" width="150">
+                                        <img class="logo-img" src="{{ logo_image_url }}" alt="Logo" width="100" />
+                                    </td>
+                                    <td class="title-cell">
+                                        THƯ MỜI PHỎNG VẤN
+                                    </td>
+                                    <td class="spacer-cell" width="150">
+                                        &nbsp;
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
 
-        <div class="details">
-            <p><strong>Interview Details:</strong></p>
-            <ul>
-                <li><strong>Date:</strong> {{ interview_date }}</li>
-                <li><strong>Time:</strong> {{ interview_time }}</li>
-                {% if location %}
-                <li><strong>Location:</strong> {{ location }}</li>
-                {% endif %}
-            </ul>
-        </div>
+                    <!-- Greeting -->
+                    <tr>
+                        <td class="content-cell">
+                            <span class="text-normal">Thân gửi:</span>
+                            <span class="text-bold">&nbsp;{{ candidate_name }}</span><span class="text-normal">,</span>
+                        </td>
+                    </tr>
 
-        <p>Please confirm your attendance by replying to this email at your earliest convenience.</p>
+                    <!-- Intro -->
+                    <tr>
+                        <td class="content-cell">
+                            MAI VIỆT LAND chân thành cảm ơn bạn đã quan tâm vị trí: {{ position }}.
+                        </td>
+                    </tr>
 
-        <p>We look forward to meeting you!</p>
+                    <!-- Position Match -->
+                    <tr>
+                        <td class="content-cell">
+                            <span class="text-normal">Qua quá trình chọn lọc, chúng tôi nhận thấy hồ sơ của bạn phù hợp với vị trí </span>
+                            <span class="text-bold">{{ position }}</span>
+                            <span class="text-normal">&nbsp;của công ty đang tuyển dụng.</span>
+                        </td>
+                    </tr>
 
-        <p>Best regards,<br>
-        The MaiVietLand Recruitment Team</p>
-    </div>
-    <div class="footer">
-        <p>&copy; 2025 MaiVietLand. All rights reserved.</p>
-    </div>
+                    <!-- Invitation -->
+                    <tr>
+                        <td class="content-cell">
+                            Để có thể hiểu rõ hơn về MAI VIỆT LAND và vị trí ứng tuyển, cũng như tạo điều kiện cho công ty đánh giá chính xác hơn về kiến thức và năng lực của bạn. Bằng thư mời này, chúng tôi trân trọng mời bạn tham dự buổi trao đổi trực tiếp tại văn phòng.
+                        </td>
+                    </tr>
+
+                    <!-- Time -->
+                    <tr>
+                        <td class="content-cell">
+                            <span class="text-normal">Thời gian :</span>
+                            <span class="text-bold">&nbsp;{{ interview_time }} - {{ interview_date }}</span>
+                        </td>
+                    </tr>
+
+                    <!-- Location -->
+                    <tr>
+                        <td class="content-cell">
+                            <span class="text-normal">Địa điểm : </span>
+                            <span class="text-bold">{{ location }}</span>
+                        </td>
+                    </tr>
+
+                    <!-- Note Header -->
+                    <tr>
+                        <td class="content-cell">
+                            Lưu ý :
+                        </td>
+                    </tr>
+
+                    <!-- Note Details -->
+                    <tr>
+                        <td class="content-cell-no-padding">
+                            Thông tin Profile, MAI VIỆT LAND sẽ chuẩn bị sẵn (bạn không cần mang theo CV)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell-no-padding">
+                            Để thuận tiện khi đến, bạn có thể gửi xe: bên ngoài sảnh C2 tòa Central Point Building Trung Kính (bên cạnh Winmart - ngõ Nguyễn Thị Duệ)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell">
+                            Đi thang máy sảnh C2 - đối diện quán cà phê Hân bên cạnh Winmart
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell">
+                            Bên cạnh đó, để có thể hiểu nhiều hơn về MAI VIỆT LAND, trong email có đính kèm profile của Công ty. Bạn có thể xem qua ở file đính kèm.
+                        </td>
+                    </tr>
+
+                    <!-- Links -->
+                    <tr>
+                        <td class="content-cell-no-padding">
+                            Website: <a class="email-link" href="https://maivietland.vn/">https://maivietland.vn/</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell">
+                            Facebook: <a class="email-link" href="https://www.facebook.com/maivietland.official?mibextid=ZbWKwL">https://www.facebook.com/maivietland.official?mibextid=ZbWKwL</a>
+                        </td>
+                    </tr>
+
+                    <!-- Contact Info -->
+                    <tr>
+                        <td class="content-cell-no-padding">
+                            Để biết thêm các thông tin khác, bạn có thể liên hệ với chúng tôi qua:
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell">
+                            <span class="text-bold">{{ contact_fullname}} - {{contact_position}} - {{ contact_phone }}</span>
+                        </td>
+                    </tr>
+
+                    <!-- Confirmation Request -->
+                    <tr>
+                        <td class="content-cell">
+                            Bạn vui lòng phản hồi thư này để xác nhận thông tin trên và báo trước nếu có sự thay đổi thời gian phỏng vấn theo lịch đã hẹn.
+                        </td>
+                    </tr>
+
+                    <!-- Closing -->
+                    <tr>
+                        <td class="content-cell">
+                            Mong chờ được gặp bạn tại buổi phỏng vấn.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content-cell">
+                            Trân trọng!
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
