@@ -39,6 +39,19 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
     submodule = "Permission Management"
     permission_prefix = "permission"
 
+    def list(self, request, *args, **kwargs):
+        """List permissions with optional get_all parameter."""
+        get_all = request.query_params.get("get_all", "").lower() == "true"
+
+        if get_all:
+            # Return all results with pagination structure
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({"count": queryset.count(), "next": None, "previous": None, "results": serializer.data})
+
+        # Default paginated response
+        return super().list(request, *args, **kwargs)
+
     @extend_schema(
         summary="Get permission structure (modules/submodules)",
         description=(

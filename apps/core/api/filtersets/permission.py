@@ -11,7 +11,17 @@ class PermissionFilterSet(django_filters.FilterSet):
     description = django_filters.CharFilter(lookup_expr="icontains")
     module = django_filters.CharFilter(lookup_expr="iexact")
     submodule = django_filters.CharFilter(lookup_expr="iexact")
+    get_all = django_filters.BooleanFilter(
+        method="noop",
+        help_text=(
+            "If true, return all matched permissions inside the standard paginated envelope: "
+            '{"count": <total>, "next": null, "previous": null, "results": [...]}.'
+        ),
+    )
 
     class Meta:
         model = Permission
-        fields = ["code", "name", "description", "module", "submodule"]
+        fields = ["code", "name", "description", "module", "submodule", "get_all"]
+
+    def noop(self, queryset, name, value):
+        return queryset
