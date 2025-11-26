@@ -19,6 +19,15 @@ SICK_LEAVE_DAYS_PER_YEAR = 30
 TEMP_CODE_PREFIX = "TEMP_"
 
 
+class AttendanceType(models.TextChoices):
+    """Attendance type choices for attendance records."""
+
+    BIOMETRIC_DEVICE = "biometric_device", _("Biometric Device")
+    WIFI = "wifi", _("WiFi")
+    GPS = "gps", _("GPS")
+    OTHER = "other", _("Other")
+
+
 class RecruitmentSourceType(models.TextChoices):
     REFERRAL_SOURCE = "referral_source", _("Referral Source")
     MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")
