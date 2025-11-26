@@ -12,6 +12,7 @@ from .models import (
     BranchContactInfo,
     CompensatoryWorkday,
     ContractType,
+    Decision,
     Department,
     Employee,
     EmployeeCertificate,
@@ -94,3 +95,20 @@ admin.site.register(WorkSchedule)
 
 admin.site.register(CompensatoryWorkday)
 admin.site.register(Holiday)
+
+
+@admin.register(Decision)
+class DecisionAdmin(admin.ModelAdmin):
+    """Admin configuration for Decision model"""
+
+    list_display = ["decision_number", "name", "signing_date", "signer", "effective_date", "signing_status"]
+    list_filter = ["signing_status", "signing_date", "effective_date"]
+    search_fields = ["decision_number", "name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["signer"]
+    fieldsets = [
+        (None, {"fields": ["decision_number", "name"]}),
+        ("Signing Information", {"fields": ["signing_date", "signer", "effective_date", "signing_status"]}),
+        ("Content", {"fields": ["reason", "content", "note"]}),
+        ("Timestamps", {"fields": ["created_at", "updated_at"]}),
+    ]

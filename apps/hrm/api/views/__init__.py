@@ -7,6 +7,7 @@ from .attendance_wifi_device import AttendanceWifiDeviceViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
 from .contract_type import ContractTypeViewSet
+from .decision import DecisionViewSet
 from .employee import EmployeeViewSet
 from .employee_certificate import EmployeeCertificateViewSet
 from .employee_dependent import EmployeeDependentViewSet
@@ -96,4 +97,5 @@ __all__ = [
     "ProposalAttendanceExemptionViewSet",
     "ProposalVerifierViewSet",
     "ProposalViewSet",
+    "DecisionViewSet",
 ]

@@ -6,6 +6,7 @@ from .attendance_wifi_device import AttendanceWifiDevice
 from .bank import Bank
 from .bank_account import BankAccount
 from .contract_type import ContractType
+from .decision import Decision
 from .employee import Employee
 from .employee_certificate import EmployeeCertificate
 from .employee_dependent import EmployeeDependent
@@ -84,4 +85,5 @@ __all__ = [
     "Proposal",
     "ProposalTimeSheetEntry",
     "ProposalVerifier",
+    "Decision",
 ]

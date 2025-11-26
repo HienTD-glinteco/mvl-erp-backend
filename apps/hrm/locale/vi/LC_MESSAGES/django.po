@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 17:16+0700\n"
+"POT-Creation-Date: 2025-11-27 01:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,6 +34,11 @@ msgstr ""
 
 #: apps/hrm/api/serializers/attendance_exemption.py:86
 msgid "Employee already has an active exemption."
+msgstr ""
+
+#: apps/hrm/api/serializers/decision.py:102
+#, python-brace-format
+msgid "File IDs not found or not confirmed: {ids}"
 msgstr ""
 
 #: apps/hrm/api/serializers/employee.py:275
@@ -1061,8 +1066,8 @@ msgstr ""
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/employee.py:213
-#: apps/hrm/models/employee_dependent.py:109
+#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/decision.py:88
+#: apps/hrm/models/employee.py:213 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
 #: apps/hrm/models/employee_work_history.py:106
 #: apps/hrm/models/interview_schedule.py:31
@@ -1368,6 +1373,94 @@ msgstr ""
 
 #: apps/hrm/models/contract_type.py:20
 msgid "Contract types"
+msgstr ""
+
+#: apps/hrm/models/decision.py:34 apps/hrm/models/recruitment_request.py:24
+msgid "Draft"
+msgstr ""
+
+#: apps/hrm/models/decision.py:35
+#, fuzzy
+#| msgid "ID Issued Date"
+msgid "Issued"
+msgstr "Ngày Cấp CMND/CCCD"
+
+#: apps/hrm/models/decision.py:40
+msgid "Decision number"
+msgstr ""
+
+#: apps/hrm/models/decision.py:41
+msgid "Unique decision number/code"
+msgstr ""
+
+#: apps/hrm/models/decision.py:46
+msgid "Decision name"
+msgstr ""
+
+#: apps/hrm/models/decision.py:47
+msgid "Name or title of the decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:51
+msgid "Signing date"
+msgstr ""
+
+#: apps/hrm/models/decision.py:52
+msgid "Date when the decision was signed"
+msgstr ""
+
+#: apps/hrm/models/decision.py:59
+msgid "Signer"
+msgstr ""
+
+#: apps/hrm/models/decision.py:60
+msgid "Employee who signed the decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:64 apps/hrm/models/employee_dependent.py:86
+msgid "Effective date"
+msgstr ""
+
+#: apps/hrm/models/decision.py:65
+msgid "Date when the decision becomes effective"
+msgstr ""
+
+#: apps/hrm/models/decision.py:72
+msgid "Reason"
+msgstr ""
+
+#: apps/hrm/models/decision.py:73
+msgid "Reason for the decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:80
+msgid "Decision content"
+msgstr ""
+
+#: apps/hrm/models/decision.py:81
+msgid "Full content of the decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:89 apps/hrm/models/work_schedule.py:83
+msgid "Additional notes"
+msgstr ""
+
+#: apps/hrm/models/decision.py:96
+#, fuzzy
+#| msgid "Status"
+msgid "Signing status"
+msgstr "Trạng Thái"
+
+#: apps/hrm/models/decision.py:97
+msgid "Current signing status of the decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:118
+msgid "Decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:119
+msgid "Decisions"
 msgstr ""
 
 #: apps/hrm/models/employee.py:67
@@ -1701,10 +1794,6 @@ msgstr ""
 #: apps/hrm/models/employee_dependent.py:80
 #: apps/hrm/models/employee_relationship.py:101
 msgid "National ID (CMND/CCCD) - 9 or 12 digits"
-msgstr ""
-
-#: apps/hrm/models/employee_dependent.py:86
-msgid "Effective date"
 msgstr ""
 
 #: apps/hrm/models/employee_dependent.py:87
@@ -2822,10 +2911,6 @@ msgstr ""
 msgid "Replacement"
 msgstr ""
 
-#: apps/hrm/models/recruitment_request.py:24
-msgid "Draft"
-msgstr ""
-
 #: apps/hrm/models/recruitment_request.py:25
 msgid "Open"
 msgstr ""
@@ -3019,10 +3104,6 @@ msgstr ""
 
 #: apps/hrm/models/work_schedule.py:75
 msgid "Number of minutes late allowed"
-msgstr ""
-
-#: apps/hrm/models/work_schedule.py:83
-msgid "Additional notes"
 msgstr ""
 
 #: apps/hrm/models/work_schedule.py:87
