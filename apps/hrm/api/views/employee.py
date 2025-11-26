@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
+from django.conf import settings
 from django.db import transaction
-from django.templatetags.static import static
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -124,8 +124,6 @@ class EmployeeViewSet(
             instance.user.set_password(new_password)
             instance.user.save()
 
-        logo_image_url = static("img/email_logo.png")
-
         context = {
             "employee_fullname": instance.fullname,
             "employee_email": instance.email,
@@ -134,7 +132,7 @@ class EmployeeViewSet(
             "employee_code": instance.code,
             "employee_department_name": instance.department.name,
             "new_password": new_password,
-            "logo_image_url": logo_image_url,
+            "logo_image_url": settings.LOGO_URL,
             "branch_contact_infos": [],
         }
 
@@ -148,7 +146,7 @@ class EmployeeViewSet(
         branch_contact_infos = instance.branch.contact_infos.all()
         if branch_contact_infos:
             context["branch_contact_infos"] = [
-                {  # type: ignore
+                {
                     "business_line": info.business_line,
                     "name": info.name,
                     "phone_number": info.phone_number,
