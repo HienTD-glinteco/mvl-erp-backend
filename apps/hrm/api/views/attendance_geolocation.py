@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceGeolocationFilterSet
 from apps.hrm.api.serializers import AttendanceGeolocationExportSerializer, AttendanceGeolocationSerializer
 from apps.hrm.models import AttendanceGeolocation
+from apps.hrm.utils.filters import DistanceOrderingFilterBackend
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -14,8 +15,32 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all attendance geolocations",
         description="Retrieve a paginated list of all attendance geolocations with support for filtering and search. "
-        "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
+        "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20). "
+        "Distance-based sorting: Provide user_latitude and user_longitude parameters with ordering=distance to sort by nearest location.",
         tags=["Attendance Geolocation"],
+        parameters=[
+            OpenApiParameter(
+                name="user_latitude",
+                type=float,
+                location=OpenApiParameter.QUERY,
+                description="User's current latitude for distance-based sorting",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="user_longitude",
+                type=float,
+                location=OpenApiParameter.QUERY,
+                description="User's current longitude for distance-based sorting",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="ordering",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Order by field. Use 'distance' to sort by nearest location (requires user_latitude and user_longitude)",
+                required=False,
+            ),
+        ],
         examples=[
             OpenApiExample(
                 "Success",
@@ -302,16 +327,16 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
 )
 class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for AttendanceGeolocation model"""
+    """ViewSet for AttendanceGeolocation model with distance-based sorting support"""
 
     queryset = AttendanceGeolocation.objects.filter(deleted=False).select_related(
         "project", "created_by", "updated_by"
     )
     serializer_class = AttendanceGeolocationSerializer
     filterset_class = AttendanceGeolocationFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, DistanceOrderingFilterBackend, OrderingFilter]
     search_fields = ["code", "name"]
-    ordering_fields = ["name", "created_at"]
+    ordering_fields = ["name", "created_at", "distance"]
     ordering = ["-created_at"]
 
     # Permission registration attributes
