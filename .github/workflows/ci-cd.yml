@@ -33,6 +33,9 @@ jobs:
   prepare:
     name: Setup Poetry & Install Dependencies
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/osgeo/gdal:ubuntu-small-3.10.0
+      options: --user root
 
     steps:
     - name: Checkout code
