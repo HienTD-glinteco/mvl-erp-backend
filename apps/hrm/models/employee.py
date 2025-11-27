@@ -36,7 +36,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         block: Employee's block within the branch
         department: Employee's department within the block
         position: Employee's job position
-        contract_type: Type of employment contract
+        employee_type: Employee classification type
         start_date: Employment start date
         status: Current employment status
         resignation_date: Date of resignation (if applicable)
@@ -175,14 +175,6 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         related_name="employees",
         verbose_name=_("Position"),
-    )
-    contract_type = models.ForeignKey(
-        "ContractType",
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name="employees",
-        verbose_name=_("Contract type"),
     )
     employee_type = models.CharField(
         max_length=30,

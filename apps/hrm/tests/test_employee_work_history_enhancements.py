@@ -63,7 +63,6 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
             code="PB001", name="Engineering Department", block=self.block, branch=self.branch
         )
         self.position = Position.objects.create(code="CV001", name="Senior Developer")
-        self.contract_type = ContractType.objects.create(name="Full-time Contract")
 
         # Create test employee
         self.employee = Employee.objects.create(
@@ -75,7 +74,6 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
             block=self.block,
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             start_date="2024-01-01",
             citizen_id="000000030301",
             attendance_code="12345",
@@ -93,6 +91,7 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
     def test_create_work_history_with_new_fields(self):
         """Test creating a work history with new fields."""
         # Arrange
+        old_contract = ContractType.objects.create(name="Full-time Contract")
         new_contract = ContractType.objects.create(name="Part-time Contract")
 
         # Act
@@ -106,7 +105,7 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
             from_date=date(2024, 6, 1),
             to_date=date(2024, 12, 31),
             contract=new_contract,
-            previous_data={"contract_id": self.contract_type.id, "contract_type": "Full-time Contract"},
+            previous_data={"contract_id": old_contract.id, "contract_type": "Full-time Contract"},
         )
 
         # Assert
@@ -202,7 +201,6 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
             block=self.block,
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             start_date="2024-01-01",
             citizen_id="000000030302",
             attendance_code="54321",

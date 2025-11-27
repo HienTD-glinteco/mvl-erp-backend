@@ -1256,12 +1256,11 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.recruitment_report_patcher.stop()
         return super().tearDown()
 
-    def test_create_employee_with_position_and_contract_type(self):
-        """Test creating employee with optional position_id and contract_type_id"""
-        from apps.hrm.models import ContractType, Position
+    def test_create_employee_with_position(self):
+        """Test creating employee with optional position_id"""
+        from apps.hrm.models import Position
 
         position = Position.objects.create(code="POS001", name="Test Position")
-        contract_type = ContractType.objects.create(name="Full-time")
 
         url = reverse("hrm:employee-list")
         payload = {
@@ -1275,7 +1274,6 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "start_date": "2024-01-01",
             "department_id": self.department.id,
             "position_id": position.id,
-            "contract_type_id": contract_type.id,
             "citizen_id": "123456790",
         }
         response = self.client.post(url, payload, format="json")
@@ -1289,15 +1287,9 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(data["position"]["id"], position.id)
         self.assertEqual(data["position"]["name"], "Test Position")
 
-        self.assertIn("contract_type", data)
-        self.assertIsNotNone(data["contract_type"])
-        self.assertEqual(data["contract_type"]["id"], contract_type.id)
-        self.assertEqual(data["contract_type"]["name"], "Full-time")
-
         # Verify in database
         employee = Employee.objects.get(username="emp_with_pos")
         self.assertEqual(employee.position.id, position.id)
-        self.assertEqual(employee.contract_type.id, contract_type.id)
 
     def test_serializer_returns_nested_objects_for_read(self):
         """Test that serializer returns full nested objects for branch, block, department"""

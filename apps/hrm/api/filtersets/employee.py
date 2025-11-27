@@ -36,7 +36,6 @@ class EmployeeFilterSet(django_filters.FilterSet):
             "block",
             "department",
             "position",
-            "contract_type",
             "status",
             "statuses",
             "gender",

@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import Nationality
-from apps.hrm.models import Block, Branch, ContractType, Department, Employee, Position
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -39,7 +39,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
         Department.objects.all().delete()
         Block.objects.all().delete()
         Branch.objects.all().delete()
-        ContractType.objects.all().delete()
         Position.objects.all().delete()
 
         from apps.core.models import AdministrativeUnit, Province
@@ -72,7 +71,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             name="IT Department", code="IT001", branch=self.branch, block=self.block
         )
         self.position = Position.objects.create(name="Developer", code="DEV001")
-        self.contract_type = ContractType.objects.create(name="Full-time")
 
         # Create nationality if needed
         self.nationality = Nationality.objects.create(name="Vietnamese")
@@ -85,7 +83,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             "email": "john.doe@example.com",
             "department_id": self.department.id,
             "position_id": self.position.id,
-            "contract_type_id": self.contract_type.id,
             "start_date": "2025-01-01",
             "date_of_birth": "1990-01-01",
             "gender": "MALE",
@@ -141,7 +138,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             email="jane@example.com",
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             start_date=date(2025, 1, 1),
             date_of_birth=date(1995, 5, 15),
             phone="0987654321",
@@ -170,7 +166,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             email="bob@example.com",
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             start_date=date(2025, 1, 1),
             date_of_birth=date(1992, 3, 20),
             phone="0111222333",
@@ -186,7 +181,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             "email": "bob@example.com",
             "department_id": self.department.id,
             "position_id": self.position.id,
-            "contract_type_id": self.contract_type.id,
             "start_date": "2025-01-01",
             "date_of_birth": "1992-03-20",
             "gender": "MALE",
@@ -220,7 +214,6 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
             email="alice@example.com",
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             start_date=date(2025, 1, 1),
             date_of_birth=date(1993, 7, 10),
             phone="0444555666",
