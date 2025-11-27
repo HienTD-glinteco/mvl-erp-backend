@@ -1,16 +1,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
-from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import JobDescriptionFilterSet
 from apps.hrm.api.serializers import JobDescriptionSerializer
 from apps.hrm.models import JobDescription
-from libs import BaseModelViewSet, ExportDocumentMixin
+from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
+from libs.export_xlsx.mixins import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -216,7 +214,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
         ],
     ),
 )
-class JobDescriptionViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet):
+class JobDescriptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for JobDescription model"""
 
     queryset = JobDescription.objects.all()
@@ -232,71 +230,17 @@ class JobDescriptionViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelVie
     submodule = "Recruitment"
     permission_prefix = "job_description"
 
-    # Document export configuration
-    document_template_name = "documents/job_description.html"
-
-    def get_export_context(self, instance):
-        """Prepare context for job description export"""
-        return {"job_description": instance}
-
-    def get_export_filename(self, instance):
-        """Generate filename for job description export"""
-        return f"job_description_{instance.code}"
-
-    @extend_schema(
-        summary="Copy job description",
-        description="Create a duplicate of an existing job description",
-        tags=["Job Description"],
-        request=None,
-        responses={200: JobDescriptionSerializer},
-        examples=[
-            OpenApiExample(
-                "Success",
-                value={
-                    "success": True,
-                    "data": {
-                        "id": 2,
-                        "code": "JD0002",
-                        "title": "Senior Python Developer",
-                        "position_title": "Senior Backend Developer",
-                        "responsibility": "Develop and maintain backend services",
-                        "requirement": "5+ years Python experience",
-                        "preferred_criteria": "Experience with Django and FastAPI",
-                        "benefit": "Competitive salary and benefits",
-                        "proposed_salary": "2000-3000 USD",
-                        "note": "Remote work available",
-                        "attachment": None,
-                        "created_at": "2025-10-16T03:05:00Z",
-                        "updated_at": "2025-10-16T03:05:00Z",
-                    },
-                },
-                response_only=True,
-            ),
-            OpenApiExample(
-                "Error",
-                value={"success": False, "error": "Job description not found"},
-                response_only=True,
-                status_codes=["404"],
-            ),
-        ],
-    )
-    @action(detail=True, methods=["post"], url_path="copy")
-    def copy(self, request, pk=None):
-        """Create a duplicate of an existing job description"""
-        original = self.get_object()
-
-        # Create a copy with all fields except id, code, created_at, updated_at
-        # Note: attachment (ForeignKey to FileModel) is not copied, user should upload new file
-        copied = JobDescription.objects.create(
-            title=original.title,
-            position_title=original.position_title,
-            responsibility=original.responsibility,
-            requirement=original.requirement,
-            preferred_criteria=original.preferred_criteria,
-            benefit=original.benefit,
-            proposed_salary=original.proposed_salary,
-            note=original.note,
-        )
-
-        serializer = self.get_serializer(copied)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_export_data(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        data = {
+            "sheets": [
+                {
+                    "name": str(JobDescription._meta.verbose_name),
+                    "headers": [str(field.label) for field in serializer.child.fields.values()],
+                    "field_names": list(serializer.child.fields.keys()),
+                    "data": serializer.data,
+                }
+            ]
+        }
+        return data

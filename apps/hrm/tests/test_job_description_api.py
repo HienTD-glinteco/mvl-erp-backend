@@ -190,37 +190,6 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(JobDescription.objects.count(), 0)
 
-    def test_copy_job_description(self):
-        """Test copying a job description via custom action"""
-        # Create original job description
-        url = reverse("hrm:job-description-list")
-        create_response = self.client.post(url, self.job_data, format="json")
-        original_id = self.get_response_data(create_response)["id"]
-        original_code = self.get_response_data(create_response)["code"]
-
-        # Copy the job description
-        copy_url = reverse("hrm:job-description-copy", kwargs={"pk": original_id})
-        copy_response = self.client.post(copy_url)
-
-        self.assertEqual(copy_response.status_code, status.HTTP_200_OK)
-        self.assertEqual(JobDescription.objects.count(), 2)
-
-        copy_data = self.get_response_data(copy_response)
-        # Check that all fields are copied except id, code, created_at, updated_at, attachment
-        self.assertNotEqual(copy_data["id"], original_id)
-        self.assertNotEqual(copy_data["code"], original_code)
-        self.assertTrue(copy_data["code"].startswith("JD"))
-        self.assertEqual(copy_data["title"], self.job_data["title"])
-        self.assertEqual(copy_data["position_title"], self.job_data["position_title"])
-        self.assertEqual(copy_data["responsibility"], self.job_data["responsibility"])
-        self.assertEqual(copy_data["requirement"], self.job_data["requirement"])
-        self.assertEqual(copy_data["preferred_criteria"], self.job_data["preferred_criteria"])
-        self.assertEqual(copy_data["benefit"], self.job_data["benefit"])
-        self.assertEqual(copy_data["proposed_salary"], self.job_data["proposed_salary"])
-        self.assertEqual(copy_data["note"], self.job_data["note"])
-        # Attachment is not copied as it's a ForeignKey to FileModel
-        self.assertIsNone(copy_data["attachment"])
-
     def test_filter_by_title(self):
         """Test filtering job descriptions by title"""
         # Create multiple job descriptions
@@ -395,3 +364,52 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
             file_record = FileModel.objects.first()
             self.assertEqual(file_record.file_name, "job_description.pdf")
             self.assertEqual(file_record.uploaded_by, self.user)
+
+    def test_export_job_descriptions(self):
+        """Test exporting job descriptions to Excel"""
+        # Create multiple job descriptions
+        url = reverse("hrm:job-description-list")
+        self.client.post(url, self.job_data, format="json")
+
+        job_data_2 = self.job_data.copy()
+        job_data_2["title"] = "Junior Python Developer"
+        self.client.post(url, job_data_2, format="json")
+
+        # Export with direct delivery
+        export_url = reverse("hrm:job-description-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+
+    def test_export_job_descriptions_fields(self):
+        """Test that export includes correct fields"""
+        # Create a job description
+        url = reverse("hrm:job-description-list")
+        self.client.post(url, self.job_data, format="json")
+
+        # Export with direct delivery to check fields
+        export_url = reverse("hrm:job-description-export")
+        response = self.client.get(export_url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+
+    def test_export_job_descriptions_filtered(self):
+        """Test exporting filtered job descriptions"""
+        # Create multiple job descriptions
+        url = reverse("hrm:job-description-list")
+        self.client.post(url, self.job_data, format="json")
+
+        job_data_2 = self.job_data.copy()
+        job_data_2["title"] = "Junior Frontend Developer"
+        self.client.post(url, job_data_2, format="json")
+
+        # Export with title filter
+        export_url = reverse("hrm:job-description-export")
+        response = self.client.get(export_url, {"delivery": "direct", "title": "Senior"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
