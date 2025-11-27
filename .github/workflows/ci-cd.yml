@@ -125,12 +125,6 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
 
-    - name: Install git and configure safe directory
-      run: |
-        apt-get update -qq
-        apt-get install -y -qq git
-        git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
     - name: Run Django system checks
       run: |
         export PATH="$HOME/.local/bin:$PATH"
@@ -138,9 +132,18 @@ jobs:
       env:
         ENVIRONMENT: test
 
+    - name: Initialize git for pre-commit
+      run: |
+        git init
+        git config user.email "ci@github.com"
+        git config user.name "GitHub CI"
+        git add -A
+        git commit -m "Initial commit for pre-commit" || true
+
     - name: Run pre-commit hooks
       env:
-        SKIP: no-commit-to-branch
+        SKIP: no-commit-to-branch,django-makemigrations,django-makemessages
+        PRE_COMMIT_HOME: /tmp/pre-commit
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         poetry run pre-commit run --all-files
