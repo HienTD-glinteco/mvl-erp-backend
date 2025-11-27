@@ -93,14 +93,20 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Restore Poetry from cache
-      uses: actions/cache/restore@v4
+    - name: Cache Poetry installation
+      uses: actions/cache@v4
       with:
         path: |
           ~/.local/share/pypoetry
           ~/.local/bin/poetry
         key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
 
     - name: Restore venv from cache
       uses: actions/cache/restore@v4
@@ -180,14 +186,20 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Restore Poetry from cache
-      uses: actions/cache/restore@v4
+    - name: Cache Poetry installation
+      uses: actions/cache@v4
       with:
         path: |
           ~/.local/share/pypoetry
           ~/.local/bin/poetry
         key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
 
     - name: Restore venv from cache
       uses: actions/cache/restore@v4
