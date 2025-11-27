@@ -11,7 +11,6 @@ from apps.hrm.models import (
     BankAccount,
     Block,
     Branch,
-    ContractType,
     Department,
     Employee,
     EmployeeWorkHistory,
@@ -61,15 +60,6 @@ class EmployeePositionNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "name", "code"]
 
 
-class EmployeeContractTypeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested contract type references"""
-
-    class Meta:
-        model = ContractType
-        fields = ["id", "name"]
-        read_only_fields = ["id", "name"]
-
-
 class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
     """Simplified serializer for nested branch references"""
 
@@ -97,7 +87,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
     and accepts ID fields for write operations.
 
     Read operations return full nested objects for branch, block, department,
-    position, contract_type, and user.
+    position, and user.
     Write operations (POST/PUT/PATCH) only require department_id and other writable fields.
     Branch and block are automatically set based on the department's organizational structure.
     """
@@ -107,7 +97,6 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
     block = EmployeeBlockNestedSerializer(read_only=True)
     department = EmployeeDepartmentNestedSerializer(read_only=True)
     position = EmployeePositionNestedSerializer(read_only=True)
-    contract_type = EmployeeContractTypeNestedSerializer(read_only=True)
     user = SimpleUserSerializer(read_only=True)
     recruitment_candidate = EmployeeRecruitmentCandidateNestedSerializer(read_only=True)
     avatar = FileSerializer(read_only=True)
@@ -124,13 +113,6 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
     position_id = serializers.PrimaryKeyRelatedField(
         queryset=Position.objects.all(),
         source="position",
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
-    contract_type_id = serializers.PrimaryKeyRelatedField(
-        queryset=ContractType.objects.all(),
-        source="contract_type",
         write_only=True,
         required=False,
         allow_null=True,
@@ -175,8 +157,6 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
             "default_bank_account",
             "position",
             "position_id",
-            "contract_type",
-            "contract_type_id",
             "start_date",
             "status",
             "colored_status",
@@ -217,7 +197,6 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
             "block",
             "department",
             "position",
-            "contract_type",
             "nationality",
             "user",
             "recruitment_candidate",
@@ -699,7 +678,6 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
     branch__name = serializers.CharField(source="branch.name", read_only=True)
     block__name = serializers.CharField(source="block.name", read_only=True)
     department__name = serializers.CharField(source="department.name", read_only=True)
-    contract_type__name = serializers.CharField(source="contract_type.name", read_only=True)
 
     # Latest EmployeeWorkHistory fields
     latest_work_history_resignation_reason = serializers.SerializerMethodField(read_only=True)
@@ -767,7 +745,6 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
             "start_date",
             "latest_work_history_resignation_reason",
             "latest_work_history_from_date",
-            "contract_type__name",
             "position__name",
             "branch__name",
             "block__name",
