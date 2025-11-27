@@ -139,9 +139,10 @@ jobs:
 
     - name: Initialize git for pre-commit
       run: |
-        git config --global user.email "ci@github.com"
-        git config --global user.name "GitHub CI"
+        git init
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        git config user.email "ci@github.com"
+        git config user.name "GitHub CI"
         git add -A
         git commit -m "Initial commit for pre-commit" || true
 
