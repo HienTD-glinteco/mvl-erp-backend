@@ -19,15 +19,27 @@ def create_entries_for_employee_month(
 ) -> List[TimeSheetEntry]:
     year, month = _normalize_year_month(year, month)
     _, last_day = monthrange(year, month)
-    created = []
 
-    for d in range(1, last_day + 1):
-        entry_date = date(year, month, d)
-        obj, was_created = TimeSheetEntry.objects.get_or_create(employee_id=employee_id, date=entry_date)
-        if was_created:
-            created.append(obj)
+    # Generate all dates for the month
+    all_dates = [date(year, month, d) for d in range(1, last_day + 1)]
 
-    return created
+    # Find existing entries to avoid duplicates
+    existing_dates = set(
+        TimeSheetEntry.objects.filter(employee_id=employee_id, date__in=all_dates).values_list("date", flat=True)
+    )
+
+    # Create entries for dates that don't exist yet
+    entries_to_create = [
+        TimeSheetEntry(employee_id=employee_id, date=entry_date)
+        for entry_date in all_dates
+        if entry_date not in existing_dates
+    ]
+
+    if entries_to_create:
+        created = TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
+        return list(created)
+
+    return []
 
 
 def create_entries_for_month_all(year: int | None = None, month: int | None = None) -> List[TimeSheetEntry]:
