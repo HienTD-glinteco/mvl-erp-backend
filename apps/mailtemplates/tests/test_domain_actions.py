@@ -14,7 +14,14 @@ from apps.hrm.models import (
     Branch,
     Department,
     Employee,
+    InterviewCandidate,
+    InterviewSchedule,
+    JobDescription,
     Position,
+    RecruitmentCandidate,
+    RecruitmentChannel,
+    RecruitmentRequest,
+    RecruitmentSource,
 )
 
 User = get_user_model()
@@ -170,24 +177,12 @@ class InterviewScheduleEmailActionTests(TestCase):
 
     def setUp(self):
         """Set up test data."""
-        from apps.hrm.models import (
-            InterviewCandidate,
-            InterviewSchedule,
-            RecruitmentCandidate,
-            RecruitmentChannel,
-            RecruitmentRequest,
-            RecruitmentSource,
-        )
-
         self.client = APIClient()
         self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",
         )
-
-        # Create recruitment request
-        from apps.hrm.models import JobDescription
 
         self.province = Province.objects.create(
             code="test", name="test", english_name="test", level="province", decree="", enabled=True
@@ -243,6 +238,7 @@ class InterviewScheduleEmailActionTests(TestCase):
 
         # Create interview schedule
         interview_time = timezone.now() + timezone.timedelta(days=7)
+
         self.interview_schedule = InterviewSchedule.objects.create(
             title="First Round Interview",
             recruitment_request=self.recruitment_request,
@@ -359,7 +355,7 @@ class InterviewScheduleEmailActionTests(TestCase):
         # Arrange
         self.client.force_authenticate(user=self.user)
         request_data = {
-            "candidate_ids": [self.candidate1.id, self.candidate2.id]  # Only 2 candidates
+            "candidate_ids": [self.interview_candidate1.id, self.interview_candidate2.id]  # Only 2 candidates
         }
 
         # Act
