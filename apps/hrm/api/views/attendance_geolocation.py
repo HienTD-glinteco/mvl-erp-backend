@@ -6,6 +6,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceGeolocationFilterSet
 from apps.hrm.api.serializers import AttendanceGeolocationExportSerializer, AttendanceGeolocationSerializer
 from apps.hrm.models import AttendanceGeolocation
+from apps.hrm.utils.filters import DistanceOrderingFilterBackend
 from libs import BaseModelViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -14,8 +15,9 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all attendance geolocations",
         description="Retrieve a paginated list of all attendance geolocations with support for filtering and search. "
-        "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
-        tags=["Attendance Geolocation"],
+        "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20). "
+        "Distance-based sorting: Provide user_latitude and user_longitude parameters with ordering=distance to sort by nearest location.",
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -63,7 +65,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="Create a new attendance geolocation",
         description="Create a new attendance geolocation in the system. "
         "The code is auto-generated server-side with pattern DV###.",
-        tags=["Attendance Geolocation"],
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -129,7 +131,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get attendance geolocation details",
         description="Retrieve detailed information about a specific attendance geolocation",
-        tags=["Attendance Geolocation"],
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -169,7 +171,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update attendance geolocation",
         description="Update attendance geolocation information. Code cannot be changed.",
-        tags=["Attendance Geolocation"],
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -223,7 +225,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update attendance geolocation",
         description="Partially update attendance geolocation information",
-        tags=["Attendance Geolocation"],
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -273,7 +275,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Soft-delete a attendance geolocation from the system. "
         "If the geolocation is referenced by other active resources (e.g., attendance rules), "
         "the deletion will be prevented.",
-        tags=["Attendance Geolocation"],
+        tags=["6.3: Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -302,16 +304,16 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
 )
 class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for AttendanceGeolocation model"""
+    """ViewSet for AttendanceGeolocation model with distance-based sorting support"""
 
     queryset = AttendanceGeolocation.objects.filter(deleted=False).select_related(
         "project", "created_by", "updated_by"
     )
     serializer_class = AttendanceGeolocationSerializer
     filterset_class = AttendanceGeolocationFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter, DistanceOrderingFilterBackend]
     search_fields = ["code", "name"]
-    ordering_fields = ["name", "created_at"]
+    ordering_fields = ["name", "created_at", "distance"]
     ordering = ["-created_at"]
 
     # Permission registration attributes

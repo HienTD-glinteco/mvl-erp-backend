@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from apps.files.api.serializers import FileSerializer
+from apps.hrm.api.serializers.attendance_geolocation import AttendanceGeolocationSerializer
+from apps.hrm.api.serializers.attendance_wifi_device import AttendanceWifiDeviceSerializer
+from apps.hrm.api.serializers.employee import EmployeeSerializer
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
 from libs import FieldFilteringSerializerMixin
 
@@ -16,20 +20,31 @@ class AttendanceDeviceNestedSerializer(serializers.ModelSerializer):
 class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for AttendanceRecord model.
 
-    Provides access to attendance records with nested device information.
-    Allows editing of timestamp, is_valid status, and notes.
+    Provides access to attendance records with nested references for biometric_device, employee,
+    geolocation, image, and wifi device. Allows editing of timestamp, is_valid status, and notes.
     """
 
-    device = AttendanceDeviceNestedSerializer(read_only=True)
+    biometric_device = AttendanceDeviceNestedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+    attendance_geolocation = AttendanceGeolocationSerializer(read_only=True)
+    image = FileSerializer(read_only=True)
+    attendance_wifi_device = AttendanceWifiDeviceSerializer(read_only=True)
 
     class Meta:
         model = AttendanceRecord
         fields = [
             "id",
             "code",
-            "device",
+            "attendance_type",
+            "biometric_device",
+            "employee",
             "attendance_code",
             "timestamp",
+            "latitude",
+            "longitude",
+            "attendance_geolocation",
+            "image",
+            "attendance_wifi_device",
             "is_valid",
             "notes",
             "raw_data",
@@ -39,8 +54,15 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
         read_only_fields = [
             "id",
             "code",
-            "device",
+            "attendance_type",
+            "biometric_device",
+            "employee",
             "attendance_code",
+            "latitude",
+            "longitude",
+            "attendance_geolocation",
+            "image",
+            "attendance_wifi_device",
             "raw_data",
             "created_at",
             "updated_at",

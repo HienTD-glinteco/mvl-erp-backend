@@ -39,6 +39,15 @@ class EmployeeType(models.TextChoices):
         return cls.dict_choices().get(raw_value, raw_value)
 
 
+class AttendanceType(models.TextChoices):
+    """Attendance type choices for attendance records."""
+
+    BIOMETRIC_DEVICE = "biometric_device", _("Biometric Device")
+    WIFI = "wifi", _("WiFi")
+    GEOLOCATION = "geolocation", _("GeoLocation")
+    OTHER = "other", _("Other")
+
+
 class RecruitmentSourceType(models.TextChoices):
     REFERRAL_SOURCE = "referral_source", _("Referral Source")
     MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")

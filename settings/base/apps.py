@@ -5,6 +5,7 @@ DJANGO_APPs = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.humanize",
+    "django.contrib.gis",
 ]
 
 EXTERNAL_APPS = [

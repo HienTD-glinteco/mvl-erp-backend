@@ -85,7 +85,7 @@ class TestSyncAttendanceLogsForDevice(TestCase):
 
         # Create existing record
         AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.device,
             attendance_code="100",
             timestamp=timestamp,
         )

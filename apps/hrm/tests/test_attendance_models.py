@@ -40,7 +40,7 @@ class AttendanceDeviceModelTest(TestCase):
             branch=self.branch,
         )
 
-        self.device_data = {
+        self.biometric_device_data = {
             "name": "Main Entrance Device",
             "block": self.block,
             "ip_address": "192.168.1.100",
@@ -53,12 +53,12 @@ class AttendanceDeviceModelTest(TestCase):
     def test_create_attendance_device_with_all_fields(self):
         """Test creating an attendance device with all fields."""
         # Arrange & Act
-        device = AttendanceDevice.objects.create(**self.device_data)
+        device = AttendanceDevice.objects.create(**self.biometric_device_data)
 
         # Assert
-        self.assertEqual(device.name, self.device_data["name"])
+        self.assertEqual(device.name, self.biometric_device_data["name"])
         self.assertEqual(device.block, self.block)
-        self.assertEqual(device.ip_address, self.device_data["ip_address"])
+        self.assertEqual(device.ip_address, self.biometric_device_data["ip_address"])
         self.assertEqual(device.port, 4370)
         self.assertTrue(device.is_enabled)
         self.assertFalse(device.is_connected)
@@ -89,10 +89,10 @@ class AttendanceDeviceModelTest(TestCase):
     def test_str_representation(self):
         """Test string representation shows device name."""
         # Arrange & Act
-        device = AttendanceDevice.objects.create(**self.device_data)
+        device = AttendanceDevice.objects.create(**self.biometric_device_data)
 
         # Assert
-        self.assertEqual(str(device), self.device_data["name"])
+        self.assertEqual(str(device), self.biometric_device_data["name"])
 
     def test_default_ordering_by_name(self):
         """Test devices are ordered by name."""
@@ -224,7 +224,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_block_foreign_key_relationship(self):
         """Test block foreign key relationship and cascade."""
         # Arrange
-        device = AttendanceDevice.objects.create(**self.device_data)
+        device = AttendanceDevice.objects.create(**self.biometric_device_data)
 
         # Assert relationship
         self.assertEqual(device.block, self.block)
@@ -236,13 +236,13 @@ class AttendanceRecordModelTest(TestCase):
 
     def setUp(self):
         """Set up test data for AttendanceRecord tests."""
-        self.device = AttendanceDevice.objects.create(
+        self.biometric_device = AttendanceDevice.objects.create(
             name="Test Device",
             ip_address="192.168.1.100",
         )
 
         self.record_data = {
-            "device": self.device,
+            "biometric_device": self.biometric_device,
             "attendance_code": "531",
             "timestamp": datetime(2025, 10, 28, 11, 49, 38, tzinfo=timezone.utc),
             "raw_data": {
@@ -260,7 +260,7 @@ class AttendanceRecordModelTest(TestCase):
         record = AttendanceRecord.objects.create(**self.record_data)
 
         # Assert
-        self.assertEqual(record.device, self.device)
+        self.assertEqual(record.biometric_device, self.biometric_device)
         self.assertEqual(record.attendance_code, "531")
         self.assertEqual(record.timestamp, self.record_data["timestamp"])
         self.assertTrue(record.is_valid)
@@ -274,7 +274,7 @@ class AttendanceRecordModelTest(TestCase):
         """Test creating attendance record with only required fields."""
         # Arrange & Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
@@ -298,17 +298,17 @@ class AttendanceRecordModelTest(TestCase):
         """Test records are ordered by timestamp descending (newest first)."""
         # Arrange & Act
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
         record2 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="200",
             timestamp=datetime(2025, 10, 28, 12, 0, 0, tzinfo=timezone.utc),
         )
         record3 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="300",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
@@ -326,7 +326,7 @@ class AttendanceRecordModelTest(TestCase):
         record_id = record.id
 
         # Act
-        self.device.delete()
+        self.biometric_device.delete()
 
         # Assert
         with self.assertRaises(AttendanceRecord.DoesNotExist):
@@ -337,7 +337,7 @@ class AttendanceRecordModelTest(TestCase):
         # Arrange & Act - Create multiple records with same attendance code
         for i in range(5):
             AttendanceRecord.objects.create(
-                device=self.device,
+                biometric_device=self.biometric_device,
                 attendance_code="531",
                 timestamp=datetime(2025, 10, 28, 10 + i, 0, 0, tzinfo=timezone.utc),
             )
@@ -352,19 +352,19 @@ class AttendanceRecordModelTest(TestCase):
         record = AttendanceRecord.objects.create(**self.record_data)
 
         # Assert
-        self.assertEqual(record.device.name, "Test Device")
-        self.assertIn(record, self.device.attendance_records.all())
+        self.assertEqual(record.biometric_device.name, "Test Device")
+        self.assertIn(record, self.biometric_device.attendance_records.all())
 
     def test_multiple_records_same_attendance_code(self):
         """Test creating multiple records with same attendance code."""
         # Arrange & Act
         record1 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
         )
         record2 = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
@@ -387,7 +387,7 @@ class AttendanceRecordModelTest(TestCase):
             "reserved": "",
         }
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="531",
             timestamp=datetime(2025, 10, 28, 11, 49, 38, tzinfo=timezone.utc),
             raw_data=complex_raw_data,
@@ -425,7 +425,7 @@ class AttendanceRecordModelTest(TestCase):
         """Test notes field can store text."""
         # Arrange & Act
         record = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 10, 0, 0, tzinfo=timezone.utc),
             notes="Manual entry - device was offline",
@@ -442,23 +442,25 @@ class AttendanceRecordModelTest(TestCase):
 
         # Create records within and outside the range
         record_in_range = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="100",
             timestamp=datetime(2025, 10, 28, 11, 0, 0, tzinfo=timezone.utc),
         )
         record_before = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="200",
             timestamp=datetime(2025, 10, 28, 9, 0, 0, tzinfo=timezone.utc),
         )
         record_after = AttendanceRecord.objects.create(
-            device=self.device,
+            biometric_device=self.biometric_device,
             attendance_code="300",
             timestamp=datetime(2025, 10, 28, 13, 0, 0, tzinfo=timezone.utc),
         )
 
         # Act
-        records = AttendanceRecord.objects.filter(device=self.device, timestamp__range=(start_time, end_time))
+        records = AttendanceRecord.objects.filter(
+            biometric_device=self.biometric_device, timestamp__range=(start_time, end_time)
+        )
 
         # Assert
         self.assertEqual(records.count(), 1)

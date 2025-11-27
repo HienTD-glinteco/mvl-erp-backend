@@ -98,7 +98,7 @@ class Command(BaseCommand):
     ) -> tuple[Employee | None, list]:
         """Process a single employee and return update info."""
         stats["processed"] += 1
-        csv_row = []
+        csv_row = []  # type: ignore
 
         contract_type = employee.contract_type
         contract_type_name = contract_type.name if contract_type else None
@@ -122,9 +122,14 @@ class Command(BaseCommand):
             stats["updated"] += 1
             status = "updated" if not dry_run else "would_update"
             csv_row = [
-                employee.id, employee.code, employee.fullname,
-                contract_type_pk, contract_type_name, old_employee_type or "",
-                employee_type, status,
+                employee.id,
+                employee.code,
+                employee.fullname,
+                contract_type_pk,
+                contract_type_name,
+                old_employee_type or "",
+                employee_type,
+                status,
             ]
             return employee if not dry_run else None, csv_row
 
@@ -133,20 +138,21 @@ class Command(BaseCommand):
 
         # Track unmapped contract types
         if contract_type_name:
-            unmapped_contract_types[contract_type_name] = (
-                unmapped_contract_types.get(contract_type_name, 0) + 1
-            )
+            unmapped_contract_types[contract_type_name] = unmapped_contract_types.get(contract_type_name, 0) + 1
 
         csv_row = [
-            employee.id, employee.code, employee.fullname,
-            contract_type_pk, contract_type_name, old_employee_type or "",
-            "", "no_mapping",
+            employee.id,
+            employee.code,
+            employee.fullname,
+            contract_type_pk,
+            contract_type_name,
+            old_employee_type or "",
+            "",
+            "no_mapping",
         ]
         return None, csv_row
 
-    def _print_summary(
-        self, stats: dict, unmapped_contract_types: dict, dry_run: bool, output_csv: str
-    ) -> None:
+    def _print_summary(self, stats: dict, unmapped_contract_types: dict, dry_run: bool, output_csv: str) -> None:
         """Print the backfill summary."""
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=" * 60))
@@ -202,8 +208,7 @@ class Command(BaseCommand):
 
         total_count = queryset.count()
         self.stdout.write(
-            f"Found {total_count} employees to process "
-            f"(dry_run={dry_run}, force={force}, batch_size={batch_size})"
+            f"Found {total_count} employees to process (dry_run={dry_run}, force={force}, batch_size={batch_size})"
         )
 
         if total_count == 0:
@@ -218,10 +223,18 @@ class Command(BaseCommand):
         if not dry_run or include_unmapped:
             csv_file = open(output_csv, "w", newline="", encoding="utf-8")
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow([
-                "employee_id", "employee_code", "employee_fullname", "contract_type_id",
-                "contract_type_name", "old_employee_type", "new_employee_type", "status",
-            ])
+            csv_writer.writerow(
+                [
+                    "employee_id",
+                    "employee_code",
+                    "employee_fullname",
+                    "contract_type_id",
+                    "contract_type_name",
+                    "old_employee_type",
+                    "new_employee_type",
+                    "status",
+                ]
+            )
 
         try:
             employee_ids = list(queryset.values_list("id", flat=True).order_by("id"))

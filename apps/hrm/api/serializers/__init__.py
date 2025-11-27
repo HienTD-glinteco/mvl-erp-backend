@@ -39,6 +39,7 @@ from .employee_report import (
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
 from .employee_seniority import EmployeeSenioritySerializer
 from .employee_work_history import EmployeeWorkHistorySerializer
+from .geolocation_attendance import GeoLocationAttendanceSerializer
 from .holiday import CompensatoryWorkdaySerializer, HolidayDetailSerializer, HolidaySerializer
 from .interview_candidate import InterviewCandidateSerializer
 from .interview_schedule import (
@@ -79,9 +80,12 @@ from .recruitment_reports import (
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
 from .timesheet import EmployeeTimesheetSerializer
+from .wifi_attendance import WiFiAttendanceSerializer
 from .work_schedule import WorkScheduleSerializer
 
 __all__ = [
+    "GeoLocationAttendanceSerializer",
+    "WiFiAttendanceSerializer",
     "AttendanceDeviceSerializer",
     "AttendanceExemptionExportSerializer",
     "AttendanceExemptionSerializer",

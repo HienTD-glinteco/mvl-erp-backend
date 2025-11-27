@@ -18,21 +18,6 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = False
 
-# Use SQLite for testing to avoid PostgreSQL dependency
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-        # Performance optimizations for testing
-        "OPTIONS": {
-            "timeout": 20,
-        },
-        "TEST": {
-            "NAME": ":memory:",
-        },
-    }
-}
-
 # Use local memory cache for tests to avoid Redis dependency
 CACHES = {
     "default": {
