@@ -69,6 +69,35 @@ SELECT PostGIS_version();
 - PostGIS is required for the geolocation-based attendance features
 - The extension provides efficient spatial queries for distance calculations
 
+### Install GDAL (required for GeoDjango / PostGIS tooling)
+
+GeoDjango and some PostGIS-related tooling depend on GDAL. Make sure GDAL
+and its development headers are installed on your machine before building
+or running the project with PostGIS support.
+
+- On Ubuntu / Debian:
+
+```bash
+sudo apt update
+sudo apt install gdal-bin libgdal-dev
+```
+
+- On macOS (Homebrew):
+
+```bash
+brew update
+brew install gdal
+```
+
+Notes:
+- On some systems the GDAL headers are required to compile Python packages
+	that interface with spatial libraries (for example when building GeoDjango
+	extensions or certain wheels). If you encounter build errors, ensure the
+	development package (`libgdal-dev` on Debian/Ubuntu) is installed and that
+	the `gdal-config` binary is on your `PATH`.
+- If you're using Docker or CI, install the above packages in your image or
+	CI runner before running migrations or tests that use spatial features.
+
 ### Create environment file
 
 ``` bash
