@@ -458,3 +458,166 @@ class TestOvertimeWorkProposalAPI:
         # Should only return overtime work proposals
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["proposal_type"] == ProposalType.OVERTIME_WORK
+
+
+class TestTimesheetEntryComplaintWithTimesheetEntry:
+    """Tests for Timesheet Entry Complaint proposals with linked timesheet entries."""
+
+    @pytest.fixture
+    def timesheet_entry(self, db, test_employee):
+        """Create a test timesheet entry for the test employee."""
+        from datetime import datetime
+        from decimal import Decimal
+
+        from apps.hrm.constants import TimesheetStatus
+        from apps.hrm.models import TimeSheetEntry
+
+        entry = TimeSheetEntry(
+            employee=test_employee,
+            date=date.today(),
+            start_time=datetime.now().replace(hour=8, minute=0, second=0, microsecond=0),
+            end_time=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
+            morning_hours=Decimal("4.00"),
+            afternoon_hours=Decimal("4.00"),
+            status=TimesheetStatus.ON_TIME,
+        )
+        entry.save()
+        return entry
+
+    def test_list_complaint_proposals_includes_timesheet_entry_id(
+        self, api_client, superuser, test_employee, timesheet_entry
+    ):
+        """Test that listing complaint proposals includes the linked timesheet entry ID."""
+        from apps.hrm.models import ProposalTimeSheetEntry
+
+        # Create complaint proposal
+        proposal = Proposal.objects.create(
+            code="DX_TS_001",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Incorrect check-in time",
+            created_by=test_employee,
+        )
+
+        # Link proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=timesheet_entry,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+
+        result = data["data"]["results"][0]
+        assert "timesheet_entry_id" in result
+        assert result["timesheet_entry_id"] == timesheet_entry.id
+
+    def test_retrieve_complaint_proposal_includes_timesheet_entry_id(
+        self, api_client, superuser, test_employee, timesheet_entry
+    ):
+        """Test that retrieving a complaint proposal includes the linked timesheet entry ID."""
+        from apps.hrm.models import ProposalTimeSheetEntry
+
+        # Create complaint proposal
+        proposal = Proposal.objects.create(
+            code="DX_TS_002",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Incorrect check-in time",
+            created_by=test_employee,
+        )
+
+        # Link proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=timesheet_entry,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert "timesheet_entry_id" in data["data"]
+        assert data["data"]["timesheet_entry_id"] == timesheet_entry.id
+
+    def test_complaint_proposal_without_linked_entry_returns_null(self, api_client, superuser, test_employee):
+        """Test that a complaint proposal without a linked entry returns null for timesheet_entry_id."""
+        proposal = Proposal.objects.create(
+            code="DX_TS_003",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Incorrect check-in time",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert "timesheet_entry_id" in data["data"]
+        assert data["data"]["timesheet_entry_id"] is None
+
+    def test_approve_complaint_returns_timesheet_entry_id(self, api_client, superuser, test_employee, timesheet_entry):
+        """Test that approving a complaint proposal returns the linked timesheet entry ID in response."""
+        from apps.hrm.models import ProposalTimeSheetEntry
+
+        # Create complaint proposal
+        proposal = Proposal.objects.create(
+            code="DX_TS_004",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Incorrect check-in time",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        # Link proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=timesheet_entry,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-approve", args=[proposal.id])
+        response = api_client.post(
+            url,
+            {"approved_check_in_time": "08:00:00", "approved_check_out_time": "17:00:00"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert "timesheet_entry_id" in data["data"]
+        assert data["data"]["timesheet_entry_id"] == timesheet_entry.id
+
+    def test_reject_complaint_returns_timesheet_entry_id(self, api_client, superuser, test_employee, timesheet_entry):
+        """Test that rejecting a complaint proposal returns the linked timesheet entry ID in response."""
+        from apps.hrm.models import ProposalTimeSheetEntry
+
+        # Create complaint proposal
+        proposal = Proposal.objects.create(
+            code="DX_TS_005",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Incorrect check-in time",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        # Link proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=timesheet_entry,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
+        response = api_client.post(url, {"note": "Not enough evidence"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert "timesheet_entry_id" in data["data"]
+        assert data["data"]["timesheet_entry_id"] == timesheet_entry.id
