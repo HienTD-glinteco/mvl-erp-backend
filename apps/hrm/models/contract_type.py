@@ -65,7 +65,7 @@ class ContractType(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "LHD"
 
     code = models.CharField(
-        max_length=10,
+        max_length=50,
         unique=True,
         null=True,
         blank=True,
@@ -103,7 +103,7 @@ class ContractType(AutoCodeMixin, BaseModel):
     )
 
     base_salary = models.DecimalField(
-        max_digits=15,
+        max_digits=20,
         decimal_places=0,
         default=0,
         verbose_name=_("Base salary"),
@@ -111,7 +111,7 @@ class ContractType(AutoCodeMixin, BaseModel):
     )
 
     lunch_allowance = models.DecimalField(
-        max_digits=15,
+        max_digits=20,
         decimal_places=0,
         null=True,
         blank=True,
@@ -120,7 +120,7 @@ class ContractType(AutoCodeMixin, BaseModel):
     )
 
     phone_allowance = models.DecimalField(
-        max_digits=15,
+        max_digits=20,
         decimal_places=0,
         null=True,
         blank=True,
@@ -129,7 +129,7 @@ class ContractType(AutoCodeMixin, BaseModel):
     )
 
     other_allowance = models.DecimalField(
-        max_digits=15,
+        max_digits=20,
         decimal_places=0,
         null=True,
         blank=True,
