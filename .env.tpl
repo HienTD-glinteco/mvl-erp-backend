@@ -82,3 +82,6 @@ NEWRELIC_LOG_LEVEL=info
 DBBACKUP_FILENAME_TEMPLATE=
 
 FRONTEND_URL=
+
+GDAL_LIBRARY_PATH=/usr/local/Caskroom/miniconda/base/lib/libgdal.dylib
+GEOS_LIBRARY_PATH=/usr/local/Caskroom/miniconda/base/lib/libgeos_c.dylib
