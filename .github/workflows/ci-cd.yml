@@ -121,15 +121,15 @@ jobs:
 
     - name: Run Django system checks
       run: |
-        source .venv/bin/activate
-        ENVIRONMENT=test python manage.py check
+        poetry run python manage.py check
+      env:
+        ENVIRONMENT: test
 
     - name: Run pre-commit hooks
       env:
         SKIP: no-commit-to-branch
       run: |
-        source .venv/bin/activate
-        pre-commit run
+        poetry run pre-commit run
 
   # Test job: Runs the test suite with coverage
   # Depends on 'prepare' job (runs independently from django-checks)
@@ -205,13 +205,14 @@ jobs:
         EOF
 
     - name: Run tests
+      env:
+        ENVIRONMENT: test
       run: |
-        source .venv/bin/activate
         # Run tests with optimized settings for CI/CD
         # --dist=loadgroup: distribute tests by module for better caching
         # -n auto: use all available CPU cores
         # --maxfail=10: fail fast after 10 failures
-        ENVIRONMENT=test python -m pytest apps/ \
+        poetry run python -m pytest apps/ \
           -v \
           --tb=short \
           --cov=apps \
