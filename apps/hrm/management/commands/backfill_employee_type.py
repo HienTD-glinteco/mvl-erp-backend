@@ -252,10 +252,11 @@ class Command(BaseCommand):
                     )
                     if updated_emp:
                         updates.append(updated_emp)
+                    # Write CSV row if we have data and either it was mapped or we include unmapped
                     if csv_row and csv_writer:
-                        if stats.get("_last_was_mapped", True) or include_unmapped:
+                        is_mapped = csv_row[7] != "no_mapping"
+                        if is_mapped or include_unmapped:
                             csv_writer.writerow(csv_row)
-                        stats["_last_was_mapped"] = csv_row[7] != "no_mapping"
 
                 if updates and not dry_run:
                     with transaction.atomic():

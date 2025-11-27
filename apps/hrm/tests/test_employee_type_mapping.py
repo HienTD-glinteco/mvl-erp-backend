@@ -392,6 +392,7 @@ class TestImportHandlerEmployeeType:
             "Khối",
             "Phòng Ban",
             "Điện thoại",
+            "Số CMND",
         ]
 
         # Import same contract type value multiple times
@@ -403,7 +404,8 @@ class TestImportHandlerEmployeeType:
                 "Test Branch",
                 "Test Block",
                 "Test Department",
-                f"0{i}{i}{i}{i}{i}{i}{i}{i}{i}{i}",
+                f"012345678{i}",
+                f"02409701465{i}",  # Unique citizen_id
             ]
             options = {"headers": headers}
             result = employee_import_handler(1, row, "test-job-id", options)

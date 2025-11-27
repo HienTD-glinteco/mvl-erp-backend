@@ -9,6 +9,8 @@ from .data_scope import (
     filter_queryset_by_data_scope,
 )
 from .employee_type_mapping import (
+    get_employee_type_mapping,
+    load_custom_mapping_from_file,
     map_contract_type_to_employee_type,
     normalize_text,
     suggest_employee_type,
@@ -59,4 +61,6 @@ __all__ = [
     "normalize_text",
     "map_contract_type_to_employee_type",
     "suggest_employee_type",
+    "get_employee_type_mapping",
+    "load_custom_mapping_from_file",
 ]

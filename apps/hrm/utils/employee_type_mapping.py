@@ -1,5 +1,6 @@
 """Utility functions for mapping contract types to employee types."""
 
+import json
 import logging
 import re
 import unicodedata
@@ -192,8 +193,6 @@ def load_custom_mapping_from_file(file_path: str) -> dict[str, Any] | None:
     Returns:
         Dictionary with mapping data or None if loading fails.
     """
-    import json
-
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
