@@ -13,7 +13,6 @@ from apps.hrm.import_handlers.employee import (
     is_section_header_row,
     lookup_or_create_block,
     lookup_or_create_branch,
-    lookup_or_create_contract_type,
     lookup_or_create_department,
     lookup_or_create_nationality,
     lookup_or_create_position,
@@ -205,19 +204,6 @@ class TestReferenceLookupFunctions:
         position3, created3 = lookup_or_create_position("")
         assert position3 is None
         assert created3 is False
-
-    def test_lookup_or_create_contract_type(self):
-        """Test contract type lookup/creation."""
-        # Create contract type
-        ct1, created1 = lookup_or_create_contract_type("Full Time")
-        assert ct1 is not None
-        assert ct1.name == "Full Time"
-        assert created1 is True
-
-        # Lookup existing
-        ct2, created2 = lookup_or_create_contract_type("Full Time")
-        assert ct2.id == ct1.id
-        assert created2 is False
 
     def test_lookup_or_create_nationality(self):
         """Test nationality lookup/creation."""
@@ -532,7 +518,10 @@ class TestEmployeeImportHandler:
 
         # Verify references were created
         employee = Employee.objects.get(code="CTV000005")
-        assert employee.contract_type.name == "Chính thức"
+        # NOTE: Contract type is now mapped to employee_type, not FK
+        from apps.hrm.constants import EmployeeType
+
+        assert employee.employee_type == EmployeeType.OFFICIAL
         assert employee.position.name == "Trưởng Phòng"
         assert employee.nationality.name == "Việt Nam"
 
@@ -793,7 +782,10 @@ class TestEmployeeImportHandler:
         assert employee.fullname == "Đào Thanh Tùng"
         assert employee.attendance_code == "7504"
         assert employee.start_date == date(2023, 12, 23)
-        assert employee.contract_type.name == "Chính thức"
+        # NOTE: Contract type is now mapped to employee_type, not FK
+        from apps.hrm.constants import EmployeeType
+
+        assert employee.employee_type == EmployeeType.OFFICIAL
         assert employee.position.name == "Trưởng Phòng Kinh Doanh"
         assert employee.phone == "0834186111"
         assert employee.personal_email == "daotungbds@gmail.com"

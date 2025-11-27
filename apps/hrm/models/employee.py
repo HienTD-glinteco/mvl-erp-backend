@@ -10,7 +10,7 @@ from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 from libs.validators import CitizenIdValidator
 
-from ..constants import TEMP_CODE_PREFIX
+from ..constants import TEMP_CODE_PREFIX, EmployeeType
 
 
 @audit_logging_register
@@ -183,6 +183,13 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         related_name="employees",
         verbose_name=_("Contract type"),
+    )
+    employee_type = models.CharField(
+        max_length=30,
+        choices=EmployeeType.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Employee type (classification)"),
     )
 
     # Employment details

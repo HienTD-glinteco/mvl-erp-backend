@@ -8,6 +8,11 @@ from .data_scope import (
     filter_by_leadership,
     filter_queryset_by_data_scope,
 )
+from .employee_type_mapping import (
+    map_contract_type_to_employee_type,
+    normalize_text,
+    suggest_employee_type,
+)
 from .filters import DataScopeFilterBackend, LeadershipFilterBackend
 from .functions import (
     get_current_month_range,
@@ -50,4 +55,8 @@ __all__ = [
     "get_all_work_schedules",
     "get_work_schedule_by_weekday",
     "invalidate_work_schedule_cache",
+    # Employee type mapping
+    "normalize_text",
+    "map_contract_type_to_employee_type",
+    "suggest_employee_type",
 ]
