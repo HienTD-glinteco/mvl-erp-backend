@@ -7,7 +7,6 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from apps.files.models import FileModel
 from apps.hrm.models import ContractType
 
 
@@ -345,24 +344,57 @@ class TestContractTypeAPI:
         # Default ordering is -created_at, so fixed_term_contract_type should be first
         assert data["results"][0]["name"] == "Fixed-term Contract"
 
+    @patch("django.core.cache.cache.delete")
+    @patch("django.core.cache.cache.get")
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
-    def test_create_contract_type_with_template_file(self, mock_s3_service, api_client, contract_type_data, db):
-        """Test creating a contract type with template file."""
+    def test_create_contract_type_with_template_file(
+        self, mock_s3_service, mock_cache_get, mock_cache_delete, api_client, contract_type_data, db
+    ):
+        """Test creating a contract type with template file using FileConfirmSerializerMixin."""
+        import json
+
+        from apps.files.constants import CACHE_KEY_PREFIX
+
+        # Setup file token
+        file_token = "test-template-token-001"
+        cache_data = {}
+
+        def cache_get_side_effect(key):
+            return cache_data.get(key)
+
+        def cache_delete_side_effect(key):
+            if key in cache_data:
+                del cache_data[key]
+
+        cache_key = f"{CACHE_KEY_PREFIX}{file_token}"
+        cache_data[cache_key] = json.dumps(
+            {
+                "file_name": "template.docx",
+                "file_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "purpose": "contract_type_template",
+                "file_path": "uploads/tmp/test-template-token-001/template.docx",
+            }
+        )
+
+        mock_cache_get.side_effect = cache_get_side_effect
+        mock_cache_delete.side_effect = cache_delete_side_effect
+
         # Mock S3 service
         mock_instance = MagicMock()
         mock_s3_service.return_value = mock_instance
-        mock_instance.generate_view_url.return_value = "https://example.com/view/test.docx"
-        mock_instance.generate_download_url.return_value = "https://example.com/download/test.docx"
+        mock_instance.check_file_exists.return_value = True
+        mock_instance.generate_permanent_path.return_value = "uploads/contract_type_template/1/template.docx"
+        mock_instance.move_file.return_value = True
+        mock_instance.get_file_metadata.return_value = {
+            "size": 12345,
+            "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "etag": "abc123",
+        }
+        mock_instance.generate_view_url.return_value = "https://example.com/view/template.docx"
+        mock_instance.generate_download_url.return_value = "https://example.com/download/template.docx"
 
-        # Create a confirmed file
-        template_file = FileModel.objects.create(
-            purpose="contract_type_template",
-            file_name="template.docx",
-            file_path="uploads/contract_type/template.docx",
-            is_confirmed=True,
-        )
-
-        contract_type_data["template_file_id"] = template_file.id
+        # Add file token to request data
+        contract_type_data["files"] = {"template_file": file_token}
 
         url = reverse("hrm:contract-type-list")
         response = api_client.post(url, contract_type_data, format="json")

@@ -2,33 +2,24 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
-from apps.files.models import FileModel
 from apps.hrm.models import ContractType
-from libs.drf.serializers import FieldFilteringSerializerMixin
+from libs.drf.serializers import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
 
 
-class ContractTypeSerializer(serializers.ModelSerializer):
+class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for ContractType model.
 
     This serializer provides full CRUD operations for contract types.
-    It includes nested serialization for template file.
+    It includes nested serialization for template file using FileConfirmSerializerMixin.
 
     Read operations return full nested objects for template_file.
-    Write operations (POST/PUT/PATCH) require template_file_id.
+    Write operations (POST/PUT/PATCH) use file tokens via the 'files' field.
     """
+
+    file_confirm_fields = ["template_file"]
 
     # Nested read-only serializers for full object representation
     template_file = FileSerializer(read_only=True)
-
-    # Write-only field for template file ID
-    template_file_id = serializers.PrimaryKeyRelatedField(
-        queryset=FileModel.objects.filter(is_confirmed=True),
-        source="template_file",
-        write_only=True,
-        required=False,
-        allow_null=True,
-        help_text="ID of the confirmed template file",
-    )
 
     # Computed field for duration display
     duration_display = serializers.CharField(read_only=True)
@@ -57,7 +48,6 @@ class ContractTypeSerializer(serializers.ModelSerializer):
             "terms",
             "note",
             "template_file",
-            "template_file_id",
             "created_at",
             "updated_at",
         ]
