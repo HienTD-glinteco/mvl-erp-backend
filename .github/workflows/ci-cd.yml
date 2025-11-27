@@ -125,6 +125,11 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
 
+    - name: Install git (required for pre-commit)
+      run: |
+        apt-get update -qq
+        apt-get install -y -qq git
+
     - name: Run Django system checks
       run: |
         export PATH="$HOME/.local/bin:$PATH"
@@ -134,9 +139,9 @@ jobs:
 
     - name: Initialize git for pre-commit
       run: |
-        git init
-        git config user.email "ci@github.com"
-        git config user.name "GitHub CI"
+        git config --global user.email "ci@github.com"
+        git config --global user.name "GitHub CI"
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
         git add -A
         git commit -m "Initial commit for pre-commit" || true
 
