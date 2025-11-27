@@ -113,7 +113,9 @@ class TestContractTypeModel:
 
     def test_contract_type_unique_name(self, contract_type):
         """Test that contract type name is unique."""
-        with pytest.raises(Exception):
+        from django.db import IntegrityError
+
+        with pytest.raises(IntegrityError):
             ContractType.objects.create(
                 name="Test Contract Type",  # Duplicate name
                 symbol="DUP",
@@ -149,7 +151,9 @@ class TestContractTypeModel:
 
     def test_annual_leave_days_max_validation(self, db):
         """Test that annual leave days cannot exceed 12."""
-        with pytest.raises(Exception):
+        from django.core.exceptions import ValidationError
+
+        with pytest.raises(ValidationError):
             contract_type = ContractType(
                 name="Invalid Leave Days",
                 symbol="ILD",

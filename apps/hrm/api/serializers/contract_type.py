@@ -77,7 +77,9 @@ class ContractTypeSerializer(serializers.ModelSerializer):
         - duration_months is required when duration_type is 'fixed'
         - duration_months is set to None when duration_type is 'indefinite'
         """
-        duration_type = attrs.get("duration_type", getattr(self.instance, "duration_type", None))
+        # Get duration_type from attrs or fallback to instance value
+        instance_duration_type = getattr(self.instance, "duration_type", None) if self.instance else None
+        duration_type = attrs.get("duration_type", instance_duration_type)
         duration_months = attrs.get("duration_months")
 
         if duration_type == ContractType.DurationType.FIXED:
