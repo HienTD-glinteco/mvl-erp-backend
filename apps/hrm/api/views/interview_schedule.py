@@ -16,6 +16,7 @@ from apps.hrm.api.serializers import (
 from apps.hrm.callbacks import mark_interview_candidate_email_sent
 from apps.hrm.models import InterviewSchedule
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
+from apps.mailtemplates.services import TemplateValidationError
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -445,8 +446,6 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
         Returns:
             List of recipient dicts with email, data, and callback_data
         """
-        from apps.mailtemplates.services import TemplateValidationError
-
         # Get candidate_ids filter from request if provided
         candidate_ids = request.data.get("candidate_ids")
 

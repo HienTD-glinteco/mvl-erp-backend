@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 23:40+0700\n"
+"POT-Creation-Date: 2025-11-27 11:42+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,15 +111,15 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
-#: apps/hrm/api/serializers/geolocation_attendance.py:29
+#: apps/hrm/api/serializers/geolocation_attendance.py:27
 msgid "ID of the attendance geolocation to check against"
 msgstr ""
 
-#: apps/hrm/api/serializers/geolocation_attendance.py:48
+#: apps/hrm/api/serializers/geolocation_attendance.py:46
 msgid "Latitude, longitude, and geolocation are required"
 msgstr ""
 
-#: apps/hrm/api/serializers/geolocation_attendance.py:55
+#: apps/hrm/api/serializers/geolocation_attendance.py:54
 #, python-brace-format
 msgid ""
 "Your location is outside the allowed radius ({radius}m) of the geolocation"
