@@ -66,3 +66,7 @@ LOGGING = {
 
 # Disable email backend
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+# GDAL library path for GeoDjango
+GDAL_LIBRARY_PATH = config("GDAL_LIBRARY_PATH", "")
+GEOS_LIBRARY_PATH = config("GEOS_LIBRARY_PATH", "")

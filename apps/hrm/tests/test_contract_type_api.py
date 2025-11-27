@@ -346,7 +346,7 @@ class TestContractTypeAPI:
 
     @patch("django.core.cache.cache.delete")
     @patch("django.core.cache.cache.get")
-    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    @patch("apps.files.utils.S3FileUploadService")
     def test_create_contract_type_with_template_file(
         self, mock_s3_service, mock_cache_get, mock_cache_delete, api_client, contract_type_data, db
     ):
