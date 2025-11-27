@@ -5,12 +5,12 @@ import re
 from datetime import date, datetime
 from typing import Any
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.text import slugify
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
+from apps.hrm.constants import EmployeeType
 from apps.hrm.models import (
     Bank,
     BankAccount,
@@ -19,10 +19,6 @@ from apps.hrm.models import (
     Department,
     Employee,
     Position,
-)
-from apps.hrm.utils.employee_type_mapping import (
-    map_contract_type_to_employee_type,
-    suggest_employee_type,
 )
 
 logger = logging.getLogger(__name__)
@@ -92,6 +88,17 @@ MARITAL_STATUS_MAPPING = {
     "độc thân": Employee.MaritalStatus.SINGLE,
     "đã kết hôn": Employee.MaritalStatus.MARRIED,
     "đã ly hôn": Employee.MaritalStatus.DIVORCED,
+}
+
+# Employee type mapping - maps contract type names (lowercase) to EmployeeType values
+EMPLOYEE_TYPE_MAPPING = {
+    "chính thức": EmployeeType.OFFICIAL,
+    "học việc": EmployeeType.APPRENTICE,
+    "không lương chính thức": EmployeeType.UNPAID_OFFICIAL,
+    "không lương thử việc": EmployeeType.UNPAID_PROBATION,
+    "thử việc": EmployeeType.PROBATION,
+    "thử việc loại 1": EmployeeType.PROBATION_TYPE_1,
+    "thực tập sinh": EmployeeType.INTERN,
 }
 
 
@@ -446,60 +453,26 @@ def lookup_or_create_position(name: str) -> tuple[Position | None, bool]:
 
 def map_import_contract_type_to_employee_type(
     contract_type_value: str,
-    options: dict,
-) -> tuple[str | None, bool, str | None]:
+) -> str | None:
     """Map incoming contract type value to employee_type.
 
-    This function replaces lookup_or_create_contract_type to prevent
-    creation of ContractType records during import. Instead, it maps
-    the incoming value directly to an employee_type constant.
+    Uses hardcoded mapping to translate contract type names to employee_type values.
+    If no mapping exists, returns None.
 
     Args:
         contract_type_value: The contract type name/value from import.
-        options: Import options dict (may contain custom mapping config).
 
     Returns:
-        Tuple of (employee_type value or None, was_mapped: bool, warning message or None).
+        employee_type value or None if not mapped.
     """
     if not contract_type_value:
-        return None, False, None
+        return None
 
-    contract_type_value = contract_type_value.strip()
+    # Normalize to lowercase for lookup
+    normalized_value = contract_type_value.strip().lower()
 
-    # Check if strict mode is enabled (from settings or options)
-    strict_mode = options.get(
-        "import_employee_type_strict",
-        getattr(settings, "IMPORT_EMPLOYEE_TYPE_STRICT", False),
-    )
-
-    # Get custom mapping if provided
-    custom_mapping = options.get(
-        "import_employee_type_custom_mapping",
-        getattr(settings, "IMPORT_EMPLOYEE_TYPE_CUSTOM_MAPPING", None),
-    )
-
-    # Try to map the contract type to employee type
-    employee_type, was_mapped = map_contract_type_to_employee_type(
-        contract_type_name=contract_type_value,
-        custom_mapping=custom_mapping,
-    )
-
-    if was_mapped and employee_type:
-        logger.debug(f"Mapped contract type '{contract_type_value}' to employee_type '{employee_type}'")
-        return employee_type, True, None
-
-    # Not mapped - log and handle based on strict mode
-    suggestion = suggest_employee_type(contract_type_value)
-    suggestion_str = f" (suggested: {suggestion})" if suggestion else ""
-
-    if strict_mode:
-        error_msg = f"Unmapped contract type: '{contract_type_value}'{suggestion_str}"
-        logger.error(error_msg)
-        return None, False, error_msg
-    else:
-        warning_msg = f"Unmapped contract type: '{contract_type_value}', employee_type set to NULL{suggestion_str}"
-        logger.warning(warning_msg)
-        return None, False, warning_msg
+    # Look up in hardcoded mapping
+    return EMPLOYEE_TYPE_MAPPING.get(normalized_value)
 
 
 def lookup_or_create_nationality(name: str) -> tuple[Nationality | None, bool]:
@@ -851,15 +824,10 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 warnings.append(f"Unknown status code: {status_raw}")
 
             # Map contract type to employee_type instead of creating ContractType records
-            # This replaces the previous lookup_or_create_contract_type behavior
             if contract_type_name and contract_type_lower not in CONTRACT_TYPE_STATUS_MAPPING:
-                employee_type, was_mapped, mapping_warning = map_import_contract_type_to_employee_type(
-                    contract_type_name, options
-                )
+                employee_type = map_import_contract_type_to_employee_type(contract_type_name)
                 if employee_type:
                     employee_data["employee_type"] = employee_type
-                if mapping_warning:
-                    warnings.append(mapping_warning)
 
             # Branch (reference)
             branch_name = normalize_value(row_dict.get("branch", ""))

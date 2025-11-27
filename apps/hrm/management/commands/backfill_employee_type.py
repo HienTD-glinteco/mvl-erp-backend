@@ -10,14 +10,36 @@ from django.db import transaction
 
 from apps.hrm.constants import EmployeeType
 from apps.hrm.models import Employee
-from apps.hrm.utils.employee_type_mapping import (
-    get_employee_type_mapping,
-    load_custom_mapping_from_file,
-    map_contract_type_to_employee_type,
-    suggest_employee_type,
-)
 
 logger = logging.getLogger(__name__)
+
+# Hardcoded mapping from contract type names (lowercase) to EmployeeType values
+EMPLOYEE_TYPE_MAPPING = {
+    "chính thức": EmployeeType.OFFICIAL,
+    "học việc": EmployeeType.APPRENTICE,
+    "không lương chính thức": EmployeeType.UNPAID_OFFICIAL,
+    "không lương thử việc": EmployeeType.UNPAID_PROBATION,
+    "thử việc": EmployeeType.PROBATION,
+    "thử việc loại 1": EmployeeType.PROBATION_TYPE_1,
+    "thực tập sinh": EmployeeType.INTERN,
+}
+
+
+def map_contract_type_to_employee_type(contract_type_name: str | None) -> str | None:
+    """Map contract type name to employee_type value.
+
+    Args:
+        contract_type_name: The contract type name to map.
+
+    Returns:
+        employee_type value or None if not mapped.
+    """
+    if not contract_type_name:
+        return None
+
+    # Normalize to lowercase for lookup
+    normalized_name = contract_type_name.strip().lower()
+    return EMPLOYEE_TYPE_MAPPING.get(normalized_name)
 
 
 class Command(BaseCommand):
@@ -31,7 +53,6 @@ class Command(BaseCommand):
     - Batch processing with configurable batch size
     - Dry-run mode for testing
     - Audit CSV output for tracking changes
-    - Custom mapping file support
     - Summary statistics at completion
     """
 
@@ -57,12 +78,6 @@ class Command(BaseCommand):
             help="Path to output audit CSV file (default: backfill_employee_type_TIMESTAMP.csv)",
         )
         parser.add_argument(
-            "--custom-mapping",
-            type=str,
-            default="",
-            help="Path to custom mapping JSON file",
-        )
-        parser.add_argument(
             "--include-unmapped",
             action="store_true",
             help="Include employees with unmapped contract_type in CSV (for review)",
@@ -73,26 +88,9 @@ class Command(BaseCommand):
             help="Overwrite existing employee_type values (default: skip if already set)",
         )
 
-    def _load_custom_mapping(self, custom_mapping_path: str) -> dict[str, str] | None:
-        """Load custom mapping from file if path is provided."""
-        if not custom_mapping_path:
-            return None
-
-        mapping_data = load_custom_mapping_from_file(custom_mapping_path)
-        if mapping_data:
-            custom_mapping = mapping_data.get("name_mapping", mapping_data)
-            self.stdout.write(f"Loaded custom mapping from {custom_mapping_path}")
-            return custom_mapping
-
-        self.stderr.write(
-            self.style.WARNING(f"Could not load custom mapping from {custom_mapping_path}")
-        )
-        return None
-
     def _process_employee(
         self,
         employee: Employee,
-        custom_mapping: dict[str, str] | None,
         force: bool,
         dry_run: bool,
         stats: dict,
@@ -112,15 +110,11 @@ class Command(BaseCommand):
             return None, csv_row
 
         # Try to map contract_type to employee_type
-        employee_type, was_mapped = map_contract_type_to_employee_type(
-            contract_type_name=contract_type_name,
-            contract_type_pk=contract_type_pk,
-            custom_mapping=custom_mapping,
-        )
+        employee_type = map_contract_type_to_employee_type(contract_type_name)
 
         old_employee_type = employee.employee_type
 
-        if was_mapped and employee_type:
+        if employee_type:
             # Found mapping - update employee
             if not dry_run:
                 employee.employee_type = employee_type
@@ -130,7 +124,7 @@ class Command(BaseCommand):
             csv_row = [
                 employee.id, employee.code, employee.fullname,
                 contract_type_pk, contract_type_name, old_employee_type or "",
-                employee_type, status, "",
+                employee_type, status,
             ]
             return employee if not dry_run else None, csv_row
 
@@ -138,17 +132,15 @@ class Command(BaseCommand):
         stats["skipped_no_mapping"] += 1
 
         # Track unmapped contract types
-        suggestion = None
         if contract_type_name:
             unmapped_contract_types[contract_type_name] = (
                 unmapped_contract_types.get(contract_type_name, 0) + 1
             )
-            suggestion = suggest_employee_type(contract_type_name)
 
         csv_row = [
             employee.id, employee.code, employee.fullname,
             contract_type_pk, contract_type_name, old_employee_type or "",
-            "", "no_mapping", suggestion or "",
+            "", "no_mapping",
         ]
         return None, csv_row
 
@@ -173,9 +165,7 @@ class Command(BaseCommand):
             self.stdout.write("")
             self.stdout.write(self.style.WARNING("Unmapped contract types:"))
             for ct_name, count in sorted(unmapped_contract_types.items(), key=lambda x: -x[1]):
-                suggestion = suggest_employee_type(ct_name)
-                suggestion_str = f" (suggested: {suggestion})" if suggestion else ""
-                self.stdout.write(f"  - {ct_name}: {count} employees{suggestion_str}")
+                self.stdout.write(f"  - {ct_name}: {count} employees")
 
         self.stdout.write("")
         self.stdout.write("Available employee_type values:")
@@ -202,11 +192,7 @@ class Command(BaseCommand):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_csv = f"backfill_employee_type_{timestamp}.csv"
 
-        custom_mapping = self._load_custom_mapping(options["custom_mapping"])
-
-        # Get current mapping for display
-        full_mapping = get_employee_type_mapping(custom_mapping)
-        self.stdout.write(f"Using mapping with {len(full_mapping)} entries")
+        self.stdout.write(f"Using mapping with {len(EMPLOYEE_TYPE_MAPPING)} entries")
 
         # Build queryset
         queryset = Employee.objects.select_related("contract_type")
@@ -234,7 +220,7 @@ class Command(BaseCommand):
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow([
                 "employee_id", "employee_code", "employee_fullname", "contract_type_id",
-                "contract_type_name", "old_employee_type", "new_employee_type", "status", "suggestion",
+                "contract_type_name", "old_employee_type", "new_employee_type", "status",
             ])
 
         try:
@@ -248,7 +234,7 @@ class Command(BaseCommand):
 
                 for employee in batch_employees:
                     updated_emp, csv_row = self._process_employee(
-                        employee, custom_mapping, force, dry_run, stats, unmapped_contract_types
+                        employee, force, dry_run, stats, unmapped_contract_types
                     )
                     if updated_emp:
                         updates.append(updated_emp)
