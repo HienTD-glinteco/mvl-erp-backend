@@ -125,10 +125,11 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
 
-    - name: Install git (required for pre-commit)
+    - name: Install git and configure safe directory
       run: |
         apt-get update -qq
         apt-get install -y -qq git
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
     - name: Run Django system checks
       run: |
