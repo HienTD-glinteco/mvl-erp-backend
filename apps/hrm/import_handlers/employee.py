@@ -10,12 +10,12 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
+from apps.hrm.constants import EmployeeType
 from apps.hrm.models import (
     Bank,
     BankAccount,
     Block,
     Branch,
-    ContractType,
     Department,
     Employee,
     Position,
@@ -88,6 +88,17 @@ MARITAL_STATUS_MAPPING = {
     "độc thân": Employee.MaritalStatus.SINGLE,
     "đã kết hôn": Employee.MaritalStatus.MARRIED,
     "đã ly hôn": Employee.MaritalStatus.DIVORCED,
+}
+
+# Employee type mapping - maps contract type names (lowercase) to EmployeeType values
+EMPLOYEE_TYPE_MAPPING = {
+    "chính thức": EmployeeType.OFFICIAL,
+    "học việc": EmployeeType.APPRENTICE,
+    "không lương chính thức": EmployeeType.UNPAID_OFFICIAL,
+    "không lương thử việc": EmployeeType.UNPAID_PROBATION,
+    "thử việc": EmployeeType.PROBATION,
+    "thử việc loại 1": EmployeeType.PROBATION_TYPE_1,
+    "thực tập sinh": EmployeeType.INTERN,
 }
 
 
@@ -440,29 +451,28 @@ def lookup_or_create_position(name: str) -> tuple[Position | None, bool]:
     return position, True
 
 
-def lookup_or_create_contract_type(name: str) -> tuple[ContractType | None, bool]:
-    """
-    Lookup or create ContractType by name.
+def map_import_contract_type_to_employee_type(
+    contract_type_value: str,
+) -> str | None:
+    """Map incoming contract type value to employee_type.
+
+    Uses hardcoded mapping to translate contract type names to employee_type values.
+    If no mapping exists, returns None.
 
     Args:
-        name: Contract type name
+        contract_type_value: The contract type name/value from import.
 
     Returns:
-        Tuple of (ContractType instance or None, created flag)
+        employee_type value or None if not mapped.
     """
-    if not name:
-        return None, False
+    if not contract_type_value:
+        return None
 
-    name = name.strip()
-    contract_type = ContractType.objects.filter(name__iexact=name).first()
+    # Normalize to lowercase for lookup
+    normalized_value = contract_type_value.strip().lower()
 
-    if contract_type:
-        return contract_type, False
-
-    contract_type = ContractType.objects.create(name=name)
-    logger.info(f"Created contract type: {contract_type.name}")
-
-    return contract_type, True
+    # Look up in hardcoded mapping
+    return EMPLOYEE_TYPE_MAPPING.get(normalized_value)
 
 
 def lookup_or_create_nationality(name: str) -> tuple[Nationality | None, bool]:
@@ -813,16 +823,11 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             elif status_raw:
                 warnings.append(f"Unknown status code: {status_raw}")
 
-            # Create contract type if provided (except for special status ones)
+            # Map contract type to employee_type instead of creating ContractType records
             if contract_type_name and contract_type_lower not in CONTRACT_TYPE_STATUS_MAPPING:
-                contract_type, created = lookup_or_create_contract_type(contract_type_name)
-                if contract_type:
-                    employee_data["contract_type"] = contract_type  # type: ignore[assignment]
-                    if created:
-                        created_references["contract_type"] = {
-                            "id": contract_type.id,
-                            "name": contract_type.name,
-                        }
+                employee_type = map_import_contract_type_to_employee_type(contract_type_name)
+                if employee_type:
+                    employee_data["employee_type"] = employee_type
 
             # Branch (reference)
             branch_name = normalize_value(row_dict.get("branch", ""))

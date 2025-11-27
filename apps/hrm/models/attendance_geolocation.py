@@ -1,3 +1,5 @@
+from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -45,6 +47,8 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
 
     # Location fields
     address = SafeTextField(blank=True, verbose_name=_("Address"))
+
+    # Keep legacy decimal fields for backward compatibility
     latitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
@@ -59,6 +63,17 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
         help_text=_("Longitude coordinate"),
         validators=[validate_longitude],
     )
+
+    # PostGIS Point field for efficient spatial queries
+    location = gis_models.PointField(
+        geography=True,  # Use geography for accurate distance calculations
+        srid=4326,  # WGS84 coordinate system
+        null=True,
+        blank=True,
+        verbose_name=_("Location Point"),
+        help_text=_("Geographic point for spatial queries (auto-populated from lat/long)"),
+    )
+
     radius_m = models.IntegerField(
         default=100,
         validators=[MinValueValidator(1)],
@@ -105,6 +120,13 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        """Override save to auto-populate location PointField from latitude/longitude."""
+        if self.latitude is not None and self.longitude is not None:
+            # Create Point with longitude first (PostGIS convention: longitude, latitude)
+            self.location = Point(float(self.longitude), float(self.latitude), srid=4326)
+        super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         """Soft delete implementation"""

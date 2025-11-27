@@ -19,6 +19,35 @@ SICK_LEAVE_DAYS_PER_YEAR = 30
 TEMP_CODE_PREFIX = "TEMP_"
 
 
+class EmployeeType(models.TextChoices):
+    """Employee type choices for the employee_type field."""
+
+    OFFICIAL = "OFFICIAL", _("Official")
+    APPRENTICE = "APPRENTICE", _("Apprentice")
+    UNPAID_OFFICIAL = "UNPAID_OFFICIAL", _("Unpaid - Official")
+    UNPAID_PROBATION = "UNPAID_PROBATION", _("Unpaid - Probation")
+    PROBATION = "PROBATION", _("Probation")
+    INTERN = "INTERN", _("Intern")
+    PROBATION_TYPE_1 = "PROBATION_TYPE_1", _("Probation Type 1")
+
+    @classmethod
+    def dict_choices(cls) -> dict:
+        return dict(cls.choices)
+
+    @classmethod
+    def get_label(cls, raw_value: str) -> str:
+        return cls.dict_choices().get(raw_value, raw_value)
+
+
+class AttendanceType(models.TextChoices):
+    """Attendance type choices for attendance records."""
+
+    BIOMETRIC_DEVICE = "biometric_device", _("Biometric Device")
+    WIFI = "wifi", _("WiFi")
+    GEOLOCATION = "geolocation", _("GeoLocation")
+    OTHER = "other", _("Other")
+
+
 class RecruitmentSourceType(models.TextChoices):
     REFERRAL_SOURCE = "referral_source", _("Referral Source")
     MARKETING_CHANNEL = "marketing_channel", _("Marketing Channel")

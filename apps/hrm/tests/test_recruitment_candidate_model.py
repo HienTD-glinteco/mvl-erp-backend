@@ -287,7 +287,8 @@ class RecruitmentCandidateModelTest(TransactionTestCase):
                     submitted_date=date(2025, 10, 15),
                 )
                 with self.assertRaises(ValidationError) as context:
-                    candidate.save()
+                    # Validate in Python first to raise ValidationError
+                    # before any DB write (avoid DataError from DB)
                     candidate.full_clean()
                 self.assertIn("citizen_id", context.exception.error_dict)
 

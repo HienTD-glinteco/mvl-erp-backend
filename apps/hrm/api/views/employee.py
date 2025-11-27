@@ -77,7 +77,7 @@ class EmployeeViewSet(
 
     queryset = (
         Employee.objects.select_related(
-            "user", "branch", "block", "department", "position", "contract_type", "nationality", "avatar"
+            "user", "branch", "block", "department", "position", "nationality", "avatar"
         )
         .prefetch_related("bank_accounts", "bank_accounts__bank")
         .all()

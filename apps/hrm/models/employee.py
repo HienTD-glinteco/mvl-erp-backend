@@ -10,7 +10,7 @@ from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 from libs.validators import CitizenIdValidator
 
-from ..constants import TEMP_CODE_PREFIX
+from ..constants import TEMP_CODE_PREFIX, EmployeeType
 
 
 @audit_logging_register
@@ -36,7 +36,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         block: Employee's block within the branch
         department: Employee's department within the block
         position: Employee's job position
-        contract_type: Type of employment contract
+        employee_type: Employee classification type
         start_date: Employment start date
         status: Current employment status
         resignation_date: Date of resignation (if applicable)
@@ -176,13 +176,12 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="employees",
         verbose_name=_("Position"),
     )
-    contract_type = models.ForeignKey(
-        "ContractType",
-        on_delete=models.PROTECT,
+    employee_type = models.CharField(
+        max_length=30,
+        choices=EmployeeType.choices,
         null=True,
         blank=True,
-        related_name="employees",
-        verbose_name=_("Contract type"),
+        verbose_name=_("Employee type (classification)"),
     )
 
     # Employment details

@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
-from apps.hrm.models import Bank, BankAccount, Block, Branch, ContractType, Department, Employee, Position
+from apps.hrm.models import Bank, BankAccount, Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -58,9 +58,6 @@ class EmployeeExportAPITest(TestCase):
             code="POS001",
             name="Test Position",
         )
-        self.contract_type = ContractType.objects.create(
-            name="Full-time Contract",
-        )
 
         # Create nationality
         self.nationality = Nationality.objects.create(
@@ -86,7 +83,6 @@ class EmployeeExportAPITest(TestCase):
             block=self.block,
             department=self.department,
             position=self.position,
-            contract_type=self.contract_type,
             status=Employee.Status.ACTIVE,
             citizen_id="123456789012",
             citizen_id_issued_date=date(2010, 1, 1),
