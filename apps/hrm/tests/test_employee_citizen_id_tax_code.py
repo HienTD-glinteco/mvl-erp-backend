@@ -54,6 +54,8 @@ class EmployeeCitizenIdTest(TestCase):
         )
 
         with self.assertRaises(ValidationError) as context:
+            # Provide temporary code so field-level validation for `code` does not block
+            employee.code = "TEMP_TEST"
             employee.full_clean()
 
         self.assertIn("citizen_id", context.exception.error_dict)
@@ -77,8 +79,12 @@ class EmployeeCitizenIdTest(TestCase):
                     department=self.department,
                     citizen_id=citizen_id,
                 )
+                # Provide temporary code so full_clean doesn't fail on 'code' field
+                employee.code = f"TEMP_{citizen_id}"
+                # Validate in Python first to ensure field validators run
+                employee.full_clean()
+                # Then persist to DB
                 employee.save()
-                employee.full_clean()  # Should not raise ValidationError
 
         for citizen_id in invalid_ids:
             with self.subTest(citizen_id=citizen_id):
@@ -95,7 +101,9 @@ class EmployeeCitizenIdTest(TestCase):
                     citizen_id=citizen_id,
                 )
                 with self.assertRaises(ValidationError) as context:
-                    employee.save()
+                    # Provide temporary code so full_clean doesn't fail on 'code' field
+                    employee.code = f"TEMP_{citizen_id}"
+                    # Run validators before any DB write to catch length errors
                     employee.full_clean()
                 self.assertIn("citizen_id", context.exception.error_dict)
 
@@ -115,6 +123,8 @@ class EmployeeCitizenIdTest(TestCase):
         )
 
         with self.assertRaises(ValidationError) as context:
+            # Provide temporary code so field-level validation for `code` does not block
+            employee.code = "TEMP_TEST"
             employee.full_clean()
 
         self.assertIn("citizen_id", context.exception.error_dict)

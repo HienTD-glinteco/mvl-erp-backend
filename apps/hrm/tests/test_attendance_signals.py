@@ -45,7 +45,7 @@ def test_attendance_record_create_updates_timesheet_and_monthly(db):
 
     now = timezone.now()
     _ = AttendanceRecord.objects.create(
-        code="TEST001", device=device, attendance_code=emp.attendance_code, timestamp=now
+        code="TEST001", biometric_device=device, attendance_code=emp.attendance_code, timestamp=now
     )
 
     # Entry should be created for today's date

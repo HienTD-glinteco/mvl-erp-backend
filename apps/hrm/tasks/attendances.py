@@ -11,7 +11,7 @@ from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
 from apps.devices.zk import ZKDeviceService
-from apps.hrm.models import AttendanceDevice, AttendanceRecord
+from apps.hrm.models import AttendanceDevice, AttendanceRecord, Employee
 
 logger = logging.getLogger(__name__)
 
@@ -226,7 +226,7 @@ def _get_existing_attendance_records_set(
         set: Set of (attendance_code, timestamp) tuples
     """
     existing_records_query = AttendanceRecord.objects.filter(
-        device=device,
+        biometric_device=device,
         attendance_code__in=attendance_codes,
         timestamp__gte=today_start,
     ).values_list("attendance_code", "timestamp")
@@ -243,6 +243,15 @@ def _create_attendance_records_from_logs(
     Returns:
         list: List of AttendanceRecord objects to create
     """
+    # Get all attendance codes from logs
+    attendance_codes = {log["user_id"] for log in today_logs}
+    
+    # Fetch employees matching these attendance codes
+    employee_map = {
+        emp.attendance_code: emp
+        for emp in Employee.objects.filter(attendance_code__in=attendance_codes)
+    }
+
     records_to_create = []
     for log in today_logs:
         # Check if this specific log already exists
@@ -257,10 +266,14 @@ def _create_attendance_records_from_logs(
             temp_prefix = getattr(AttendanceRecord, "TEMP_CODE_PREFIX", "TEMP_")
             temp_code = f"{temp_prefix}{get_random_string(20)}"
 
+            # Get employee if exists
+            employee = employee_map.get(log["user_id"])
+
             records_to_create.append(
                 AttendanceRecord(
                     code=temp_code,
-                    device=device,
+                    biometric_device=device,
+                    employee=employee,
                     attendance_code=log["user_id"],
                     timestamp=log["timestamp"],
                     raw_data=raw_data,

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 17:16+0700\n"
+"POT-Creation-Date: 2025-11-26 23:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,6 +111,20 @@ msgstr ""
 msgid "Current employment period"
 msgstr ""
 
+#: apps/hrm/api/serializers/geolocation_attendance.py:29
+msgid "ID of the attendance geolocation to check against"
+msgstr ""
+
+#: apps/hrm/api/serializers/geolocation_attendance.py:48
+msgid "Latitude, longitude, and geolocation are required"
+msgstr ""
+
+#: apps/hrm/api/serializers/geolocation_attendance.py:55
+#, python-brace-format
+msgid ""
+"Your location is outside the allowed radius ({radius}m) of the geolocation"
+msgstr ""
+
 #: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr ""
@@ -119,8 +133,27 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
+#: apps/hrm/api/serializers/holiday.py:70
+#, python-brace-format
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr ""
+
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:98
+#, python-brace-format
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:109
+#, python-brace-format
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -149,6 +182,42 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:214
+#, python-brace-format
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:234
+#, python-brace-format
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:244
+#, python-brace-format
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:260
+#, python-brace-format
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:277
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:288
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:207
@@ -181,19 +250,31 @@ msgstr ""
 msgid "Number of positions must be at least 1."
 msgstr ""
 
+#: apps/hrm/api/serializers/wifi_attendance.py:21
+msgid "WiFi BSSID (MAC address format: XX:XX:XX:XX:XX:XX)"
+msgstr ""
+
+#: apps/hrm/api/serializers/wifi_attendance.py:33
+msgid "WiFi device not found"
+msgstr ""
+
+#: apps/hrm/api/serializers/wifi_attendance.py:36
+msgid "WiFi device is not in use"
+msgstr ""
+
 #: apps/hrm/api/views/attendance_device.py:472
 #, python-format
 msgid "Failed to connect to device: %(message)s"
 msgstr ""
 
-#: apps/hrm/api/views/attendance_geolocation.py:435
+#: apps/hrm/api/views/attendance_geolocation.py:437
 #: apps/hrm/api/views/attendance_wifi_device.py:395
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
 msgstr ""
 
-#: apps/hrm/api/views/attendance_geolocation.py:439
+#: apps/hrm/api/views/attendance_geolocation.py:441
 #: apps/hrm/api/views/attendance_wifi_device.py:399
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
@@ -216,7 +297,7 @@ msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
 #: apps/hrm/api/views/employee.py:510
-#: apps/hrm/models/attendance_geolocation.py:74 apps/hrm/models/employee.py:194
+#: apps/hrm/models/attendance_geolocation.py:90 apps/hrm/models/employee.py:194
 #: apps/hrm/models/employee_certificate.py:121
 #: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/proposal.py:150
 #: apps/hrm/models/recruitment_candidate.py:111
@@ -368,34 +449,13 @@ msgstr "Tên Đăng Nhập"
 
 #: apps/hrm/api/views/employee.py:539
 #: apps/hrm/models/attendance_exemption.py:38
-#: apps/hrm/models/attendance_geolocation.py:76
-#: apps/hrm/models/attendance_record.py:70
+#: apps/hrm/models/attendance_geolocation.py:92
+#: apps/hrm/models/attendance_record.py:160
 #: apps/hrm/models/attendance_wifi_device.py:61
 #: apps/hrm/models/employee_certificate.py:100 apps/hrm/models/holiday.py:23
 #: apps/hrm/models/holiday.py:75
 msgid "Notes"
 msgstr "Ghi Chú"
-
-#: apps/hrm/api/views/employee_reports.py:61
-#: apps/hrm/api/views/recruitment_reports.py:674 apps/hrm/constants.py:39
-#: apps/hrm/constants.py:44 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:81
-#: apps/hrm/api/views/recruitment_reports.py:130
-#: apps/hrm/api/views/recruitment_reports.py:802 apps/hrm/constants.py:40
-#: apps/hrm/constants.py:45
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:46
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:47
-msgid "Year"
-msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
@@ -456,9 +516,9 @@ msgstr ""
 msgid "Voluntary - Other"
 msgstr ""
 
-#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/constants.py:73
-#: apps/hrm/constants.py:90 apps/hrm/models/employee.py:107
-#: apps/hrm/models/employee_report.py:131
+#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/constants.py:28
+#: apps/hrm/constants.py:82 apps/hrm/constants.py:99
+#: apps/hrm/models/employee.py:107 apps/hrm/models/employee_report.py:131
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr ""
@@ -498,187 +558,217 @@ msgstr ""
 msgid "Month filter cannot be in the future."
 msgstr ""
 
-#: apps/hrm/constants.py:23
-msgid "Referral Source"
-msgstr ""
-
-#: apps/hrm/constants.py:24
-msgid "Marketing Channel"
-msgstr ""
-
-#: apps/hrm/constants.py:25
-msgid "Job Website Channel"
+#: apps/hrm/constants.py:25 apps/hrm/models/attendance_record.py:77
+msgid "Biometric Device"
 msgstr ""
 
 #: apps/hrm/constants.py:26
-msgid "Recruitment Department Source"
+msgid "WiFi"
 msgstr ""
 
 #: apps/hrm/constants.py:27
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "GeoLocation"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/constants.py:32
+msgid "Referral Source"
+msgstr ""
+
+#: apps/hrm/constants.py:33
+msgid "Marketing Channel"
+msgstr ""
+
+#: apps/hrm/constants.py:34
+msgid "Job Website Channel"
+msgstr ""
+
+#: apps/hrm/constants.py:35
+msgid "Recruitment Department Source"
+msgstr ""
+
+#: apps/hrm/constants.py:36
 msgid "Returning Employee"
 msgstr ""
 
-#: apps/hrm/constants.py:53
-msgid "All data"
+#: apps/hrm/constants.py:48 apps/hrm/constants.py:53
+msgid "Week"
 msgstr ""
 
-#: apps/hrm/constants.py:54
-msgid "Branch level"
+#: apps/hrm/constants.py:49 apps/hrm/constants.py:54
+msgid "Month"
 msgstr ""
 
 #: apps/hrm/constants.py:55
-msgid "Block level"
+msgid "Quarter"
 msgstr ""
 
 #: apps/hrm/constants.py:56
-msgid "Department level"
+msgid "Year"
 msgstr ""
 
-#: apps/hrm/constants.py:57
-msgid "Self only"
+#: apps/hrm/constants.py:62
+msgid "All data"
 msgstr ""
 
 #: apps/hrm/constants.py:63
-msgid "Child"
+msgid "Branch level"
 msgstr ""
 
 #: apps/hrm/constants.py:64
-msgid "Wife"
+msgid "Block level"
 msgstr ""
 
 #: apps/hrm/constants.py:65
-msgid "Husband"
+msgid "Department level"
 msgstr ""
 
 #: apps/hrm/constants.py:66
-msgid "Father"
-msgstr ""
-
-#: apps/hrm/constants.py:67
-msgid "Mother"
-msgstr ""
-
-#: apps/hrm/constants.py:68
-msgid "Brother"
-msgstr ""
-
-#: apps/hrm/constants.py:69
-msgid "Sister"
-msgstr ""
-
-#: apps/hrm/constants.py:70
-msgid "Sibling"
-msgstr ""
-
-#: apps/hrm/constants.py:71
-msgid "Grandfather"
+msgid "Self only"
 msgstr ""
 
 #: apps/hrm/constants.py:72
+msgid "Child"
+msgstr ""
+
+#: apps/hrm/constants.py:73
+msgid "Wife"
+msgstr ""
+
+#: apps/hrm/constants.py:74
+msgid "Husband"
+msgstr ""
+
+#: apps/hrm/constants.py:75
+msgid "Father"
+msgstr ""
+
+#: apps/hrm/constants.py:76
+msgid "Mother"
+msgstr ""
+
+#: apps/hrm/constants.py:77
+msgid "Brother"
+msgstr ""
+
+#: apps/hrm/constants.py:78
+msgid "Sister"
+msgstr ""
+
+#: apps/hrm/constants.py:79
+msgid "Sibling"
+msgstr ""
+
+#: apps/hrm/constants.py:80
+msgid "Grandfather"
+msgstr ""
+
+#: apps/hrm/constants.py:81
 msgid "Grandmother"
 msgstr ""
 
-#: apps/hrm/constants.py:87
+#: apps/hrm/constants.py:96
 msgid "Foreign language certificate"
 msgstr ""
 
-#: apps/hrm/constants.py:88
+#: apps/hrm/constants.py:97
 msgid "Computer certificate"
 msgstr ""
 
-#: apps/hrm/constants.py:89 apps/hrm/models/employee_certificate.py:114
+#: apps/hrm/constants.py:98 apps/hrm/models/employee_certificate.py:114
 msgid "Graduation diploma"
 msgstr ""
 
-#: apps/hrm/constants.py:91
+#: apps/hrm/constants.py:100
 msgid "Broker training completion"
 msgstr ""
 
-#: apps/hrm/constants.py:92
+#: apps/hrm/constants.py:101
 msgid "Real estate practice license"
 msgstr ""
 
-#: apps/hrm/constants.py:106
+#: apps/hrm/constants.py:115
 msgid "Salaried employee"
 msgstr ""
 
-#: apps/hrm/constants.py:107
+#: apps/hrm/constants.py:116
 msgid "Unpaid / not contracted"
 msgstr ""
 
-#: apps/hrm/constants.py:125
+#: apps/hrm/constants.py:134
 msgid "On time"
 msgstr ""
 
-#: apps/hrm/constants.py:126
+#: apps/hrm/constants.py:135
 msgid "Not on time"
 msgstr ""
 
-#: apps/hrm/constants.py:127
+#: apps/hrm/constants.py:136
 msgid "Absent"
 msgstr ""
 
-#: apps/hrm/constants.py:131 apps/hrm/constants.py:152
+#: apps/hrm/constants.py:140 apps/hrm/constants.py:161
 msgid "Paid leave"
 msgstr ""
 
-#: apps/hrm/constants.py:132 apps/hrm/constants.py:153
+#: apps/hrm/constants.py:141 apps/hrm/constants.py:162
 msgid "Unpaid leave"
 msgstr ""
 
-#: apps/hrm/constants.py:133 apps/hrm/constants.py:154
+#: apps/hrm/constants.py:142 apps/hrm/constants.py:163
 msgid "Maternity leave"
 msgstr ""
 
-#: apps/hrm/constants.py:134
+#: apps/hrm/constants.py:143
 msgid "Public holiday"
 msgstr ""
 
-#: apps/hrm/constants.py:135
+#: apps/hrm/constants.py:144
 msgid "Unexcused Absence"
 msgstr ""
 
-#: apps/hrm/constants.py:149
+#: apps/hrm/constants.py:158
 msgid "Post-maternity benefits"
 msgstr ""
 
-#: apps/hrm/constants.py:150
+#: apps/hrm/constants.py:159
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Late exemption"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/constants.py:151
+#: apps/hrm/constants.py:160
 msgid "Overtime work"
 msgstr ""
 
-#: apps/hrm/constants.py:155
+#: apps/hrm/constants.py:164
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Attendance exemption"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/constants.py:156
+#: apps/hrm/constants.py:165
 msgid "Timesheet entry complaint"
 msgstr ""
 
-#: apps/hrm/constants.py:162
+#: apps/hrm/constants.py:171
 msgid "Pending"
 msgstr ""
 
-#: apps/hrm/constants.py:163
+#: apps/hrm/constants.py:172
 msgid "Approved"
 msgstr ""
 
-#: apps/hrm/constants.py:164 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:173 apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr ""
 
-#: apps/hrm/constants.py:170
+#: apps/hrm/constants.py:179
 msgid "Verified"
 msgstr ""
 
-#: apps/hrm/constants.py:171
+#: apps/hrm/constants.py:180
 msgid "Not verified"
 msgstr ""
 
@@ -903,12 +993,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -917,27 +1005,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -962,7 +1045,7 @@ msgid "Attendance Devices"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:44
-#: apps/hrm/models/attendance_record.py:46
+#: apps/hrm/models/attendance_record.py:59
 #: apps/hrm/models/employee_certificate.py:46
 #: apps/hrm/models/employee_dependent.py:44
 #: apps/hrm/models/employee_relationship.py:48
@@ -1085,8 +1168,8 @@ msgid "Connection successful. Firmware: %(firmware)s"
 msgstr ""
 
 #: apps/hrm/models/attendance_exemption.py:26
-#: apps/hrm/models/bank_account.py:25 apps/hrm/models/employee.py:358
-#: apps/hrm/models/employee_certificate.py:53
+#: apps/hrm/models/attendance_record.py:88 apps/hrm/models/bank_account.py:25
+#: apps/hrm/models/employee.py:358 apps/hrm/models/employee_certificate.py:53
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
 #: apps/hrm/models/employee_work_history.py:65
@@ -1125,146 +1208,202 @@ msgstr "Mã Chấm Công"
 msgid "Attendance Exemptions"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_geolocation.py:16
+#: apps/hrm/models/attendance_geolocation.py:19
 msgid "Latitude must be between -90 and 90 degrees"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:22
+#: apps/hrm/models/attendance_geolocation.py:25
 msgid "Longitude must be between -180 and 180 degrees"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:33 apps/hrm/models/employee.py:72
+#: apps/hrm/models/attendance_geolocation.py:36 apps/hrm/models/employee.py:72
 #: apps/hrm/models/organization.py:36 apps/hrm/models/organization.py:101
 #: apps/hrm/models/organization.py:179 apps/hrm/models/organization.py:310
 #: apps/hrm/models/recruitment_channel.py:34
 msgid "Active"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:34
+#: apps/hrm/models/attendance_geolocation.py:37
 msgid "Inactive"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:37
+#: apps/hrm/models/attendance_geolocation.py:40
 msgid "Geolocation name"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:38
+#: apps/hrm/models/attendance_geolocation.py:41
 msgid "Geolocation code"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:43
+#: apps/hrm/models/attendance_geolocation.py:46
 msgid "Project"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:47
+#: apps/hrm/models/attendance_geolocation.py:50
 #: apps/hrm/models/employee_relationship.py:120
 #: apps/hrm/models/organization.py:20
 msgid "Address"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:51
+#: apps/hrm/models/attendance_geolocation.py:56
+#: apps/hrm/models/attendance_record.py:111
 msgid "Latitude"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:52
+#: apps/hrm/models/attendance_geolocation.py:57
 msgid "Latitude coordinate"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:58
+#: apps/hrm/models/attendance_geolocation.py:63
+#: apps/hrm/models/attendance_record.py:120
 msgid "Longitude"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:59
+#: apps/hrm/models/attendance_geolocation.py:64
 msgid "Longitude coordinate"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:65
+#: apps/hrm/models/attendance_geolocation.py:74
+msgid "Location Point"
+msgstr ""
+
+#: apps/hrm/models/attendance_geolocation.py:75
+msgid "Geographic point for spatial queries (auto-populated from lat/long)"
+msgstr ""
+
+#: apps/hrm/models/attendance_geolocation.py:81
 msgid "Radius (meters)"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:66
+#: apps/hrm/models/attendance_geolocation.py:82
 msgid "Radius in meters for geofencing"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:83
+#: apps/hrm/models/attendance_geolocation.py:99
 #: apps/hrm/models/employee_dependent.py:125
 #: apps/hrm/models/employee_relationship.py:160 apps/hrm/models/proposal.py:51
 msgid "Created by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:89
+#: apps/hrm/models/attendance_geolocation.py:105
 msgid "Updated by"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:93
+#: apps/hrm/models/attendance_geolocation.py:109
 msgid "Deleted"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:94
+#: apps/hrm/models/attendance_geolocation.py:110
 msgid "Deleted at"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:97
+#: apps/hrm/models/attendance_geolocation.py:113
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Attendance Geolocation"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_geolocation.py:98
+#: apps/hrm/models/attendance_geolocation.py:114
 #, fuzzy
 #| msgid "Attendance Code"
 msgid "Attendance Geolocations"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:36
+#: apps/hrm/models/attendance_record.py:47
 msgid "Attendance Record"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:37
+#: apps/hrm/models/attendance_record.py:48
 msgid "Attendance Records"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:51
-msgid "Device"
+#: apps/hrm/models/attendance_record.py:66
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance type"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/attendance_record.py:67
+msgid "Type of attendance method used"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:52
-msgid "Attendance device that captured this record"
+#: apps/hrm/models/attendance_record.py:78
+msgid "Attendance device that captured this record (for biometric device type)"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:56 apps/hrm/models/employee.py:147
+#: apps/hrm/models/attendance_record.py:89
+msgid "Employee associated with this attendance record"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:95 apps/hrm/models/employee.py:147
 msgid "Attendance code"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:57
+#: apps/hrm/models/attendance_record.py:96
 msgid "User ID from device, used to match with Employee.attendance_code"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:60
+#: apps/hrm/models/attendance_record.py:100
 msgid "Timestamp"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:61
+#: apps/hrm/models/attendance_record.py:101
 msgid "Date and time when attendance was recorded"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:65
+#: apps/hrm/models/attendance_record.py:112
+msgid "GeoLocation latitude coordinate (for geolocation attendance)"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:121
+msgid "GeoLocation longitude coordinate (for geolocation attendance)"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:129
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance geolocation"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/attendance_record.py:130
+msgid "Geolocation reference (for geolocation attendance)"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:138
+msgid "Image"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:139
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance photo (for geolocation attendance)"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/attendance_record.py:149
+msgid "WiFi device"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:150
+msgid "WiFi device reference (for WiFi attendance)"
+msgstr ""
+
+#: apps/hrm/models/attendance_record.py:155
 msgid "Is valid"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:66
+#: apps/hrm/models/attendance_record.py:156
 msgid "Whether this attendance record is valid"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:71
+#: apps/hrm/models/attendance_record.py:161
 msgid "Additional notes or comments about this attendance record"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:76
+#: apps/hrm/models/attendance_record.py:166
 msgid "Raw data"
 msgstr ""
 
-#: apps/hrm/models/attendance_record.py:77
+#: apps/hrm/models/attendance_record.py:167
 msgid "Complete raw data from device for debugging purposes"
 msgstr ""
 

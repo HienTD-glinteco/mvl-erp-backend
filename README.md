@@ -36,7 +36,7 @@ poetry install --dev
 ### Create Database
 
 If using sqlite, you can pass this step.
-This guide intends to help create PostgreSQL db
+This guide intends to help create PostgreSQL db with PostGIS extension.
 
 ```sql
 DROP DATABASE IF EXISTS backend;
@@ -46,6 +46,28 @@ CREATE DATABASE backend;
 CREATE ROLE backend WITH LOGIN PASSWORD 'password';
 ALTER DATABASE backend OWNER TO backend;
 ```
+
+### Enable PostGIS Extension
+
+After creating the database, enable the PostGIS extension for geographic data support:
+
+```sql
+-- Connect to the backend database
+\c backend
+
+-- Enable PostGIS extension
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Verify PostGIS installation
+SELECT PostGIS_version();
+```
+
+**PostGIS Setup Notes:**
+- PostGIS must be installed on the PostgreSQL server before enabling the extension
+- On Ubuntu/Debian: `sudo apt-get install postgresql-<version>-postgis-3`
+- On macOS with Homebrew: `brew install postgis`
+- PostGIS is required for the geolocation-based attendance features
+- The extension provides efficient spatial queries for distance calculations
 
 ### Create environment file
 
