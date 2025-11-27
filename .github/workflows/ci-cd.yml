@@ -125,6 +125,11 @@ jobs:
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
 
+    - name: Install git (required for pre-commit)
+      run: |
+        apt-get update -qq
+        apt-get install -y -qq git
+
     - name: Run Django system checks
       run: |
         export PATH="$HOME/.local/bin:$PATH"
@@ -137,7 +142,7 @@ jobs:
         SKIP: no-commit-to-branch
       run: |
         export PATH="$HOME/.local/bin:$PATH"
-        poetry run pre-commit run
+        poetry run pre-commit run --all-files
 
   # Test job: Runs the test suite with coverage
   # Depends on 'prepare' job (runs independently from django-checks)
