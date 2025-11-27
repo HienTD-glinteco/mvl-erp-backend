@@ -109,9 +109,6 @@ jobs:
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
         fail-on-cache-miss: true
 
-    - name: Add Poetry to PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
     - name: Create environment file
       run: |
         cat > .env << 'EOF'
@@ -124,6 +121,7 @@ jobs:
 
     - name: Run Django system checks
       run: |
+        export PATH="$HOME/.local/bin:$PATH"
         poetry run python manage.py check
       env:
         ENVIRONMENT: test
@@ -132,6 +130,7 @@ jobs:
       env:
         SKIP: no-commit-to-branch
       run: |
+        export PATH="$HOME/.local/bin:$PATH"
         poetry run pre-commit run
 
   # Test job: Runs the test suite with coverage
@@ -197,9 +196,6 @@ jobs:
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
         fail-on-cache-miss: true
 
-    - name: Add Poetry to PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
     - name: Create environment file
       run: |
         cat > .env << 'EOF'
@@ -214,6 +210,7 @@ jobs:
       env:
         ENVIRONMENT: test
       run: |
+        export PATH="$HOME/.local/bin:$PATH"
         # Run tests with optimized settings for CI/CD
         # --dist=loadgroup: distribute tests by module for better caching
         # -n auto: use all available CPU cores
