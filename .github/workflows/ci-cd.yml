@@ -152,7 +152,7 @@ jobs:
         PRE_COMMIT_HOME: /tmp/pre-commit
       run: |
         export PATH="$HOME/.local/bin:$PATH"
-        poetry run pre-commit run --all-files
+        poetry run pre-commit run
 
   # Test job: Runs the test suite with coverage
   # Depends on 'prepare' job (runs independently from django-checks)
