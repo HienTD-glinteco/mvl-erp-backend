@@ -2,8 +2,9 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import ContractType
-from libs.drf.serializers import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
+from libs.drf.serializers import FieldFilteringSerializerMixin
 
 
 class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):

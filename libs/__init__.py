@@ -1,3 +1,5 @@
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
+
 from .code_generation import (
     create_auto_code_signal_handler,
     generate_model_code,
@@ -7,7 +9,7 @@ from .constants import ColorVariant
 from .drf.base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .drf.pagination import PageNumberWithSizePagination
 from .drf.serializers import ColoredValueSerializer
-from .drf.serializers.mixins import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
+from .drf.serializers.mixins import FieldFilteringSerializerMixin
 from .drf.spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
 from .export_document import ExportDocumentMixin, convert_html_to_docx, convert_html_to_pdf
 from .export_xlsx import (

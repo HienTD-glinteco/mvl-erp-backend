@@ -6,6 +6,7 @@ from rest_framework import serializers
 
 from apps.core.api.serializers import SimpleUserSerializer
 from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.models import FileModel
 from apps.hrm.models import (
     BankAccount,
@@ -19,7 +20,6 @@ from apps.hrm.models import (
 )
 from apps.hrm.services.employee import create_position_change_event, create_state_change_event, create_transfer_event
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
-from libs.drf.serializers.mixins import FileConfirmSerializerMixin
 
 from .common_nested import BankNestedSerializer
 

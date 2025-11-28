@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import JobDescription
-from libs.drf.serializers import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
+from libs.drf.serializers import FieldFilteringSerializerMixin
 
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMixin, serializers.ModelSerializer):

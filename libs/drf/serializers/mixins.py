@@ -116,12 +116,3 @@ class FieldFilteringSerializerMixin:
         fields_to_remove = existing_fields - allowed_fields_set
         for field_name in fields_to_remove:
             self.fields.pop(field_name)
-
-
-# Re-export FileConfirmSerializerMixin from its new location for backward compatibility
-# This allows existing code using `from libs.drf.serializers.mixins import FileConfirmSerializerMixin`
-# to continue working
-from apps.files.api.serializers.mixins import (  # noqa: E402, F401
-    FileConfirmSerializerMixin,
-    _FileTokenField,
-)
