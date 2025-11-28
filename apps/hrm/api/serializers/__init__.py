@@ -52,7 +52,7 @@ from .interview_schedule import (
     UpdateInterviewersSerializer,
 )
 from .interview_schedule_export import InterviewScheduleExportSerializer
-from .job_description import JobDescriptionSerializer
+from .job_description import JobDescriptionExportSerializer, JobDescriptionSerializer
 from .organization import (
     BlockSerializer,
     BranchContactInfoSerializer,
@@ -134,6 +134,7 @@ __all__ = [
     "RecruitmentChannelSerializer",
     "RecruitmentSourceSerializer",
     "JobDescriptionSerializer",
+    "JobDescriptionExportSerializer",
     "RecruitmentRequestSerializer",
     "RecruitmentCandidateSerializer",
     "CandidateToEmployeeSerializer",
