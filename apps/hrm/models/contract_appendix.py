@@ -89,6 +89,12 @@ class ContractAppendix(AutoCodeMixin, BaseModel):
             models.Index(fields=["appendix_code"], name="contract_appendix_acode_idx"),
             models.Index(fields=["effective_date"], name="contract_appendix_eff_idx"),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(sign_date__lte=models.F("effective_date")),
+                name="contract_appendix_sign_lte_effective",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.code} - {self.contract.employee.fullname}"
