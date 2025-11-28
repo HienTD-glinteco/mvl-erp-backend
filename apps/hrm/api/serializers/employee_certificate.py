@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import Employee, EmployeeCertificate
 from libs import ColoredValueSerializer
-from libs.drf.serializers import FileConfirmSerializerMixin
 
 from .employee import EmployeeSerializer
 

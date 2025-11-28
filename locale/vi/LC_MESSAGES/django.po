@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-28 16:52+0700\n"
+"POT-Creation-Date: 2025-11-28 22:10+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -145,6 +145,38 @@ msgstr ""
 
 #: apps/files/api/serializers/file_serializers.py:172
 msgid "List of file configurations with tokens and related objects"
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:34
+msgid "Expected a string or list of strings."
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:35
+msgid "All items must be strings."
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:236
+#: apps/files/api/serializers/mixins.py:288
+#, python-brace-format
+msgid "File tokens for {field} (array of tokens)"
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:244
+#: apps/files/api/serializers/mixins.py:293
+#, python-brace-format
+msgid "File token(s) for {field}"
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:273
+#: apps/files/api/serializers/mixins.py:305
+msgid ""
+"File tokens for uploading files. Each key corresponds to a file field on the "
+"model."
+msgstr ""
+
+#: apps/files/api/serializers/mixins.py:313
+msgid ""
+"Dictionary mapping field names to file tokens (string or array of strings)"
 msgstr ""
 
 #: apps/files/api/views/file_views.py:96
@@ -930,23 +962,6 @@ msgstr "Không thể xóa {model_name} vì đang được sử dụng bởi: {re
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo vệ."
-
-#: libs/drf/serializers/mixins.py:249 libs/drf/serializers/mixins.py:286
-#, python-brace-format
-msgid "File token for {field}"
-msgstr ""
-
-#: libs/drf/serializers/mixins.py:272 libs/drf/serializers/mixins.py:295
-msgid ""
-"File tokens for uploading files. Each key corresponds to a file field on the "
-"model."
-msgstr ""
-
-#: libs/drf/serializers/mixins.py:303
-msgid ""
-"Dictionary mapping field names to file tokens (e.g., {'attachment': "
-"'token123'})"
-msgstr ""
 
 #: libs/export_xlsx/mixins.py:100
 msgid "Async export is not enabled"

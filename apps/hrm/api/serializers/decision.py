@@ -2,9 +2,10 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.models import FileModel
 from apps.hrm.models import Decision, Employee
-from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin, FileConfirmSerializerMixin
+from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class DecisionSignerNestedSerializer(serializers.ModelSerializer):
@@ -49,7 +50,7 @@ class DecisionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
     attachment_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
-        required=True,
+        required=False,
         allow_empty=False,
         help_text="List of confirmed file IDs to attach to this decision",
     )

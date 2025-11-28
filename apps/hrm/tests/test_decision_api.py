@@ -709,20 +709,3 @@ class DecisionAPITest(TransactionTestCase, APITestMixin, DecisionTestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         error = self.get_response_error(response)
         self.assertIn("attachment_ids", str(error))
-
-    def test_create_decision_without_attachment_ids_not_allowed(self):
-        """Test creating a decision without attachment_ids field is not allowed."""
-        url = reverse("hrm:decision-list")
-        payload = {
-            "decision_number": "QD-2025-ATT-005",
-            "name": "Decision without Attachments Field",
-            "signing_date": "2025-02-01",
-            "signer_id": self.employee.id,
-            "effective_date": "2025-03-01",
-        }
-        response = self.client.post(url, payload, format="json")
-
-        # Missing attachment_ids is not allowed (required=True)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        error = self.get_response_error(response)
-        self.assertIn("attachment_ids", str(error))

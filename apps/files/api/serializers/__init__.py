@@ -6,6 +6,7 @@ from .file_serializers import (
     PresignRequestSerializer,
     PresignResponseSerializer,
 )
+from .mixins import FileConfirmSerializerMixin
 
 __all__ = [
     "PresignRequestSerializer",
@@ -14,4 +15,5 @@ __all__ = [
     "ConfirmMultipleFilesResponseSerializer",
     "FileConfirmationSerializer",
     "FileSerializer",
+    "FileConfirmSerializerMixin",
 ]

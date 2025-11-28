@@ -2,6 +2,7 @@
 
 # Import existing utility functions from functions module
 # Import new data scope utilities
+from .contract_code import generate_contract_code
 from .data_scope import (
     AllowedUnits,
     collect_allowed_units,
@@ -50,4 +51,6 @@ __all__ = [
     "get_all_work_schedules",
     "get_work_schedule_by_weekday",
     "invalidate_work_schedule_cache",
+    # Contract code generation
+    "generate_contract_code",
 ]

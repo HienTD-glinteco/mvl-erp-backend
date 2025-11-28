@@ -4,7 +4,7 @@ from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import JobDescriptionFilterSet
-from apps.hrm.api.serializers import JobDescriptionSerializer
+from apps.hrm.api.serializers import JobDescriptionExportSerializer, JobDescriptionSerializer
 from apps.hrm.models import JobDescription
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -232,6 +232,12 @@ class JobDescriptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
     module = "HRM"
     submodule = "Recruitment"
     permission_prefix = "job_description"
+
+    def get_serializer_class(self):
+        """Return the appropriate serializer class based on action"""
+        if self.action == "export":
+            return JobDescriptionExportSerializer
+        return super().get_serializer_class()
 
     def get_export_data(self, request):
         queryset = self.filter_queryset(self.get_queryset())

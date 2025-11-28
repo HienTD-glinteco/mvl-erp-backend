@@ -9,9 +9,9 @@ from django.db import models
 from django.test import TestCase
 from rest_framework import serializers
 
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.constants import CACHE_KEY_PREFIX
 from apps.files.models import FileModel
-from libs import FileConfirmSerializerMixin
 
 User = get_user_model()
 

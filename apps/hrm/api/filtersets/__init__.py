@@ -5,6 +5,7 @@ from .attendance_record import AttendanceRecordFilterSet
 from .attendance_wifi_device import AttendanceWifiDeviceFilterSet
 from .bank import BankFilterSet
 from .bank_account import BankAccountFilterSet
+from .contract import ContractFilterSet
 from .decision import DecisionFilterSet
 from .employee import EmployeeFilterSet
 from .employee_dependent import EmployeeDependentFilterSet
@@ -47,6 +48,7 @@ __all__ = [
     "BranchFilterSet",
     "BranchContactInfoFilterSet",
     "BlockFilterSet",
+    "ContractFilterSet",
     "DepartmentFilterSet",
     "PositionFilterSet",
     "EmployeeRoleFilterSet",

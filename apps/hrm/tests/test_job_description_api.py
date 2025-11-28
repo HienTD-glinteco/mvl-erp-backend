@@ -306,7 +306,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         cache.clear()
 
         with (
-            patch("libs.drf.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.api.serializers.mixins.cache") as mock_cache,
             patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
             patch("apps.files.utils.s3_utils.S3FileUploadService") as mock_s3_service_model,
         ):
@@ -387,7 +387,7 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("attachment", response["Content-Disposition"])
 
     def test_export_job_descriptions_fields(self):
-        """Test that export includes correct fields"""
+        """Test that export includes correct fields without attachment"""
         # Create a job description
         url = reverse("hrm:job-description-list")
         self.client.post(url, self.job_data, format="json")
@@ -397,6 +397,37 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         response = self.client.get(export_url, {"delivery": "direct"})
 
         self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+
+    def test_export_serializer_excludes_attachment(self):
+        """Test that export serializer does not include attachment field"""
+        from apps.hrm.api.serializers import JobDescriptionExportSerializer
+
+        serializer = JobDescriptionExportSerializer()
+        field_names = list(serializer.fields.keys())
+
+        self.assertNotIn("attachment", field_names)
+        self.assertIn("title", field_names)
+        self.assertIn("code", field_names)
+
+    def test_viewset_uses_export_serializer_for_export_action(self):
+        """Test that ViewSet uses JobDescriptionExportSerializer for export action"""
+        from apps.hrm.api.serializers import (
+            JobDescriptionExportSerializer,
+            JobDescriptionSerializer,
+        )
+        from apps.hrm.api.views import JobDescriptionViewSet
+
+        # Test export action uses export serializer
+        viewset = JobDescriptionViewSet()
+        viewset.action = "export"
+        self.assertEqual(viewset.get_serializer_class(), JobDescriptionExportSerializer)
+
+        # Test other actions use default serializer
+        viewset.action = "list"
+        self.assertEqual(viewset.get_serializer_class(), JobDescriptionSerializer)
+
+        viewset.action = "retrieve"
+        self.assertEqual(viewset.get_serializer_class(), JobDescriptionSerializer)
 
     def test_export_job_descriptions_filtered(self):
         """Test exporting filtered job descriptions"""
