@@ -136,7 +136,7 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
         instance = self.instance
 
         # Check if instance exists and validate status for update/delete
-        if instance and instance.id and instance.status != Contract.ContractStatus.DRAFT:
+        if instance is not None and instance.pk is not None and instance.status != Contract.ContractStatus.DRAFT:
             raise serializers.ValidationError({"status": _("Only contracts with DRAFT status can be edited.")})
 
         # Get dates from attrs or fallback to instance values

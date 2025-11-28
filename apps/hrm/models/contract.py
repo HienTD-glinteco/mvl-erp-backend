@@ -281,7 +281,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         This should be called after successfully saving a new contract.
         """
-        if not self.id:
+        if self.pk is None:
             return
 
         Contract.objects.filter(
@@ -301,7 +301,9 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """
         is_new = self.pk is None
 
-        # Calculate status before save (except for DRAFT)
+        # Calculate status before save (only for non-DRAFT contracts)
+        # DRAFT status is preserved - status will be recalculated when user explicitly
+        # changes it from DRAFT to another status
         if self.status != self.ContractStatus.DRAFT:
             self.status = self.calculate_status()
 
