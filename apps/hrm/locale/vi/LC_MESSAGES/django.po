@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-28 11:36+0700\n"
+"POT-Creation-Date: 2025-11-28 12:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,67 +36,67 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:78
+#: apps/hrm/api/serializers/contract_type.py:79
 msgid "Duration in months is required for fixed-term contracts."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:139
+#: apps/hrm/api/serializers/contract_type.py:140
 msgid "Yes"
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:139
+#: apps/hrm/api/serializers/contract_type.py:140
 #, fuzzy
 #| msgid "No."
 msgid "No"
 msgstr "STT"
 
-#: apps/hrm/api/serializers/decision.py:102
+#: apps/hrm/api/serializers/decision.py:103
 #, python-brace-format
 msgid "File IDs not found or not confirmed: {ids}"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:254
+#: apps/hrm/api/serializers/employee.py:256
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:287
+#: apps/hrm/api/serializers/employee.py:289
 msgid "An employee with this attendance code already exists."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:301 apps/hrm/api/views/employee.py:408
+#: apps/hrm/api/serializers/employee.py:303 apps/hrm/api/views/employee.py:408
 msgid "Employee created"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:411
-#: apps/hrm/api/serializers/employee.py:436
+#: apps/hrm/api/serializers/employee.py:413
+#: apps/hrm/api/serializers/employee.py:438
 msgid "Employee is already Active."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:467
+#: apps/hrm/api/serializers/employee.py:469
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:471
+#: apps/hrm/api/serializers/employee.py:473
 msgid "Seniority retained from previous employment period."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:489
+#: apps/hrm/api/serializers/employee.py:491
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:512
-#: apps/hrm/api/serializers/employee.py:555
+#: apps/hrm/api/serializers/employee.py:514
+#: apps/hrm/api/serializers/employee.py:557
 msgid "Employee is already in a resigned status."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:531
+#: apps/hrm/api/serializers/employee.py:533
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
@@ -152,27 +152,8 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:70
-#, python-brace-format
-msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
-msgstr ""
-
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:98
-#, python-brace-format
-msgid ""
-"A compensatory workday with the same date and session already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:109
-#, python-brace-format
-msgid ""
-"A compensatory workday with full_day session conflicts with existing session "
-"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -201,42 +182,6 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:214
-#, python-brace-format
-msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:234
-#, python-brace-format
-msgid ""
-"For Saturday compensatory workday {comp_date}, only afternoon session is "
-"allowed"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:244
-#, python-brace-format
-msgid "Compensatory date {comp_date} falls within the holiday date range"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:260
-#, python-brace-format
-msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:277
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with session {comp_session} already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:288
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with full_day session conflicts with existing "
-"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:207
@@ -478,6 +423,27 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
+#: apps/hrm/api/views/employee_reports.py:61
+#: apps/hrm/api/views/recruitment_reports.py:674 apps/hrm/constants.py:68
+#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:81
+#: apps/hrm/api/views/recruitment_reports.py:130
+#: apps/hrm/api/views/recruitment_reports.py:802 apps/hrm/constants.py:69
+#: apps/hrm/constants.py:74
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:76
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
 msgstr ""
@@ -643,22 +609,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:56
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:76
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:82
