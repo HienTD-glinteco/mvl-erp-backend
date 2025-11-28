@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
 from apps.hrm.models import JobDescription
-from libs.drf.serializers import FileConfirmSerializerMixin
+from libs.drf.serializers import FieldFilteringSerializerMixin, FileConfirmSerializerMixin
 
 
-class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+class JobDescriptionSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMixin, serializers.ModelSerializer):
     """Serializer for JobDescription model"""
 
     file_confirm_fields = ["attachment"]

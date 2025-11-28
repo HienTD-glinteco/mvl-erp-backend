@@ -18,6 +18,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalRejectSerializer,
     ProposalSerializer,
+    ProposalTimesheetEntryComplaintSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
 )
@@ -168,6 +169,7 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
                                 "note": "",
                                 "created_at": "2025-01-15T10:00:00Z",
                                 "updated_at": "2025-01-15T10:00:00Z",
+                                "timesheet_entry_id": 1,
                             }
                         ],
                     },
@@ -200,6 +202,7 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
                         "note": "",
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T10:00:00Z",
+                        "timesheet_entry_id": 1,
                     },
                     "error": None,
                 },
@@ -212,14 +215,28 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
+    serializer_class = ProposalTimesheetEntryComplaintSerializer
     filterset_class = ProposalTimesheetEntryComplaintFilterSet
     permission_prefix = "proposal_timesheet_entry_complaint"
+
+    def get_queryset(self):
+        """Filter queryset to only include timesheet complaint proposals with optimized queries.
+
+        Uses select_related for FK fields and prefetch_related for the nested
+        timesheet_entries junction table and the actual timesheet_entry.
+        """
+        return (
+            super()
+            .get_queryset()
+            .select_related("created_by", "approved_by")
+            .prefetch_related("timesheet_entries__timesheet_entry")
+        )
 
     @extend_schema(
         summary="Approve complaint proposal",
         description="Approve a complaint proposal and set the approved check-in/out times",
         request=ProposalApproveSerializer,
-        responses={200: ProposalSerializer},
+        responses={200: ProposalTimesheetEntryComplaintSerializer},
         tags=["6.5.1: Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
@@ -240,6 +257,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
                         "note": "Approved by manager",
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T14:00:00Z",
+                        "timesheet_entry_id": 1,
                     },
                     "error": None,
                 },
@@ -267,14 +285,14 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # Return updated proposal
-        return Response(ProposalSerializer(proposal).data)
+        # Return updated proposal with timesheet entry
+        return Response(ProposalTimesheetEntryComplaintSerializer(proposal).data)
 
     @extend_schema(
         summary="Reject complaint proposal",
         description="Reject a complaint proposal with a required rejection reason",
         request=ProposalRejectSerializer,
-        responses={200: ProposalSerializer},
+        responses={200: ProposalTimesheetEntryComplaintSerializer},
         tags=["6.5.1: Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
@@ -295,6 +313,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
                         "note": "Not enough evidence provided",
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T14:00:00Z",
+                        "timesheet_entry_id": 1,
                     },
                     "error": None,
                 },
@@ -322,8 +341,8 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # Return updated proposal
-        return Response(ProposalSerializer(proposal).data)
+        # Return updated proposal with timesheet entry
+        return Response(ProposalTimesheetEntryComplaintSerializer(proposal).data)
 
 
 @extend_schema_view(

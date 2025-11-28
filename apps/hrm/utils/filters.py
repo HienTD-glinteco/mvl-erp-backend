@@ -2,8 +2,8 @@
 
 from decimal import Decimal, InvalidOperation
 
-from django.contrib.gis.db.models.functions import Distance
-from django.contrib.gis.geos import Point
+from django.db.models import F, FloatField, Value
+from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
 from rest_framework.filters import BaseFilterBackend
 
 from .data_scope import filter_by_leadership, filter_queryset_by_data_scope
@@ -59,7 +59,7 @@ class LeadershipFilterBackend(BaseFilterBackend):
 class DistanceOrderingFilterBackend(BaseFilterBackend):
     """Filter backend that orders geolocations by distance from a given point.
 
-    Uses PostGIS Distance function for efficient spatial queries.
+    Uses Haversine formula for distance calculations at database level.
 
     Usage in ViewSet:
         class MyViewSet(viewsets.ModelViewSet):
@@ -73,6 +73,9 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
     Example:
         ?user_latitude=10.7769&user_longitude=106.7009&ordering=distance
     """
+
+    # Earth's mean radius in meters (more accurate than 6371000)
+    EARTH_RADIUS_M = 6371008.8
 
     def filter_queryset(self, request, queryset, view):
         """Order queryset by distance from user's location if coordinates are provided."""
@@ -95,12 +98,23 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
         except (InvalidOperation, ValueError):
             return queryset
 
-        # Create Point from user's location (longitude, latitude order for PostGIS)
-        user_location = Point(float(user_lon), float(user_lat), srid=4326)
+        # Use Haversine formula at database level for distance calculation
+        # distance = R * acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(lon2 - lon1))
+        # where R is Earth's radius in meters
+        #
+        # Clamp the inner expression to [-1, 1] to prevent floating-point precision errors
+        # that can occur when two points are very close or identical
+        haversine_inner = (
+            Sin(Radians(F("latitude"))) * Sin(Radians(float(user_lat)))
+            + Cos(Radians(F("latitude"))) * Cos(Radians(float(user_lat))) * Cos(Radians(F("longitude")) - Radians(float(user_lon)))
+        )
 
-        # Use PostGIS Distance function to calculate distance
-        # Distance returns meters when using geography=True
-        queryset = queryset.annotate(distance=Distance("location", user_location))
+        # Clamp to valid ACos domain [-1, 1] using Least(Greatest(x, -1), 1)
+        clamped_inner = Least(Greatest(haversine_inner, Value(-1.0)), Value(1.0))
+
+        queryset = queryset.annotate(
+            distance=self.EARTH_RADIUS_M * ACos(clamped_inner, output_field=FloatField())
+        )
 
         # Apply ordering
         if ordering.startswith("-distance"):

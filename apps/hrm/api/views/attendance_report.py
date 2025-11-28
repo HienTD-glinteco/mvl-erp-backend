@@ -25,7 +25,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         tags=["6.9.1: Attendance Report By Method"],
         operation_id="hrm_reports_attendance_by_method",
         summary="Attendance Report By Method",
-        description="Get attendance statistics report by method (device, wifi, geolocation). "
+        description="Get attendance statistics report by method (device, wifi, geolocation, other). "
         "This report shows the breakdown of employee attendance methods within a specified time period and organizational structure. "
         "The report includes both absolute numbers and percentages for total employees, attendance status, and method breakdown. "
         "Filters can be applied for specific date, branch, block, and department."
@@ -42,13 +42,13 @@ class AttendanceReportViewSet(BaseGenericViewSet):
                             "total_employee": 10,
                             "not_attendance": 3,
                             "has_attendance": 7,
-                            "method_breakdown": {"device": 3, "wifi": 3, "geolocation": 1},
+                            "method_breakdown": {"device": 3, "wifi": 3, "geolocation": 1, "other": 0},
                         },
                         "percentage": {
                             "total_employee": 100,
                             "not_attendance": 30,
                             "has_attendance": 70,
-                            "method_breakdown": {"device": 30, "wifi": 30, "geolocation": 10},
+                            "method_breakdown": {"device": 30, "wifi": 30, "geolocation": 10, "other": 0},
                         },
                     },
                     "error": None,
@@ -75,13 +75,13 @@ class AttendanceReportViewSet(BaseGenericViewSet):
                 "total_employee": 10,
                 "not_attendance": 3,
                 "has_attendance": 7,
-                "method_breakdown": {"device": 3, "wifi": 3, "geolocation": 1},
+                "method_breakdown": {"device": 3, "wifi": 3, "geolocation": 1, "other": 0},
             },
             "percentage": {
                 "total_employee": 100,
                 "not_attendance": 30,
                 "has_attendance": 70,
-                "method_breakdown": {"device": 30, "wifi": 30, "geolocation": 10},
+                "method_breakdown": {"device": 30, "wifi": 30, "geolocation": 10, "other": 0},
             },
         }
         serializer = AttendanceMethodReportSerializer(data)

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from apps.files.api.serializers import FileSerializer
 from apps.files.models import FileModel
 from apps.hrm.models import Decision, Employee
-from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
+from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin, FileConfirmSerializerMixin
 
 
 class DecisionSignerNestedSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class DecisionSignerNestedSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "code", "fullname", "email"]
 
 
-class DecisionSerializer(serializers.ModelSerializer):
+class DecisionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for Decision model.
 
     This serializer provides nested object representation for read operations

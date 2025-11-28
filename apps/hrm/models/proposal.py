@@ -94,7 +94,16 @@ class Proposal(AutoCodeMixin, BaseModel):
 
 @audit_logging_register
 class ProposalTimeSheetEntry(BaseModel):
-    """Junction model linking Proposal to TimeSheetEntry."""
+    """Junction model linking Proposal to TimeSheetEntry.
+
+    For proposals of type TIMESHEET_ENTRY_COMPLAINT, there is a strict bidirectional
+    1-1 relationship enforced by clean() validation:
+    - Each complaint proposal can link to exactly ONE timesheet entry
+    - Each timesheet entry can have exactly ONE complaint proposal
+
+    For proposals of other types, multiple timesheet entries can be linked to
+    a single proposal.
+    """
 
     proposal = models.ForeignKey(
         "Proposal",
@@ -123,6 +132,52 @@ class ProposalTimeSheetEntry(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Proposal {self.proposal_id} - TimeSheetEntry {self.timesheet_entry_id}"
+
+    def clean(self) -> None:
+        """Validate bidirectional 1-1 relationship for TIMESHEET_ENTRY_COMPLAINT proposals.
+
+        This validation enforces two constraints:
+        1. A complaint proposal can only be linked to ONE timesheet entry (Proposal → TimeSheetEntry)
+        2. A timesheet entry can only have ONE complaint proposal (TimeSheetEntry → Proposal)
+
+        NOTE:
+        Since we have a constraint that Proposal (with type TIMESHEET_ENTRY_COMPLAINT)
+        has 1-1 relationship with TimeSheetEntry in both directions, and cannot have
+        UniqueConstraint at DB level (partial indexes don't support joined field conditions),
+        we enforce this validation here in clean().
+        DO NOT use queryset methods that may bypass this check (E.g: bulk_create, bulk_update, update...).
+
+        For other proposal types, multiple timesheet entries can be linked.
+        """
+        super().clean()
+
+        # Only validate for TIMESHEET_ENTRY_COMPLAINT type proposals
+        if self.proposal_id and self.proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
+            # Build base queryset excluding self if this is an update
+            base_qs = ProposalTimeSheetEntry.objects.all()
+            if self.pk:
+                base_qs = base_qs.exclude(pk=self.pk)
+
+            # Check 1: Proposal can only have one timesheet entry
+            existing_for_proposal = base_qs.filter(proposal_id=self.proposal_id)
+            if existing_for_proposal.exists():
+                raise ValidationError(
+                    {"proposal": _("A timesheet entry complaint proposal can only be linked to one timesheet entry.")}
+                )
+
+            # Check 2: TimeSheetEntry can only have one complaint proposal
+            existing_for_timesheet = base_qs.filter(
+                timesheet_entry_id=self.timesheet_entry_id,
+                proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            )
+            if existing_for_timesheet.exists():
+                raise ValidationError(
+                    {"timesheet_entry": _("This timesheet entry already has a complaint proposal linked to it.")}
+                )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 @audit_logging_register

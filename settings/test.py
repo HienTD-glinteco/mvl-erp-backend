@@ -18,6 +18,14 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = False
 
+# Use in-memory SQLite database for tests
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+}
+
 # Use local memory cache for tests to avoid Redis dependency
 CACHES = {
     "default": {
@@ -66,3 +74,7 @@ LOGGING = {
 
 # Disable email backend
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+# GDAL library path for GeoDjango
+GDAL_LIBRARY_PATH = config("GDAL_LIBRARY_PATH", "")
+GEOS_LIBRARY_PATH = config("GEOS_LIBRARY_PATH", "")
