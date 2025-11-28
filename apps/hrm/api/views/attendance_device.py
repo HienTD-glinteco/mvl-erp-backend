@@ -17,7 +17,7 @@ from libs import BaseModelViewSet
     list=extend_schema(
         summary="List all attendance devices",
         description="Retrieve a paginated list of all attendance devices with support for filtering by name, location, IP address, and connection status",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -89,7 +89,7 @@ from libs import BaseModelViewSet
     create=extend_schema(
         summary="Create a new attendance device",
         description="Create a new attendance device in the system. The system will automatically test the connection, retrieve serial number and registration number from the device, and update the connection status.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Create Request",
@@ -173,7 +173,7 @@ from libs import BaseModelViewSet
     retrieve=extend_schema(
         summary="Get attendance device details",
         description="Retrieve detailed information about a specific attendance device",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -234,7 +234,7 @@ from libs import BaseModelViewSet
     update=extend_schema(
         summary="Update attendance device",
         description="Update attendance device information. Connection will be re-tested and device info updated.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Update Request",
@@ -292,7 +292,7 @@ from libs import BaseModelViewSet
     partial_update=extend_schema(
         summary="Partially update attendance device",
         description="Partially update attendance device information. If network details are changed, connection will be re-tested.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Partial Update Request",
@@ -337,7 +337,7 @@ from libs import BaseModelViewSet
     destroy=extend_schema(
         summary="Delete attendance device",
         description="Remove an attendance device from the system. All associated attendance records will also be deleted.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -373,7 +373,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Toggle device enabled status",
         description="Toggle the is_enabled status of an attendance device. When enabling a device, the system will verify the connection to ensure the device is reachable.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         request=None,
         responses={200: AttendanceDeviceSerializer},
         examples=[
@@ -485,7 +485,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Check device connection",
         description="Test the connection to an attendance device and update its connection status. This action verifies network connectivity and device availability.",
-        tags=["Attendance Device"],
+        tags=["6.1: Attendance Device"],
         request=None,
         responses={200: AttendanceDeviceSerializer},
         examples=[

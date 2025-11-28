@@ -22,7 +22,7 @@ from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
     list=extend_schema(
         summary="List attendance records",
         description="Retrieve a paginated list of attendance records with support for filtering by device, attendance code, date/time range.",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -64,7 +64,7 @@ from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
     retrieve=extend_schema(
         summary="Get attendance record details",
         description="Retrieve detailed information about a specific attendance record",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -89,12 +89,12 @@ from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
     update=extend_schema(
         summary="Update attendance record",
         description="Update attendance record. Only timestamp, is_valid, and notes can be modified.",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
     ),
     partial_update=extend_schema(
         summary="Partially update attendance record",
         description="Partially update attendance record. Only timestamp, is_valid, and notes can be modified.",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
     ),
 )
 class AttendanceRecordViewSet(
@@ -132,7 +132,7 @@ class AttendanceRecordViewSet(
     @extend_schema(
         summary="Record attendance by GeoLocation",
         description="Record attendance using GeoLocation coordinates. Validates location against geolocation radius and status.",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
         request=GeoLocationAttendanceSerializer,
         responses={201: AttendanceRecordSerializer},
         examples=[
@@ -197,7 +197,7 @@ class AttendanceRecordViewSet(
     @extend_schema(
         summary="Record attendance by WiFi",
         description="Record attendance using WiFi BSSID. Validates WiFi device status.",
-        tags=["6.5 Attendance Record"],
+        tags=["6.11: Attendance Record"],
         request=WiFiAttendanceSerializer,
         responses={201: AttendanceRecordSerializer},
         examples=[

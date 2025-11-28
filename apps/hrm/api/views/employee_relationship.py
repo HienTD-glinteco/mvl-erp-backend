@@ -15,7 +15,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List employee relationships",
         description="Retrieve a paginated list of employee relationships with support for filtering and search",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -54,7 +54,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create employee relationship",
         description="Create a new employee relationship record with optional file attachment",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -126,7 +126,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Retrieve employee relationship",
         description="Get detailed information about a specific employee relationship",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -158,7 +158,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update employee relationship",
         description="Update an existing employee relationship record",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -190,12 +190,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Update employee relationship",
         description="Update an existing employee relationship record",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
     ),
     destroy=extend_schema(
         summary="Delete employee relationship",
         description="Soft delete an employee relationship by marking it as inactive",
-        tags=["Employee Relationship"],
+        tags=["5.3: Employee Relationship"],
         examples=[
             OpenApiExample(
                 "Success",

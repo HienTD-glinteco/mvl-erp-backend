@@ -35,6 +35,7 @@ class PasswordChangeView(APIView):
     @extend_schema(
         summary=_("Change password (when current password is known)"),
         description=_("Change password when user is logged in and knows their current password"),
+        tags=["1.1: Auth"],
         responses={
             200: PasswordChangeResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information or incorrect current password")),

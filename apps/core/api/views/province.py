@@ -12,7 +12,7 @@ from libs import BaseReadOnlyModelViewSet
     list=extend_schema(
         summary="List provinces",
         description="Retrieve a list of all provinces/cities in the system",
-        tags=["Geographic"],
+        tags=["0.8: Geographic"],
         examples=[
             OpenApiExample(
                 "List provinces success",
@@ -53,7 +53,7 @@ from libs import BaseReadOnlyModelViewSet
     retrieve=extend_schema(
         summary="Retrieve a province",
         description="Retrieve detailed information about a specific province.",
-        tags=["Geographic"],
+        tags=["0.8: Geographic"],
         examples=[
             OpenApiExample(
                 "Get province success",

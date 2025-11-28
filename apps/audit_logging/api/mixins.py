@@ -76,7 +76,7 @@ class AuditLoggingMixin:
     @extend_schema(
         summary="Get object histories",
         description="Retrieve the audit log history for this object, showing all changes made over time",
-        tags=["History"],
+        tags=["0.0: History"],
         responses={200: AuditLogSearchResponseSerializer},
         parameters=[
             OpenApiParameter(
@@ -238,7 +238,7 @@ class AuditLoggingMixin:
     @extend_schema(
         summary="Get history detail",
         description="Retrieve detailed information about a specific audit log entry",
-        tags=["History"],
+        tags=["0.0: History"],
         responses={
             200: AuditLogSerializer,
         },

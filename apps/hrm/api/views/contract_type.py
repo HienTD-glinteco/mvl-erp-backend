@@ -16,7 +16,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="List all contract types",
         description="Retrieve a paginated list of all contract types with support for filtering by name, code, "
         "duration type, social insurance status, and working time type",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -46,7 +46,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get contract type details",
         description="Retrieve detailed information about a specific contract type",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -86,7 +86,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new contract type",
         description="Create a new contract type in the system. Code is auto-generated.",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -159,7 +159,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update contract type",
         description="Update all fields of a contract type (except code)",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -221,12 +221,12 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update contract type",
         description="Update specific fields of a contract type",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
     ),
     destroy=extend_schema(
         summary="Delete contract type",
         description="Remove a contract type from the system. Cannot delete if used in employee contracts.",
-        tags=["Contract Type"],
+        tags=["7.1: Contract Type"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -234,6 +234,9 @@ from libs.export_xlsx import ExportXLSXMixin
                 response_only=True,
             ),
         ],
+    ),
+    export=extend_schema(
+        tags=["7.1: Contract Type"],
     ),
 )
 class ContractTypeViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

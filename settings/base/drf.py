@@ -39,10 +39,12 @@ SPECTACULAR_SETTINGS = {
     "VERSION": config("API_DOC_VERSION", default="1.0.0"),
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SORT_OPERATIONS": False,
+    "SORT_OPERATION_PARAMETERS": lambda parameter: parameter["name"],
+    "TAGS": [],
     "SCHEMA_PATH_PREFIX": "/api/",
     "POSTPROCESSING_HOOKS": [
         "libs.drf.spectacular.schema_hooks.wrap_with_envelope",
+        "settings.schema_sorting.sort_schema_by_tags",
     ],
 }
 

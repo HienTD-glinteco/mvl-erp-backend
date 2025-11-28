@@ -302,6 +302,9 @@ from libs.export_xlsx import ExportXLSXMixin
             ),
         ],
     ),
+    export=extend_schema(
+        tags=["6.3: Attendance Geolocation"],
+    ),
 )
 class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for AttendanceGeolocation model with distance-based sorting support"""

@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all projects",
         description="Retrieve a paginated list of all real estate projects with support for filtering and search",
-        tags=["Project"],
+        tags=["6.10: Project"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -46,7 +46,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new project",
         description="Create a new real estate project. Code is auto-generated server-side.",
-        tags=["Project"],
+        tags=["6.10: Project"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -81,22 +81,22 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get project details",
         description="Retrieve detailed information about a specific project",
-        tags=["Project"],
+        tags=["6.10: Project"],
     ),
     update=extend_schema(
         summary="Update project",
         description="Update project information. Code cannot be changed.",
-        tags=["Project"],
+        tags=["6.10: Project"],
     ),
     partial_update=extend_schema(
         summary="Partially update project",
         description="Partially update project information",
-        tags=["Project"],
+        tags=["6.10: Project"],
     ),
     destroy=extend_schema(
         summary="Delete project",
         description="Remove a project from the system",
-        tags=["Project"],
+        tags=["6.10: Project"],
         examples=[
             OpenApiExample(
                 "Success",

@@ -49,7 +49,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="List all mail templates",
         description="Retrieve a list of all available mail templates with their metadata",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         parameters=[
             {
                 "name": "include_preview",
@@ -119,7 +119,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Get template details",
         description="Retrieve detailed information about a specific template",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         parameters=[
             {
                 "name": "include_content",
@@ -183,7 +183,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Save template content",
         description="Save edited template HTML content with automatic backup",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         request=TemplateSaveRequestSerializer,
         responses={
             200: TemplateSaveResponseSerializer,
@@ -252,7 +252,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Preview template",
         description="Render and preview a template with sample or real data",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         parameters=[
             {
                 "name": "mode",
@@ -370,7 +370,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Send bulk emails",
         description="Create a bulk email send job with multiple recipients",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         request=BulkSendRequestSerializer,
         responses={
             202: BulkSendResponseSerializer,
@@ -507,7 +507,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Get send job status",
         description="Retrieve the status of a bulk email send job",
-        tags=["Mail Templates"],
+        tags=["0.6 Mail Templates"],
         examples=[
             OpenApiExample(
                 "Job status success",

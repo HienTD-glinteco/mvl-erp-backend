@@ -25,7 +25,7 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all recruitment candidates",
         description="Retrieve a paginated list of all recruitment candidates with support for filtering and search",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -92,7 +92,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new recruitment candidate",
         description="Create a new recruitment candidate. Branch, block, and department are automatically set from the recruitment request.",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -184,7 +184,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get recruitment candidate details",
         description="Retrieve detailed information about a specific recruitment candidate",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -244,7 +244,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update recruitment candidate",
         description="Update recruitment candidate information. Branch, block, and department are automatically updated from the recruitment request.",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -321,7 +321,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update recruitment candidate",
         description="Partially update recruitment candidate information",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -389,7 +389,7 @@ from libs.export_xlsx import ExportXLSXMixin
     destroy=extend_schema(
         summary="Delete recruitment candidate",
         description="Remove a recruitment candidate from the system",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -397,6 +397,15 @@ from libs.export_xlsx import ExportXLSXMixin
                 response_only=True,
             ),
         ],
+    ),
+    export=extend_schema(
+        tags=["4.6: Recruitment Candidate"],
+    ),
+    start_import=extend_schema(
+        tags=["4.6: Recruitment Candidate"],
+    ),
+    import_template=extend_schema(
+        tags=["4.6: Recruitment Candidate"],
     ),
 )
 class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
@@ -473,7 +482,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     @extend_schema(
         summary="Update candidate referrer",
         description="Update the referrer field for a recruitment candidate",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         request=UpdateReferrerSerializer,
         examples=[
             OpenApiExample(
@@ -563,7 +572,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     @extend_schema(
         summary="Convert candidate to employee",
         description="Convert a recruitment candidate to an employee. Requires code_type in request body. Copies shared fields (name, email, citizen_id, phone, department), sets start_date to today, generates random 6-digit attendance_code, and sets username to candidate's email.",
-        tags=["Recruitment Candidate"],
+        tags=["4.6: Recruitment Candidate"],
         request=CandidateToEmployeeSerializer,
         examples=[
             OpenApiExample(

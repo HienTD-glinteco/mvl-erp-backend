@@ -13,7 +13,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List nationalities",
         description="Retrieve a list of all nationalities in the system",
-        tags=["Geographic"],
+        tags=["0.8: Geographic"],
         examples=[
             OpenApiExample(
                 "List nationalities success",
@@ -42,7 +42,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Retrieve a nationality",
         description="Retrieve detailed information about a specific nationality.",
-        tags=["Geographic"],
+        tags=["0.8: Geographic"],
         examples=[
             OpenApiExample(
                 "Get nationality success",

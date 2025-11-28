@@ -24,10 +24,8 @@ from apps.files.constants import (
     ALLOWED_FILE_TYPES,
     API_CONFIRM_MULTI_DESCRIPTION,
     API_CONFIRM_MULTI_SUMMARY,
-    API_CONFIRM_MULTI_TAG,
     API_PRESIGN_DESCRIPTION,
     API_PRESIGN_SUMMARY,
-    API_PRESIGN_TAG,
     CACHE_KEY_PREFIX,
     CACHE_TIMEOUT,
     ERROR_CONTENT_TYPE_MISMATCH,
@@ -42,7 +40,7 @@ from apps.files.utils import S3FileUploadService
 @extend_schema(
     summary=API_PRESIGN_SUMMARY,
     description=API_PRESIGN_DESCRIPTION,
-    tags=[API_PRESIGN_TAG],
+    tags=["0.7: File Upload"],
     request=PresignRequestSerializer,
     responses={200: PresignResponseSerializer},
     examples=[
@@ -130,7 +128,7 @@ class PresignURLView(APIView):
 @extend_schema(
     summary=API_CONFIRM_MULTI_SUMMARY,
     description=API_CONFIRM_MULTI_DESCRIPTION,
-    tags=[API_CONFIRM_MULTI_TAG],
+    tags=["0.7: File Upload"],
     request=ConfirmMultipleFilesSerializer,
     responses={201: ConfirmMultipleFilesResponseSerializer},
     examples=[

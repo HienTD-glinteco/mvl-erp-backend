@@ -15,12 +15,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List permissions",
         description="Retrieve a list of all permissions available in the system",
-        tags=["Permissions"],
+        tags=["3.3: Permissions"],
     ),
     retrieve=extend_schema(
         summary="Get permission details",
         description="Retrieve detailed information about a specific permission",
-        tags=["Permissions"],
+        tags=["3.3: Permissions"],
     ),
 )
 class PermissionViewSet(BaseReadOnlyModelViewSet):
@@ -61,7 +61,7 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
             "- `type=submodule`: return list of submodules\n"
             "- omit or `type=both`: return tree structure with modules as keys and their submodules as values"
         ),
-        tags=["Permissions"],
+        tags=["3.3: Permissions"],
         parameters=[
             OpenApiParameter(
                 name="type",

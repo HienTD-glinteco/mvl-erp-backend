@@ -36,6 +36,7 @@ class PasswordResetChangePasswordView(APIView):
     @extend_schema(
         summary=_("Set new password (Step 3: Change password)"),
         description=_("Set new password after successful OTP verification (Step 2). Uses reset_token (from step 2)."),
+        tags=["1.1: Auth"],
         responses={
             200: PasswordResetChangePasswordResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information or reset_token has expired/not verified")),

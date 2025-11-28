@@ -16,7 +16,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="List all WiFi attendance devices",
         description="Retrieve a paginated list of all WiFi attendance devices with support for filtering and search. "
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -59,7 +59,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Create a new WiFi attendance device configuration in the system. "
         "The code is auto-generated server-side with pattern WF###. "
         "BSSID must be in MAC address format (XX:XX:XX:XX:XX:XX).",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -117,7 +117,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get WiFi attendance device details",
         description="Retrieve detailed information about a specific WiFi attendance device configuration",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -151,7 +151,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update WiFi attendance device",
         description="Update WiFi attendance device configuration. Code cannot be changed.",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -197,7 +197,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update WiFi attendance device",
         description="Partially update WiFi attendance device configuration",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -241,7 +241,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Delete a WiFi attendance device configuration from the system. "
         "If the device is referenced by other active resources (e.g., attendance records), "
         "the deletion will be prevented.",
-        tags=["Attendance WiFiDevice"],
+        tags=["6.2: Attendance WiFiDevice"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -267,6 +267,9 @@ from libs.export_xlsx import ExportXLSXMixin
                 status_codes=["400"],
             ),
         ],
+    ),
+    export=extend_schema(
+        tags=["6.2: Attendance WiFiDevice"],
     ),
 )
 class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

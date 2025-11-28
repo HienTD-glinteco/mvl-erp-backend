@@ -39,6 +39,7 @@ class LoginView(APIView):
             429: OpenApiResponse(description="Too many login requests"),
             500: OpenApiResponse(description="System error while sending OTP"),
         },
+        tags=["1.1: Auth"],
         examples=[
             OpenApiExample(
                 "Login request",

@@ -9,7 +9,7 @@ from apps.hrm.models import WorkSchedule
     list=extend_schema(
         summary="List all work schedules",
         description="Retrieve a list of all work schedules with working hours for each day of the week",
-        tags=["Work Schedule"],
+        tags=["6.4: Work Schedule"],
         examples=[
             OpenApiExample(
                 "Success",

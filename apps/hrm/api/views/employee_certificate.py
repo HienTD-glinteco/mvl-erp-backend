@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List employee certificates",
         description="Retrieve a paginated list of employee certificates with filtering by certificate type, employee, dates, and more",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -78,7 +78,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create employee certificate",
         description="Create a new employee certificate record. The certificate_code is the actual certificate number from the certifying organization. Files are uploaded via presigned URLs and confirmed using file tokens.",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -146,7 +146,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get certificate details",
         description="Retrieve detailed information about a specific employee certificate",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -182,7 +182,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update certificate",
         description="Update employee certificate information including the certificate code from the issuing organization",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -244,12 +244,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update certificate",
         description="Partially update employee certificate information",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
     ),
     destroy=extend_schema(
         summary="Delete certificate",
         description="Remove an employee certificate from the system",
-        tags=["Employee Certificates"],
+        tags=["5.2: Employee Certificates"],
         examples=[
             OpenApiExample(
                 "Success",
