@@ -14,6 +14,7 @@ from apps.hrm.api.serializers.contract import (
     ContractSerializer,
 )
 from apps.hrm.models import Contract
+from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
@@ -227,11 +228,12 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
 )
-class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Contract model.
 
     Provides CRUD operations and XLSX export for contracts.
     Supports filtering, searching, and ordering.
+    Supports import from file via AsyncImportProgressMixin.
 
     Search fields: code, employee__fullname, employee__code
     """
@@ -264,6 +266,9 @@ class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     # Export configuration
     export_serializer_class = ContractExportSerializer
     export_filename = "contracts"
+
+    # Import handler path for AsyncImportProgressMixin
+    import_row_handler = "apps.hrm.import_handlers.contract.import_handler"  # type: ignore[assignment]
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
