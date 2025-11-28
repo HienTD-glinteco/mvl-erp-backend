@@ -50,7 +50,7 @@ class DecisionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
     attachment_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
-        required=True,
+        required=False,
         allow_empty=False,
         help_text="List of confirmed file IDs to attach to this decision",
     )
