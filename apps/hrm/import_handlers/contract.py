@@ -289,7 +289,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "skipped",
-                "contract_code": None,
                 "warnings": ["Missing required field: contract type code"],
             }
 
@@ -467,8 +466,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # Check for existing contract and handle allow_update
         allow_update = options.get("allow_update", False)
 
-        # Find existing contract by employee + effective_date combination
-        # or by employee + contract_type if within a reasonable time frame
+        # Find existing contract by employee + effective_date + contract_type combination
+        # This ensures we don't create duplicates for the same employee, date, and type
         existing_contract = Contract.objects.filter(
             employee=employee,
             effective_date=effective_date,
