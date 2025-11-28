@@ -36,7 +36,7 @@ poetry install --dev
 ### Create Database
 
 If using sqlite, you can pass this step.
-This guide intends to help create PostgreSQL db with PostGIS extension.
+This guide intends to help create PostgreSQL db.
 
 ```sql
 DROP DATABASE IF EXISTS backend;
@@ -46,57 +46,6 @@ CREATE DATABASE backend;
 CREATE ROLE backend WITH LOGIN PASSWORD 'password';
 ALTER DATABASE backend OWNER TO backend;
 ```
-
-### Enable PostGIS Extension
-
-After creating the database, enable the PostGIS extension for geographic data support:
-
-```sql
--- Connect to the backend database
-\c backend
-
--- Enable PostGIS extension
-CREATE EXTENSION IF NOT EXISTS postgis;
-
--- Verify PostGIS installation
-SELECT PostGIS_version();
-```
-
-**PostGIS Setup Notes:**
-- PostGIS must be installed on the PostgreSQL server before enabling the extension
-- On Ubuntu/Debian: `sudo apt-get install postgresql-<version>-postgis-3`
-- On macOS with Homebrew: `brew install postgis`
-- PostGIS is required for the geolocation-based attendance features
-- The extension provides efficient spatial queries for distance calculations
-
-### Install GDAL (required for GeoDjango / PostGIS tooling)
-
-GeoDjango and some PostGIS-related tooling depend on GDAL. Make sure GDAL
-and its development headers are installed on your machine before building
-or running the project with PostGIS support.
-
-- On Ubuntu / Debian:
-
-```bash
-sudo apt update
-sudo apt install gdal-bin libgdal-dev
-```
-
-- On macOS (Homebrew):
-
-```bash
-brew update
-brew install gdal
-```
-
-Notes:
-- On some systems the GDAL headers are required to compile Python packages
-	that interface with spatial libraries (for example when building GeoDjango
-	extensions or certain wheels). If you encounter build errors, ensure the
-	development package (`libgdal-dev` on Debian/Ubuntu) is installed and that
-	the `gdal-config` binary is on your `PATH`.
-- If you're using Docker or CI, install the above packages in your image or
-	CI runner before running migrations or tests that use spatial features.
 
 ### Create environment file
 
