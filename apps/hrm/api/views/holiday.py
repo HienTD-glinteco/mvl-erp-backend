@@ -18,7 +18,7 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all holidays",
         description="Retrieve a paginated list of all holidays with support for filtering by name, date range, and status",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -51,7 +51,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new holiday",
         description="Create a new holiday. Optionally include compensatory_dates array to create compensatory workdays atomically.",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
         examples=[
             OpenApiExample(
                 "Request with compensatory dates",
@@ -92,22 +92,26 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get holiday details",
         description="Retrieve detailed information about a specific holiday",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     update=extend_schema(
         summary="Update holiday",
         description="Update holiday information",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     partial_update=extend_schema(
         summary="Partially update holiday",
         description="Partially update holiday information",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     destroy=extend_schema(
         summary="Delete holiday",
         description="Soft delete a holiday from the system",
-        tags=["Holiday"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
+    ),
+    export=extend_schema(
+        description="Export list Holidays",
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
 )
 class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
@@ -137,32 +141,32 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List compensatory workdays for a holiday",
         description="Retrieve all compensatory workdays associated with a specific holiday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     create=extend_schema(
         summary="Create compensatory workday",
         description="Create a single compensatory workday for a holiday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     retrieve=extend_schema(
         summary="Get compensatory workday details",
         description="Retrieve details of a specific compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     update=extend_schema(
         summary="Update compensatory workday",
         description="Update a compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     partial_update=extend_schema(
         summary="Partially update compensatory workday",
         description="Partially update a compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
     destroy=extend_schema(
         summary="Delete compensatory workday",
         description="Soft delete a compensatory workday",
-        tags=["Holiday - Compensatory Workdays"],
+        tags=["6.5 Holiday - Compensatory Workdays"],
     ),
 )
 class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):

@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List employee dependents",
         description="Retrieve a paginated list of employee dependents with support for filtering and search",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -50,7 +50,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create employee dependent",
         description="Create a new employee dependent record with optional file attachment",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -116,7 +116,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Retrieve employee dependent",
         description="Get detailed information about a specific employee dependent",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -145,7 +145,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update employee dependent",
         description="Update an existing employee dependent record",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -180,7 +180,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update employee dependent",
         description="Partially update an existing employee dependent record",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -209,7 +209,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete employee dependent",
         description="Soft delete an employee dependent record (sets is_active to False)",
-        tags=["Employee Dependent"],
+        tags=["5.4 Employee Dependent"],
         examples=[
             OpenApiExample(
                 "Success",

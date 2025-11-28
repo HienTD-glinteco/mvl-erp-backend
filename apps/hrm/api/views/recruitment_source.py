@@ -13,32 +13,32 @@ from libs import BaseModelViewSet
     list=extend_schema(
         summary="List all recruitment sources",
         description="Retrieve a list of all recruitment sources with support for filtering and search",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
     create=extend_schema(
         summary="Create a new recruitment source",
         description="Create a new recruitment source in the system",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
     retrieve=extend_schema(
         summary="Get recruitment source details",
         description="Retrieve detailed information about a specific recruitment source",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
     update=extend_schema(
         summary="Update recruitment source",
         description="Update recruitment source information",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
     partial_update=extend_schema(
         summary="Partially update recruitment source",
         description="Partially update recruitment source information",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
     destroy=extend_schema(
         summary="Delete recruitment source",
         description="Remove a recruitment source from the system",
-        tags=["Recruitment Source"],
+        tags=["4.2 Recruitment Source"],
     ),
 )
 class RecruitmentSourceViewSet(AuditLoggingMixin, BaseModelViewSet):

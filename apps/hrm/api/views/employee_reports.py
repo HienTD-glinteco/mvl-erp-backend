@@ -342,6 +342,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             "Returns time-series data with branch > block > department nesting. "
             "Supports filtering by branch, block, block_type, or department."
         ),
+        tags=["5.5 Employee Reports"],
         parameters=[EmployeeCountBreakdownReportParamsSerializer],
         responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},
         examples=[
@@ -397,6 +398,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             "Returns time-series data with branch > block > department nesting. "
             "Supports filtering by branch, block, block_type, or department."
         ),
+        tags=["5.5 Employee Reports"],
         parameters=[EmployeeCountBreakdownReportParamsSerializer],
         responses={200: EmployeeStatusBreakdownReportAggregatedSerializer},
         examples=[
@@ -454,6 +456,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             "Only resignation reasons with count > 0 are displayed. "
             "Default date range: 1st of current month to today."
         ),
+        tags=["5.5 Employee Reports"],
         parameters=[
             OpenApiParameter(
                 name="from_date",
@@ -648,6 +651,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             "Only includes employees with status Active, Maternity Leave, or Unpaid Leave. "
             "Excludes employees with code starting with 'OS'."
         ),
+        tags=["5.5 Employee Reports"],
         parameters=[
             OpenApiParameter(
                 name="branch_id",

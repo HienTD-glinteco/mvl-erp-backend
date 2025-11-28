@@ -17,7 +17,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all recruitment requests",
         description="Retrieve a paginated list of all recruitment requests with support for filtering and search",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -84,7 +84,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new recruitment request",
         description="Create a new recruitment request. Branch and block are automatically set from the selected department (if provided).",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -151,7 +151,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get recruitment request details",
         description="Retrieve detailed information about a specific recruitment request",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -211,7 +211,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update recruitment request",
         description="Update recruitment request information. Branch and block are automatically updated from the department (if provided).",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -284,7 +284,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update recruitment request",
         description="Partially update recruitment request information",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -352,7 +352,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete recruitment request",
         description="Remove a recruitment request from the system. Only requests with DRAFT status can be deleted.",
-        tags=["Recruitment Request"],
+        tags=["4.4 Recruitment Request"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -369,6 +369,9 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                 status_codes=["400"],
             ),
         ],
+    ),
+    export_detail_document=extend_schema(
+        tags=["4.4 Recruitment Request"],
     ),
 )
 class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseModelViewSet):

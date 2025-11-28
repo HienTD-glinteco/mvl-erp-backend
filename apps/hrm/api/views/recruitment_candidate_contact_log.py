@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all recruitment candidate contact logs",
         description="Retrieve a paginated list of all recruitment candidate contact logs with support for filtering",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -53,7 +53,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new recruitment candidate contact log",
         description="Create a new contact log entry for a recruitment candidate",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -102,7 +102,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get recruitment candidate contact log details",
         description="Retrieve detailed information about a specific contact log",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -134,7 +134,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update recruitment candidate contact log",
         description="Update contact log information",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -177,7 +177,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update recruitment candidate contact log",
         description="Partially update contact log information",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -216,7 +216,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete recruitment candidate contact log",
         description="Remove a contact log entry from the system",
-        tags=["Recruitment Candidate Contact Log"],
+        tags=["4.8 Recruitment Candidate Contact Log"],
         examples=[
             OpenApiExample(
                 "Success",

@@ -15,7 +15,7 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List attendance exemptions",
         description="Retrieve a paginated list of employees exempt from attendance tracking",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -70,7 +70,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create attendance exemption",
         description="Create a new attendance exemption for an employee",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -127,22 +127,25 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get exemption details",
         description="Retrieve detailed information about a specific attendance exemption",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
     ),
     update=extend_schema(
         summary="Update exemption",
         description="Update attendance exemption information",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
     ),
     partial_update=extend_schema(
         summary="Partially update exemption",
         description="Partially update attendance exemption information",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
     ),
     destroy=extend_schema(
         summary="Delete exemption",
         description="Permanently remove an attendance exemption from the system",
-        tags=["Attendance Exemption"],
+        tags=["6.7 Attendance Exemption"],
+    ),
+    export=extend_schema(
+        tags=["6.7 Attendance Exemption"],
     ),
 )
 class AttendanceExemptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

@@ -32,7 +32,7 @@ class ConstantsView(APIView):
                 type=str,
             ),
         ],
-        tags=["Constants"],
+        tags=["0.1 Constants"],
     )
     def get(self, request):
         """Get constants from all apps or filtered by module names"""

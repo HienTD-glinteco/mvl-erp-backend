@@ -29,7 +29,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all branches",
         description="Retrieve a list of all branches in the system",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "List branches success",
@@ -73,7 +73,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new branch",
         description="Create a new branch in the system",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Create branch request",
@@ -111,7 +111,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get branch details",
         description="Retrieve detailed information about a specific branch",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Get branch success",
@@ -137,7 +137,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update branch",
         description="Update branch information",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Update branch request",
@@ -175,7 +175,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update branch",
         description="Partially update branch information",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Partial update request",
@@ -207,7 +207,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete branch",
         description="Remove a branch from the system",
-        tags=["Branch"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Delete branch success",
@@ -240,7 +240,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List branch contact info",
         description="Retrieve a paginated list of branch contact information entries",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Branch contact info list success",
@@ -282,7 +282,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create branch contact info",
         description="Create a new branch contact information entry",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Create branch contact info request",
@@ -332,7 +332,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Retrieve branch contact info",
         description="Get details for a branch contact information entry",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Retrieve branch contact info success",
@@ -367,7 +367,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update branch contact info",
         description="Fully update a branch contact information entry",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Update branch contact info request",
@@ -407,7 +407,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     partial_update=extend_schema(
         summary="Partially update branch contact info",
         description="Update selected fields of a branch contact information entry",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Partial update branch contact info request",
@@ -441,7 +441,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     destroy=extend_schema(
         summary="Delete branch contact info",
         description="Delete a branch contact information entry",
-        tags=["BranchContactInfo"],
+        tags=["2.1 Branch"],
         examples=[
             OpenApiExample(
                 "Delete branch contact info success",
@@ -472,32 +472,32 @@ class BranchContactInfoViewSet(AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List all blocks",
         description="Retrieve a list of all blocks in the system",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
     create=extend_schema(
         summary="Create a new block",
         description="Create a new block in the system",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
     retrieve=extend_schema(
         summary="Get block details",
         description="Retrieve detailed information about a specific block",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
     update=extend_schema(
         summary="Update block",
         description="Update block information",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
     partial_update=extend_schema(
         summary="Partially update block",
         description="Partially update block information",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
     destroy=extend_schema(
         summary="Delete block",
         description="Remove a block from the system",
-        tags=["Block"],
+        tags=["2.2 Block"],
     ),
 )
 class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -521,32 +521,32 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List all departments",
         description="Retrieve a list of all departments in the system",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
     create=extend_schema(
         summary="Create a new department",
         description="Create a new department in the system",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
     retrieve=extend_schema(
         summary="Get department details",
         description="Retrieve detailed information about a specific department",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
     update=extend_schema(
         summary="Update department",
         description="Update department information",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
     partial_update=extend_schema(
         summary="Partially update department",
         description="Partially update department information",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
     destroy=extend_schema(
         summary="Delete department",
         description="Remove a department from the system",
-        tags=["Department"],
+        tags=["2.3 Department"],
     ),
 )
 class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -570,7 +570,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Department tree structure",
         description="Retrieve department tree structure by block",
-        tags=["Department"],
+        tags=["2.3 Department"],
     )
     @action(detail=False, methods=["get"])
     def tree(self, request):
@@ -606,7 +606,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Get department functions by block type",
         description="Retrieve available department functions based on block type",
-        tags=["Department"],
+        tags=["2.3 Department"],
     )
     @action(detail=False, methods=["get"])
     def function_choices(self, request):
@@ -630,7 +630,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Get available management departments",
         description="Retrieve departments that can serve as management departments",
-        tags=["Department"],
+        tags=["2.3 Department"],
     )
     @action(detail=False, methods=["get"])
     def management_choices(self, request):
@@ -665,32 +665,32 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List all positions",
         description="Retrieve a list of all positions in the system",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
     create=extend_schema(
         summary="Create a new position",
         description="Create a new position in the system",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
     retrieve=extend_schema(
         summary="Get position details",
         description="Retrieve detailed information about a specific position",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
     update=extend_schema(
         summary="Update position",
         description="Update position information",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
     partial_update=extend_schema(
         summary="Partially update position",
         description="Partially update position information",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
     destroy=extend_schema(
         summary="Delete position",
         description="Remove a position from the system",
-        tags=["Position"],
+        tags=["2.4 Position"],
     ),
 )
 class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):

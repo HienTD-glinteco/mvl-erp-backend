@@ -31,7 +31,7 @@ from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
     list=extend_schema(
         summary="List all proposals",
         description="Retrieve a list of all proposals regardless of type with optional filtering",
-        tags=["6.5: Proposals"],
+        tags=["10.2 Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -83,7 +83,7 @@ from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
     retrieve=extend_schema(
         summary="Get proposal details",
         description="Retrieve detailed information for a specific proposal",
-        tags=["6.5: Proposals"],
+        tags=["10.2 Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -144,7 +144,7 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     list=extend_schema(
         summary="List timesheet entry complaint proposals",
         description="Retrieve a list of timesheet entry complaint proposals with optional filtering",
-        tags=["6.5.1: Timesheet Entry Complaint Proposals"],
+        tags=["6.8 Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -182,7 +182,7 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     retrieve=extend_schema(
         summary="Get timesheet entry complaint proposal details",
         description="Retrieve detailed information for a specific timesheet entry complaint proposal",
-        tags=["6.5.1: Timesheet Entry Complaint Proposals"],
+        tags=["6.8 Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -237,7 +237,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         description="Approve a complaint proposal and set the approved check-in/out times",
         request=ProposalApproveSerializer,
         responses={200: ProposalTimesheetEntryComplaintSerializer},
-        tags=["6.5.1: Timesheet Entry Complaint Proposals"],
+        tags=["6.8 Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -293,7 +293,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         description="Reject a complaint proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalTimesheetEntryComplaintSerializer},
-        tags=["6.5.1: Timesheet Entry Complaint Proposals"],
+        tags=["6.8 Timesheet Entry Complaint Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -349,12 +349,12 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List post-maternity benefits proposals",
         description="Retrieve a list of post-maternity benefits proposals",
-        tags=["6.5.2: Post-Maternity Benefits Proposals"],
+        tags=["10.2 Proposals", "10.2.2 Post-Maternity Benefits Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get post-maternity benefits proposal details",
         description="Retrieve detailed information for a specific post-maternity benefits proposal",
-        tags=["6.5.2: Post-Maternity Benefits Proposals"],
+        tags=["10.2 Proposals", "10.2.2 Post-Maternity Benefits Proposals"],
     ),
 )
 class ProposalPostMaternityBenefitsViewSet(ProposalViewSet):
@@ -368,12 +368,12 @@ class ProposalPostMaternityBenefitsViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List late exemption proposals",
         description="Retrieve a list of late exemption proposals",
-        tags=["6.5.3: Late Exemption Proposals"],
+        tags=["10.2 Proposals", "10.2.3 Late Exemption Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get late exemption proposal details",
         description="Retrieve detailed information for a specific late exemption proposal",
-        tags=["6.5.3: Late Exemption Proposals"],
+        tags=["10.2 Proposals", "10.2.3 Late Exemption Proposals"],
     ),
 )
 class ProposalLateExemptionViewSet(ProposalViewSet):
@@ -387,12 +387,12 @@ class ProposalLateExemptionViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List overtime work proposals",
         description="Retrieve a list of overtime work proposals",
-        tags=["6.5.4: Overtime Work Proposals"],
+        tags=["10.2 Proposals", "10.2.4 Overtime Work Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get overtime work proposal details",
         description="Retrieve detailed information for a specific overtime work proposal",
-        tags=["6.5.4: Overtime Work Proposals"],
+        tags=["10.2 Proposals", "10.2.4 Overtime Work Proposals"],
     ),
 )
 class ProposalOvertimeWorkViewSet(ProposalViewSet):
@@ -406,12 +406,12 @@ class ProposalOvertimeWorkViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List paid leave proposals",
         description="Retrieve a list of paid leave proposals",
-        tags=["6.5.5: Paid Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.5 Paid Leave Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get paid leave proposal details",
         description="Retrieve detailed information for a specific paid leave proposal",
-        tags=["6.5.5: Paid Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.5 Paid Leave Proposals"],
     ),
 )
 class ProposalPaidLeaveViewSet(ProposalViewSet):
@@ -425,12 +425,12 @@ class ProposalPaidLeaveViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List unpaid leave proposals",
         description="Retrieve a list of unpaid leave proposals",
-        tags=["6.5.6: Unpaid Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.6 Unpaid Leave Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get unpaid leave proposal details",
         description="Retrieve detailed information for a specific unpaid leave proposal",
-        tags=["6.5.6: Unpaid Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.6 Unpaid Leave Proposals"],
     ),
 )
 class ProposalUnpaidLeaveViewSet(ProposalViewSet):
@@ -444,12 +444,12 @@ class ProposalUnpaidLeaveViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List maternity leave proposals",
         description="Retrieve a list of maternity leave proposals",
-        tags=["6.5.7: Maternity Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.7 Maternity Leave Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get maternity leave proposal details",
         description="Retrieve detailed information for a specific maternity leave proposal",
-        tags=["6.5.7: Maternity Leave Proposals"],
+        tags=["10.2 Proposals", "10.2.7 Maternity Leave Proposals"],
     ),
 )
 class ProposalMaternityLeaveViewSet(ProposalViewSet):
@@ -463,12 +463,12 @@ class ProposalMaternityLeaveViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List attendance exemption proposals",
         description="Retrieve a list of attendance exemption proposals",
-        tags=["6.5.8: Attendance Exemption Proposals"],
+        tags=["10.2 Proposals", "10.2.8 Attendance Exemption Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get attendance exemption proposal details",
         description="Retrieve detailed information for a specific attendance exemption proposal",
-        tags=["6.5.8: Attendance Exemption Proposals"],
+        tags=["10.2 Proposals", "10.2.8 Attendance Exemption Proposals"],
     ),
 )
 class ProposalAttendanceExemptionViewSet(ProposalViewSet):
@@ -482,7 +482,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List proposal verifiers",
         description="Retrieve a list of proposal verifiers with optional filtering",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -514,7 +514,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     retrieve=extend_schema(
         summary="Get proposal verifier details",
         description="Retrieve detailed information for a specific proposal verifier",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -539,7 +539,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     create=extend_schema(
         summary="Create proposal verifier",
         description="Create a new proposal verifier",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -573,17 +573,17 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     update=extend_schema(
         summary="Update proposal verifier",
         description="Update a proposal verifier",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
     ),
     partial_update=extend_schema(
         summary="Partially update proposal verifier",
         description="Partially update a proposal verifier",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
     ),
     destroy=extend_schema(
         summary="Delete proposal verifier",
         description="Delete a proposal verifier",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
     ),
 )
 class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -602,7 +602,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Verify proposal",
         description="Mark a proposal as verified. Only applicable for timesheet entry complaint proposals.",
-        tags=["6.5.9: Proposal Verifiers"],
+        tags=["10.3 Proposal Verifiers"],
         request=ProposalVerifierVerifySerializer,
         examples=[
             OpenApiExample(

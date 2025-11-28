@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all banks",
         description="Retrieve a paginated list of all banks with support for filtering by name and code",
-        tags=["Bank"],
+        tags=["5.6 Bank - Bank Accounts"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -60,7 +60,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get bank details",
         description="Retrieve detailed information about a specific bank",
-        tags=["Bank"],
+        tags=["5.6 Bank - Bank Accounts"],
         examples=[
             OpenApiExample(
                 "Success",

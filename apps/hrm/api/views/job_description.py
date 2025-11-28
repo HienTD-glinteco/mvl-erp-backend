@@ -15,7 +15,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     list=extend_schema(
         summary="List all job descriptions",
         description="Retrieve a list of all job descriptions with support for filtering and search",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -51,7 +51,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new job description",
         description="Create a new job description in the system. Optionally include file token for attachment upload.",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -117,7 +117,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get job description details",
         description="Retrieve detailed information about a specific job description",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -146,7 +146,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     update=extend_schema(
         summary="Update job description",
         description="Update job description information",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -175,7 +175,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update job description",
         description="Partially update job description information",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -204,7 +204,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     destroy=extend_schema(
         summary="Delete job description",
         description="Remove a job description from the system",
-        tags=["Job Description"],
+        tags=["4.5 Job Description"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -212,6 +212,9 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
                 response_only=True,
             )
         ],
+    ),
+    export=extend_schema(
+        tags=["4.5 Job Description"],
     ),
 )
 class JobDescriptionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

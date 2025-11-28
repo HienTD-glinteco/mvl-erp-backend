@@ -41,6 +41,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     @extend_schema(
         summary="Realtime Dashboard KPIs",
         description="Get real-time recruitment KPIs: open positions, applicants today, hires today, interviews today, total employees except resigned.",
+        tags=["4.9 Recruitment Dashboard"],
         responses={200: DashboardRealtimeDataSerializer},
         examples=[
             OpenApiExample(
@@ -86,6 +87,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     @extend_schema(
         summary="Dashboard Chart Data",
         description="Get aggregated data for dashboard charts.",
+        tags=["4.9 Recruitment Dashboard"],
         parameters=[DashboardChartFilterSerializer],
         responses={200: DashboardChartDataSerializer},
         examples=[

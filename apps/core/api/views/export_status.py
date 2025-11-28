@@ -38,7 +38,7 @@ class ExportStatusView(APIView):
             200: ExportStatusResponseSerializer,
             400: OpenApiResponse(description="Bad request (missing task_id parameter)"),
         },
-        tags=["Export"],
+        tags=["0.2 Export"],
     )
     @register_permission("export.check_status", _("Check export status"), "Core", "Export Status", _("Export status"))
     def get(self, request):

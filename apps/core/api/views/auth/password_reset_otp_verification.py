@@ -37,6 +37,7 @@ class PasswordResetOTPVerificationView(APIView):
     @extend_schema(
         summary=_("Verify OTP (Step 2) and return JWT"),
         description=_("Verify reset_token + OTP, then return access/refresh token for password change step."),
+        tags=["1.1 Auth"],
         responses={
             200: PasswordResetOTPVerificationResponseSerializer,
             400: OpenApiResponse(description=_("Invalid reset token or OTP code")),

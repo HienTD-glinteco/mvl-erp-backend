@@ -36,6 +36,7 @@ class PasswordResetView(APIView):
     @extend_schema(
         summary=_("Request password reset"),
         description=_("Send password reset instructions via email or SMS based on email or phone number"),
+        tags=["1.1 Auth"],
         responses={
             200: PasswordResetResponseSerializer,
             400: OpenApiResponse(description=_("Invalid information")),

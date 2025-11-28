@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-28 11:09+0700\n"
+"POT-Creation-Date: 2025-11-28 16:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -147,11 +147,11 @@ msgstr ""
 msgid "List of file configurations with tokens and related objects"
 msgstr ""
 
-#: apps/files/api/views/file_views.py:98
+#: apps/files/api/views/file_views.py:96
 msgid "Generate presigned URL"
 msgstr ""
 
-#: apps/files/api/views/file_views.py:262
+#: apps/files/api/views/file_views.py:260
 msgid "Confirm multiple files"
 msgstr ""
 
@@ -255,22 +255,8 @@ msgstr ""
 msgid "Import job not found"
 msgstr ""
 
-#: apps/imports/api/serializers.py:34
-#, python-brace-format
-msgid ""
-"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
-"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
-msgstr ""
-
 #: apps/imports/api/serializers.py:40
 msgid "Whether to count total rows before processing (default: true)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:48
-#, python-brace-format
-msgid ""
-"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
-"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 msgstr ""
 
 #: apps/imports/api/serializers.py:54

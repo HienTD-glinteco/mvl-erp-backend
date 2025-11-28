@@ -17,7 +17,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Retrieve a paginated list of all attendance geolocations with support for filtering and search. "
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20). "
         "Distance-based sorting: Provide user_latitude and user_longitude parameters with ordering=distance to sort by nearest location.",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -65,7 +65,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="Create a new attendance geolocation",
         description="Create a new attendance geolocation in the system. "
         "The code is auto-generated server-side with pattern DV###.",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -131,7 +131,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get attendance geolocation details",
         description="Retrieve detailed information about a specific attendance geolocation",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -171,7 +171,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update attendance geolocation",
         description="Update attendance geolocation information. Code cannot be changed.",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -225,7 +225,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update attendance geolocation",
         description="Partially update attendance geolocation information",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -275,7 +275,7 @@ from libs.export_xlsx import ExportXLSXMixin
         description="Soft-delete a attendance geolocation from the system. "
         "If the geolocation is referenced by other active resources (e.g., attendance rules), "
         "the deletion will be prevented.",
-        tags=["6.3: Attendance Geolocation"],
+        tags=["6.3 Attendance Geolocation"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -301,6 +301,9 @@ from libs.export_xlsx import ExportXLSXMixin
                 status_codes=["400"],
             ),
         ],
+    ),
+    export=extend_schema(
+        tags=["6.3 Attendance Geolocation"],
     ),
 )
 class AttendanceGeolocationViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

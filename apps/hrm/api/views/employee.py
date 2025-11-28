@@ -38,32 +38,41 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all employees",
         description="Retrieve a paginated list of all employees with support for filtering by code, fullname, username, email, and organizational structure",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     ),
     create=extend_schema(
         summary="Create a new employee",
         description="Create a new employee in the system. A User account will be automatically created based on the employee data.",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     ),
     retrieve=extend_schema(
         summary="Get employee details",
         description="Retrieve detailed information about a specific employee including their organizational structure and user account",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     ),
     update=extend_schema(
         summary="Update employee",
         description="Update employee information",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     ),
     partial_update=extend_schema(
         summary="Partially update employee",
         description="Partially update employee information",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     ),
     destroy=extend_schema(
         summary="Delete employee",
         description="Remove an employee from the system",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
+    ),
+    start_import=extend_schema(
+        tags=["5.1 Employee"],
+    ),
+    import_template=extend_schema(
+        tags=["5.1 Employee"],
+    ),
+    export=extend_schema(
+        tags=["5.1 Employee"],
     ),
 )
 class EmployeeViewSet(
@@ -76,9 +85,7 @@ class EmployeeViewSet(
     """ViewSet for Employee model"""
 
     queryset = (
-        Employee.objects.select_related(
-            "user", "branch", "block", "department", "position", "nationality", "avatar"
-        )
+        Employee.objects.select_related("user", "branch", "block", "department", "position", "nationality", "avatar")
         .prefetch_related("bank_accounts", "bank_accounts__bank")
         .all()
     )
@@ -161,7 +168,7 @@ class EmployeeViewSet(
         summary="Active an employee",
         request=EmployeeActiveActionSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -177,7 +184,7 @@ class EmployeeViewSet(
         summary="Reactive an employee",
         request=EmployeeReactiveActionSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -193,7 +200,7 @@ class EmployeeViewSet(
         summary="Resign an employee",
         request=EmployeeResignedActionSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -209,7 +216,7 @@ class EmployeeViewSet(
         summary="Set employee to maternity leave",
         request=EmployeeMaternityLeaveActionSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -225,7 +232,7 @@ class EmployeeViewSet(
         summary="Transfer employee to new department and position",
         request=EmployeeTransferActionSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -240,7 +247,7 @@ class EmployeeViewSet(
     @extend_schema(
         summary="Preview welcome email for employee",
         description="Generate a preview of the welcome/onboarding email for this employee using the welcome email template",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
         request={
             "application/json": {
                 "type": "object",
@@ -305,7 +312,7 @@ class EmployeeViewSet(
     @extend_schema(
         summary="Send welcome email to employee",
         description="Send welcome/onboarding email to this employee. After successful delivery, the employee's is_onboarding_email_sent field will be set to True",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
         request={
             "application/json": {
                 "type": "object",
@@ -389,7 +396,7 @@ class EmployeeViewSet(
     @extend_schema(
         summary="Copy employee",
         description="Create a duplicate of an existing employee with unique identifiers for code, username, email, and citizen_id",
-        tags=["Employee"],
+        tags=["5.1 Employee"],
         request=None,
         responses={200: EmployeeSerializer},
     )
@@ -420,7 +427,7 @@ class EmployeeViewSet(
         ),
         request=EmployeeAvatarSerializer,
         responses={200: EmployeeSerializer},
-        tags=["Employee"],
+        tags=["5.1 Employee"],
     )
     @action(detail=True, methods=["post"], url_path="update-avatar")
     @transaction.atomic

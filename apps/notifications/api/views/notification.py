@@ -36,6 +36,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="List notifications",
         description="Get a paginated list of notifications for the authenticated user.",
+        tags=["0.5 Notifications"],
         responses={
             200: NotificationSerializer(many=True),
         },
@@ -88,6 +89,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Retrieve notification",
         description="Get details of a specific notification.",
+        tags=["0.5 Notifications"],
         responses={
             200: NotificationSerializer,
             404: OpenApiResponse(description="Notification not found"),
@@ -129,6 +131,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Mark notification as read",
         description="Mark a single notification as read.",
+        tags=["0.5 Notifications"],
         request=None,
         responses={
             200: NotificationResponseSerializer,
@@ -156,6 +159,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Mark notification as unread",
         description="Mark a single notification as unread.",
+        tags=["0.5 Notifications"],
         request=None,
         responses={
             200: NotificationResponseSerializer,
@@ -183,6 +187,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Bulk mark notifications as read",
         description="Mark multiple notifications as read at once.",
+        tags=["0.5 Notifications"],
         request=BulkMarkAsReadSerializer,
         responses={
             200: NotificationResponseSerializer,
@@ -233,6 +238,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Mark all notifications as read",
         description="Mark all notifications for the authenticated user as read.",
+        tags=["0.5 Notifications"],
         request=None,
         responses={
             200: NotificationResponseSerializer,
@@ -262,6 +268,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Get unread count",
         description="Get the count of unread notifications for the authenticated user.",
+        tags=["0.5 Notifications"],
         responses={
             200: NotificationResponseSerializer,
         },

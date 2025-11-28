@@ -12,7 +12,7 @@ from libs import BaseReadOnlyModelViewSet
     list=extend_schema(
         summary="List administrative units",
         description="Retrieve a paginated list of all administrative units (districts, wards, communes, etc.)",
-        tags=["Geographic"],
+        tags=["0.8 Geographic"],
         examples=[
             OpenApiExample(
                 "List administrative units success",
@@ -60,7 +60,7 @@ from libs import BaseReadOnlyModelViewSet
     retrieve=extend_schema(
         summary="Retrieve an administrative unit",
         description="Retrieve detailed information about a specific administrative unit.",
-        tags=["Geographic"],
+        tags=["0.8 Geographic"],
         examples=[
             OpenApiExample(
                 "Get administrative unit success",

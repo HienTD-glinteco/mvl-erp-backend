@@ -10,9 +10,7 @@ from apps.core.api.constants import (
     API_ME_DESCRIPTION,
     API_ME_PERMISSIONS_DESCRIPTION,
     API_ME_PERMISSIONS_SUMMARY,
-    API_ME_PERMISSIONS_TAG,
     API_ME_SUMMARY,
-    API_ME_TAG,
     QUERY_PARAM_FORMAT,
     QUERY_PARAM_INCLUDE_PERMISSION_META,
     QUERY_PARAM_INCLUDE_ROLE,
@@ -29,7 +27,7 @@ class MeView(APIView):
     @extend_schema(
         summary=API_ME_SUMMARY,
         description=API_ME_DESCRIPTION,
-        tags=[API_ME_TAG],
+        tags=["1.2 User Profile"],
         responses={
             200: MeSerializer,
             401: OpenApiExample(
@@ -134,7 +132,7 @@ class MePermissionsView(APIView):
     @extend_schema(
         summary=API_ME_PERMISSIONS_SUMMARY,
         description=API_ME_PERMISSIONS_DESCRIPTION,
-        tags=[API_ME_PERMISSIONS_TAG],
+        tags=["1.2 User Profile"],
         parameters=[
             OpenApiParameter(
                 name="include_role",
@@ -312,6 +310,7 @@ class MeUpdateAvatarView(APIView):
             "Only image files (PNG, JPEG, JPG, WEBP) are accepted. "
             "The user must have an associated employee record."
         ),
+        tags=["1.2 User Profile"],
         request={
             "application/json": {
                 "type": "object",
@@ -348,7 +347,6 @@ class MeUpdateAvatarView(APIView):
                 response_only=True,
             ),
         },
-        tags=["Me"],
         examples=[
             OpenApiExample(
                 "Success",

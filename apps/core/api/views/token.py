@@ -26,7 +26,7 @@ class TokenRefreshView(SimpleJWTTokenRefreshView):
             200: TokenRefreshResponseSerializer,
             401: OpenApiResponse(description="Invalid or expired refresh token"),
         },
-        tags=["Token Management"],
+        tags=["1.1 Auth"],
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
@@ -47,7 +47,7 @@ class TokenVerifyView(SimpleJWTTokenVerifyView):
             200: OpenApiResponse(description="Token is valid"),
             401: OpenApiResponse(description="Invalid or expired token"),
         },
-        tags=["Token Management"],
+        tags=["1.1 Auth"],
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)

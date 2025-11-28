@@ -13,7 +13,7 @@ from libs import BaseModelViewSet
     list=extend_schema(
         summary="List all interview candidates",
         description="Retrieve a paginated list of all interview candidates with support for filtering",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -56,7 +56,7 @@ from libs import BaseModelViewSet
     create=extend_schema(
         summary="Create a new interview candidate",
         description="Link a recruitment candidate to an interview schedule",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -108,22 +108,22 @@ from libs import BaseModelViewSet
     retrieve=extend_schema(
         summary="Get interview candidate details",
         description="Retrieve detailed information about a specific interview candidate",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
     ),
     update=extend_schema(
         summary="Update interview candidate",
         description="Update interview candidate information",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
     ),
     partial_update=extend_schema(
         summary="Partially update interview candidate",
         description="Partially update interview candidate information",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
     ),
     destroy=extend_schema(
         summary="Delete interview candidate",
         description="Remove an interview candidate from the system",
-        tags=["Interview Candidate"],
+        tags=["4.9 Interview Candidate"],
         examples=[
             OpenApiExample(
                 "Success",
