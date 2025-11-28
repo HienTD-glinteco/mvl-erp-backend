@@ -78,25 +78,61 @@ def employee(db, organization):
     )
 
 
+def create_contract_with_forced_status(
+    employee,
+    contract_type,
+    sign_date,
+    effective_date,
+    expiration_date,
+    forced_status,
+):
+    """Create a contract with a forced status value, bypassing save logic.
+
+    The Contract model recalculates status on save for non-DRAFT contracts.
+    This helper creates contracts with DRAFT status first, then uses a direct
+    DB update to set the desired status without triggering the save logic.
+
+    Args:
+        employee: Employee instance
+        contract_type: ContractType instance
+        sign_date: Date when contract was signed
+        effective_date: Date when contract becomes effective
+        expiration_date: Date when contract expires (None for indefinite)
+        forced_status: ContractStatus value to force set
+
+    Returns:
+        Contract: The created contract with the forced status
+    """
+    contract = Contract.objects.create(
+        employee=employee,
+        contract_type=contract_type,
+        sign_date=sign_date,
+        effective_date=effective_date,
+        expiration_date=expiration_date,
+        status=Contract.ContractStatus.DRAFT,
+        base_salary=contract_type.base_salary,
+    )
+    # Force set status using direct DB update to bypass save logic
+    Contract.objects.filter(pk=contract.pk).update(status=forced_status)
+    contract.refresh_from_db()
+    return contract
+
+
 @pytest.mark.django_db
 class TestCheckContractStatusTask:
     """Test cases for check_contract_status task."""
 
     def test_updates_active_to_about_to_expire(self, db, employee, contract_type):
         """Test contract transitions from ACTIVE to ABOUT_TO_EXPIRE."""
-        # Arrange - Create contract first as DRAFT (bypasses auto-status calculation)
-        contract = Contract.objects.create(
+        # Arrange - Create contract that should become ABOUT_TO_EXPIRE
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=350),
             effective_date=date.today() - timedelta(days=340),
             expiration_date=date.today() + timedelta(days=15),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ACTIVE,
         )
-        # Force set status to ACTIVE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.ACTIVE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.ACTIVE  # Verify setup
 
         # Act
@@ -110,19 +146,15 @@ class TestCheckContractStatusTask:
 
     def test_updates_about_to_expire_to_expired(self, db, employee, contract_type):
         """Test contract transitions from ABOUT_TO_EXPIRE to EXPIRED."""
-        # Arrange - Create contract first as DRAFT (bypasses auto-status calculation)
-        contract = Contract.objects.create(
+        # Arrange - Create contract that should become EXPIRED
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=400),
             effective_date=date.today() - timedelta(days=380),
             expiration_date=date.today() - timedelta(days=10),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ABOUT_TO_EXPIRE,
         )
-        # Force set status to ABOUT_TO_EXPIRE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.ABOUT_TO_EXPIRE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.ABOUT_TO_EXPIRE  # Verify setup
 
         # Act
@@ -136,19 +168,15 @@ class TestCheckContractStatusTask:
 
     def test_updates_active_to_expired(self, db, employee, contract_type):
         """Test contract transitions directly from ACTIVE to EXPIRED."""
-        # Arrange - Create contract first as DRAFT (bypasses auto-status calculation)
-        contract = Contract.objects.create(
+        # Arrange - Create contract that should become EXPIRED
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=400),
             effective_date=date.today() - timedelta(days=380),
             expiration_date=date.today() - timedelta(days=5),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ACTIVE,
         )
-        # Force set status to ACTIVE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.ACTIVE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.ACTIVE  # Verify setup
 
         # Act
@@ -184,19 +212,15 @@ class TestCheckContractStatusTask:
 
     def test_updates_not_effective_to_active(self, db, employee, contract_type):
         """Test contract transitions from NOT_EFFECTIVE to ACTIVE."""
-        # Arrange - Create contract first as DRAFT (bypasses auto-status calculation)
-        contract = Contract.objects.create(
+        # Arrange - Create contract that should become ACTIVE
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=30),
             effective_date=date.today() - timedelta(days=10),
             expiration_date=date.today() + timedelta(days=355),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.NOT_EFFECTIVE,
         )
-        # Force set status to NOT_EFFECTIVE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.NOT_EFFECTIVE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.NOT_EFFECTIVE  # Verify setup
 
         # Act
@@ -210,19 +234,15 @@ class TestCheckContractStatusTask:
 
     def test_indefinite_contract_stays_active(self, db, employee, contract_type):
         """Test indefinite contract remains ACTIVE."""
-        # Arrange - Create indefinite contract first as DRAFT
-        contract = Contract.objects.create(
+        # Arrange - Create indefinite contract that should stay ACTIVE
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=30),
             effective_date=date.today() - timedelta(days=10),
             expiration_date=None,  # Indefinite
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ACTIVE,
         )
-        # Force set status to ACTIVE using direct DB update
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.ACTIVE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.ACTIVE  # Verify setup
 
         # Act
@@ -238,30 +258,24 @@ class TestCheckContractStatusTask:
         """Test that the task returns correct summary."""
         # Arrange - Create multiple contracts with different statuses
         # Contract 1: ACTIVE that should become ABOUT_TO_EXPIRE
-        contract1 = Contract.objects.create(
+        create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=350),
             effective_date=date.today() - timedelta(days=340),
             expiration_date=date.today() + timedelta(days=15),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ACTIVE,
         )
-        # Force set status to ACTIVE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract1.pk).update(status=Contract.ContractStatus.ACTIVE)
 
         # Contract 2: ABOUT_TO_EXPIRE that should become EXPIRED
-        contract2 = Contract.objects.create(
+        create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=400),
             effective_date=date.today() - timedelta(days=380),
             expiration_date=date.today() - timedelta(days=5),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ABOUT_TO_EXPIRE,
         )
-        # Force set status to ABOUT_TO_EXPIRE using direct DB update (bypass save logic)
-        Contract.objects.filter(pk=contract2.pk).update(status=Contract.ContractStatus.ABOUT_TO_EXPIRE)
 
         # Act
         result = check_contract_status()
@@ -283,19 +297,15 @@ class TestCheckContractStatusTask:
 
     def test_no_updates_when_status_unchanged(self, db, employee, contract_type):
         """Test no updates when contract status is already correct."""
-        # Arrange - Create active contract first as DRAFT
-        contract = Contract.objects.create(
+        # Arrange - Create active contract that should stay active
+        contract = create_contract_with_forced_status(
             employee=employee,
             contract_type=contract_type,
             sign_date=date.today() - timedelta(days=30),
             effective_date=date.today() - timedelta(days=10),
             expiration_date=date.today() + timedelta(days=300),
-            status=Contract.ContractStatus.DRAFT,
-            base_salary=contract_type.base_salary,
+            forced_status=Contract.ContractStatus.ACTIVE,
         )
-        # Force set status to ACTIVE using direct DB update
-        Contract.objects.filter(pk=contract.pk).update(status=Contract.ContractStatus.ACTIVE)
-        contract.refresh_from_db()
         assert contract.status == Contract.ContractStatus.ACTIVE  # Verify setup
 
         # Act
