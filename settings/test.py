@@ -18,6 +18,14 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_TASK_ALWAYS_EAGER = False
 
+# Use in-memory SQLite database for tests
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
+}
+
 # Use local memory cache for tests to avoid Redis dependency
 CACHES = {
     "default": {
