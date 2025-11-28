@@ -304,6 +304,9 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
         # Copy snapshot data from contract type
         self._copy_snapshot_from_contract_type(validated_data)
 
+        # Get employee before creating the contract
+        employee = validated_data.get("employee")
+
         # Create instance first (without contract_number)
         # We need the instance to generate contract_number
         instance = Contract(**validated_data)
@@ -311,11 +314,12 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
         # Generate contract_number
         instance.contract_number = generate_contract_number(instance)
 
-        # Save the instance
+        # Save the instance first - if this fails, we don't expire previous contracts
         instance.save()
 
-        # Expire previous active contracts for the employee
-        self._expire_previous_contracts(instance.employee)
+        # Only expire previous active contracts after successful creation
+        if employee:
+            self._expire_previous_contracts(employee)
 
         return instance
 
@@ -329,14 +333,19 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
         Returns:
             Contract: Updated contract instance.
         """
-        # Check if dates are being updated
-        effective_date = validated_data.get("effective_date", instance.effective_date)
-        expiration_date = validated_data.get("expiration_date", instance.expiration_date)
+        # Check if dates are being updated by comparing with current values
+        new_effective_date = validated_data.get("effective_date")
+        new_expiration_date = validated_data.get("expiration_date")
 
-        # If status is not explicitly provided and dates changed, recalculate status
+        # Determine actual dates to use
+        effective_date = new_effective_date if new_effective_date is not None else instance.effective_date
+        expiration_date = new_expiration_date if new_expiration_date is not None else instance.expiration_date
+
+        # If status is not explicitly provided and dates actually changed, recalculate status
         if "status" not in validated_data:
             dates_changed = (
-                validated_data.get("effective_date") is not None or validated_data.get("expiration_date") is not None
+                (new_effective_date is not None and new_effective_date != instance.effective_date)
+                or (new_expiration_date is not None and new_expiration_date != instance.expiration_date)
             )
             if dates_changed:
                 new_status = self._calculate_status(effective_date, expiration_date)

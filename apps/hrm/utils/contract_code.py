@@ -65,7 +65,6 @@ def generate_contract_number(instance, max_retries: int = 5) -> str:
             with transaction.atomic():
                 # Get the count of contracts for this year
                 # Use select_for_update to lock the rows and prevent race conditions
-                year_start = date(current_year, 1, 1)
                 existing_count = (
                     Contract.objects.select_for_update()
                     .filter(

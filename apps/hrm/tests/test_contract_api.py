@@ -9,6 +9,7 @@ from rest_framework import status
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Contract, ContractType, Department, Employee
+from apps.hrm.utils.contract_code import generate_contract_code, generate_contract_number
 
 
 @pytest.fixture
@@ -110,8 +111,6 @@ def contract_data(employee, contract_type):
 @pytest.fixture
 def contract(db, employee, contract_type):
     """Create a contract for testing."""
-    from apps.hrm.utils.contract_code import generate_contract_number
-
     contract = Contract(
         employee=employee,
         contract_type=contract_type,
@@ -134,8 +133,6 @@ def contract(db, employee, contract_type):
 @pytest.fixture
 def active_contract(db, employee, contract_type):
     """Create an active contract for testing."""
-    from apps.hrm.utils.contract_code import generate_contract_number
-
     contract = Contract(
         employee=employee,
         contract_type=contract_type,
@@ -163,8 +160,6 @@ class TestContractModel:
             status=Contract.ContractStatus.DRAFT,
             base_salary=contract_type.base_salary,
         )
-        from apps.hrm.utils.contract_code import generate_contract_number
-
         contract.contract_number = generate_contract_number(contract)
         contract.save()
 
@@ -197,8 +192,6 @@ class TestContractModel:
             status=Contract.ContractStatus.DRAFT,
             base_salary=contract_type.base_salary,
         )
-        from apps.hrm.utils.contract_code import generate_contract_number
-
         contract.contract_number = generate_contract_number(contract)
         contract.save()
 
@@ -220,8 +213,6 @@ class TestContractCodeGeneration:
 
     def test_generate_contract_code(self, db, employee, contract_type):
         """Test generate_contract_code function."""
-        from apps.hrm.utils.contract_code import generate_contract_code
-
         contract = Contract(
             employee=employee,
             contract_type=contract_type,
@@ -229,8 +220,6 @@ class TestContractCodeGeneration:
             effective_date=date.today() + timedelta(days=7),
             base_salary=contract_type.base_salary,
         )
-        from apps.hrm.utils.contract_code import generate_contract_number
-
         contract.contract_number = generate_contract_number(contract)
         contract.save()
 
@@ -241,8 +230,6 @@ class TestContractCodeGeneration:
 
     def test_generate_contract_number_format(self, db, employee, contract_type):
         """Test generate_contract_number format."""
-        from apps.hrm.utils.contract_code import generate_contract_number
-
         contract = Contract(
             employee=employee,
             contract_type=contract_type,
