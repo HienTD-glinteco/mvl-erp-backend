@@ -27,7 +27,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
     permission_prefix = "recruitment_reports"
 
     @extend_schema(
-        tags=["6.9 Attendance Reports"],
+        tags=["6.9: Attendance Reports"],
         operation_id="hrm_reports_attendance_by_method",
         summary="Attendance Report By Method",
         description="Get attendance statistics report by method (device, wifi, geolocation, other). "
@@ -133,7 +133,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         return Response(serializer.data)
 
     @extend_schema(
-        tags=["6.9 Attendance Reports"],
+        tags=["6.9: Attendance Reports"],
         operation_id="hrm_reports_attendance_by_project",
         summary="Attendance Report By Project",
         description="Get attendance statistics report grouped by projects. "
@@ -209,7 +209,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
         return Response(serializer.data)
 
     @extend_schema(
-        tags=["6.9 Attendance Reports"],
+        tags=["6.9: Attendance Reports"],
         operation_id="hrm_reports_attendance_by_project_organization",
         summary="Attendance Report By Project Organization",
         description="Get attendance statistics report for personnel working on projects grouped by organizational structure. "

@@ -27,7 +27,7 @@ class MeView(APIView):
     @extend_schema(
         summary=API_ME_SUMMARY,
         description=API_ME_DESCRIPTION,
-        tags=["1.2 User Profile"],
+        tags=["1.2: User Profile"],
         responses={
             200: MeSerializer,
             401: OpenApiExample(
@@ -132,7 +132,7 @@ class MePermissionsView(APIView):
     @extend_schema(
         summary=API_ME_PERMISSIONS_SUMMARY,
         description=API_ME_PERMISSIONS_DESCRIPTION,
-        tags=["1.2 User Profile"],
+        tags=["1.2: User Profile"],
         parameters=[
             OpenApiParameter(
                 name="include_role",
@@ -310,7 +310,7 @@ class MeUpdateAvatarView(APIView):
             "Only image files (PNG, JPEG, JPG, WEBP) are accepted. "
             "The user must have an associated employee record."
         ),
-        tags=["1.2 User Profile"],
+        tags=["1.2: User Profile"],
         request={
             "application/json": {
                 "type": "object",

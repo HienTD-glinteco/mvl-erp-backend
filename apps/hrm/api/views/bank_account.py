@@ -16,32 +16,32 @@ from libs import BaseModelViewSet
             "Retrieve a paginated list of all bank accounts with support for "
             "filtering by employee, bank, and account details"
         ),
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
     create=extend_schema(
         summary="Create a new bank account",
         description="Create a new bank account for an employee",
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
     retrieve=extend_schema(
         summary="Get bank account details",
         description="Retrieve detailed information about a specific bank account",
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
     update=extend_schema(
         summary="Update bank account",
         description="Update bank account information",
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
     partial_update=extend_schema(
         summary="Partially update bank account",
         description="Partially update bank account information",
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
     destroy=extend_schema(
         summary="Delete bank account",
         description="Remove a bank account from the system",
-        tags=["5.7 Bank - Bank Accounts"],
+        tags=["5.7: Bank - Bank Accounts"],
     ),
 )
 class BankAccountViewSet(AuditLoggingMixin, BaseModelViewSet):

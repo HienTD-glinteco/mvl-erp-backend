@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List employee work histories",
         description="Retrieve a paginated list of employee work histories with support for filtering and search",
-        tags=["5.6 Employee Work History"],
+        tags=["5.6: Employee Work History"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -49,7 +49,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Retrieve employee work history",
         description="Get detailed information about a specific employee work history record",
-        tags=["5.6 Employee Work History"],
+        tags=["5.6: Employee Work History"],
         examples=[
             OpenApiExample(
                 "Success",

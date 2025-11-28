@@ -45,7 +45,7 @@ class ImportStatusView(APIView):
             400: OpenApiResponse(description="Bad request (missing task_id parameter)"),
             404: OpenApiResponse(description="Import job not found"),
         },
-        tags=["0.3 Import"],
+        tags=["0.3: Import"],
     )
     @register_permission(
         "import.check_status", _("Check import status"), "Imports", "Status", _("Import Check Status")

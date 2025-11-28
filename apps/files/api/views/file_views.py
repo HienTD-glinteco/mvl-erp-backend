@@ -40,7 +40,7 @@ from apps.files.utils import S3FileUploadService
 @extend_schema(
     summary=API_PRESIGN_SUMMARY,
     description=API_PRESIGN_DESCRIPTION,
-    tags=["0.7 File Upload"],
+    tags=["0.7: File Upload"],
     request=PresignRequestSerializer,
     responses={200: PresignResponseSerializer},
     examples=[
@@ -128,7 +128,7 @@ class PresignURLView(APIView):
 @extend_schema(
     summary=API_CONFIRM_MULTI_SUMMARY,
     description=API_CONFIRM_MULTI_DESCRIPTION,
-    tags=["0.7 File Upload"],
+    tags=["0.7: File Upload"],
     request=ConfirmMultipleFilesSerializer,
     responses={201: ConfirmMultipleFilesResponseSerializer},
     examples=[

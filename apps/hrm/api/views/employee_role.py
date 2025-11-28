@@ -20,7 +20,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List employees by role",
         description="Retrieve list of employees with role and organization information. Supports searching and filtering by branch, block, department, position, and role.",
-        tags=["3.2 Employee Role Management"],
+        tags=["3.2: Employee Role Management"],
         parameters=[
             OpenApiParameter(
                 name="search",
@@ -79,7 +79,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get employees by role detail",
         description="Retrieve list of employees with role and organization information. Supports searching and filtering by branch, block, department, position, and role.",
-        tags=["3.2 Employee Role Management"],
+        tags=["3.2: Employee Role Management"],
     ),
 )
 class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
@@ -125,7 +125,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         summary="Bulk update employee roles",
         description="Update roles for multiple employees at once (maximum 25 employees). "
         "When an employee's role changes, the system will log them out.",
-        tags=["3.2 Employee Role Management"],
+        tags=["3.2: Employee Role Management"],
         request=BulkUpdateRoleSerializer,
         examples=[
             OpenApiExample(

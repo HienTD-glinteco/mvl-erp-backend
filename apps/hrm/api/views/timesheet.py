@@ -36,9 +36,9 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             "Retrieve timesheet summaries for employees. Filters: employee, branch, block, "
             "department, position, employee_salary_type. Search by employee code or fullname."
         ),
-        tags=["6.6 Timesheet"],
+        tags=["6.6: Timesheet"],
     ),
-    retrieve=extend_schema(summary="Get employee timesheet details", tags=["6.6 Timesheet"]),
+    retrieve=extend_schema(summary="Get employee timesheet details", tags=["6.6: Timesheet"]),
 )
 class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """Read-only ViewSet returning employee timesheet summaries."""
@@ -213,12 +213,12 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 @extend_schema_view(
     list=extend_schema(
         summary="List timesheet entries",
-        tags=["6.6 Timesheet"],
+        tags=["6.6: Timesheet"],
     ),
     retrieve=extend_schema(
         summary="Get timesheet entry details",
         description="Retrieve detailed information for a specific timesheet entry",
-        tags=["6.6 Timesheet"],
+        tags=["6.6: Timesheet"],
         examples=[
             OpenApiExample(
                 "Success",

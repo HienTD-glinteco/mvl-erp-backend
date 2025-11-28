@@ -16,7 +16,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="List all recruitment expenses",
         description="Retrieve a list of all recruitment expenses with support for filtering and search. "
         "Pagination: 25 items per page by default (customizable via page_size parameter, e.g., ?page_size=20)",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -68,7 +68,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="Create a new recruitment expense",
         description="Create a new recruitment expense in the system. If recruitment source allows referral, "
         "both referee_id and referrer_id are required.",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Request - Without Referral",
@@ -156,7 +156,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get recruitment expense details",
         description="Retrieve detailed information about a specific recruitment expense",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -200,7 +200,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update recruitment expense",
         description="Update recruitment expense information",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -259,7 +259,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update recruitment expense",
         description="Partially update recruitment expense information",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -311,7 +311,7 @@ from libs.export_xlsx import ExportXLSXMixin
     destroy=extend_schema(
         summary="Delete recruitment expense",
         description="Remove a recruitment expense from the system",
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -321,7 +321,7 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     export=extend_schema(
-        tags=["4.3 Recruitment Expense"],
+        tags=["4.3: Recruitment Expense"],
     ),
 )
 class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

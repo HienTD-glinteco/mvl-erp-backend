@@ -16,7 +16,7 @@ from libs.export_xlsx import ExportXLSXMixin
         summary="List all decisions",
         description="Retrieve a paginated list of all decisions with support for filtering by decision number, "
         "name, signing date range, effective date range, signer, and signing status",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -59,7 +59,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get decision details",
         description="Retrieve detailed information about a specific decision",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -95,7 +95,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new decision",
         description="Create a new decision record",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -156,7 +156,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update decision",
         description="Update all fields of a decision",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -207,12 +207,12 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update decision",
         description="Update specific fields of a decision",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
     ),
     destroy=extend_schema(
         summary="Delete decision",
         description="Soft delete a decision from the system",
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -222,7 +222,7 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     export=extend_schema(
-        tags=["10.1 Decision"],
+        tags=["10.1: Decision"],
     ),
 )
 class DecisionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):

@@ -15,7 +15,7 @@ from libs import BaseModelViewSet
     list=extend_schema(
         summary="List roles",
         description="Retrieve a list of all roles in the system",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "List roles success",
@@ -77,7 +77,7 @@ from libs import BaseModelViewSet
     create=extend_schema(
         summary="Create a new role",
         description="Create a new role in the system",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "Create role request",
@@ -143,7 +143,7 @@ from libs import BaseModelViewSet
     retrieve=extend_schema(
         summary="Get role details",
         description="Retrieve detailed information about a specific role",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "Get role success",
@@ -193,7 +193,7 @@ from libs import BaseModelViewSet
     update=extend_schema(
         summary="Update role",
         description="Update role information",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "Update role request",
@@ -238,7 +238,7 @@ from libs import BaseModelViewSet
     partial_update=extend_schema(
         summary="Partially update role",
         description="Partially update role information",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "Partial update request",
@@ -279,7 +279,7 @@ from libs import BaseModelViewSet
     destroy=extend_schema(
         summary="Delete role",
         description="Delete role from the system",
-        tags=["3.1 Roles"],
+        tags=["3.1: Roles"],
         examples=[
             OpenApiExample(
                 "Delete role success",

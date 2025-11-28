@@ -58,7 +58,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             "Aggregate staff changes (introductions, returns, new hires, transfers, resignations) "
             "by period (week/month)."
         ),
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[StaffGrowthReportParametersSerializer],
         responses={200: StaffGrowthReportAggregatedSerializer(many=True)},
         examples=[
@@ -149,7 +149,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         description=(
             "Aggregate hire statistics by recruitment source in nested organizational format (no period aggregation)."
         ),
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[RecruitmentSourceReportParametersSerializer],
         responses={200: RecruitmentSourceReportAggregatedSerializer},
         examples=[
@@ -226,7 +226,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         description=(
             "Aggregate hire statistics by recruitment channel in nested organizational format (no period aggregation)."
         ),
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[RecruitmentChannelReportParametersSerializer],
         responses={200: RecruitmentChannelReportAggregatedSerializer},
         examples=[
@@ -303,7 +303,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Recruitment Cost Report",
         description="Aggregate recruitment cost data by source type and months (no period aggregation).",
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[RecruitmentCostReportParametersSerializer],
         responses={200: RecruitmentCostReportAggregatedSerializer},
         examples=[
@@ -407,7 +407,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
             "Aggregate hired candidate statistics by source type with period aggregation "
             "(week/month) and conditional employee details."
         ),
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[HiredCandidateReportParametersSerializer],
         responses={200: HiredCandidateReportAggregatedSerializer},
         examples=[
@@ -550,7 +550,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
         description=(
             "Referral cost report with department summary and employee details (always restricted to single month)."
         ),
-        tags=["4.8 Recruitment Reports"],
+        tags=["4.8: Recruitment Reports"],
         parameters=[ReferralCostReportParametersSerializer],
         responses={200: ReferralCostReportAggregatedSerializer},
         examples=[

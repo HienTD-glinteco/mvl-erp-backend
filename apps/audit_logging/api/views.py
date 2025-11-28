@@ -26,7 +26,7 @@ class AuditLogViewSet(BaseGenericViewSet):
 
     @extend_schema(
         summary="Search audit logs",
-        tags=["0.4 Audit Logs"],
+        tags=["0.4: Audit Logs"],
         description="Search audit logs with filters. Returns a list of logs with summary fields.",
         parameters=[AuditLogSearchSerializer],
         responses={
@@ -117,7 +117,7 @@ class AuditLogViewSet(BaseGenericViewSet):
 
     @extend_schema(
         summary="Get audit log details",
-        tags=["0.4 Audit Logs"],
+        tags=["0.4: Audit Logs"],
         description="Get full details of an audit log by log_id.",
         parameters=[
             OpenApiParameter(

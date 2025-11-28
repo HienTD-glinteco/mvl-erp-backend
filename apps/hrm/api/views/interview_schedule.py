@@ -27,7 +27,7 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all interview schedules",
         description="Retrieve a paginated list of all interview schedules with support for filtering and search",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -76,7 +76,7 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new interview schedule",
         description="Create a new interview schedule. Candidates and interviewers should be added via custom actions after creation.",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -126,7 +126,7 @@ from libs.export_xlsx import ExportXLSXMixin
     retrieve=extend_schema(
         summary="Get interview schedule details",
         description="Retrieve detailed information about a specific interview schedule",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -168,7 +168,7 @@ from libs.export_xlsx import ExportXLSXMixin
     update=extend_schema(
         summary="Update interview schedule",
         description="Update interview schedule information. Candidates and interviewers should be updated via custom actions.",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -222,7 +222,7 @@ from libs.export_xlsx import ExportXLSXMixin
     partial_update=extend_schema(
         summary="Partially update interview schedule",
         description="Partially update interview schedule information",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -271,7 +271,7 @@ from libs.export_xlsx import ExportXLSXMixin
     destroy=extend_schema(
         summary="Delete interview schedule",
         description="Remove an interview schedule from the system",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -281,7 +281,7 @@ from libs.export_xlsx import ExportXLSXMixin
         ],
     ),
     export=extend_schema(
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
     ),
 )
 class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditLoggingMixin, BaseModelViewSet):
@@ -313,7 +313,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     @extend_schema(
         summary="Preview interview invitation email",
         description="Generate a preview of the interview invitation email for this schedule using the interview_invite email template",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         request={
             "application/json": {
                 "type": "object",
@@ -369,7 +369,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     @extend_schema(
         summary="Send interview invitation email",
         description="Send interview invitation email to candidates in this schedule. After successful delivery, the InterviewCandidate.email_sent_at field will be updated with the current timestamp",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         request={
             "application/json": {
                 "type": "object",
@@ -531,7 +531,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     @extend_schema(
         summary="Update interviewers in interview schedule",
         description="Update the list of interviewers for the interview schedule. This replaces all existing interviewers with the provided list.",
-        tags=["4.7 Interview Schedule"],
+        tags=["4.7: Interview Schedule"],
         request=UpdateInterviewersSerializer,
         examples=[
             OpenApiExample(

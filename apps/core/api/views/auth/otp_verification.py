@@ -38,7 +38,7 @@ class OTPVerificationView(APIView):
     @extend_schema(
         summary=_("Verify OTP code"),
         description=_("Verify OTP code and return JWT tokens to complete login"),
-        tags=["1.1 Auth"],
+        tags=["1.1: Auth"],
         responses={
             200: OTPVerificationResponseSerializer,
             400: OpenApiResponse(description=_("Invalid or expired OTP code")),
