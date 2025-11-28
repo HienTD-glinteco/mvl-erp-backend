@@ -15,10 +15,9 @@ from .attendance_wifi_device import AttendanceWifiDeviceExportSerializer, Attend
 from .bank import BankSerializer
 from .bank_account import BankAccountSerializer
 from .contract import (
-    ContractCUDSerializer,
-    ContractDetailSerializer,
     ContractExportSerializer,
     ContractListSerializer,
+    ContractSerializer,
 )
 from .contract_type import ContractTypeExportSerializer, ContractTypeListSerializer, ContractTypeSerializer
 from .decision import DecisionExportSerializer, DecisionSerializer
@@ -167,7 +166,6 @@ __all__ = [
     "DecisionSerializer",
     "DecisionExportSerializer",
     "ContractListSerializer",
-    "ContractDetailSerializer",
-    "ContractCUDSerializer",
+    "ContractSerializer",
     "ContractExportSerializer",
 ]

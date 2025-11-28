@@ -9,10 +9,9 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.contract import ContractFilterSet
 from apps.hrm.api.serializers.contract import (
-    ContractCUDSerializer,
-    ContractDetailSerializer,
     ContractExportSerializer,
     ContractListSerializer,
+    ContractSerializer,
 )
 from apps.hrm.models import Contract
 from libs import BaseModelViewSet
@@ -39,18 +38,14 @@ from libs.export_xlsx import ExportXLSXMixin
                             {
                                 "id": 1,
                                 "code": "HD00001",
-                                "contract_number": "01/2025/HDLD - MVL",
-                                "employee_id": 1,
-                                "employee_code": "MV000001",
-                                "employee_fullname": "John Doe",
-                                "contract_type_id": 1,
-                                "contract_type_code": "LHD001",
-                                "contract_type_name": "Full-time Employment",
+                                "contract_number": "HD00001",
+                                "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                                "contract_type": {"id": 1, "name": "Full-time Employment"},
                                 "sign_date": "2025-01-15",
                                 "effective_date": "2025-02-01",
                                 "expiration_date": None,
                                 "status": "active",
-                                "colored_status": {"value": "Active", "variant": "green"},
+                                "colored_status": {"value": "active", "variant": "GREEN"},
                                 "base_salary": "15000000",
                                 "created_at": "2025-01-15T10:00:00Z",
                             }
@@ -74,24 +69,14 @@ from libs.export_xlsx import ExportXLSXMixin
                     "data": {
                         "id": 1,
                         "code": "HD00001",
-                        "contract_number": "01/2025/HDLD - MVL",
-                        "employee": {
-                            "id": 1,
-                            "code": "MV000001",
-                            "fullname": "John Doe",
-                            "email": "john.doe@example.com",
-                        },
-                        "contract_type": {
-                            "id": 1,
-                            "code": "LHD001",
-                            "name": "Full-time Employment",
-                            "symbol": "HDLD",
-                        },
+                        "contract_number": "HD00001",
+                        "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                        "contract_type": {"id": 1, "name": "Full-time Employment"},
                         "sign_date": "2025-01-15",
                         "effective_date": "2025-02-01",
                         "expiration_date": None,
                         "status": "active",
-                        "colored_status": {"value": "Active", "variant": "green"},
+                        "colored_status": {"value": "active", "variant": "GREEN"},
                         "base_salary": "15000000",
                         "lunch_allowance": "500000",
                         "phone_allowance": "200000",
@@ -115,8 +100,9 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     create=extend_schema(
         summary="Create a new contract",
-        description="Create a new contract. Code and contract_number are auto-generated. "
-        "Snapshot data is copied from the contract type if not explicitly provided.",
+        description="Create a new contract. Code is auto-generated. "
+        "Snapshot data is copied from the contract type if not explicitly provided. "
+        "Status is always DRAFT on creation and cannot be changed directly.",
         tags=["Contract"],
         examples=[
             OpenApiExample(
@@ -127,7 +113,6 @@ from libs.export_xlsx import ExportXLSXMixin
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "expiration_date": None,
-                    "status": "draft",
                     "note": "New contract",
                 },
                 request_only=True,
@@ -139,36 +124,16 @@ from libs.export_xlsx import ExportXLSXMixin
                     "data": {
                         "id": 1,
                         "code": "HD00001",
-                        "contract_number": "01/2025/HDLD - MVL",
-                        "employee": {
-                            "id": 1,
-                            "code": "MV000001",
-                            "fullname": "John Doe",
-                            "email": "john.doe@example.com",
-                        },
-                        "contract_type": {
-                            "id": 1,
-                            "code": "LHD001",
-                            "name": "Full-time Employment",
-                            "symbol": "HDLD",
-                        },
+                        "contract_number": "HD00001",
+                        "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                        "contract_type": {"id": 1, "name": "Full-time Employment"},
                         "sign_date": "2025-01-15",
                         "effective_date": "2025-02-01",
                         "expiration_date": None,
                         "status": "draft",
-                        "colored_status": {"value": "Draft", "variant": "grey"},
+                        "colored_status": {"value": "draft", "variant": "YELLOW"},
                         "base_salary": "15000000",
-                        "lunch_allowance": "500000",
-                        "phone_allowance": "200000",
-                        "other_allowance": None,
-                        "net_percentage": "100",
-                        "tax_calculation_method": "progressive",
-                        "has_social_insurance": True,
-                        "working_conditions": "Standard office conditions",
-                        "rights_and_obligations": "Employee rights...",
-                        "terms": "Contract terms...",
                         "note": "New contract",
-                        "attachment": None,
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T10:00:00Z",
                     },
@@ -201,7 +166,6 @@ from libs.export_xlsx import ExportXLSXMixin
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "expiration_date": "2026-02-01",
-                    "status": "draft",
                     "base_salary": "18000000",
                     "note": "Updated contract",
                 },
@@ -214,7 +178,7 @@ from libs.export_xlsx import ExportXLSXMixin
                     "data": {
                         "id": 1,
                         "code": "HD00001",
-                        "contract_number": "01/2025/HDLD - MVL",
+                        "contract_number": "HD00001",
                         "status": "draft",
                         "base_salary": "18000000",
                         "note": "Updated contract",
@@ -269,7 +233,7 @@ class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     Provides CRUD operations and XLSX export for contracts.
     Supports filtering, searching, and ordering.
 
-    Search fields: code, contract_number, employee__fullname, employee__code
+    Search fields: code, employee__fullname, employee__code
     """
 
     queryset = Contract.objects.select_related(
@@ -277,13 +241,12 @@ class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
         "contract_type",
         "attachment",
     )
-    serializer_class = ContractCUDSerializer
+    serializer_class = ContractSerializer
     filterset_class = ContractFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["code", "contract_number", "employee__fullname", "employee__code"]
+    search_fields = ["code", "employee__fullname", "employee__code"]
     ordering_fields = [
         "code",
-        "contract_number",
         "sign_date",
         "effective_date",
         "expiration_date",
@@ -306,9 +269,7 @@ class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
         """Return appropriate serializer based on action."""
         if self.action == "list":
             return ContractListSerializer
-        if self.action == "retrieve":
-            return ContractDetailSerializer
-        return ContractCUDSerializer
+        return ContractSerializer
 
     def destroy(self, request, *args, **kwargs):
         """Delete contract. Only DRAFT contracts can be deleted."""

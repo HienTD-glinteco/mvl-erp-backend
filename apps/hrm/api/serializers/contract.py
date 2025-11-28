@@ -1,84 +1,27 @@
 """Serializers for Contract model."""
 
-from datetime import date
-
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
+from apps.hrm.api.serializers.common_nested import ContractTypeNestedSerializer, EmployeeNestedSerializer
 from apps.hrm.models import Contract, ContractType, Employee
-from apps.hrm.utils.contract_code import generate_contract_number
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
-class ContractEmployeeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested employee references."""
-
-    class Meta:
-        model = Employee
-        fields = ["id", "code", "fullname", "email"]
-        read_only_fields = ["id", "code", "fullname", "email"]
-
-
-class ContractTypeNestedSerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested contract type references."""
-
-    class Meta:
-        model = ContractType
-        fields = ["id", "code", "name", "symbol"]
-        read_only_fields = ["id", "code", "name", "symbol"]
-
-
 class ContractListSerializer(serializers.ModelSerializer):
-    """Serializer for Contract list view with flattened employee and contract type data."""
+    """Serializer for Contract list view."""
 
-    # Flattened employee fields
-    employee_id = serializers.IntegerField(source="employee.id", read_only=True)
-    employee_code = serializers.CharField(source="employee.code", read_only=True)
-    employee_fullname = serializers.CharField(source="employee.fullname", read_only=True)
-
-    # Flattened contract type fields
-    contract_type_id = serializers.IntegerField(source="contract_type.id", read_only=True)
-    contract_type_code = serializers.CharField(source="contract_type.code", read_only=True)
-    contract_type_name = serializers.CharField(source="contract_type.name", read_only=True)
-
-    # Color representation for status
-    colored_status = ColoredValueSerializer(read_only=True)
-
-    class Meta:
-        model = Contract
-        fields = [
-            "id",
-            "code",
-            "contract_number",
-            "employee_id",
-            "employee_code",
-            "employee_fullname",
-            "contract_type_id",
-            "contract_type_code",
-            "contract_type_name",
-            "sign_date",
-            "effective_date",
-            "expiration_date",
-            "status",
-            "colored_status",
-            "base_salary",
-            "created_at",
-        ]
-        read_only_fields = fields
-
-
-class ContractDetailSerializer(serializers.ModelSerializer):
-    """Serializer for Contract detail view with full information."""
-
-    # Nested serializers for full object representation
-    employee = ContractEmployeeNestedSerializer(read_only=True)
+    # Nested serializers for employee and contract type
+    employee = EmployeeNestedSerializer(read_only=True)
     contract_type = ContractTypeNestedSerializer(read_only=True)
-    attachment = FileSerializer(read_only=True)
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
+
+    # Contract number is a property that returns code
+    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract
@@ -94,37 +37,25 @@ class ContractDetailSerializer(serializers.ModelSerializer):
             "status",
             "colored_status",
             "base_salary",
-            "lunch_allowance",
-            "phone_allowance",
-            "other_allowance",
-            "net_percentage",
-            "tax_calculation_method",
-            "has_social_insurance",
-            "working_conditions",
-            "rights_and_obligations",
-            "terms",
-            "note",
-            "attachment",
             "created_at",
-            "updated_at",
         ]
         read_only_fields = fields
 
 
-class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    """Serializer for Contract create/update/delete operations.
+class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
+    """Serializer for Contract detail, create, and update operations.
 
     This serializer provides:
     - Validation: Only allows edit/delete when status is DRAFT
     - Date validation: Ensures proper date logic
-    - Create logic: Generates contract_number and copies snapshot data from ContractType
-    - Update logic: Recalculates status if dates change
+    - Create logic: Copies snapshot data from ContractType
+    - Status is read-only, calculated automatically by the model
     """
 
     file_confirm_fields = ["attachment"]
 
     # Nested read-only serializers for response
-    employee = ContractEmployeeNestedSerializer(read_only=True)
+    employee = EmployeeNestedSerializer(read_only=True)
     contract_type = ContractTypeNestedSerializer(read_only=True)
     attachment = FileSerializer(read_only=True)
 
@@ -147,6 +78,9 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
+
+    # Contract number is a property that returns code
+    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract
@@ -184,6 +118,7 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
             "contract_number",
             "employee",
             "contract_type",
+            "status",
             "colored_status",
             "attachment",
             "created_at",
@@ -201,7 +136,7 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
         instance = self.instance
 
         # Check if instance exists and validate status for update/delete
-        if instance and instance.status != Contract.ContractStatus.DRAFT:
+        if instance and instance.id and instance.status != Contract.ContractStatus.DRAFT:
             raise serializers.ValidationError({"status": _("Only contracts with DRAFT status can be edited.")})
 
         # Get dates from attrs or fallback to instance values
@@ -248,52 +183,8 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
             if field not in validated_data:
                 validated_data[field] = getattr(contract_type, field)
 
-    def _calculate_status(self, effective_date, expiration_date):
-        """Calculate contract status based on dates.
-
-        Args:
-            effective_date: Contract effective date.
-            expiration_date: Contract expiration date (can be None).
-
-        Returns:
-            Contract.ContractStatus: Calculated status.
-        """
-        today = date.today()
-
-        if effective_date > today:
-            return Contract.ContractStatus.NOT_EFFECTIVE
-
-        if expiration_date is None:
-            # Indefinite contract - always active after effective date
-            return Contract.ContractStatus.ACTIVE
-
-        if expiration_date < today:
-            return Contract.ContractStatus.EXPIRED
-
-        # Calculate days until expiration
-        days_until_expiration = (expiration_date - today).days
-
-        if days_until_expiration <= 30:
-            return Contract.ContractStatus.ABOUT_TO_EXPIRE
-
-        return Contract.ContractStatus.ACTIVE
-
-    def _expire_previous_contracts(self, employee):
-        """Mark previous active contracts as expired.
-
-        Args:
-            employee: Employee instance whose contracts should be expired.
-        """
-        Contract.objects.filter(
-            employee=employee,
-            status__in=[
-                Contract.ContractStatus.ACTIVE,
-                Contract.ContractStatus.ABOUT_TO_EXPIRE,
-            ],
-        ).update(status=Contract.ContractStatus.EXPIRED)
-
     def create(self, validated_data):
-        """Create Contract with generated contract_number and snapshot data.
+        """Create Contract with snapshot data from ContractType.
 
         Args:
             validated_data: Validated data dict.
@@ -304,54 +195,8 @@ class ContractCUDSerializer(FileConfirmSerializerMixin, serializers.ModelSeriali
         # Copy snapshot data from contract type
         self._copy_snapshot_from_contract_type(validated_data)
 
-        # Get employee before creating the contract
-        employee = validated_data.get("employee")
-
-        # Create instance first (without contract_number)
-        # We need the instance to generate contract_number
-        instance = Contract(**validated_data)
-
-        # Generate contract_number
-        instance.contract_number = generate_contract_number(instance)
-
-        # Save the instance first - if this fails, we don't expire previous contracts
-        instance.save()
-
-        # Only expire previous active contracts after successful creation
-        if employee:
-            self._expire_previous_contracts(employee)
-
-        return instance
-
-    def update(self, instance, validated_data):
-        """Update Contract and recalculate status if dates change.
-
-        Args:
-            instance: Existing Contract instance.
-            validated_data: Validated data dict.
-
-        Returns:
-            Contract: Updated contract instance.
-        """
-        # Check if dates are being updated by comparing with current values
-        new_effective_date = validated_data.get("effective_date")
-        new_expiration_date = validated_data.get("expiration_date")
-
-        # Determine actual dates to use
-        effective_date = new_effective_date if new_effective_date is not None else instance.effective_date
-        expiration_date = new_expiration_date if new_expiration_date is not None else instance.expiration_date
-
-        # If status is not explicitly provided and dates actually changed, recalculate status
-        if "status" not in validated_data:
-            dates_changed = (
-                (new_effective_date is not None and new_effective_date != instance.effective_date)
-                or (new_expiration_date is not None and new_expiration_date != instance.expiration_date)
-            )
-            if dates_changed:
-                new_status = self._calculate_status(effective_date, expiration_date)
-                validated_data["status"] = new_status
-
-        return super().update(instance, validated_data)
+        # Create and save instance - model.save() handles status calculation and expiring previous contracts
+        return super().create(validated_data)
 
 
 class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
@@ -362,6 +207,7 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
     contract_type_code = serializers.CharField(source="contract_type.code", read_only=True)
     contract_type_name = serializers.CharField(source="contract_type.name", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract

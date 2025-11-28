@@ -10,7 +10,6 @@ class ContractFilterSet(filters.FilterSet):
 
     Supports filtering by:
     - code: case-insensitive partial match
-    - contract_number: case-insensitive partial match
     - status: exact match
     - employee: exact match (Employee ID)
     - contract_type: exact match (ContractType ID)
@@ -25,11 +24,6 @@ class ContractFilterSet(filters.FilterSet):
     code = filters.CharFilter(
         lookup_expr="icontains",
         help_text="Filter by contract code (case-insensitive partial match)",
-    )
-
-    contract_number = filters.CharFilter(
-        lookup_expr="icontains",
-        help_text="Filter by contract number (case-insensitive partial match)",
     )
 
     status = filters.ChoiceFilter(
@@ -103,7 +97,6 @@ class ContractFilterSet(filters.FilterSet):
         model = Contract
         fields = [
             "code",
-            "contract_number",
             "status",
             "employee",
             "contract_type",

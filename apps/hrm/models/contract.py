@@ -1,6 +1,8 @@
 """Contract model for employee employment contracts."""
 
-from django.db import models
+from datetime import date
+
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -19,7 +21,6 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     Attributes:
         code: Auto-generated unique contract code (e.g., HD00001)
-        contract_number: Unique contract number in format xx/yyyy/abc - MVL
         employee: Foreign key to Employee
         contract_type: Foreign key to ContractType
         sign_date: Date when the contract was signed
@@ -59,13 +60,6 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Contract code"),
         help_text=_("Auto-generated unique contract code"),
-    )
-
-    contract_number = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name=_("Contract number"),
-        help_text=_("Unique contract number in format xx/yyyy/abc - MVL"),
     )
 
     employee = models.ForeignKey(
@@ -206,13 +200,14 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # ColoredValueMixin configuration
+    # Colors: DRAFT=yellow, NOT_EFFECTIVE=blue, ACTIVE=green, ABOUT_TO_EXPIRE=red, EXPIRED=grey
     VARIANT_MAPPING = {
         "status": {
-            ContractStatus.DRAFT: ColorVariant.GREY,
+            ContractStatus.DRAFT: ColorVariant.YELLOW,
             ContractStatus.NOT_EFFECTIVE: ColorVariant.BLUE,
             ContractStatus.ACTIVE: ColorVariant.GREEN,
-            ContractStatus.ABOUT_TO_EXPIRE: ColorVariant.YELLOW,
-            ContractStatus.EXPIRED: ColorVariant.RED,
+            ContractStatus.ABOUT_TO_EXPIRE: ColorVariant.RED,
+            ContractStatus.EXPIRED: ColorVariant.GREY,
         }
     }
 
@@ -223,7 +218,6 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["code"], name="contract_code_idx"),
-            models.Index(fields=["contract_number"], name="contract_number_idx"),
             models.Index(fields=["status"], name="contract_status_idx"),
             models.Index(fields=["effective_date"], name="contract_effective_date_idx"),
             models.Index(fields=["expiration_date"], name="contract_expiration_date_idx"),
@@ -231,6 +225,15 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     def __str__(self) -> str:
         return f"{self.code} - {self.employee.fullname}"
+
+    @property
+    def contract_number(self) -> str | None:
+        """Return contract number (alias for code).
+
+        Returns:
+            str | None: The contract code value
+        """
+        return self.code
 
     @property
     def colored_status(self) -> dict:
@@ -242,3 +245,69 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
             dict: Contains 'value' (status value) and 'variant' (color variant)
         """
         return self.get_colored_value("status")
+
+    def calculate_status(self) -> str:
+        """Calculate contract status based on effective and expiration dates.
+
+        Returns:
+            str: The calculated status value
+        """
+        # Keep DRAFT status if currently in draft
+        if self.status == self.ContractStatus.DRAFT:
+            return self.ContractStatus.DRAFT
+
+        today = date.today()
+
+        if self.effective_date > today:
+            return self.ContractStatus.NOT_EFFECTIVE
+
+        if self.expiration_date is None:
+            # Indefinite contract - always active after effective date
+            return self.ContractStatus.ACTIVE
+
+        if self.expiration_date < today:
+            return self.ContractStatus.EXPIRED
+
+        # Calculate days until expiration
+        days_until_expiration = (self.expiration_date - today).days
+
+        if days_until_expiration <= 30:
+            return self.ContractStatus.ABOUT_TO_EXPIRE
+
+        return self.ContractStatus.ACTIVE
+
+    def expire_previous_contracts(self):
+        """Mark previous active contracts for the same employee as expired.
+
+        This should be called after successfully saving a new contract.
+        """
+        if not self.id:
+            return
+
+        Contract.objects.filter(
+            employee=self.employee,
+            status__in=[
+                self.ContractStatus.ACTIVE,
+                self.ContractStatus.ABOUT_TO_EXPIRE,
+            ],
+        ).exclude(pk=self.pk).update(status=self.ContractStatus.EXPIRED)
+
+    def save(self, *args, **kwargs):
+        """Override save to calculate status and handle business logic.
+
+        - Calculates status based on dates (except for DRAFT contracts)
+        - Uses transaction.atomic() for data integrity
+        - Expires previous contracts after successful creation
+        """
+        is_new = self.pk is None
+
+        # Calculate status before save (except for DRAFT)
+        if self.status != self.ContractStatus.DRAFT:
+            self.status = self.calculate_status()
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            # Expire previous contracts after successful creation
+            if is_new:
+                self.expire_previous_contracts()
