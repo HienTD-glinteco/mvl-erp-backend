@@ -632,7 +632,7 @@ class EmployeeCertificateAPITest(TestCase):
         cache.clear()
 
         with (
-            patch("libs.drf.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.api.serializers.mixins.cache") as mock_cache,
             patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
             patch("apps.files.utils.s3_utils.S3FileUploadService") as mock_s3_service_model,
         ):
@@ -738,7 +738,7 @@ class EmployeeCertificateAPITest(TestCase):
         cache.clear()
 
         with (
-            patch("libs.drf.serializers.mixins.cache") as mock_cache,
+            patch("apps.files.api.serializers.mixins.cache") as mock_cache,
             patch("apps.files.utils.S3FileUploadService") as mock_s3_service,
         ):
             # Mock cache to return None (token not found)

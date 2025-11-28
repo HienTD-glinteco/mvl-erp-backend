@@ -53,7 +53,7 @@ class _FileTokenField(serializers.Field):
                 if not isinstance(item, str):
                     self.fail("invalid_item")
             return data
-        self.fail("invalid_type")
+        return self.fail("invalid_type")
 
     def to_representation(self, value) -> Union[str, list]:
         """
