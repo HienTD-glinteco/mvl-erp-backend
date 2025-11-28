@@ -7,16 +7,15 @@ import pytest
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.import_handlers.contract import (
-    ContractImportSerializer,
-    ContractTypeCodeField,
-    EmployeeCodeField,
-    FlexibleBooleanField,
-    FlexibleDateField,
-    FlexibleDecimalField,
     copy_snapshot_from_contract_type,
     import_handler,
+    lookup_contract_type,
+    lookup_employee,
     normalize_header,
     normalize_value,
+    parse_boolean,
+    parse_date,
+    parse_decimal,
 )
 from apps.hrm.models import (
     Block,
@@ -47,117 +46,77 @@ class TestUtilityFunctions:
         assert normalize_value(None) == ""
         assert normalize_value("") == ""
 
-
-@pytest.mark.django_db
-class TestFlexibleDateField:
-    """Test FlexibleDateField for date parsing."""
-
     def test_parse_date_valid_iso(self):
         """Test date parsing with ISO format."""
-        field = FlexibleDateField()
-        parsed_date = field.to_internal_value("2025-01-15")
-        assert parsed_date == date(2025, 1, 15)
+        assert parse_date("2025-01-15") == date(2025, 1, 15)
 
     def test_parse_date_valid_european(self):
         """Test date parsing with DD/MM/YYYY format."""
-        field = FlexibleDateField()
-        parsed_date = field.to_internal_value("15/01/2025")
-        assert parsed_date == date(2025, 1, 15)
+        assert parse_date("15/01/2025") == date(2025, 1, 15)
 
     def test_parse_date_valid_dash(self):
         """Test date parsing with DD-MM-YYYY format."""
-        field = FlexibleDateField()
-        parsed_date = field.to_internal_value("15-01-2025")
-        assert parsed_date == date(2025, 1, 15)
+        assert parse_date("15-01-2025") == date(2025, 1, 15)
 
     def test_parse_date_object(self):
         """Test date parsing with date object."""
-        field = FlexibleDateField()
         test_date = date(2025, 1, 15)
-        parsed_date = field.to_internal_value(test_date)
-        assert parsed_date == test_date
+        assert parse_date(test_date) == test_date
 
     def test_parse_date_empty(self):
         """Test date parsing with empty value."""
-        field = FlexibleDateField()
-        parsed_date = field.to_internal_value("")
-        assert parsed_date is None
-
-        parsed_date = field.to_internal_value("-")
-        assert parsed_date is None
-
-
-@pytest.mark.django_db
-class TestFlexibleDecimalField:
-    """Test FlexibleDecimalField for decimal parsing."""
+        assert parse_date("") is None
+        assert parse_date("-") is None
+        assert parse_date(None) is None
 
     def test_parse_decimal_integer(self):
         """Test decimal parsing with integer."""
-        field = FlexibleDecimalField(max_digits=20, decimal_places=0)
-        value = field.to_internal_value(15000000)
-        assert value == Decimal("15000000")
+        assert parse_decimal(15000000) == Decimal("15000000")
 
-    def test_parse_decimal_formatted_string(self):
-        """Test decimal parsing with formatted string."""
-        field = FlexibleDecimalField(max_digits=20, decimal_places=0)
-        value = field.to_internal_value("15,000,000")
-        assert value == Decimal("15000000")
+    def test_parse_decimal_with_comma_decimal(self):
+        """Test decimal parsing with comma as decimal separator."""
+        assert parse_decimal("15000,50") == Decimal("15000.50")
 
     def test_parse_decimal_plain_string(self):
         """Test decimal parsing with plain string."""
-        field = FlexibleDecimalField(max_digits=20, decimal_places=0)
-        value = field.to_internal_value("15000000")
-        assert value == Decimal("15000000")
+        assert parse_decimal("15000000") == Decimal("15000000")
 
     def test_parse_decimal_empty(self):
         """Test decimal parsing with empty value."""
-        field = FlexibleDecimalField(max_digits=20, decimal_places=0)
-        value = field.to_internal_value("")
-        assert value is None
-
-
-@pytest.mark.django_db
-class TestFlexibleBooleanField:
-    """Test FlexibleBooleanField for boolean parsing."""
+        assert parse_decimal("") is None
+        assert parse_decimal(None) is None
 
     def test_parse_boolean_vietnamese_true(self):
         """Test boolean parsing with Vietnamese true values."""
-        field = FlexibleBooleanField()
-        for true_val in ["có", "Có", "CÓ"]:
-            value = field.to_internal_value(true_val)
-            assert value is True
+        assert parse_boolean("có") is True
+        assert parse_boolean("Có") is True
 
     def test_parse_boolean_vietnamese_false(self):
         """Test boolean parsing with Vietnamese false values."""
-        field = FlexibleBooleanField()
-        for false_val in ["không", "Không", "KHÔNG"]:
-            value = field.to_internal_value(false_val)
-            assert value is False
+        assert parse_boolean("không") is False
+        assert parse_boolean("Không") is False
 
     def test_parse_boolean_english(self):
         """Test boolean parsing with English values."""
-        field = FlexibleBooleanField()
-        assert field.to_internal_value("yes") is True
-        assert field.to_internal_value("no") is False
-        assert field.to_internal_value("true") is True
-        assert field.to_internal_value("false") is False
+        assert parse_boolean("yes") is True
+        assert parse_boolean("no") is False
+        assert parse_boolean("true") is True
+        assert parse_boolean("false") is False
 
     def test_parse_boolean_native(self):
         """Test boolean parsing with native bool."""
-        field = FlexibleBooleanField()
-        assert field.to_internal_value(True) is True
-        assert field.to_internal_value(False) is False
+        assert parse_boolean(True) is True
+        assert parse_boolean(False) is False
 
     def test_parse_boolean_empty(self):
         """Test boolean parsing with empty value."""
-        field = FlexibleBooleanField()
-        value = field.to_internal_value("")
-        assert value is None
+        assert parse_boolean("") is None
+        assert parse_boolean(None) is None
 
 
 @pytest.mark.django_db
-class TestEmployeeCodeField:
-    """Test EmployeeCodeField for employee lookup."""
+class TestLookupFunctions:
+    """Test lookup functions for employee and contract type."""
 
     @pytest.fixture
     def setup_employee(self):
@@ -198,36 +157,21 @@ class TestEmployeeCodeField:
 
     def test_lookup_employee_existing(self, setup_employee):
         """Test lookup of existing employee."""
-        field = EmployeeCodeField()
-        employee = field.to_internal_value("MV000001")
+        employee = lookup_employee("MV000001")
         assert employee == setup_employee
 
         # Case insensitive
-        employee = field.to_internal_value("mv000001")
+        employee = lookup_employee("mv000001")
         assert employee == setup_employee
 
     def test_lookup_employee_not_found(self):
         """Test lookup of non-existent employee."""
-        from rest_framework import serializers as drf_serializers
-
-        field = EmployeeCodeField()
-        with pytest.raises(drf_serializers.ValidationError) as exc_info:
-            field.to_internal_value("NONEXISTENT")
-        assert "not found" in str(exc_info.value)
+        assert lookup_employee("NONEXISTENT") is None
 
     def test_lookup_employee_empty_code(self):
         """Test lookup with empty employee code."""
-        from rest_framework import serializers as drf_serializers
-
-        field = EmployeeCodeField()
-        with pytest.raises(drf_serializers.ValidationError) as exc_info:
-            field.to_internal_value("")
-        assert "required" in str(exc_info.value)
-
-
-@pytest.mark.django_db
-class TestContractTypeCodeField:
-    """Test ContractTypeCodeField for contract type lookup."""
+        assert lookup_employee("") is None
+        assert lookup_employee(None) is None
 
     def test_lookup_contract_type_existing(self):
         """Test lookup of existing contract type."""
@@ -235,19 +179,12 @@ class TestContractTypeCodeField:
             name="Full-time Employment",
             base_salary=15000000,
         )
-
-        field = ContractTypeCodeField()
-        found = field.to_internal_value(contract_type.code)
+        found = lookup_contract_type(contract_type.code)
         assert found == contract_type
 
     def test_lookup_contract_type_not_found(self):
         """Test lookup of non-existent contract type."""
-        from rest_framework import serializers as drf_serializers
-
-        field = ContractTypeCodeField()
-        with pytest.raises(drf_serializers.ValidationError) as exc_info:
-            field.to_internal_value("NONEXISTENT")
-        assert "not found" in str(exc_info.value)
+        assert lookup_contract_type("NONEXISTENT") is None
 
 
 @pytest.mark.django_db
@@ -301,88 +238,6 @@ class TestCopySnapshotFromContractType:
         assert contract_data["base_salary"] == Decimal("20000000")
         # lunch_allowance should be copied from contract type
         assert contract_data["lunch_allowance"] == Decimal("500000")
-
-
-@pytest.mark.django_db
-class TestContractImportSerializer:
-    """Test ContractImportSerializer validation."""
-
-    @pytest.fixture
-    def setup_test_data(self):
-        """Setup test data for serializer tests."""
-        province = Province.objects.create(name="Test Province", code="TP")
-        admin_unit = AdministrativeUnit.objects.create(
-            name="Test Unit",
-            code="TU",
-            parent_province=province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT,
-        )
-        branch = Branch.objects.create(
-            name="Test Branch",
-            code="TB",
-            province=province,
-            administrative_unit=admin_unit,
-        )
-        block = Block.objects.create(
-            name="Test Block",
-            code="TBL",
-            branch=branch,
-            block_type=Block.BlockType.BUSINESS,
-        )
-        department = Department.objects.create(
-            name="Test Department",
-            code="TD",
-            branch=branch,
-            block=block,
-        )
-        employee = Employee.objects.create(
-            code="MV000001",
-            fullname="Test Employee",
-            username="testuser",
-            email="test@example.com",
-            department=department,
-            start_date=date(2024, 1, 1),
-        )
-        contract_type = ContractType.objects.create(
-            name="Full-time Employment",
-            base_salary=15000000,
-        )
-        return {
-            "employee": employee,
-            "contract_type": contract_type,
-        }
-
-    def test_serializer_valid_data(self, setup_test_data):
-        """Test serializer with valid data."""
-        employee = setup_test_data["employee"]
-        contract_type = setup_test_data["contract_type"]
-
-        data = {
-            "employee_code": employee.code,
-            "contract_type_code": contract_type.code,
-            "sign_date": "2025-01-15",
-            "effective_date": "2025-02-01",
-        }
-
-        serializer = ContractImportSerializer(data=data)
-        assert serializer.is_valid(), serializer.errors
-
-    def test_serializer_date_validation(self, setup_test_data):
-        """Test serializer date validation."""
-        employee = setup_test_data["employee"]
-        contract_type = setup_test_data["contract_type"]
-
-        # Sign date after effective date
-        data = {
-            "employee_code": employee.code,
-            "contract_type_code": contract_type.code,
-            "sign_date": "2025-02-15",
-            "effective_date": "2025-02-01",
-        }
-
-        serializer = ContractImportSerializer(data=data)
-        assert not serializer.is_valid()
-        assert "sign_date" in serializer.errors
 
 
 @pytest.mark.django_db
