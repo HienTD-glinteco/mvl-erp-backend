@@ -11,7 +11,7 @@ from django.db import models
 from django.test import TestCase
 from rest_framework import serializers
 
-from libs.drf.serializers.mixins import FileConfirmSerializerMixin, _FileTokenField
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin, _FileTokenField
 
 
 class TestFileTokenField(TestCase):

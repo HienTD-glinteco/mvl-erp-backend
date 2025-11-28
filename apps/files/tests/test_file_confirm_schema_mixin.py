@@ -8,7 +8,7 @@ import pytest
 from django.apps import apps
 from rest_framework import serializers
 
-from libs import FileConfirmSerializerMixin
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 
 
 class TestFileConfirmSerializerMixinSchema:

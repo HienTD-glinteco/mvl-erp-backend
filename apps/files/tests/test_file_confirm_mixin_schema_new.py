@@ -13,8 +13,8 @@ from rest_framework import serializers, viewsets
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import EmployeeCertificate
-from libs.drf.serializers.mixins import FileConfirmSerializerMixin
 
 
 class TestCertificateSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
