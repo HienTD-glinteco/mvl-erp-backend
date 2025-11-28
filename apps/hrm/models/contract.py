@@ -279,7 +279,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def expire_previous_contracts(self):
         """Mark previous active contracts for the same employee as expired.
 
-        This should be called after successfully saving a new contract.
+        This should be called after successfully saving a contract when status is not DRAFT.
         """
         if self.pk is None:
             return
@@ -292,24 +292,22 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
             ],
         ).exclude(pk=self.pk).update(status=self.ContractStatus.EXPIRED)
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         """Override save to calculate status and handle business logic.
 
         - Calculates status based on dates (except for DRAFT contracts)
-        - Uses transaction.atomic() for data integrity
-        - Expires previous contracts after successful creation
+        - Uses transaction.atomic() decorator for data integrity
+        - Expires previous contracts when status is not DRAFT
         """
-        is_new = self.pk is None
-
         # Calculate status before save (only for non-DRAFT contracts)
         # DRAFT status is preserved - status will be recalculated when user explicitly
         # changes it from DRAFT to another status
         if self.status != self.ContractStatus.DRAFT:
             self.status = self.calculate_status()
 
-        with transaction.atomic():
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
-            # Expire previous contracts after successful creation
-            if is_new:
-                self.expire_previous_contracts()
+        # Expire previous contracts when status is not DRAFT
+        if self.status != self.ContractStatus.DRAFT:
+            self.expire_previous_contracts()
