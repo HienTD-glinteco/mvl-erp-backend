@@ -344,11 +344,19 @@ class TestContractTypeAPI:
         # Default ordering is -created_at, so fixed_term_contract_type should be first
         assert data["results"][0]["name"] == "Fixed-term Contract"
 
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    @patch("apps.files.utils.S3FileUploadService")
     @patch("django.core.cache.cache.delete")
     @patch("django.core.cache.cache.get")
-    @patch("apps.files.utils.S3FileUploadService")
     def test_create_contract_type_with_template_file(
-        self, mock_s3_service, mock_cache_get, mock_cache_delete, api_client, contract_type_data, db
+        self,
+        mock_cache_get,
+        mock_cache_delete,
+        mock_s3_service,
+        mock_s3_service_model,
+        api_client,
+        contract_type_data,
+        db,
     ):
         """Test creating a contract type with template file using FileConfirmSerializerMixin."""
         import json
@@ -379,7 +387,7 @@ class TestContractTypeAPI:
         mock_cache_get.side_effect = cache_get_side_effect
         mock_cache_delete.side_effect = cache_delete_side_effect
 
-        # Mock S3 service
+        # Mock S3 service for serializer's _confirm_related_files
         mock_instance = MagicMock()
         mock_s3_service.return_value = mock_instance
         mock_instance.check_file_exists.return_value = True
@@ -392,6 +400,12 @@ class TestContractTypeAPI:
         }
         mock_instance.generate_view_url.return_value = "https://example.com/view/template.docx"
         mock_instance.generate_download_url.return_value = "https://example.com/download/template.docx"
+
+        # Mock S3 service for FileModel's view_url and download_url properties
+        mock_instance_model = MagicMock()
+        mock_s3_service_model.return_value = mock_instance_model
+        mock_instance_model.generate_view_url.return_value = "https://example.com/view/template.docx"
+        mock_instance_model.generate_download_url.return_value = "https://example.com/download/template.docx"
 
         # Add file token to request data
         contract_type_data["files"] = {"template_file": file_token}
