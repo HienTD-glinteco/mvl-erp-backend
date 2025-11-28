@@ -10,6 +10,7 @@ from apps.hrm.models import (
     Bank,
     Block,
     Branch,
+    Contract,
     ContractType,
     Department,
     Employee,
@@ -55,6 +56,11 @@ PositionNestedSerializer = SimpleNestedSerializerFactory(
 ContractTypeNestedSerializer = SimpleNestedSerializerFactory(
     ContractType,
     ["id", "name"],
+)
+
+ContractNestedSerializer = SimpleNestedSerializerFactory(
+    Contract,
+    ["id", "code"],
 )
 
 JobDescriptionNestedSerializer = SimpleNestedSerializerFactory(

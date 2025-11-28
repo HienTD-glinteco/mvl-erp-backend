@@ -7,6 +7,7 @@ from .attendance_wifi_device import AttendanceWifiDeviceViewSet
 from .bank import BankViewSet
 from .bank_account import BankAccountViewSet
 from .contract import ContractViewSet
+from .contract_appendix import ContractAppendixViewSet
 from .contract_type import ContractTypeViewSet
 from .decision import DecisionViewSet
 from .employee import EmployeeViewSet
@@ -71,6 +72,7 @@ __all__ = [
     "EmployeeDependentViewSet",
     "EmployeeWorkHistoryViewSet",
     "ContractViewSet",
+    "ContractAppendixViewSet",
     "ContractTypeViewSet",
     "HolidayViewSet",
     "CompensatoryWorkdayViewSet",

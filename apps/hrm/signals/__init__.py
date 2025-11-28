@@ -16,6 +16,7 @@ from apps.hrm.models import (
     Block,
     Branch,
     Contract,
+    ContractAppendix,
     ContractType,
     Department,
     Employee,
@@ -30,6 +31,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from apps.hrm.utils.appendix_code import generate_appendix_codes
 from apps.hrm.utils.contract_code import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
@@ -76,4 +78,11 @@ register_auto_code_signal(
     Contract,
     temp_code_prefix=TEMP_CODE_PREFIX,
     custom_generate_code=generate_contract_code,
+)
+
+# Register auto-code generation for ContractAppendix with custom code generator
+register_auto_code_signal(
+    ContractAppendix,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+    custom_generate_code=generate_appendix_codes,
 )
