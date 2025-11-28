@@ -20,6 +20,7 @@ class AttendanceMethodBreakdownReportSerializer(serializers.Serializer):
     device = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
     wifi = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
     geolocation = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
+    other = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
 
 
 class AttendanceMethodItemReportSerializer(serializers.Serializer):
