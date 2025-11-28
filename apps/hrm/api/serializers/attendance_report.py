@@ -12,6 +12,19 @@ class AttendanceReportBaseParameterSerializer(serializers.Serializer):
     block = serializers.IntegerField(required=False)
     department = serializers.IntegerField(required=False)
 
+    def get_filters(self):
+        validated_data = self.validated_data
+        filters = {}
+        if validated_data.get("attendance_date"):
+            filters["report_date"] = validated_data.get("attendance_date")
+        if validated_data.get("branch"):
+            filters["branch_id"] = validated_data.get("branch")
+        if validated_data.get("block"):
+            filters["block_id"] = validated_data.get("block")
+        if validated_data.get("department"):
+            filters["department_id"] = validated_data.get("department")
+        return filters
+
 
 # Group by: By method report
 
@@ -57,6 +70,12 @@ class AttendanceProjectReportAggregrationSerializer(serializers.Serializer):
 class AttendanceProjectReportParameterSerializer(AttendanceReportBaseParameterSerializer):
     block_type = serializers.ChoiceField(choices=Block.BlockType.choices, required=False)
 
+    def get_filters(self):
+        filters = super().get_filters()
+        if self.validated_data.get("block_type"):
+            filters["block__type"] = self.validated_data.get("block_type")
+        return filters
+
 
 ####
 
@@ -64,15 +83,18 @@ class AttendanceProjectReportParameterSerializer(AttendanceReportBaseParameterSe
 
 
 class AttendanceProjectOrgReportDepartmentSerializer(BaseTypeNameSerializer):
+    id = serializers.IntegerField()
     count = serializers.IntegerField()
 
 
 class AttendanceProjectOrgReportBlockSerializer(BaseTypeNameSerializer):
+    id = serializers.IntegerField()
     count = serializers.IntegerField(default=0)
     children = AttendanceProjectOrgReportDepartmentSerializer(many=True)
 
 
 class AttendanceProjectOrgReportBranchSerializer(BaseTypeNameSerializer):
+    id = serializers.IntegerField()
     count = serializers.IntegerField(default=0)
     children = AttendanceProjectOrgReportBlockSerializer(many=True)
 
@@ -84,3 +106,9 @@ class AttendanceProjectOrgReportAggregrationSerializer(serializers.Serializer):
 
 class AttendanceProjectOrgReportParameterSerializer(AttendanceReportBaseParameterSerializer):
     project = serializers.IntegerField(required=False)
+
+    def get_filters(self):
+        filters = super().get_filters()
+        if self.validated_data.get("project"):
+            filters["project_id"] = self.validated_data.get("project")
+        return filters

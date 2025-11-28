@@ -173,3 +173,16 @@ def get_week_label_from_date_range(start_date, end_date):
         str: Week label in format "DD/MM - DD/MM" (e.g., "12/05 - 18/05")
     """
     return f"{start_date.strftime('%d/%m')} - {end_date.strftime('%d/%m')}"
+
+
+def calculate_percentage(value, total):
+    """Calculate percentage of value in total.
+
+    Args:
+        value: The value to calculate percentage for
+        total: The total value
+
+    Returns:
+        float: The percentage value (0-100)
+    """
+    return (value / total * 100) if total > 0 else 0
