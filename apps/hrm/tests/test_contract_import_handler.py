@@ -7,15 +7,14 @@ import pytest
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.import_handlers.contract import (
+    ContractImportSerializer,
     copy_snapshot_from_contract_type,
     import_handler,
-    lookup_contract_type,
-    lookup_employee,
     normalize_header,
     normalize_value,
-    parse_boolean,
-    parse_date,
-    parse_decimal,
+    preprocess_boolean,
+    preprocess_date,
+    preprocess_decimal,
 )
 from apps.hrm.models import (
     Block,
@@ -46,81 +45,81 @@ class TestUtilityFunctions:
         assert normalize_value(None) == ""
         assert normalize_value("") == ""
 
-    def test_parse_date_valid_iso(self):
+    def test_preprocess_date_valid_iso(self):
         """Test date parsing with ISO format."""
-        assert parse_date("2025-01-15") == date(2025, 1, 15)
+        assert preprocess_date("2025-01-15") == date(2025, 1, 15)
 
-    def test_parse_date_valid_european(self):
+    def test_preprocess_date_valid_european(self):
         """Test date parsing with DD/MM/YYYY format."""
-        assert parse_date("15/01/2025") == date(2025, 1, 15)
+        assert preprocess_date("15/01/2025") == date(2025, 1, 15)
 
-    def test_parse_date_valid_dash(self):
+    def test_preprocess_date_valid_dash(self):
         """Test date parsing with DD-MM-YYYY format."""
-        assert parse_date("15-01-2025") == date(2025, 1, 15)
+        assert preprocess_date("15-01-2025") == date(2025, 1, 15)
 
-    def test_parse_date_object(self):
+    def test_preprocess_date_object(self):
         """Test date parsing with date object."""
         test_date = date(2025, 1, 15)
-        assert parse_date(test_date) == test_date
+        assert preprocess_date(test_date) == test_date
 
-    def test_parse_date_empty(self):
+    def test_preprocess_date_empty(self):
         """Test date parsing with empty value."""
-        assert parse_date("") is None
-        assert parse_date("-") is None
-        assert parse_date(None) is None
+        assert preprocess_date("") is None
+        assert preprocess_date("-") is None
+        assert preprocess_date(None) is None
 
-    def test_parse_decimal_integer(self):
+    def test_preprocess_decimal_integer(self):
         """Test decimal parsing with integer."""
-        assert parse_decimal(15000000) == Decimal("15000000")
+        assert preprocess_decimal(15000000) == Decimal("15000000")
 
-    def test_parse_decimal_with_comma_decimal(self):
+    def test_preprocess_decimal_with_comma_decimal(self):
         """Test decimal parsing with comma as decimal separator."""
-        assert parse_decimal("15000,50") == Decimal("15000.50")
+        assert preprocess_decimal("15000,50") == Decimal("15000.50")
 
-    def test_parse_decimal_plain_string(self):
+    def test_preprocess_decimal_plain_string(self):
         """Test decimal parsing with plain string."""
-        assert parse_decimal("15000000") == Decimal("15000000")
+        assert preprocess_decimal("15000000") == Decimal("15000000")
 
-    def test_parse_decimal_empty(self):
+    def test_preprocess_decimal_empty(self):
         """Test decimal parsing with empty value."""
-        assert parse_decimal("") is None
-        assert parse_decimal(None) is None
+        assert preprocess_decimal("") is None
+        assert preprocess_decimal(None) is None
 
-    def test_parse_boolean_vietnamese_true(self):
+    def test_preprocess_boolean_vietnamese_true(self):
         """Test boolean parsing with Vietnamese true values."""
-        assert parse_boolean("có") is True
-        assert parse_boolean("Có") is True
+        assert preprocess_boolean("có") is True
+        assert preprocess_boolean("Có") is True
 
-    def test_parse_boolean_vietnamese_false(self):
+    def test_preprocess_boolean_vietnamese_false(self):
         """Test boolean parsing with Vietnamese false values."""
-        assert parse_boolean("không") is False
-        assert parse_boolean("Không") is False
+        assert preprocess_boolean("không") is False
+        assert preprocess_boolean("Không") is False
 
-    def test_parse_boolean_english(self):
+    def test_preprocess_boolean_english(self):
         """Test boolean parsing with English values."""
-        assert parse_boolean("yes") is True
-        assert parse_boolean("no") is False
-        assert parse_boolean("true") is True
-        assert parse_boolean("false") is False
+        assert preprocess_boolean("yes") is True
+        assert preprocess_boolean("no") is False
+        assert preprocess_boolean("true") is True
+        assert preprocess_boolean("false") is False
 
-    def test_parse_boolean_native(self):
+    def test_preprocess_boolean_native(self):
         """Test boolean parsing with native bool."""
-        assert parse_boolean(True) is True
-        assert parse_boolean(False) is False
+        assert preprocess_boolean(True) is True
+        assert preprocess_boolean(False) is False
 
-    def test_parse_boolean_empty(self):
+    def test_preprocess_boolean_empty(self):
         """Test boolean parsing with empty value."""
-        assert parse_boolean("") is None
-        assert parse_boolean(None) is None
+        assert preprocess_boolean("") is None
+        assert preprocess_boolean(None) is None
 
 
 @pytest.mark.django_db
-class TestLookupFunctions:
-    """Test lookup functions for employee and contract type."""
+class TestContractImportSerializer:
+    """Test ContractImportSerializer validation."""
 
     @pytest.fixture
-    def setup_employee(self):
-        """Create test employee."""
+    def setup_test_data(self):
+        """Setup test data for serializer tests."""
         province = Province.objects.create(name="Test Province", code="TP")
         admin_unit = AdministrativeUnit.objects.create(
             name="Test Unit",
@@ -146,7 +145,7 @@ class TestLookupFunctions:
             branch=branch,
             block=block,
         )
-        return Employee.objects.create(
+        employee = Employee.objects.create(
             code="MV000001",
             fullname="Test Employee",
             username="testuser",
@@ -154,37 +153,46 @@ class TestLookupFunctions:
             department=department,
             start_date=date(2024, 1, 1),
         )
-
-    def test_lookup_employee_existing(self, setup_employee):
-        """Test lookup of existing employee."""
-        employee = lookup_employee("MV000001")
-        assert employee == setup_employee
-
-        # Case insensitive
-        employee = lookup_employee("mv000001")
-        assert employee == setup_employee
-
-    def test_lookup_employee_not_found(self):
-        """Test lookup of non-existent employee."""
-        assert lookup_employee("NONEXISTENT") is None
-
-    def test_lookup_employee_empty_code(self):
-        """Test lookup with empty employee code."""
-        assert lookup_employee("") is None
-        assert lookup_employee(None) is None
-
-    def test_lookup_contract_type_existing(self):
-        """Test lookup of existing contract type."""
         contract_type = ContractType.objects.create(
             name="Full-time Employment",
             base_salary=15000000,
         )
-        found = lookup_contract_type(contract_type.code)
-        assert found == contract_type
+        return {
+            "employee": employee,
+            "contract_type": contract_type,
+        }
 
-    def test_lookup_contract_type_not_found(self):
-        """Test lookup of non-existent contract type."""
-        assert lookup_contract_type("NONEXISTENT") is None
+    def test_serializer_valid_data(self, setup_test_data):
+        """Test serializer with valid data."""
+        employee = setup_test_data["employee"]
+        contract_type = setup_test_data["contract_type"]
+
+        data = {
+            "employee": employee.pk,
+            "contract_type": contract_type.pk,
+            "sign_date": date(2025, 1, 15),
+            "effective_date": date(2025, 2, 1),
+        }
+
+        serializer = ContractImportSerializer(data=data)
+        assert serializer.is_valid(), serializer.errors
+
+    def test_serializer_date_validation(self, setup_test_data):
+        """Test serializer date validation."""
+        employee = setup_test_data["employee"]
+        contract_type = setup_test_data["contract_type"]
+
+        # Sign date after effective date
+        data = {
+            "employee": employee.pk,
+            "contract_type": contract_type.pk,
+            "sign_date": date(2025, 2, 15),
+            "effective_date": date(2025, 2, 1),
+        }
+
+        serializer = ContractImportSerializer(data=data)
+        assert not serializer.is_valid()
+        assert "sign_date" in serializer.errors
 
 
 @pytest.mark.django_db
