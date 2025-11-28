@@ -100,7 +100,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     serializer_class = EmployeeRoleListSerializer
     filterset_class = EmployeeRoleFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["username", "first_name", "last_name", "role__name", "employee__fullname"]
+    search_fields = ["username", "first_name", "last_name", "role__name", "employee__fullname", "employee__code"]
     ordering_fields = ["username", "first_name", "last_name", "role__name", "created_at"]
     ordering = ["-username"]  # Default ordering: descending by employee code
 

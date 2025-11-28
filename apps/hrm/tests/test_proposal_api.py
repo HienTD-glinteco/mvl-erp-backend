@@ -361,6 +361,58 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert str(proposal.approved_check_out_time) == "17:00:00"
         assert proposal.note == "Approved"
 
+    def test_approve_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
+        """Test that approved_by is set to the current user's employee when approving."""
+        from rest_framework.test import APIClient
+
+        # Create a user with an associated employee (the approver)
+        approver_employee = Employee.objects.create(
+            code="MV_APPROVER_001",
+            fullname="Approver Employee",
+            username="user_approver_001",
+            email="approver001@example.com",
+            attendance_code="99010",
+            citizen_id="999000000010",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+        approver_user = approver_employee.user
+        # Grant superuser permission to bypass RoleBasedPermission checks
+        approver_user.is_superuser = True
+        approver_user.save()
+
+        # Create a proposal
+        proposal = Proposal.objects.create(
+            code="DX000020",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Wrong time",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        # Use a client authenticated as the approver_user (who has an employee)
+        client = APIClient()
+        client.force_authenticate(user=approver_user)
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-approve", args=[proposal.id])
+        data = {"approved_check_in_time": "08:00:00", "approved_check_out_time": "17:00:00", "note": "Approved"}
+
+        response = client.post(url, data)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+
+        proposal.refresh_from_db()
+        assert proposal.proposal_status == ProposalStatus.APPROVED
+        # Verify approved_by is set to the approver's employee
+        assert proposal.approved_by is not None
+        assert proposal.approved_by.id == approver_employee.id
+
     def test_reject_complaint_success(self, api_client, superuser, test_employee):
         proposal = Proposal.objects.create(
             code="DX000006",
@@ -382,6 +434,58 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal.refresh_from_db()
         assert proposal.proposal_status == ProposalStatus.REJECTED
         assert proposal.note == "Rejected due to lack of evidence"
+
+    def test_reject_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
+        """Test that approved_by is set to the current user's employee when rejecting."""
+        from rest_framework.test import APIClient
+
+        # Create a user with an associated employee (the rejecter)
+        rejecter_employee = Employee.objects.create(
+            code="MV_REJECTER_001",
+            fullname="Rejecter Employee",
+            username="user_rejecter_001",
+            email="rejecter001@example.com",
+            attendance_code="99011",
+            citizen_id="999000000011",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+        rejecter_user = rejecter_employee.user
+        # Grant superuser permission to bypass RoleBasedPermission checks
+        rejecter_user.is_superuser = True
+        rejecter_user.save()
+
+        # Create a proposal
+        proposal = Proposal.objects.create(
+            code="DX000021",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            complaint_reason="Wrong time",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        # Use a client authenticated as the rejecter_user (who has an employee)
+        client = APIClient()
+        client.force_authenticate(user=rejecter_user)
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
+        data = {"note": "Rejected due to lack of evidence"}
+
+        response = client.post(url, data)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+
+        proposal.refresh_from_db()
+        assert proposal.proposal_status == ProposalStatus.REJECTED
+        # Verify approved_by is set to the rejecter's employee
+        assert proposal.approved_by is not None
+        assert proposal.approved_by.id == rejecter_employee.id
 
     def test_reject_complaint_missing_note(self, api_client, superuser, test_employee):
         proposal = Proposal.objects.create(

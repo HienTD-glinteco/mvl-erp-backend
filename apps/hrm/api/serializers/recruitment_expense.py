@@ -155,3 +155,38 @@ class RecruitmentExpenseSerializer(FieldFilteringSerializerMixin, serializers.Mo
                 raise serializers.ValidationError({"non_field_errors": e.messages})
 
         return attrs
+
+
+class RecruitmentExpenseExportSerializer(RecruitmentExpenseSerializer):
+    """Serializer for exporting RecruitmentExpense data to Excel.
+
+    This serializer flattens related objects (recruitment_source, recruitment_channel)
+    to include their names directly in the export.
+    """
+
+    recruitment_source__name = serializers.CharField(source="recruitment_source.name", read_only=True)
+    recruitment_channel__name = serializers.CharField(source="recruitment_channel.name", read_only=True)
+    recruitment_request__name = serializers.CharField(source="recruitment_request.name", read_only=True)
+    referee__name = serializers.CharField(source="referee.name", read_only=True)
+    referrer__name = serializers.CharField(source="referrer.name", read_only=True)
+
+    class Meta:
+        model = RecruitmentExpense
+        fields = [
+            "id",
+            "date",
+            "recruitment_source__name",
+            "recruitment_channel__name",
+            "recruitment_request__name",
+            "num_candidates_participated",
+            "total_cost",
+            "num_candidates_hired",
+            "avg_cost",
+            "referee__name",
+            "referrer__name",
+            "activity",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields

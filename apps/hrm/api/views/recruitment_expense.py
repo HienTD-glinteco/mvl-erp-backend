@@ -342,6 +342,11 @@ class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
     submodule = "Recruitment"
     permission_prefix = "recruitment_expense"
 
+    def get_serializer_class(self):
+        if self.action == "export":
+            return RecruitmentExpenseExportSerializer
+        return super().get_serializer_class()
+
     def get_export_data(self, request):
         """Custom export data for RecruitmentExpense.
 
@@ -355,32 +360,15 @@ class RecruitmentExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelVie
         - avg_cost
         """
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = RecruitmentExpenseExportSerializer(queryset, many=True)
-        data = serializer.data
+        serializer = self.get_serializer(queryset, many=True)
 
         return {
             "sheets": [
                 {
-                    "name": "Recruitment Expenses",
-                    "headers": [
-                        "Date",
-                        "Recruitment Source",
-                        "Recruitment Channel",
-                        "Candidates Participated",
-                        "Total Cost",
-                        "Candidates Hired",
-                        "Average Cost",
-                    ],
-                    "field_names": [
-                        "date",
-                        "recruitment_source__name",
-                        "recruitment_channel__name",
-                        "num_candidates_participated",
-                        "total_cost",
-                        "num_candidates_hired",
-                        "avg_cost",
-                    ],
-                    "data": data,
+                    "name": str(queryset.model._meta.verbose_name),
+                    "headers": [str(field.label) for field in serializer.child.fields.values()],
+                    "field_names": [str(key) for key in serializer.child.fields.keys()],
+                    "data": serializer.data,
                 }
             ]
         }

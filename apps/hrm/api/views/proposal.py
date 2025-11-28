@@ -232,6 +232,13 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
             .prefetch_related("timesheet_entries__timesheet_entry")
         )
 
+    def get_serializer_class(self):
+        if self.action == "approve":
+            return ProposalApproveSerializer
+        elif self.action == "reject":
+            return ProposalRejectSerializer
+        return super().get_serializer_class()
+
     @extend_schema(
         summary="Approve complaint proposal",
         description="Approve a complaint proposal and set the approved check-in/out times",
@@ -281,7 +288,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         proposal = self.get_object()
 
         # Validate input and save
-        serializer = ProposalApproveSerializer(proposal, data=request.data, partial=True)
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -337,7 +344,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         proposal = self.get_object()
 
         # Validate input and save
-        serializer = ProposalRejectSerializer(proposal, data=request.data, partial=True)
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

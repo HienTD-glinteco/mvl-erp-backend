@@ -86,6 +86,11 @@ class ProposalBaseComplaintStatusActionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Proposal has already been processed")
 
         attrs["proposal_status"] = self.get_target_status()
+
+        user = self.context["request"].user
+        if getattr(user, "employee", None):
+            attrs["approved_by"] = user.employee
+
         return attrs
 
     def get_target_status(self):

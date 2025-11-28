@@ -206,11 +206,6 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
         viewset.request = drf_request
         viewset.format_kwarg = None
 
-        # Set up filter_queryset and get_queryset methods
-        if hasattr(viewset, "queryset") and viewset.queryset is not None:
-            viewset.filter_queryset = lambda qs: qs
-            viewset.get_queryset = lambda: viewset.queryset.model.objects.all()
-
         # Call get_export_data to build schema
         schema = viewset.get_export_data(drf_request)
 

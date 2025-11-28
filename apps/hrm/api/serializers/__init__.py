@@ -73,8 +73,7 @@ from .recruitment_dashboard import (
     DashboardChartFilterSerializer,
     DashboardRealtimeDataSerializer,
 )
-from .recruitment_expense import RecruitmentExpenseSerializer
-from .recruitment_expense_export import RecruitmentExpenseExportSerializer
+from .recruitment_expense import RecruitmentExpenseExportSerializer, RecruitmentExpenseSerializer
 from .recruitment_reports import (
     HiredCandidateReportAggregatedSerializer,
     RecruitmentChannelReportAggregatedSerializer,
