@@ -46,6 +46,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict] = {
         "task": "apps.hrm.tasks.certificates.update_certificate_statuses",
         "schedule": crontab(hour=1, minute=0),  # Daily at 01:00
     },
+    # Recalculate Daily Attendance Reports
+    "recalculate_daily_attendance_reports": {
+        "task": "hrm.tasks.attendance_report.recalculate_daily_attendance_reports",
+        "schedule": crontab(hour=1, minute=10),
+    },
     # Prepare timesheet entries and monthly model at the beginning of month
     "prepare_monthly_timesheets": {
         "task": "apps.hrm.tasks.timesheets.prepare_monthly_timesheets",
