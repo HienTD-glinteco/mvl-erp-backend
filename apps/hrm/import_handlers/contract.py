@@ -136,7 +136,7 @@ class EmployeeCodeField(serializers.CharField):
         code = str(value).strip()
         employee = Employee.objects.filter(code__iexact=code).first()
         if not employee:
-            raise serializers.ValidationError(_(f"Employee with code '{code}' not found"))
+            raise serializers.ValidationError(_("Employee with code '%(code)s' not found") % {"code": code})
 
         return employee
 
@@ -151,7 +151,7 @@ class ContractTypeCodeField(serializers.CharField):
         code = str(value).strip()
         contract_type = ContractType.objects.filter(code__iexact=code).first()
         if not contract_type:
-            raise serializers.ValidationError(_(f"Contract type with code '{code}' not found"))
+            raise serializers.ValidationError(_("Contract type with code '%(code)s' not found") % {"code": code})
 
         return contract_type
 
@@ -167,7 +167,7 @@ class NetPercentageField(serializers.CharField):
         if value_str in NET_PERCENTAGE_MAPPING:
             return NET_PERCENTAGE_MAPPING[value_str]
 
-        raise serializers.ValidationError(_(f"Unknown net percentage: {value}"))
+        raise serializers.ValidationError(_("Unknown net percentage: %(value)s") % {"value": value})
 
 
 class TaxCalculationMethodField(serializers.CharField):
@@ -181,7 +181,7 @@ class TaxCalculationMethodField(serializers.CharField):
         if value_str in TAX_CALCULATION_MAPPING:
             return TAX_CALCULATION_MAPPING[value_str]
 
-        raise serializers.ValidationError(_(f"Unknown tax calculation method: {value}"))
+        raise serializers.ValidationError(_("Unknown tax calculation method: %(value)s") % {"value": value})
 
 
 class ContractImportSerializer(serializers.Serializer):
