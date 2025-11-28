@@ -15,6 +15,7 @@ from apps.hrm.models import (
     AttendanceWifiDevice,
     Block,
     Branch,
+    Contract,
     ContractType,
     Department,
     Employee,
@@ -29,6 +30,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from apps.hrm.utils.contract_code import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -67,4 +69,11 @@ register_auto_code_signal(
     RecruitmentCandidate,
     RecruitmentExpense,
     temp_code_prefix=TEMP_CODE_PREFIX,
+)
+
+# Register auto-code generation for Contract with custom code generator
+register_auto_code_signal(
+    Contract,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+    custom_generate_code=generate_contract_code,
 )
