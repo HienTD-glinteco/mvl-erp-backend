@@ -541,7 +541,7 @@ class FileConfirmSerializerMixin:
         """
         return [name for name, _ in self._get_file_confirm_fields_with_info()]
 
-    def _is_multi_valued_field(self, field_name):  # noqa: C901
+    def _is_multi_valued_field(self, field_name):
         """
         Check if a field is multi-valued (GenericRelation or ManyToManyField).
 
@@ -734,7 +734,7 @@ class FileConfirmSerializerMixin:
             cache.delete(cache_key)
             raise ValidationError({self.file_tokens_field: [_(err_mismatch) + f": {file_token}"]})
 
-    def _confirm_related_files(self, instance):  # noqa: C901
+    def _confirm_related_files(self, instance):
         """
         Confirm files associated with the instance and assign to model fields.
 
