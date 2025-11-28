@@ -3,6 +3,7 @@
 import logging
 
 from celery import shared_task
+from django.utils import timezone
 
 from apps.hrm.models import Contract
 
@@ -43,7 +44,6 @@ def check_contract_status() -> dict[str, int]:
 
     logger.info("Processing %d contracts", total_count)
 
-    updated_count = 0
     status_changes: dict[str, int] = {
         "active": 0,
         "about_to_expire": 0,
@@ -51,12 +51,15 @@ def check_contract_status() -> dict[str, int]:
         "not_effective": 0,
     }
 
+    # Collect contracts that need status updates
+    contracts_to_update: list[Contract] = []
+    now = timezone.now()
+
     for contract in contracts:
         old_status = contract.status
         new_status = contract.calculate_status()
 
         if old_status != new_status:
-            updated_count += 1
             status_changes[new_status] += 1
 
             logger.debug(
@@ -68,8 +71,14 @@ def check_contract_status() -> dict[str, int]:
             )
 
             contract.status = new_status
-            # Skip validation and signals by using update_fields
-            contract.save(update_fields=["status", "updated_at"])
+            contract.updated_at = now
+            contracts_to_update.append(contract)
+
+    # Bulk update all contracts that need status changes
+    updated_count = len(contracts_to_update)
+    if contracts_to_update:
+        Contract.objects.bulk_update(contracts_to_update, ["status", "updated_at"])
+        logger.info("Bulk updated %d contracts", updated_count)
 
     logger.info(
         "Contract status update complete: %d contracts updated out of %d",
