@@ -226,6 +226,9 @@ from libs.export_xlsx import ExportXLSXMixin
             ),
         ],
     ),
+    export=extend_schema(
+        tags=["7.2: Contract"],
+    ),
 )
 class ContractViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Contract model.
