@@ -18,6 +18,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +53,6 @@ STATUS_CODE_MAPPING = {
     6: RecruitmentCandidate.Status.HIRED,
     7: RecruitmentCandidate.Status.REJECTED,
 }
-
-
-def normalize_header(header: str) -> str:
-    """Normalize header name by stripping and lowercasing."""
-    if not header:
-        return ""
-    return str(header).strip().lower()
 
 
 def normalize_value(value: Any) -> str:

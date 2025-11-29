@@ -8,7 +8,6 @@ from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.import_handlers.contract_appendix import (
     ContractAppendixImportSerializer,
     import_handler,
-    normalize_header,
     pre_import_initialize,
 )
 from apps.hrm.models import (
@@ -24,6 +23,7 @@ from libs.drf.serializers import (
     FlexibleDateField,
     normalize_value,
 )
+from libs.strings import normalize_header
 
 
 @pytest.mark.django_db
