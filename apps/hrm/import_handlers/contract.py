@@ -14,6 +14,7 @@ from libs.drf.serializers import (
     FlexibleDecimalField,
     normalize_value,
 )
+from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +61,6 @@ NET_PERCENTAGE_MAPPING = {
 }
 
 
-def normalize_header(header: str) -> str:
-    """Normalize header name by stripping and lowercasing."""
-    if not header:
-        return ""
-    return str(header).strip().lower()
-
-
 class ContractImportSerializer(serializers.Serializer):
     """Serializer for contract import row data.
 
@@ -79,18 +73,10 @@ class ContractImportSerializer(serializers.Serializer):
 
     # Optional fields
     expiration_date = FlexibleDateField(required=False, allow_null=True)
-    base_salary = FlexibleDecimalField(
-        max_digits=20, decimal_places=0, required=False, allow_null=True
-    )
-    lunch_allowance = FlexibleDecimalField(
-        max_digits=20, decimal_places=0, required=False, allow_null=True
-    )
-    phone_allowance = FlexibleDecimalField(
-        max_digits=20, decimal_places=0, required=False, allow_null=True
-    )
-    other_allowance = FlexibleDecimalField(
-        max_digits=20, decimal_places=0, required=False, allow_null=True
-    )
+    base_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    lunch_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    phone_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    other_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     net_percentage = FlexibleChoiceField(
         choices=ContractType.NetPercentage.choices,
         value_mapping=NET_PERCENTAGE_MAPPING,
@@ -116,14 +102,12 @@ class ContractImportSerializer(serializers.Serializer):
         expiration_date = attrs.get("expiration_date")
 
         if sign_date and effective_date and sign_date > effective_date:
-            raise serializers.ValidationError({
-                "sign_date": _("Sign date must be on or before effective date")
-            })
+            raise serializers.ValidationError({"sign_date": _("Sign date must be on or before effective date")})
 
         if effective_date and expiration_date and effective_date > expiration_date:
-            raise serializers.ValidationError({
-                "expiration_date": _("Expiration date must be on or after effective date")
-            })
+            raise serializers.ValidationError(
+                {"expiration_date": _("Expiration date must be on or after effective date")}
+            )
 
         return attrs
 
@@ -313,9 +297,17 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Add optional fields if provided
         optional_fields = [
-            "base_salary", "lunch_allowance", "phone_allowance", "other_allowance",
-            "net_percentage", "tax_calculation_method", "has_social_insurance",
-            "working_conditions", "rights_and_obligations", "terms", "note",
+            "base_salary",
+            "lunch_allowance",
+            "phone_allowance",
+            "other_allowance",
+            "net_percentage",
+            "tax_calculation_method",
+            "has_social_insurance",
+            "working_conditions",
+            "rights_and_obligations",
+            "terms",
+            "note",
         ]
 
         for field in optional_fields:
@@ -341,7 +333,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped",
                 "contract_code": existing_contract.code,
                 "warnings": [
-                    "Contract for employee '%s' with same effective date and contract type already exists (allow_update=False)" % employee_code
+                    "Contract for employee '%s' with same effective date and contract type already exists (allow_update=False)"
+                    % employee_code
                 ],
             }
 
@@ -353,7 +346,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     return {
                         "ok": False,
                         "row_index": row_index,
-                        "error": "Cannot update contract %s: only DRAFT contracts can be updated" % existing_contract.code,
+                        "error": "Cannot update contract %s: only DRAFT contracts can be updated"
+                        % existing_contract.code,
                         "action": "skipped",
                     }
 

@@ -20,6 +20,7 @@ from apps.hrm.models import (
     Employee,
     Position,
 )
+from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
@@ -100,13 +101,6 @@ EMPLOYEE_TYPE_MAPPING = {
     "thử việc loại 1": EmployeeType.PROBATION_TYPE_1,
     "thực tập sinh": EmployeeType.INTERN,
 }
-
-
-def normalize_header(header: str) -> str:
-    """Normalize header name by stripping and lowercasing."""
-    if not header:
-        return ""
-    return str(header).strip().lower()
 
 
 def normalize_value(value: Any) -> str:

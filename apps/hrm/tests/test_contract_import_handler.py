@@ -10,7 +10,6 @@ from apps.hrm.import_handlers.contract import (
     ContractImportSerializer,
     copy_snapshot_from_contract_type,
     import_handler,
-    normalize_header,
     pre_import_initialize,
 )
 from apps.hrm.models import (
@@ -28,6 +27,7 @@ from libs.drf.serializers import (
     FlexibleDecimalField,
     normalize_value,
 )
+from libs.strings import normalize_header
 
 
 @pytest.mark.django_db
