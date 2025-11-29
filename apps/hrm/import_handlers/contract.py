@@ -1,8 +1,6 @@
 """Import handler for Contract model."""
 
 import logging
-from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.db import transaction
@@ -10,6 +8,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import Contract, ContractType, Employee
+from libs.drf.serializers import FlexibleBooleanField, FlexibleDateField, FlexibleDecimalField
 
 logger = logging.getLogger(__name__)
 
@@ -55,18 +54,6 @@ NET_PERCENTAGE_MAPPING = {
     "85%": ContractType.NetPercentage.REDUCED,
 }
 
-# Boolean mapping for has_social_insurance
-BOOLEAN_MAPPING = {
-    "có": True,
-    "yes": True,
-    "true": True,
-    "1": True,
-    "không": False,
-    "no": False,
-    "false": False,
-    "0": False,
-}
-
 
 def normalize_header(header: str) -> str:
     """Normalize header name by stripping and lowercasing."""
@@ -82,94 +69,6 @@ def normalize_value(value: Any) -> str:
     return str(value).strip()
 
 
-def preprocess_date(value: Any) -> date | str | None:
-    """Preprocess date value before passing to serializer.
-
-    Args:
-        value: Date value (string, date, or datetime)
-
-    Returns:
-        date object, ISO string, or None
-    """
-    if not value:
-        return None
-
-    if isinstance(value, date):
-        return value
-
-    if isinstance(value, datetime):
-        return value.date()
-
-    value_str = str(value).strip()
-    if not value_str or value_str == "-":
-        return None
-
-    formats = [
-        "%Y-%m-%d",
-        "%d/%m/%Y",
-        "%d-%m-%Y",
-        "%Y/%m/%d",
-        "%d.%m.%Y",
-    ]
-
-    for fmt in formats:
-        try:
-            return datetime.strptime(value_str, fmt).date()
-        except (ValueError, TypeError):
-            continue
-
-    return value_str
-
-
-def preprocess_decimal(value: Any) -> Decimal | str | None:
-    """Preprocess decimal value with comma as decimal separator.
-
-    Args:
-        value: Decimal value (string or number)
-
-    Returns:
-        Decimal object, string, or None
-    """
-    if value is None:
-        return None
-
-    if isinstance(value, (int, float, Decimal)):
-        return Decimal(str(value))
-
-    value_str = str(value).strip()
-    if not value_str:
-        return None
-
-    try:
-        # Replace comma with dot for decimal separator
-        value_str = value_str.replace(",", ".")
-        return Decimal(value_str)
-    except InvalidOperation:
-        return value_str
-
-
-def preprocess_boolean(value: Any) -> bool | None:
-    """Preprocess boolean value with Vietnamese support.
-
-    Args:
-        value: Boolean value (string or bool)
-
-    Returns:
-        bool or None
-    """
-    if value is None:
-        return None
-
-    if isinstance(value, bool):
-        return value
-
-    value_str = str(value).strip().lower()
-    if not value_str:
-        return None
-
-    return BOOLEAN_MAPPING.get(value_str)
-
-
 def preprocess_net_percentage(value: Any) -> str | None:
     """Preprocess net percentage value."""
     if value is None:
@@ -179,10 +78,7 @@ def preprocess_net_percentage(value: Any) -> str | None:
     if not value_str:
         return None
 
-    if value_str in NET_PERCENTAGE_MAPPING:
-        return NET_PERCENTAGE_MAPPING[value_str]
-
-    return None
+    return NET_PERCENTAGE_MAPPING.get(value_str)
 
 
 def preprocess_tax_method(value: Any) -> str | None:
@@ -194,36 +90,31 @@ def preprocess_tax_method(value: Any) -> str | None:
     if not value_str:
         return None
 
-    if value_str in TAX_CALCULATION_MAPPING:
-        return TAX_CALCULATION_MAPPING[value_str]
-
-    return None
+    return TAX_CALCULATION_MAPPING.get(value_str)
 
 
 class ContractImportSerializer(serializers.Serializer):
     """Serializer for contract import row data.
 
-    Handles validation of import row data using standard DRF fields.
+    Uses FlexibleFields from libs.drf.serializers for flexible input parsing.
     """
 
-    # Required fields - employee and contract_type are resolved instances
-    employee = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
-    contract_type = serializers.PrimaryKeyRelatedField(queryset=ContractType.objects.all())
-    sign_date = serializers.DateField()
-    effective_date = serializers.DateField()
+    # Required fields
+    sign_date = FlexibleDateField()
+    effective_date = FlexibleDateField()
 
     # Optional fields
-    expiration_date = serializers.DateField(required=False, allow_null=True)
-    base_salary = serializers.DecimalField(
+    expiration_date = FlexibleDateField(required=False, allow_null=True)
+    base_salary = FlexibleDecimalField(
         max_digits=20, decimal_places=0, required=False, allow_null=True
     )
-    lunch_allowance = serializers.DecimalField(
+    lunch_allowance = FlexibleDecimalField(
         max_digits=20, decimal_places=0, required=False, allow_null=True
     )
-    phone_allowance = serializers.DecimalField(
+    phone_allowance = FlexibleDecimalField(
         max_digits=20, decimal_places=0, required=False, allow_null=True
     )
-    other_allowance = serializers.DecimalField(
+    other_allowance = FlexibleDecimalField(
         max_digits=20, decimal_places=0, required=False, allow_null=True
     )
     net_percentage = serializers.ChoiceField(
@@ -232,7 +123,7 @@ class ContractImportSerializer(serializers.Serializer):
     tax_calculation_method = serializers.ChoiceField(
         choices=ContractType.TaxCalculationMethod.choices, required=False, allow_null=True
     )
-    has_social_insurance = serializers.BooleanField(required=False, allow_null=True)
+    has_social_insurance = FlexibleBooleanField(required=False, allow_null=True)
     working_conditions = serializers.CharField(required=False, allow_blank=True, default="")
     rights_and_obligations = serializers.CharField(required=False, allow_blank=True, default="")
     terms = serializers.CharField(required=False, allow_blank=True, default="")
@@ -284,11 +175,41 @@ def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data:
             contract_data[field] = getattr(contract_type, field)
 
 
+def pre_import_initialize(import_job_id: str, options: dict) -> None:
+    """Pre-import initialization callback.
+
+    Called once at the start of the import process before processing any rows.
+    Prefetches all employees and contract types to avoid N+1 queries.
+
+    Args:
+        import_job_id: UUID of the import job
+        options: Import options dictionary
+    """
+    # Prefetch all employees by code (case-insensitive)
+    employees_by_code = {}
+    for emp in Employee.objects.all():
+        employees_by_code[emp.code.lower()] = emp
+    options["_employees_by_code"] = employees_by_code
+
+    # Prefetch all contract types by code (case-insensitive)
+    contract_types_by_code = {}
+    for ct in ContractType.objects.all():
+        contract_types_by_code[ct.code.lower()] = ct
+    options["_contract_types_by_code"] = contract_types_by_code
+
+    logger.info(
+        "Import job %s: Prefetched %d employees and %d contract types",
+        import_job_id,
+        len(employees_by_code),
+        len(contract_types_by_code),
+    )
+
+
 def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
     """Import handler for contracts.
 
     Processes a single row from the import file and creates a Contract.
-    Uses ContractImportSerializer for validation.
+    Uses ContractImportSerializer with FlexibleFields for validation.
 
     Args:
         row_index: 1-based row index (excluding header)
@@ -340,39 +261,40 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "warnings": ["Missing required field: contract type code"],
             }
 
-        # Lookup employee and contract type
-        employee = Employee.objects.filter(code__iexact=employee_code).first()
+        # Lookup employee from prefetched data
+        employees_by_code = options.get("_employees_by_code", {})
+        employee = employees_by_code.get(employee_code.lower())
         if not employee:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": f"Employee with code '{employee_code}' not found",
+                "error": "Employee with code '%s' not found" % employee_code,
                 "action": "skipped",
             }
 
-        contract_type = ContractType.objects.filter(code__iexact=contract_type_code).first()
+        # Lookup contract type from prefetched data
+        contract_types_by_code = options.get("_contract_types_by_code", {})
+        contract_type = contract_types_by_code.get(contract_type_code.lower())
         if not contract_type:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": f"Contract type with code '{contract_type_code}' not found",
+                "error": "Contract type with code '%s' not found" % contract_type_code,
                 "action": "skipped",
             }
 
-        # Preprocess raw values before passing to serializer
+        # Prepare serializer data - FlexibleFields handle parsing
         serializer_data = {
-            "employee": employee.pk,
-            "contract_type": contract_type.pk,
-            "sign_date": preprocess_date(row_dict.get("sign_date")),
-            "effective_date": preprocess_date(row_dict.get("effective_date")),
-            "expiration_date": preprocess_date(row_dict.get("expiration_date")),
-            "base_salary": preprocess_decimal(row_dict.get("base_salary")),
-            "lunch_allowance": preprocess_decimal(row_dict.get("lunch_allowance")),
-            "phone_allowance": preprocess_decimal(row_dict.get("phone_allowance")),
-            "other_allowance": preprocess_decimal(row_dict.get("other_allowance")),
+            "sign_date": row_dict.get("sign_date"),
+            "effective_date": row_dict.get("effective_date"),
+            "expiration_date": row_dict.get("expiration_date"),
+            "base_salary": row_dict.get("base_salary"),
+            "lunch_allowance": row_dict.get("lunch_allowance"),
+            "phone_allowance": row_dict.get("phone_allowance"),
+            "other_allowance": row_dict.get("other_allowance"),
             "net_percentage": preprocess_net_percentage(row_dict.get("net_percentage")),
             "tax_calculation_method": preprocess_tax_method(row_dict.get("tax_calculation_method")),
-            "has_social_insurance": preprocess_boolean(row_dict.get("has_social_insurance")),
+            "has_social_insurance": row_dict.get("has_social_insurance"),
             "working_conditions": normalize_value(row_dict.get("working_conditions", "")),
             "rights_and_obligations": normalize_value(row_dict.get("rights_and_obligations", "")),
             "terms": normalize_value(row_dict.get("terms", "")),
@@ -401,8 +323,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Build contract data
         contract_data = {
-            "employee": validated_data["employee"],
-            "contract_type": validated_data["contract_type"],
+            "employee": employee,
+            "contract_type": contract_type,
             "sign_date": validated_data["sign_date"],
             "effective_date": validated_data["effective_date"],
             "expiration_date": validated_data.get("expiration_date"),
@@ -439,18 +361,19 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped",
                 "contract_code": existing_contract.code,
                 "warnings": [
-                    f"Contract for employee '{employee_code}' with same effective date and contract type already exists (allow_update=False)"
+                    "Contract for employee '%s' with same effective date and contract type already exists (allow_update=False)" % employee_code
                 ],
             }
 
         # Create or update contract
         with transaction.atomic():
+            # Handle update case with early return
             if existing_contract and allow_update:
                 if existing_contract.status != Contract.ContractStatus.DRAFT:
                     return {
                         "ok": False,
                         "row_index": row_index,
-                        "error": f"Cannot update contract {existing_contract.code}: only DRAFT contracts can be updated",
+                        "error": "Cannot update contract %s: only DRAFT contracts can be updated" % existing_contract.code,
                         "action": "skipped",
                     }
 
@@ -458,29 +381,40 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     if key not in ["employee", "contract_type"]:
                         setattr(existing_contract, key, value)
                 existing_contract.save()
-                contract = existing_contract
-                action = "updated"
-                logger.info(f"Updated contract {contract.code} for employee {employee.code}")
-            else:
-                contract = Contract.objects.create(**contract_data)
-                action = "created"
-                logger.info(f"Created contract {contract.code} for employee {employee.code}")
+                logger.info("Updated contract %s for employee %s", existing_contract.code, employee.code)
 
-        return {
-            "ok": True,
-            "row_index": row_index,
-            "action": action,
-            "contract_code": contract.code,
-            "warnings": [],
-            "result": {
-                "contract_id": str(contract.id),
+                return {
+                    "ok": True,
+                    "row_index": row_index,
+                    "action": "updated",
+                    "contract_code": existing_contract.code,
+                    "warnings": [],
+                    "result": {
+                        "contract_id": str(existing_contract.id),
+                        "contract_code": existing_contract.code,
+                        "employee_code": employee.code,
+                    },
+                }
+
+            # Create new contract
+            contract = Contract.objects.create(**contract_data)
+            logger.info("Created contract %s for employee %s", contract.code, employee.code)
+
+            return {
+                "ok": True,
+                "row_index": row_index,
+                "action": "created",
                 "contract_code": contract.code,
-                "employee_code": employee.code,
-            },
-        }
+                "warnings": [],
+                "result": {
+                    "contract_id": str(contract.id),
+                    "contract_code": contract.code,
+                    "employee_code": employee.code,
+                },
+            }
 
     except Exception as e:
-        logger.exception(f"Import handler error at row {row_index}: {e}")
+        logger.exception("Import handler error at row %d: %s", row_index, e)
         return {
             "ok": False,
             "row_index": row_index,
