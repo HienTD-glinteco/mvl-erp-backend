@@ -7,6 +7,7 @@ This package contains signal handlers organized by functional area:
 """
 
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 
 from apps.hrm.models import (
     AttendanceDevice,
@@ -16,6 +17,7 @@ from apps.hrm.models import (
     Block,
     Branch,
     Contract,
+    ContractAppendix,
     ContractType,
     Department,
     Employee,
@@ -30,6 +32,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from apps.hrm.utils.appendix_code import generate_appendix_codes
 from apps.hrm.utils.contract_code import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
@@ -77,3 +80,27 @@ register_auto_code_signal(
     temp_code_prefix=TEMP_CODE_PREFIX,
     custom_generate_code=generate_contract_code,
 )
+
+
+# Custom signal handler for ContractAppendix that saves both code and appendix_code
+def contract_appendix_auto_code_handler(sender, instance, created, **kwargs):
+    """Auto-generate code and appendix_code for ContractAppendix instances.
+
+    This signal handler generates unique codes for newly created appendices:
+    - code: format `xx/yyyy/PLHD-MVL`
+    - appendix_code: format `PLHDxxxxx`
+
+    Args:
+        sender: The model class
+        instance: The ContractAppendix instance being saved
+        created: Boolean indicating if this is a new instance
+        **kwargs: Additional keyword arguments from the signal
+    """
+    if created and hasattr(instance, "code") and instance.code and instance.code.startswith(TEMP_CODE_PREFIX):
+        instance.code = generate_appendix_codes(instance)
+        # Save both code and appendix_code fields
+        instance.save(update_fields=["code", "appendix_code"])
+
+
+# Register the custom handler for ContractAppendix
+post_save.connect(contract_appendix_auto_code_handler, sender=ContractAppendix, weak=False)

@@ -7,6 +7,7 @@ from .attendance_wifi_device import AttendanceWifiDevice
 from .bank import Bank
 from .bank_account import BankAccount
 from .contract import Contract
+from .contract_appendix import ContractAppendix
 from .contract_type import ContractType
 from .decision import Decision
 from .employee import Employee
@@ -57,6 +58,7 @@ __all__ = [
     "BranchContactInfo",
     "Block",
     "Contract",
+    "ContractAppendix",
     "Department",
     "Position",
     "Employee",

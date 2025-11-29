@@ -14,6 +14,7 @@ from apps.hrm.api.views import (
     BranchContactInfoViewSet,
     BranchViewSet,
     CompensatoryWorkdayViewSet,
+    ContractAppendixViewSet,
     ContractTypeViewSet,
     ContractViewSet,
     DecisionViewSet,
@@ -68,6 +69,7 @@ router.register(r"employee-dependents", EmployeeDependentViewSet, basename="empl
 router.register(r"employee-work-histories", EmployeeWorkHistoryViewSet, basename="employee-work-history")
 router.register(r"contract-types", ContractTypeViewSet, basename="contract-type")
 router.register(r"contracts", ContractViewSet, basename="contract")
+router.register(r"contract-appendices", ContractAppendixViewSet, basename="contract-appendix")
 router.register(r"banks", BankViewSet, basename="bank")
 router.register(r"bank-accounts", BankAccountViewSet, basename="bank-account")
 router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
