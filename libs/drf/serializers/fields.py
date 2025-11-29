@@ -12,6 +12,13 @@ from typing import Any
 from rest_framework import serializers
 
 
+def normalize_value(value: Any) -> str:
+    """Normalize cell value by converting to string and stripping."""
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
 class FlexibleDateField(serializers.DateField):
     """Date field that accepts multiple input formats.
 
@@ -131,4 +138,50 @@ class FlexibleBooleanField(serializers.BooleanField):
             return self.BOOLEAN_MAPPING[value_str]
 
         # Try standard DRF parsing
+        return super().to_internal_value(value)
+
+
+class FlexibleChoiceField(serializers.ChoiceField):
+    """Choice field that accepts flexible input values with mapping.
+
+    Supports mapping raw input values (case-insensitive) to valid choice values.
+    Useful for imports where users may enter Vietnamese or alternate text.
+
+    Example:
+        value_mapping = {
+            "lũy tiến": "progressive",
+            "10%": "flat_10",
+        }
+        field = FlexibleChoiceField(choices=CHOICES, value_mapping=value_mapping)
+    """
+
+    def __init__(self, value_mapping: dict | None = None, **kwargs):
+        """Initialize with optional value mapping.
+
+        Args:
+            value_mapping: Dict mapping raw input values (lowercase) to valid choice values
+            **kwargs: Standard ChoiceField arguments
+        """
+        self.value_mapping = value_mapping or {}
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, value: Any) -> str | None:
+        """Convert input value to valid choice value."""
+        if value is None or value == "":
+            return None
+
+        value_str = str(value).strip().lower()
+        if not value_str:
+            return None
+
+        # Try mapping first
+        if value_str in self.value_mapping:
+            return self.value_mapping[value_str]
+
+        # Try direct match (case-insensitive)
+        for choice_value, _ in self.choices.items():
+            if value_str == str(choice_value).lower():
+                return choice_value
+
+        # Fall back to standard validation
         return super().to_internal_value(value)

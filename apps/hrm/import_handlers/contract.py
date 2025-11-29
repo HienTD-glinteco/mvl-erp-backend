@@ -1,14 +1,19 @@
 """Import handler for Contract model."""
 
 import logging
-from typing import Any
 
 from django.db import transaction
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import Contract, ContractType, Employee
-from libs.drf.serializers import FlexibleBooleanField, FlexibleDateField, FlexibleDecimalField
+from libs.drf.serializers import (
+    FlexibleBooleanField,
+    FlexibleChoiceField,
+    FlexibleDateField,
+    FlexibleDecimalField,
+    normalize_value,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +41,7 @@ COLUMN_MAPPING = {
 # Status is always DRAFT for imported contracts
 DEFAULT_STATUS = Contract.ContractStatus.DRAFT
 
-# Tax calculation method mapping
+# Tax calculation method mapping for FlexibleChoiceField
 TAX_CALCULATION_MAPPING = {
     "lũy tiến": ContractType.TaxCalculationMethod.PROGRESSIVE,
     "progressive": ContractType.TaxCalculationMethod.PROGRESSIVE,
@@ -46,7 +51,7 @@ TAX_CALCULATION_MAPPING = {
     "none": ContractType.TaxCalculationMethod.NONE,
 }
 
-# Net percentage mapping
+# Net percentage mapping for FlexibleChoiceField
 NET_PERCENTAGE_MAPPING = {
     "100": ContractType.NetPercentage.FULL,
     "100%": ContractType.NetPercentage.FULL,
@@ -60,37 +65,6 @@ def normalize_header(header: str) -> str:
     if not header:
         return ""
     return str(header).strip().lower()
-
-
-def normalize_value(value: Any) -> str:
-    """Normalize cell value by converting to string and stripping."""
-    if value is None:
-        return ""
-    return str(value).strip()
-
-
-def preprocess_net_percentage(value: Any) -> str | None:
-    """Preprocess net percentage value."""
-    if value is None:
-        return None
-
-    value_str = str(value).strip().lower()
-    if not value_str:
-        return None
-
-    return NET_PERCENTAGE_MAPPING.get(value_str)
-
-
-def preprocess_tax_method(value: Any) -> str | None:
-    """Preprocess tax calculation method value."""
-    if value is None:
-        return None
-
-    value_str = str(value).strip().lower()
-    if not value_str:
-        return None
-
-    return TAX_CALCULATION_MAPPING.get(value_str)
 
 
 class ContractImportSerializer(serializers.Serializer):
@@ -117,11 +91,17 @@ class ContractImportSerializer(serializers.Serializer):
     other_allowance = FlexibleDecimalField(
         max_digits=20, decimal_places=0, required=False, allow_null=True
     )
-    net_percentage = serializers.ChoiceField(
-        choices=ContractType.NetPercentage.choices, required=False, allow_null=True
+    net_percentage = FlexibleChoiceField(
+        choices=ContractType.NetPercentage.choices,
+        value_mapping=NET_PERCENTAGE_MAPPING,
+        required=False,
+        allow_null=True,
     )
-    tax_calculation_method = serializers.ChoiceField(
-        choices=ContractType.TaxCalculationMethod.choices, required=False, allow_null=True
+    tax_calculation_method = FlexibleChoiceField(
+        choices=ContractType.TaxCalculationMethod.choices,
+        value_mapping=TAX_CALCULATION_MAPPING,
+        required=False,
+        allow_null=True,
     )
     has_social_insurance = FlexibleBooleanField(required=False, allow_null=True)
     working_conditions = serializers.CharField(required=False, allow_blank=True, default="")
@@ -292,8 +272,8 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "lunch_allowance": row_dict.get("lunch_allowance"),
             "phone_allowance": row_dict.get("phone_allowance"),
             "other_allowance": row_dict.get("other_allowance"),
-            "net_percentage": preprocess_net_percentage(row_dict.get("net_percentage")),
-            "tax_calculation_method": preprocess_tax_method(row_dict.get("tax_calculation_method")),
+            "net_percentage": row_dict.get("net_percentage"),
+            "tax_calculation_method": row_dict.get("tax_calculation_method"),
             "has_social_insurance": row_dict.get("has_social_insurance"),
             "working_conditions": normalize_value(row_dict.get("working_conditions", "")),
             "rights_and_obligations": normalize_value(row_dict.get("rights_and_obligations", "")),

@@ -11,7 +11,6 @@ from apps.hrm.import_handlers.contract import (
     copy_snapshot_from_contract_type,
     import_handler,
     normalize_header,
-    normalize_value,
     pre_import_initialize,
 )
 from apps.hrm.models import (
@@ -22,7 +21,13 @@ from apps.hrm.models import (
     Department,
     Employee,
 )
-from libs.drf.serializers import FlexibleBooleanField, FlexibleDateField, FlexibleDecimalField
+from libs.drf.serializers import (
+    FlexibleBooleanField,
+    FlexibleChoiceField,
+    FlexibleDateField,
+    FlexibleDecimalField,
+    normalize_value,
+)
 
 
 @pytest.mark.django_db
@@ -127,6 +132,34 @@ class TestFlexibleFields:
     def test_flexible_boolean_field_empty(self):
         """Test FlexibleBooleanField with empty value."""
         field = FlexibleBooleanField()
+        assert field.to_internal_value("") is None
+        assert field.to_internal_value(None) is None
+
+    def test_flexible_choice_field_with_mapping(self):
+        """Test FlexibleChoiceField with value mapping."""
+        choices = [("full", "Full"), ("reduced", "Reduced")]
+        mapping = {"100": "full", "100%": "full", "85": "reduced", "85%": "reduced"}
+        field = FlexibleChoiceField(choices=choices, value_mapping=mapping)
+
+        assert field.to_internal_value("100") == "full"
+        assert field.to_internal_value("100%") == "full"
+        assert field.to_internal_value("85") == "reduced"
+        assert field.to_internal_value("85%") == "reduced"
+
+    def test_flexible_choice_field_direct_value(self):
+        """Test FlexibleChoiceField with direct choice value."""
+        choices = [("full", "Full"), ("reduced", "Reduced")]
+        field = FlexibleChoiceField(choices=choices)
+
+        assert field.to_internal_value("full") == "full"
+        assert field.to_internal_value("Full") == "full"
+        assert field.to_internal_value("FULL") == "full"
+
+    def test_flexible_choice_field_empty(self):
+        """Test FlexibleChoiceField with empty value."""
+        choices = [("full", "Full"), ("reduced", "Reduced")]
+        field = FlexibleChoiceField(choices=choices)
+
         assert field.to_internal_value("") is None
         assert field.to_internal_value(None) is None
 
