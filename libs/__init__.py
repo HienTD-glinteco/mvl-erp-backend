@@ -21,6 +21,7 @@ from .export_xlsx import (
 )
 from .import_xlsx import ImportXLSXMixin
 from .models import AutoCodeMixin, BaseModel, ColoredValueMixin, create_dummy_model
+from .strings import normalize_header
 from .validators import CitizenIdValidator
 
 __all__ = [
@@ -50,4 +51,5 @@ __all__ = [
     "AutoDocOrderingFilterExtension",
     "wrap_with_envelope",
     "CitizenIdValidator",
+    "normalize_header",
 ]
