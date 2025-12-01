@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from apps.hrm.constants import ProposalStatus, ProposalType, ProposalVerifierStatus
+from apps.hrm.constants import ProposalSession, ProposalStatus, ProposalType, ProposalVerifierStatus
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 
@@ -44,6 +44,37 @@ class Proposal(AutoCodeMixin, BaseModel):
 
     note = SafeTextField(null=True, blank=True, verbose_name=_("Note"))
 
+    # New fields for leave/overtime proposals
+    start_date = models.DateField(null=True, blank=True, verbose_name=_("Start date"))
+
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("End date"))
+
+    effective_date = models.DateField(null=True, blank=True, verbose_name=_("Effective date"))
+
+    total_hours = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Total hours"),
+    )
+
+    session = models.CharField(
+        max_length=32,
+        choices=ProposalSession.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Session"),
+    )
+
+    # JSONField for flexible extra data per proposal type
+    extra_data = models.JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+        verbose_name=_("Extra data"),
+    )
+
     created_by = models.ForeignKey(
         "Employee",
         on_delete=models.PROTECT,
@@ -58,6 +89,34 @@ class Proposal(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         verbose_name=_("Approved by"),
+    )
+
+    # FKs for Transfer proposals
+    handover_employee = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        related_name="handover_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("Handover employee"),
+    )
+
+    new_department = models.ForeignKey(
+        "Department",
+        on_delete=models.SET_NULL,
+        related_name="transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("New department"),
+    )
+
+    new_job_title = models.ForeignKey(
+        "Position",
+        on_delete=models.SET_NULL,
+        related_name="transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("New job title"),
     )
 
     class Meta:
@@ -75,21 +134,38 @@ class Proposal(AutoCodeMixin, BaseModel):
 
     def clean(self) -> None:
         """Validate proposal fields based on business rules."""
+        errors = {}
+
         # If proposal type is complaint, complaint_reason cannot be empty
         if self.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
             if not self.complaint_reason or not self.complaint_reason.strip():
-                raise ValidationError({"complaint_reason": _("Complaint reason is required for complaint proposals")})
+                errors["complaint_reason"] = _("Complaint reason is required for complaint proposals")
 
         # If proposal status is rejected, note cannot be empty
         if self.proposal_status == ProposalStatus.REJECTED:
             if not self.note or not self.note.strip():
-                raise ValidationError({"note": _("Note is required when rejecting a proposal")})
+                errors["note"] = _("Note is required when rejecting a proposal")
+
+        # Validate start_date < end_date when both are provided
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            errors["start_date"] = _("Start date cannot be after end date")
+
+        if errors:
+            raise ValidationError(errors)
 
         super().clean()
 
     def save(self, *args, **kwargs):
+        # Call AutoCodeMixin's save first to set the temporary code
+        # only if this is a new instance without a code
+        if self._state.adding and not self.code:
+            temp_prefix = getattr(self.__class__, "TEMP_CODE_PREFIX", "TEMP_")
+            from django.utils.crypto import get_random_string
+
+            self.code = f"{temp_prefix}{get_random_string(20)}"
         self.full_clean()
-        super().save(*args, **kwargs)
+        # Use base model save, not AutoCodeMixin's save (which sets code again)
+        models.Model.save(self, *args, **kwargs)
 
 
 @audit_logging_register
@@ -229,3 +305,46 @@ class ProposalVerifier(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Proposal {self.proposal_id} - Verifier {self.employee_id}"
+
+
+@audit_logging_register
+class ProposalAsset(BaseModel):
+    """Model for assets requested in Asset Allocation proposals.
+
+    Each asset represents an item requested in an asset allocation proposal
+    with name, unit, and quantity.
+    """
+
+    proposal = models.ForeignKey(
+        "Proposal",
+        on_delete=models.CASCADE,
+        related_name="assets",
+        verbose_name=_("Proposal"),
+        limit_choices_to={"proposal_type": ProposalType.ASSET_ALLOCATION},
+    )
+
+    name = models.CharField(
+        max_length=200,
+        verbose_name=_("Asset name"),
+    )
+
+    unit = models.CharField(
+        max_length=50,
+        verbose_name=_("Unit"),
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_("Quantity"),
+    )
+
+    class Meta:
+        db_table = "hrm_proposal_asset"
+        verbose_name = _("Proposal Asset")
+        verbose_name_plural = _("Proposal Assets")
+        indexes = [
+            models.Index(fields=["proposal"], name="pa_proposal_idx"),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        return f"{self.name} ({self.quantity} {self.unit})"

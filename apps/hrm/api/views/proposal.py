@@ -16,15 +16,19 @@ from apps.hrm.api.filtersets.proposal import (
 )
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
+    ProposalCreateSerializer,
+    ProposalGenericApproveSerializer,
+    ProposalGenericRejectSerializer,
     ProposalRejectSerializer,
     ProposalSerializer,
     ProposalTimesheetEntryComplaintSerializer,
+    ProposalUpdateSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
 )
-from apps.hrm.constants import ProposalType
+from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
-from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
+from libs import BaseModelViewSet
 
 
 @extend_schema_view(
@@ -110,9 +114,106 @@ from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
             ),
         ],
     ),
+    create=extend_schema(
+        summary="Create a proposal",
+        description="Create a new proposal with type-specific validation",
+        tags=["10.2: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Paid Leave Request",
+                value={
+                    "proposal_type": "paid_leave",
+                    "start_date": "2025-01-20",
+                    "end_date": "2025-01-22",
+                    "session": "full_day",
+                    "note": "Family vacation",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Overtime Request",
+                value={
+                    "proposal_type": "overtime_work",
+                    "start_date": "2025-01-18",
+                    "total_hours": "4.0",
+                    "note": "Project deadline",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Asset Allocation Request",
+                value={
+                    "proposal_type": "asset_allocation",
+                    "assets": [
+                        {"name": "Laptop", "unit": "piece", "quantity": 1},
+                        {"name": "Monitor", "unit": "piece", "quantity": 2},
+                    ],
+                    "note": "New equipment request",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Transfer Request",
+                value={
+                    "proposal_type": "transfer",
+                    "effective_date": "2025-02-01",
+                    "new_department": 5,
+                    "new_job_title": 3,
+                    "note": "Department transfer",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "paid_leave",
+                        "proposal_status": "pending",
+                        "start_date": "2025-01-20",
+                        "end_date": "2025-01-22",
+                        "session": "full_day",
+                        "note": "Family vacation",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing required field",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"start_date": ["Start date is required for leave proposals"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update a proposal",
+        description="Update an existing proposal (only when status is PENDING)",
+        tags=["10.2: Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update a proposal",
+        description="Partially update an existing proposal (only when status is PENDING)",
+        tags=["10.2: Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete a proposal",
+        description="Delete a proposal (only when status is PENDING)",
+        tags=["10.2: Proposals"],
+    ),
 )
-class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
-    """Base ViewSet for specific Proposal types with common configuration."""
+class ProposalViewSet(AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for Proposal CRUD operations with type-specific validation."""
 
     serializer_class = ProposalSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -129,15 +230,156 @@ class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Filter queryset to only include proposals of the specific type."""
-        queryset = Proposal.objects.prefetch_related(
-            "timesheet_entries",
-            "timesheet_entries__timesheet_entry",
+        queryset = Proposal.objects.select_related(
             "created_by",
             "approved_by",
+            "handover_employee",
+            "new_department",
+            "new_job_title",
+        ).prefetch_related(
+            "timesheet_entries",
+            "timesheet_entries__timesheet_entry",
+            "assets",
         )
         if self.proposal_type:
             queryset = queryset.filter(proposal_type=self.proposal_type)
         return queryset
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ProposalCreateSerializer
+        elif self.action in ["update", "partial_update"]:
+            return ProposalUpdateSerializer
+        elif self.action == "approve":
+            return ProposalGenericApproveSerializer
+        elif self.action == "reject":
+            return ProposalGenericRejectSerializer
+        return super().get_serializer_class()
+
+    def create(self, request, *args, **kwargs):
+        """Create a proposal and return with ProposalSerializer for full data."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        # Return full proposal data
+        return Response(
+            ProposalSerializer(instance, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def update(self, request, *args, **kwargs):
+        """Update a proposal and return with ProposalSerializer for full data."""
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        # Return full proposal data
+        return Response(ProposalSerializer(instance, context=self.get_serializer_context()).data)
+
+    def destroy(self, request, *args, **kwargs):
+        """Delete a proposal only if it is in PENDING status."""
+        instance = self.get_object()
+        if instance.proposal_status != ProposalStatus.PENDING:
+            return Response(
+                {"detail": "Cannot delete a proposal that is not pending"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Approve proposal",
+        description="Approve a pending proposal",
+        request=ProposalGenericApproveSerializer,
+        responses={200: ProposalSerializer},
+        tags=["10.2: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={"note": "Approved as requested"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_status": "approved",
+                        "note": "Approved as requested",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        """Approve a proposal."""
+        proposal = self.get_object()
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(ProposalSerializer(proposal).data)
+
+    @extend_schema(
+        summary="Reject proposal",
+        description="Reject a pending proposal with a required rejection reason",
+        request=ProposalGenericRejectSerializer,
+        responses={200: ProposalSerializer},
+        tags=["10.2: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={"note": "Request denied due to insufficient leave balance"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_status": "rejected",
+                        "note": "Request denied due to insufficient leave balance",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["Note is required when rejecting a proposal"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        """Reject a proposal."""
+        proposal = self.get_object()
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(ProposalSerializer(proposal).data)
 
 
 @extend_schema_view(

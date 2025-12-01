@@ -183,6 +183,8 @@ class ProposalType(models.TextChoices):
     MATERNITY_LEAVE = "maternity_leave", _("Maternity leave")
     ATTENDANCE_EXEMPTION = "attendance_exemption", _("Attendance exemption")
     TIMESHEET_ENTRY_COMPLAINT = "timesheet_entry_complaint", _("Timesheet entry complaint")
+    TRANSFER = "transfer", _("Transfer")
+    ASSET_ALLOCATION = "asset_allocation", _("Asset allocation")
 
 
 class ProposalStatus(models.TextChoices):
@@ -191,6 +193,14 @@ class ProposalStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
     APPROVED = "approved", _("Approved")
     REJECTED = "rejected", _("Rejected")
+
+
+class ProposalSession(models.TextChoices):
+    """Proposal session choices for leave types."""
+
+    FULL_DAY = "full_day", _("Full day")
+    MORNING = "morning", _("Morning")
+    AFTERNOON = "afternoon", _("Afternoon")
 
 
 class ProposalVerifierStatus(models.TextChoices):
