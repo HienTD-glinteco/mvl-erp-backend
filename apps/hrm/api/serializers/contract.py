@@ -10,6 +10,16 @@ from apps.hrm.models import Contract, ContractType, Employee
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
+# Nested serializer for parent_contract (used in appendix responses)
+class ParentContractNestedSerializer(serializers.ModelSerializer):
+    """Nested serializer for parent contract reference."""
+
+    class Meta:
+        model = Contract
+        fields = ["id", "code", "contract_number"]
+        read_only_fields = fields
+
+
 class ContractListSerializer(serializers.ModelSerializer):
     """Serializer for Contract list view."""
 
@@ -19,9 +29,6 @@ class ContractListSerializer(serializers.ModelSerializer):
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
-
-    # Contract number is a property that returns code
-    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract
@@ -49,6 +56,7 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
     - Validation: Only allows edit/delete when status is DRAFT
     - Date validation: Ensures proper date logic
     - Create logic: Copies snapshot data from ContractType
+    - Validation: Contract type must have category='contract'
     - Status is read-only, calculated automatically by the model
     """
 
@@ -69,18 +77,15 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
     )
 
     contract_type_id = serializers.PrimaryKeyRelatedField(
-        queryset=ContractType.objects.all(),
+        queryset=ContractType.objects.filter(category=ContractType.Category.CONTRACT),
         source="contract_type",
         write_only=True,
         required=True,
-        help_text="ID of the contract type",
+        help_text="ID of the contract type (must be category='contract')",
     )
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
-
-    # Contract number is a property that returns code
-    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract
@@ -132,12 +137,20 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
         - sign_date <= effective_date
         - effective_date <= expiration_date (if expiration_date is set)
         - Only DRAFT contracts can be edited
+        - Contract type must have category='contract'
         """
         instance = self.instance
 
         # Check if instance exists and validate status for update/delete
         if instance is not None and instance.pk is not None and instance.status != Contract.ContractStatus.DRAFT:
             raise serializers.ValidationError({"status": _("Only contracts with DRAFT status can be edited.")})
+
+        # Validate contract type category
+        contract_type = attrs.get("contract_type", getattr(instance, "contract_type", None) if instance else None)
+        if contract_type and contract_type.category != ContractType.Category.CONTRACT:
+            raise serializers.ValidationError(
+                {"contract_type_id": _("Contract type must have category 'contract'.")}
+            )
 
         # Get dates from attrs or fallback to instance values
         sign_date = attrs.get("sign_date", getattr(instance, "sign_date", None))
@@ -207,7 +220,6 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
     contract_type_code = serializers.CharField(source="contract_type.code", read_only=True)
     contract_type_name = serializers.CharField(source="contract_type.name", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    contract_number = serializers.CharField(read_only=True)
 
     class Meta:
         model = Contract

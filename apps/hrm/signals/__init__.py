@@ -17,7 +17,6 @@ from apps.hrm.models import (
     Block,
     Branch,
     Contract,
-    ContractAppendix,
     ContractType,
     Department,
     Employee,
@@ -32,7 +31,6 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
-from apps.hrm.utils.appendix_code import generate_appendix_codes
 from apps.hrm.utils.contract_code import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
@@ -74,33 +72,26 @@ register_auto_code_signal(
     temp_code_prefix=TEMP_CODE_PREFIX,
 )
 
-# Register auto-code generation for Contract with custom code generator
-register_auto_code_signal(
-    Contract,
-    temp_code_prefix=TEMP_CODE_PREFIX,
-    custom_generate_code=generate_contract_code,
-)
 
+# Custom signal handler for Contract that saves both code and contract_number
+def contract_auto_code_handler(sender, instance, created, **kwargs):
+    """Auto-generate code and contract_number for Contract instances.
 
-# Custom signal handler for ContractAppendix that saves both code and appendix_code
-def contract_appendix_auto_code_handler(sender, instance, created, **kwargs):
-    """Auto-generate code and appendix_code for ContractAppendix instances.
-
-    This signal handler generates unique codes for newly created appendices:
-    - code: format `xx/yyyy/PLHD-MVL`
-    - appendix_code: format `PLHDxxxxx`
+    This signal handler generates unique codes for newly created contracts/appendices:
+    - For contracts: code=HDxxxxx, contract_number=xx/yyyy/SYMBOL - MVL
+    - For appendices: code=PLHDxxxxx, contract_number=xx/yyyy/PLHD-MVL
 
     Args:
         sender: The model class
-        instance: The ContractAppendix instance being saved
+        instance: The Contract instance being saved
         created: Boolean indicating if this is a new instance
         **kwargs: Additional keyword arguments from the signal
     """
     if created and hasattr(instance, "code") and instance.code and instance.code.startswith(TEMP_CODE_PREFIX):
-        instance.code = generate_appendix_codes(instance)
-        # Save both code and appendix_code fields
-        instance.save(update_fields=["code", "appendix_code"])
+        instance.code = generate_contract_code(instance)
+        # Save both code and contract_number fields
+        instance.save(update_fields=["code", "contract_number"])
 
 
-# Register the custom handler for ContractAppendix
-post_save.connect(contract_appendix_auto_code_handler, sender=ContractAppendix, weak=False)
+# Register the custom handler for Contract
+post_save.connect(contract_auto_code_handler, sender=Contract, weak=False)

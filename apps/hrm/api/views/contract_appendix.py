@@ -1,8 +1,10 @@
-"""ViewSet for ContractAppendix model."""
+"""ViewSet for Contract Appendix (using Contract model with category='appendix')."""
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from rest_framework import status
 from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.contract_appendix import ContractAppendixFilterSet
@@ -11,7 +13,7 @@ from apps.hrm.api.serializers.contract_appendix import (
     ContractAppendixListSerializer,
     ContractAppendixSerializer,
 )
-from apps.hrm.models import ContractAppendix
+from apps.hrm.models import Contract, ContractType
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
@@ -21,7 +23,7 @@ from libs.export_xlsx import ExportXLSXMixin
     list=extend_schema(
         summary="List all contract appendices",
         description="Retrieve a paginated list of all contract appendices with support for filtering by "
-        "code, appendix_code, contract, date ranges, and organization",
+        "code, contract_number, parent_contract, date ranges, and organization",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
@@ -35,10 +37,11 @@ from libs.export_xlsx import ExportXLSXMixin
                         "results": [
                             {
                                 "id": 1,
-                                "code": "01/2025/PLHD-MVL",
-                                "appendix_code": "PLHD00001",
-                                "appendix_number": "01/2025/PLHD-MVL",
-                                "contract": {"id": 1, "code": "01/2025/HDLD - MVL"},
+                                "code": "PLHD00001",
+                                "contract_number": "01/2025/PLHD-MVL",
+                                "parent_contract": {"id": 1, "code": "HD00001", "contract_number": "01/2025/HDLD - MVL"},
+                                "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                                "contract_type": {"id": 2, "name": "Contract Appendix"},
                                 "sign_date": "2025-01-15",
                                 "effective_date": "2025-02-01",
                                 "created_at": "2025-01-15T10:00:00Z",
@@ -62,10 +65,11 @@ from libs.export_xlsx import ExportXLSXMixin
                     "success": True,
                     "data": {
                         "id": 1,
-                        "code": "01/2025/PLHD-MVL",
-                        "appendix_code": "PLHD00001",
-                        "appendix_number": "01/2025/PLHD-MVL",
-                        "contract": {"id": 1, "code": "01/2025/HDLD - MVL"},
+                        "code": "PLHD00001",
+                        "contract_number": "01/2025/PLHD-MVL",
+                        "parent_contract": {"id": 1, "code": "HD00001", "contract_number": "01/2025/HDLD - MVL"},
+                        "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                        "contract_type": {"id": 2, "name": "Contract Appendix"},
                         "sign_date": "2025-01-15",
                         "effective_date": "2025-02-01",
                         "content": "Appendix content...",
@@ -81,13 +85,16 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     create=extend_schema(
         summary="Create a new contract appendix",
-        description="Create a new contract appendix. Code and appendix_code are auto-generated.",
+        description="Create a new contract appendix. Code and contract_number are auto-generated. "
+        "parent_contract_id is required to link to the main contract.",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
                 "Request",
                 value={
-                    "contract_id": 1,
+                    "parent_contract_id": 1,
+                    "contract_type_id": 2,
+                    "employee_id": 1,
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "content": "New appendix content",
@@ -101,10 +108,11 @@ from libs.export_xlsx import ExportXLSXMixin
                     "success": True,
                     "data": {
                         "id": 1,
-                        "code": "01/2025/PLHD-MVL",
-                        "appendix_code": "PLHD00001",
-                        "appendix_number": "01/2025/PLHD-MVL",
-                        "contract": {"id": 1, "code": "01/2025/HDLD - MVL"},
+                        "code": "PLHD00001",
+                        "contract_number": "01/2025/PLHD-MVL",
+                        "parent_contract": {"id": 1, "code": "HD00001", "contract_number": "01/2025/HDLD - MVL"},
+                        "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
+                        "contract_type": {"id": 2, "name": "Contract Appendix"},
                         "sign_date": "2025-01-15",
                         "effective_date": "2025-02-01",
                         "content": "New appendix content",
@@ -115,6 +123,16 @@ from libs.export_xlsx import ExportXLSXMixin
                     "error": None,
                 },
                 response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing parent contract",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"parent_contract_id": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
             ),
             OpenApiExample(
                 "Error - Validation",
@@ -130,13 +148,15 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     update=extend_schema(
         summary="Update contract appendix",
-        description="Update all fields of a contract appendix.",
+        description="Update all fields of a contract appendix. Only DRAFT appendices can be edited.",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
                 "Request",
                 value={
-                    "contract_id": 1,
+                    "parent_contract_id": 1,
+                    "contract_type_id": 2,
+                    "employee_id": 1,
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "content": "Updated appendix content",
@@ -150,9 +170,8 @@ from libs.export_xlsx import ExportXLSXMixin
                     "success": True,
                     "data": {
                         "id": 1,
-                        "code": "01/2025/PLHD-MVL",
-                        "appendix_code": "PLHD00001",
-                        "appendix_number": "01/2025/PLHD-MVL",
+                        "code": "PLHD00001",
+                        "contract_number": "01/2025/PLHD-MVL",
                         "content": "Updated appendix content",
                         "note": "Updated notes",
                     },
@@ -164,12 +183,12 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     partial_update=extend_schema(
         summary="Partially update contract appendix",
-        description="Update specific fields of a contract appendix.",
+        description="Update specific fields of a contract appendix. Only DRAFT appendices can be edited.",
         tags=["7.3: Contract Appendix"],
     ),
     destroy=extend_schema(
         summary="Delete contract appendix",
-        description="Delete a contract appendix from the system.",
+        description="Delete a contract appendix from the system. Only DRAFT appendices can be deleted.",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
@@ -177,32 +196,46 @@ from libs.export_xlsx import ExportXLSXMixin
                 value={"success": True, "data": None, "error": None},
                 response_only=True,
             ),
+            OpenApiExample(
+                "Error - Non-draft status",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Only appendices with DRAFT status can be deleted."},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
         ],
     ),
 )
 class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
-    """ViewSet for ContractAppendix model.
+    """ViewSet for Contract Appendix (using Contract model with category='appendix').
 
     Provides CRUD operations and XLSX export for contract appendices.
+    Appendices are stored in the Contract model with contract_type.category='appendix'.
     Supports filtering, searching, and ordering.
 
-    Search fields: code, appendix_code, contract__code, contract__employee__fullname
+    Search fields: code, contract_number, parent_contract__code, employee__fullname
     """
 
-    queryset = ContractAppendix.objects.select_related(
-        "contract",
-        "contract__employee",
+    queryset = Contract.objects.filter(
+        contract_type__category=ContractType.Category.APPENDIX,
+    ).select_related(
+        "parent_contract",
+        "employee",
+        "contract_type",
     )
     serializer_class = ContractAppendixSerializer
     filterset_class = ContractAppendixFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["code", "appendix_code", "contract__code", "contract__employee__fullname"]
+    search_fields = ["code", "contract_number", "parent_contract__code", "employee__fullname"]
     ordering_fields = [
         "code",
-        "appendix_code",
+        "contract_number",
         "sign_date",
         "effective_date",
-        "contract__code",
+        "parent_contract__code",
         "created_at",
     ]
     ordering = ["-created_at"]
@@ -221,3 +254,16 @@ class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewS
         if self.action == "list":
             return ContractAppendixListSerializer
         return ContractAppendixSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        """Delete appendix. Only DRAFT appendices can be deleted."""
+        instance = self.get_object()
+
+        if instance.status != Contract.ContractStatus.DRAFT:
+            return Response(
+                {"detail": "Only appendices with DRAFT status can be deleted."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().destroy(request, *args, **kwargs)
+
