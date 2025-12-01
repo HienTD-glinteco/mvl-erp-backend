@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -150,20 +151,22 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         if work_schedule:
             # Convert schedule times to datetime for comparison
             morning_start = (
-                datetime.combine(work_date, work_schedule.morning_start_time)
+                timezone.make_aware(datetime.combine(work_date, work_schedule.morning_start_time))
                 if work_schedule.morning_start_time
                 else None
             )
             morning_end = (
-                datetime.combine(work_date, work_schedule.morning_end_time) if work_schedule.morning_end_time else None
+                timezone.make_aware(datetime.combine(work_date, work_schedule.morning_end_time))
+                if work_schedule.morning_end_time
+                else None
             )
             afternoon_start = (
-                datetime.combine(work_date, work_schedule.afternoon_start_time)
+                timezone.make_aware(datetime.combine(work_date, work_schedule.afternoon_start_time))
                 if work_schedule.afternoon_start_time
                 else None
             )
             afternoon_end = (
-                datetime.combine(work_date, work_schedule.afternoon_end_time)
+                timezone.make_aware(datetime.combine(work_date, work_schedule.afternoon_end_time))
                 if work_schedule.afternoon_end_time
                 else None
             )

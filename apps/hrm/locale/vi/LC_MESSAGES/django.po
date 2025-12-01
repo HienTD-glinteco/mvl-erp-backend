@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:26+0700\n"
+"POT-Creation-Date: 2025-12-01 15:53+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,8 +182,27 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
+#: apps/hrm/api/serializers/holiday.py:70
+#, python-brace-format
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr ""
+
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:98
+#, python-brace-format
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:109
+#, python-brace-format
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -212,6 +231,42 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:214
+#, python-brace-format
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:234
+#, python-brace-format
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:244
+#, python-brace-format
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:260
+#, python-brace-format
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:277
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:288
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:207
@@ -295,7 +350,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/models/employee_certificate.py:121
 #: apps/hrm/models/employee_work_history.py:114 apps/hrm/models/proposal.py:205
 #: apps/hrm/models/recruitment_candidate.py:111
-#: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:57
+#: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:58
 msgid "Status"
 msgstr "Trạng Thái"
 
@@ -452,27 +507,6 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/models/holiday.py:75
 msgid "Notes"
 msgstr "Ghi Chú"
-
-#: apps/hrm/api/views/employee_reports.py:61
-#: apps/hrm/api/views/recruitment_reports.py:680 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:81
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:69
-#: apps/hrm/constants.py:74
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:76
-msgid "Year"
-msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
@@ -639,6 +673,22 @@ msgstr ""
 
 #: apps/hrm/constants.py:56
 msgid "Returning Employee"
+msgstr ""
+
+#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:76
+msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:82
@@ -1182,7 +1232,7 @@ msgstr ""
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/contract.py:220
+#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/contract.py:228
 #: apps/hrm/models/contract_type.py:242 apps/hrm/models/decision.py:88
 #: apps/hrm/models/employee.py:212 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
@@ -1192,7 +1242,7 @@ msgstr ""
 #: apps/hrm/models/monthly_timesheet.py:107 apps/hrm/models/proposal.py:45
 #: apps/hrm/models/proposal.py:217 apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
-#: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:69
+#: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:70
 #: apps/hrm/models/work_schedule.py:82
 msgid "Note"
 msgstr ""
@@ -1217,7 +1267,7 @@ msgstr ""
 #: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:198
 #: apps/hrm/models/recruitment_candidate.py:133
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
-#: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:33
+#: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:34
 msgid "Employee"
 msgstr ""
 
@@ -1660,7 +1710,15 @@ msgstr ""
 msgid "Base salary amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:145 apps/hrm/models/contract_type.py:158
+#: apps/hrm/models/contract.py:144
+msgid "KPI salary"
+msgstr ""
+
+#: apps/hrm/models/contract.py:145
+msgid "KPI salary amount at the time of contract"
+msgstr ""
+
+#: apps/hrm/models/contract.py:153 apps/hrm/models/contract_type.py:158
 msgid "Lunch allowance"
 msgstr ""
 
@@ -1668,7 +1726,7 @@ msgstr ""
 msgid "Lunch allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:154 apps/hrm/models/contract_type.py:167
+#: apps/hrm/models/contract.py:162 apps/hrm/models/contract_type.py:167
 msgid "Phone allowance"
 msgstr ""
 
@@ -1676,7 +1734,7 @@ msgstr ""
 msgid "Phone allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:163 apps/hrm/models/contract_type.py:176
+#: apps/hrm/models/contract.py:171 apps/hrm/models/contract_type.py:176
 msgid "Other allowance"
 msgstr ""
 
@@ -1684,7 +1742,7 @@ msgstr ""
 msgid "Other allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:170 apps/hrm/models/contract_type.py:184
+#: apps/hrm/models/contract.py:178 apps/hrm/models/contract_type.py:184
 msgid "Net percentage"
 msgstr ""
 
@@ -1692,7 +1750,7 @@ msgstr ""
 msgid "Net salary percentage at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:177 apps/hrm/models/contract_type.py:192
+#: apps/hrm/models/contract.py:185 apps/hrm/models/contract_type.py:192
 msgid "Tax calculation method"
 msgstr ""
 
@@ -1700,15 +1758,15 @@ msgstr ""
 msgid "Tax calculation method at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:183 apps/hrm/models/contract_type.py:213
+#: apps/hrm/models/contract.py:191 apps/hrm/models/contract_type.py:213
 msgid "Has social insurance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:184 apps/hrm/models/contract_type.py:214
+#: apps/hrm/models/contract.py:192 apps/hrm/models/contract_type.py:214
 msgid "Whether social insurance is included"
 msgstr ""
 
-#: apps/hrm/models/contract.py:191 apps/hrm/models/contract_type.py:220
+#: apps/hrm/models/contract.py:199 apps/hrm/models/contract_type.py:220
 msgid "Working conditions"
 msgstr ""
 
@@ -1716,7 +1774,7 @@ msgstr ""
 msgid "Working conditions at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:198 apps/hrm/models/contract_type.py:227
+#: apps/hrm/models/contract.py:206 apps/hrm/models/contract_type.py:227
 msgid "Rights and obligations"
 msgstr ""
 
@@ -1724,7 +1782,7 @@ msgstr ""
 msgid "Rights and obligations at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:205 apps/hrm/models/contract_type.py:234
+#: apps/hrm/models/contract.py:213 apps/hrm/models/contract_type.py:234
 msgid "Terms"
 msgstr ""
 
@@ -1742,7 +1800,7 @@ msgstr "Loại Hợp Đồng"
 msgid "Content of the appendix (for appendices only)"
 msgstr ""
 
-#: apps/hrm/models/contract.py:221 apps/hrm/models/contract_type.py:243
+#: apps/hrm/models/contract.py:229 apps/hrm/models/contract_type.py:243
 #: apps/hrm/models/decision.py:89 apps/hrm/models/work_schedule.py:83
 msgid "Additional notes"
 msgstr ""
@@ -1757,7 +1815,7 @@ msgstr ""
 msgid "Attached contract file"
 msgstr ""
 
-#: apps/hrm/models/contract.py:248 apps/hrm/models/contract_type.py:70
+#: apps/hrm/models/contract.py:256 apps/hrm/models/contract_type.py:70
 #: apps/hrm/models/employee_work_history.py:149
 msgid "Contract"
 msgstr ""
@@ -2510,7 +2568,7 @@ msgstr ""
 msgid "Return to Work"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:47 apps/hrm/models/timesheet.py:35
+#: apps/hrm/models/employee_work_history.py:47 apps/hrm/models/timesheet.py:36
 msgid "Date"
 msgstr ""
 
@@ -2790,11 +2848,11 @@ msgstr ""
 msgid "Total working days"
 msgstr ""
 
-#: apps/hrm/models/monthly_timesheet.py:54 apps/hrm/models/timesheet.py:47
+#: apps/hrm/models/monthly_timesheet.py:54 apps/hrm/models/timesheet.py:48
 msgid "Official hours"
 msgstr ""
 
-#: apps/hrm/models/monthly_timesheet.py:60 apps/hrm/models/timesheet.py:50
+#: apps/hrm/models/monthly_timesheet.py:60 apps/hrm/models/timesheet.py:51
 msgid "Overtime hours"
 msgstr ""
 
@@ -2802,7 +2860,7 @@ msgstr ""
 msgid "TODO: Check logic after SRS is updated"
 msgstr ""
 
-#: apps/hrm/models/monthly_timesheet.py:67 apps/hrm/models/timesheet.py:53
+#: apps/hrm/models/monthly_timesheet.py:67 apps/hrm/models/timesheet.py:54
 msgid "Total worked hours"
 msgstr ""
 
@@ -3525,41 +3583,41 @@ msgstr ""
 msgid "Recruitment Sources"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:37
+#: apps/hrm/models/timesheet.py:38
 #, fuzzy
 #| msgid "Start Date"
 msgid "Start time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/timesheet.py:38
+#: apps/hrm/models/timesheet.py:39
 msgid "End time"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:41
+#: apps/hrm/models/timesheet.py:42
 msgid "Morning hours"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:44
+#: apps/hrm/models/timesheet.py:45
 msgid "Afternoon hours"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:61
+#: apps/hrm/models/timesheet.py:62
 msgid "Absent reason"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:65
+#: apps/hrm/models/timesheet.py:66
 msgid "Is full salary"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:67
+#: apps/hrm/models/timesheet.py:68
 msgid "Count for payroll"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:73
+#: apps/hrm/models/timesheet.py:74
 msgid "Timesheet"
 msgstr ""
 
-#: apps/hrm/models/timesheet.py:74
+#: apps/hrm/models/timesheet.py:75
 msgid "Timesheets"
 msgstr ""
 

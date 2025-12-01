@@ -122,8 +122,8 @@ class TestTimeSheetEntryNewFields:
         )
 
         # Set start and end times for the entry (use naive datetime to match work schedule)
-        start = datetime(2025, 3, 3, 8, 0, 0)
-        end = datetime(2025, 3, 3, 17, 0, 0)
+        start = timezone.make_aware(datetime(2025, 3, 3, 8, 0, 0))
+        end = timezone.make_aware(datetime(2025, 3, 3, 17, 0, 0))
         entry.update_times(start, end)
 
         # Method should exist and not raise an error
