@@ -650,17 +650,15 @@ class TestAdditionalFeatures:
         assert "employee" in str(result["error"]).lower()
 
     def test_model_date_validation(self, test_employee):
-        """Verify model-level validation for start_date > end_date via clean()."""
+        """Verify model-level validation for start_date > end_date via full_clean() in save()."""
         from django.core.exceptions import ValidationError
 
-        proposal = Proposal(
-            proposal_type=ProposalType.PAID_LEAVE,
-            start_date=date.today() + timedelta(days=10),
-            end_date=date.today() + timedelta(days=5),
-            created_by=test_employee,
-        )
-
         with pytest.raises(ValidationError) as exc_info:
-            proposal.clean()
+            Proposal.objects.create(
+                proposal_type=ProposalType.PAID_LEAVE,
+                start_date=date.today() + timedelta(days=10),
+                end_date=date.today() + timedelta(days=5),
+                created_by=test_employee,
+            )
 
         assert "start_date" in str(exc_info.value)

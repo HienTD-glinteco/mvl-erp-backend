@@ -13,7 +13,7 @@ class Proposal(AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "DX"
 
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Proposal code"))
+    code = models.CharField(max_length=50, unique=True, blank=True, verbose_name=_("Proposal code"))
 
     proposal_date = models.DateField(auto_now_add=True, verbose_name=_("Proposal date"))
 
@@ -156,6 +156,7 @@ class Proposal(AutoCodeMixin, BaseModel):
         super().clean()
 
     def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
