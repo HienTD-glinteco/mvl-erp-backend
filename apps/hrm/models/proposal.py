@@ -156,16 +156,7 @@ class Proposal(AutoCodeMixin, BaseModel):
         super().clean()
 
     def save(self, *args, **kwargs):
-        # For new instances, set temp code before full_clean (code is required)
-        if self._state.adding and not self.code:
-            temp_prefix = getattr(self.__class__, "TEMP_CODE_PREFIX", "TEMP_")
-            from django.utils.crypto import get_random_string
-
-            self.code = f"{temp_prefix}{get_random_string(20)}"
-
-        self.full_clean()
-        # Call BaseModel.save directly, skipping AutoCodeMixin (code already set)
-        BaseModel.save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 @audit_logging_register
