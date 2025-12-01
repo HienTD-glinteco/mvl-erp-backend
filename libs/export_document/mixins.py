@@ -113,7 +113,7 @@ class ExportDocumentMixin:
             404: OpenApiResponse(description="Object not found"),
             500: OpenApiResponse(description="Internal server error (conversion or upload failure)"),
         },
-        tags=["Export"],
+        tags=["0.2: Export"],
     )
     @action(detail=True, methods=["get"], url_path="export-document")
     def export_detail_document(self, request, pk=None):

@@ -75,7 +75,7 @@ class ExportXLSXMixin:
             400: OpenApiResponse(description="Bad request (invalid parameters or S3 not configured)"),
             500: OpenApiResponse(description="Internal server error (generation or upload failure)"),
         },
-        tags=["Export"],
+        tags=["0.2: Export"],
     )
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request, *args, **kwargs):

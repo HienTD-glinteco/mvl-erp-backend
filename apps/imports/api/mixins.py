@@ -72,7 +72,7 @@ class AsyncImportProgressMixin:
             202: ImportStartResponseSerializer,
             400: OpenApiResponse(description="Bad request (file not found, not confirmed, or missing handler)"),
         },
-        tags=["Import"],
+        tags=["0.3: Import"],
     )
     @action(detail=False, methods=["post"], url_path="import")
     def start_import(self, request, *args, **kwargs):
@@ -207,7 +207,7 @@ class AsyncImportProgressMixin:
             200: ImportTemplateResponseSerializer,
             404: OpenApiResponse(description="No template available for this resource"),
         },
-        tags=["Import"],
+        tags=["0.3: Import"],
     )
     @action(detail=False, methods=["get"], url_path="import_template")
     def import_template(self, request, *args, **kwargs):
@@ -277,7 +277,7 @@ class AsyncImportCancelMixin:
             400: OpenApiResponse(description="Cannot cancel job in current status"),
             404: OpenApiResponse(description="Import job not found"),
         },
-        tags=["Import"],
+        tags=["0.3: Import"],
     )
     @action(detail=True, methods=["post"], url_path="cancel")
     def cancel_import(self, request, pk=None, *args, **kwargs):
