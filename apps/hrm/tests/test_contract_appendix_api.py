@@ -344,4 +344,3 @@ class TestContractAppendixAPI:
         response = api_client.get(url, {"ordering": "-created_at"})
 
         assert response.status_code == status.HTTP_200_OK
-

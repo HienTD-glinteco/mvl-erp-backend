@@ -39,7 +39,11 @@ from libs.export_xlsx import ExportXLSXMixin
                                 "id": 1,
                                 "code": "PLHD00001",
                                 "contract_number": "01/2025/PLHD-MVL",
-                                "parent_contract": {"id": 1, "code": "HD00001", "contract_number": "01/2025/HDLD - MVL"},
+                                "parent_contract": {
+                                    "id": 1,
+                                    "code": "HD00001",
+                                    "contract_number": "01/2025/HDLD - MVL",
+                                },
                                 "employee": {"id": 1, "code": "MV000001", "fullname": "John Doe"},
                                 "contract_type": {"id": 2, "name": "Contract Appendix"},
                                 "sign_date": "2025-01-15",
@@ -266,4 +270,3 @@ class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewS
             )
 
         return super().destroy(request, *args, **kwargs)
-

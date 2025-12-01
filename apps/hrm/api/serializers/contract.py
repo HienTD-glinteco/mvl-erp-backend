@@ -148,9 +148,7 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
         # Validate contract type category
         contract_type = attrs.get("contract_type", getattr(instance, "contract_type", None) if instance else None)
         if contract_type and contract_type.category != ContractType.Category.CONTRACT:
-            raise serializers.ValidationError(
-                {"contract_type_id": _("Contract type must have category 'contract'.")}
-            )
+            raise serializers.ValidationError({"contract_type_id": _("Contract type must have category 'contract'.")})
 
         # Get dates from attrs or fallback to instance values
         sign_date = attrs.get("sign_date", getattr(instance, "sign_date", None))

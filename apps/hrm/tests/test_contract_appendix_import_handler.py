@@ -14,7 +14,6 @@ from apps.hrm.models import (
     Block,
     Branch,
     Contract,
-    ContractAppendix,
     ContractType,
     Department,
     Employee,

@@ -32,10 +32,7 @@ def generate_contract_code(instance) -> str:
     current_year = date.today().year
 
     # Determine if this is a contract or appendix based on contract_type category
-    is_appendix = (
-        instance.contract_type
-        and instance.contract_type.category == ContractType.Category.APPENDIX
-    )
+    is_appendix = instance.contract_type and instance.contract_type.category == ContractType.Category.APPENDIX
 
     if is_appendix:
         # For appendices, generate PLHD-prefixed codes

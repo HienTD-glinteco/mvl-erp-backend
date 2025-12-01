@@ -136,16 +136,14 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
         # Validate contract type category
         contract_type = attrs.get("contract_type", getattr(instance, "contract_type", None) if instance else None)
         if contract_type and contract_type.category != ContractType.Category.APPENDIX:
-            raise serializers.ValidationError(
-                {"contract_type_id": _("Contract type must have category 'appendix'.")}
-            )
+            raise serializers.ValidationError({"contract_type_id": _("Contract type must have category 'appendix'.")})
 
         # Validate parent_contract is provided
-        parent_contract = attrs.get("parent_contract", getattr(instance, "parent_contract", None) if instance else None)
+        parent_contract = attrs.get(
+            "parent_contract", getattr(instance, "parent_contract", None) if instance else None
+        )
         if not parent_contract and instance is None:
-            raise serializers.ValidationError(
-                {"parent_contract_id": _("Parent contract is required for appendices.")}
-            )
+            raise serializers.ValidationError({"parent_contract_id": _("Parent contract is required for appendices.")})
 
         # Get dates from attrs or fallback to instance values
         sign_date = attrs.get("sign_date", getattr(instance, "sign_date", None))
@@ -191,4 +189,3 @@ class ContractAppendixExportSerializer(FieldFilteringSerializerMixin, serializer
             "note",
             "created_at",
         ]
-

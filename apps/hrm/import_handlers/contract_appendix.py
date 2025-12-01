@@ -70,11 +70,11 @@ def pre_import_initialize(import_job_id: str, options: dict) -> None:
     options["_employees_by_code"] = employees_by_code
 
     # Prefetch all contracts (category='contract') by contract_number and code
-    # Key format: (employee_code, contract_code) for precise lookup
-    contracts_by_key = {}
-    for contract in Contract.objects.filter(
-        contract_type__category=ContractType.Category.CONTRACT
-    ).select_related("employee"):
+    # Key format: str for code/number lookup, or tuple (employee_code, contract_code) for precise lookup
+    contracts_by_key: dict[str | tuple[str, str], Contract] = {}
+    for contract in Contract.objects.filter(contract_type__category=ContractType.Category.CONTRACT).select_related(
+        "employee"
+    ):
         if contract.code:
             # Store by contract code (case-insensitive)
             contracts_by_key[contract.code.lower()] = contract
@@ -87,16 +87,14 @@ def pre_import_initialize(import_job_id: str, options: dict) -> None:
     options["_contracts_by_key"] = contracts_by_key
 
     # Prefetch existing appendices by code for duplicate checking
-    appendices_by_code = {}
+    appendices_by_code: dict[str, Contract] = {}
     for appendix in Contract.objects.filter(contract_type__category=ContractType.Category.APPENDIX):
         if appendix.code:
             appendices_by_code[appendix.code.lower()] = appendix
     options["_appendices_by_code"] = appendices_by_code
 
     # Get the first appendix contract type for creating new appendices
-    appendix_contract_type = ContractType.objects.filter(
-        category=ContractType.Category.APPENDIX
-    ).first()
+    appendix_contract_type = ContractType.objects.filter(category=ContractType.Category.APPENDIX).first()
     options["_appendix_contract_type"] = appendix_contract_type
 
     logger.info(
@@ -294,7 +292,7 @@ def _create_new_appendix(
         parent_contract=parent_contract,
         employee=parent_contract.employee,
         contract_type=appendix_contract_type,
-        **appendix_data
+        **appendix_data,
     )
     logger.info("Created appendix %s for contract %s", appendix.code, parent_contract.code)
 
@@ -355,16 +353,18 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Lookup parent contract
         parent_contract, contract_error = _lookup_contract(parent_contract_number, employee_code, options)
-        if contract_error:
+        if contract_error or parent_contract is None:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": contract_error,
+                "error": contract_error or "Parent contract not found",
                 "action": "skipped",
             }
 
         # Cross-validate employee code if provided
-        employee_error = _validate_employee_contract_match(employee_code, parent_contract, parent_contract_number, options)
+        employee_error = _validate_employee_contract_match(
+            employee_code, parent_contract, parent_contract_number, options
+        )
         if employee_error:
             return {
                 "ok": False,
@@ -375,11 +375,11 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Validate using serializer
         validated_data, validation_error = _validate_serializer_data(row_dict)
-        if validation_error:
+        if validation_error or validated_data is None:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": validation_error,
+                "error": validation_error or "Validation failed",
                 "action": "skipped",
             }
 
@@ -410,22 +410,22 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # Create or update appendix
         with transaction.atomic():
             if existing_appendix and allow_update:
-                result = _update_existing_appendix(existing_appendix, appendix_data, parent_contract)
+                update_result = _update_existing_appendix(existing_appendix, appendix_data, parent_contract)
                 return {
                     "ok": True,
                     "row_index": row_index,
                     "action": "updated",
                     "appendix_code": existing_appendix.code,
                     "warnings": [],
-                    "result": result,
+                    "result": update_result,
                 }
 
-            result, create_error = _create_new_appendix(appendix_data, appendix_code, parent_contract, options)
-            if create_error:
+            create_result, create_error = _create_new_appendix(appendix_data, appendix_code, parent_contract, options)
+            if create_error or create_result is None:
                 return {
                     "ok": False,
                     "row_index": row_index,
-                    "error": create_error,
+                    "error": create_error or "Failed to create appendix",
                     "action": "skipped",
                 }
 
@@ -433,9 +433,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "ok": True,
                 "row_index": row_index,
                 "action": "created",
-                "appendix_code": result["appendix_code"],
+                "appendix_code": create_result.get("appendix_code"),
                 "warnings": [],
-                "result": result,
+                "result": create_result,
             }
 
     except Exception as e:
@@ -446,4 +446,3 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "error": str(e),
             "action": "skipped",
         }
-
