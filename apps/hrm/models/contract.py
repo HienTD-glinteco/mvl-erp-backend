@@ -264,9 +264,11 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """Check if this contract is an appendix.
 
         Returns:
-            bool: True if this is an appendix (has parent_contract), False otherwise.
+            bool: True if this is an appendix (contract_type.category='appendix'), False otherwise.
         """
-        return self.parent_contract_id is not None
+        from apps.hrm.models.contract_type import ContractType
+
+        return self.contract_type_id is not None and self.contract_type.category == ContractType.Category.APPENDIX
 
     @property
     def colored_status(self) -> dict:
