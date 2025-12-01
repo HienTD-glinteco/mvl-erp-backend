@@ -1,7 +1,8 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
+from apps.hrm.models import Proposal, ProposalAsset, ProposalTimeSheetEntry, ProposalVerifier
 
 from .employee import EmployeeSerializer
 
@@ -97,7 +98,7 @@ class ProposalBaseComplaintStatusActionSerializer(serializers.ModelSerializer):
         raise NotImplementedError("Subclasses must define target_status")
 
 
-class ProposalApproveSerializer(ProposalBaseComplaintStatusActionSerializer):
+class ProposalTimesheetEntryComplaintApproveSerializer(ProposalBaseComplaintStatusActionSerializer):
     """Serializer for approving a proposal."""
 
     approved_check_in_time = serializers.TimeField(required=True, help_text="Approved check-in time")
@@ -117,7 +118,7 @@ class ProposalApproveSerializer(ProposalBaseComplaintStatusActionSerializer):
         return ProposalStatus.APPROVED
 
 
-class ProposalRejectSerializer(ProposalBaseComplaintStatusActionSerializer):
+class ProposalTimesheetEntryComplaintRejectSerializer(ProposalBaseComplaintStatusActionSerializer):
     """Serializer for rejecting a proposal."""
 
     note = serializers.CharField(
@@ -208,3 +209,262 @@ class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class ProposalByTypeSerializer(serializers.ModelSerializer):
+    """
+    Serializer for proposals of a specific type.
+    Each serializer subclass corresponds to a specific proposal type,
+    and should have only the fields relevant to that type.
+    """
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        if getattr(user, "employee", None):
+            attrs["created_by"] = user.employee
+
+        attrs["proposal_type"] = self.get_proposal_type()
+
+        instance = self.instance or Proposal()
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
+        return attrs
+
+    def get_proposal_type(self):
+        """
+        Get the proposal type from the view context.
+        Make sure the view use default get_serializer_context method (or override it).
+        """
+        return self.context["view"].proposal_type
+
+
+class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
+    """Serializer for Late Exemption proposals."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "late_exemption_start_date",
+            "late_exemption_end_date",
+            "late_exemption_minutes",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
+    """Serializer for Overtime Work proposals."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "overtime_work_start_at",
+            "overtime_work_end_at",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
+    """Serializer for Post-Maternity Benefits proposals."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "post_maternity_benefits_start_date",
+            "post_maternity_benefits_end_date",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalAssetSerializer(serializers.ModelSerializer):
+    """Serializer for ProposalAsset model."""
+
+    class Meta:
+        model = ProposalAsset
+        fields = [
+            "id",
+            "name",
+            "unit_type",
+            "quantity",
+            "note",
+        ]
+        read_only_fields = ["id"]
+
+
+class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
+    """Serializer for Asset Allocation proposals."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+    proposal_assets = ProposalAssetSerializer(many=True, write_only=True)
+    assets = ProposalAssetSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "proposal_assets",
+            "assets",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "assets",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+    def create(self, validated_data):
+        """Create a proposal with related assets."""
+        proposal_assets_data = validated_data.pop("proposal_assets", [])
+        proposal = super().create(validated_data)
+
+        self._create_new_assets_bulk(proposal, proposal_assets_data)
+
+        return proposal
+
+    def update(self, instance, validated_data):
+        """Update a proposal with related assets."""
+        proposal_assets_data = validated_data.pop("proposal_assets", [])
+        proposal = super().update(instance, validated_data)
+
+        if proposal_assets_data:
+            # Delete existing assets and recreate
+            proposal.assets.all().delete()
+            self._create_new_assets_bulk(proposal, proposal_assets_data)
+
+        return proposal
+
+    def _create_new_assets_bulk(self, proposal, assets_data):
+        proposal_assets = []
+        for asset_data in assets_data:
+            proposal_assets.append(ProposalAsset(proposal=proposal, **asset_data))
+        ProposalAsset.objects.bulk_create(proposal_assets)
+
+
+class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
+    """Serializer for Maternity Leave proposals."""
+
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+    maternity_leave_replacement_employee = EmployeeSerializer(read_only=True)
+    maternity_leave_replacement_employee_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "maternity_leave_start_date",
+            "maternity_leave_end_date",
+            "maternity_leave_estimated_due_date",
+            "maternity_leave_replacement_employee",
+            "maternity_leave_replacement_employee_id",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]

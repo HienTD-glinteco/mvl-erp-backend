@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from apps.hrm.constants import ProposalStatus, ProposalType, ProposalVerifierStatus
+from apps.hrm.constants import AssetUnitType, ProposalStatus, ProposalType, ProposalVerifierStatus
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 
@@ -60,6 +60,72 @@ class Proposal(AutoCodeMixin, BaseModel):
         verbose_name=_("Approved by"),
     )
 
+    # Late exemption fields
+    late_exemption_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Late exemption start date"),
+    )
+    late_exemption_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Late exemption end date"),
+    )
+    late_exemption_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Late exemption minutes"),
+    )
+
+    # Overtime work fields
+    overtime_work_start_at = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Overtime work start time"),
+    )
+    overtime_work_end_at = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Overtime work end time"),
+    )
+
+    # Post-maternity benefits fields
+    post_maternity_benefits_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Post-maternity benefits start date"),
+    )
+    post_maternity_benefits_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Post-maternity benefits end date"),
+    )
+
+    # Maternity leave fields
+    maternity_leave_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Maternity leave start date"),
+    )
+    maternity_leave_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Maternity leave end date"),
+    )
+    maternity_leave_estimated_due_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Maternity leave estimated due date"),
+    )
+    maternity_leave_replacement_employee = models.ForeignKey(
+        "Employee",
+        on_delete=models.PROTECT,
+        related_name="replacement_for_maternity_proposals",
+        null=True,
+        blank=True,
+        verbose_name=_("Replacement employee for maternity leave"),
+    )
+
     class Meta:
         db_table = "hrm_proposal"
         verbose_name = _("Proposal")
@@ -73,22 +139,103 @@ class Proposal(AutoCodeMixin, BaseModel):
         code = getattr(self, "code", None) or f"#{self.pk}" if self.pk else "New"
         return f"Proposal {code} - {self.proposal_type}"
 
+    def _clean_late_exemption_fields(self) -> None:
+        """Validate late exemption proposal fields."""
+        errors = {}
+
+        if not self.late_exemption_start_date:
+            errors["late_exemption_start_date"] = _("Late exemption start date is required")
+        if not self.late_exemption_end_date:
+            errors["late_exemption_end_date"] = _("Late exemption end date is required")
+        if not self.late_exemption_minutes:
+            errors["late_exemption_minutes"] = _("Late exemption minutes is required")
+
+        # Validate date range
+        if self.late_exemption_start_date and self.late_exemption_end_date:
+            if self.late_exemption_start_date > self.late_exemption_end_date:
+                errors["late_exemption_end_date"] = _("Late exemption end date must be on or after start date")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_overtime_work_fields(self) -> None:
+        """Validate overtime work proposal fields."""
+        errors = {}
+
+        if not self.overtime_work_start_at:
+            errors["overtime_work_start_at"] = _("Overtime work start time is required")
+        if not self.overtime_work_end_at:
+            errors["overtime_work_end_at"] = _("Overtime work end time is required")
+
+        # Validate time range
+        if self.overtime_work_start_at and self.overtime_work_end_at:
+            if self.overtime_work_start_at >= self.overtime_work_end_at:
+                errors["overtime_work_end_at"] = _("Overtime work end time must be after start time")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_post_maternity_benefits_fields(self) -> None:
+        """Validate post-maternity benefits proposal fields."""
+        errors = {}
+
+        if not self.post_maternity_benefits_start_date:
+            errors["post_maternity_benefits_start_date"] = _("Post-maternity benefits start date is required")
+        if not self.post_maternity_benefits_end_date:
+            errors["post_maternity_benefits_end_date"] = _("Post-maternity benefits end date is required")
+
+        # Validate date range
+        if self.post_maternity_benefits_start_date and self.post_maternity_benefits_end_date:
+            if self.post_maternity_benefits_start_date > self.post_maternity_benefits_end_date:
+                errors["post_maternity_benefits_end_date"] = _(
+                    "Post-maternity benefits end date must be on or after start date"
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_timesheet_entry_complaint_fields(self) -> None:
+        """Validate timesheet entry complaint proposal fields."""
+        # If proposal type is complaint, complaint_reason cannot be empty
+        if not self.complaint_reason or not self.complaint_reason.strip():
+            raise ValidationError({"complaint_reason": _("Complaint reason is required for complaint proposals")})
+
+    def _clean_maternity_leave_fields(self) -> None:
+        """Validate maternity leave proposal fields."""
+        errors = {}
+
+        # Validate date range if both dates are provided
+        if self.maternity_leave_start_date and self.maternity_leave_end_date:
+            if self.maternity_leave_start_date > self.maternity_leave_end_date:
+                errors["maternity_leave_end_date"] = _("Maternity leave end date must be on or after start date")
+
+        if errors:
+            raise ValidationError(errors)
+
     def clean(self) -> None:
         """Validate proposal fields based on business rules."""
-        # If proposal type is complaint, complaint_reason cannot be empty
-        if self.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
-            if not self.complaint_reason or not self.complaint_reason.strip():
-                raise ValidationError({"complaint_reason": _("Complaint reason is required for complaint proposals")})
+        super().clean()
 
         # If proposal status is rejected, note cannot be empty
         if self.proposal_status == ProposalStatus.REJECTED:
             if not self.note or not self.note.strip():
                 raise ValidationError({"note": _("Note is required when rejecting a proposal")})
 
-        super().clean()
+        # Call type-specific validation methods
+        # NOTE: add more here when needed
+        clean_method_mapping = {
+            ProposalType.LATE_EXEMPTION: self._clean_late_exemption_fields,
+            ProposalType.OVERTIME_WORK: self._clean_overtime_work_fields,
+            ProposalType.POST_MATERNITY_BENEFITS: self._clean_post_maternity_benefits_fields,
+            ProposalType.TIMESHEET_ENTRY_COMPLAINT: self._clean_timesheet_entry_complaint_fields,
+            ProposalType.MATERNITY_LEAVE: self._clean_maternity_leave_fields,
+        }
+        clean_method = clean_method_mapping.get(self.proposal_type)  # type: ignore
+        if clean_method:
+            clean_method()
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        self.clean()
         super().save(*args, **kwargs)
 
 
@@ -229,3 +376,53 @@ class ProposalVerifier(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Proposal {self.proposal_id} - Verifier {self.employee_id}"
+
+
+@audit_logging_register
+class ProposalAsset(BaseModel):
+    """Model for assets requested in asset allocation proposals."""
+
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_("Asset name"),
+    )
+
+    unit_type = models.CharField(
+        max_length=32,
+        choices=AssetUnitType.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Unit type"),
+    )
+
+    quantity = models.PositiveIntegerField(
+        verbose_name=_("Quantity"),
+    )
+
+    note = SafeTextField(
+        max_length=250,
+        null=True,
+        blank=True,
+        verbose_name=_("Note"),
+    )
+
+    proposal = models.ForeignKey(
+        "Proposal",
+        on_delete=models.CASCADE,
+        related_name="assets",
+        verbose_name=_("Proposal"),
+        limit_choices_to={"proposal_type": ProposalType.ASSET_ALLOCATION},
+    )
+
+    class Meta:
+        db_table = "hrm_proposal_asset"
+        verbose_name = _("Proposal Asset")
+        verbose_name_plural = _("Proposal Assets")
+        indexes = [
+            models.Index(fields=["proposal"], name="pa_proposal_idx"),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        if self.unit_type:
+            return f"{self.name} - {self.quantity} {self.get_unit_type_display()}"
+        return f"{self.name} - {self.quantity}"

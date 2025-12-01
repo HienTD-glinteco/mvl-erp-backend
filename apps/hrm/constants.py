@@ -183,6 +183,21 @@ class ProposalType(models.TextChoices):
     MATERNITY_LEAVE = "maternity_leave", _("Maternity leave")
     ATTENDANCE_EXEMPTION = "attendance_exemption", _("Attendance exemption")
     TIMESHEET_ENTRY_COMPLAINT = "timesheet_entry_complaint", _("Timesheet entry complaint")
+    JOB_TRANSFER = "job_transfer", _("Job Transfer")
+    ASSET_ALLOCATION = "asset_allocation", _("Asset Allocation")
+
+
+class AssetUnitType(models.TextChoices):
+    """Asset unit type choices for asset allocation proposals."""
+
+    PIECE = "piece", _("Piece")
+    BOX = "box", _("Box")
+    SET = "set", _("Set")
+    GRAM = "gram", _("Gram")
+    LITER = "liter", _("Liter")
+    METER = "meter", _("Meter")
+    CYLINDER = "cylinder", _("Cylinder")
+    BAG = "bag", _("Bag")
 
 
 class ProposalStatus(models.TextChoices):

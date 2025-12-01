@@ -15,9 +15,14 @@ from apps.hrm.api.filtersets.proposal import (
     ProposalTimesheetEntryComplaintFilterSet,
 )
 from apps.hrm.api.serializers.proposal import (
-    ProposalApproveSerializer,
-    ProposalRejectSerializer,
+    ProposalAssetAllocationSerializer,
+    ProposalLateExemptionSerializer,
+    ProposalMaternityLeaveSerializer,
+    ProposalOvertimeWorkSerializer,
+    ProposalPostMaternityBenefitsSerializer,
     ProposalSerializer,
+    ProposalTimesheetEntryComplaintApproveSerializer,
+    ProposalTimesheetEntryComplaintRejectSerializer,
     ProposalTimesheetEntryComplaintSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
@@ -234,15 +239,15 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
 
     def get_serializer_class(self):
         if self.action == "approve":
-            return ProposalApproveSerializer
+            return ProposalTimesheetEntryComplaintApproveSerializer
         elif self.action == "reject":
-            return ProposalRejectSerializer
+            return ProposalTimesheetEntryComplaintRejectSerializer
         return super().get_serializer_class()
 
     @extend_schema(
         summary="Approve complaint proposal",
         description="Approve a complaint proposal and set the approved check-in/out times",
-        request=ProposalApproveSerializer,
+        request=ProposalTimesheetEntryComplaintApproveSerializer,
         responses={200: ProposalTimesheetEntryComplaintSerializer},
         tags=["6.8: Timesheet Entry Complaint Proposals"],
         examples=[
@@ -298,7 +303,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     @extend_schema(
         summary="Reject complaint proposal",
         description="Reject a complaint proposal with a required rejection reason",
-        request=ProposalRejectSerializer,
+        request=ProposalTimesheetEntryComplaintRejectSerializer,
         responses={200: ProposalTimesheetEntryComplaintSerializer},
         tags=["6.8: Timesheet Entry Complaint Proposals"],
         examples=[
@@ -357,18 +362,147 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         summary="List post-maternity benefits proposals",
         description="Retrieve a list of post-maternity benefits proposals",
         tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "post_maternity_benefits",
+                                "proposal_status": "pending",
+                                "post_maternity_benefits_start_date": "2025-02-01",
+                                "post_maternity_benefits_end_date": "2025-03-01",
+                                "note": "Request for post-maternity work schedule",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get post-maternity benefits proposal details",
         description="Retrieve detailed information for a specific post-maternity benefits proposal",
         tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "post_maternity_benefits",
+                        "proposal_status": "pending",
+                        "post_maternity_benefits_start_date": "2025-02-01",
+                        "post_maternity_benefits_end_date": "2025-03-01",
+                        "note": "Request for post-maternity work schedule",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create post-maternity benefits proposal",
+        description="Create a new post-maternity benefits proposal",
+        tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "post_maternity_benefits_start_date": "2025-02-01",
+                    "post_maternity_benefits_end_date": "2025-03-01",
+                    "note": "Request for post-maternity work schedule",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "post_maternity_benefits",
+                        "proposal_status": "pending",
+                        "post_maternity_benefits_start_date": "2025-02-01",
+                        "post_maternity_benefits_end_date": "2025-03-01",
+                        "note": "Request for post-maternity work schedule",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing fields",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "post_maternity_benefits_start_date": ["Post-maternity benefits start date is required"],
+                        "post_maternity_benefits_end_date": ["Post-maternity benefits end date is required"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update post-maternity benefits proposal",
+        description="Update a post-maternity benefits proposal",
+        tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update post-maternity benefits proposal",
+        description="Partially update a post-maternity benefits proposal",
+        tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete post-maternity benefits proposal",
+        description="Delete a post-maternity benefits proposal",
+        tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
     ),
 )
-class ProposalPostMaternityBenefitsViewSet(ProposalViewSet):
+class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Post-Maternity Benefits proposals."""
 
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
+    serializer_class = ProposalPostMaternityBenefitsSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
     permission_prefix = "proposal_post_maternity_benefits"
+
+    module = "HRM"
+    submodule = "Proposal"
+
+    def get_queryset(self):
+        """Filter queryset to only include post-maternity benefits proposals."""
+        return Proposal.objects.filter(proposal_type=ProposalType.POST_MATERNITY_BENEFITS).select_related(
+            "created_by", "approved_by"
+        )
 
 
 @extend_schema_view(
@@ -376,18 +510,152 @@ class ProposalPostMaternityBenefitsViewSet(ProposalViewSet):
         summary="List late exemption proposals",
         description="Retrieve a list of late exemption proposals",
         tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "late_exemption",
+                                "proposal_status": "pending",
+                                "late_exemption_start_date": "2025-02-01",
+                                "late_exemption_end_date": "2025-02-28",
+                                "late_exemption_minutes": 30,
+                                "note": "Request for late arrival exemption",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get late exemption proposal details",
         description="Retrieve detailed information for a specific late exemption proposal",
         tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "late_exemption",
+                        "proposal_status": "pending",
+                        "late_exemption_start_date": "2025-02-01",
+                        "late_exemption_end_date": "2025-02-28",
+                        "late_exemption_minutes": 30,
+                        "note": "Request for late arrival exemption",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create late exemption proposal",
+        description="Create a new late exemption proposal",
+        tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "late_exemption_start_date": "2025-02-01",
+                    "late_exemption_end_date": "2025-02-28",
+                    "late_exemption_minutes": 30,
+                    "note": "Request for late arrival exemption",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "late_exemption",
+                        "proposal_status": "pending",
+                        "late_exemption_start_date": "2025-02-01",
+                        "late_exemption_end_date": "2025-02-28",
+                        "late_exemption_minutes": 30,
+                        "note": "Request for late arrival exemption",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing fields",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "late_exemption_start_date": ["Late exemption start date is required"],
+                        "late_exemption_end_date": ["Late exemption end date is required"],
+                        "late_exemption_minutes": ["Late exemption minutes is required"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update late exemption proposal",
+        description="Update a late exemption proposal",
+        tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update late exemption proposal",
+        description="Partially update a late exemption proposal",
+        tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete late exemption proposal",
+        description="Delete a late exemption proposal",
+        tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
     ),
 )
-class ProposalLateExemptionViewSet(ProposalViewSet):
+class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Late Exemption proposals."""
 
     proposal_type = ProposalType.LATE_EXEMPTION
+    serializer_class = ProposalLateExemptionSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
     permission_prefix = "proposal_late_exemption"
+
+    module = "HRM"
+    submodule = "Proposal"
+
+    def get_queryset(self):
+        """Filter queryset to only include late exemption proposals."""
+        return Proposal.objects.filter(proposal_type=ProposalType.LATE_EXEMPTION).select_related(
+            "created_by", "approved_by"
+        )
 
 
 @extend_schema_view(
@@ -395,18 +663,147 @@ class ProposalLateExemptionViewSet(ProposalViewSet):
         summary="List overtime work proposals",
         description="Retrieve a list of overtime work proposals",
         tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "overtime_work",
+                                "proposal_status": "pending",
+                                "overtime_work_start_at": "18:00:00",
+                                "overtime_work_end_at": "21:00:00",
+                                "note": "Project deadline",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get overtime work proposal details",
         description="Retrieve detailed information for a specific overtime work proposal",
         tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "overtime_work",
+                        "proposal_status": "pending",
+                        "overtime_work_start_at": "18:00:00",
+                        "overtime_work_end_at": "21:00:00",
+                        "note": "Project deadline",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create overtime work proposal",
+        description="Create a new overtime work proposal",
+        tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "overtime_work_start_at": "18:00:00",
+                    "overtime_work_end_at": "21:00:00",
+                    "note": "Project deadline",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "overtime_work",
+                        "proposal_status": "pending",
+                        "overtime_work_start_at": "18:00:00",
+                        "overtime_work_end_at": "21:00:00",
+                        "note": "Project deadline",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing fields",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "overtime_work_start_at": ["Overtime work start time is required"],
+                        "overtime_work_end_at": ["Overtime work end time is required"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update overtime work proposal",
+        description="Update an overtime work proposal",
+        tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update overtime work proposal",
+        description="Partially update an overtime work proposal",
+        tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete overtime work proposal",
+        description="Delete an overtime work proposal",
+        tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
     ),
 )
-class ProposalOvertimeWorkViewSet(ProposalViewSet):
+class ProposalOvertimeWorkViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Overtime Work proposals."""
 
     proposal_type = ProposalType.OVERTIME_WORK
+    serializer_class = ProposalOvertimeWorkSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
     permission_prefix = "proposal_overtime_work"
+
+    module = "HRM"
+    submodule = "Proposal"
+
+    def get_queryset(self):
+        """Filter queryset to only include overtime work proposals."""
+        return Proposal.objects.filter(proposal_type=ProposalType.OVERTIME_WORK).select_related(
+            "created_by", "approved_by"
+        )
 
 
 @extend_schema_view(
@@ -452,18 +849,151 @@ class ProposalUnpaidLeaveViewSet(ProposalViewSet):
         summary="List maternity leave proposals",
         description="Retrieve a list of maternity leave proposals",
         tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "maternity_leave",
+                                "proposal_status": "pending",
+                                "maternity_leave_start_date": "2025-02-01",
+                                "maternity_leave_end_date": "2025-08-01",
+                                "maternity_leave_estimated_due_date": "2025-03-15",
+                                "note": "Maternity leave request",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get maternity leave proposal details",
         description="Retrieve detailed information for a specific maternity leave proposal",
         tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "maternity_leave",
+                        "proposal_status": "pending",
+                        "maternity_leave_start_date": "2025-02-01",
+                        "maternity_leave_end_date": "2025-08-01",
+                        "maternity_leave_estimated_due_date": "2025-03-15",
+                        "note": "Maternity leave request",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create maternity leave proposal",
+        description="Create a new maternity leave proposal",
+        tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "maternity_leave_start_date": "2025-02-01",
+                    "maternity_leave_end_date": "2025-08-01",
+                    "maternity_leave_estimated_due_date": "2025-03-15",
+                    "maternity_leave_replacement_employee_id": 2,
+                    "note": "Maternity leave request",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "maternity_leave",
+                        "proposal_status": "pending",
+                        "maternity_leave_start_date": "2025-02-01",
+                        "maternity_leave_end_date": "2025-08-01",
+                        "maternity_leave_estimated_due_date": "2025-03-15",
+                        "note": "Maternity leave request",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Invalid date range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "maternity_leave_end_date": ["Maternity leave end date must be on or after start date"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update maternity leave proposal",
+        description="Update a maternity leave proposal",
+        tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update maternity leave proposal",
+        description="Partially update a maternity leave proposal",
+        tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete maternity leave proposal",
+        description="Delete a maternity leave proposal",
+        tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
     ),
 )
-class ProposalMaternityLeaveViewSet(ProposalViewSet):
+class ProposalMaternityLeaveViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Maternity Leave proposals."""
 
     proposal_type = ProposalType.MATERNITY_LEAVE
+    serializer_class = ProposalMaternityLeaveSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
     permission_prefix = "proposal_maternity_leave"
+
+    module = "HRM"
+    submodule = "Proposal"
+
+    def get_queryset(self):
+        """Filter queryset to only include maternity leave proposals."""
+        return Proposal.objects.filter(proposal_type=ProposalType.MATERNITY_LEAVE).select_related(
+            "created_by", "approved_by", "maternity_leave_replacement_employee"
+        )
 
 
 @extend_schema_view(
@@ -483,6 +1013,248 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
 
     proposal_type = ProposalType.ATTENDANCE_EXEMPTION
     permission_prefix = "proposal_attendance_exemption"
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List job transfer proposals",
+        description="Retrieve a list of job transfer proposals",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "job_transfer",
+                                "proposal_status": "pending",
+                                "note": "Transfer request to Marketing department",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get job transfer proposal details",
+        description="Retrieve detailed information for a specific job transfer proposal",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "job_transfer",
+                        "proposal_status": "pending",
+                        "note": "Transfer request to Marketing department",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+)
+class ProposalJobTransferViewSet(ProposalViewSet):
+    """ViewSet for Job Transfer proposals."""
+
+    proposal_type = ProposalType.JOB_TRANSFER
+    permission_prefix = "proposal_job_transfer"
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List asset allocation proposals",
+        description="Retrieve a list of asset allocation proposals",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "asset_allocation",
+                                "proposal_status": "pending",
+                                "assets": [
+                                    {
+                                        "id": 1,
+                                        "name": "Laptop Dell XPS 15",
+                                        "unit_type": "piece",
+                                        "quantity": 1,
+                                        "note": None,
+                                    }
+                                ],
+                                "note": "For new employee",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get asset allocation proposal details",
+        description="Retrieve detailed information for a specific asset allocation proposal",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "asset_allocation",
+                        "proposal_status": "pending",
+                        "assets": [
+                            {
+                                "id": 1,
+                                "name": "Laptop Dell XPS 15",
+                                "unit_type": "piece",
+                                "quantity": 1,
+                                "note": None,
+                            }
+                        ],
+                        "note": "For new employee",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create asset allocation proposal",
+        description="Create a new asset allocation proposal with assets",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "assets": [
+                        {
+                            "name": "Laptop Dell XPS 15",
+                            "unit_type": "piece",
+                            "quantity": 1,
+                            "note": "For development work",
+                        },
+                        {
+                            "name": "Monitor 27 inch",
+                            "unit_type": "piece",
+                            "quantity": 2,
+                        },
+                    ],
+                    "note": "Equipment for new employee",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "asset_allocation",
+                        "proposal_status": "pending",
+                        "assets": [
+                            {
+                                "id": 1,
+                                "name": "Laptop Dell XPS 15",
+                                "unit_type": "piece",
+                                "quantity": 1,
+                                "note": "For development work",
+                            },
+                            {
+                                "id": 2,
+                                "name": "Monitor 27 inch",
+                                "unit_type": "piece",
+                                "quantity": 2,
+                                "note": None,
+                            },
+                        ],
+                        "note": "Equipment for new employee",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update asset allocation proposal",
+        description="Update an asset allocation proposal",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update asset allocation proposal",
+        description="Partially update an asset allocation proposal",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete asset allocation proposal",
+        description="Delete an asset allocation proposal",
+        tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
+    ),
+)
+class ProposalAssetAllocationViewSet(AuditLoggingMixin, BaseModelViewSet):
+    """ViewSet for Asset Allocation proposals."""
+
+    proposal_type = ProposalType.ASSET_ALLOCATION
+    serializer_class = ProposalAssetAllocationSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
+    permission_prefix = "proposal_asset_allocation"
+
+    module = "HRM"
+    submodule = "Proposal"
+
+    def get_queryset(self):
+        """Filter queryset to only include asset allocation proposals."""
+        return (
+            Proposal.objects.filter(proposal_type=ProposalType.ASSET_ALLOCATION)
+            .select_related("created_by", "approved_by")
+            .prefetch_related("assets")
+        )
 
 
 @extend_schema_view(

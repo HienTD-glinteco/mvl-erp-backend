@@ -23,6 +23,7 @@ from apps.hrm.models import (
     EmployeeRelationship,
     JobDescription,
     Position,
+    Proposal,
     RecruitmentCandidate,
     RecruitmentChannel,
     RecruitmentExpense,
@@ -67,5 +68,6 @@ register_auto_code_signal(
     RecruitmentRequest,
     RecruitmentCandidate,
     RecruitmentExpense,
+    Proposal,
     temp_code_prefix=TEMP_CODE_PREFIX,
 )

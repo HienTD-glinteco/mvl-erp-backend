@@ -32,7 +32,9 @@ from apps.hrm.api.views import (
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
     PositionViewSet,
+    ProposalAssetAllocationViewSet,
     ProposalAttendanceExemptionViewSet,
+    ProposalJobTransferViewSet,
     ProposalLateExemptionViewSet,
     ProposalMaternityLeaveViewSet,
     ProposalOvertimeWorkViewSet,
@@ -138,6 +140,16 @@ router.register(
     r"proposals/attendance-exemption",
     ProposalAttendanceExemptionViewSet,
     basename="proposal-attendance-exemption",
+)
+router.register(
+    r"proposals/job-transfer",
+    ProposalJobTransferViewSet,
+    basename="proposal-job-transfer",
+)
+router.register(
+    r"proposals/asset-allocation",
+    ProposalAssetAllocationViewSet,
+    basename="proposal-asset-allocation",
 )
 
 # Proposal verifiers

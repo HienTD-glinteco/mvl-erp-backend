@@ -24,6 +24,8 @@ from .models import (
     InterviewSchedule,
     JobDescription,
     Position,
+    Proposal,
+    ProposalAsset,
     RecruitmentCandidate,
     RecruitmentCandidateContactLog,
     RecruitmentChannel,
@@ -112,3 +114,25 @@ class DecisionAdmin(admin.ModelAdmin):
         ("Content", {"fields": ["reason", "content", "note"]}),
         ("Timestamps", {"fields": ["created_at", "updated_at"]}),
     ]
+
+
+@admin.register(Proposal)
+class ProposalAdmin(admin.ModelAdmin):
+    """Admin configuration for Proposal model"""
+
+    list_display = ["code", "proposal_type", "proposal_status", "proposal_date", "created_by"]
+    list_filter = ["proposal_type", "proposal_status", "proposal_date"]
+    search_fields = ["code"]
+    readonly_fields = ["code", "proposal_date", "created_at", "updated_at"]
+    raw_id_fields = ["created_by", "approved_by", "maternity_leave_replacement_employee"]
+
+
+@admin.register(ProposalAsset)
+class ProposalAssetAdmin(admin.ModelAdmin):
+    """Admin configuration for ProposalAsset model"""
+
+    list_display = ["name", "unit_type", "quantity", "proposal"]
+    list_filter = ["unit_type"]
+    search_fields = ["name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["proposal"]
