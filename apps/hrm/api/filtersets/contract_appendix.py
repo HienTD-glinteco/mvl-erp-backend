@@ -36,7 +36,7 @@ class ContractAppendixFilterSet(filters.FilterSet):
         help_text="Filter by parent contract ID",
     )
 
-    status = filters.ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         choices=Contract.ContractStatus.choices,
         help_text="Filter by appendix status",
     )

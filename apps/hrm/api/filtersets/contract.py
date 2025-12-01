@@ -31,7 +31,7 @@ class ContractFilterSet(filters.FilterSet):
         help_text="Filter by contract number (case-insensitive partial match)",
     )
 
-    status = filters.ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         choices=Contract.ContractStatus.choices,
         help_text="Filter by contract status",
     )
