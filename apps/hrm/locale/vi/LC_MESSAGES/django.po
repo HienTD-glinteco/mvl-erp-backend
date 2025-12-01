@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-29 00:05+0700\n"
+"POT-Creation-Date: 2025-12-01 14:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,27 +36,45 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:140
+#: apps/hrm/api/serializers/contract.py:146
 msgid "Only contracts with DRAFT status can be edited."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:149
+#: apps/hrm/api/serializers/contract.py:151
+msgid "Contract type must have category 'contract'."
+msgstr ""
+
+#: apps/hrm/api/serializers/contract.py:160
+#: apps/hrm/api/serializers/contract_appendix.py:155
 msgid "Sign date must be on or before effective date."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:153
+#: apps/hrm/api/serializers/contract.py:164
+#: apps/hrm/api/serializers/contract_appendix.py:159
 msgid "Expiration date must be on or after effective date."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:79
+#: apps/hrm/api/serializers/contract_appendix.py:134
+msgid "Only appendices with DRAFT status can be edited."
+msgstr ""
+
+#: apps/hrm/api/serializers/contract_appendix.py:139
+msgid "Contract type must have category 'appendix'."
+msgstr ""
+
+#: apps/hrm/api/serializers/contract_appendix.py:146
+msgid "Parent contract is required for appendices."
+msgstr ""
+
+#: apps/hrm/api/serializers/contract_type.py:80
 msgid "Duration in months is required for fixed-term contracts."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:140
+#: apps/hrm/api/serializers/contract_type.py:144
 msgid "Yes"
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:140
+#: apps/hrm/api/serializers/contract_type.py:144
 #, fuzzy
 #| msgid "No."
 msgid "No"
@@ -164,8 +182,27 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
+#: apps/hrm/api/serializers/holiday.py:70
+#, python-brace-format
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr ""
+
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:98
+#, python-brace-format
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:109
+#, python-brace-format
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:134
@@ -194,6 +231,42 @@ msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:214
+#, python-brace-format
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:234
+#, python-brace-format
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:244
+#, python-brace-format
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:260
+#, python-brace-format
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:277
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr ""
+
+#: apps/hrm/api/serializers/holiday.py:288
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:207
@@ -435,27 +508,6 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
-#: apps/hrm/api/views/employee_reports.py:61
-#: apps/hrm/api/views/recruitment_reports.py:680 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:81
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:69
-#: apps/hrm/constants.py:74
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:76
-msgid "Year"
-msgstr ""
-
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
 msgstr ""
@@ -517,7 +569,7 @@ msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:558 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
-#: apps/hrm/models/contract_type.py:63 apps/hrm/models/employee.py:107
+#: apps/hrm/models/contract_type.py:64 apps/hrm/models/employee.py:107
 #: apps/hrm/models/employee_report.py:131
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
@@ -621,6 +673,22 @@ msgstr ""
 
 #: apps/hrm/constants.py:56
 msgid "Returning Employee"
+msgstr ""
+
+#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/constants.py:76
+msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:82
@@ -785,6 +853,15 @@ msgstr ""
 
 #: apps/hrm/constants.py:200
 msgid "Not verified"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract.py:105
+#: apps/hrm/import_handlers/contract_appendix.py:51
+msgid "Sign date must be on or before effective date"
+msgstr ""
+
+#: apps/hrm/import_handlers/contract.py:109
+msgid "Expiration date must be on or after effective date"
 msgstr ""
 
 #: apps/hrm/management/commands/import_work_schedule.py:9
@@ -1004,12 +1081,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1018,27 +1093,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1162,8 +1232,8 @@ msgstr ""
 msgid "Timestamp of last successful polling sync from device"
 msgstr ""
 
-#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/contract.py:188
-#: apps/hrm/models/contract_type.py:202 apps/hrm/models/decision.py:88
+#: apps/hrm/models/attendance_device.py:117 apps/hrm/models/contract.py:220
+#: apps/hrm/models/contract_type.py:217 apps/hrm/models/decision.py:88
 #: apps/hrm/models/employee.py:212 apps/hrm/models/employee_dependent.py:109
 #: apps/hrm/models/employee_relationship.py:144
 #: apps/hrm/models/employee_work_history.py:106
@@ -1189,7 +1259,7 @@ msgstr ""
 #: apps/hrm/models/attendance_exemption.py:26
 #: apps/hrm/models/attendance_record.py:88
 #: apps/hrm/models/attendance_report.py:33 apps/hrm/models/bank_account.py:25
-#: apps/hrm/models/contract.py:69 apps/hrm/models/employee.py:357
+#: apps/hrm/models/contract.py:94 apps/hrm/models/employee.py:357
 #: apps/hrm/models/employee_certificate.py:53
 #: apps/hrm/models/employee_dependent.py:51
 #: apps/hrm/models/employee_relationship.py:55
@@ -1237,7 +1307,7 @@ msgstr ""
 msgid "Longitude must be between -180 and 180 degrees"
 msgstr ""
 
-#: apps/hrm/models/attendance_geolocation.py:33 apps/hrm/models/contract.py:49
+#: apps/hrm/models/attendance_geolocation.py:33 apps/hrm/models/contract.py:55
 #: apps/hrm/models/employee.py:72 apps/hrm/models/organization.py:36
 #: apps/hrm/models/organization.py:101 apps/hrm/models/organization.py:179
 #: apps/hrm/models/organization.py:310
@@ -1536,336 +1606,378 @@ msgstr ""
 msgid "Employee already has a primary bank account. Please unset it first."
 msgstr ""
 
-#: apps/hrm/models/contract.py:47 apps/hrm/models/decision.py:34
+#: apps/hrm/models/contract.py:53 apps/hrm/models/decision.py:34
 #: apps/hrm/models/recruitment_request.py:24
 msgid "Draft"
 msgstr ""
 
-#: apps/hrm/models/contract.py:48
+#: apps/hrm/models/contract.py:54
 msgid "Not effective"
 msgstr ""
 
-#: apps/hrm/models/contract.py:50
+#: apps/hrm/models/contract.py:56
 msgid "About to expire"
 msgstr ""
 
-#: apps/hrm/models/contract.py:51 apps/hrm/models/employee_certificate.py:30
+#: apps/hrm/models/contract.py:57 apps/hrm/models/employee_certificate.py:30
 msgid "Expired"
 msgstr ""
 
-#: apps/hrm/models/contract.py:61
+#: apps/hrm/models/contract.py:67
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contract code"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract.py:62
+#: apps/hrm/models/contract.py:68
 msgid "Auto-generated unique contract code"
 msgstr ""
 
-#: apps/hrm/models/contract.py:70
+#: apps/hrm/models/contract.py:76
+#, fuzzy
+#| msgid "Contract Type"
+msgid "Contract number"
+msgstr "Loại Hợp Đồng"
+
+#: apps/hrm/models/contract.py:77
+msgid "Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)"
+msgstr ""
+
+#: apps/hrm/models/contract.py:86
+msgid "Parent contract"
+msgstr ""
+
+#: apps/hrm/models/contract.py:87
+msgid "Reference to parent contract (for appendices only)"
+msgstr ""
+
+#: apps/hrm/models/contract.py:95
 msgid "Employee associated with this contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:77 apps/hrm/models/contract_type.py:217
+#: apps/hrm/models/contract.py:102 apps/hrm/models/contract_type.py:232
 msgid "Contract type"
 msgstr ""
 
-#: apps/hrm/models/contract.py:78
+#: apps/hrm/models/contract.py:103
 msgid "Type of the contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:82
+#: apps/hrm/models/contract.py:107
 #, fuzzy
 #| msgid "Status"
 msgid "Sign date"
 msgstr "Trạng Thái"
 
-#: apps/hrm/models/contract.py:83
+#: apps/hrm/models/contract.py:108
 msgid "Date when the contract was signed"
 msgstr ""
 
-#: apps/hrm/models/contract.py:87 apps/hrm/models/decision.py:64
+#: apps/hrm/models/contract.py:112 apps/hrm/models/decision.py:64
 #: apps/hrm/models/employee_dependent.py:86
 msgid "Effective date"
 msgstr ""
 
-#: apps/hrm/models/contract.py:88
+#: apps/hrm/models/contract.py:113
 msgid "Date when the contract becomes effective"
 msgstr ""
 
-#: apps/hrm/models/contract.py:94
+#: apps/hrm/models/contract.py:119
 #, fuzzy
 #| msgid "Resignation Date"
 msgid "Expiration date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/models/contract.py:95
+#: apps/hrm/models/contract.py:120
 msgid "Date when the contract expires (null for indefinite contracts)"
 msgstr ""
 
-#: apps/hrm/models/contract.py:102
+#: apps/hrm/models/contract.py:127
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contract status"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract.py:103
+#: apps/hrm/models/contract.py:128
 msgid "Current status of the contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:111 apps/hrm/models/contract_type.py:109
+#: apps/hrm/models/contract.py:136 apps/hrm/models/contract_type.py:124
 msgid "Base salary"
 msgstr ""
 
-#: apps/hrm/models/contract.py:112
+#: apps/hrm/models/contract.py:137
 msgid "Base salary amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:120 apps/hrm/models/contract_type.py:118
+#: apps/hrm/models/contract.py:145 apps/hrm/models/contract_type.py:133
 msgid "Lunch allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:121
+#: apps/hrm/models/contract.py:146
 msgid "Lunch allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:129 apps/hrm/models/contract_type.py:127
+#: apps/hrm/models/contract.py:154 apps/hrm/models/contract_type.py:142
 msgid "Phone allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:130
+#: apps/hrm/models/contract.py:155
 msgid "Phone allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:138 apps/hrm/models/contract_type.py:136
+#: apps/hrm/models/contract.py:163 apps/hrm/models/contract_type.py:151
 msgid "Other allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:139
+#: apps/hrm/models/contract.py:164
 msgid "Other allowance amount at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:145 apps/hrm/models/contract_type.py:144
+#: apps/hrm/models/contract.py:170 apps/hrm/models/contract_type.py:159
 msgid "Net percentage"
 msgstr ""
 
-#: apps/hrm/models/contract.py:146
+#: apps/hrm/models/contract.py:171
 msgid "Net salary percentage at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:152 apps/hrm/models/contract_type.py:152
+#: apps/hrm/models/contract.py:177 apps/hrm/models/contract_type.py:167
 msgid "Tax calculation method"
 msgstr ""
 
-#: apps/hrm/models/contract.py:153
+#: apps/hrm/models/contract.py:178
 msgid "Tax calculation method at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:158 apps/hrm/models/contract_type.py:173
+#: apps/hrm/models/contract.py:183 apps/hrm/models/contract_type.py:188
 msgid "Has social insurance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:159 apps/hrm/models/contract_type.py:174
+#: apps/hrm/models/contract.py:184 apps/hrm/models/contract_type.py:189
 msgid "Whether social insurance is included"
 msgstr ""
 
-#: apps/hrm/models/contract.py:166 apps/hrm/models/contract_type.py:180
+#: apps/hrm/models/contract.py:191 apps/hrm/models/contract_type.py:195
 msgid "Working conditions"
 msgstr ""
 
-#: apps/hrm/models/contract.py:167
+#: apps/hrm/models/contract.py:192
 msgid "Working conditions at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:173 apps/hrm/models/contract_type.py:187
+#: apps/hrm/models/contract.py:198 apps/hrm/models/contract_type.py:202
 msgid "Rights and obligations"
 msgstr ""
 
-#: apps/hrm/models/contract.py:174
+#: apps/hrm/models/contract.py:199
 msgid "Rights and obligations at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:180 apps/hrm/models/contract_type.py:194
+#: apps/hrm/models/contract.py:205 apps/hrm/models/contract_type.py:209
 msgid "Terms"
 msgstr ""
 
-#: apps/hrm/models/contract.py:181
+#: apps/hrm/models/contract.py:206
 msgid "Contract terms and conditions at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:189 apps/hrm/models/contract_type.py:203
+#: apps/hrm/models/contract.py:212
+#, fuzzy
+#| msgid "Contract Type"
+msgid "Content"
+msgstr "Loại Hợp Đồng"
+
+#: apps/hrm/models/contract.py:213
+msgid "Content of the appendix (for appendices only)"
+msgstr ""
+
+#: apps/hrm/models/contract.py:221 apps/hrm/models/contract_type.py:218
 #: apps/hrm/models/decision.py:89 apps/hrm/models/work_schedule.py:83
 msgid "Additional notes"
 msgstr ""
 
-#: apps/hrm/models/contract.py:198 apps/hrm/models/employee_dependent.py:103
+#: apps/hrm/models/contract.py:230 apps/hrm/models/employee_dependent.py:103
 #: apps/hrm/models/employee_relationship.py:138
 #: apps/hrm/models/job_description.py:32
 msgid "Attachment"
 msgstr ""
 
-#: apps/hrm/models/contract.py:199
+#: apps/hrm/models/contract.py:231
 msgid "Attached contract file"
 msgstr ""
 
-#: apps/hrm/models/contract.py:216 apps/hrm/models/employee_work_history.py:149
+#: apps/hrm/models/contract.py:248 apps/hrm/models/contract_type.py:69
+#: apps/hrm/models/employee_work_history.py:149
 msgid "Contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:217
+#: apps/hrm/models/contract.py:249
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contracts"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract_type.py:42 apps/hrm/models/contract_type.py:234
+#: apps/hrm/models/contract_type.py:43 apps/hrm/models/contract_type.py:249
 msgid "Indefinite term"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:43
+#: apps/hrm/models/contract_type.py:44
 msgid "Fixed term"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:48
+#: apps/hrm/models/contract_type.py:49
 msgid "100%"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:49
+#: apps/hrm/models/contract_type.py:50
 msgid "85%"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:54
+#: apps/hrm/models/contract_type.py:55
 msgid "Progressive tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:55
+#: apps/hrm/models/contract_type.py:56
+#, python-format
 msgid "10% flat tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:56
+#: apps/hrm/models/contract_type.py:57
 msgid "No tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:61
+#: apps/hrm/models/contract_type.py:62
 msgid "Full-time - Office hours"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:62
+#: apps/hrm/models/contract_type.py:63
 #, fuzzy
 #| msgid "Start Date"
 msgid "Part-time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/contract_type.py:72
+#: apps/hrm/models/contract_type.py:70
+msgid "Appendix"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:79
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contract type code"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract_type.py:73
+#: apps/hrm/models/contract_type.py:80
 msgid "Auto-generated unique contract type code"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:79
+#: apps/hrm/models/contract_type.py:86
 msgid "Contract type name"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:80
+#: apps/hrm/models/contract_type.py:87
 msgid "Name of the contract type"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:86
+#: apps/hrm/models/contract_type.py:93
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contract type symbol"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract_type.py:87
+#: apps/hrm/models/contract_type.py:94
 msgid "Symbol or abbreviation for the contract type"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:94
-msgid "Duration type"
-msgstr ""
-
-#: apps/hrm/models/contract_type.py:95
-msgid "Whether the contract has a fixed term or is indefinite"
-msgstr ""
-
 #: apps/hrm/models/contract_type.py:101
-msgid "Duration in months"
+msgid "Category"
 msgstr ""
 
 #: apps/hrm/models/contract_type.py:102
-msgid "Number of months for fixed-term contracts"
+msgid "Whether this is a contract type or appendix type"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:109
+msgid "Duration type"
 msgstr ""
 
 #: apps/hrm/models/contract_type.py:110
+msgid "Whether the contract has a fixed term or is indefinite"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:116
+msgid "Duration in months"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:117
+msgid "Number of months for fixed-term contracts"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:125
 msgid "Base salary amount"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:119
+#: apps/hrm/models/contract_type.py:134
 msgid "Lunch allowance amount"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:128
+#: apps/hrm/models/contract_type.py:143
 msgid "Phone allowance amount"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:137
+#: apps/hrm/models/contract_type.py:152
 msgid "Other allowance amount"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:145
+#: apps/hrm/models/contract_type.py:160
 msgid "Net salary percentage (100% or 85%)"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:153
+#: apps/hrm/models/contract_type.py:168
 msgid "Method for calculating tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:160
+#: apps/hrm/models/contract_type.py:175
 msgid "Working time type"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:161
+#: apps/hrm/models/contract_type.py:176
 msgid "Type of working time arrangement"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:167
+#: apps/hrm/models/contract_type.py:182
 msgid "Annual leave days"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:168
+#: apps/hrm/models/contract_type.py:183
 msgid "Number of annual leave days (maximum 12)"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:181
+#: apps/hrm/models/contract_type.py:196
 msgid "Description of working conditions"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:188
+#: apps/hrm/models/contract_type.py:203
 msgid "Rights and obligations of parties"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:195
+#: apps/hrm/models/contract_type.py:210
 msgid "Contract terms and conditions"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:212
+#: apps/hrm/models/contract_type.py:227
 msgid "Template file"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:213
+#: apps/hrm/models/contract_type.py:228
 msgid "Template file for the contract"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:218
+#: apps/hrm/models/contract_type.py:233
 msgid "Contract types"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:235
+#: apps/hrm/models/contract_type.py:250
 #, python-brace-format
 msgid "{months} months"
 msgstr ""

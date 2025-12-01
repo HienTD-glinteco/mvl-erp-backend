@@ -158,7 +158,8 @@ def pre_import_initialize(import_job_id: str, options: dict) -> None:
     # Prefetch all contract types by code (case-insensitive)
     contract_types_by_code = {}
     for ct in ContractType.objects.all():
-        contract_types_by_code[ct.code.lower()] = ct
+        contract_code = ct.code or ""
+        contract_types_by_code[contract_code.lower()] = ct
     options["_contract_types_by_code"] = contract_types_by_code
 
     logger.info(

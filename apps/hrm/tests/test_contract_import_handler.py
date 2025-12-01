@@ -440,9 +440,8 @@ class TestContractImportHandler:
         assert result["ok"] is True
         assert result["action"] == "created"
         assert "contract_code" in result
-        # Contract code format is: xx/yyyy/abc - MVL
-        assert "/" in result["contract_code"]
-        assert "MVL" in result["contract_code"]
+        # Contract code format is: HDxxxxx
+        assert "HD" in result["contract_code"]
 
         # Verify contract was created
         contract = Contract.objects.get(code=result["contract_code"])
@@ -456,6 +455,11 @@ class TestContractImportHandler:
         # Snapshot data from contract type
         assert contract.base_salary == contract_type.base_salary
         assert contract.lunch_allowance == contract_type.lunch_allowance
+
+        # Verify contract number is set correctly (Business ID format: xx/yyyy/abc - MVL)
+        assert contract.contract_number is not None
+        assert "/" in contract.contract_number
+        assert "MVL" in contract.contract_number
 
     def test_import_handler_with_custom_salary(self, setup_test_data, initialized_options):
         """Test contract import with custom salary values."""
