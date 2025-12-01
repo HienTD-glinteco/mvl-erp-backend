@@ -23,10 +23,12 @@ COLUMN_MAPPING = {
     "số thứ tự": "row_number",
     "mã nhân viên": "employee_code",
     "mã loại hợp đồng": "contract_type_code",
+    "số hợp đồng": "contract_number",
     "ngày ký": "sign_date",
     "ngày hiệu lực": "effective_date",
     "ngày hết hạn": "expiration_date",
     "lương cơ bản": "base_salary",
+    "lương kpi": "kpi_salary",
     "phụ cấp ăn trưa": "lunch_allowance",
     "phụ cấp điện thoại": "phone_allowance",
     "phụ cấp khác": "other_allowance",
@@ -72,8 +74,10 @@ class ContractImportSerializer(serializers.Serializer):
     effective_date = FlexibleDateField()
 
     # Optional fields
+    contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     expiration_date = FlexibleDateField(required=False, allow_null=True)
     base_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    kpi_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     lunch_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     phone_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     other_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
@@ -228,7 +232,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Lookup employee from prefetched data
         employees_by_code = options.get("_employees_by_code", {})
-        employee = employees_by_code.get(employee_code.lower())
+        employee = employees_by_code.get(str(employee_code).lower())
         if not employee:
             return {
                 "ok": False,
@@ -239,7 +243,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Lookup contract type from prefetched data
         contract_types_by_code = options.get("_contract_types_by_code", {})
-        contract_type = contract_types_by_code.get(contract_type_code.lower())
+        contract_type = contract_types_by_code.get(str(contract_type_code).lower())
         if not contract_type:
             return {
                 "ok": False,
@@ -250,10 +254,12 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Prepare serializer data - FlexibleFields handle parsing
         serializer_data = {
+            "contract_number": normalize_value(row_dict.get("contract_number", "")),
             "sign_date": row_dict.get("sign_date"),
             "effective_date": row_dict.get("effective_date"),
             "expiration_date": row_dict.get("expiration_date"),
             "base_salary": row_dict.get("base_salary"),
+            "kpi_salary": row_dict.get("kpi_salary"),
             "lunch_allowance": row_dict.get("lunch_allowance"),
             "phone_allowance": row_dict.get("phone_allowance"),
             "other_allowance": row_dict.get("other_allowance"),
@@ -298,7 +304,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Add optional fields if provided
         optional_fields = [
+            "contract_number",
             "base_salary",
+            "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",

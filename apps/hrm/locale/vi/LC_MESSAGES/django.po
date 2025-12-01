@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:19+0700\n"
+"POT-Creation-Date: 2025-12-01 15:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,20 +36,20 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:146
+#: apps/hrm/api/serializers/contract.py:147
 msgid "Only contracts with DRAFT status can be edited."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:151
+#: apps/hrm/api/serializers/contract.py:152
 msgid "Contract type must have category 'contract'."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:160
+#: apps/hrm/api/serializers/contract.py:161
 #: apps/hrm/api/serializers/contract_appendix.py:155
 msgid "Sign date must be on or before effective date."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:164
+#: apps/hrm/api/serializers/contract.py:165
 #: apps/hrm/api/serializers/contract_appendix.py:159
 msgid "Expiration date must be on or after effective date."
 msgstr ""
@@ -805,12 +805,12 @@ msgstr ""
 msgid "Not verified"
 msgstr ""
 
-#: apps/hrm/import_handlers/contract.py:105
+#: apps/hrm/import_handlers/contract.py:109
 #: apps/hrm/import_handlers/contract_appendix.py:51
 msgid "Sign date must be on or before effective date"
 msgstr ""
 
-#: apps/hrm/import_handlers/contract.py:109
+#: apps/hrm/import_handlers/contract.py:113
 msgid "Expiration date must be on or after effective date"
 msgstr ""
 
@@ -1664,7 +1664,7 @@ msgstr ""
 msgid "Lunch allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:146
+#: apps/hrm/models/contract.py:154
 msgid "Lunch allowance amount at the time of contract"
 msgstr ""
 
@@ -1672,7 +1672,7 @@ msgstr ""
 msgid "Phone allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:155
+#: apps/hrm/models/contract.py:163
 msgid "Phone allowance amount at the time of contract"
 msgstr ""
 
@@ -1680,7 +1680,7 @@ msgstr ""
 msgid "Other allowance"
 msgstr ""
 
-#: apps/hrm/models/contract.py:164
+#: apps/hrm/models/contract.py:172
 msgid "Other allowance amount at the time of contract"
 msgstr ""
 
@@ -1688,7 +1688,7 @@ msgstr ""
 msgid "Net percentage"
 msgstr ""
 
-#: apps/hrm/models/contract.py:171
+#: apps/hrm/models/contract.py:179
 msgid "Net salary percentage at the time of contract"
 msgstr ""
 
@@ -1696,7 +1696,7 @@ msgstr ""
 msgid "Tax calculation method"
 msgstr ""
 
-#: apps/hrm/models/contract.py:178
+#: apps/hrm/models/contract.py:186
 msgid "Tax calculation method at the time of contract"
 msgstr ""
 
@@ -1712,7 +1712,7 @@ msgstr ""
 msgid "Working conditions"
 msgstr ""
 
-#: apps/hrm/models/contract.py:192
+#: apps/hrm/models/contract.py:200
 msgid "Working conditions at the time of contract"
 msgstr ""
 
@@ -1720,7 +1720,7 @@ msgstr ""
 msgid "Rights and obligations"
 msgstr ""
 
-#: apps/hrm/models/contract.py:199
+#: apps/hrm/models/contract.py:207
 msgid "Rights and obligations at the time of contract"
 msgstr ""
 
@@ -1728,17 +1728,17 @@ msgstr ""
 msgid "Terms"
 msgstr ""
 
-#: apps/hrm/models/contract.py:206
+#: apps/hrm/models/contract.py:214
 msgid "Contract terms and conditions at the time of contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:212
+#: apps/hrm/models/contract.py:220
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Content"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract.py:213
+#: apps/hrm/models/contract.py:221
 msgid "Content of the appendix (for appendices only)"
 msgstr ""
 
@@ -1747,13 +1747,13 @@ msgstr ""
 msgid "Additional notes"
 msgstr ""
 
-#: apps/hrm/models/contract.py:230 apps/hrm/models/employee_dependent.py:103
+#: apps/hrm/models/contract.py:238 apps/hrm/models/employee_dependent.py:103
 #: apps/hrm/models/employee_relationship.py:138
 #: apps/hrm/models/job_description.py:32
 msgid "Attachment"
 msgstr ""
 
-#: apps/hrm/models/contract.py:231
+#: apps/hrm/models/contract.py:239
 msgid "Attached contract file"
 msgstr ""
 
@@ -1762,7 +1762,7 @@ msgstr ""
 msgid "Contract"
 msgstr ""
 
-#: apps/hrm/models/contract.py:249
+#: apps/hrm/models/contract.py:257
 #, fuzzy
 #| msgid "Contract Type"
 msgid "Contracts"

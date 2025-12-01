@@ -26,6 +26,11 @@ class ContractFilterSet(filters.FilterSet):
         help_text="Filter by contract code (case-insensitive partial match)",
     )
 
+    contract_number = filters.CharFilter(
+        lookup_expr="icontains",
+        help_text="Filter by contract number (case-insensitive partial match)",
+    )
+
     status = filters.ChoiceFilter(
         choices=Contract.ContractStatus.choices,
         help_text="Filter by contract status",
@@ -97,6 +102,7 @@ class ContractFilterSet(filters.FilterSet):
         model = Contract
         fields = [
             "code",
+            "contract_number",
             "status",
             "employee",
             "contract_type",

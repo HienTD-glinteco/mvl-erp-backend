@@ -44,6 +44,7 @@ class ContractListSerializer(serializers.ModelSerializer):
             "status",
             "colored_status",
             "base_salary",
+            "kpi_salary",
             "created_at",
         ]
         read_only_fields = fields
@@ -103,6 +104,7 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
             "status",
             "colored_status",
             "base_salary",
+            "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
@@ -120,7 +122,6 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
         read_only_fields = [
             "id",
             "code",
-            "contract_number",
             "employee",
             "contract_type",
             "status",
@@ -233,6 +234,7 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
             "expiration_date",
             "status_display",
             "base_salary",
+            "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
