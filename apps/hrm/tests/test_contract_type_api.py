@@ -164,6 +164,90 @@ class TestContractTypeModel:
             )
             contract_type.full_clean()
 
+    def test_colored_duration_type_indefinite(self, contract_type):
+        """Test colored_duration_type for indefinite contract."""
+        colored_value = contract_type.colored_duration_type
+        assert colored_value["value"] == ContractType.DurationType.INDEFINITE
+        assert colored_value["variant"] == "GREY"
+
+    def test_colored_duration_type_fixed(self, fixed_term_contract_type):
+        """Test colored_duration_type for fixed-term contract."""
+        colored_value = fixed_term_contract_type.colored_duration_type
+        assert colored_value["value"] == ContractType.DurationType.FIXED
+        assert colored_value["variant"] == "GREEN"
+
+    def test_colored_net_percentage_full(self, contract_type):
+        """Test colored_net_percentage for full (100%) net percentage."""
+        contract_type.net_percentage = ContractType.NetPercentage.FULL
+        contract_type.save()
+        colored_value = contract_type.colored_net_percentage
+        assert colored_value["value"] == ContractType.NetPercentage.FULL
+        assert colored_value["variant"] == "RED"
+
+    def test_colored_net_percentage_reduced(self, contract_type):
+        """Test colored_net_percentage for reduced (85%) net percentage."""
+        contract_type.net_percentage = ContractType.NetPercentage.REDUCED
+        contract_type.save()
+        colored_value = contract_type.colored_net_percentage
+        assert colored_value["value"] == ContractType.NetPercentage.REDUCED
+        assert colored_value["variant"] == "GREY"
+
+    def test_colored_tax_calculation_method_progressive(self, contract_type):
+        """Test colored_tax_calculation_method for progressive tax."""
+        contract_type.tax_calculation_method = ContractType.TaxCalculationMethod.PROGRESSIVE
+        contract_type.save()
+        colored_value = contract_type.colored_tax_calculation_method
+        assert colored_value["value"] == ContractType.TaxCalculationMethod.PROGRESSIVE
+        assert colored_value["variant"] == "YELLOW"
+
+    def test_colored_tax_calculation_method_unmapped(self, contract_type):
+        """Test colored_tax_calculation_method for unmapped value."""
+        contract_type.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
+        contract_type.save()
+        colored_value = contract_type.colored_tax_calculation_method
+        assert colored_value["value"] == ContractType.TaxCalculationMethod.FLAT_10
+        assert colored_value["variant"] is None
+
+    def test_colored_working_time_type_full_time(self, contract_type):
+        """Test colored_working_time_type for full-time."""
+        contract_type.working_time_type = ContractType.WorkingTimeType.FULL_TIME
+        contract_type.save()
+        colored_value = contract_type.colored_working_time_type
+        assert colored_value["value"] == ContractType.WorkingTimeType.FULL_TIME
+        assert colored_value["variant"] == "BLUE"
+
+    def test_colored_working_time_type_part_time(self, contract_type):
+        """Test colored_working_time_type for part-time."""
+        contract_type.working_time_type = ContractType.WorkingTimeType.PART_TIME
+        contract_type.save()
+        colored_value = contract_type.colored_working_time_type
+        assert colored_value["value"] == ContractType.WorkingTimeType.PART_TIME
+        assert colored_value["variant"] == "ORANGE"
+
+    def test_colored_working_time_type_other(self, contract_type):
+        """Test colored_working_time_type for other."""
+        contract_type.working_time_type = ContractType.WorkingTimeType.OTHER
+        contract_type.save()
+        colored_value = contract_type.colored_working_time_type
+        assert colored_value["value"] == ContractType.WorkingTimeType.OTHER
+        assert colored_value["variant"] == "GREY"
+
+    def test_colored_has_social_insurance_true(self, contract_type):
+        """Test colored_has_social_insurance when insurance is included."""
+        contract_type.has_social_insurance = True
+        contract_type.save()
+        colored_value = contract_type.colored_has_social_insurance
+        assert colored_value["value"] is True
+        assert colored_value["variant"] == "GREEN"
+
+    def test_colored_has_social_insurance_false(self, contract_type):
+        """Test colored_has_social_insurance when insurance is not included."""
+        contract_type.has_social_insurance = False
+        contract_type.save()
+        colored_value = contract_type.colored_has_social_insurance
+        assert colored_value["value"] is False
+        assert colored_value["variant"] == "GREY"
+
 
 class TestContractTypeAPI:
     """Test cases for ContractType API endpoints."""
@@ -452,3 +536,103 @@ class TestContractTypeAPI:
         assert data["duration_type"] == "indefinite"
         assert data["duration_months"] is None
         assert data["duration_display"] == "Indefinite term"
+
+    def test_retrieve_contract_type_colored_fields(self, api_client, contract_type):
+        """Test that colored fields are included in API response."""
+        url = reverse("hrm:contract-type-detail", kwargs={"pk": contract_type.pk})
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+
+        # Verify all colored fields are present
+        assert "colored_duration_type" in data
+        assert "colored_net_percentage" in data
+        assert "colored_tax_calculation_method" in data
+        assert "colored_working_time_type" in data
+        assert "colored_has_social_insurance" in data
+
+        # Verify colored field structure (value and variant)
+        assert "value" in data["colored_duration_type"]
+        assert "variant" in data["colored_duration_type"]
+
+        # Verify values for indefinite contract type with defaults
+        assert data["colored_duration_type"]["value"] == "indefinite"
+        assert data["colored_duration_type"]["variant"] == "GREY"
+
+        assert data["colored_net_percentage"]["value"] == "100"
+        assert data["colored_net_percentage"]["variant"] == "RED"
+
+        assert data["colored_tax_calculation_method"]["value"] == "progressive"
+        assert data["colored_tax_calculation_method"]["variant"] == "YELLOW"
+
+        assert data["colored_working_time_type"]["value"] == "full_time"
+        assert data["colored_working_time_type"]["variant"] == "BLUE"
+
+        assert data["colored_has_social_insurance"]["value"] == "True"
+        assert data["colored_has_social_insurance"]["variant"] == "GREEN"
+
+    def test_retrieve_fixed_term_contract_colored_duration_type(self, api_client, fixed_term_contract_type):
+        """Test that fixed-term contract has green colored_duration_type."""
+        url = reverse("hrm:contract-type-detail", kwargs={"pk": fixed_term_contract_type.pk})
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+
+        assert data["colored_duration_type"]["value"] == "fixed"
+        assert data["colored_duration_type"]["variant"] == "GREEN"
+
+    def test_create_contract_type_includes_colored_fields(self, api_client, contract_type_data):
+        """Test that created contract type response includes colored fields."""
+        url = reverse("hrm:contract-type-list")
+        response = api_client.post(url, contract_type_data, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()["data"]
+
+        # Verify all colored fields are present in create response
+        assert "colored_duration_type" in data
+        assert "colored_net_percentage" in data
+        assert "colored_tax_calculation_method" in data
+        assert "colored_working_time_type" in data
+        assert "colored_has_social_insurance" in data
+
+        # Verify values match request data
+        assert data["colored_duration_type"]["value"] == "indefinite"
+        assert data["colored_duration_type"]["variant"] == "GREY"
+
+    def test_update_contract_type_colored_fields_change(self, api_client, contract_type):
+        """Test that updating contract type reflects in colored fields."""
+        url = reverse("hrm:contract-type-detail", kwargs={"pk": contract_type.pk})
+
+        # Update to part-time and no social insurance
+        payload = {
+            "working_time_type": "part_time",
+            "has_social_insurance": False,
+        }
+        response = api_client.patch(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+
+        assert data["colored_working_time_type"]["value"] == "part_time"
+        assert data["colored_working_time_type"]["variant"] == "ORANGE"
+
+        assert data["colored_has_social_insurance"]["value"] == "False"
+        assert data["colored_has_social_insurance"]["variant"] == "GREY"
+
+    def test_colored_tax_method_unmapped_value_returns_null_variant(self, api_client, contract_type_data):
+        """Test that unmapped tax method returns null variant."""
+        # Create with flat_10 tax method which is not in VARIANT_MAPPING
+        contract_type_data["name"] = "Flat Tax Contract"
+        contract_type_data["tax_calculation_method"] = "flat_10"
+
+        url = reverse("hrm:contract-type-list")
+        response = api_client.post(url, contract_type_data, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()["data"]
+
+        assert data["colored_tax_calculation_method"]["value"] == "flat_10"
+        assert data["colored_tax_calculation_method"]["variant"] is None

@@ -230,6 +230,12 @@ from libs.export_xlsx import ExportXLSXMixin
     export=extend_schema(
         tags=["7.2: Contract"],
     ),
+    start_import=extend_schema(
+        tags=["7.2: Contract"],
+    ),
+    import_template=extend_schema(
+        tags=["7.2: Contract"],
+    ),
 )
 class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Contract model.

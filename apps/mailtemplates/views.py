@@ -507,7 +507,7 @@ class MailTemplateViewSet(BaseGenericViewSet):
     @extend_schema(
         summary="Get send job status",
         description="Retrieve the status of a bulk email send job",
-        tags=["0.6 Mail Templates"],
+        tags=["0.6: Mail Templates"],
         examples=[
             OpenApiExample(
                 "Job status success",

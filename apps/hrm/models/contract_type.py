@@ -4,11 +4,12 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
-from libs.models import AutoCodeMixin, BaseModel, SafeTextField
+from libs.constants import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
 
 @audit_logging_register
-class ContractType(AutoCodeMixin, BaseModel):
+class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Contract type model representing employment contract types.
 
     This model stores contract type information including terms, salary,
@@ -70,6 +71,30 @@ class ContractType(AutoCodeMixin, BaseModel):
         APPENDIX = "appendix", _("Appendix")
 
     CODE_PREFIX = "LHD"
+
+    # ColoredValueMixin configuration
+    VARIANT_MAPPING = {
+        "duration_type": {
+            DurationType.FIXED: ColorVariant.GREEN,
+            DurationType.INDEFINITE: ColorVariant.GREY,
+        },
+        "net_percentage": {
+            NetPercentage.FULL: ColorVariant.RED,
+            NetPercentage.REDUCED: ColorVariant.GREY,
+        },
+        "tax_calculation_method": {
+            TaxCalculationMethod.PROGRESSIVE: ColorVariant.YELLOW,
+        },
+        "working_time_type": {
+            WorkingTimeType.FULL_TIME: ColorVariant.BLUE,
+            WorkingTimeType.PART_TIME: ColorVariant.ORANGE,
+            WorkingTimeType.OTHER: ColorVariant.GREY,
+        },
+        "has_social_insurance": {
+            True: ColorVariant.GREEN,
+            False: ColorVariant.GREY,
+        },
+    }
 
     code = models.CharField(
         max_length=50,
@@ -248,3 +273,48 @@ class ContractType(AutoCodeMixin, BaseModel):
         if self.duration_type == self.DurationType.INDEFINITE:
             return str(_("Indefinite term"))
         return str(_("{months} months").format(months=self.duration_months))
+
+    @property
+    def colored_duration_type(self) -> dict:
+        """Return colored value for duration_type field.
+
+        Returns:
+            dict: Contains 'value' (duration type) and 'variant' (color variant)
+        """
+        return self.get_colored_value("duration_type")
+
+    @property
+    def colored_net_percentage(self) -> dict:
+        """Return colored value for net_percentage field.
+
+        Returns:
+            dict: Contains 'value' (net percentage) and 'variant' (color variant)
+        """
+        return self.get_colored_value("net_percentage")
+
+    @property
+    def colored_tax_calculation_method(self) -> dict:
+        """Return colored value for tax_calculation_method field.
+
+        Returns:
+            dict: Contains 'value' (tax method) and 'variant' (color variant)
+        """
+        return self.get_colored_value("tax_calculation_method")
+
+    @property
+    def colored_working_time_type(self) -> dict:
+        """Return colored value for working_time_type field.
+
+        Returns:
+            dict: Contains 'value' (working time type) and 'variant' (color variant)
+        """
+        return self.get_colored_value("working_time_type")
+
+    @property
+    def colored_has_social_insurance(self) -> dict:
+        """Return colored value for has_social_insurance field.
+
+        Returns:
+            dict: Contains 'value' (boolean) and 'variant' (color variant)
+        """
+        return self.get_colored_value("has_social_insurance")

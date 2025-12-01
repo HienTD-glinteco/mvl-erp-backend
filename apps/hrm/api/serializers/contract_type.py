@@ -4,7 +4,7 @@ from rest_framework import serializers
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import ContractType
-from libs.drf.serializers import FieldFilteringSerializerMixin
+from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
@@ -25,6 +25,13 @@ class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
     # Computed field for duration display
     duration_display = serializers.CharField(read_only=True)
 
+    # Color representation fields using ColoredValueSerializer
+    colored_duration_type = ColoredValueSerializer(read_only=True)
+    colored_net_percentage = ColoredValueSerializer(read_only=True)
+    colored_tax_calculation_method = ColoredValueSerializer(read_only=True)
+    colored_working_time_type = ColoredValueSerializer(read_only=True)
+    colored_has_social_insurance = ColoredValueSerializer(read_only=True)
+
     class Meta:
         model = ContractType
         fields = [
@@ -36,15 +43,20 @@ class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
             "duration_type",
             "duration_months",
             "duration_display",
+            "colored_duration_type",
             "base_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
             "net_percentage",
+            "colored_net_percentage",
             "tax_calculation_method",
+            "colored_tax_calculation_method",
             "working_time_type",
+            "colored_working_time_type",
             "annual_leave_days",
             "has_social_insurance",
+            "colored_has_social_insurance",
             "working_conditions",
             "rights_and_obligations",
             "terms",
@@ -57,6 +69,11 @@ class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
             "id",
             "code",
             "duration_display",
+            "colored_duration_type",
+            "colored_net_percentage",
+            "colored_tax_calculation_method",
+            "colored_working_time_type",
+            "colored_has_social_insurance",
             "template_file",
             "created_at",
             "updated_at",

@@ -212,6 +212,9 @@ from libs.export_xlsx import ExportXLSXMixin
             ),
         ],
     ),
+    export=extend_schema(
+        tags=["7.3: Contract Appendix"],
+    ),
 )
 class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Contract Appendix (using Contract model with category='appendix').
