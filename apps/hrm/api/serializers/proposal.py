@@ -369,8 +369,9 @@ class ProposalGenericRejectSerializer(ProposalBaseStatusActionSerializer):
     def validate(self, attrs):
         """Ensure note is provided even for partial updates."""
         attrs = super().validate(attrs)
-        # For partial updates, explicitly check note is provided
-        if "note" not in attrs or not attrs.get("note", "").strip():
+        # For partial updates, note field might not go through validate_note if not in request data
+        # So we need to check here
+        if "note" not in attrs:
             raise serializers.ValidationError({"note": _("Note is required when rejecting a proposal")})
         return attrs
 
@@ -433,8 +434,6 @@ class ProposalRejectSerializer(ProposalBaseComplaintStatusActionSerializer):
         allow_blank=False,
         help_text="Reason for rejection (required)",
     )
-
-    target_status = ProposalStatus.REJECTED
 
     class Meta:
         model = Proposal

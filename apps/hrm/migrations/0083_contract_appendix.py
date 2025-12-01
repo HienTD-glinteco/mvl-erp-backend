@@ -7,33 +7,88 @@ import libs.models.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0082_add_contract_model'),
+        ("hrm", "0082_add_contract_model"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ContractAppendix',
+            name="ContractAppendix",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('code', models.CharField(blank=True, help_text='Auto-generated unique appendix number (format: x/yyyy/PLHD-MVL)', max_length=50, null=True, unique=True, verbose_name='Appendix number')),
-                ('appendix_code', models.CharField(blank=True, help_text='Auto-generated appendix code (format: PLHDxxxxx)', max_length=20, null=True, unique=True, verbose_name='Appendix code')),
-                ('sign_date', models.DateField(help_text='Date when the appendix was signed', verbose_name='Sign date')),
-                ('effective_date', models.DateField(help_text='Date when the appendix becomes effective', verbose_name='Effective date')),
-                ('content', libs.models.fields.SafeTextField(default='', help_text='Content of the appendix', max_length=5000, verbose_name='Content')),
-                ('note', libs.models.fields.SafeTextField(blank=True, help_text='Additional notes', max_length=500, null=True, verbose_name='Note')),
-                ('contract', models.ForeignKey(help_text='Contract associated with this appendix', on_delete=django.db.models.deletion.PROTECT, related_name='appendices', to='hrm.contract', verbose_name='Contract')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "code",
+                    models.CharField(
+                        blank=True,
+                        help_text="Auto-generated unique appendix number (format: x/yyyy/PLHD-MVL)",
+                        max_length=50,
+                        null=True,
+                        unique=True,
+                        verbose_name="Appendix number",
+                    ),
+                ),
+                (
+                    "appendix_code",
+                    models.CharField(
+                        blank=True,
+                        help_text="Auto-generated appendix code (format: PLHDxxxxx)",
+                        max_length=20,
+                        null=True,
+                        unique=True,
+                        verbose_name="Appendix code",
+                    ),
+                ),
+                (
+                    "sign_date",
+                    models.DateField(help_text="Date when the appendix was signed", verbose_name="Sign date"),
+                ),
+                (
+                    "effective_date",
+                    models.DateField(
+                        help_text="Date when the appendix becomes effective", verbose_name="Effective date"
+                    ),
+                ),
+                (
+                    "content",
+                    libs.models.fields.SafeTextField(
+                        default="", help_text="Content of the appendix", max_length=5000, verbose_name="Content"
+                    ),
+                ),
+                (
+                    "note",
+                    libs.models.fields.SafeTextField(
+                        blank=True, help_text="Additional notes", max_length=500, null=True, verbose_name="Note"
+                    ),
+                ),
+                (
+                    "contract",
+                    models.ForeignKey(
+                        help_text="Contract associated with this appendix",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="appendices",
+                        to="hrm.contract",
+                        verbose_name="Contract",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Contract appendix',
-                'verbose_name_plural': 'Contract appendices',
-                'db_table': 'hrm_contract_appendix',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['code'], name='contract_appendix_code_idx'), models.Index(fields=['appendix_code'], name='contract_appendix_acode_idx'), models.Index(fields=['effective_date'], name='contract_appendix_eff_idx')],
-                'constraints': [models.CheckConstraint(condition=models.Q(('sign_date__lte', models.F('effective_date'))), name='contract_appendix_sign_lte_effective')],
+                "verbose_name": "Contract appendix",
+                "verbose_name_plural": "Contract appendices",
+                "db_table": "hrm_contract_appendix",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(fields=["code"], name="contract_appendix_code_idx"),
+                    models.Index(fields=["appendix_code"], name="contract_appendix_acode_idx"),
+                    models.Index(fields=["effective_date"], name="contract_appendix_eff_idx"),
+                ],
+                "constraints": [
+                    models.CheckConstraint(
+                        condition=models.Q(("sign_date__lte", models.F("effective_date"))),
+                        name="contract_appendix_sign_lte_effective",
+                    )
+                ],
             },
         ),
     ]

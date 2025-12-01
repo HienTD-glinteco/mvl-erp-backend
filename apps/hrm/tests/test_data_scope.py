@@ -111,7 +111,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="CEO001",
             position=self.pos_all,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1970, 1, 1),
             nationality=self.nationality,
@@ -127,7 +126,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="BD001",
             position=self.pos_branch,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1975, 1, 1),
             nationality=self.nationality,
@@ -143,7 +141,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="BH001",
             position=self.pos_block,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1980, 1, 1),
             nationality=self.nationality,
@@ -159,7 +156,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="DM001",
             position=self.pos_dept,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1985, 1, 1),
             nationality=self.nationality,
@@ -175,7 +171,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="EMP001",
             position=self.pos_self,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1990, 1, 1),
             nationality=self.nationality,
@@ -191,7 +186,6 @@ class DataScopeFilteringTest(TestCase):
             attendance_code="EMP002",
             position=self.pos_self,
             department=self.dept2,
-
             start_date=date.today(),
             date_of_birth=date(1991, 1, 1),
             nationality=self.nationality,
@@ -323,7 +317,6 @@ class LeadershipFilteringTest(TestCase):
             attendance_code="LEAD001",
             position=self.pos_leader,
             department=self.dept,
-
             start_date=date.today(),
             date_of_birth=date(1980, 1, 1),
             nationality=self.nationality,
@@ -339,7 +332,6 @@ class LeadershipFilteringTest(TestCase):
             attendance_code="STAFF001",
             position=self.pos_staff,
             department=self.dept,
-
             start_date=date.today(),
             date_of_birth=date(1985, 1, 1),
             nationality=self.nationality,
@@ -448,7 +440,6 @@ class BranchDirectorDataScopeTest(TestCase):
             attendance_code="BRDIR001",
             position=self.pos_branch_director,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1975, 1, 1),
             nationality=self.nationality,
@@ -464,7 +455,6 @@ class BranchDirectorDataScopeTest(TestCase):
             attendance_code="EMP001",
             position=self.pos_employee,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1990, 1, 1),
             nationality=self.nationality,
@@ -480,7 +470,6 @@ class BranchDirectorDataScopeTest(TestCase):
             attendance_code="EMP002",
             position=self.pos_employee,
             department=self.dept2,
-
             start_date=date.today(),
             date_of_birth=date(1991, 1, 1),
             nationality=self.nationality,
@@ -496,7 +485,6 @@ class BranchDirectorDataScopeTest(TestCase):
             attendance_code="EMP003",
             position=self.pos_employee,
             department=self.dept3,
-
             start_date=date.today(),
             date_of_birth=date(1992, 1, 1),
             nationality=self.nationality,
@@ -634,7 +622,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="BLKHD001",
             position=self.pos_block_head,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1975, 1, 1),
             nationality=self.nationality,
@@ -650,7 +637,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="IT001",
             position=self.pos_employee,
             department=self.dept1,
-
             start_date=date.today(),
             date_of_birth=date(1990, 1, 1),
             nationality=self.nationality,
@@ -666,7 +652,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="ADM001",
             position=self.pos_employee,
             department=self.dept2,
-
             start_date=date.today(),
             date_of_birth=date(1991, 1, 1),
             nationality=self.nationality,
@@ -682,7 +667,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="FAC001",
             position=self.pos_employee,
             department=self.dept3,
-
             start_date=date.today(),
             date_of_birth=date(1992, 1, 1),
             nationality=self.nationality,
@@ -698,7 +682,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="SAL001",
             position=self.pos_employee,
             department=self.other_dept,
-
             start_date=date.today(),
             date_of_birth=date(1993, 1, 1),
             nationality=self.nationality,
@@ -775,7 +758,6 @@ class BlockHeadDataScopeTest(TestCase):
             attendance_code="BBHD001",
             position=pos_other_block_head,
             department=self.other_dept,
-
             start_date=date.today(),
             date_of_birth=date(1976, 1, 1),
             nationality=self.nationality,
@@ -873,7 +855,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
 
         # Create contract type
 
-
         # Create users for organizational chart
         self.user_branch_director = User.objects.create_user(
             username="branch_director_hn", email="bd_hn@company.com", first_name="Director", last_name="HN"
@@ -896,7 +877,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_support_hn,
             department=self.dept_hr_hn,
             position=self.pos_employee,
-
             start_date=date.today(),
             date_of_birth=date(1990, 1, 1),
             personal_email="emp_hr_hn_1_personal@gmail.com",
@@ -915,7 +895,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_support_hn,
             department=self.dept_hr_hn,
             position=self.pos_employee,
-
             start_date=date.today(),
             date_of_birth=date(1991, 1, 1),
             nationality=self.nationality,
@@ -933,7 +912,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_support_hn,
             department=self.dept_it_hn,
             position=self.pos_employee,
-
             start_date=date.today(),
             date_of_birth=date(1992, 1, 1),
             nationality=self.nationality,
@@ -951,7 +929,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_business_hn,
             department=self.dept_sales_hn,
             position=self.pos_employee,
-
             start_date=date.today(),
             date_of_birth=date(1993, 1, 1),
             nationality=self.nationality,
@@ -969,7 +946,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_support_hcm,
             department=self.dept_hr_hcm,
             position=self.pos_employee,
-
             start_date=date.today(),
             date_of_birth=date(1994, 1, 1),
             nationality=self.nationality,
@@ -987,7 +963,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             attendance_code="BRDIR001",
             position=self.pos_branch_director,
             department=self.dept_hr_hn,
-
             start_date=date.today(),
             date_of_birth=date(1975, 1, 1),
             nationality=self.nationality,
@@ -1003,7 +978,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             attendance_code="BLKHD001",
             position=self.pos_block_head,
             department=self.dept_hr_hn,
-
             start_date=date.today(),
             date_of_birth=date(1980, 1, 1),
             nationality=self.nationality,
@@ -1019,7 +993,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             attendance_code="DPTMGR001",
             position=self.pos_dept_manager,
             department=self.dept_hr_hn,
-
             start_date=date.today(),
             date_of_birth=date(1985, 1, 1),
             nationality=self.nationality,
@@ -1131,7 +1104,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             attendance_code="BRDIR002",
             position=self.pos_branch_director,
             department=self.dept_hr_hcm,
-
             start_date=date.today(),
             date_of_birth=date(1976, 1, 1),
             nationality=self.nationality,
@@ -1167,7 +1139,6 @@ class EmployeeDataScopeFilterBackendTest(TestCase):
             block=self.block_support_hn,
             department=self.dept_hr_hn,
             position=self.pos_dept_manager,  # Leadership position
-
             start_date=date.today(),
             date_of_birth=date(1985, 1, 1),
             nationality=self.nationality,

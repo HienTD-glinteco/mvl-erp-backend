@@ -104,17 +104,14 @@ class DistanceOrderingFilterBackend(BaseFilterBackend):
         #
         # Clamp the inner expression to [-1, 1] to prevent floating-point precision errors
         # that can occur when two points are very close or identical
-        haversine_inner = (
-            Sin(Radians(F("latitude"))) * Sin(Radians(float(user_lat)))
-            + Cos(Radians(F("latitude"))) * Cos(Radians(float(user_lat))) * Cos(Radians(F("longitude")) - Radians(float(user_lon)))
-        )
+        haversine_inner = Sin(Radians(F("latitude"))) * Sin(Radians(float(user_lat))) + Cos(
+            Radians(F("latitude"))
+        ) * Cos(Radians(float(user_lat))) * Cos(Radians(F("longitude")) - Radians(float(user_lon)))
 
         # Clamp to valid ACos domain [-1, 1] using Least(Greatest(x, -1), 1)
         clamped_inner = Least(Greatest(haversine_inner, Value(-1.0)), Value(1.0))
 
-        queryset = queryset.annotate(
-            distance=self.EARTH_RADIUS_M * ACos(clamped_inner, output_field=FloatField())
-        )
+        queryset = queryset.annotate(distance=self.EARTH_RADIUS_M * ACos(clamped_inner, output_field=FloatField()))
 
         # Apply ordering
         if ordering.startswith("-distance"):
