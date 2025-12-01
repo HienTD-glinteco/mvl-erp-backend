@@ -13,14 +13,19 @@ from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextFie
 
 @audit_logging_register
 class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
-    """Contract model representing employee employment contracts.
+    """Contract model representing employee employment contracts and appendices.
 
-    This model stores contract information including contract details,
+    This model stores contract/appendix information including contract details,
     employee snapshot data at the time of contract signing, salary,
     tax, and social insurance information.
 
+    For appendices (contract_type.category='appendix'), the parent_contract field
+    references the main contract, and content stores appendix-specific content.
+
     Attributes:
-        code: Auto-generated unique contract code (e.g., HD00001)
+        code: Auto-generated unique contract code (e.g., HD00001 for contracts, PLHD00001 for appendices)
+        contract_number: Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)
+        parent_contract: Reference to parent contract (for appendices only)
         employee: Foreign key to Employee
         contract_type: Foreign key to ContractType
         sign_date: Date when the contract was signed
@@ -37,6 +42,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         working_conditions: Working conditions (snapshot)
         rights_and_obligations: Rights and obligations (snapshot)
         terms: Contract terms and conditions (snapshot)
+        content: Content of the appendix (for appendices only)
         note: Additional notes
         attachment: Attached contract file
     """
@@ -60,6 +66,25 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Contract code"),
         help_text=_("Auto-generated unique contract code"),
+    )
+
+    contract_number = models.CharField(
+        max_length=50,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name=_("Contract number"),
+        help_text=_("Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)"),
+    )
+
+    parent_contract = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="appendices",
+        verbose_name=_("Parent contract"),
+        help_text=_("Reference to parent contract (for appendices only)"),
     )
 
     employee = models.ForeignKey(
@@ -181,6 +206,13 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Contract terms and conditions at the time of contract"),
     )
 
+    content = SafeTextField(
+        max_length=5000,
+        default="",
+        verbose_name=_("Content"),
+        help_text=_("Content of the appendix (for appendices only)"),
+    )
+
     note = SafeTextField(
         max_length=500,
         null=True,
@@ -218,6 +250,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["code"], name="contract_code_idx"),
+            models.Index(fields=["contract_number"], name="contract_number_idx"),
             models.Index(fields=["status"], name="contract_status_idx"),
             models.Index(fields=["effective_date"], name="contract_effective_date_idx"),
             models.Index(fields=["expiration_date"], name="contract_expiration_date_idx"),
@@ -227,13 +260,15 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         return f"{self.code} - {self.employee.fullname}"
 
     @property
-    def contract_number(self) -> str | None:
-        """Return contract number (alias for code).
+    def is_appendix(self) -> bool:
+        """Check if this contract is an appendix.
 
         Returns:
-            str | None: The contract code value
+            bool: True if this is an appendix (contract_type.category='appendix'), False otherwise.
         """
-        return self.code
+        from apps.hrm.models.contract_type import ContractType
+
+        return self.contract_type_id is not None and self.contract_type.category == ContractType.Category.APPENDIX
 
     @property
     def colored_status(self) -> dict:

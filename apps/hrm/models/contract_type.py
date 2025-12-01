@@ -19,6 +19,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         code: Auto-generated unique contract type code
         name: Contract type name
         symbol: Contract type symbol/abbreviation
+        category: Whether this is a contract type or appendix type
         duration_type: Whether contract has fixed term or indefinite
         duration_months: Number of months for fixed-term contracts
         base_salary: Base salary amount
@@ -62,6 +63,12 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         FULL_TIME = "full_time", _("Full-time - Office hours")
         PART_TIME = "part_time", _("Part-time")
         OTHER = "other", _("Other")
+
+    class Category(models.TextChoices):
+        """Category type choices for contract type."""
+
+        CONTRACT = "contract", _("Contract")
+        APPENDIX = "appendix", _("Appendix")
 
     CODE_PREFIX = "LHD"
 
@@ -110,6 +117,14 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         default="",
         verbose_name=_("Contract type symbol"),
         help_text=_("Symbol or abbreviation for the contract type"),
+    )
+
+    category = models.CharField(
+        max_length=20,
+        choices=Category.choices,
+        default=Category.CONTRACT,
+        verbose_name=_("Category"),
+        help_text=_("Whether this is a contract type or appendix type"),
     )
 
     duration_type = models.CharField(

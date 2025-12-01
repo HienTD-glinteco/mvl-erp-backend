@@ -9,6 +9,7 @@ class ContractTypeFilterSet(django_filters.FilterSet):
     Supports filtering by:
     - name: case-insensitive partial match
     - code: case-insensitive partial match
+    - category: exact match (contract or appendix)
     - duration_type: exact match
     - has_social_insurance: exact match
     - working_time_type: exact match
@@ -23,6 +24,11 @@ class ContractTypeFilterSet(django_filters.FilterSet):
     code = django_filters.CharFilter(
         lookup_expr="icontains",
         help_text="Filter by contract type code (case-insensitive partial match)",
+    )
+
+    category = django_filters.ChoiceFilter(
+        choices=ContractType.Category.choices,
+        help_text="Filter by category (contract or appendix)",
     )
 
     duration_type = django_filters.ChoiceFilter(
@@ -56,6 +62,7 @@ class ContractTypeFilterSet(django_filters.FilterSet):
         fields = [
             "name",
             "code",
+            "category",
             "duration_type",
             "has_social_insurance",
             "working_time_type",

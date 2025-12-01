@@ -39,6 +39,7 @@ class ContractTypeSerializer(FileConfirmSerializerMixin, serializers.ModelSerial
             "code",
             "name",
             "symbol",
+            "category",
             "duration_type",
             "duration_months",
             "duration_display",
@@ -113,6 +114,7 @@ class ContractTypeListSerializer(serializers.ModelSerializer):
             "id",
             "code",
             "name",
+            "category",
             "duration_display",
             "base_salary",
             "created_at",
@@ -124,6 +126,7 @@ class ContractTypeExportSerializer(FieldFilteringSerializerMixin, serializers.Mo
     """Serializer for ContractType XLSX export."""
 
     duration_display = serializers.CharField(read_only=True)
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
     net_percentage_display = serializers.CharField(source="get_net_percentage_display", read_only=True)
     tax_method_display = serializers.CharField(source="get_tax_calculation_method_display", read_only=True)
     working_time_display = serializers.CharField(source="get_working_time_type_display", read_only=True)
@@ -135,6 +138,7 @@ class ContractTypeExportSerializer(FieldFilteringSerializerMixin, serializers.Mo
             "code",
             "name",
             "symbol",
+            "category_display",
             "duration_display",
             "base_salary",
             "lunch_allowance",

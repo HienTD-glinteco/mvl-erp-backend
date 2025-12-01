@@ -13,7 +13,7 @@ from apps.hrm.api.serializers.contract import (
     ContractListSerializer,
     ContractSerializer,
 )
-from apps.hrm.models import Contract
+from apps.hrm.models import Contract, ContractType
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -244,10 +244,14 @@ class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMix
     Supports filtering, searching, and ordering.
     Supports import from file via AsyncImportProgressMixin.
 
-    Search fields: code, employee__fullname, employee__code
+    Note: This ViewSet only returns contracts (category='contract'), not appendices.
+
+    Search fields: code, contract_number, employee__fullname, employee__code
     """
 
-    queryset = Contract.objects.select_related(
+    queryset = Contract.objects.filter(
+        contract_type__category=ContractType.Category.CONTRACT,
+    ).select_related(
         "employee",
         "contract_type",
         "attachment",
@@ -255,9 +259,10 @@ class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMix
     serializer_class = ContractSerializer
     filterset_class = ContractFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["code", "employee__fullname", "employee__code"]
+    search_fields = ["code", "contract_number", "employee__fullname", "employee__code"]
     ordering_fields = [
         "code",
+        "contract_number",
         "sign_date",
         "effective_date",
         "expiration_date",

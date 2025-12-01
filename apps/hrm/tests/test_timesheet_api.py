@@ -168,7 +168,7 @@ def test_list_timesheets_returns_full_month_dates_nov_2025(db, api_client):
 def test_month_filter_future_disallowed_raises_400(db, api_client):
     client = api_client
     url = reverse("hrm:employee-timesheet-list")
-    resp = client.get(url, {"month": "12/2025"})
+    resp = client.get(url, {"month": "01/2099"})
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
     content = resp.json()
     # Ensure message is present somewhere in error payload
