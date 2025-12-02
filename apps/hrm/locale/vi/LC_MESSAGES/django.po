@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 10:27+0700\n"
+"POT-Creation-Date: 2025-12-02 13:21+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,20 +32,20 @@ msgstr ""
 msgid "Employee already has an active exemption."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:181
+#: apps/hrm/api/serializers/contract.py:182
 msgid "Only contracts with DRAFT status can be edited."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:186
+#: apps/hrm/api/serializers/contract.py:187
 msgid "Contract type must have category 'contract'."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:195
+#: apps/hrm/api/serializers/contract.py:196
 #: apps/hrm/api/serializers/contract_appendix.py:160
 msgid "Sign date must be on or before effective date."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract.py:199
+#: apps/hrm/api/serializers/contract.py:200
 #: apps/hrm/api/serializers/contract_appendix.py:164
 msgid "Expiration date must be on or after effective date."
 msgstr ""

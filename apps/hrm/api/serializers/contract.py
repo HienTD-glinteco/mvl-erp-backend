@@ -6,6 +6,7 @@ from rest_framework import serializers
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.api.serializers.common_nested import ContractTypeNestedSerializer, EmployeeNestedSerializer
+from apps.hrm.api.serializers.employee import EmployeeSerializer
 from apps.hrm.models import Contract, ContractType, Employee
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
@@ -77,7 +78,7 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
     file_confirm_fields = ["attachment"]
 
     # Nested read-only serializers for response
-    employee = EmployeeNestedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
     contract_type = ContractTypeNestedSerializer(read_only=True)
     attachment = FileSerializer(read_only=True)
 
