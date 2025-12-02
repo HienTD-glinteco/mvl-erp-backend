@@ -27,7 +27,7 @@ from .organization import (
     Department,
     Position,
 )
-from .proposal import Proposal, ProposalAsset, ProposalTimeSheetEntry, ProposalVerifier
+from .proposal import Proposal, ProposalAsset, ProposalOvertimeEntry, ProposalTimeSheetEntry, ProposalVerifier
 from .recruitment_candidate import RecruitmentCandidate
 from .recruitment_candidate_contact_log import RecruitmentCandidateContactLog
 from .recruitment_channel import RecruitmentChannel
@@ -88,6 +88,7 @@ __all__ = [
     "EmployeeMonthlyTimesheet",
     "Proposal",
     "ProposalAsset",
+    "ProposalOvertimeEntry",
     "ProposalTimeSheetEntry",
     "ProposalVerifier",
     "Decision",

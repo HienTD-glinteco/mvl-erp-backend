@@ -187,7 +187,7 @@ class ProposalType(models.TextChoices):
     ASSET_ALLOCATION = "asset_allocation", _("Asset Allocation")
 
 
-class AssetUnitType(models.TextChoices):
+class ProposalAssetUnitType(models.TextChoices):
     """Asset unit type choices for asset allocation proposals."""
 
     PIECE = "piece", _("Piece")
@@ -206,6 +206,14 @@ class ProposalStatus(models.TextChoices):
     PENDING = "pending", _("Pending")
     APPROVED = "approved", _("Approved")
     REJECTED = "rejected", _("Rejected")
+
+
+class ProposalWorkShift(models.TextChoices):
+    """Work shift choices for overtime proposals."""
+
+    FULL_DAY = "full_day", _("Full Day")
+    MORNING = "morning", _("Morning")
+    AFTERNOON = "afternoon", _("Afternoon")
 
 
 class ProposalVerifierStatus(models.TextChoices):

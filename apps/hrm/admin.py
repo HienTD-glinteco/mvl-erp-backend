@@ -26,6 +26,7 @@ from .models import (
     Position,
     Proposal,
     ProposalAsset,
+    ProposalOvertimeEntry,
     RecruitmentCandidate,
     RecruitmentCandidateContactLog,
     RecruitmentChannel,
@@ -135,4 +136,15 @@ class ProposalAssetAdmin(admin.ModelAdmin):
     list_filter = ["unit_type"]
     search_fields = ["name"]
     readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["proposal"]
+
+
+@admin.register(ProposalOvertimeEntry)
+class ProposalOvertimeEntryAdmin(admin.ModelAdmin):
+    """Admin configuration for ProposalOvertimeEntry model"""
+
+    list_display = ["proposal", "date", "start_time", "end_time", "duration_hours"]
+    list_filter = ["date"]
+    search_fields = ["proposal__code"]
+    readonly_fields = ["created_at", "updated_at", "duration_hours"]
     raw_id_fields = ["proposal"]

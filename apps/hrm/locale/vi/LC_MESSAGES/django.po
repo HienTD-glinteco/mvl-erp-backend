@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 13:21+0700\n"
+"POT-Creation-Date: 2025-12-02 14:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -66,11 +66,11 @@ msgstr ""
 msgid "Duration in months is required for fixed-term contracts."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:161
+#: apps/hrm/api/serializers/contract_type.py:166
 msgid "Yes"
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_type.py:161
+#: apps/hrm/api/serializers/contract_type.py:166
 #, fuzzy
 #| msgid "No."
 msgid "No"
@@ -166,27 +166,8 @@ msgstr ""
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:70
-#, python-brace-format
-msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
-msgstr ""
-
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:98
-#, python-brace-format
-msgid ""
-"A compensatory workday with the same date and session already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:109
-#, python-brace-format
-msgid ""
-"A compensatory workday with full_day session conflicts with existing session "
-"for holiday '{comp_day.holiday.name}'"
 msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
@@ -197,41 +178,11 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/holiday.py:214
-#, python-brace-format
-msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:234
-#, python-brace-format
-msgid ""
-"For Saturday compensatory workday {comp_date}, only afternoon session is "
-"allowed"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:244
-#, python-brace-format
-msgid "Compensatory date {comp_date} falls within the holiday date range"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:260
-#, python-brace-format
-msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:277
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with session {comp_session} already exists for "
-"holiday '{comp_day.holiday.name}'"
-msgstr ""
-
-#: apps/hrm/api/serializers/holiday.py:288
-#, python-brace-format
-msgid ""
-"Compensatory date {comp_date} with full_day session conflicts with existing "
-"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
-msgstr ""
+#: apps/hrm/api/serializers/proposal.py:356
+#, fuzzy
+#| msgid "Overtime work end time is required"
+msgid "At least one overtime entry is required"
+msgstr "Thời gian kết thúc làm ngoài giờ là bắt buộc"
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:217
 msgid "Candidate not found in context."
@@ -421,6 +372,27 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
+#: apps/hrm/api/views/employee_reports.py:61
+#: apps/hrm/api/views/recruitment_reports.py:680 apps/hrm/constants.py:68
+#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
+msgid "Week"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:81
+#: apps/hrm/api/views/recruitment_reports.py:131
+#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:69
+#: apps/hrm/constants.py:74
+msgid "Month"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr ""
+
+#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:76
+msgid "Year"
+msgstr ""
+
 #: apps/hrm/api/views/employee_reports.py:333
 msgid "Average"
 msgstr ""
@@ -574,22 +546,6 @@ msgstr ""
 
 #: apps/hrm/constants.py:56
 msgid "Returning Employee"
-msgstr ""
-
-#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
-msgid "Week"
-msgstr ""
-
-#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
-msgid "Month"
-msgstr ""
-
-#: apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr ""
-
-#: apps/hrm/constants.py:76
-msgid "Year"
 msgstr ""
 
 #: apps/hrm/constants.py:82
@@ -784,11 +740,25 @@ msgstr "Đã duyệt"
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:214
+#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:60
+#, fuzzy
+#| msgid "Full Name"
+msgid "Full Day"
+msgstr "Tên đầy đủ"
+
+#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:58
+msgid "Morning"
+msgstr ""
+
+#: apps/hrm/constants.py:216 apps/hrm/models/holiday.py:59
+msgid "Afternoon"
+msgstr ""
+
+#: apps/hrm/constants.py:222
 msgid "Verified"
 msgstr "Đã xác minh"
 
-#: apps/hrm/constants.py:215
+#: apps/hrm/constants.py:223
 msgid "Not verified"
 msgstr "Chưa xác minh"
 
@@ -1017,10 +987,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1029,22 +1001,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1138,7 +1115,6 @@ msgid "Progressive tax"
 msgstr ""
 
 #: apps/hrm/models/contract_type.py:57
-#, python-format
 msgid "10% flat tax"
 msgstr ""
 
@@ -1276,20 +1252,6 @@ msgstr ""
 msgid "Return to Work"
 msgstr ""
 
-#: apps/hrm/models/holiday.py:58
-msgid "Morning"
-msgstr ""
-
-#: apps/hrm/models/holiday.py:59
-msgid "Afternoon"
-msgstr ""
-
-#: apps/hrm/models/holiday.py:60
-#, fuzzy
-#| msgid "Full Name"
-msgid "Full Day"
-msgstr "Tên đầy đủ"
-
 #: apps/hrm/models/holiday.py:104
 msgid "Compensatory workday date cannot fall within the holiday date range"
 msgstr ""
@@ -1373,69 +1335,89 @@ msgstr ""
 msgid "A main department already exists for function %(function)s."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:147
+#: apps/hrm/models/proposal.py:236
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:149
+#: apps/hrm/models/proposal.py:238
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:151
+#: apps/hrm/models/proposal.py:240
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:156
+#: apps/hrm/models/proposal.py:245
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:166
-msgid "Overtime work start time is required"
-msgstr "Thời gian bắt đầu làm ngoài giờ là bắt buộc"
-
-#: apps/hrm/models/proposal.py:168
-msgid "Overtime work end time is required"
-msgstr "Thời gian kết thúc làm ngoài giờ là bắt buộc"
-
-#: apps/hrm/models/proposal.py:173
-msgid "Overtime work end time must be after start time"
-msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
-
-#: apps/hrm/models/proposal.py:183
+#: apps/hrm/models/proposal.py:255
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:185
+#: apps/hrm/models/proposal.py:257
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:191
+#: apps/hrm/models/proposal.py:263
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:201
+#: apps/hrm/models/proposal.py:273
 msgid "Complaint reason is required for complaint proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:210
+#: apps/hrm/models/proposal.py:282
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:222
+#: apps/hrm/models/proposal.py:294
+#, fuzzy
+#| msgid "Post-maternity benefits end date must be on or after start date"
+msgid "Paid leave end date must be on or after start date"
+msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
+
+#: apps/hrm/models/proposal.py:306
+#, fuzzy
+#| msgid "Post-maternity benefits end date must be on or after start date"
+msgid "Unpaid leave end date must be on or after start date"
+msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
+
+#: apps/hrm/models/proposal.py:317
+#, fuzzy
+#| msgid "Late exemption end date is required"
+msgid "Job transfer effective date is required"
+msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
+
+#: apps/hrm/models/proposal.py:321
+msgid "New department is required for job transfer"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:325
+msgid "New position is required for job transfer"
+msgstr ""
+
+#: apps/hrm/models/proposal.py:341
 msgid "Note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:312
+#: apps/hrm/models/proposal.py:433
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:322
+#: apps/hrm/models/proposal.py:443
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
+
+#: apps/hrm/models/proposal.py:612
+#, fuzzy
+#| msgid "Overtime work end time must be after start time"
+msgid "End time must be after start time"
+msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
 #: apps/hrm/models/recruitment_candidate.py:21
 msgid "Contacted"

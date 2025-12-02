@@ -89,8 +89,6 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000003",
             proposal_type=ProposalType.OVERTIME_WORK,
-            overtime_work_start_at=time(18, 0),
-            overtime_work_end_at=time(21, 0),
             note="Test 3",
             created_by=test_employee,
         )
@@ -123,8 +121,6 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000006",
             proposal_type=ProposalType.OVERTIME_WORK,
-            overtime_work_start_at=time(18, 0),
-            overtime_work_end_at=time(21, 0),
             note="Test 3",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
@@ -527,6 +523,50 @@ class TestTimesheetEntryComplaintProposalAPI:
 class TestPaidLeaveProposalAPI:
     """Tests for Paid Leave Proposal API."""
 
+    def test_create_paid_leave_proposal_success(self, api_client, superuser, test_employee):
+        """Test creating a paid leave proposal with valid data."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-paid-leave-list")
+        data = {
+            "paid_leave_start_date": "2025-02-01",
+            "paid_leave_end_date": "2025-02-05",
+            "paid_leave_shift": "full_day",
+            "paid_leave_reason": "Family vacation",
+            "note": "Annual leave",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        response_data = response.json()
+        assert response_data["success"] is True
+        assert response_data["data"]["proposal_type"] == ProposalType.PAID_LEAVE
+        assert response_data["data"]["paid_leave_start_date"] == "2025-02-01"
+        assert response_data["data"]["paid_leave_end_date"] == "2025-02-05"
+        assert response_data["data"]["paid_leave_shift"] == "full_day"
+        assert response_data["data"]["paid_leave_reason"] == "Family vacation"
+
+    def test_create_paid_leave_proposal_invalid_date_range(self, api_client, superuser, test_employee):
+        """Test creating a paid leave proposal with end date before start date."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-paid-leave-list")
+        data = {
+            "paid_leave_start_date": "2025-02-05",
+            "paid_leave_end_date": "2025-02-01",
+            "paid_leave_shift": "full_day",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        response_data = response.json()
+        assert response_data["success"] is False
+        assert has_error_for_field(response_data["error"], "paid_leave_end_date")
+
     def test_list_paid_leave_proposals(self, api_client, superuser, test_employee):
         Proposal.objects.create(
             code="DX000008",
@@ -541,8 +581,8 @@ class TestPaidLeaveProposalAPI:
             created_by=test_employee,
         )
 
-        url = reverse("hrm:proposal-list")
-        response = api_client.get(url, {"proposal_type": ProposalType.PAID_LEAVE})
+        url = reverse("hrm:proposal-paid-leave-list")
+        response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -550,6 +590,77 @@ class TestPaidLeaveProposalAPI:
         # Should only return paid leave proposals
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["proposal_type"] == ProposalType.PAID_LEAVE
+
+
+class TestUnpaidLeaveProposalAPI:
+    """Tests for Unpaid Leave Proposal API."""
+
+    def test_create_unpaid_leave_proposal_success(self, api_client, superuser, test_employee):
+        """Test creating an unpaid leave proposal with valid data."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-unpaid-leave-list")
+        data = {
+            "unpaid_leave_start_date": "2025-02-01",
+            "unpaid_leave_end_date": "2025-02-05",
+            "unpaid_leave_shift": "full_day",
+            "unpaid_leave_reason": "Personal matters",
+            "note": "Unpaid leave request",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        response_data = response.json()
+        assert response_data["success"] is True
+        assert response_data["data"]["proposal_type"] == ProposalType.UNPAID_LEAVE
+        assert response_data["data"]["unpaid_leave_start_date"] == "2025-02-01"
+        assert response_data["data"]["unpaid_leave_end_date"] == "2025-02-05"
+        assert response_data["data"]["unpaid_leave_shift"] == "full_day"
+        assert response_data["data"]["unpaid_leave_reason"] == "Personal matters"
+
+    def test_create_unpaid_leave_proposal_invalid_date_range(self, api_client, superuser, test_employee):
+        """Test creating an unpaid leave proposal with end date before start date."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-unpaid-leave-list")
+        data = {
+            "unpaid_leave_start_date": "2025-02-05",
+            "unpaid_leave_end_date": "2025-02-01",
+            "unpaid_leave_shift": "full_day",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        response_data = response.json()
+        assert response_data["success"] is False
+        assert has_error_for_field(response_data["error"], "unpaid_leave_end_date")
+
+    def test_list_unpaid_leave_proposals(self, api_client, superuser, test_employee):
+        """Test listing unpaid leave proposals."""
+        Proposal.objects.create(
+            code="DX_UL_001",
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            note="Test 1",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_PL_001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-unpaid-leave-list")
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal_type"] == ProposalType.UNPAID_LEAVE
 
 
 class TestTimesheetEntryComplaintWithTimesheetEntry:
@@ -816,35 +927,42 @@ class TestOvertimeWorkProposalAPI:
 
         url = reverse("hrm:proposal-overtime-work-list")
         data = {
-            "overtime_work_start_at": "18:00:00",
-            "overtime_work_end_at": "21:00:00",
-            "note": "Project deadline",
+            "entries": [
+                {
+                    "date": "2025-01-15",
+                    "start_time": "18:00:00",
+                    "end_time": "21:00:00",
+                    "description": "Project deadline",
+                }
+            ],
+            "note": "Overtime for project deadline",
         }
 
-        response = api_client.post(url, data)
+        response = api_client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_201_CREATED
         response_data = response.json()
         assert response_data["success"] is True
         assert response_data["data"]["proposal_type"] == ProposalType.OVERTIME_WORK
-        assert response_data["data"]["overtime_work_start_at"] == "18:00:00"
-        assert response_data["data"]["overtime_work_end_at"] == "21:00:00"
+        assert len(response_data["data"]["overtime_entries"]) == 1
+        assert response_data["data"]["overtime_entries"][0]["date"] == "2025-01-15"
+        assert response_data["data"]["overtime_entries"][0]["start_time"] == "18:00:00"
+        assert response_data["data"]["overtime_entries"][0]["end_time"] == "21:00:00"
 
-    def test_create_overtime_work_proposal_missing_fields(self, api_client, superuser, test_employee):
-        """Test creating an overtime work proposal with missing required fields."""
+    def test_create_overtime_work_proposal_missing_entries(self, api_client, superuser, test_employee):
+        """Test creating an overtime work proposal with missing entries."""
         superuser.employee = test_employee
         superuser.save()
 
         url = reverse("hrm:proposal-overtime-work-list")
-        data = {"note": "Missing required fields"}
+        data = {"note": "Missing entries"}
 
-        response = api_client.post(url, data)
+        response = api_client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         response_data = response.json()
         assert response_data["success"] is False
-        assert has_error_for_field(response_data["error"], "overtime_work_start_at")
-        assert has_error_for_field(response_data["error"], "overtime_work_end_at")
+        assert has_error_for_field(response_data["error"], "entries")
 
     def test_create_overtime_work_proposal_invalid_time_range(self, api_client, superuser, test_employee):
         """Test creating an overtime work proposal with end time before start time."""
@@ -853,25 +971,35 @@ class TestOvertimeWorkProposalAPI:
 
         url = reverse("hrm:proposal-overtime-work-list")
         data = {
-            "overtime_work_start_at": "21:00:00",
-            "overtime_work_end_at": "18:00:00",
+            "entries": [
+                {
+                    "date": "2025-01-15",
+                    "start_time": "21:00:00",
+                    "end_time": "18:00:00",
+                }
+            ],
         }
 
-        response = api_client.post(url, data)
+        response = api_client.post(url, data, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         response_data = response.json()
         assert response_data["success"] is False
-        assert has_error_for_field(response_data["error"], "overtime_work_end_at")
 
     def test_list_overtime_work_proposals(self, api_client, superuser, test_employee):
         """Test listing overtime work proposals only shows overtime work type."""
-        Proposal.objects.create(
+        from apps.hrm.models import ProposalOvertimeEntry
+
+        proposal = Proposal.objects.create(
             code="DX_OT_001",
             proposal_type=ProposalType.OVERTIME_WORK,
-            overtime_work_start_at=time(18, 0),
-            overtime_work_end_at=time(21, 0),
             created_by=test_employee,
+        )
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 1, 15),
+            start_time=time(18, 0),
+            end_time=time(21, 0),
         )
         Proposal.objects.create(
             code="DX_PL_002",
@@ -887,6 +1015,7 @@ class TestOvertimeWorkProposalAPI:
         assert response_data["success"] is True
         assert response_data["data"]["count"] == 1
         assert response_data["data"]["results"][0]["proposal_type"] == ProposalType.OVERTIME_WORK
+        assert len(response_data["data"]["results"][0]["overtime_entries"]) == 1
 
 
 class TestPostMaternityBenefitsProposalAPI:
@@ -955,13 +1084,61 @@ class TestPostMaternityBenefitsProposalAPI:
 
 
 class TestJobTransferProposalAPI:
-    """Tests for Job Transfer Proposal API (read-only)."""
+    """Tests for Job Transfer Proposal API."""
+
+    def test_create_job_transfer_proposal_success(self, api_client, superuser, test_employee):
+        """Test creating a job transfer proposal with valid data."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-job-transfer-list")
+        data = {
+            "job_transfer_new_department_id": test_employee.department.id,
+            "job_transfer_new_position_id": test_employee.position.id,
+            "job_transfer_effective_date": "2025-02-01",
+            "job_transfer_reason": "Career development",
+            "note": "Transfer request to Marketing department",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        response_data = response.json()
+        assert response_data["success"] is True
+        assert response_data["data"]["proposal_type"] == ProposalType.JOB_TRANSFER
+        assert response_data["data"]["job_transfer_effective_date"] == "2025-02-01"
+        assert response_data["data"]["job_transfer_reason"] == "Career development"
+        # Verify nested department/position objects in response
+        assert response_data["data"]["job_transfer_new_department"]["id"] == test_employee.department.id
+        assert response_data["data"]["job_transfer_new_position"]["id"] == test_employee.position.id
+
+    def test_create_job_transfer_proposal_missing_required_fields(self, api_client, superuser, test_employee):
+        """Test creating a job transfer proposal with missing required fields."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-job-transfer-list")
+        data = {
+            "job_transfer_reason": "Career development",
+            "note": "Missing required fields",
+        }
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        response_data = response.json()
+        assert response_data["success"] is False
+        assert has_error_for_field(response_data["error"], "job_transfer_new_department_id")
+        assert has_error_for_field(response_data["error"], "job_transfer_new_position_id")
 
     def test_list_job_transfer_proposals(self, api_client, superuser, test_employee):
         """Test listing job transfer proposals only shows the correct type."""
         Proposal.objects.create(
             code="DX_JT_001",
             proposal_type=ProposalType.JOB_TRANSFER,
+            job_transfer_new_department=test_employee.department,
+            job_transfer_new_position=test_employee.position,
+            job_transfer_effective_date=date(2025, 2, 1),
             note="Transfer to IT",
             created_by=test_employee,
         )
@@ -978,7 +1155,11 @@ class TestJobTransferProposalAPI:
         response_data = response.json()
         assert response_data["success"] is True
         assert response_data["data"]["count"] == 1
-        assert response_data["data"]["results"][0]["proposal_type"] == ProposalType.JOB_TRANSFER
+        result = response_data["data"]["results"][0]
+        assert result["proposal_type"] == ProposalType.JOB_TRANSFER
+        # Verify nested serializer format in response
+        assert result["job_transfer_new_department"]["id"] == test_employee.department.id
+        assert result["job_transfer_new_position"]["id"] == test_employee.position.id
 
 
 class TestAssetAllocationProposalAPI:

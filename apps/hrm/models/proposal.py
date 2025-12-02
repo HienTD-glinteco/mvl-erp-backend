@@ -3,7 +3,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from apps.hrm.constants import AssetUnitType, ProposalStatus, ProposalType, ProposalVerifierStatus
+from apps.hrm.constants import (
+    ProposalAssetUnitType,
+    ProposalStatus,
+    ProposalType,
+    ProposalVerifierStatus,
+    ProposalWorkShift,
+)
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
 
@@ -77,18 +83,6 @@ class Proposal(AutoCodeMixin, BaseModel):
         verbose_name="Late exemption minutes",
     )
 
-    # Overtime work fields
-    overtime_work_start_at = models.TimeField(
-        null=True,
-        blank=True,
-        verbose_name="Overtime work start time",
-    )
-    overtime_work_end_at = models.TimeField(
-        null=True,
-        blank=True,
-        verbose_name="Overtime work end time",
-    )
-
     # Post-maternity benefits fields
     post_maternity_benefits_start_date = models.DateField(
         null=True,
@@ -126,6 +120,101 @@ class Proposal(AutoCodeMixin, BaseModel):
         verbose_name="Replacement employee for maternity leave",
     )
 
+    # PAID_LEAVE fields
+    paid_leave_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Paid leave start date",
+    )
+    paid_leave_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Paid leave end date",
+    )
+    paid_leave_shift = models.CharField(
+        max_length=20,
+        choices=ProposalWorkShift.choices,
+        null=True,
+        blank=True,
+        verbose_name="Paid leave shift",
+    )
+    paid_leave_reason = SafeTextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Paid leave reason",
+    )
+
+    # UNPAID_LEAVE fields
+    unpaid_leave_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Unpaid leave start date",
+    )
+    unpaid_leave_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Unpaid leave end date",
+    )
+    unpaid_leave_shift = models.CharField(
+        max_length=20,
+        choices=ProposalWorkShift.choices,
+        null=True,
+        blank=True,
+        verbose_name="Unpaid leave shift",
+    )
+    unpaid_leave_reason = SafeTextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Unpaid leave reason",
+    )
+
+    # JOB_TRANSFER fields
+    job_transfer_new_branch = models.ForeignKey(
+        "Branch",
+        on_delete=models.PROTECT,
+        related_name="job_transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name="New branch",
+    )
+    job_transfer_new_block = models.ForeignKey(
+        "Block",
+        on_delete=models.PROTECT,
+        related_name="job_transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name="New block",
+    )
+    job_transfer_new_department = models.ForeignKey(
+        "Department",
+        on_delete=models.PROTECT,
+        related_name="job_transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name="New department",
+    )
+    job_transfer_new_position = models.ForeignKey(
+        "Position",
+        on_delete=models.PROTECT,
+        related_name="job_transfer_proposals",
+        null=True,
+        blank=True,
+        verbose_name="New position",
+    )
+    job_transfer_effective_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Job transfer effective date",
+    )
+    job_transfer_reason = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True,
+        verbose_name="Job transfer reason",
+    )
+
     class Meta:
         db_table = "hrm_proposal"
         verbose_name = "Proposal"
@@ -154,23 +243,6 @@ class Proposal(AutoCodeMixin, BaseModel):
         if self.late_exemption_start_date and self.late_exemption_end_date:
             if self.late_exemption_start_date > self.late_exemption_end_date:
                 errors["late_exemption_end_date"] = _("Late exemption end date must be on or after start date")
-
-        if errors:
-            raise ValidationError(errors)
-
-    def _clean_overtime_work_fields(self) -> None:
-        """Validate overtime work proposal fields."""
-        errors = {}
-
-        if not self.overtime_work_start_at:
-            errors["overtime_work_start_at"] = _("Overtime work start time is required")
-        if not self.overtime_work_end_at:
-            errors["overtime_work_end_at"] = _("Overtime work end time is required")
-
-        # Validate time range
-        if self.overtime_work_start_at and self.overtime_work_end_at:
-            if self.overtime_work_start_at >= self.overtime_work_end_at:
-                errors["overtime_work_end_at"] = _("Overtime work end time must be after start time")
 
         if errors:
             raise ValidationError(errors)
@@ -212,6 +284,53 @@ class Proposal(AutoCodeMixin, BaseModel):
         if errors:
             raise ValidationError(errors)
 
+    def _clean_paid_leave_fields(self) -> None:
+        """Validate paid leave proposal fields."""
+        errors = {}
+
+        # Validate date range if both dates are provided
+        if self.paid_leave_start_date and self.paid_leave_end_date:
+            if self.paid_leave_start_date > self.paid_leave_end_date:
+                errors["paid_leave_end_date"] = _("Paid leave end date must be on or after start date")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_unpaid_leave_fields(self) -> None:
+        """Validate unpaid leave proposal fields."""
+        errors = {}
+
+        # Validate date range if both dates are provided
+        if self.unpaid_leave_start_date and self.unpaid_leave_end_date:
+            if self.unpaid_leave_start_date > self.unpaid_leave_end_date:
+                errors["unpaid_leave_end_date"] = _("Unpaid leave end date must be on or after start date")
+
+        if errors:
+            raise ValidationError(errors)
+
+    def _clean_job_transfer_fields(self) -> None:
+        """Validate job transfer proposal fields."""
+        errors = {}
+
+        # Job transfer effective date is required
+        if not self.job_transfer_effective_date:
+            errors["job_transfer_effective_date"] = _("Job transfer effective date is required")
+
+        # New department is required
+        if not self.job_transfer_new_department:
+            errors["job_transfer_new_department"] = _("New department is required for job transfer")
+
+        # New position is required
+        if not self.job_transfer_new_position:
+            errors["job_transfer_new_position"] = _("New position is required for job transfer")
+
+        if errors:
+            raise ValidationError(errors)
+
+        # Set new block and branch based on the new department, so we don't need to write additional code on save() method
+        self.job_transfer_new_block = self.job_transfer_new_department.block  # type: ignore
+        self.job_transfer_new_branch = self.job_transfer_new_department.branch  # type: ignore
+
     def clean(self) -> None:
         """Validate proposal fields based on business rules."""
         super().clean()
@@ -225,10 +344,12 @@ class Proposal(AutoCodeMixin, BaseModel):
         # NOTE: add more here when needed
         clean_method_mapping = {
             ProposalType.LATE_EXEMPTION: self._clean_late_exemption_fields,
-            ProposalType.OVERTIME_WORK: self._clean_overtime_work_fields,
             ProposalType.POST_MATERNITY_BENEFITS: self._clean_post_maternity_benefits_fields,
             ProposalType.TIMESHEET_ENTRY_COMPLAINT: self._clean_timesheet_entry_complaint_fields,
             ProposalType.MATERNITY_LEAVE: self._clean_maternity_leave_fields,
+            ProposalType.PAID_LEAVE: self._clean_paid_leave_fields,
+            ProposalType.UNPAID_LEAVE: self._clean_unpaid_leave_fields,
+            ProposalType.JOB_TRANSFER: self._clean_job_transfer_fields,
         }
         clean_method = clean_method_mapping.get(self.proposal_type)  # type: ignore
         if clean_method:
@@ -389,7 +510,7 @@ class ProposalAsset(BaseModel):
 
     unit_type = models.CharField(
         max_length=32,
-        choices=AssetUnitType.choices,
+        choices=ProposalAssetUnitType.choices,
         null=True,
         blank=True,
         verbose_name="Unit type",
@@ -426,3 +547,70 @@ class ProposalAsset(BaseModel):
         if self.unit_type:
             return f"{self.name} - {self.quantity} {self.get_unit_type_display()}"
         return f"{self.name} - {self.quantity}"
+
+
+@audit_logging_register
+class ProposalOvertimeEntry(BaseModel):
+    """Model for overtime work entries in overtime work proposals."""
+
+    date = models.DateField(
+        verbose_name="Overtime date",
+    )
+
+    start_time = models.TimeField(
+        verbose_name="Start time",
+    )
+
+    end_time = models.TimeField(
+        verbose_name="End time",
+    )
+
+    description = SafeTextField(
+        max_length=250,
+        null=True,
+        blank=True,
+        verbose_name="Description",
+    )
+
+    proposal = models.ForeignKey(
+        "Proposal",
+        on_delete=models.CASCADE,
+        related_name="overtime_entries",
+        verbose_name="Proposal",
+        limit_choices_to={"proposal_type": ProposalType.OVERTIME_WORK},
+    )
+
+    class Meta:
+        db_table = "hrm_proposal_overtime_entry"
+        verbose_name = "Proposal Overtime Entry"
+        verbose_name_plural = "Proposal Overtime Entries"
+        indexes = [
+            models.Index(fields=["proposal"], name="poe_proposal_idx"),
+            models.Index(fields=["date"], name="poe_date_idx"),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - trivial
+        proposal_code = self.proposal.code if self.proposal_id else "New"
+        return f"{proposal_code} - {self.date} ({self.start_time} - {self.end_time})"
+
+    @property
+    def duration_hours(self) -> float:
+        """Calculate the duration in hours."""
+        from datetime import datetime
+
+        start_dt = datetime.combine(self.date, self.start_time)
+        end_dt = datetime.combine(self.date, self.end_time)
+        duration = end_dt - start_dt
+        return duration.total_seconds() / 3600
+
+    def clean(self) -> None:
+        """Validate overtime entry fields."""
+        super().clean()
+
+        if self.start_time and self.end_time:
+            if self.start_time >= self.end_time:
+                raise ValidationError({"end_time": _("End time must be after start time")})
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)

@@ -1,8 +1,15 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from apps.hrm.api.serializers.common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    DepartmentNestedSerializer,
+    PositionNestedSerializer,
+)
 from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Proposal, ProposalAsset, ProposalTimeSheetEntry, ProposalVerifier
+from apps.hrm.models import Proposal, ProposalAsset, ProposalOvertimeEntry, ProposalTimeSheetEntry, ProposalVerifier
 
 from .employee import EmployeeSerializer
 
@@ -218,6 +225,9 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
     and should have only the fields relevant to that type.
     """
 
+    created_by = EmployeeSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
+
     def validate(self, attrs):
         user = self.context["request"].user
         if getattr(user, "employee", None):
@@ -246,9 +256,6 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
 
 class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
     """Serializer for Late Exemption proposals."""
-
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
 
     class Meta:
         model = Proposal
@@ -280,11 +287,39 @@ class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
         ]
 
 
+class ProposalOvertimeEntrySerializer(serializers.ModelSerializer):
+    """Serializer for ProposalOvertimeEntry model."""
+
+    class Meta:
+        model = ProposalOvertimeEntry
+        fields = [
+            "id",
+            "date",
+            "start_time",
+            "end_time",
+            "description",
+            "duration_hours",
+        ]
+        read_only_fields = ["id", "duration_hours"]
+
+    def validate(self, attrs):
+        instance = self.instance or ProposalOvertimeEntry()
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+
+        return attrs
+
+
 class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
     """Serializer for Overtime Work proposals."""
 
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
+    entries = ProposalOvertimeEntrySerializer(many=True, write_only=True)
+    overtime_entries = ProposalOvertimeEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = Proposal
@@ -294,8 +329,8 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
             "proposal_date",
             "proposal_type",
             "proposal_status",
-            "overtime_work_start_at",
-            "overtime_work_end_at",
+            "entries",
+            "overtime_entries",
             "note",
             "created_by",
             "approved_by",
@@ -308,18 +343,50 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
             "proposal_date",
             "proposal_type",
             "proposal_status",
+            "overtime_entries",
             "created_by",
             "approved_by",
             "created_at",
             "updated_at",
         ]
 
+    def validate_entries(self, value):
+        """Validate that at least one entry is provided."""
+        if not value:
+            raise serializers.ValidationError(_("At least one overtime entry is required"))
+        return value
+
+    def create(self, validated_data):
+        """Create a proposal with related overtime entries."""
+        entries_data = validated_data.pop("entries", [])
+        proposal = super().create(validated_data)
+
+        self._create_entries_bulk(proposal, entries_data)
+
+        return proposal
+
+    def update(self, instance, validated_data):
+        """Update a proposal with related overtime entries."""
+        entries_data = validated_data.pop("entries", [])
+        proposal = super().update(instance, validated_data)
+
+        if entries_data:
+            # Delete existing entries and recreate
+            proposal.overtime_entries.all().delete()
+            self._create_entries_bulk(proposal, entries_data)
+
+        return proposal
+
+    def _create_entries_bulk(self, proposal, entries_data):
+        """Bulk create overtime entries for the proposal."""
+        overtime_entries = []
+        for entry_data in entries_data:
+            overtime_entries.append(ProposalOvertimeEntry(proposal=proposal, **entry_data))
+        ProposalOvertimeEntry.objects.bulk_create(overtime_entries)
+
 
 class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
     """Serializer for Post-Maternity Benefits proposals."""
-
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
 
     class Meta:
         model = Proposal
@@ -368,8 +435,6 @@ class ProposalAssetSerializer(serializers.ModelSerializer):
 class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
     """Serializer for Asset Allocation proposals."""
 
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
     proposal_assets = ProposalAssetSerializer(many=True, write_only=True)
     assets = ProposalAssetSerializer(many=True, read_only=True)
 
@@ -433,8 +498,6 @@ class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
 class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
     """Serializer for Maternity Leave proposals."""
 
-    created_by = EmployeeSerializer(read_only=True)
-    approved_by = EmployeeSerializer(read_only=True)
     maternity_leave_replacement_employee = EmployeeSerializer(read_only=True)
     maternity_leave_replacement_employee_id = serializers.IntegerField(required=False)
 
@@ -463,6 +526,124 @@ class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
             "proposal_date",
             "proposal_type",
             "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalPaidLeaveSerializer(ProposalByTypeSerializer):
+    """Serializer for Paid Leave proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "paid_leave_start_date",
+            "paid_leave_end_date",
+            "paid_leave_shift",
+            "paid_leave_reason",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalUnpaidLeaveSerializer(ProposalByTypeSerializer):
+    """Serializer for Unpaid Leave proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "unpaid_leave_start_date",
+            "unpaid_leave_end_date",
+            "unpaid_leave_shift",
+            "unpaid_leave_reason",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ProposalJobTransferSerializer(ProposalByTypeSerializer):
+    """Serializer for Job Transfer proposals."""
+
+    job_transfer_new_department_id = serializers.IntegerField()
+    job_transfer_new_position_id = serializers.IntegerField()
+
+    job_transfer_new_department = DepartmentNestedSerializer(read_only=True)
+    job_transfer_new_position = PositionNestedSerializer(read_only=True)
+    job_transfer_new_branch = BranchNestedSerializer(read_only=True)
+    job_transfer_new_block = BlockNestedSerializer(read_only=True)
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "job_transfer_new_branch",
+            "job_transfer_new_department_id",
+            "job_transfer_new_block",
+            "job_transfer_new_department",
+            "job_transfer_new_position",
+            "job_transfer_new_position_id",
+            "job_transfer_effective_date",
+            "job_transfer_reason",
+            "note",
+            "created_by",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "job_transfer_new_branch",
+            "job_transfer_new_block",
+            "job_transfer_new_department",
+            "job_transfer_new_position",
             "created_by",
             "approved_by",
             "created_at",

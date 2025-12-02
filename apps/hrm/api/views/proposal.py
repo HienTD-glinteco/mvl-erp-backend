@@ -1,3 +1,5 @@
+from typing import List
+
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -16,20 +18,56 @@ from apps.hrm.api.filtersets.proposal import (
 )
 from apps.hrm.api.serializers.proposal import (
     ProposalAssetAllocationSerializer,
+    ProposalJobTransferSerializer,
     ProposalLateExemptionSerializer,
     ProposalMaternityLeaveSerializer,
     ProposalOvertimeWorkSerializer,
+    ProposalPaidLeaveSerializer,
     ProposalPostMaternityBenefitsSerializer,
     ProposalSerializer,
     ProposalTimesheetEntryComplaintApproveSerializer,
     ProposalTimesheetEntryComplaintRejectSerializer,
     ProposalTimesheetEntryComplaintSerializer,
+    ProposalUnpaidLeaveSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
 )
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
+
+
+class ProposalMixin:
+    queryset = Proposal.objects.all()
+    serializer_class = ProposalSerializer  # Subclasses should override
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalFilterSet
+    ordering_fields = ["proposal_date", "created_at"]
+    ordering = ["-proposal_date"]
+
+    module = "HRM"
+    submodule = "Proposal"
+    permission_prefix = "proposal"  # Subclasses should override
+
+    # Subclasses must define this
+    proposal_type: ProposalType = None  # type: ignore
+
+    def get_select_related_fields(self) -> List[str]:
+        """Get list of fields for select_related optimization."""
+        return ["created_by", "approved_by"]
+
+    def get_prefetch_related_fields(self) -> List[str]:
+        """Get list of fields for prefetch_related optimization."""
+        return []
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.proposal_type:
+            queryset = queryset.filter(proposal_type=self.proposal_type)
+        queryset = queryset.select_related(*self.get_select_related_fields()).prefetch_related(
+            *self.get_prefetch_related_fields()
+        )
+        return queryset
 
 
 @extend_schema_view(
@@ -116,33 +154,11 @@ from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
         ],
     ),
 )
-class ProposalViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class ProposalViewSet(AuditLoggingMixin, ProposalMixin, BaseReadOnlyModelViewSet):
     """Base ViewSet for specific Proposal types with common configuration."""
 
-    serializer_class = ProposalSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
-
-    module = "HRM"
-    submodule = "Proposal"
-    permission_prefix = "proposal"
-
-    # Subclasses must define this
-    proposal_type: ProposalType = None  # type: ignore
-
-    def get_queryset(self):
-        """Filter queryset to only include proposals of the specific type."""
-        queryset = Proposal.objects.prefetch_related(
-            "timesheet_entries",
-            "timesheet_entries__timesheet_entry",
-            "created_by",
-            "approved_by",
-        )
-        if self.proposal_type:
-            queryset = queryset.filter(proposal_type=self.proposal_type)
-        return queryset
+    def get_prefetch_related_fields(self) -> List[str]:
+        return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
 
 
 @extend_schema_view(
@@ -223,19 +239,6 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     filterset_class = ProposalTimesheetEntryComplaintFilterSet
     permission_prefix = "proposal_timesheet_entry_complaint"
-
-    def get_queryset(self):
-        """Filter queryset to only include timesheet complaint proposals with optimized queries.
-
-        Uses select_related for FK fields and prefetch_related for the nested
-        timesheet_entries junction table and the actual timesheet_entry.
-        """
-        return (
-            super()
-            .get_queryset()
-            .select_related("created_by", "approved_by")
-            .prefetch_related("timesheet_entries__timesheet_entry")
-        )
 
     def get_serializer_class(self):
         if self.action == "approve":
@@ -484,25 +487,12 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         tags=["10.2: Proposals", "10.2.2: Post-Maternity Benefits Proposals"],
     ),
 )
-class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Post-Maternity Benefits proposals."""
 
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
     serializer_class = ProposalPostMaternityBenefitsSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
     permission_prefix = "proposal_post_maternity_benefits"
-
-    module = "HRM"
-    submodule = "Proposal"
-
-    def get_queryset(self):
-        """Filter queryset to only include post-maternity benefits proposals."""
-        return Proposal.objects.filter(proposal_type=ProposalType.POST_MATERNITY_BENEFITS).select_related(
-            "created_by", "approved_by"
-        )
 
 
 @extend_schema_view(
@@ -637,25 +627,12 @@ class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["10.2: Proposals", "10.2.3: Late Exemption Proposals"],
     ),
 )
-class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalLateExemptionViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Late Exemption proposals."""
 
     proposal_type = ProposalType.LATE_EXEMPTION
     serializer_class = ProposalLateExemptionSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
     permission_prefix = "proposal_late_exemption"
-
-    module = "HRM"
-    submodule = "Proposal"
-
-    def get_queryset(self):
-        """Filter queryset to only include late exemption proposals."""
-        return Proposal.objects.filter(proposal_type=ProposalType.LATE_EXEMPTION).select_related(
-            "created_by", "approved_by"
-        )
 
 
 @extend_schema_view(
@@ -679,9 +656,17 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
                                 "proposal_date": "2025-01-15",
                                 "proposal_type": "overtime_work",
                                 "proposal_status": "pending",
-                                "overtime_work_start_at": "18:00:00",
-                                "overtime_work_end_at": "21:00:00",
-                                "note": "Project deadline",
+                                "overtime_entries": [
+                                    {
+                                        "id": 1,
+                                        "date": "2025-01-15",
+                                        "start_time": "18:00:00",
+                                        "end_time": "21:00:00",
+                                        "description": "Project deadline",
+                                        "duration_hours": 3.0,
+                                    }
+                                ],
+                                "note": "Overtime for project deadline",
                                 "created_at": "2025-01-15T10:00:00Z",
                                 "updated_at": "2025-01-15T10:00:00Z",
                             }
@@ -708,9 +693,17 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "proposal_date": "2025-01-15",
                         "proposal_type": "overtime_work",
                         "proposal_status": "pending",
-                        "overtime_work_start_at": "18:00:00",
-                        "overtime_work_end_at": "21:00:00",
-                        "note": "Project deadline",
+                        "overtime_entries": [
+                            {
+                                "id": 1,
+                                "date": "2025-01-15",
+                                "start_time": "18:00:00",
+                                "end_time": "21:00:00",
+                                "description": "Project deadline",
+                                "duration_hours": 3.0,
+                            }
+                        ],
+                        "note": "Overtime for project deadline",
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T10:00:00Z",
                     },
@@ -722,15 +715,27 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
     ),
     create=extend_schema(
         summary="Create overtime work proposal",
-        description="Create a new overtime work proposal",
+        description="Create a new overtime work proposal with one or more overtime entries",
         tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
                 value={
-                    "overtime_work_start_at": "18:00:00",
-                    "overtime_work_end_at": "21:00:00",
-                    "note": "Project deadline",
+                    "entries": [
+                        {
+                            "date": "2025-01-15",
+                            "start_time": "18:00:00",
+                            "end_time": "21:00:00",
+                            "description": "Project deadline work",
+                        },
+                        {
+                            "date": "2025-01-16",
+                            "start_time": "19:00:00",
+                            "end_time": "22:00:00",
+                            "description": "Continue project work",
+                        },
+                    ],
+                    "note": "Overtime for project deadline",
                 },
                 request_only=True,
             ),
@@ -744,9 +749,25 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "proposal_date": "2025-01-15",
                         "proposal_type": "overtime_work",
                         "proposal_status": "pending",
-                        "overtime_work_start_at": "18:00:00",
-                        "overtime_work_end_at": "21:00:00",
-                        "note": "Project deadline",
+                        "overtime_entries": [
+                            {
+                                "id": 1,
+                                "date": "2025-01-15",
+                                "start_time": "18:00:00",
+                                "end_time": "21:00:00",
+                                "description": "Project deadline work",
+                                "duration_hours": 3.0,
+                            },
+                            {
+                                "id": 2,
+                                "date": "2025-01-16",
+                                "start_time": "19:00:00",
+                                "end_time": "22:00:00",
+                                "description": "Continue project work",
+                                "duration_hours": 3.0,
+                            },
+                        ],
+                        "note": "Overtime for project deadline",
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T10:00:00Z",
                     },
@@ -755,13 +776,24 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
                 response_only=True,
             ),
             OpenApiExample(
-                "Error - Missing fields",
+                "Error - Missing entries",
                 value={
                     "success": False,
                     "data": None,
                     "error": {
-                        "overtime_work_start_at": ["Overtime work start time is required"],
-                        "overtime_work_end_at": ["Overtime work end time is required"],
+                        "entries": ["At least one overtime entry is required"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - Invalid time range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "entries": [{"end_time": ["End time must be after start time"]}],
                     },
                 },
                 response_only=True,
@@ -785,25 +817,15 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["10.2: Proposals", "10.2.4: Overtime Work Proposals"],
     ),
 )
-class ProposalOvertimeWorkViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalOvertimeWorkViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Overtime Work proposals."""
 
     proposal_type = ProposalType.OVERTIME_WORK
     serializer_class = ProposalOvertimeWorkSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
     permission_prefix = "proposal_overtime_work"
 
-    module = "HRM"
-    submodule = "Proposal"
-
-    def get_queryset(self):
-        """Filter queryset to only include overtime work proposals."""
-        return Proposal.objects.filter(proposal_type=ProposalType.OVERTIME_WORK).select_related(
-            "created_by", "approved_by"
-        )
+    def get_prefetch_related_fields(self) -> List[str]:
+        return ["overtime_entries"]
 
 
 @extend_schema_view(
@@ -811,17 +833,140 @@ class ProposalOvertimeWorkViewSet(AuditLoggingMixin, BaseModelViewSet):
         summary="List paid leave proposals",
         description="Retrieve a list of paid leave proposals",
         tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "paid_leave",
+                                "proposal_status": "pending",
+                                "paid_leave_start_date": "2025-02-01",
+                                "paid_leave_end_date": "2025-02-05",
+                                "paid_leave_shift": "full_day",
+                                "paid_leave_reason": "Family vacation",
+                                "note": "Annual leave",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get paid leave proposal details",
         description="Retrieve detailed information for a specific paid leave proposal",
         tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "paid_leave",
+                        "proposal_status": "pending",
+                        "paid_leave_start_date": "2025-02-01",
+                        "paid_leave_end_date": "2025-02-05",
+                        "paid_leave_shift": "full_day",
+                        "paid_leave_reason": "Family vacation",
+                        "note": "Annual leave",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create paid leave proposal",
+        description="Create a new paid leave proposal",
+        tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "paid_leave_start_date": "2025-02-01",
+                    "paid_leave_end_date": "2025-02-05",
+                    "paid_leave_shift": "full_day",
+                    "paid_leave_reason": "Family vacation",
+                    "note": "Annual leave",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "paid_leave",
+                        "proposal_status": "pending",
+                        "paid_leave_start_date": "2025-02-01",
+                        "paid_leave_end_date": "2025-02-05",
+                        "paid_leave_shift": "full_day",
+                        "paid_leave_reason": "Family vacation",
+                        "note": "Annual leave",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Invalid date range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "paid_leave_end_date": ["Paid leave end date must be on or after start date"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update paid leave proposal",
+        description="Update a paid leave proposal",
+        tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update paid leave proposal",
+        description="Partially update a paid leave proposal",
+        tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete paid leave proposal",
+        description="Delete a paid leave proposal",
+        tags=["10.2: Proposals", "10.2.5: Paid Leave Proposals"],
     ),
 )
-class ProposalPaidLeaveViewSet(ProposalViewSet):
+class ProposalPaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Paid Leave proposals."""
 
     proposal_type = ProposalType.PAID_LEAVE
+    serializer_class = ProposalPaidLeaveSerializer
     permission_prefix = "proposal_paid_leave"
 
 
@@ -830,17 +975,140 @@ class ProposalPaidLeaveViewSet(ProposalViewSet):
         summary="List unpaid leave proposals",
         description="Retrieve a list of unpaid leave proposals",
         tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "unpaid_leave",
+                                "proposal_status": "pending",
+                                "unpaid_leave_start_date": "2025-02-01",
+                                "unpaid_leave_end_date": "2025-02-05",
+                                "unpaid_leave_shift": "full_day",
+                                "unpaid_leave_reason": "Personal matters",
+                                "note": "Unpaid leave request",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         summary="Get unpaid leave proposal details",
         description="Retrieve detailed information for a specific unpaid leave proposal",
         tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "unpaid_leave",
+                        "proposal_status": "pending",
+                        "unpaid_leave_start_date": "2025-02-01",
+                        "unpaid_leave_end_date": "2025-02-05",
+                        "unpaid_leave_shift": "full_day",
+                        "unpaid_leave_reason": "Personal matters",
+                        "note": "Unpaid leave request",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create unpaid leave proposal",
+        description="Create a new unpaid leave proposal",
+        tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "unpaid_leave_start_date": "2025-02-01",
+                    "unpaid_leave_end_date": "2025-02-05",
+                    "unpaid_leave_shift": "full_day",
+                    "unpaid_leave_reason": "Personal matters",
+                    "note": "Unpaid leave request",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "unpaid_leave",
+                        "proposal_status": "pending",
+                        "unpaid_leave_start_date": "2025-02-01",
+                        "unpaid_leave_end_date": "2025-02-05",
+                        "unpaid_leave_shift": "full_day",
+                        "unpaid_leave_reason": "Personal matters",
+                        "note": "Unpaid leave request",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Invalid date range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "unpaid_leave_end_date": ["Unpaid leave end date must be on or after start date"],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update unpaid leave proposal",
+        description="Update an unpaid leave proposal",
+        tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update unpaid leave proposal",
+        description="Partially update an unpaid leave proposal",
+        tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete unpaid leave proposal",
+        description="Delete an unpaid leave proposal",
+        tags=["10.2: Proposals", "10.2.6: Unpaid Leave Proposals"],
     ),
 )
-class ProposalUnpaidLeaveViewSet(ProposalViewSet):
+class ProposalUnpaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Unpaid Leave proposals."""
 
     proposal_type = ProposalType.UNPAID_LEAVE
+    serializer_class = ProposalUnpaidLeaveSerializer
     permission_prefix = "proposal_unpaid_leave"
 
 
@@ -975,25 +1243,17 @@ class ProposalUnpaidLeaveViewSet(ProposalViewSet):
         tags=["10.2: Proposals", "10.2.7: Maternity Leave Proposals"],
     ),
 )
-class ProposalMaternityLeaveViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalMaternityLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Maternity Leave proposals."""
 
     proposal_type = ProposalType.MATERNITY_LEAVE
     serializer_class = ProposalMaternityLeaveSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
     permission_prefix = "proposal_maternity_leave"
 
-    module = "HRM"
-    submodule = "Proposal"
-
-    def get_queryset(self):
-        """Filter queryset to only include maternity leave proposals."""
-        return Proposal.objects.filter(proposal_type=ProposalType.MATERNITY_LEAVE).select_related(
-            "created_by", "approved_by", "maternity_leave_replacement_employee"
-        )
+    def get_select_related_fields(self) -> List[str]:
+        fields = super().get_select_related_fields()
+        fields.append("maternity_leave_replacement_employee")
+        return fields
 
 
 @extend_schema_view(
@@ -1036,7 +1296,17 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
                                 "proposal_date": "2025-01-15",
                                 "proposal_type": "job_transfer",
                                 "proposal_status": "pending",
+                                "job_transfer_new_branch": {"id": 1, "name": "Head Office"},
+                                "job_transfer_new_block": {"id": 2, "name": "Sales Block"},
+                                "job_transfer_new_department": {"id": 3, "name": "Marketing"},
+                                "job_transfer_new_department_id": 3,
+                                "job_transfer_new_position": {"id": 4, "name": "Senior Developer"},
+                                "job_transfer_new_position_id": 4,
+                                "job_transfer_effective_date": "2025-02-01",
+                                "job_transfer_reason": "Career development",
                                 "note": "Transfer request to Marketing department",
+                                "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                                "approved_by": None,
                                 "created_at": "2025-01-15T10:00:00Z",
                                 "updated_at": "2025-01-15T10:00:00Z",
                             }
@@ -1063,7 +1333,17 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
                         "proposal_date": "2025-01-15",
                         "proposal_type": "job_transfer",
                         "proposal_status": "pending",
+                        "job_transfer_new_branch": {"id": 1, "name": "Head Office"},
+                        "job_transfer_new_block": {"id": 2, "name": "Sales Block"},
+                        "job_transfer_new_department": {"id": 3, "name": "Marketing"},
+                        "job_transfer_new_department_id": 3,
+                        "job_transfer_new_position": {"id": 4, "name": "Senior Developer"},
+                        "job_transfer_new_position_id": 4,
+                        "job_transfer_effective_date": "2025-02-01",
+                        "job_transfer_reason": "Career development",
                         "note": "Transfer request to Marketing department",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": None,
                         "created_at": "2025-01-15T10:00:00Z",
                         "updated_at": "2025-01-15T10:00:00Z",
                     },
@@ -1073,12 +1353,100 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
             ),
         ],
     ),
+    create=extend_schema(
+        summary="Create job transfer proposal",
+        description="Create a new job transfer proposal",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "job_transfer_new_department_id": 3,
+                    "job_transfer_new_position_id": 4,
+                    "job_transfer_effective_date": "2025-02-01",
+                    "job_transfer_reason": "Career development",
+                    "note": "Transfer request to Marketing department",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "job_transfer",
+                        "proposal_status": "pending",
+                        "job_transfer_new_branch": None,
+                        "job_transfer_new_block": None,
+                        "job_transfer_new_department": {"id": 3, "name": "Marketing"},
+                        "job_transfer_new_department_id": 3,
+                        "job_transfer_new_position": {"id": 4, "name": "Senior Developer"},
+                        "job_transfer_new_position_id": 4,
+                        "job_transfer_effective_date": "2025-02-01",
+                        "job_transfer_reason": "Career development",
+                        "note": "Transfer request to Marketing department",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": None,
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing required fields",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "job_transfer_effective_date": ["Job transfer effective date is required"],
+                        "job_transfer_new_department_id": ["This field is required."],
+                        "job_transfer_new_position_id": ["This field is required."],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update job transfer proposal",
+        description="Update a job transfer proposal",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update job transfer proposal",
+        description="Partially update a job transfer proposal",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete job transfer proposal",
+        description="Delete a job transfer proposal",
+        tags=["10.2: Proposals", "10.2.9: Job Transfer Proposals"],
+    ),
 )
-class ProposalJobTransferViewSet(ProposalViewSet):
+class ProposalJobTransferViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Job Transfer proposals."""
 
     proposal_type = ProposalType.JOB_TRANSFER
+    serializer_class = ProposalJobTransferSerializer
     permission_prefix = "proposal_job_transfer"
+
+    def get_select_related_fields(self) -> List[str]:
+        fields = super().get_select_related_fields()
+        fields.extend(
+            [
+                "job_transfer_new_branch",
+                "job_transfer_new_block",
+                "job_transfer_new_department",
+                "job_transfer_new_position",
+            ]
+        )
+        return fields
 
 
 @extend_schema_view(
@@ -1234,27 +1602,15 @@ class ProposalJobTransferViewSet(ProposalViewSet):
         tags=["10.2: Proposals", "10.2.10: Asset Allocation Proposals"],
     ),
 )
-class ProposalAssetAllocationViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalAssetAllocationViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Asset Allocation proposals."""
 
     proposal_type = ProposalType.ASSET_ALLOCATION
     serializer_class = ProposalAssetAllocationSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalFilterSet
-    ordering_fields = ["proposal_date", "created_at"]
-    ordering = ["-proposal_date"]
     permission_prefix = "proposal_asset_allocation"
 
-    module = "HRM"
-    submodule = "Proposal"
-
-    def get_queryset(self):
-        """Filter queryset to only include asset allocation proposals."""
-        return (
-            Proposal.objects.filter(proposal_type=ProposalType.ASSET_ALLOCATION)
-            .select_related("created_by", "approved_by")
-            .prefetch_related("assets")
-        )
+    def get_prefetch_related_fields(self) -> List[str]:
+        return ["assets"]
 
 
 @extend_schema_view(
