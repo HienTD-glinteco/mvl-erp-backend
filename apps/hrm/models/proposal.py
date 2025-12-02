@@ -13,42 +13,42 @@ class Proposal(AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "DX"
 
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Proposal code"))
+    code = models.CharField(max_length=50, unique=True, verbose_name="Proposal code")
 
-    proposal_date = models.DateField(auto_now_add=True, verbose_name=_("Proposal date"))
+    proposal_date = models.DateField(auto_now_add=True, verbose_name="Proposal date")
 
     proposal_type = models.CharField(
         max_length=64,
         choices=ProposalType.choices,
         null=True,
         blank=True,
-        verbose_name=_("Proposal type"),
+        verbose_name="Proposal type",
     )
 
     proposal_status = models.CharField(
         max_length=32,
         choices=ProposalStatus.choices,
         default=ProposalStatus.PENDING,
-        verbose_name=_("Proposal status"),
+        verbose_name="Proposal status",
     )
 
-    complaint_reason = SafeTextField(null=True, blank=True, verbose_name=_("Complaint reason"))
+    complaint_reason = SafeTextField(null=True, blank=True, verbose_name="Complaint reason")
 
-    proposed_check_in_time = models.TimeField(null=True, blank=True, verbose_name=_("Proposed check-in time"))
+    proposed_check_in_time = models.TimeField(null=True, blank=True, verbose_name="Proposed check-in time")
 
-    proposed_check_out_time = models.TimeField(null=True, blank=True, verbose_name=_("Proposed check-out time"))
+    proposed_check_out_time = models.TimeField(null=True, blank=True, verbose_name="Proposed check-out time")
 
-    approved_check_in_time = models.TimeField(null=True, blank=True, verbose_name=_("Approved check-in time"))
+    approved_check_in_time = models.TimeField(null=True, blank=True, verbose_name="Approved check-in time")
 
-    approved_check_out_time = models.TimeField(null=True, blank=True, verbose_name=_("Approved check-out time"))
+    approved_check_out_time = models.TimeField(null=True, blank=True, verbose_name="Approved check-out time")
 
-    note = SafeTextField(null=True, blank=True, verbose_name=_("Note"))
+    note = SafeTextField(null=True, blank=True, verbose_name="Note")
 
     created_by = models.ForeignKey(
         "Employee",
         on_delete=models.PROTECT,
         related_name="created_proposals",
-        verbose_name=_("Created by"),
+        verbose_name="Created by",
     )
 
     approved_by = models.ForeignKey(
@@ -57,65 +57,65 @@ class Proposal(AutoCodeMixin, BaseModel):
         related_name="approved_proposals",
         null=True,
         blank=True,
-        verbose_name=_("Approved by"),
+        verbose_name="Approved by",
     )
 
     # Late exemption fields
     late_exemption_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Late exemption start date"),
+        verbose_name="Late exemption start date",
     )
     late_exemption_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Late exemption end date"),
+        verbose_name="Late exemption end date",
     )
     late_exemption_minutes = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Late exemption minutes"),
+        verbose_name="Late exemption minutes",
     )
 
     # Overtime work fields
     overtime_work_start_at = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Overtime work start time"),
+        verbose_name="Overtime work start time",
     )
     overtime_work_end_at = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Overtime work end time"),
+        verbose_name="Overtime work end time",
     )
 
     # Post-maternity benefits fields
     post_maternity_benefits_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Post-maternity benefits start date"),
+        verbose_name="Post-maternity benefits start date",
     )
     post_maternity_benefits_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Post-maternity benefits end date"),
+        verbose_name="Post-maternity benefits end date",
     )
 
     # Maternity leave fields
     maternity_leave_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Maternity leave start date"),
+        verbose_name="Maternity leave start date",
     )
     maternity_leave_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Maternity leave end date"),
+        verbose_name="Maternity leave end date",
     )
     maternity_leave_estimated_due_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Maternity leave estimated due date"),
+        verbose_name="Maternity leave estimated due date",
     )
     maternity_leave_replacement_employee = models.ForeignKey(
         "Employee",
@@ -123,13 +123,13 @@ class Proposal(AutoCodeMixin, BaseModel):
         related_name="replacement_for_maternity_proposals",
         null=True,
         blank=True,
-        verbose_name=_("Replacement employee for maternity leave"),
+        verbose_name="Replacement employee for maternity leave",
     )
 
     class Meta:
         db_table = "hrm_proposal"
-        verbose_name = _("Proposal")
-        verbose_name_plural = _("Proposals")
+        verbose_name = "Proposal"
+        verbose_name_plural = "Proposals"
         indexes = [
             models.Index(fields=["proposal_status"], name="proposal_status_idx"),
             models.Index(fields=["proposal_date"], name="proposal_date_idx"),
@@ -256,7 +256,7 @@ class ProposalTimeSheetEntry(BaseModel):
         "Proposal",
         on_delete=models.CASCADE,
         related_name="timesheet_entries",
-        verbose_name=_("Proposal"),
+        verbose_name="Proposal",
         limit_choices_to={"proposal_type": ProposalType.TIMESHEET_ENTRY_COMPLAINT},
     )
 
@@ -264,13 +264,13 @@ class ProposalTimeSheetEntry(BaseModel):
         "TimeSheetEntry",
         on_delete=models.CASCADE,
         related_name="proposals",
-        verbose_name=_("Timesheet entry"),
+        verbose_name="Timesheet entry",
     )
 
     class Meta:
         db_table = "hrm_proposal_timesheet_entry"
-        verbose_name = _("Proposal Timesheet Entry")
-        verbose_name_plural = _("Proposal Timesheet Entries")
+        verbose_name = "Proposal Timesheet Entry"
+        verbose_name_plural = "Proposal Timesheet Entries"
         unique_together = [["proposal", "timesheet_entry"]]
         indexes = [
             models.Index(fields=["proposal"], name="pt_proposal_idx"),
@@ -335,39 +335,39 @@ class ProposalVerifier(BaseModel):
         "Proposal",
         on_delete=models.CASCADE,
         related_name="verifiers",
-        verbose_name=_("Proposal"),
+        verbose_name="Proposal",
     )
 
     employee = models.ForeignKey(
         "Employee",
         on_delete=models.CASCADE,
         related_name="verifiable_proposals",
-        verbose_name=_("Employee"),
+        verbose_name="Employee",
     )
 
     status = models.CharField(
         max_length=32,
         choices=ProposalVerifierStatus.choices,
         default=ProposalVerifierStatus.NOT_VERIFIED,
-        verbose_name=_("Status"),
+        verbose_name="Status",
     )
 
     verified_time = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("Verified time"),
+        verbose_name="Verified time",
     )
 
     note = SafeTextField(
         null=True,
         blank=True,
-        verbose_name=_("Note"),
+        verbose_name="Note",
     )
 
     class Meta:
         db_table = "hrm_proposal_verifier"
-        verbose_name = _("Proposal Verifier")
-        verbose_name_plural = _("Proposal Verifiers")
+        verbose_name = "Proposal Verifier"
+        verbose_name_plural = "Proposal Verifiers"
         unique_together = [["proposal", "employee"]]
         indexes = [
             models.Index(fields=["proposal"], name="pv_proposal_idx"),
@@ -384,7 +384,7 @@ class ProposalAsset(BaseModel):
 
     name = models.CharField(
         max_length=255,
-        verbose_name=_("Asset name"),
+        verbose_name="Asset name",
     )
 
     unit_type = models.CharField(
@@ -392,32 +392,32 @@ class ProposalAsset(BaseModel):
         choices=AssetUnitType.choices,
         null=True,
         blank=True,
-        verbose_name=_("Unit type"),
+        verbose_name="Unit type",
     )
 
     quantity = models.PositiveIntegerField(
-        verbose_name=_("Quantity"),
+        verbose_name="Quantity",
     )
 
     note = SafeTextField(
         max_length=250,
         null=True,
         blank=True,
-        verbose_name=_("Note"),
+        verbose_name="Note",
     )
 
     proposal = models.ForeignKey(
         "Proposal",
         on_delete=models.CASCADE,
         related_name="assets",
-        verbose_name=_("Proposal"),
+        verbose_name="Proposal",
         limit_choices_to={"proposal_type": ProposalType.ASSET_ALLOCATION},
     )
 
     class Meta:
         db_table = "hrm_proposal_asset"
-        verbose_name = _("Proposal Asset")
-        verbose_name_plural = _("Proposal Assets")
+        verbose_name = "Proposal Asset"
+        verbose_name_plural = "Proposal Assets"
         indexes = [
             models.Index(fields=["proposal"], name="pa_proposal_idx"),
         ]

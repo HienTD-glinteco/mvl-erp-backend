@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class PasswordResetSerializer(serializers.Serializer):
     identifier = serializers.CharField(
         max_length=255,
-        help_text=_("Email or phone number"),
+        help_text="Email or phone number",
         error_messages={
             "required": _("Please enter your email or phone number."),
             "blank": _("Email or phone number cannot be blank."),

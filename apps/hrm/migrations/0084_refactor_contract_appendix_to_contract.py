@@ -7,42 +7,67 @@ import libs.models.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('files', '0002_add_uploaded_by_field'),
-        ('hrm', '0083_contract_appendix'),
+        ("files", "0002_add_uploaded_by_field"),
+        ("hrm", "0083_contract_appendix"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='contractappendix',
-            name='contract',
+            model_name="contractappendix",
+            name="contract",
         ),
         migrations.AddField(
-            model_name='contract',
-            name='content',
-            field=libs.models.fields.SafeTextField(default='', help_text='Content of the appendix (for appendices only)', max_length=5000, verbose_name='Content'),
+            model_name="contract",
+            name="content",
+            field=libs.models.fields.SafeTextField(
+                default="",
+                help_text="Content of the appendix (for appendices only)",
+                max_length=5000,
+                verbose_name="Content",
+            ),
         ),
         migrations.AddField(
-            model_name='contract',
-            name='contract_number',
-            field=models.CharField(blank=True, help_text='Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)', max_length=50, null=True, unique=True, verbose_name='Contract number'),
+            model_name="contract",
+            name="contract_number",
+            field=models.CharField(
+                blank=True,
+                help_text="Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)",
+                max_length=50,
+                null=True,
+                unique=True,
+                verbose_name="Contract number",
+            ),
         ),
         migrations.AddField(
-            model_name='contract',
-            name='parent_contract',
-            field=models.ForeignKey(blank=True, help_text='Reference to parent contract (for appendices only)', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='appendices', to='hrm.contract', verbose_name='Parent contract'),
+            model_name="contract",
+            name="parent_contract",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Reference to parent contract (for appendices only)",
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="appendices",
+                to="hrm.contract",
+                verbose_name="Parent contract",
+            ),
         ),
         migrations.AddField(
-            model_name='contracttype',
-            name='category',
-            field=models.CharField(choices=[('contract', 'Contract'), ('appendix', 'Appendix')], default='contract', help_text='Whether this is a contract type or appendix type', max_length=20, verbose_name='Category'),
+            model_name="contracttype",
+            name="category",
+            field=models.CharField(
+                choices=[("contract", "Contract"), ("appendix", "Appendix")],
+                default="contract",
+                help_text="Whether this is a contract type or appendix type",
+                max_length=20,
+                verbose_name="Category",
+            ),
         ),
         migrations.AddIndex(
-            model_name='contract',
-            index=models.Index(fields=['contract_number'], name='contract_number_idx'),
+            model_name="contract",
+            index=models.Index(fields=["contract_number"], name="contract_number_idx"),
         ),
         migrations.DeleteModel(
-            name='ContractAppendix',
+            name="ContractAppendix",
         ),
     ]

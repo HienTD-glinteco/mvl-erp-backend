@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
 from apps.core.querysets import UserManager
@@ -12,15 +11,15 @@ from libs.models import BaseModel
 
 
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=100, unique=True, verbose_name=_("Username"))
-    email = models.EmailField(unique=True, verbose_name=_("Email"))
-    phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name=_("Phone number"))
-    first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First name"))
-    last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last name"))
+    username = models.CharField(max_length=100, unique=True, verbose_name="Username")
+    email = models.EmailField(unique=True, verbose_name="Email")
+    phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name="Phone number")
+    first_name = models.CharField(max_length=30, blank=True, verbose_name="First name")
+    last_name = models.CharField(max_length=30, blank=True, verbose_name="Last name")
 
-    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
-    is_staff = models.BooleanField(default=False, verbose_name=_("Staff"))
-    date_joined = models.DateTimeField(default=timezone.now, verbose_name=_("Date joined"))
+    is_active = models.BooleanField(default=True, verbose_name="Active")
+    is_staff = models.BooleanField(default=False, verbose_name="Staff")
+    date_joined = models.DateTimeField(default=timezone.now, verbose_name="Date joined")
 
     # Role assignment
     role = models.ForeignKey(
@@ -29,20 +28,20 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         related_name="users",
-        verbose_name=_("Role"),
+        verbose_name="Role",
     )
 
     # Login attempt tracking
-    failed_login_attempts = models.IntegerField(default=0, verbose_name=_("Failed login attempts"))
-    locked_until = models.DateTimeField(null=True, blank=True, verbose_name=_("Locked until"))
+    failed_login_attempts = models.IntegerField(default=0, verbose_name="Failed login attempts")
+    locked_until = models.DateTimeField(null=True, blank=True, verbose_name="Locked until")
 
     # OTP fields
-    otp_code = models.CharField(max_length=6, blank=True, verbose_name=_("OTP code"))
-    otp_expires_at = models.DateTimeField(null=True, blank=True, verbose_name=_("OTP expires at"))
-    otp_verified = models.BooleanField(default=False, verbose_name=_("OTP verified"))
+    otp_code = models.CharField(max_length=6, blank=True, verbose_name="OTP code")
+    otp_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="OTP expires at")
+    otp_verified = models.BooleanField(default=False, verbose_name="OTP verified")
 
     # Session management
-    active_session_key = models.CharField(max_length=255, blank=True, verbose_name=_("Active session"))
+    active_session_key = models.CharField(max_length=255, blank=True, verbose_name="Active session")
 
     # Role-based permissions
     role = models.ForeignKey(
@@ -51,7 +50,7 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
         related_name="users",
-        verbose_name=_("Role"),
+        verbose_name="Role",
     )
 
     objects = UserManager()
@@ -60,8 +59,8 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["email"]
 
     class Meta:
-        verbose_name = _("User")
-        verbose_name_plural = _("Users")
+        verbose_name = "User"
+        verbose_name_plural = "Users"
         db_table = "core_user"
 
     def __str__(self):

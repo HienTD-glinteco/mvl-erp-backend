@@ -44,26 +44,26 @@ class EmployeeWorkHistory(BaseModel):
         RETURN_TO_WORK = "Return to Work", _("Return to Work")
 
     date = models.DateField(
-        verbose_name=_("Date"),
-        help_text=_("Date of the work history event"),
+        verbose_name="Date",
+        help_text="Date of the work history event",
     )
     name = models.CharField(
         max_length=50,
         choices=EventType.choices,
-        verbose_name=_("Event type"),
-        help_text=_("Type of the work history event"),
+        verbose_name="Event type",
+        help_text="Type of the work history event",
     )
     detail = models.TextField(
         blank=True,
-        verbose_name=_("Details"),
-        help_text=_("Detailed description of the work history event"),
+        verbose_name="Details",
+        help_text="Detailed description of the work history event",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="work_histories",
-        verbose_name=_("Employee"),
-        help_text=_("Employee associated with this work history record"),
+        verbose_name="Employee",
+        help_text="Employee associated with this work history record",
     )
     branch = models.ForeignKey(
         "hrm.Branch",
@@ -71,8 +71,8 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name=_("Branch"),
-        help_text=_("Branch (auto-populated from employee)"),
+        verbose_name="Branch",
+        help_text="Branch (auto-populated from employee)",
     )
     block = models.ForeignKey(
         "hrm.Block",
@@ -80,8 +80,8 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name=_("Block"),
-        help_text=_("Block (auto-populated from employee)"),
+        verbose_name="Block",
+        help_text="Block (auto-populated from employee)",
     )
     department = models.ForeignKey(
         "hrm.Department",
@@ -89,8 +89,8 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name=_("Department"),
-        help_text=_("Department (auto-populated from employee)"),
+        verbose_name="Department",
+        help_text="Department (auto-populated from employee)",
     )
     position = models.ForeignKey(
         "hrm.Position",
@@ -98,47 +98,47 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name=_("Position"),
-        help_text=_("Position (auto-populated from employee)"),
+        verbose_name="Position",
+        help_text="Position (auto-populated from employee)",
     )
     note = SafeTextField(
         blank=True,
-        verbose_name=_("Note"),
-        help_text=_("Additional notes about the work history event"),
+        verbose_name="Note",
+        help_text="Additional notes about the work history event",
     )
     status = models.CharField(
         max_length=50,
         choices=Employee.Status.choices,
         null=True,
         blank=True,
-        verbose_name=_("Status"),
-        help_text=_("New employee status after the event (for state-change events)"),
+        verbose_name="Status",
+        help_text="New employee status after the event (for state-change events)",
     )
     from_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("From date"),
-        help_text=_("Start date of the event period"),
+        verbose_name="From date",
+        help_text="Start date of the event period",
     )
     to_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("To date"),
-        help_text=_("End date of the event period"),
+        verbose_name="To date",
+        help_text="End date of the event period",
     )
     retain_seniority = models.BooleanField(
         null=True,
         blank=True,
-        verbose_name=_("Retain seniority"),
-        help_text=_("For return to work events, whether seniority is retained or reset"),
+        verbose_name="Retain seniority",
+        help_text="For return to work events, whether seniority is retained or reset",
     )
     resignation_reason = models.CharField(
         max_length=50,
         choices=Employee.ResignationReason.choices,
         null=True,
         blank=True,
-        verbose_name=_("Resignation reason"),
-        help_text=_("Reason for resignation (if applicable)"),
+        verbose_name="Resignation reason",
+        help_text="Reason for resignation (if applicable)",
     )
     contract = models.ForeignKey(
         "hrm.ContractType",
@@ -146,21 +146,19 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name=_("Contract"),
-        help_text=_("New contract for contract-change event"),
+        verbose_name="Contract",
+        help_text="New contract for contract-change event",
     )
     previous_data = models.JSONField(
         null=True,
         blank=True,
-        verbose_name=_("Previous data"),
-        help_text=_(
-            "JSON data storing previous values (status, branch_id, block_id, department_id, contract_type, contract_id)"
-        ),
+        verbose_name="Previous data",
+        help_text="JSON data storing previous values (status, branch_id, block_id, department_id, contract_type, contract_id)",
     )
 
     class Meta:
-        verbose_name = _("Employee work history")
-        verbose_name_plural = _("Employee work histories")
+        verbose_name = "Employee work history"
+        verbose_name_plural = "Employee work histories"
         db_table = "hrm_employee_work_history"
         ordering = ["-date", "-created_at"]
         indexes = [

@@ -17,14 +17,14 @@ class Holiday(BaseModel):
         notes: Additional notes about the holiday
     """
 
-    name = models.CharField(max_length=255, verbose_name=_("Holiday name"))
-    start_date = models.DateField(verbose_name=_("Start date"))
-    end_date = models.DateField(verbose_name=_("End date"))
-    notes = models.TextField(blank=True, verbose_name=_("Notes"))
+    name = models.CharField(max_length=255, verbose_name="Holiday name")
+    start_date = models.DateField(verbose_name="Start date")
+    end_date = models.DateField(verbose_name="End date")
+    notes = models.TextField(blank=True, verbose_name="Notes")
 
     class Meta:
-        verbose_name = _("Holiday")
-        verbose_name_plural = _("Holidays")
+        verbose_name = "Holiday"
+        verbose_name_plural = "Holidays"
         db_table = "hrm_holiday"
         ordering = ["-start_date"]
         indexes = [
@@ -63,20 +63,20 @@ class CompensatoryWorkday(BaseModel):
         Holiday,
         on_delete=models.CASCADE,
         related_name="compensatory_days",
-        verbose_name=_("Holiday"),
+        verbose_name="Holiday",
     )
-    date = models.DateField(verbose_name=_("Compensatory workday date"))
+    date = models.DateField(verbose_name="Compensatory workday date")
     session = models.CharField(
         max_length=20,
         choices=Session.choices,
         default=Session.FULL_DAY,
-        verbose_name=_("Session"),
+        verbose_name="Session",
     )
-    notes = models.TextField(blank=True, verbose_name=_("Notes"))
+    notes = models.TextField(blank=True, verbose_name="Notes")
 
     class Meta:
-        verbose_name = _("Compensatory Workday")
-        verbose_name_plural = _("Compensatory Workdays")
+        verbose_name = "Compensatory Workday"
+        verbose_name_plural = "Compensatory Workdays"
         db_table = "hrm_compensatory_workday"
         ordering = ["date"]
         constraints = [

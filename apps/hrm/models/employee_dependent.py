@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
@@ -41,57 +40,57 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         editable=False,
         null=True,
         blank=True,
-        verbose_name=_("Code"),
-        help_text=_("Auto-generated unique code for this dependent"),
+        verbose_name="Code",
+        help_text="Auto-generated unique code for this dependent",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="dependents",
-        verbose_name=_("Employee"),
-        help_text=_("Employee associated with this dependent"),
+        verbose_name="Employee",
+        help_text="Employee associated with this dependent",
     )
 
     dependent_name = models.CharField(
         max_length=255,
-        verbose_name=_("Dependent name"),
-        help_text=_("Full name of the dependent"),
+        verbose_name="Dependent name",
+        help_text="Full name of the dependent",
     )
 
     relationship = models.CharField(
         max_length=20,
         choices=RelationType.choices,
-        verbose_name=_("Relationship"),
-        help_text=_("Type of relationship to the employee"),
+        verbose_name="Relationship",
+        help_text="Type of relationship to the employee",
     )
 
     date_of_birth = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Date of birth"),
-        help_text=_("Date of birth of the dependent"),
+        verbose_name="Date of birth",
+        help_text="Date of birth of the dependent",
     )
 
     citizen_id = models.CharField(
         max_length=12,
         blank=True,
         validators=[validate_national_id],
-        verbose_name=_("Citizen ID"),
-        help_text=_("National ID (CMND/CCCD) - 9 or 12 digits"),
+        verbose_name="Citizen ID",
+        help_text="National ID (CMND/CCCD) - 9 or 12 digits",
     )
 
     effective_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Effective date"),
-        help_text=_("Start date for tax deduction applicability"),
+        verbose_name="Effective date",
+        help_text="Start date for tax deduction applicability",
     )
 
     tax_code = models.CharField(
         max_length=50,
         blank=True,
-        verbose_name=_("Tax code"),
-        help_text=_("Tax identification number"),
+        verbose_name="Tax code",
+        help_text="Tax identification number",
     )
 
     attachment = models.ForeignKey(
@@ -100,20 +99,20 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee_dependents",
-        verbose_name=_("Attachment"),
-        help_text=_("Supporting document or file attachment"),
+        verbose_name="Attachment",
+        help_text="Supporting document or file attachment",
     )
 
     note = models.TextField(
         blank=True,
-        verbose_name=_("Note"),
-        help_text=_("Additional notes or information"),
+        verbose_name="Note",
+        help_text="Additional notes or information",
     )
 
     is_active = models.BooleanField(
         default=True,
-        verbose_name=_("Is active"),
-        help_text=_("Whether this dependent record is active"),
+        verbose_name="Is active",
+        help_text="Whether this dependent record is active",
     )
 
     created_by = models.ForeignKey(
@@ -122,13 +121,13 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="created_dependents",
-        verbose_name=_("Created by"),
-        help_text=_("User who created this record"),
+        verbose_name="Created by",
+        help_text="User who created this record",
     )
 
     class Meta:
-        verbose_name = _("Employee Dependent")
-        verbose_name_plural = _("Employee Dependents")
+        verbose_name = "Employee Dependent"
+        verbose_name_plural = "Employee Dependents"
         db_table = "hrm_employee_dependent"
         ordering = ["-created_at"]
         indexes = [

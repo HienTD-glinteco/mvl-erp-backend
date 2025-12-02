@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.crypto import get_random_string
-from django.utils.translation import gettext_lazy as _
 
 
 class BaseModel(models.Model):
@@ -60,12 +59,12 @@ class BaseReportModel(BaseModel):
     recalculation due to source data changes (including deletions).
     """
 
-    report_date = models.DateField(verbose_name=_("Report date"))
+    report_date = models.DateField(verbose_name="Report date")
     need_refresh = models.BooleanField(
         default=False,
         db_index=True,
-        verbose_name=_("Needs refresh"),
-        help_text=_("Indicates if this report needs to be recalculated by batch task"),
+        verbose_name="Needs refresh",
+        help_text="Indicates if this report needs to be recalculated by batch task",
     )
 
     class Meta:

@@ -233,7 +233,7 @@ class FileConfirmSerializerMixin:
                     required=False,
                     write_only=True,
                     allow_empty=True,
-                    help_text=_("File tokens for {field} (array of tokens)").format(field=fname),
+                    help_text="File tokens for {field} (array of tokens)".format(field=fname),
                 )
             else:
                 # Single-valued field: accepts string or array (validated at runtime)
@@ -241,7 +241,7 @@ class FileConfirmSerializerMixin:
                 field_definitions[fname] = _FileTokenField(
                     required=False,
                     write_only=True,
-                    help_text=_("File token(s) for {field}").format(field=fname),
+                    help_text="File token(s) for {field}".format(field=fname),
                 )
 
         # Create a nested serializer class with explicit fields
@@ -270,7 +270,7 @@ class FileConfirmSerializerMixin:
             fields[self.file_tokens_field] = self.__class__._file_fields_serializer_class(
                 required=False,
                 write_only=True,
-                help_text=_("File tokens for uploading files. Each key corresponds to a file field on the model."),
+                help_text="File tokens for uploading files. Each key corresponds to a file field on the model.",
             )
         elif self.file_tokens_field not in fields:
             # Fallback to runtime detection/creation
@@ -285,12 +285,12 @@ class FileConfirmSerializerMixin:
                             child=serializers.CharField(),
                             required=False,
                             allow_empty=True,
-                            help_text=_("File tokens for {field} (array of tokens)").format(field=field_name),
+                            help_text="File tokens for {field} (array of tokens)".format(field=field_name),
                         )
                     else:
                         field_definitions[field_name] = _FileTokenField(
                             required=False,
-                            help_text=_("File token(s) for {field}").format(field=field_name),
+                            help_text="File token(s) for {field}".format(field=field_name),
                         )
 
                 file_fields_serializer_class = type(
@@ -302,7 +302,7 @@ class FileConfirmSerializerMixin:
                 fields[self.file_tokens_field] = file_fields_serializer_class(
                     required=False,
                     write_only=True,
-                    help_text=_("File tokens for uploading files. Each key corresponds to a file field on the model."),
+                    help_text="File tokens for uploading files. Each key corresponds to a file field on the model.",
                 )
             else:
                 # Fallback to generic dict field for backward compatibility
@@ -310,7 +310,7 @@ class FileConfirmSerializerMixin:
                     child=_FileTokenField(),
                     required=False,
                     write_only=True,
-                    help_text=_("Dictionary mapping field names to file tokens (string or array of strings)"),
+                    help_text="Dictionary mapping field names to file tokens (string or array of strings)",
                 )
 
         return fields

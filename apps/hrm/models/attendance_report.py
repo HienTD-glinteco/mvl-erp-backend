@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.hrm.constants import AttendanceType
 from apps.hrm.models.attendance_record import AttendanceRecord
@@ -30,13 +29,13 @@ class AttendanceDailyReport(BaseReportModel):
         Employee,
         on_delete=models.CASCADE,
         related_name="attendance_daily_reports",
-        verbose_name=_("Employee"),
+        verbose_name="Employee",
     )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name=_("Branch"),
+        verbose_name="Branch",
         null=True,
         blank=True,
     )
@@ -44,7 +43,7 @@ class AttendanceDailyReport(BaseReportModel):
         Block,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name=_("Block"),
+        verbose_name="Block",
         null=True,
         blank=True,
     )
@@ -52,7 +51,7 @@ class AttendanceDailyReport(BaseReportModel):
         Department,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name=_("Department"),
+        verbose_name="Department",
         null=True,
         blank=True,
     )
@@ -62,12 +61,12 @@ class AttendanceDailyReport(BaseReportModel):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name=_("Project"),
+        verbose_name="Project",
     )
     attendance_method = models.CharField(
         max_length=20,
         choices=AttendanceType.choices,
-        verbose_name=_("Attendance method"),
+        verbose_name="Attendance method",
     )
     attendance_record = models.ForeignKey(
         AttendanceRecord,
@@ -75,12 +74,12 @@ class AttendanceDailyReport(BaseReportModel):
         null=True,
         blank=True,
         related_name="daily_reports",
-        verbose_name=_("Attendance record"),
+        verbose_name="Attendance record",
     )
 
     class Meta:
-        verbose_name = _("Attendance Daily Report")
-        verbose_name_plural = _("Attendance Daily Reports")
+        verbose_name = "Attendance Daily Report"
+        verbose_name_plural = "Attendance Daily Reports"
         db_table = "hrm_attendance_daily_report"
         unique_together = [["report_date", "employee"]]
         indexes = [

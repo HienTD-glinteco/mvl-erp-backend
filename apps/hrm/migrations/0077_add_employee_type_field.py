@@ -4,15 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0076_decision'),
+        ("hrm", "0076_decision"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employee',
-            name='employee_type',
-            field=models.CharField(blank=True, choices=[('OFFICIAL', 'Official'), ('APPRENTICE', 'Apprentice'), ('UNPAID_OFFICIAL', 'Unpaid - Official'), ('UNPAID_PROBATION', 'Unpaid - Probation'), ('PROBATION', 'Probation'), ('INTERN', 'Intern'), ('PROBATION_TYPE_1', 'Probation Type 1')], max_length=30, null=True, verbose_name='Employee type (classification)'),
+            model_name="employee",
+            name="employee_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("OFFICIAL", "Official"),
+                    ("APPRENTICE", "Apprentice"),
+                    ("UNPAID_OFFICIAL", "Unpaid - Official"),
+                    ("UNPAID_PROBATION", "Unpaid - Probation"),
+                    ("PROBATION", "Probation"),
+                    ("INTERN", "Intern"),
+                    ("PROBATION_TYPE_1", "Probation Type 1"),
+                ],
+                max_length=30,
+                null=True,
+                verbose_name="Employee type (classification)",
+            ),
         ),
     ]

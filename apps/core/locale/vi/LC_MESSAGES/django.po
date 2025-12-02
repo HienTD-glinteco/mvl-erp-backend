@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 09:49+0700\n"
+"POT-Creation-Date: 2025-12-02 10:27+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -24,13 +24,6 @@ msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 msgid "You do not have permission to perform this action"
 msgstr ""
 
-# models/user.py:13
-#: apps/core/api/serializers/auth/login.py:17
-#: apps/core/api/serializers/auth/otp_verification.py:15
-#: apps/core/models/user.py:15
-msgid "Username"
-msgstr "Tên đăng nhập"
-
 # api/serializers/auth/login.py:19
 #: apps/core/api/serializers/auth/login.py:19
 #: apps/core/api/serializers/auth/otp_verification.py:17
@@ -43,11 +36,6 @@ msgstr "Vui lòng nhập tên đăng nhập."
 #: apps/core/api/serializers/auth/otp_verification.py:18
 msgid "Username cannot be blank."
 msgstr "Tên đăng nhập không được để trống."
-
-# api/serializers/auth/login.py:17
-#: apps/core/api/serializers/auth/login.py:25
-msgid "Password"
-msgstr "Mật khẩu"
 
 # api/serializers/auth/login.py:27
 #: apps/core/api/serializers/auth/login.py:27
@@ -93,12 +81,6 @@ msgstr ""
 msgid "Incorrect password."
 msgstr "Mật khẩu không đúng."
 
-# models/user.py:28
-#: apps/core/api/serializers/auth/otp_verification.py:24
-#: apps/core/models/user.py:40
-msgid "OTP code"
-msgstr "Mã OTP"
-
 # api/serializers/auth/otp_verification.py:20
 #: apps/core/api/serializers/auth/otp_verification.py:26
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:32
@@ -122,11 +104,6 @@ msgstr "Mã OTP không được để trống."
 msgid "OTP code must be 6 digits."
 msgstr "Mã OTP phải có 6 chữ số."
 
-# api/serializers/auth/otp_verification.py:32
-#: apps/core/api/serializers/auth/otp_verification.py:37
-msgid "Device ID of client app (browser can skip)"
-msgstr "Device ID của client app (browser bỏ qua)"
-
 # api/serializers/auth/otp_verification.py:42
 #: apps/core/api/serializers/auth/otp_verification.py:45
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:52
@@ -138,11 +115,6 @@ msgstr "Mã OTP chỉ được chứa số."
 msgid "OTP code is incorrect or has expired."
 msgstr "Mã OTP không đúng hoặc đã hết hạn."
 
-# api/serializers/auth/password_change.py:21
-#: apps/core/api/serializers/auth/password_change.py:21
-msgid "Current password"
-msgstr "Mật khẩu hiện tại"
-
 # api/serializers/auth/password_change.py:23
 #: apps/core/api/serializers/auth/password_change.py:23
 msgid "Please enter your current password."
@@ -153,12 +125,6 @@ msgstr "Vui lòng nhập mật khẩu hiện tại."
 #: apps/core/api/serializers/auth/password_change.py:47
 msgid "Current password cannot be blank."
 msgstr "Mật khẩu hiện tại không được để trống."
-
-# api/serializers/auth/password_change.py:29
-#: apps/core/api/serializers/auth/password_change.py:29
-#: apps/core/api/serializers/auth/password_reset_change_password.py:23
-msgid "New password"
-msgstr "Mật khẩu mới"
 
 # api/serializers/auth/password_change.py:31
 #: apps/core/api/serializers/auth/password_change.py:31
@@ -173,12 +139,6 @@ msgstr "Vui lòng nhập mật khẩu mới."
 #: apps/core/api/serializers/auth/password_reset_change_password.py:41
 msgid "New password cannot be blank."
 msgstr "Mật khẩu mới không được để trống."
-
-# api/serializers/auth/password_change.py:37
-#: apps/core/api/serializers/auth/password_change.py:37
-#: apps/core/api/serializers/auth/password_reset_change_password.py:31
-msgid "Confirm new password"
-msgstr "Xác nhận mật khẩu mới"
 
 # api/serializers/auth/password_change.py:39
 #: apps/core/api/serializers/auth/password_change.py:39
@@ -213,11 +173,6 @@ msgstr "Bạn cần đăng nhập để thay đổi mật khẩu."
 msgid "Current password is incorrect."
 msgstr "Mật khẩu hiện tại không đúng."
 
-# api/serializers/auth/password_reset.py:16
-#: apps/core/api/serializers/auth/password_reset.py:16
-msgid "Email or phone number"
-msgstr "Email hoặc số điện thoại"
-
 # api/serializers/auth/password_reset.py:18
 #: apps/core/api/serializers/auth/password_reset.py:18
 #: apps/core/api/serializers/auth/password_reset.py:26
@@ -249,11 +204,6 @@ msgstr "Không tìm thấy yêu cầu đặt lại mật khẩu đã xác thực
 msgid "Password reset request has expired."
 msgstr "Yêu cầu đặt lại mật khẩu đã hết hạn."
 
-# api/serializers/auth/password_reset_otp_verification.py:20
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:21
-msgid "Reset token UUID received from step 1"
-msgstr "Reset token UUID nhận được từ bước 1"
-
 # api/serializers/auth/password_reset_otp_verification.py:22
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:23
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:42
@@ -264,11 +214,6 @@ msgstr "Vui lòng nhập reset token."
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:24
 msgid "Reset token cannot be blank."
 msgstr "Reset token không được để trống."
-
-# api/serializers/auth/password_reset_otp_verification.py:29
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:30
-msgid "6-digit OTP code"
-msgstr "Mã OTP 6 chữ số"
 
 # api/serializers/auth/password_reset_otp_verification.py:54
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:66
@@ -606,86 +551,6 @@ msgstr ""
 msgid "Township"
 msgstr ""
 
-#: apps/core/models/administrative_unit.py:22
-msgid "Unit code"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:23
-msgid "Unique identifier code for the administrative unit"
-msgstr "Mã định danh duy nhất cho đơn vị hành chính"
-
-# models/user.py:16
-#: apps/core/models/administrative_unit.py:27
-msgid "Unit name"
-msgstr "Tên đơn vị hành chính"
-
-#: apps/core/models/administrative_unit.py:28
-msgid "Official name of the administrative unit"
-msgstr "Tên chính thức của đơn vị hành chính"
-
-# models/user.py:16
-#: apps/core/models/administrative_unit.py:33 apps/core/models/province.py:31
-msgid "English name"
-msgstr "Tên tiêng Anh"
-
-#: apps/core/models/administrative_unit.py:34
-msgid "English name of the administrative unit"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:40
-msgid "Parent province"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:41
-msgid "Province that this unit belongs to"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:46 apps/core/models/province.py:37
-msgid "Administrative level"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:47
-msgid "Administrative level of the unit"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:51 apps/core/models/province.py:48
-msgid "Enabled"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:52
-msgid "Whether this administrative unit is currently enabled"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:56
-msgid "Administrative Unit"
-msgstr ""
-
-#: apps/core/models/administrative_unit.py:57
-msgid "Administrative Units"
-msgstr ""
-
-# models/user.py:41
-#: apps/core/models/device.py:13 apps/core/models/role.py:39
-#: apps/core/models/user.py:63 apps/core/tests/test_role_api.py:272
-msgid "User"
-msgstr "Người dùng"
-
-#: apps/core/models/device.py:19
-msgid "Device ID"
-msgstr "ID thiết bị"
-
-#: apps/core/models/device.py:20
-msgid "Unique identifier for the device"
-msgstr "Mã định danh duy nhất cho thiết bị"
-
-#: apps/core/models/device.py:26
-msgid "FCM token"
-msgstr "Mã FCM"
-
-#: apps/core/models/device.py:27
-msgid "Firebase Cloud Messaging token"
-msgstr "Mã Firebase Cloud Messaging"
-
 #: apps/core/models/device.py:31
 msgid "iOS"
 msgstr "iOS"
@@ -698,46 +563,8 @@ msgstr "Android"
 msgid "Web"
 msgstr "Web"
 
-#: apps/core/models/device.py:39
-msgid "Platform"
-msgstr "Nền tảng"
-
-#: apps/core/models/device.py:40
-msgid "Device platform (iOS, Android, or Web)"
-msgstr "Nền tảng thiết bị (iOS, Android hoặc Web)"
-
-# models/user.py:19
-#: apps/core/models/device.py:45 apps/core/models/user.py:21
-msgid "Active"
-msgstr "Hoạt động"
-
-#: apps/core/models/device.py:46
-msgid "Whether the device is active for receiving notifications"
-msgstr "Thiết bị có đang hoạt động để nhận thông báo hay không"
-
-#: apps/core/models/device.py:50
-msgid "User device"
-msgstr "Thiết bị người dùng"
-
-#: apps/core/models/device.py:51
-msgid "User devices"
-msgstr "Thiết bị người dùng"
-
-# models/user.py:16
-#: apps/core/models/nationality.py:15
-msgid "Nationality name"
-msgstr "Tên quốc tịch"
-
-#: apps/core/models/nationality.py:19
-msgid "Nationality"
-msgstr ""
-
-#: apps/core/models/nationality.py:20
-msgid "Nationalities"
-msgstr ""
-
 # models/user.py:14
-#: apps/core/models/password_reset.py:20 apps/core/models/user.py:16
+#: apps/core/models/password_reset.py:20
 msgid "Email"
 msgstr "Email"
 
@@ -746,161 +573,22 @@ msgstr "Email"
 msgid "SMS"
 msgstr "SMS"
 
-# models/password_reset.py:24
-#: apps/core/models/password_reset.py:25
-msgid "Reset Token"
-msgstr "Token đặt lại"
-
-# models/password_reset.py:25
-#: apps/core/models/password_reset.py:26
-msgid "OTP Hash"
-msgstr "OTP Hash"
-
-# models/password_reset.py:27
-#: apps/core/models/password_reset.py:28
-msgid "Expires At"
-msgstr "Hết hạn lúc"
-
-# models/password_reset.py:28
-#: apps/core/models/password_reset.py:29
-msgid "Verification Attempts"
-msgstr "Số lần thử xác thực"
-
-# models/password_reset.py:29
-#: apps/core/models/password_reset.py:30
-msgid "Max Attempts"
-msgstr "Số lần thử tối đa"
-
-# models/password_reset.py:30
-#: apps/core/models/password_reset.py:31
-msgid "Is Used"
-msgstr "Đã sử dụng"
-
-# models/password_reset.py:31
-#: apps/core/models/password_reset.py:32
-msgid "Is Verified"
-msgstr "Đã xác thực"
-
-# models/password_reset.py:32
-#: apps/core/models/password_reset.py:33
-msgid "Created At"
-msgstr "Tạo lúc"
-
-# models/password_reset.py:37
-#: apps/core/models/password_reset.py:38
-msgid "Password Reset OTP"
-msgstr "OTP đặt lại mật khẩu"
-
-# models/password_reset.py:38
-#: apps/core/models/password_reset.py:39
-msgid "Password Reset OTPs"
-msgstr "OTP đặt lại mật khẩu"
-
-# models/permission.py
-#: apps/core/models/permission.py:10
-msgid "Permission code"
-msgstr "Mã quyền"
-
-# models/permission.py
-#: apps/core/models/permission.py:11
-msgid "Permission name"
-msgstr "Tên quyền"
-
-#: apps/core/models/permission.py:12 apps/core/models/role.py:17
-msgid "Description"
-msgstr "Mô tả"
-
-#: apps/core/models/permission.py:13
-msgid "Module"
-msgstr "Phân hệ"
-
-#: apps/core/models/permission.py:14
-msgid "Submodule"
-msgstr "Phân hệ con"
-
-#: apps/core/models/permission.py:17
-msgid "Permission"
-msgstr "Quyền"
-
-#: apps/core/models/permission.py:18 apps/core/models/role.py:22
-msgid "Permissions"
-msgstr "Quyền"
-
 #: apps/core/models/province.py:15
 msgid "Central City"
 msgstr ""
 
-#: apps/core/models/province.py:16 apps/core/models/province.py:53
+#: apps/core/models/province.py:16
 msgid "Province"
 msgstr ""
-
-# models/permission.py
-#: apps/core/models/province.py:20
-msgid "Province code"
-msgstr "Mã tỉnh/thành"
-
-#: apps/core/models/province.py:21
-msgid "Unique identifier code for the province"
-msgstr "Mã định danh duy nhất cho tỉnh/thành"
-
-# models/permission.py
-#: apps/core/models/province.py:25
-msgid "Province name"
-msgstr "Tên tỉnh/thành"
-
-#: apps/core/models/province.py:26
-msgid "Official name of the province"
-msgstr "Tên chính thức của tỉnh/thành"
-
-#: apps/core/models/province.py:32
-msgid "English name of the province"
-msgstr "Tên tiếng Anh của tỉnh/thành"
-
-#: apps/core/models/province.py:38
-msgid "Administrative level of the province"
-msgstr "Cấp đơn vị hành chính của tỉnh/thành"
-
-#: apps/core/models/province.py:43
-msgid "Decree"
-msgstr ""
-
-#: apps/core/models/province.py:44
-msgid "Legal decree reference"
-msgstr ""
-
-#: apps/core/models/province.py:49
-msgid "Whether this province is currently enabled"
-msgstr ""
-
-#: apps/core/models/province.py:54
-msgid "Provinces"
-msgstr ""
-
-# models/role.py
-#: apps/core/models/role.py:15
-msgid "Role code"
-msgstr "Mã vai trò"
-
-#: apps/core/models/role.py:16
-msgid "Role name"
-msgstr "Tên vai trò"
-
-#: apps/core/models/role.py:18
-msgid "System role"
-msgstr "Vai trò hệ thống"
-
-#: apps/core/models/role.py:27 apps/core/models/user.py:32
-#: apps/core/models/user.py:54
-msgid "Role"
-msgstr "Vai trò"
-
-#: apps/core/models/role.py:28
-msgid "Roles"
-msgstr "Vai trò"
 
 #: apps/core/models/role.py:39 apps/core/tests/test_role_api.py:267
 msgid "System"
 msgstr "Hệ thống"
+
+# models/user.py:41
+#: apps/core/models/role.py:39 apps/core/tests/test_role_api.py:272
+msgid "User"
+msgstr "Người dùng"
 
 #: apps/core/models/role.py:45
 msgid "Cannot delete system role"
@@ -909,61 +597,6 @@ msgstr "Không thể xóa vai trò hệ thống"
 #: apps/core/models/role.py:49
 msgid "Role is currently being used by employees"
 msgstr "Vai trò đang được sử dụng bởi nhân viên"
-
-# models/user.py:15
-#: apps/core/models/user.py:17
-msgid "Phone number"
-msgstr "Số điện thoại"
-
-# models/user.py:16
-#: apps/core/models/user.py:18
-msgid "First name"
-msgstr "Tên"
-
-# models/user.py:17
-#: apps/core/models/user.py:19
-msgid "Last name"
-msgstr "Họ"
-
-# models/user.py:20
-#: apps/core/models/user.py:22
-msgid "Staff"
-msgstr "Nhân viên"
-
-# models/user.py:21
-#: apps/core/models/user.py:23
-msgid "Date joined"
-msgstr "Ngày tham gia"
-
-# models/user.py:24
-#: apps/core/models/user.py:36
-msgid "Failed login attempts"
-msgstr "Số lần đăng nhập thất bại"
-
-# models/user.py:25
-#: apps/core/models/user.py:37
-msgid "Locked until"
-msgstr "Khóa tài khoản đến"
-
-# models/user.py:29
-#: apps/core/models/user.py:41
-msgid "OTP expires at"
-msgstr "OTP hết hạn lúc"
-
-# models/user.py:30
-#: apps/core/models/user.py:42
-msgid "OTP verified"
-msgstr "OTP đã xác thực"
-
-# models/user.py:33
-#: apps/core/models/user.py:45
-msgid "Active session"
-msgstr "Phiên hoạt động"
-
-# models/user.py:42
-#: apps/core/models/user.py:64
-msgid "Users"
-msgstr "Người dùng"
 
 #: apps/core/tasks/email.py:34
 #, python-format

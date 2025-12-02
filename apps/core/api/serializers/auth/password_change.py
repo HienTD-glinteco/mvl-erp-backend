@@ -18,7 +18,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     old_password = serializers.CharField(
         write_only=True,
-        help_text=_("Current password"),
+        help_text="Current password",
         error_messages={
             "required": _("Please enter your current password."),
             "blank": _("Current password cannot be blank."),
@@ -26,7 +26,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     )
     new_password = serializers.CharField(
         write_only=True,
-        help_text=_("New password"),
+        help_text="New password",
         error_messages={
             "required": _("Please enter your new password."),
             "blank": _("New password cannot be blank."),
@@ -34,7 +34,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     )
     confirm_password = serializers.CharField(
         write_only=True,
-        help_text=_("Confirm new password"),
+        help_text="Confirm new password",
         error_messages={
             "required": _("Please confirm your new password."),
             "blank": _("Password confirmation cannot be blank."),

@@ -22,21 +22,21 @@ class PasswordResetOTP(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="password_reset_requests")
-    reset_token = models.CharField(max_length=64, unique=True, db_index=True, verbose_name=_("Reset Token"))
-    otp_hash = models.CharField(max_length=128, verbose_name=_("OTP Hash"))  # Hashed OTP, not plain text
+    reset_token = models.CharField(max_length=64, unique=True, db_index=True, verbose_name="Reset Token")
+    otp_hash = models.CharField(max_length=128, verbose_name="OTP Hash")  # Hashed OTP, not plain text
     channel = models.CharField(max_length=10, choices=Channel.choices, default=Channel.EMAIL)
-    expires_at = models.DateTimeField(verbose_name=_("Expires At"))
-    attempts = models.PositiveSmallIntegerField(default=0, verbose_name=_("Verification Attempts"))
-    max_attempts = models.PositiveSmallIntegerField(default=5, verbose_name=_("Max Attempts"))
-    is_used = models.BooleanField(default=False, verbose_name=_("Is Used"))
-    is_verified = models.BooleanField(default=False, verbose_name=_("Is Verified"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    expires_at = models.DateTimeField(verbose_name="Expires At")
+    attempts = models.PositiveSmallIntegerField(default=0, verbose_name="Verification Attempts")
+    max_attempts = models.PositiveSmallIntegerField(default=5, verbose_name="Max Attempts")
+    is_used = models.BooleanField(default=False, verbose_name="Is Used")
+    is_verified = models.BooleanField(default=False, verbose_name="Is Verified")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
 
     objects = PasswordResetOTPManager()
 
     class Meta:
-        verbose_name = _("Password Reset OTP")
-        verbose_name_plural = _("Password Reset OTPs")
+        verbose_name = "Password Reset OTP"
+        verbose_name_plural = "Password Reset OTPs"
         db_table = "core_password_reset_otp"
         ordering = ["-created_at"]
 

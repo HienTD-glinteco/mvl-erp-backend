@@ -42,7 +42,7 @@ class AttendanceExemptionSerializer(serializers.ModelSerializer):
         queryset=Employee.objects.all(),
         source="employee",
         write_only=True,
-        help_text=_("Employee ID to be exempt from attendance tracking"),
+        help_text="Employee ID to be exempt from attendance tracking",
     )
     created_by = serializers.SerializerMethodField()
 

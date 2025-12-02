@@ -18,21 +18,21 @@ class Project(AutoCodeMixin, BaseModel):
         INACTIVE = "inactive", _("Inactive")
         COMPLETED = "completed", _("Completed")
 
-    name = models.CharField(max_length=200, verbose_name=_("Project name"))
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Project code"))
-    address = SafeTextField(blank=True, verbose_name=_("Address"))
-    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    name = models.CharField(max_length=200, verbose_name="Project name")
+    code = models.CharField(max_length=50, unique=True, verbose_name="Project code")
+    address = SafeTextField(blank=True, verbose_name="Address")
+    description = SafeTextField(blank=True, verbose_name="Description")
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.ACTIVE,
-        verbose_name=_("Status"),
+        verbose_name="Status",
     )
-    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    is_active = models.BooleanField(default=True, verbose_name="Active")
 
     class Meta:
-        verbose_name = _("Project")
-        verbose_name_plural = _("Projects")
+        verbose_name = "Project"
+        verbose_name_plural = "Projects"
         db_table = "realestate_project"
         ordering = ["name"]
 

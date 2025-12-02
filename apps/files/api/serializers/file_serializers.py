@@ -13,15 +13,15 @@ class PresignRequestSerializer(serializers.Serializer):
 
     file_name = serializers.CharField(
         max_length=255,
-        help_text=_("Name of the file being uploaded"),
+        help_text="Name of the file being uploaded",
     )
     file_type = serializers.CharField(
         max_length=100,
-        help_text=_("MIME type of the file (e.g., application/pdf, image/png)"),
+        help_text="MIME type of the file (e.g., application/pdf, image/png)",
     )
     purpose = serializers.CharField(
         max_length=100,
-        help_text=_("Upload category (e.g., job_description, invoice, employee_cv)"),
+        help_text="Upload category (e.g., job_description, invoice, employee_cv)",
     )
 
     def validate(self, attrs):
@@ -48,25 +48,25 @@ class PresignResponseSerializer(serializers.Serializer):
     """Serializer for presign URL response."""
 
     upload_url = serializers.CharField(
-        help_text=_("Presigned PUT URL for direct upload to S3"),
+        help_text="Presigned PUT URL for direct upload to S3",
     )
     file_path = serializers.CharField(
-        help_text=_("Temporary S3 path (uploads/tmp/...)"),
+        help_text="Temporary S3 path (uploads/tmp/...)",
     )
     file_token = serializers.CharField(
-        help_text=_("Token for later confirmation"),
+        help_text="Token for later confirmation",
     )
 
 
 class FileSerializer(serializers.ModelSerializer):
     """Serializer for FileModel."""
 
-    view_url = serializers.ReadOnlyField(help_text=_("Presigned URL for viewing the file (valid for 1 hour)"))
-    download_url = serializers.ReadOnlyField(help_text=_("Presigned URL for downloading the file (valid for 1 hour)"))
+    view_url = serializers.ReadOnlyField(help_text="Presigned URL for viewing the file (valid for 1 hour)")
+    download_url = serializers.ReadOnlyField(help_text="Presigned URL for downloading the file (valid for 1 hour)")
     uploaded_by_username = serializers.CharField(
         source="uploaded_by.username",
         read_only=True,
-        help_text=_("Username of the user who uploaded this file"),
+        help_text="Username of the user who uploaded this file",
     )
 
     class Meta:
@@ -93,21 +93,21 @@ class FileConfirmationSerializer(serializers.Serializer):
     """Serializer for individual file confirmation with optional related object."""
 
     file_token = serializers.CharField(
-        help_text=_("Token returned by presign endpoint"),
+        help_text="Token returned by presign endpoint",
     )
     purpose = serializers.CharField(
-        help_text=_("File purpose (e.g., 'job_description', 'invoice')"),
+        help_text="File purpose (e.g., 'job_description', 'invoice')",
     )
     related_model = serializers.CharField(
         required=False,
         allow_null=True,
-        help_text=_("Optional Django model label (e.g., 'hrm.JobDescription')"),
+        help_text="Optional Django model label (e.g., 'hrm.JobDescription')",
     )
     related_object_id = serializers.IntegerField(
         required=False,
         allow_null=True,
         min_value=1,
-        help_text=_("Optional related object ID"),
+        help_text="Optional related object ID",
     )
     related_field = serializers.CharField(
         required=False,
@@ -159,7 +159,7 @@ class ConfirmMultipleFilesResponseSerializer(serializers.Serializer):
 
     confirmed_files = FileSerializer(
         many=True,
-        help_text=_("List of confirmed files with metadata"),
+        help_text="List of confirmed files with metadata",
     )
 
 
@@ -169,5 +169,5 @@ class ConfirmMultipleFilesSerializer(serializers.Serializer):
     files = serializers.ListField(
         child=FileConfirmationSerializer(),
         min_length=1,
-        help_text=_("List of file configurations with tokens and related objects"),
+        help_text="List of file configurations with tokens and related objects",
     )

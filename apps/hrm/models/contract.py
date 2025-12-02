@@ -66,8 +66,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         unique=True,
         null=True,
         blank=True,
-        verbose_name=_("Contract code"),
-        help_text=_("Auto-generated unique contract code"),
+        verbose_name="Contract code",
+        help_text="Auto-generated unique contract code",
     )
 
     contract_number = models.CharField(
@@ -75,8 +75,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         unique=True,
         null=True,
         blank=True,
-        verbose_name=_("Contract number"),
-        help_text=_("Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)"),
+        verbose_name="Contract number",
+        help_text="Business number (e.g., 01/2025/HDLD-MVL or 01/2025/PLHD-MVL)",
     )
 
     parent_contract = models.ForeignKey(
@@ -85,64 +85,64 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="appendices",
-        verbose_name=_("Parent contract"),
-        help_text=_("Reference to parent contract (for appendices only)"),
+        verbose_name="Parent contract",
+        help_text="Reference to parent contract (for appendices only)",
     )
 
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="contracts",
-        verbose_name=_("Employee"),
-        help_text=_("Employee associated with this contract"),
+        verbose_name="Employee",
+        help_text="Employee associated with this contract",
     )
 
     contract_type = models.ForeignKey(
         "hrm.ContractType",
         on_delete=models.PROTECT,
         related_name="contracts",
-        verbose_name=_("Contract type"),
-        help_text=_("Type of the contract"),
+        verbose_name="Contract type",
+        help_text="Type of the contract",
     )
 
     duration_type = models.CharField(
         max_length=20,
         choices=ContractType.DurationType.choices,
         default=ContractType.DurationType.INDEFINITE,
-        verbose_name=_("Duration type"),
-        help_text=_("Whether the contract has a fixed term or is indefinite"),
+        verbose_name="Duration type",
+        help_text="Whether the contract has a fixed term or is indefinite",
     )
 
     duration_months = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Duration in months"),
-        help_text=_("Number of months for fixed-term contracts"),
+        verbose_name="Duration in months",
+        help_text="Number of months for fixed-term contracts",
     )
 
     sign_date = models.DateField(
-        verbose_name=_("Sign date"),
-        help_text=_("Date when the contract was signed"),
+        verbose_name="Sign date",
+        help_text="Date when the contract was signed",
     )
 
     effective_date = models.DateField(
-        verbose_name=_("Effective date"),
-        help_text=_("Date when the contract becomes effective"),
+        verbose_name="Effective date",
+        help_text="Date when the contract becomes effective",
     )
 
     expiration_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Expiration date"),
-        help_text=_("Date when the contract expires (null for indefinite contracts)"),
+        verbose_name="Expiration date",
+        help_text="Date when the contract expires (null for indefinite contracts)",
     )
 
     status = models.CharField(
         max_length=20,
         choices=ContractStatus.choices,
         default=ContractStatus.DRAFT,
-        verbose_name=_("Contract status"),
-        help_text=_("Current status of the contract"),
+        verbose_name="Contract status",
+        help_text="Current status of the contract",
     )
 
     # Salary snapshot fields (copied from ContractType at the time of contract creation)
@@ -150,24 +150,24 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name=_("Base salary"),
-        help_text=_("Base salary amount at the time of contract"),
+        verbose_name="Base salary",
+        help_text="Base salary amount at the time of contract",
     )
 
     base_salary = models.DecimalField(
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name=_("Base salary"),
-        help_text=_("Base salary amount at the time of contract"),
+        verbose_name="Base salary",
+        help_text="Base salary amount at the time of contract",
     )
 
     kpi_salary = models.DecimalField(
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name=_("KPI salary"),
-        help_text=_("KPI salary amount at the time of contract"),
+        verbose_name="KPI salary",
+        help_text="KPI salary amount at the time of contract",
     )
 
     lunch_allowance = models.DecimalField(
@@ -175,8 +175,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name=_("Lunch allowance"),
-        help_text=_("Lunch allowance amount at the time of contract"),
+        verbose_name="Lunch allowance",
+        help_text="Lunch allowance amount at the time of contract",
     )
 
     phone_allowance = models.DecimalField(
@@ -184,8 +184,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name=_("Phone allowance"),
-        help_text=_("Phone allowance amount at the time of contract"),
+        verbose_name="Phone allowance",
+        help_text="Phone allowance amount at the time of contract",
     )
 
     other_allowance = models.DecimalField(
@@ -193,82 +193,82 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name=_("Other allowance"),
-        help_text=_("Other allowance amount at the time of contract"),
+        verbose_name="Other allowance",
+        help_text="Other allowance amount at the time of contract",
     )
 
     net_percentage = models.CharField(
         max_length=5,
         choices=ContractType.NetPercentage.choices,
         default=ContractType.NetPercentage.FULL,
-        verbose_name=_("Net percentage"),
-        help_text=_("Net salary percentage at the time of contract"),
+        verbose_name="Net percentage",
+        help_text="Net salary percentage at the time of contract",
     )
 
     tax_calculation_method = models.CharField(
         max_length=20,
         choices=ContractType.TaxCalculationMethod.choices,
         default=ContractType.TaxCalculationMethod.PROGRESSIVE,
-        verbose_name=_("Tax calculation method"),
-        help_text=_("Tax calculation method at the time of contract"),
+        verbose_name="Tax calculation method",
+        help_text="Tax calculation method at the time of contract",
     )
 
     working_time_type = models.CharField(
         max_length=20,
         choices=ContractType.WorkingTimeType.choices,
         default=ContractType.WorkingTimeType.FULL_TIME,
-        verbose_name=_("Working time type"),
-        help_text=_("Type of working time arrangement"),
+        verbose_name="Working time type",
+        help_text="Type of working time arrangement",
     )
 
     annual_leave_days = models.PositiveIntegerField(
         default=12,
         validators=[MinValueValidator(0), MaxValueValidator(12)],
-        verbose_name=_("Annual leave days"),
-        help_text=_("Number of annual leave days (maximum 12)"),
+        verbose_name="Annual leave days",
+        help_text="Number of annual leave days (maximum 12)",
     )
 
     has_social_insurance = models.BooleanField(
         default=True,
-        verbose_name=_("Has social insurance"),
-        help_text=_("Whether social insurance is included"),
+        verbose_name="Has social insurance",
+        help_text="Whether social insurance is included",
     )
 
     # Text snapshot fields
     working_conditions = SafeTextField(
         max_length=1000,
         default="",
-        verbose_name=_("Working conditions"),
-        help_text=_("Working conditions at the time of contract"),
+        verbose_name="Working conditions",
+        help_text="Working conditions at the time of contract",
     )
 
     rights_and_obligations = SafeTextField(
         max_length=5000,
         default="",
-        verbose_name=_("Rights and obligations"),
-        help_text=_("Rights and obligations at the time of contract"),
+        verbose_name="Rights and obligations",
+        help_text="Rights and obligations at the time of contract",
     )
 
     terms = SafeTextField(
         max_length=5000,
         default="",
-        verbose_name=_("Terms"),
-        help_text=_("Contract terms and conditions at the time of contract"),
+        verbose_name="Terms",
+        help_text="Contract terms and conditions at the time of contract",
     )
 
     content = SafeTextField(
         max_length=5000,
         default="",
-        verbose_name=_("Content"),
-        help_text=_("Content of the appendix (for appendices only)"),
+        verbose_name="Content",
+        help_text="Content of the appendix (for appendices only)",
     )
 
     note = SafeTextField(
         max_length=500,
         null=True,
         blank=True,
-        verbose_name=_("Note"),
-        help_text=_("Additional notes"),
+        verbose_name="Note",
+        help_text="Additional notes",
     )
 
     attachment = models.ForeignKey(
@@ -277,8 +277,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="contract_attachments",
-        verbose_name=_("Attachment"),
-        help_text=_("Attached contract file"),
+        verbose_name="Attachment",
+        help_text="Attached contract file",
     )
 
     # ColoredValueMixin configuration
@@ -315,8 +315,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_contract"
-        verbose_name = _("Contract")
-        verbose_name_plural = _("Contracts")
+        verbose_name = "Contract"
+        verbose_name_plural = "Contracts"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["code"], name="contract_code_idx"),

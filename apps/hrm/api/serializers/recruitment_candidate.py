@@ -204,7 +204,7 @@ class CandidateToEmployeeSerializer(serializers.Serializer):
     code_type = serializers.ChoiceField(
         choices=Employee.CodeType.choices,
         required=True,
-        help_text=_("Employee type code (MV, CTV, or OS)"),
+        help_text="Employee type code (MV, CTV, or OS)",
     )
 
     def __init__(self, *args, **kwargs):

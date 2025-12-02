@@ -45,27 +45,27 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         }
     }
 
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Candidate code"))
-    name = models.CharField(max_length=200, verbose_name=_("Candidate name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name="Candidate code")
+    name = models.CharField(max_length=200, verbose_name="Candidate name")
     citizen_id = models.CharField(
         max_length=12,
         unique=True,
-        verbose_name=_("Citizen ID"),
+        verbose_name="Citizen ID",
         validators=[CitizenIdValidator],
     )
-    email = models.EmailField(verbose_name=_("Email"))
-    phone = models.CharField(max_length=20, verbose_name=_("Phone"))
+    email = models.EmailField(verbose_name="Email")
+    phone = models.CharField(max_length=20, verbose_name="Phone")
     recruitment_request = models.ForeignKey(
         "RecruitmentRequest",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name=_("Recruitment request"),
+        verbose_name="Recruitment request",
     )
     branch = models.ForeignKey(
         "Branch",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name=_("Branch"),
+        verbose_name="Branch",
         null=True,
         blank=True,
     )
@@ -73,7 +73,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Block",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name=_("Block"),
+        verbose_name="Block",
         null=True,
         blank=True,
     )
@@ -81,7 +81,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Department",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name=_("Department"),
+        verbose_name="Department",
         null=True,
         blank=True,
     )
@@ -89,40 +89,40 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "RecruitmentSource",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name=_("Recruitment source"),
+        verbose_name="Recruitment source",
     )
     recruitment_channel = models.ForeignKey(
         "RecruitmentChannel",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name=_("Recruitment channel"),
+        verbose_name="Recruitment channel",
     )
     years_of_experience = models.CharField(
         max_length=30,
         choices=YearsOfExperience.choices,
         default=YearsOfExperience.NO_EXPERIENCE,
-        verbose_name=_("Years of experience"),
+        verbose_name="Years of experience",
     )
-    submitted_date = models.DateField(verbose_name=_("Submitted date"))
+    submitted_date = models.DateField(verbose_name="Submitted date")
     status = models.CharField(
         max_length=30,
         choices=Status.choices,
         default=Status.CONTACTED,
-        verbose_name=_("Status"),
+        verbose_name="Status",
     )
     onboard_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Onboard date"),
+        verbose_name="Onboard date",
     )
-    note = models.TextField(blank=True, verbose_name=_("Note"))
+    note = models.TextField(blank=True, verbose_name="Note")
     referrer = models.ForeignKey(
         "Employee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="referred_candidates",
-        verbose_name=_("Referrer"),
+        verbose_name="Referrer",
     )
     employee = models.OneToOneField(
         "Employee",
@@ -130,12 +130,12 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="related_candidate",
-        verbose_name=_("Employee"),
+        verbose_name="Employee",
     )
 
     class Meta:
-        verbose_name = _("Recruitment Candidate")
-        verbose_name_plural = _("Recruitment Candidates")
+        verbose_name = "Recruitment Candidate"
+        verbose_name_plural = "Recruitment Candidates"
         db_table = "hrm_recruitment_candidate"
         ordering = ["-created_at"]
 
