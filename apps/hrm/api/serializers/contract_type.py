@@ -116,7 +116,12 @@ class ContractTypeListSerializer(serializers.ModelSerializer):
             "name",
             "category",
             "duration_display",
+            "duration_type",
+            "duration_months",
             "base_salary",
+            "lunch_allowance",
+            "phone_allowance",
+            "other_allowance",
             "created_at",
         ]
         read_only_fields = fields
