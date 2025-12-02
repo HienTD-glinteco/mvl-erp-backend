@@ -92,18 +92,18 @@ from libs.export_xlsx import ExportXLSXMixin
     create=extend_schema(
         summary="Create a new contract appendix",
         description="Create a new contract appendix. Code and contract_number are auto-generated. "
-        "parent_contract_id is required to link to the main contract.",
+        "parent_contract_id is required - employee and contract_type are derived from the parent contract.",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
                 "Request",
                 value={
                     "parent_contract_id": 1,
-                    "contract_type_id": 2,
-                    "employee_id": 1,
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "content": "New appendix content",
+                    "base_salary": "20000000",
+                    "kpi_salary": "3000000",
                     "note": "Additional notes",
                 },
                 request_only=True,
@@ -154,18 +154,19 @@ from libs.export_xlsx import ExportXLSXMixin
     ),
     update=extend_schema(
         summary="Update contract appendix",
-        description="Update all fields of a contract appendix. Only DRAFT appendices can be edited.",
+        description="Update all fields of a contract appendix. Only DRAFT appendices can be edited. "
+        "If parent_contract_id is changed, employee will be updated accordingly.",
         tags=["7.3: Contract Appendix"],
         examples=[
             OpenApiExample(
                 "Request",
                 value={
                     "parent_contract_id": 1,
-                    "contract_type_id": 2,
-                    "employee_id": 1,
                     "sign_date": "2025-01-15",
                     "effective_date": "2025-02-01",
                     "content": "Updated appendix content",
+                    "base_salary": "22000000",
+                    "kpi_salary": "3500000",
                     "note": "Updated notes",
                 },
                 request_only=True,

@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from apps.hrm.api.serializers.common_nested import ContractTypeNestedSerializer, EmployeeNestedSerializer
 from apps.hrm.api.serializers.contract import ParentContractNestedSerializer
-from apps.hrm.models import Contract, ContractType, Employee
+from apps.hrm.models import Contract, ContractType
 from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
@@ -44,7 +44,7 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
     This serializer provides:
     - Validation: Only allows edit/delete when status is DRAFT
     - Date validation: Ensures proper date logic
-    - Validation: Contract type must have category='appendix'
+    - Auto-set: contract_type and employee are derived from parent_contract
     - Validation: parent_contract is required
     - Status is read-only, calculated automatically by the model
     """
@@ -54,29 +54,14 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
     contract_type = ContractTypeNestedSerializer(read_only=True)
     parent_contract = ParentContractNestedSerializer(read_only=True)
 
-    # Write-only fields for POST/PUT/PATCH operations
-    employee_id = serializers.PrimaryKeyRelatedField(
-        queryset=Employee.objects.all(),
-        source="employee",
-        write_only=True,
-        required=True,
-        help_text="ID of the employee for this appendix",
-    )
-
-    contract_type_id = serializers.PrimaryKeyRelatedField(
-        queryset=ContractType.objects.filter(category=ContractType.Category.APPENDIX),
-        source="contract_type",
-        write_only=True,
-        required=True,
-        help_text="ID of the contract type (must be category='appendix')",
-    )
-
+    # Write-only field for POST/PUT/PATCH operations
+    # Note: employee and contract_type are auto-derived from parent_contract
     parent_contract_id = serializers.PrimaryKeyRelatedField(
         queryset=Contract.objects.filter(contract_type__category=ContractType.Category.CONTRACT),
         source="parent_contract",
         write_only=True,
         required=True,
-        help_text="ID of the parent contract",
+        help_text="ID of the parent contract (employee and contract_type are derived from this)",
     )
 
     # Color representation for status
@@ -91,9 +76,7 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
             "parent_contract",
             "parent_contract_id",
             "employee",
-            "employee_id",
             "contract_type",
-            "contract_type_id",
             "sign_date",
             "effective_date",
             "expiration_date",
@@ -129,8 +112,7 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
         - sign_date <= effective_date
         - effective_date <= expiration_date (if expiration_date is set)
         - Only DRAFT appendices can be edited
-        - Contract type must have category='appendix'
-        - parent_contract is required
+        - parent_contract is required and must be in valid status
         """
         instance = self.instance
 
@@ -138,17 +120,21 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
         if instance is not None and instance.pk is not None and instance.status != Contract.ContractStatus.DRAFT:
             raise serializers.ValidationError({"status": _("Only appendices with DRAFT status can be edited.")})
 
-        # Validate contract type category
-        contract_type = attrs.get("contract_type", getattr(instance, "contract_type", None) if instance else None)
-        if contract_type and contract_type.category != ContractType.Category.APPENDIX:
-            raise serializers.ValidationError({"contract_type_id": _("Contract type must have category 'appendix'.")})
-
-        # Validate parent_contract is provided
+        # Validate parent_contract is provided and in valid status
         parent_contract = attrs.get(
             "parent_contract", getattr(instance, "parent_contract", None) if instance else None
         )
         if not parent_contract and instance is None:
             raise serializers.ValidationError({"parent_contract_id": _("Parent contract is required for appendices.")})
+
+        # Validate parent contract status (must be ACTIVE or ABOUT_TO_EXPIRE)
+        if parent_contract and parent_contract.status not in [
+            Contract.ContractStatus.ACTIVE,
+            Contract.ContractStatus.ABOUT_TO_EXPIRE,
+        ]:
+            raise serializers.ValidationError(
+                {"parent_contract_id": _("Parent contract must be in ACTIVE or ABOUT_TO_EXPIRE status.")}
+            )
 
         # Get dates from attrs or fallback to instance values
         sign_date = attrs.get("sign_date", getattr(instance, "sign_date", None))
@@ -165,6 +151,48 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+    def create(self, validated_data):
+        """Create Contract Appendix with auto-derived employee and contract_type.
+
+        Args:
+            validated_data: Validated data dict.
+
+        Returns:
+            Contract: Created appendix instance.
+        """
+        parent_contract = validated_data.get("parent_contract")
+
+        # Auto-set employee from parent contract
+        validated_data["employee"] = parent_contract.employee
+
+        # Auto-set contract_type_id to the appendix type (uses cached value)
+        try:
+            validated_data["contract_type_id"] = ContractType.get_appendix_type_id()
+        except ValueError as e:
+            raise serializers.ValidationError({"contract_type": str(e)})
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """Update Contract Appendix.
+
+        If parent_contract is changed, update employee accordingly.
+
+        Args:
+            instance: Existing Contract instance.
+            validated_data: Validated data dict.
+
+        Returns:
+            Contract: Updated appendix instance.
+        """
+        parent_contract = validated_data.get("parent_contract")
+
+        # If parent_contract is changed, update employee
+        if parent_contract and parent_contract != instance.parent_contract:
+            validated_data["employee"] = parent_contract.employee
+
+        return super().update(instance, validated_data)
 
 
 class ContractAppendixExportSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):

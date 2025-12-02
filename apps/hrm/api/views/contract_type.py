@@ -244,9 +244,14 @@ class ContractTypeViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
 
     Provides CRUD operations and XLSX export for contract types.
     Supports filtering, searching, and ordering.
+
+    Note: This ViewSet only returns contract types with category='contract'.
+    Appendix contract type is hidden as it's system-managed.
     """
 
-    queryset = ContractType.objects.select_related("template_file")
+    queryset = ContractType.objects.filter(
+        category=ContractType.Category.CONTRACT,
+    ).select_related("template_file")
     serializer_class = ContractTypeSerializer
     filterset_class = ContractTypeFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]

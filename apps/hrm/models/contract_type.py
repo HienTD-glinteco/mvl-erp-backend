@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -6,6 +7,9 @@ from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
+
+# Cache key for appendix contract type
+APPENDIX_CONTRACT_TYPE_CACHE_KEY = "hrm:appendix_contract_type_id"
 
 
 @audit_logging_register
@@ -318,3 +322,34 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
             dict: Contains 'value' (boolean) and 'variant' (color variant)
         """
         return self.get_colored_value("has_social_insurance")
+
+    @classmethod
+    def get_appendix_type_id(cls) -> int:
+        """Get the appendix contract type ID with caching.
+
+        Uses Django cache to avoid repeated database queries.
+        Cache is set to never expire (None timeout) since this value rarely changes.
+
+        Returns:
+            int: The contract type ID with category='appendix'
+
+        Raises:
+            ValueError: If no appendix contract type exists in the database
+        """
+        # Try to get from cache first
+        contract_type_id = cache.get(APPENDIX_CONTRACT_TYPE_CACHE_KEY)
+
+        if contract_type_id:
+            return contract_type_id
+
+        # Query database for ID only
+        contract_type = cls.objects.filter(category=cls.Category.APPENDIX).values("id").first()
+        if not contract_type:
+            raise ValueError(_("No contract type with category 'appendix' found. Please create one first."))
+
+        contract_type_id = contract_type["id"]
+
+        # Cache the ID (never expires)
+        cache.set(APPENDIX_CONTRACT_TYPE_CACHE_KEY, contract_type_id, timeout=None)
+
+        return contract_type_id
