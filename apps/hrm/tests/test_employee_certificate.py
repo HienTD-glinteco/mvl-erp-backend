@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -219,6 +220,82 @@ class EmployeeCertificateModelTest(TestCase):
         colored = certificate.colored_status
         self.assertEqual(colored["value"], EmployeeCertificate.Status.VALID)
         self.assertEqual(colored["variant"], "GREEN")
+
+    def test_create_certificate_with_effective_date(self):
+        """Test creating a certificate with effective_date"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=15),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+        self.assertEqual(certificate.effective_date, date.today() + timedelta(days=15))
+
+    def test_effective_date_can_be_null(self):
+        """Test that effective_date can be null"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+        )
+        self.assertIsNone(certificate.effective_date)
+
+    def test_clean_effective_date_less_than_expiry_date(self):
+        """Test that clean passes when effective_date < expiry_date"""
+        certificate = EmployeeCertificate(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=15),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+        # Should not raise ValidationError
+        certificate.clean()
+
+    def test_clean_effective_date_greater_than_expiry_date_fails(self):
+        """Test that clean fails when effective_date > expiry_date"""
+        certificate = EmployeeCertificate(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=400),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+        with self.assertRaises(ValidationError) as context:
+            certificate.clean()
+        self.assertIn("effective_date", context.exception.message_dict)
+
+    def test_clean_effective_date_equal_to_expiry_date_fails(self):
+        """Test that clean fails when effective_date == expiry_date"""
+        expiry = date.today() + timedelta(days=365)
+        certificate = EmployeeCertificate(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=expiry,
+            expiry_date=expiry,
+        )
+        with self.assertRaises(ValidationError) as context:
+            certificate.clean()
+        self.assertIn("effective_date", context.exception.message_dict)
+
+    def test_clean_no_expiry_date_with_effective_date(self):
+        """Test that clean passes when effective_date is set but no expiry_date"""
+        certificate = EmployeeCertificate(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Bachelor's Degree",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=15),
+        )
+        # Should not raise ValidationError
+        certificate.clean()
 
 
 class EmployeeCertificateAPITest(TestCase):
@@ -1010,3 +1087,191 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertIn("department", employee_data)
         self.assertIn("email", employee_data)
         self.assertIn("start_date", employee_data)
+
+    def test_create_certificate_with_effective_date(self):
+        """Test creating a certificate with effective_date field"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": "2024-06-01",
+            "effective_date": "2024-06-15",
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "British Council",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["effective_date"], "2024-06-15")
+        self.assertEqual(result_data["expiry_date"], "2026-06-01")
+
+    def test_effective_date_is_optional(self):
+        """Test that effective_date is optional"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "TOEFL",
+            "issue_date": "2024-06-01",
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "ETS",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertIsNone(result_data["effective_date"])
+
+    def test_effective_date_must_be_less_than_expiry_date(self):
+        """Test that effective_date must be less than expiry_date"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": "2024-06-01",
+            "effective_date": "2026-06-02",  # After expiry_date
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "British Council",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response_data = json.loads(response.content.decode())
+        self.assertFalse(response_data["success"])
+
+    def test_effective_date_equal_to_expiry_date_fails(self):
+        """Test that effective_date equal to expiry_date fails validation"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": "2024-06-01",
+            "effective_date": "2026-06-01",  # Equal to expiry_date
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "British Council",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_effective_date_without_expiry_date_succeeds(self):
+        """Test that effective_date without expiry_date is allowed"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "diploma",
+            "certificate_name": "Bachelor of Science",
+            "issue_date": "2024-06-01",
+            "effective_date": "2024-06-15",
+            "issuing_organization": "Test University",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["effective_date"], "2024-06-15")
+        self.assertIsNone(result_data["expiry_date"])
+
+    def test_update_certificate_with_effective_date(self):
+        """Test updating a certificate's effective_date"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": date.today().strftime("%Y-%m-%d"),
+            "effective_date": (date.today() + timedelta(days=15)).strftime("%Y-%m-%d"),
+            "expiry_date": (date.today() + timedelta(days=365)).strftime("%Y-%m-%d"),
+            "issuing_organization": "British Council",
+        }
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["effective_date"], (date.today() + timedelta(days=15)).strftime("%Y-%m-%d"))
+
+        # Verify in database
+        certificate.refresh_from_db()
+        self.assertEqual(certificate.effective_date, date.today() + timedelta(days=15))
+
+    def test_update_with_invalid_effective_date_fails(self):
+        """Test updating certificate with invalid effective_date fails"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=15),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "foreign_language",
+            "certificate_name": "IELTS 7.0",
+            "issue_date": date.today().strftime("%Y-%m-%d"),
+            "effective_date": (date.today() + timedelta(days=400)).strftime("%Y-%m-%d"),  # After expiry
+            "expiry_date": (date.today() + timedelta(days=365)).strftime("%Y-%m-%d"),
+            "issuing_organization": "British Council",
+        }
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_by_effective_date_range(self):
+        """Test filtering certificates by effective_date range"""
+        today = date.today()
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Old Certificate",
+            issue_date=today - timedelta(days=365),
+            effective_date=today - timedelta(days=360),
+            expiry_date=today + timedelta(days=365),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="New Certificate",
+            issue_date=today - timedelta(days=30),
+            effective_date=today - timedelta(days=25),
+            expiry_date=today + timedelta(days=365),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"effective_date_from": (today - timedelta(days=30)).strftime("%Y-%m-%d")})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "New Certificate")
+
+    def test_effective_date_field_in_response(self):
+        """Test that effective_date field is included in API response"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            effective_date=date.today() + timedelta(days=15),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+
+        url = reverse("hrm:employee-certificate-detail", kwargs={"pk": certificate.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertIn("effective_date", result_data)
+        self.assertEqual(result_data["effective_date"], (date.today() + timedelta(days=15)).strftime("%Y-%m-%d"))

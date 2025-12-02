@@ -34,6 +34,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "certificate_code": "IELTS-123456789",
                                 "certificate_name": "IELTS 7.0",
                                 "issue_date": "2024-06-01",
+                                "effective_date": "2024-06-15",
                                 "expiry_date": "2026-06-01",
                                 "issuing_organization": "British Council",
                                 "attachment": 1,
@@ -55,6 +56,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "certificate_code": "BDS-2023-001234",
                                 "certificate_name": "Real Estate Broker License",
                                 "issue_date": "2023-01-15",
+                                "effective_date": "2023-02-01",
                                 "expiry_date": "2028-01-15",
                                 "issuing_organization": "Ministry of Construction",
                                 "attachment": 2,
@@ -88,6 +90,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "certificate_code": "IELTS-123456789",
                     "certificate_name": "IELTS 7.0",
                     "issue_date": "2024-06-01",
+                    "effective_date": "2024-06-15",
                     "expiry_date": "2026-06-01",
                     "issuing_organization": "British Council",
                     "files": {"attachment": "abc123"},
@@ -110,6 +113,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "certificate_code": "IELTS-123456789",
                         "certificate_name": "IELTS 7.0",
                         "issue_date": "2024-06-01",
+                        "effective_date": "2024-06-15",
                         "expiry_date": "2026-06-01",
                         "issuing_organization": "British Council",
                         "attachment": {
@@ -134,6 +138,16 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "error": None,
                 },
                 response_only=True,
+            ),
+            OpenApiExample(
+                "Validation Error - Effective date must be less than expiry date",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"effective_date": ["Effective date must be less than expiry date."]},
+                },
+                response_only=True,
+                status_codes=["400"],
             ),
             OpenApiExample(
                 "Error",
@@ -161,6 +175,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "certificate_code": "IELTS-123456789",
                         "certificate_name": "IELTS 7.0",
                         "issue_date": "2024-06-01",
+                        "effective_date": "2024-06-15",
                         "expiry_date": "2026-06-01",
                         "issuing_organization": "British Council",
                         "attachment": 1,
@@ -192,6 +207,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "certificate_code": "TOEIC-987654321",
                     "certificate_name": "TOEIC 850",
                     "issue_date": "2024-08-15",
+                    "effective_date": "2024-08-20",
                     "expiry_date": "2026-08-15",
                     "issuing_organization": "ETS",
                     "files": {"attachment": "def456"},
@@ -214,6 +230,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "certificate_code": "TOEIC-987654321",
                         "certificate_name": "TOEIC 850",
                         "issue_date": "2024-08-15",
+                        "effective_date": "2024-08-20",
                         "expiry_date": "2026-08-15",
                         "issuing_organization": "ETS",
                         "attachment": {
@@ -267,7 +284,15 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     filterset_class = EmployeeCertificateFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
-    ordering_fields = ["certificate_type", "certificate_code", "issue_date", "expiry_date", "status", "created_at"]
+    ordering_fields = [
+        "certificate_type",
+        "certificate_code",
+        "issue_date",
+        "effective_date",
+        "expiry_date",
+        "status",
+        "created_at",
+    ]
     ordering = ["certificate_type", "-created_at"]
 
     # Permission registration attributes

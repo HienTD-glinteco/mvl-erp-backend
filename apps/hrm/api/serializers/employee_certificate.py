@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.files.api.serializers import FileSerializer
@@ -48,6 +49,7 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
             "certificate_code",
             "certificate_name",
             "issue_date",
+            "effective_date",
             "expiry_date",
             "issuing_organization",
             "attachment",
@@ -80,3 +82,26 @@ class EmployeeCertificateSerializer(FileConfirmSerializerMixin, serializers.Mode
         if value not in dict(CertificateType.choices):
             raise serializers.ValidationError("Invalid certificate type")
         return value
+
+    def validate(self, attrs):
+        """Validate certificate data by delegating to model's clean() method."""
+        attrs = super().validate(attrs)
+
+        # Create a temporary instance with the provided data for validation
+        instance = self.instance or EmployeeCertificate()
+
+        # Apply attrs to the instance
+        for attr, value in attrs.items():
+            setattr(instance, attr, value)
+
+        # Call model's clean() method to perform business logic validation
+        try:
+            instance.clean()
+        except DjangoValidationError as e:
+            # Convert Django ValidationError to DRF ValidationError
+            if hasattr(e, "message_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
+
+        return attrs

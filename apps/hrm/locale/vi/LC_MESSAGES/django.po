@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 14:37+0700\n"
+"POT-Creation-Date: 2025-12-02 14:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1084,7 +1084,7 @@ msgstr ""
 msgid "About to expire"
 msgstr ""
 
-#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:30
+#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:31
 msgid "Expired"
 msgstr ""
 
@@ -1224,12 +1224,16 @@ msgstr ""
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:28
+#: apps/hrm/models/employee_certificate.py:29
 msgid "Valid"
 msgstr ""
 
-#: apps/hrm/models/employee_certificate.py:29
+#: apps/hrm/models/employee_certificate.py:30
 msgid "Near Expiry"
+msgstr ""
+
+#: apps/hrm/models/employee_certificate.py:196
+msgid "Effective date must be less than expiry date."
 msgstr ""
 
 #: apps/hrm/models/employee_work_history.py:40

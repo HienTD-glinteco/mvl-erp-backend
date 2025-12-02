@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -75,6 +76,12 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Issue date",
         help_text="Date when the certificate was issued",
     )
+    effective_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Effective date",
+        help_text="Date when the certificate becomes effective",
+    )
     expiry_date = models.DateField(
         null=True,
         blank=True,
@@ -132,6 +139,7 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
             models.Index(fields=["employee", "certificate_type"]),
             models.Index(fields=["certificate_code"]),
             models.Index(fields=["issue_date"]),
+            models.Index(fields=["effective_date"]),
             models.Index(fields=["expiry_date"]),
             models.Index(fields=["status"]),
         ]
@@ -180,7 +188,15 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """Update the status field based on current expiry date"""
         self.status = self.compute_status()
 
+    def clean(self):
+        """Validate model data."""
+        super().clean()
+        if self.effective_date and self.expiry_date:
+            if self.effective_date >= self.expiry_date:
+                raise ValidationError({"effective_date": _("Effective date must be less than expiry date.")})
+
     def save(self, *args, **kwargs):
-        """Override save to automatically update status"""
+        """Override save to automatically update status and validate data."""
+        self.clean()
         self.update_status()
         super().save(*args, **kwargs)

@@ -12,6 +12,8 @@ class EmployeeCertificateFilterSet(django_filters.FilterSet):
     issuing_organization = django_filters.CharFilter(lookup_expr="icontains")
     issue_date_from = django_filters.DateFilter(field_name="issue_date", lookup_expr="gte")
     issue_date_to = django_filters.DateFilter(field_name="issue_date", lookup_expr="lte")
+    effective_date_from = django_filters.DateFilter(field_name="effective_date", lookup_expr="gte")
+    effective_date_to = django_filters.DateFilter(field_name="effective_date", lookup_expr="lte")
     expiry_date_from = django_filters.DateFilter(field_name="expiry_date", lookup_expr="gte")
     expiry_date_to = django_filters.DateFilter(field_name="expiry_date", lookup_expr="lte")
     status = django_filters.ChoiceFilter(choices=EmployeeCertificate.Status.choices)
@@ -26,6 +28,8 @@ class EmployeeCertificateFilterSet(django_filters.FilterSet):
             "issuing_organization",
             "issue_date_from",
             "issue_date_to",
+            "effective_date_from",
+            "effective_date_to",
             "expiry_date_from",
             "expiry_date_to",
             "status",
