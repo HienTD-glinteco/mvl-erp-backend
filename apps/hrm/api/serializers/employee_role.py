@@ -67,12 +67,12 @@ class BulkUpdateRoleSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         min_length=1,
         max_length=25,
-        help_text=_("List of employee IDs to update (maximum 25)"),
+        help_text="List of employee IDs to update (maximum 25)",
     )
     new_role_id = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
         required=True,
-        help_text=_("New role to assign to selected employees"),
+        help_text="New role to assign to selected employees",
     )
 
     def validate_employee_ids(self, value):

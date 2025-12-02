@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -12,12 +11,12 @@ class Nationality(BaseModel):
     name = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name=_("Nationality name"),
+        verbose_name="Nationality name",
     )
 
     class Meta:
-        verbose_name = _("Nationality")
-        verbose_name_plural = _("Nationalities")
+        verbose_name = "Nationality"
+        verbose_name_plural = "Nationalities"
         db_table = "core_nationality"
         ordering = ["name"]
 

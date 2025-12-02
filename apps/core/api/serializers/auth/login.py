@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=100,
-        help_text=_("Username"),
+        help_text="Username",
         error_messages={
             "required": _("Please enter your username."),
             "blank": _("Username cannot be blank."),
@@ -22,7 +22,7 @@ class LoginSerializer(serializers.Serializer):
     )
     password = serializers.CharField(
         write_only=True,
-        help_text=_("Password"),
+        help_text="Password",
         error_messages={
             "required": _("Please enter your password."),
             "blank": _("Password cannot be blank."),

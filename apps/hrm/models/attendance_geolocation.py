@@ -34,39 +34,39 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
         INACTIVE = "inactive", _("Inactive")
 
     # Basic fields
-    name = models.CharField(max_length=200, verbose_name=_("Geolocation name"))
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Geolocation code"))
+    name = models.CharField(max_length=200, verbose_name="Geolocation name")
+    code = models.CharField(max_length=50, unique=True, verbose_name="Geolocation code")
     project = models.ForeignKey(
         "realestate.Project",
         on_delete=models.PROTECT,
         related_name="attendance_geolocations",
-        verbose_name=_("Project"),
+        verbose_name="Project",
     )
 
     # Location fields
-    address = SafeTextField(blank=True, verbose_name=_("Address"))
+    address = SafeTextField(blank=True, verbose_name="Address")
 
     # Decimal fields for latitude/longitude coordinates
     latitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
-        verbose_name=_("Latitude"),
-        help_text=_("Latitude coordinate"),
+        verbose_name="Latitude",
+        help_text="Latitude coordinate",
         validators=[validate_latitude],
     )
     longitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
-        verbose_name=_("Longitude"),
-        help_text=_("Longitude coordinate"),
+        verbose_name="Longitude",
+        help_text="Longitude coordinate",
         validators=[validate_longitude],
     )
 
     radius_m = models.IntegerField(
         default=100,
         validators=[MinValueValidator(1)],
-        verbose_name=_("Radius (meters)"),
-        help_text=_("Radius in meters for geofencing"),
+        verbose_name="Radius (meters)",
+        help_text="Radius in meters for geofencing",
     )
 
     # Status and notes
@@ -74,31 +74,31 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
         max_length=20,
         choices=Status.choices,
         default=Status.ACTIVE,
-        verbose_name=_("Status"),
+        verbose_name="Status",
     )
-    notes = SafeTextField(blank=True, verbose_name=_("Notes"))
+    notes = SafeTextField(blank=True, verbose_name="Notes")
 
     # Audit fields
     created_by = models.ForeignKey(
         "core.User",
         on_delete=models.PROTECT,
         related_name="created_geolocations",
-        verbose_name=_("Created by"),
+        verbose_name="Created by",
     )
     updated_by = models.ForeignKey(
         "core.User",
         on_delete=models.PROTECT,
         related_name="updated_geolocations",
-        verbose_name=_("Updated by"),
+        verbose_name="Updated by",
     )
 
     # Soft delete fields
-    deleted = models.BooleanField(default=False, verbose_name=_("Deleted"))
-    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Deleted at"))
+    deleted = models.BooleanField(default=False, verbose_name="Deleted")
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="Deleted at")
 
     class Meta:
-        verbose_name = _("Attendance Geolocation")
-        verbose_name_plural = _("Attendance Geolocations")
+        verbose_name = "Attendance Geolocation"
+        verbose_name_plural = "Attendance Geolocations"
         db_table = "hrm_attendance_geolocation"
         ordering = ["-created_at"]
         indexes = [

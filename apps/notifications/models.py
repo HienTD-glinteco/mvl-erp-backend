@@ -24,8 +24,8 @@ class Notification(BaseModel):
         "core.User",
         on_delete=models.CASCADE,
         related_name="notifications_as_actor",
-        verbose_name=_("Actor"),
-        help_text=_("The user who triggered the notification"),
+        verbose_name="Actor",
+        help_text="The user who triggered the notification",
     )
 
     # The user receiving the notification
@@ -33,16 +33,16 @@ class Notification(BaseModel):
         "core.User",
         on_delete=models.CASCADE,
         related_name="notifications",
-        verbose_name=_("Recipient"),
-        help_text=_("The user receiving the notification"),
+        verbose_name="Recipient",
+        help_text="The user receiving the notification",
         db_index=True,
     )
 
     # The action that was performed (e.g., "commented on", "assigned", "updated")
     verb = models.CharField(
         max_length=255,
-        verbose_name=_("Verb"),
-        help_text=_("The action that was performed"),
+        verbose_name="Verb",
+        help_text="The action that was performed",
     )
 
     # Generic foreign key to the object affected by the action
@@ -52,28 +52,28 @@ class Notification(BaseModel):
         related_name="notification_targets",
         null=True,
         blank=True,
-        verbose_name=_("Target content type"),
+        verbose_name="Target content type",
     )
     target_object_id = models.CharField(
         max_length=255,
         null=True,
         blank=True,
-        verbose_name=_("Target object ID"),
+        verbose_name="Target object ID",
     )
     target = GenericForeignKey("target_content_type", "target_object_id")
 
     # Optional custom message
     message = models.TextField(
         blank=True,
-        verbose_name=_("Message"),
-        help_text=_("Optional custom message for the notification"),
+        verbose_name="Message",
+        help_text="Optional custom message for the notification",
     )
 
     # Read status
     read = models.BooleanField(
         default=False,
-        verbose_name=_("Read"),
-        help_text=_("Whether the notification has been read"),
+        verbose_name="Read",
+        help_text="Whether the notification has been read",
         db_index=True,
     )
 
@@ -81,21 +81,21 @@ class Notification(BaseModel):
     extra_data = models.JSONField(
         default=dict,
         blank=True,
-        verbose_name=_("Extra data"),
-        help_text=_("Additional JSON data to provide context for rendering"),
+        verbose_name="Extra data",
+        help_text="Additional JSON data to provide context for rendering",
     )
 
     delivery_method = models.CharField(
         max_length=20,
         choices=DeliveryMethod.choices,
         default=DeliveryMethod.FIREBASE,
-        verbose_name=_("Delivery method"),
-        help_text=_("How the notification should be delivered"),
+        verbose_name="Delivery method",
+        help_text="How the notification should be delivered",
     )
 
     class Meta:
-        verbose_name = _("Notification")
-        verbose_name_plural = _("Notifications")
+        verbose_name = "Notification"
+        verbose_name_plural = "Notifications"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["recipient", "-created_at"]),

@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.translation import gettext as _, gettext_lazy
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel
@@ -12,20 +12,20 @@ class Role(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "VT"
     TEMP_CODE_PREFIX = "TEMP_"
 
-    code = models.CharField(max_length=50, unique=True, verbose_name=gettext_lazy("Role code"))
-    name = models.CharField(max_length=100, unique=True, verbose_name=gettext_lazy("Role name"))
-    description = models.CharField(max_length=255, blank=True, verbose_name=gettext_lazy("Description"))
-    is_system_role = models.BooleanField(default=False, verbose_name=gettext_lazy("System role"))
+    code = models.CharField(max_length=50, unique=True, verbose_name="Role code")
+    name = models.CharField(max_length=100, unique=True, verbose_name="Role name")
+    description = models.CharField(max_length=255, blank=True, verbose_name="Description")
+    is_system_role = models.BooleanField(default=False, verbose_name="System role")
     permissions = models.ManyToManyField(
         "Permission",
         related_name="roles",
-        verbose_name=gettext_lazy("Permissions"),
+        verbose_name="Permissions",
         blank=True,
     )  # type: ignore
 
     class Meta:
-        verbose_name = gettext_lazy("Role")
-        verbose_name_plural = gettext_lazy("Roles")
+        verbose_name = "Role"
+        verbose_name_plural = "Roles"
         db_table = "core_role"
 
         ordering = ["code"]

@@ -18,7 +18,7 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
 
     reset_token = serializers.CharField(
         max_length=64,
-        help_text=_("Reset token UUID received from step 1"),
+        help_text="Reset token UUID received from step 1",
         error_messages={
             "required": _("Please enter the reset token."),
             "blank": _("Reset token cannot be blank."),
@@ -27,7 +27,7 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
     otp_code = serializers.CharField(
         max_length=6,
         min_length=6,
-        help_text=_("6-digit OTP code"),
+        help_text="6-digit OTP code",
         error_messages={
             "required": _("Please enter the OTP code."),
             "blank": _("OTP code cannot be blank."),

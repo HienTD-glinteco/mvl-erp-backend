@@ -21,21 +21,21 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
         SCHOOL = "school", _("School")
         OTHER = "other", _("Other")
 
-    name = models.CharField(max_length=250, verbose_name=_("Channel name"))
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Channel code"))
+    name = models.CharField(max_length=250, verbose_name="Channel name")
+    code = models.CharField(max_length=50, unique=True, verbose_name="Channel code")
     belong_to = models.CharField(
         max_length=20,
         choices=BelongTo.choices,
         blank=True,
         default="",
-        verbose_name=_("Belong to"),
+        verbose_name="Belong to",
     )
-    description = SafeTextField(blank=True, verbose_name=_("Description"), max_length=500)
-    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    description = SafeTextField(blank=True, verbose_name="Description", max_length=500)
+    is_active = models.BooleanField(default=True, verbose_name="Active")
 
     class Meta:
-        verbose_name = _("Recruitment Channel")
-        verbose_name_plural = _("Recruitment Channels")
+        verbose_name = "Recruitment Channel"
+        verbose_name_plural = "Recruitment Channels"
         db_table = "hrm_recruitment_channel"
         ordering = ["-created_at"]
 

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class OTPVerificationSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=100,
-        help_text=_("Username"),
+        help_text="Username",
         error_messages={
             "required": _("Please enter your username."),
             "blank": _("Username cannot be blank."),
@@ -21,7 +21,7 @@ class OTPVerificationSerializer(serializers.Serializer):
     otp_code = serializers.CharField(
         max_length=6,
         min_length=6,
-        help_text=_("OTP code"),
+        help_text="OTP code",
         error_messages={
             "required": _("Please enter the OTP code."),
             "blank": _("OTP code cannot be blank."),
@@ -34,7 +34,7 @@ class OTPVerificationSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         allow_blank=True,
-        help_text=_("Device ID of client app (browser can skip)"),
+        help_text="Device ID of client app (browser can skip)",
     )
 
     def validate_otp_code(self, value):

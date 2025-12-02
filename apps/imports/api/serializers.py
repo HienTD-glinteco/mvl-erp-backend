@@ -37,7 +37,7 @@ class ImportOptionsSerializer(serializers.Serializer):
     count_total_first = serializers.BooleanField(
         required=False,
         default=DEFAULT_COUNT_TOTAL_FIRST,
-        help_text=_("Whether to count total rows before processing (default: true)"),
+        help_text="Whether to count total rows before processing (default: true)",
     )
     header_rows = serializers.IntegerField(
         required=False,
@@ -51,34 +51,34 @@ class ImportOptionsSerializer(serializers.Serializer):
     output_format = serializers.CharField(
         required=False,
         default=DEFAULT_OUTPUT_FORMAT,
-        help_text=_("Format for result files (default: csv, choices: csv, xlsx)"),
+        help_text="Format for result files (default: csv, choices: csv, xlsx)",
     )
     create_result_file_records = serializers.BooleanField(
         required=False,
         default=DEFAULT_CREATE_RESULT_FILE_RECORDS,
-        help_text=_("Create FileModel records for result files (default: true)"),
+        help_text="Create FileModel records for result files (default: true)",
     )
     handler_path = serializers.CharField(
         required=False,
         allow_null=True,
         allow_blank=False,
         default=None,
-        help_text=_("Override handler path (optional)"),
+        help_text="Override handler path (optional)",
     )
     handler_options = serializers.JSONField(
         required=False,
         default=dict,
-        help_text=_("Custom options for handler (default: {})"),
+        help_text="Custom options for handler (default: {})",
     )
     result_file_prefix = serializers.CharField(
         required=False,
         allow_blank=False,
-        help_text=_("Custom prefix for result files (optional)"),
+        help_text="Custom prefix for result files (optional)",
     )
     allow_update = serializers.BooleanField(
         required=False,
         default=False,
-        help_text=_("Allow updating existing records during import (default: false)"),
+        help_text="Allow updating existing records during import (default: false)",
     )
 
     def validate_batch_size(self, value):
@@ -181,11 +181,11 @@ class ResultFileInfoSerializer(serializers.Serializer):
 
     file_id = serializers.IntegerField(
         allow_null=True,
-        help_text=_("ID of the result file, null if not generated"),
+        help_text="ID of the result file, null if not generated",
     )
     url = serializers.URLField(
         allow_null=True,
-        help_text=_("Presigned download URL for the file, null if not available"),
+        help_text="Presigned download URL for the file, null if not available",
     )
 
 
@@ -193,10 +193,10 @@ class ResultFilesSerializer(serializers.Serializer):
     """Serializer for result files structure."""
 
     success_file = ResultFileInfoSerializer(
-        help_text=_("Information about the success records file"),
+        help_text="Information about the success records file",
     )
     failed_file = ResultFileInfoSerializer(
-        help_text=_("Information about the failed records file"),
+        help_text="Information about the failed records file",
     )
 
 
@@ -205,18 +205,18 @@ class ImportStartSerializer(serializers.Serializer):
 
     file_id = serializers.IntegerField(
         required=True,
-        help_text=_("ID of the confirmed FileModel to import"),
+        help_text="ID of the confirmed FileModel to import",
     )
     options = ImportOptionsSerializer(
         required=False,
         default=dict,
-        help_text=_("Import options for controlling the import process"),
+        help_text="Import options for controlling the import process",
     )
     async_field = serializers.BooleanField(
         required=False,
         default=True,
         source="async",  # Map to 'async' field name
-        help_text=_("Whether to process import asynchronously (always true for imports)"),
+        help_text="Whether to process import asynchronously (always true for imports)",
     )
 
     def validate_file_id(self, value):
@@ -279,16 +279,16 @@ class ImportStartResponseSerializer(serializers.Serializer):
     """Serializer for import start response."""
 
     import_job_id = serializers.UUIDField(
-        help_text=_("UUID of the created import job"),
+        help_text="UUID of the created import job",
     )
     celery_task_id = serializers.CharField(
-        help_text=_("Celery task ID for tracking"),
+        help_text="Celery task ID for tracking",
     )
     status = serializers.CharField(
-        help_text=_("Initial status of the import job"),
+        help_text="Initial status of the import job",
     )
     created_at = serializers.DateTimeField(
-        help_text=_("Timestamp when the job was created"),
+        help_text="Timestamp when the job was created",
     )
 
 
@@ -296,10 +296,10 @@ class ImportCancelResponseSerializer(serializers.Serializer):
     """Serializer for import cancel response."""
 
     message = serializers.CharField(
-        help_text=_("Cancellation result message"),
+        help_text="Cancellation result message",
     )
     status = serializers.CharField(
-        help_text=_("Current status of the import job"),
+        help_text="Current status of the import job",
     )
 
 
@@ -307,18 +307,18 @@ class ImportTemplateResponseSerializer(serializers.Serializer):
     """Serializer for import template response."""
 
     file_id = serializers.IntegerField(
-        help_text=_("ID of the template file"),
+        help_text="ID of the template file",
     )
     file_name = serializers.CharField(
-        help_text=_("Name of the template file"),
+        help_text="Name of the template file",
     )
     download_url = serializers.URLField(
-        help_text=_("Presigned download URL for the template file"),
+        help_text="Presigned download URL for the template file",
     )
     size = serializers.IntegerField(
-        help_text=_("File size in bytes"),
+        help_text="File size in bytes",
         allow_null=True,
     )
     created_at = serializers.DateTimeField(
-        help_text=_("Timestamp when the template was created"),
+        help_text="Timestamp when the template was created",
     )

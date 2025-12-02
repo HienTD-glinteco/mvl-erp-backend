@@ -37,64 +37,64 @@ class Decision(ColoredValueMixin, BaseModel):
     decision_number = models.CharField(
         max_length=50,
         unique=True,
-        verbose_name=_("Decision number"),
-        help_text=_("Unique decision number/code"),
+        verbose_name="Decision number",
+        help_text="Unique decision number/code",
     )
 
     name = models.CharField(
         max_length=500,
-        verbose_name=_("Decision name"),
-        help_text=_("Name or title of the decision"),
+        verbose_name="Decision name",
+        help_text="Name or title of the decision",
     )
 
     signing_date = models.DateField(
-        verbose_name=_("Signing date"),
-        help_text=_("Date when the decision was signed"),
+        verbose_name="Signing date",
+        help_text="Date when the decision was signed",
     )
 
     signer = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="signed_decisions",
-        verbose_name=_("Signer"),
-        help_text=_("Employee who signed the decision"),
+        verbose_name="Signer",
+        help_text="Employee who signed the decision",
     )
 
     effective_date = models.DateField(
-        verbose_name=_("Effective date"),
-        help_text=_("Date when the decision becomes effective"),
+        verbose_name="Effective date",
+        help_text="Date when the decision becomes effective",
     )
 
     reason = SafeTextField(
         max_length=500,
         null=True,
         blank=True,
-        verbose_name=_("Reason"),
-        help_text=_("Reason for the decision"),
+        verbose_name="Reason",
+        help_text="Reason for the decision",
     )
 
     content = SafeTextField(
         max_length=2000,
         null=True,
         blank=True,
-        verbose_name=_("Decision content"),
-        help_text=_("Full content of the decision"),
+        verbose_name="Decision content",
+        help_text="Full content of the decision",
     )
 
     note = SafeTextField(
         max_length=1000,
         null=True,
         blank=True,
-        verbose_name=_("Note"),
-        help_text=_("Additional notes"),
+        verbose_name="Note",
+        help_text="Additional notes",
     )
 
     signing_status = models.CharField(
         max_length=20,
         choices=SigningStatus.choices,
         default=SigningStatus.DRAFT,
-        verbose_name=_("Signing status"),
-        help_text=_("Current signing status of the decision"),
+        verbose_name="Signing status",
+        help_text="Current signing status of the decision",
     )
 
     # GenericRelation for file attachments
@@ -115,8 +115,8 @@ class Decision(ColoredValueMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_decision"
-        verbose_name = _("Decision")
-        verbose_name_plural = _("Decisions")
+        verbose_name = "Decision"
+        verbose_name_plural = "Decisions"
         ordering = ["-signing_date", "-created_at"]
         indexes = [
             models.Index(fields=["decision_number"], name="decision_number_idx"),

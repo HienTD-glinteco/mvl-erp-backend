@@ -131,16 +131,16 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
 class CompensatoryDateInputSerializer(serializers.Serializer):
     """Nested serializer for compensatory date input when creating holidays."""
 
-    date = serializers.DateField(required=True, help_text=_("Date of the compensatory workday"))
+    date = serializers.DateField(required=True, help_text="Date of the compensatory workday")
     session = serializers.ChoiceField(
         choices=CompensatoryWorkday.Session.choices,
         required=False,
-        help_text=_("Work session (morning, afternoon, or full_day). Auto-set based on weekday if not provided."),
+        help_text="Work session (morning, afternoon, or full_day). Auto-set based on weekday if not provided.",
     )
     notes = serializers.CharField(
         required=False,
         allow_blank=True,
-        help_text=_("Additional notes about the compensatory workday"),
+        help_text="Additional notes about the compensatory workday",
     )
 
 
@@ -153,7 +153,7 @@ class HolidaySerializer(serializers.ModelSerializer):
         many=True,
         write_only=True,
         required=False,
-        help_text=_("List of compensatory workdays to create with the holiday (date, session, notes)"),
+        help_text="List of compensatory workdays to create with the holiday (date, session, notes)",
     )
 
     class Meta:

@@ -24,7 +24,7 @@ class GeoLocationAttendanceSerializer(FileConfirmSerializerMixin, serializers.Mo
         queryset=AttendanceGeolocation.objects.filter(deleted=False, status=AttendanceGeolocation.Status.ACTIVE),
         source="attendance_geolocation",
         write_only=True,
-        help_text=_("ID of the attendance geolocation to check against"),
+        help_text="ID of the attendance geolocation to check against",
     )
 
     class Meta:

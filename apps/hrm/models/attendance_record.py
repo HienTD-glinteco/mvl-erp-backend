@@ -1,6 +1,5 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import TEMP_CODE_PREFIX, AttendanceType
@@ -44,8 +43,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class Meta:
-        verbose_name = _("Attendance Record")
-        verbose_name_plural = _("Attendance Records")
+        verbose_name = "Attendance Record"
+        verbose_name_plural = "Attendance Records"
         db_table = "hrm_attendance_record"
         ordering = ["-timestamp"]
         indexes = [
@@ -56,15 +55,15 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
             models.Index(fields=["-timestamp"]),
         ]
 
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
+    code = models.CharField(max_length=50, unique=True, verbose_name="Code")
 
     # Attendance type and method
     attendance_type = models.CharField(
         max_length=20,
         choices=AttendanceType.choices,
         default=AttendanceType.BIOMETRIC_DEVICE,
-        verbose_name=_("Attendance type"),
-        help_text=_("Type of attendance method used"),
+        verbose_name="Attendance type",
+        help_text="Type of attendance method used",
     )
 
     # Biometric device reference (for biometric device attendance)
@@ -74,8 +73,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("Biometric Device"),
-        help_text=_("Attendance device that captured this record (for biometric device type)"),
+        verbose_name="Biometric Device",
+        help_text="Attendance device that captured this record (for biometric device type)",
     )
 
     # Employee reference (nullable, matched by attendance_code)
@@ -85,20 +84,20 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("Employee"),
-        help_text=_("Employee associated with this attendance record"),
+        verbose_name="Employee",
+        help_text="Employee associated with this attendance record",
     )
 
     attendance_code = models.CharField(
         max_length=20,
         blank=True,
-        verbose_name=_("Attendance code"),
-        help_text=_("User ID from device, used to match with Employee.attendance_code"),
+        verbose_name="Attendance code",
+        help_text="User ID from device, used to match with Employee.attendance_code",
     )
 
     timestamp = models.DateTimeField(
-        verbose_name=_("Timestamp"),
-        help_text=_("Date and time when attendance was recorded"),
+        verbose_name="Timestamp",
+        help_text="Date and time when attendance was recorded",
     )
 
     # GeoLocation fields
@@ -108,8 +107,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(-90), MaxValueValidator(90)],
-        verbose_name=_("Latitude"),
-        help_text=_("GeoLocation latitude coordinate (for geolocation attendance)"),
+        verbose_name="Latitude",
+        help_text="GeoLocation latitude coordinate (for geolocation attendance)",
     )
     longitude = models.DecimalField(
         max_digits=20,
@@ -117,8 +116,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
-        verbose_name=_("Longitude"),
-        help_text=_("GeoLocation longitude coordinate (for geolocation attendance)"),
+        verbose_name="Longitude",
+        help_text="GeoLocation longitude coordinate (for geolocation attendance)",
     )
     attendance_geolocation = models.ForeignKey(
         "AttendanceGeolocation",
@@ -126,8 +125,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("Attendance geolocation"),
-        help_text=_("Geolocation reference (for geolocation attendance)"),
+        verbose_name="Attendance geolocation",
+        help_text="Geolocation reference (for geolocation attendance)",
     )
     image = models.ForeignKey(
         "files.FileModel",
@@ -135,8 +134,8 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("Image"),
-        help_text=_("Attendance photo (for geolocation attendance)"),
+        verbose_name="Image",
+        help_text="Attendance photo (for geolocation attendance)",
     )
 
     # WiFi fields
@@ -146,25 +145,25 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name=_("WiFi device"),
-        help_text=_("WiFi device reference (for WiFi attendance)"),
+        verbose_name="WiFi device",
+        help_text="WiFi device reference (for WiFi attendance)",
     )
 
     is_valid = models.BooleanField(
         default=True,
-        verbose_name=_("Is valid"),
-        help_text=_("Whether this attendance record is valid"),
+        verbose_name="Is valid",
+        help_text="Whether this attendance record is valid",
     )
     notes = SafeTextField(
         blank=True,
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes or comments about this attendance record"),
+        verbose_name="Notes",
+        help_text="Additional notes or comments about this attendance record",
     )
     raw_data = models.JSONField(
         null=True,
         blank=True,
-        verbose_name=_("Raw data"),
-        help_text=_("Complete raw data from device for debugging purposes"),
+        verbose_name="Raw data",
+        help_text="Complete raw data from device for debugging purposes",
     )
 
     def __str__(self):

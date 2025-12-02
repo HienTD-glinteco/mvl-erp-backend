@@ -43,48 +43,48 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         editable=False,
         null=True,
         blank=True,
-        verbose_name=_("Code"),
-        help_text=_("Auto-generated unique code for this certificate"),
+        verbose_name="Code",
+        help_text="Auto-generated unique code for this certificate",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="certificates",
-        verbose_name=_("Employee"),
-        help_text=_("Employee who owns this certificate"),
+        verbose_name="Employee",
+        help_text="Employee who owns this certificate",
     )
     certificate_type = models.CharField(
         max_length=50,
         choices=CertificateType.choices,
-        verbose_name=_("Certificate type"),
-        help_text=_("Type of certificate"),
+        verbose_name="Certificate type",
+        help_text="Type of certificate",
     )
     certificate_code = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name=_("Certificate code"),
-        help_text=_("Certificate number or code issued by the certifying organization"),
+        verbose_name="Certificate code",
+        help_text="Certificate number or code issued by the certifying organization",
     )
     certificate_name = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name=_("Certificate name"),
-        help_text=_("Specific name of the certificate or exam"),
+        verbose_name="Certificate name",
+        help_text="Specific name of the certificate or exam",
     )
     issue_date = models.DateField(
-        verbose_name=_("Issue date"),
-        help_text=_("Date when the certificate was issued"),
+        verbose_name="Issue date",
+        help_text="Date when the certificate was issued",
     )
     expiry_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Expiry date"),
-        help_text=_("Date when the certificate expires (if applicable)"),
+        verbose_name="Expiry date",
+        help_text="Date when the certificate expires (if applicable)",
     )
     issuing_organization = models.CharField(
         max_length=100,
-        verbose_name=_("Issuing organization"),
-        help_text=_("Organization that issued the certificate"),
+        verbose_name="Issuing organization",
+        help_text="Organization that issued the certificate",
     )
     attachment = models.ForeignKey(
         FileModel,
@@ -92,40 +92,40 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee_certificates",
-        verbose_name=_("Certificate file"),
-        help_text=_("Uploaded certificate file"),
+        verbose_name="Certificate file",
+        help_text="Uploaded certificate file",
     )
     notes = models.TextField(
         blank=True,
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes about the certificate"),
+        verbose_name="Notes",
+        help_text="Additional notes about the certificate",
     )
     training_specialization = models.CharField(
         max_length=100,
         null=True,
         blank=True,
-        verbose_name=_("Training specialization"),
-        help_text=_("Training specialization or major"),
+        verbose_name="Training specialization",
+        help_text="Training specialization or major",
     )
     graduation_diploma = models.CharField(
         max_length=100,
         null=True,
         blank=True,
-        verbose_name=_("Graduation diploma"),
-        help_text=_("Graduation diploma or degree"),
+        verbose_name="Graduation diploma",
+        help_text="Graduation diploma or degree",
     )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.VALID,
-        verbose_name=_("Status"),
-        help_text=_("Certificate status based on expiry date"),
+        verbose_name="Status",
+        help_text="Certificate status based on expiry date",
         db_index=True,
     )
 
     class Meta:
-        verbose_name = _("Employee certificate")
-        verbose_name_plural = _("Employee certificates")
+        verbose_name = "Employee certificate"
+        verbose_name_plural = "Employee certificates"
         db_table = "hrm_employee_certificate"
         ordering = ["certificate_type", "-created_at"]
         indexes = [

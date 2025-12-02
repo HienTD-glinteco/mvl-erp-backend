@@ -18,7 +18,7 @@ class WiFiAttendanceSerializer(serializers.ModelSerializer):
     bssid = serializers.CharField(
         max_length=17,
         write_only=True,
-        help_text=_("WiFi BSSID (MAC address format: XX:XX:XX:XX:XX:XX)"),
+        help_text="WiFi BSSID (MAC address format: XX:XX:XX:XX:XX:XX)",
     )
 
     class Meta:

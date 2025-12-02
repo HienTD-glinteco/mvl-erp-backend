@@ -22,70 +22,70 @@ class WorkSchedule(BaseModel):
     weekday = models.PositiveSmallIntegerField(
         choices=Weekday.choices,
         unique=True,
-        verbose_name=_("Weekday"),
-        help_text=_("Day of the week"),
+        verbose_name="Weekday",
+        help_text="Day of the week",
     )
 
     morning_start_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Morning start time"),
-        help_text=_("Start time of morning session"),
+        verbose_name="Morning start time",
+        help_text="Start time of morning session",
     )
 
     morning_end_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Morning end time"),
-        help_text=_("End time of morning session"),
+        verbose_name="Morning end time",
+        help_text="End time of morning session",
     )
 
     noon_start_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Noon start time"),
-        help_text=_("Start time of noon session"),
+        verbose_name="Noon start time",
+        help_text="Start time of noon session",
     )
 
     noon_end_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Noon end time"),
-        help_text=_("End time of noon session"),
+        verbose_name="Noon end time",
+        help_text="End time of noon session",
     )
 
     afternoon_start_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Afternoon start time"),
-        help_text=_("Start time of afternoon session"),
+        verbose_name="Afternoon start time",
+        help_text="Start time of afternoon session",
     )
 
     afternoon_end_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name=_("Afternoon end time"),
-        help_text=_("End time of afternoon session"),
+        verbose_name="Afternoon end time",
+        help_text="End time of afternoon session",
     )
 
     allowed_late_minutes = models.IntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Allowed late minutes"),
-        help_text=_("Number of minutes late allowed"),
+        verbose_name="Allowed late minutes",
+        help_text="Number of minutes late allowed",
     )
 
     note = models.CharField(
         max_length=255,
         null=True,
         blank=True,
-        verbose_name=_("Note"),
-        help_text=_("Additional notes"),
+        verbose_name="Note",
+        help_text="Additional notes",
     )
 
     class Meta:
-        verbose_name = _("Work schedule")
-        verbose_name_plural = _("Work schedules")
+        verbose_name = "Work schedule"
+        verbose_name_plural = "Work schedules"
         db_table = "hrm_work_schedule"
         ordering = ["weekday"]
 

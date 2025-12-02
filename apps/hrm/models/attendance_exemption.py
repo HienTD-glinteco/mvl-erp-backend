@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -23,26 +22,26 @@ class AttendanceExemption(BaseModel):
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="attendance_exemption",
-        verbose_name=_("Employee"),
-        help_text=_("Employee to be exempt from attendance tracking"),
+        verbose_name="Employee",
+        help_text="Employee to be exempt from attendance tracking",
     )
     effective_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name=_("Effective Date"),
-        help_text=_("Date when exemption becomes active"),
+        verbose_name="Effective Date",
+        help_text="Date when exemption becomes active",
     )
     notes = models.TextField(
         blank=True,
         max_length=1000,
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes or remarks"),
+        verbose_name="Notes",
+        help_text="Additional notes or remarks",
     )
 
     class Meta:
         db_table = "hrm_attendance_exemption"
-        verbose_name = _("Attendance Exemption")
-        verbose_name_plural = _("Attendance Exemptions")
+        verbose_name = "Attendance Exemption"
+        verbose_name_plural = "Attendance Exemptions"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["employee"]),
