@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 09:49+0700\n"
+"POT-Creation-Date: 2025-12-02 10:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,58 +60,6 @@ msgstr ""
 msgid "Failed to get device info: %(error)s"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:16
-msgid "Name of the file being uploaded"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:20
-msgid "MIME type of the file (e.g., application/pdf, image/png)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:24
-msgid "Upload category (e.g., job_description, invoice, employee_cv)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:51
-msgid "Presigned PUT URL for direct upload to S3"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:54
-msgid "Temporary S3 path (uploads/tmp/...)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:57
-msgid "Token for later confirmation"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:64
-msgid "Presigned URL for viewing the file (valid for 1 hour)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:65
-msgid "Presigned URL for downloading the file (valid for 1 hour)"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:69
-msgid "Username of the user who uploaded this file"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:96
-msgid "Token returned by presign endpoint"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:99
-msgid "File purpose (e.g., 'job_description', 'invoice')"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:104
-msgid "Optional Django model label (e.g., 'hrm.JobDescription')"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:110
-msgid "Optional related object ID"
-msgstr ""
-
 #: apps/files/api/serializers/file_serializers.py:116
 #, python-brace-format
 msgid ""
@@ -139,14 +87,6 @@ msgstr ""
 msgid "Invalid model"
 msgstr ""
 
-#: apps/files/api/serializers/file_serializers.py:162
-msgid "List of confirmed files with metadata"
-msgstr ""
-
-#: apps/files/api/serializers/file_serializers.py:172
-msgid "List of file configurations with tokens and related objects"
-msgstr ""
-
 #: apps/files/api/serializers/mixins.py:34
 msgid "Expected a string or list of strings."
 msgstr ""
@@ -155,108 +95,12 @@ msgstr ""
 msgid "All items must be strings."
 msgstr ""
 
-#: apps/files/api/serializers/mixins.py:236
-#: apps/files/api/serializers/mixins.py:288
-#, python-brace-format
-msgid "File tokens for {field} (array of tokens)"
-msgstr ""
-
-#: apps/files/api/serializers/mixins.py:244
-#: apps/files/api/serializers/mixins.py:293
-#, python-brace-format
-msgid "File token(s) for {field}"
-msgstr ""
-
-#: apps/files/api/serializers/mixins.py:273
-#: apps/files/api/serializers/mixins.py:305
-msgid ""
-"File tokens for uploading files. Each key corresponds to a file field on the "
-"model."
-msgstr ""
-
-#: apps/files/api/serializers/mixins.py:313
-msgid ""
-"Dictionary mapping field names to file tokens (string or array of strings)"
-msgstr ""
-
 #: apps/files/api/views/file_views.py:96
 msgid "Generate presigned URL"
 msgstr ""
 
 #: apps/files/api/views/file_views.py:260
 msgid "Confirm multiple files"
-msgstr ""
-
-#: apps/files/models.py:19
-msgid "Purpose"
-msgstr ""
-
-#: apps/files/models.py:20
-msgid "File purpose category (e.g., job_description, invoice, employee_cv)"
-msgstr ""
-
-#: apps/files/models.py:24
-msgid "File name"
-msgstr ""
-
-#: apps/files/models.py:25
-msgid "Original name of the uploaded file"
-msgstr ""
-
-#: apps/files/models.py:29
-msgid "File path"
-msgstr ""
-
-#: apps/files/models.py:30
-msgid "S3 path where the file is stored"
-msgstr ""
-
-#: apps/files/models.py:35
-msgid "File size"
-msgstr ""
-
-#: apps/files/models.py:36 apps/imports/api/serializers.py:319
-msgid "File size in bytes"
-msgstr ""
-
-#: apps/files/models.py:42
-msgid "Checksum"
-msgstr ""
-
-#: apps/files/models.py:43
-msgid "MD5 checksum for file integrity verification"
-msgstr ""
-
-#: apps/files/models.py:47
-msgid "Confirmed"
-msgstr ""
-
-#: apps/files/models.py:48
-msgid "Whether the file upload has been confirmed"
-msgstr ""
-
-#: apps/files/models.py:56
-msgid "Uploaded by"
-msgstr ""
-
-#: apps/files/models.py:57
-msgid "User who uploaded this file"
-msgstr ""
-
-#: apps/files/models.py:66
-msgid "Content type"
-msgstr ""
-
-#: apps/files/models.py:71
-msgid "Object ID"
-msgstr ""
-
-#: apps/files/models.py:77 apps/imports/models.py:28
-msgid "File"
-msgstr ""
-
-#: apps/files/models.py:78
-msgid "Files"
 msgstr ""
 
 #: apps/files/utils/s3_utils.py:93
@@ -294,39 +138,11 @@ msgid ""
 "{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
 msgstr ""
 
-#: apps/imports/api/serializers.py:40
-msgid "Whether to count total rows before processing (default: true)"
-msgstr ""
-
 #: apps/imports/api/serializers.py:48
 #, python-brace-format
 msgid ""
 "Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
 "{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
-msgstr ""
-
-#: apps/imports/api/serializers.py:54
-msgid "Format for result files (default: csv, choices: csv, xlsx)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:59
-msgid "Create FileModel records for result files (default: true)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:66
-msgid "Override handler path (optional)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:71
-msgid "Custom options for handler (default: {})"
-msgstr ""
-
-#: apps/imports/api/serializers.py:76
-msgid "Custom prefix for result files (optional)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:81
-msgid "Allow updating existing records during import (default: false)"
 msgstr ""
 
 #: apps/imports/api/serializers.py:90
@@ -370,232 +186,12 @@ msgstr ""
 msgid "Unknown field"
 msgstr ""
 
-#: apps/imports/api/serializers.py:184
-msgid "ID of the result file, null if not generated"
-msgstr ""
-
-#: apps/imports/api/serializers.py:188
-msgid "Presigned download URL for the file, null if not available"
-msgstr ""
-
-#: apps/imports/api/serializers.py:196
-msgid "Information about the success records file"
-msgstr ""
-
-#: apps/imports/api/serializers.py:199
-msgid "Information about the failed records file"
-msgstr ""
-
-#: apps/imports/api/serializers.py:208
-msgid "ID of the confirmed FileModel to import"
-msgstr ""
-
-#: apps/imports/api/serializers.py:213
-msgid "Import options for controlling the import process"
-msgstr ""
-
-#: apps/imports/api/serializers.py:219
-msgid "Whether to process import asynchronously (always true for imports)"
-msgstr ""
-
-#: apps/imports/api/serializers.py:282
-msgid "UUID of the created import job"
-msgstr ""
-
-#: apps/imports/api/serializers.py:285
-msgid "Celery task ID for tracking"
-msgstr ""
-
-#: apps/imports/api/serializers.py:288
-msgid "Initial status of the import job"
-msgstr ""
-
-#: apps/imports/api/serializers.py:291
-msgid "Timestamp when the job was created"
-msgstr ""
-
-#: apps/imports/api/serializers.py:299
-msgid "Cancellation result message"
-msgstr ""
-
-#: apps/imports/api/serializers.py:302 apps/imports/models.py:52
-msgid "Current status of the import job"
-msgstr ""
-
-#: apps/imports/api/serializers.py:310
-msgid "ID of the template file"
-msgstr ""
-
-#: apps/imports/api/serializers.py:313
-msgid "Name of the template file"
-msgstr ""
-
-#: apps/imports/api/serializers.py:316
-msgid "Presigned download URL for the template file"
-msgstr ""
-
-#: apps/imports/api/serializers.py:323
-msgid "Timestamp when the template was created"
-msgstr ""
-
 #: apps/imports/api/views.py:51
 msgid "Check import status"
 msgstr ""
 
 #: apps/imports/api/views.py:51
 msgid "Import Check Status"
-msgstr ""
-
-#: apps/imports/models.py:22
-msgid "ID"
-msgstr ""
-
-#: apps/imports/models.py:29
-msgid "Source file for import"
-msgstr ""
-
-#: apps/imports/models.py:37 apps/mailtemplates/models.py:69
-msgid "Created by"
-msgstr ""
-
-#: apps/imports/models.py:38
-msgid "User who initiated the import"
-msgstr ""
-
-#: apps/imports/models.py:44
-msgid "Celery task ID"
-msgstr ""
-
-#: apps/imports/models.py:45
-msgid "Celery task ID for tracking the background job"
-msgstr ""
-
-#: apps/imports/models.py:51 apps/realestate/models/project.py:29
-msgid "Status"
-msgstr ""
-
-#: apps/imports/models.py:57
-msgid "Total rows"
-msgstr ""
-
-#: apps/imports/models.py:58
-msgid "Total number of rows to process"
-msgstr ""
-
-#: apps/imports/models.py:62
-msgid "Processed rows"
-msgstr ""
-
-#: apps/imports/models.py:63
-msgid "Number of rows processed"
-msgstr ""
-
-#: apps/imports/models.py:67
-msgid "Success count"
-msgstr ""
-
-#: apps/imports/models.py:68
-msgid "Number of rows processed successfully"
-msgstr ""
-
-#: apps/imports/models.py:72
-msgid "Failure count"
-msgstr ""
-
-#: apps/imports/models.py:73
-msgid "Number of rows that failed processing"
-msgstr ""
-
-#: apps/imports/models.py:78
-msgid "Percentage"
-msgstr ""
-
-#: apps/imports/models.py:79
-msgid "Percentage of completion (0-100)"
-msgstr ""
-
-#: apps/imports/models.py:84
-msgid "Options"
-msgstr ""
-
-#: apps/imports/models.py:85
-msgid "Import options including handler path and other settings"
-msgstr ""
-
-#: apps/imports/models.py:91
-msgid "Success result S3 path"
-msgstr ""
-
-#: apps/imports/models.py:92
-msgid "S3 path for successfully processed rows file"
-msgstr ""
-
-#: apps/imports/models.py:98
-msgid "Failed result S3 path"
-msgstr ""
-
-#: apps/imports/models.py:99
-msgid "S3 path for failed rows file"
-msgstr ""
-
-#: apps/imports/models.py:107
-msgid "Success result file"
-msgstr ""
-
-#: apps/imports/models.py:108
-msgid "FileModel record for successfully processed rows"
-msgstr ""
-
-#: apps/imports/models.py:116
-msgid "Failed result file"
-msgstr ""
-
-#: apps/imports/models.py:117
-msgid "FileModel record for failed rows"
-msgstr ""
-
-#: apps/imports/models.py:122
-msgid "Error message"
-msgstr ""
-
-#: apps/imports/models.py:123
-msgid "Error message if the import failed"
-msgstr ""
-
-#: apps/imports/models.py:127
-msgid "Created at"
-msgstr ""
-
-#: apps/imports/models.py:128
-msgid "Date and time when the import job was created"
-msgstr ""
-
-#: apps/imports/models.py:133 apps/mailtemplates/models.py:84
-msgid "Started at"
-msgstr ""
-
-#: apps/imports/models.py:134
-msgid "Date and time when the import job started processing"
-msgstr ""
-
-#: apps/imports/models.py:139 apps/mailtemplates/models.py:90
-msgid "Finished at"
-msgstr ""
-
-#: apps/imports/models.py:140
-msgid "Date and time when the import job finished"
-msgstr ""
-
-#: apps/imports/models.py:145
-msgid "Import Job"
-msgstr ""
-
-#: apps/imports/models.py:146
-msgid "Import Jobs"
-msgstr ""
-
-#: apps/mailtemplates/apps.py:8
-msgid "Mail Templates"
 msgstr ""
 
 #: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
@@ -614,176 +210,8 @@ msgstr ""
 msgid "Failed"
 msgstr ""
 
-#: apps/mailtemplates/models.py:28
-msgid "Template slug"
-msgstr ""
-
-#: apps/mailtemplates/models.py:29
-msgid "Slug of the template used for this job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:34
-msgid "Email subject"
-msgstr ""
-
-#: apps/mailtemplates/models.py:35
-msgid "Subject line for the emails"
-msgstr ""
-
-#: apps/mailtemplates/models.py:38
-msgid "Sender email"
-msgstr ""
-
-#: apps/mailtemplates/models.py:39
-msgid "From email address"
-msgstr ""
-
-#: apps/mailtemplates/models.py:43
-msgid "Total recipients"
-msgstr ""
-
-#: apps/mailtemplates/models.py:44
-msgid "Total number of recipients in this job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:48
-msgid "Sent count"
-msgstr ""
-
-#: apps/mailtemplates/models.py:49
-msgid "Number of successfully sent emails"
-msgstr ""
-
-#: apps/mailtemplates/models.py:53
-msgid "Failed count"
-msgstr ""
-
-#: apps/mailtemplates/models.py:54
-msgid "Number of failed email sends"
-msgstr ""
-
-#: apps/mailtemplates/models.py:60
-msgid "Job status"
-msgstr ""
-
-#: apps/mailtemplates/models.py:61
-msgid "Current status of the send job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:70
-msgid "User who created this send job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:77
-msgid "Client request ID"
-msgstr ""
-
-#: apps/mailtemplates/models.py:78
-msgid "Optional idempotency key provided by client"
-msgstr ""
-
-#: apps/mailtemplates/models.py:85
-msgid "When the job started processing"
-msgstr ""
-
-#: apps/mailtemplates/models.py:91
-msgid "When the job finished processing"
-msgstr ""
-
-#: apps/mailtemplates/models.py:96 apps/mailtemplates/models.py:146
-msgid "Callback data"
-msgstr ""
-
-#: apps/mailtemplates/models.py:97
-msgid "Callback function and object reference to call after successful send"
-msgstr ""
-
-#: apps/mailtemplates/models.py:101
-msgid "Email send job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:102
-msgid "Email send jobs"
-msgstr ""
-
 #: apps/mailtemplates/models.py:123
 msgid "Sent"
-msgstr ""
-
-#: apps/mailtemplates/models.py:131
-msgid "Send job"
-msgstr ""
-
-#: apps/mailtemplates/models.py:132
-msgid "The send job this recipient belongs to"
-msgstr ""
-
-#: apps/mailtemplates/models.py:135
-msgid "Recipient email"
-msgstr ""
-
-#: apps/mailtemplates/models.py:136
-msgid "Email address of the recipient"
-msgstr ""
-
-#: apps/mailtemplates/models.py:140
-msgid "Template data"
-msgstr ""
-
-#: apps/mailtemplates/models.py:141
-msgid "Data used to render the template for this recipient"
-msgstr ""
-
-#: apps/mailtemplates/models.py:147
-msgid "Per-recipient callback data to use after successful send"
-msgstr ""
-
-#: apps/mailtemplates/models.py:153
-msgid "Send status"
-msgstr ""
-
-#: apps/mailtemplates/models.py:154
-msgid "Current status of this email"
-msgstr ""
-
-#: apps/mailtemplates/models.py:159
-msgid "Attempt count"
-msgstr ""
-
-#: apps/mailtemplates/models.py:160
-msgid "Number of send attempts"
-msgstr ""
-
-#: apps/mailtemplates/models.py:164
-msgid "Last error"
-msgstr ""
-
-#: apps/mailtemplates/models.py:165
-msgid "Error message from the last failed attempt"
-msgstr ""
-
-#: apps/mailtemplates/models.py:170
-msgid "Message ID"
-msgstr ""
-
-#: apps/mailtemplates/models.py:171
-msgid "Provider message ID for tracking"
-msgstr ""
-
-#: apps/mailtemplates/models.py:176
-msgid "Sent at"
-msgstr ""
-
-#: apps/mailtemplates/models.py:177
-msgid "When the email was successfully sent"
-msgstr ""
-
-#: apps/mailtemplates/models.py:181
-msgid "Email send recipient"
-msgstr ""
-
-#: apps/mailtemplates/models.py:182
-msgid "Email send recipients"
 msgstr ""
 
 #: apps/mailtemplates/permissions.py:18 apps/mailtemplates/permissions.py:39
@@ -874,36 +302,12 @@ msgstr ""
 msgid "Job not found"
 msgstr ""
 
-#: apps/realestate/models/project.py:17 apps/realestate/models/project.py:31
+#: apps/realestate/models/project.py:17
 msgid "Active"
 msgstr ""
 
 #: apps/realestate/models/project.py:18
 msgid "Inactive"
-msgstr ""
-
-#: apps/realestate/models/project.py:21
-msgid "Project name"
-msgstr ""
-
-#: apps/realestate/models/project.py:22
-msgid "Project code"
-msgstr ""
-
-#: apps/realestate/models/project.py:23
-msgid "Address"
-msgstr ""
-
-#: apps/realestate/models/project.py:24
-msgid "Description"
-msgstr ""
-
-#: apps/realestate/models/project.py:34
-msgid "Project"
-msgstr ""
-
-#: apps/realestate/models/project.py:35
-msgid "Projects"
 msgstr ""
 
 #: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24
@@ -1005,18 +409,6 @@ msgstr ""
 
 #: libs/import_xlsx/utils.py:193
 msgid "This field is required"
-msgstr ""
-
-#: libs/models/base_model_mixin.py:63
-msgid "Report date"
-msgstr ""
-
-#: libs/models/base_model_mixin.py:67
-msgid "Needs refresh"
-msgstr ""
-
-#: libs/models/base_model_mixin.py:68
-msgid "Indicates if this report needs to be recalculated by batch task"
 msgstr ""
 
 #: libs/validators.py:6

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Notifications\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-28 16:52+0700\n"
+"POT-Creation-Date: 2025-12-02 10:27+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -66,79 +66,6 @@ msgstr "Email"
 #: apps/notifications/models.py:20
 msgid "Both"
 msgstr "Cả hai"
-
-# models.py - Notification model
-#: apps/notifications/models.py:27
-msgid "Actor"
-msgstr "Người thực hiện"
-
-#: apps/notifications/models.py:28
-msgid "The user who triggered the notification"
-msgstr "Người dùng đã kích hoạt thông báo"
-
-#: apps/notifications/models.py:36
-msgid "Recipient"
-msgstr "Người nhận"
-
-#: apps/notifications/models.py:37
-msgid "The user receiving the notification"
-msgstr "Người dùng nhận thông báo"
-
-#: apps/notifications/models.py:44
-msgid "Verb"
-msgstr "Hành động"
-
-#: apps/notifications/models.py:45
-msgid "The action that was performed"
-msgstr "Hành động đã được thực hiện"
-
-#: apps/notifications/models.py:55
-msgid "Target content type"
-msgstr "Loại nội dung mục tiêu"
-
-#: apps/notifications/models.py:61
-msgid "Target object ID"
-msgstr "ID đối tượng mục tiêu"
-
-#: apps/notifications/models.py:68
-msgid "Message"
-msgstr "Tin nhắn"
-
-#: apps/notifications/models.py:69
-msgid "Optional custom message for the notification"
-msgstr "Tin nhắn tùy chỉnh tùy chọn cho thông báo"
-
-#: apps/notifications/models.py:75
-msgid "Read"
-msgstr "Đã đọc"
-
-#: apps/notifications/models.py:76
-msgid "Whether the notification has been read"
-msgstr "Thông báo đã được đọc hay chưa"
-
-#: apps/notifications/models.py:84
-msgid "Extra data"
-msgstr "Dữ liệu bổ sung"
-
-#: apps/notifications/models.py:85
-msgid "Additional JSON data to provide context for rendering"
-msgstr "Dữ liệu JSON bổ sung để cung cấp ngữ cảnh hiển thị"
-
-#: apps/notifications/models.py:92
-msgid "Delivery method"
-msgstr "Phương thức gửi"
-
-#: apps/notifications/models.py:93
-msgid "How the notification should be delivered"
-msgstr "Cách thức gửi thông báo"
-
-#: apps/notifications/models.py:97
-msgid "Notification"
-msgstr "Thông báo"
-
-#: apps/notifications/models.py:98
-msgid "Notifications"
-msgstr "Thông báo"
 
 #: apps/notifications/tasks.py:71
 #, python-format
