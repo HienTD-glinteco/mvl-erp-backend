@@ -12,6 +12,26 @@ class ProposalFilterSet(filters.FilterSet):
         help_text="Filter by TimeSheetEntry ID",
     )
 
+    created_by_department = filters.NumberFilter(
+        field_name="created_by__department",
+        help_text="Filter by creator's department ID",
+    )
+
+    created_by_branch = filters.NumberFilter(
+        field_name="created_by__branch",
+        help_text="Filter by creator's branch ID",
+    )
+
+    created_by_block = filters.NumberFilter(
+        field_name="created_by__block",
+        help_text="Filter by creator's block ID",
+    )
+
+    created_by_position = filters.NumberFilter(
+        field_name="created_by__position",
+        help_text="Filter by creator's position ID",
+    )
+
     def filter_timesheet_entry(self, queryset, name, value):
         """Filter proposals that have a specific timesheet entry using EXISTS subquery."""
         if not value:
@@ -30,31 +50,6 @@ class ProposalFilterSet(filters.FilterSet):
             "proposal_type": ["exact", "in"],
             "proposal_status": ["exact", "in"],
             "proposal_date": ["exact", "gte", "lte"],
-        }
-
-
-class ProposalTimesheetEntryComplaintFilterSet(ProposalFilterSet):
-    """FilterSet for TimesheetEntryComplaint proposal with additional filters."""
-
-    created_by_department = filters.NumberFilter(
-        field_name="created_by__department",
-        help_text="Filter by creator's department ID",
-    )
-
-    created_by_branch = filters.NumberFilter(
-        field_name="created_by__branch",
-        help_text="Filter by creator's branch ID",
-    )
-
-    created_by_block = filters.NumberFilter(
-        field_name="created_by__block",
-        help_text="Filter by creator's block (Employee ID)",
-    )
-
-    class Meta(ProposalFilterSet.Meta):
-        model = Proposal
-        fields = {
-            **ProposalFilterSet.Meta.fields,
             "created_by": ["exact"],
             "approved_by": ["exact"],
         }

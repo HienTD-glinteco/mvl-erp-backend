@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 14:54+0700\n"
+"POT-Creation-Date: 2025-12-03 00:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,25 +41,25 @@ msgid "Contract type must have category 'contract'."
 msgstr ""
 
 #: apps/hrm/api/serializers/contract.py:196
-#: apps/hrm/api/serializers/contract_appendix.py:160
+#: apps/hrm/api/serializers/contract_appendix.py:146
 msgid "Sign date must be on or before effective date."
 msgstr ""
 
 #: apps/hrm/api/serializers/contract.py:200
-#: apps/hrm/api/serializers/contract_appendix.py:164
+#: apps/hrm/api/serializers/contract_appendix.py:150
 msgid "Expiration date must be on or after effective date."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_appendix.py:139
+#: apps/hrm/api/serializers/contract_appendix.py:121
 msgid "Only appendices with DRAFT status can be edited."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_appendix.py:144
-msgid "Contract type must have category 'appendix'."
+#: apps/hrm/api/serializers/contract_appendix.py:128
+msgid "Parent contract is required for appendices."
 msgstr ""
 
-#: apps/hrm/api/serializers/contract_appendix.py:151
-msgid "Parent contract is required for appendices."
+#: apps/hrm/api/serializers/contract_appendix.py:136
+msgid "Parent contract must be in ACTIVE or ABOUT_TO_EXPIRE status."
 msgstr ""
 
 #: apps/hrm/api/serializers/contract_type.py:97
@@ -443,7 +443,7 @@ msgstr ""
 
 #: apps/hrm/api/views/employee_reports.py:558 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
-#: apps/hrm/models/contract_type.py:65 apps/hrm/models/employee.py:107
+#: apps/hrm/models/contract_type.py:69 apps/hrm/models/employee.py:107
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr ""
@@ -1088,56 +1088,61 @@ msgstr ""
 msgid "Expired"
 msgstr ""
 
-#: apps/hrm/models/contract.py:350 apps/hrm/models/contract_type.py:44
-#: apps/hrm/models/contract_type.py:274
+#: apps/hrm/models/contract.py:350 apps/hrm/models/contract_type.py:48
+#: apps/hrm/models/contract_type.py:278
 msgid "Indefinite term"
 msgstr ""
 
-#: apps/hrm/models/contract.py:351 apps/hrm/models/contract_type.py:275
+#: apps/hrm/models/contract.py:351 apps/hrm/models/contract_type.py:279
 #, python-brace-format
 msgid "{months} months"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:45
+#: apps/hrm/models/contract_type.py:49
 msgid "Fixed term"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:50
+#: apps/hrm/models/contract_type.py:54
 msgid "100%"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:51
+#: apps/hrm/models/contract_type.py:55
 msgid "85%"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:56
+#: apps/hrm/models/contract_type.py:60
 msgid "Progressive tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:57
+#: apps/hrm/models/contract_type.py:61
 msgid "10% flat tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:58
+#: apps/hrm/models/contract_type.py:62
 msgid "No tax"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:63
+#: apps/hrm/models/contract_type.py:67
 msgid "Full-time - Office hours"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:64
+#: apps/hrm/models/contract_type.py:68
 #, fuzzy
 #| msgid "Start Date"
 msgid "Part-time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/contract_type.py:70
+#: apps/hrm/models/contract_type.py:74
 msgid "Contract"
 msgstr ""
 
-#: apps/hrm/models/contract_type.py:71
+#: apps/hrm/models/contract_type.py:75
 msgid "Appendix"
+msgstr ""
+
+#: apps/hrm/models/contract_type.py:348
+msgid ""
+"No contract type with category 'appendix' found. Please create one first."
 msgstr ""
 
 #: apps/hrm/models/decision.py:35

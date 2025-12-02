@@ -294,6 +294,345 @@ class TestProposalAPI:
         assert "approved_by" in result
         assert result["approved_by"] is None
 
+    def test_filter_by_created_by(self, api_client, superuser, test_employee):
+        """Test filtering proposals by created_by employee ID."""
+        from apps.core.models import AdministrativeUnit, Province
+
+        # Create another employee
+        province = Province.objects.create(name="Other Province", code="OP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Other Admin Unit",
+            code="OAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        branch = Branch.objects.create(
+            name="Other Branch",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        block = Block.objects.create(name="Other Block", branch=branch, block_type=Block.BlockType.BUSINESS)
+        department = Department.objects.create(
+            name="Other Dept", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+        )
+        position = Position.objects.create(name="Manager")
+
+        other_employee = Employee.objects.create(
+            code="MV_PROP_OTHER",
+            fullname="Other Employee",
+            username="user_prop_other",
+            email="prop_other@example.com",
+            attendance_code="99099",
+            citizen_id="999000000099",
+            branch=branch,
+            block=block,
+            department=department,
+            position=position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_CB001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By test employee",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_CB002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By other employee",
+            created_by=other_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by": test_employee.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["created_by"]["id"] == test_employee.id
+
+    def test_filter_by_created_by_department(self, api_client, superuser, test_employee):
+        """Test filtering proposals by creator's department ID."""
+        from apps.core.models import AdministrativeUnit, Province
+
+        # Create another employee in a different department
+        province = Province.objects.create(name="Dept Province", code="DP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Dept Admin Unit",
+            code="DAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        branch = Branch.objects.create(
+            name="Dept Branch",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        block = Block.objects.create(name="Dept Block", branch=branch, block_type=Block.BlockType.BUSINESS)
+        other_department = Department.objects.create(
+            name="Other Dept", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+        )
+        position = Position.objects.create(name="Developer2")
+
+        other_employee = Employee.objects.create(
+            code="MV_PROP_DEPT",
+            fullname="Dept Employee",
+            username="user_prop_dept",
+            email="prop_dept@example.com",
+            attendance_code="99098",
+            citizen_id="999000000098",
+            branch=branch,
+            block=block,
+            department=other_department,
+            position=position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_DEPT001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By test employee dept",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_DEPT002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By other dept employee",
+            created_by=other_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by_department": test_employee.department.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+
+    def test_filter_by_created_by_branch(self, api_client, superuser, test_employee):
+        """Test filtering proposals by creator's branch ID."""
+        from apps.core.models import AdministrativeUnit, Province
+
+        # Create another employee in a different branch
+        province = Province.objects.create(name="Branch Province", code="BP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Branch Admin Unit",
+            code="BAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        other_branch = Branch.objects.create(
+            name="Other Branch",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        block = Block.objects.create(name="Branch Block", branch=other_branch, block_type=Block.BlockType.BUSINESS)
+        department = Department.objects.create(
+            name="Branch Dept", branch=other_branch, block=block, function=Department.DepartmentFunction.BUSINESS
+        )
+        position = Position.objects.create(name="Developer3")
+
+        other_employee = Employee.objects.create(
+            code="MV_PROP_BRANCH",
+            fullname="Branch Employee",
+            username="user_prop_branch",
+            email="prop_branch@example.com",
+            attendance_code="99097",
+            citizen_id="999000000097",
+            branch=other_branch,
+            block=block,
+            department=department,
+            position=position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_BRANCH001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By test employee branch",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_BRANCH002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By other branch employee",
+            created_by=other_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by_branch": test_employee.branch.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+
+    def test_filter_by_created_by_block(self, api_client, superuser, test_employee):
+        """Test filtering proposals by creator's block ID."""
+        from apps.core.models import AdministrativeUnit, Province
+
+        # Create another employee in a different block
+        province = Province.objects.create(name="Block Province", code="BLP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Block Admin Unit",
+            code="BLAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        branch = Branch.objects.create(
+            name="Block Branch",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        other_block = Block.objects.create(name="Other Block", branch=branch, block_type=Block.BlockType.SUPPORT)
+        department = Department.objects.create(
+            name="Block Dept", branch=branch, block=other_block, function=Department.DepartmentFunction.BUSINESS
+        )
+        position = Position.objects.create(name="Developer4")
+
+        other_employee = Employee.objects.create(
+            code="MV_PROP_BLOCK",
+            fullname="Block Employee",
+            username="user_prop_block",
+            email="prop_block@example.com",
+            attendance_code="99096",
+            citizen_id="999000000096",
+            branch=branch,
+            block=other_block,
+            department=department,
+            position=position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_BLOCK001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By test employee block",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_BLOCK002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By other block employee",
+            created_by=other_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by_block": test_employee.block.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+
+    def test_filter_by_created_by_position(self, api_client, superuser, test_employee):
+        """Test filtering proposals by creator's position ID."""
+        from apps.core.models import AdministrativeUnit, Province
+
+        # Create another employee with a different position
+        province = Province.objects.create(name="Position Province", code="PP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Position Admin Unit",
+            code="PAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        branch = Branch.objects.create(
+            name="Position Branch",
+            province=province,
+            administrative_unit=admin_unit,
+        )
+        block = Block.objects.create(name="Position Block", branch=branch, block_type=Block.BlockType.BUSINESS)
+        department = Department.objects.create(
+            name="Position Dept", branch=branch, block=block, function=Department.DepartmentFunction.BUSINESS
+        )
+        other_position = Position.objects.create(name="Other Position")
+
+        other_employee = Employee.objects.create(
+            code="MV_PROP_POS",
+            fullname="Position Employee",
+            username="user_prop_pos",
+            email="prop_pos@example.com",
+            attendance_code="99095",
+            citizen_id="999000000095",
+            branch=branch,
+            block=block,
+            department=department,
+            position=other_position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_POS001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By test employee position",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_POS002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="By other position employee",
+            created_by=other_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by_position": test_employee.position.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+
+    def test_filter_by_approved_by(self, api_client, superuser, test_employee):
+        """Test filtering proposals by approved_by employee ID."""
+        # Create an approver employee
+        approver = Employee.objects.create(
+            code="MV_PROP_APPROVER",
+            fullname="Approver Employee",
+            username="user_prop_approver",
+            email="prop_approver@example.com",
+            attendance_code="99094",
+            citizen_id="999000000094",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_APPR001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Approved by approver",
+            proposal_status=ProposalStatus.APPROVED,
+            created_by=test_employee,
+            approved_by=approver,
+        )
+        Proposal.objects.create(
+            code="DX_APPR002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="No approver",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"approved_by": approver.id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["approved_by"]["id"] == approver.id
+
 
 class TestTimesheetEntryComplaintProposalAPI:
     """Tests for Timesheet Entry Complaint Proposal API."""

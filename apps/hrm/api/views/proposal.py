@@ -12,10 +12,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets.proposal import (
-    ProposalFilterSet,
-    ProposalTimesheetEntryComplaintFilterSet,
-)
+from apps.hrm.api.filtersets.proposal import ProposalFilterSet
 from apps.hrm.api.serializers.proposal import (
     ProposalAssetAllocationSerializer,
     ProposalJobTransferSerializer,
@@ -237,7 +234,6 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
     serializer_class = ProposalTimesheetEntryComplaintSerializer
-    filterset_class = ProposalTimesheetEntryComplaintFilterSet
     permission_prefix = "proposal_timesheet_entry_complaint"
 
     def get_serializer_class(self):
