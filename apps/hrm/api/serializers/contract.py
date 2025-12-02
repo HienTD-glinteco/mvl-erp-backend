@@ -29,6 +29,11 @@ class ContractListSerializer(serializers.ModelSerializer):
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
+    colored_duration_type = ColoredValueSerializer(read_only=True)
+    colored_net_percentage = ColoredValueSerializer(read_only=True)
+    colored_tax_calculation_method = ColoredValueSerializer(read_only=True)
+    colored_working_time_type = ColoredValueSerializer(read_only=True)
+    colored_has_social_insurance = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = Contract
@@ -43,6 +48,14 @@ class ContractListSerializer(serializers.ModelSerializer):
             "expiration_date",
             "status",
             "colored_status",
+            "duration_type",
+            "colored_duration_type",
+            "colored_net_percentage",
+            "colored_tax_calculation_method",
+            "colored_working_time_type",
+            "colored_has_social_insurance",
+            "duration_months",
+            "duration_display",
             "base_salary",
             "kpi_salary",
             "created_at",
@@ -87,6 +100,11 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
 
     # Color representation for status
     colored_status = ColoredValueSerializer(read_only=True)
+    colored_duration_type = ColoredValueSerializer(read_only=True)
+    colored_net_percentage = ColoredValueSerializer(read_only=True)
+    colored_tax_calculation_method = ColoredValueSerializer(read_only=True)
+    colored_working_time_type = ColoredValueSerializer(read_only=True)
+    colored_has_social_insurance = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = Contract
@@ -103,14 +121,24 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
             "expiration_date",
             "status",
             "colored_status",
+            "duration_type",
+            "colored_duration_type",
+            "duration_months",
+            "duration_display",
             "base_salary",
             "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
             "net_percentage",
+            "colored_net_percentage",
             "tax_calculation_method",
+            "colored_tax_calculation_method",
+            "working_time_type",
+            "colored_working_time_type",
+            "annual_leave_days",
             "has_social_insurance",
+            "colored_has_social_insurance",
             "working_conditions",
             "rights_and_obligations",
             "terms",
@@ -126,6 +154,12 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
             "contract_type",
             "status",
             "colored_status",
+            "colored_duration_type",
+            "duration_display",
+            "colored_net_percentage",
+            "colored_tax_calculation_method",
+            "colored_working_time_type",
+            "colored_has_social_insurance",
             "attachment",
             "created_at",
             "updated_at",
@@ -179,12 +213,16 @@ class ContractSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer
 
         # Fields to copy from contract_type if not provided
         snapshot_fields = [
+            "duration_type",
+            "duration_months",
             "base_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
             "net_percentage",
             "tax_calculation_method",
+            "working_time_type",
+            "annual_leave_days",
             "has_social_insurance",
             "working_conditions",
             "rights_and_obligations",
@@ -218,7 +256,11 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
     employee_fullname = serializers.CharField(source="employee.fullname", read_only=True)
     contract_type_code = serializers.CharField(source="contract_type.code", read_only=True)
     contract_type_name = serializers.CharField(source="contract_type.name", read_only=True)
+    duration_display = serializers.CharField(source="duration_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    net_percentage_display = serializers.CharField(source="get_net_percentage_display", read_only=True)
+    tax_calculation_method_display = serializers.CharField(source="get_tax_calculation_method_display", read_only=True)
+    working_time_type_display = serializers.CharField(source="get_working_time_type_display", read_only=True)
 
     class Meta:
         model = Contract
@@ -232,12 +274,17 @@ class ContractExportSerializer(FieldFilteringSerializerMixin, serializers.ModelS
             "sign_date",
             "effective_date",
             "expiration_date",
+            "duration_display",
             "status_display",
             "base_salary",
             "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
+            "net_percentage_display",
+            "tax_calculation_method_display",
+            "working_time_type_display",
+            "annual_leave_days",
             "has_social_insurance",
             "note",
             "created_at",

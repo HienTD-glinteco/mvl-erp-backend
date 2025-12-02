@@ -3,6 +3,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
@@ -47,6 +48,10 @@ from libs.export_xlsx import ExportXLSXMixin
                                 "expiration_date": None,
                                 "status": "active",
                                 "colored_status": {"value": "active", "variant": "GREEN"},
+                                "duration_type": "indefinite",
+                                "colored_duration_type": {"value": "indefinite", "variant": "GREY"},
+                                "duration_months": None,
+                                "duration_display": "Indefinite term",
                                 "base_salary": "15000000",
                                 "kpi_salary": "2000000",
                                 "created_at": "2025-01-15T10:00:00Z",
@@ -79,14 +84,24 @@ from libs.export_xlsx import ExportXLSXMixin
                         "expiration_date": None,
                         "status": "active",
                         "colored_status": {"value": "active", "variant": "GREEN"},
+                        "duration_type": "indefinite",
+                        "colored_duration_type": {"value": "indefinite", "variant": "GREY"},
+                        "duration_months": None,
+                        "duration_display": "Indefinite term",
                         "base_salary": "15000000",
                         "kpi_salary": "2000000",
                         "lunch_allowance": "500000",
                         "phone_allowance": "200000",
                         "other_allowance": None,
                         "net_percentage": "100",
+                        "colored_net_percentage": {"value": "100", "variant": "RED"},
                         "tax_calculation_method": "progressive",
+                        "colored_tax_calculation_method": {"value": "progressive", "variant": "YELLOW"},
+                        "working_time_type": "full_time",
+                        "colored_working_time_type": {"value": "full_time", "variant": "BLUE"},
+                        "annual_leave_days": 12,
                         "has_social_insurance": True,
+                        "colored_has_social_insurance": {"value": True, "variant": "GREEN"},
                         "working_conditions": "Standard office conditions",
                         "rights_and_obligations": "Employee rights...",
                         "terms": "Contract terms...",
@@ -135,6 +150,10 @@ from libs.export_xlsx import ExportXLSXMixin
                         "expiration_date": None,
                         "status": "draft",
                         "colored_status": {"value": "draft", "variant": "YELLOW"},
+                        "duration_type": "indefinite",
+                        "colored_duration_type": {"value": "indefinite", "variant": "GREY"},
+                        "duration_months": None,
+                        "duration_display": "Indefinite term",
                         "base_salary": "15000000",
                         "kpi_salary": "2000000",
                         "note": "New contract",
@@ -306,3 +325,41 @@ class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMix
             )
 
         return super().destroy(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Publish contract",
+        description="Change contract status from DRAFT to effective status (NOT_EFFECTIVE or ACTIVE).",
+        tags=["7.2: Contract"],
+        request=None,
+        responses={
+            200: OpenApiExample(
+                "Success",
+                value={"success": True, "data": {"status": "active"}, "error": None},
+            ),
+            400: OpenApiExample(
+                "Error",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Only DRAFT contracts can be published."},
+                },
+            ),
+        },
+    )
+    @action(detail=True, methods=["post"], url_path="publish")
+    def publish(self, request, pk=None):
+        """Publish the contract (change status from DRAFT)."""
+        instance = self.get_object()
+
+        if instance.status != Contract.ContractStatus.DRAFT:
+            return Response(
+                {"detail": "Only DRAFT contracts can be published."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Calculate new status based on dates
+        instance.status = instance.get_status_from_dates()
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

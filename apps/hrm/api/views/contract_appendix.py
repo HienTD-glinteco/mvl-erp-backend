@@ -3,6 +3,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
@@ -14,6 +15,7 @@ from apps.hrm.api.serializers.contract_appendix import (
     ContractAppendixSerializer,
 )
 from apps.hrm.models import Contract, ContractType
+from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
@@ -215,8 +217,14 @@ from libs.export_xlsx import ExportXLSXMixin
     export=extend_schema(
         tags=["7.3: Contract Appendix"],
     ),
+    start_import=extend_schema(
+        tags=["7.3: Contract Appendix"],
+    ),
+    import_template=extend_schema(
+        tags=["7.3: Contract Appendix"],
+    ),
 )
-class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for Contract Appendix (using Contract model with category='appendix').
 
     Provides CRUD operations and XLSX export for contract appendices.
@@ -273,3 +281,41 @@ class ContractAppendixViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewS
             )
 
         return super().destroy(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Publish contract appendix",
+        description="Change contract appendix status from DRAFT to effective status (NOT_EFFECTIVE or ACTIVE).",
+        tags=["7.3: Contract Appendix"],
+        request=None,
+        responses={
+            200: OpenApiExample(
+                "Success",
+                value={"success": True, "data": {"status": "active"}, "error": None},
+            ),
+            400: OpenApiExample(
+                "Error",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Only DRAFT appendices can be published."},
+                },
+            ),
+        },
+    )
+    @action(detail=True, methods=["post"], url_path="publish")
+    def publish(self, request, pk=None):
+        """Publish the contract appendix (change status from DRAFT)."""
+        instance = self.get_object()
+
+        if instance.status != Contract.ContractStatus.DRAFT:
+            return Response(
+                {"detail": "Only DRAFT appendices can be published."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Calculate new status based on dates
+        instance.status = instance.get_status_from_dates()
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

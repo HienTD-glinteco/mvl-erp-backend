@@ -344,3 +344,28 @@ class TestContractAppendixAPI:
         response = api_client.get(url, {"ordering": "-created_at"})
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_publish_contract_appendix(self, api_client, contract_appendix):
+        """Test publishing a contract appendix."""
+        url = reverse("hrm:contract-appendix-publish", kwargs={"pk": contract_appendix.pk})
+        response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["status"] != "draft"
+
+        # Verify status in DB
+        contract_appendix.refresh_from_db()
+        assert contract_appendix.status != Contract.ContractStatus.DRAFT
+
+    def test_cannot_publish_non_draft_appendix(self, api_client, contract_appendix):
+        """Test that non-draft appendices cannot be published."""
+        # First publish it
+        contract_appendix.status = Contract.ContractStatus.ACTIVE
+        contract_appendix.save()
+
+        url = reverse("hrm:contract-appendix-publish", kwargs={"pk": contract_appendix.pk})
+        response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "DRAFT" in str(response.json()["error"])

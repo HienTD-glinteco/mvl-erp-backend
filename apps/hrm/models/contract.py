@@ -2,11 +2,14 @@
 
 from datetime import date
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
+from apps.hrm.constants import EmployeeType
+from apps.hrm.models.contract_type import ContractType
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
@@ -20,7 +23,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
     tax, and social insurance information.
 
     For appendices (contract_type.category='appendix'), the parent_contract field
-    references the main contract, and content stores appendix-specific content.
+    references the main contract, and terms stores appendix-specific content.
 
     Attributes:
         code: Auto-generated unique contract code (e.g., HD00001 for contracts, PLHD00001 for appendices)
@@ -41,8 +44,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         has_social_insurance: Whether social insurance is included (snapshot)
         working_conditions: Working conditions (snapshot)
         rights_and_obligations: Rights and obligations (snapshot)
-        terms: Contract terms and conditions (snapshot)
-        content: Content of the appendix (for appendices only)
+        terms: Contract terms and conditions (snapshot) or appendix content
         note: Additional notes
         attachment: Attached contract file
     """
@@ -103,6 +105,21 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Type of the contract"),
     )
 
+    duration_type = models.CharField(
+        max_length=20,
+        choices=ContractType.DurationType.choices,
+        default=ContractType.DurationType.INDEFINITE,
+        verbose_name=_("Duration type"),
+        help_text=_("Whether the contract has a fixed term or is indefinite"),
+    )
+
+    duration_months = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Duration in months"),
+        help_text=_("Number of months for fixed-term contracts"),
+    )
+
     sign_date = models.DateField(
         verbose_name=_("Sign date"),
         help_text=_("Date when the contract was signed"),
@@ -129,6 +146,14 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # Salary snapshot fields (copied from ContractType at the time of contract creation)
+    base_salary = models.DecimalField(
+        max_digits=20,
+        decimal_places=0,
+        default=0,
+        verbose_name=_("Base salary"),
+        help_text=_("Base salary amount at the time of contract"),
+    )
+
     base_salary = models.DecimalField(
         max_digits=20,
         decimal_places=0,
@@ -174,16 +199,33 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     net_percentage = models.CharField(
         max_length=5,
-        default="100",
+        choices=ContractType.NetPercentage.choices,
+        default=ContractType.NetPercentage.FULL,
         verbose_name=_("Net percentage"),
         help_text=_("Net salary percentage at the time of contract"),
     )
 
     tax_calculation_method = models.CharField(
         max_length=20,
-        default="progressive",
+        choices=ContractType.TaxCalculationMethod.choices,
+        default=ContractType.TaxCalculationMethod.PROGRESSIVE,
         verbose_name=_("Tax calculation method"),
         help_text=_("Tax calculation method at the time of contract"),
+    )
+
+    working_time_type = models.CharField(
+        max_length=20,
+        choices=ContractType.WorkingTimeType.choices,
+        default=ContractType.WorkingTimeType.FULL_TIME,
+        verbose_name=_("Working time type"),
+        help_text=_("Type of working time arrangement"),
+    )
+
+    annual_leave_days = models.PositiveIntegerField(
+        default=12,
+        validators=[MinValueValidator(0), MaxValueValidator(12)],
+        verbose_name=_("Annual leave days"),
+        help_text=_("Number of annual leave days (maximum 12)"),
     )
 
     has_social_insurance = models.BooleanField(
@@ -248,7 +290,27 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
             ContractStatus.ACTIVE: ColorVariant.GREEN,
             ContractStatus.ABOUT_TO_EXPIRE: ColorVariant.RED,
             ContractStatus.EXPIRED: ColorVariant.GREY,
-        }
+        },
+        "duration_type": {
+            ContractType.DurationType.FIXED: ColorVariant.GREEN,
+            ContractType.DurationType.INDEFINITE: ColorVariant.GREY,
+        },
+        "net_percentage": {
+            ContractType.NetPercentage.FULL: ColorVariant.RED,
+            ContractType.NetPercentage.REDUCED: ColorVariant.GREY,
+        },
+        "tax_calculation_method": {
+            ContractType.TaxCalculationMethod.PROGRESSIVE: ColorVariant.YELLOW,
+        },
+        "working_time_type": {
+            ContractType.WorkingTimeType.FULL_TIME: ColorVariant.BLUE,
+            ContractType.WorkingTimeType.PART_TIME: ColorVariant.ORANGE,
+            ContractType.WorkingTimeType.OTHER: ColorVariant.GREY,
+        },
+        "has_social_insurance": {
+            True: ColorVariant.GREEN,
+            False: ColorVariant.GREY,
+        },
     }
 
     class Meta:
@@ -274,9 +336,19 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         Returns:
             bool: True if this is an appendix (contract_type.category='appendix'), False otherwise.
         """
-        from apps.hrm.models.contract_type import ContractType
-
         return self.contract_type_id is not None and self.contract_type.category == ContractType.Category.APPENDIX
+
+    @property
+    def duration_display(self) -> str:
+        """Return human-readable duration display.
+
+        Returns:
+            str: 'Indefinite term' for indefinite contracts,
+                 or '{n} months' for fixed-term contracts.
+        """
+        if self.duration_type == ContractType.DurationType.INDEFINITE:
+            return str(_("Indefinite term"))
+        return str(_("{months} months").format(months=self.duration_months))
 
     @property
     def colored_status(self) -> dict:
@@ -289,15 +361,65 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """
         return self.get_colored_value("status")
 
-    def calculate_status(self) -> str:
-        """Calculate contract status based on effective and expiration dates.
+    @property
+    def colored_duration_type(self) -> dict:
+        """Return colored value for duration_type field.
+
+        Returns:
+            dict: Contains 'value' (duration type) and 'variant' (color variant)
+        """
+        return self.get_colored_value("duration_type")
+
+    @property
+    def colored_net_percentage(self) -> dict:
+        """Return colored value for net_percentage field.
+
+        Returns:
+            dict: Contains 'value' (net percentage) and 'variant' (color variant)
+        """
+        return self.get_colored_value("net_percentage")
+
+    @property
+    def colored_tax_calculation_method(self) -> dict:
+        """Return colored value for tax_calculation_method field.
+
+        Returns:
+            dict: Contains 'value' (tax method) and 'variant' (color variant)
+        """
+        return self.get_colored_value("tax_calculation_method")
+
+    @property
+    def colored_working_time_type(self) -> dict:
+        """Return colored value for working_time_type field.
+
+        Returns:
+            dict: Contains 'value' (working time type) and 'variant' (color variant)
+        """
+        return self.get_colored_value("working_time_type")
+
+    @property
+    def colored_has_social_insurance(self) -> dict:
+        """Return colored value for has_social_insurance field.
+
+        Returns:
+            dict: Contains 'value' (boolean) and 'variant' (color variant)
+        """
+        return self.get_colored_value("has_social_insurance")
+
+    def get_status_from_dates(self) -> str:
+        """Calculate status based on dates, ignoring current DRAFT status.
 
         Returns:
             str: The calculated status value
         """
-        # Keep DRAFT status if currently in draft
-        if self.status == self.ContractStatus.DRAFT:
-            return self.ContractStatus.DRAFT
+        # Special case: Employee type is Unpaid Official or status is Resigned
+        # -> Contract defaults to EXPIRED
+        if self.employee:
+            if (
+                self.employee.employee_type == EmployeeType.UNPAID_OFFICIAL
+                or self.employee.status == self.employee.Status.RESIGNED
+            ):
+                return self.ContractStatus.EXPIRED
 
         today = date.today()
 
@@ -318,6 +440,18 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
             return self.ContractStatus.ABOUT_TO_EXPIRE
 
         return self.ContractStatus.ACTIVE
+
+    def calculate_status(self) -> str:
+        """Calculate contract status based on effective and expiration dates.
+
+        Returns:
+            str: The calculated status value
+        """
+        # Keep DRAFT status if currently in draft
+        if self.status == self.ContractStatus.DRAFT:
+            return self.ContractStatus.DRAFT
+
+        return self.get_status_from_dates()
 
     def expire_previous_contracts(self):
         """Mark previous active contracts for the same employee as expired.

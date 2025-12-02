@@ -38,7 +38,9 @@ COLUMN_MAPPING = {
     "điều kiện làm việc": "working_conditions",
     "quyền và nghĩa vụ": "rights_and_obligations",
     "điều khoản": "terms",
+    "nội dung": "content",
     "ghi chú": "note",
+    "số hợp đồng tham chiếu": "parent_contract_number",
 }
 
 # Status is always DRAFT for imported contracts
@@ -97,7 +99,9 @@ class ContractImportSerializer(serializers.Serializer):
     working_conditions = serializers.CharField(required=False, allow_blank=True, default="")
     rights_and_obligations = serializers.CharField(required=False, allow_blank=True, default="")
     terms = serializers.CharField(required=False, allow_blank=True, default="")
+    content = serializers.CharField(required=False, allow_blank=True, default="")
     note = serializers.CharField(required=False, allow_blank=True, default="")
+    parent_contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate(self, attrs):
         """Validate date logic."""
@@ -252,6 +256,27 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped",
             }
 
+        # Handle parent contract for appendices
+        parent_contract = None
+        if contract_type.category == ContractType.Category.APPENDIX:
+            parent_contract_number = normalize_value(row_dict.get("parent_contract_number", ""))
+            if not parent_contract_number:
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Parent contract number is required for appendices",
+                    "action": "skipped",
+                }
+
+            parent_contract = Contract.objects.filter(contract_number=parent_contract_number).first()
+            if not parent_contract:
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Parent contract with number '%s' not found" % parent_contract_number,
+                    "action": "skipped",
+                }
+
         # Prepare serializer data - FlexibleFields handle parsing
         serializer_data = {
             "contract_number": normalize_value(row_dict.get("contract_number", "")),
@@ -269,7 +294,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "working_conditions": normalize_value(row_dict.get("working_conditions", "")),
             "rights_and_obligations": normalize_value(row_dict.get("rights_and_obligations", "")),
             "terms": normalize_value(row_dict.get("terms", "")),
+            "content": normalize_value(row_dict.get("content", "")),
             "note": normalize_value(row_dict.get("note", "")),
+            "parent_contract_number": normalize_value(row_dict.get("parent_contract_number", "")),
         }
 
         # Validate using serializer
@@ -302,6 +329,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "status": DEFAULT_STATUS,
         }
 
+        if parent_contract:
+            contract_data["parent_contract"] = parent_contract
+
         # Add optional fields if provided
         optional_fields = [
             "contract_number",
@@ -316,6 +346,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "working_conditions",
             "rights_and_obligations",
             "terms",
+            "content",
             "note",
         ]
 
@@ -329,11 +360,41 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Check for existing contract and handle allow_update
         allow_update = options.get("allow_update", False)
-        existing_contract = Contract.objects.filter(
-            employee=employee,
-            effective_date=validated_data["effective_date"],
-            contract_type=contract_type,
-        ).first()
+        check_active_contract = options.get("check_active_contract", False)
+
+        # UC 7.2.8: Check for ANY active contract if this is a new contract import
+        if check_active_contract and not allow_update:
+            active_contract_exists = Contract.objects.filter(
+                employee=employee,
+                status__in=[
+                    Contract.ContractStatus.ACTIVE,
+                    Contract.ContractStatus.ABOUT_TO_EXPIRE,
+                    Contract.ContractStatus.NOT_EFFECTIVE,
+                ],
+            ).exists()
+            if active_contract_exists:
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Employee '%s' already has an active contract" % employee_code,
+                    "action": "skipped",
+                }
+
+        # Find existing contract for update or duplicate check
+        existing_contract = None
+        contract_number = validated_data.get("contract_number")
+
+        # Strategy 1: Match by contract number if provided
+        if contract_number:
+            existing_contract = Contract.objects.filter(contract_number=contract_number).first()
+
+        # Strategy 2: Match by employee + contract_type + effective_date (fallback)
+        if not existing_contract:
+            existing_contract = Contract.objects.filter(
+                employee=employee,
+                effective_date=validated_data["effective_date"],
+                contract_type=contract_type,
+            ).first()
 
         if existing_contract and not allow_update:
             return {
@@ -341,10 +402,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "row_index": row_index,
                 "action": "skipped",
                 "contract_code": existing_contract.code,
-                "warnings": [
-                    "Contract for employee '%s' with same effective date and contract type already exists (allow_update=False)"
-                    % employee_code
-                ],
+                "warnings": ["Contract for employee '%s' already exists (allow_update=False)" % employee_code],
             }
 
         # Create or update contract

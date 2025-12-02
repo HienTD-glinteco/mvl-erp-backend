@@ -466,3 +466,24 @@ class TestContractAPI:
         response = api_client.get(url, {"ordering": "-created_at"})
 
         assert response.status_code == status.HTTP_200_OK
+
+    def test_publish_contract(self, api_client, contract):
+        """Test publishing a contract."""
+        url = reverse("hrm:contract-publish", kwargs={"pk": contract.pk})
+        response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["status"] != "draft"
+
+        # Verify status in DB
+        contract.refresh_from_db()
+        assert contract.status != Contract.ContractStatus.DRAFT
+
+    def test_cannot_publish_non_draft_contract(self, api_client, active_contract):
+        """Test that non-draft contracts cannot be published."""
+        url = reverse("hrm:contract-publish", kwargs={"pk": active_contract.pk})
+        response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "DRAFT" in str(response.json()["error"])
