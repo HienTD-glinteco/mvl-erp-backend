@@ -15,7 +15,8 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
 - ALL API documentation (@extend_schema) must be in English
 - ALL API endpoints must include request and response examples using OpenApiExample
 - ALL response examples must use envelope format: {success: true/false, data: ..., error: ...}
-- ALL user-facing strings must be wrapped in gettext() or gettext_lazy()
+- ONLY user-facing strings must be wrapped in gettext() or gettext_lazy()
+- DO NOT translate admin/developer-facing strings (verbose_name, help_text, Meta.verbose_name)
 - ALWAYS use PhraseSearchFilter for ViewSets instead of SearchFilter
 - ALWAYS use SafeTextField instead of model.TextField
 - ALWAYS activate Python environment before running any Python command
@@ -63,9 +64,9 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
         "description": "Standard response envelope is mandatory for all API responses"
       },
       {
-        "rule": "ALL user-facing strings must be wrapped in gettext() or gettext_lazy()",
+        "rule": "ONLY user-facing strings must be wrapped in gettext() or gettext_lazy()",
         "severity": "critical",
-        "description": "Use Django's i18n framework for all user-visible text"
+        "description": "Use Django's i18n framework ONLY for end-user-visible text. DO NOT translate admin/developer-facing strings like verbose_name, help_text, or Meta.verbose_name."
       },
       {
         "rule": "Use constants for string values",
@@ -141,8 +142,32 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       {
         "rule": "ABSOLUTELY NO VIETNAMESE TEXT IN CODE",
         "description": "All code, comments, docstrings, and API docs MUST be in English"
+      },
+      {
+        "rule": "ONLY translate user-facing strings - NOT admin/developer-facing strings",
+        "description": "Translation is for end-user messages only, not for internal admin interfaces or API schema docs"
       }
     ],
+    "strings_requiring_translation": {
+      "description": "These strings MUST be wrapped with gettext() or gettext_lazy()",
+      "examples": [
+        "Validation error messages: raise ValidationError(_(\"Invalid email\"))",
+        "API error responses: {\"detail\": _(\"User not found\")}",
+        "TextChoices labels: choices=[(\"active\", _(\"Active\")), (\"inactive\", _(\"Inactive\"))]",
+        "Business logic messages shown to end users: return {\"message\": _(\"Operation completed successfully\")}"
+      ]
+    },
+    "strings_not_requiring_translation": {
+      "description": "These strings should NOT be wrapped with gettext() - they are for admin/developer use only",
+      "examples": [
+        "Model field verbose_name: models.CharField(max_length=100, verbose_name=\"Username\")",
+        "Model field help_text: models.CharField(max_length=100, help_text=\"Enter the user's username\")",
+        "Serializer field help_text: serializers.CharField(help_text=\"Username for login\")",
+        "Meta.verbose_name: class Meta: verbose_name = \"User\"",
+        "Meta.verbose_name_plural: class Meta: verbose_name_plural = \"Users\""
+      ],
+      "rationale": "Admin interfaces and API schema documentation are for developers and administrators who work in English. Translating these creates unnecessary maintenance burden and confusion."
+    },
     "process": [
       {
         "step": 1,
@@ -151,21 +176,24 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
       },
       {
         "step": 2,
-        "action": "Import the translation function",
+        "action": "Import the translation function ONLY when needed for user-facing strings",
         "imports": [
-          "from django.utils.translation import gettext as _  # For runtime",
-          "from django.utils.translation import gettext_lazy as _  # For models/class-level"
-        ]
+          "from django.utils.translation import gettext as _  # For runtime user-facing messages",
+          "from django.utils.translation import gettext_lazy as _  # For model TextChoices labels"
+        ],
+        "note": "Do NOT import translation functions if only defining models/serializers with verbose_name/help_text"
       },
       {
         "step": 3,
-        "action": "Wrap ALL user-facing strings",
+        "action": "Wrap ONLY user-facing strings",
         "examples": [
           "Error messages: raise ValidationError(_(\"Invalid email\"))",
-          "Model fields: verbose_name=_(\"User name\")",
           "API responses: {\"detail\": _(\"Success\")}",
-          "Help text: help_text=_(\"Enter your email\")",
           "Choice labels: choices=[(\"active\", _(\"Active\"))]"
+        ],
+        "anti_examples": [
+          "DO NOT: verbose_name=_(\"User name\")  # Admin-facing, no translation needed",
+          "DO NOT: help_text=_(\"Enter your email\")  # Schema docs, no translation needed"
         ]
       },
       {
@@ -504,10 +532,10 @@ This file contains comprehensive coding guidelines and instructions for GitHub C
   },
   "examples": {
     "i18n_correct": {
-      "python": "from django.utils.translation import gettext as _\n\nerror_message = _(\"Invalid email address\")\n@extend_schema(summary=\"List all roles\", tags=[\"Roles\"])\nclass Role(models.Model):\n    name = models.CharField(verbose_name=_(\"Role name\"))"
+      "python": "from django.utils.translation import gettext as _\n\n# Correct: Translate user-facing error messages\nerror_message = _(\"Invalid email address\")\n\n# Correct: API docs in English (no translation needed)\n@extend_schema(summary=\"List all roles\", tags=[\"Roles\"])\n\n# Correct: Admin-facing verbose_name without translation\nclass Role(models.Model):\n    name = models.CharField(max_length=100, verbose_name=\"Role name\")\n    \n    class Meta:\n        verbose_name = \"Role\"\n        verbose_name_plural = \"Roles\"\n\n# Correct: Translate TextChoices labels (user-facing)\nclass Status(models.TextChoices):\n    ACTIVE = \"active\", _(\"Active\")\n    INACTIVE = \"inactive\", _(\"Inactive\")"
     },
     "i18n_wrong": {
-      "python": "error_message = \"Địa chỉ email không hợp lệ\"\n@extend_schema(summary=\"Danh sách vai trò\")"
+      "python": "# Wrong: Vietnamese text in code\nerror_message = \"Địa chỉ email không hợp lệ\"\n\n# Wrong: Vietnamese in API docs\n@extend_schema(summary=\"Danh sách vai trò\")\n\n# Wrong: Translating admin-facing verbose_name (unnecessary)\nclass Role(models.Model):\n    name = models.CharField(max_length=100, verbose_name=_(\"Role name\"))  # Don't do this!\n    \n    class Meta:\n        verbose_name = _(\"Role\")  # Don't do this!\n        verbose_name_plural = _(\"Roles\")  # Don't do this!"
     },
     "constants_correct": {
       "constants_py": "ERROR_USER_NOT_FOUND = \"User not found\"\nHELP_TEXT_EMAIL = \"User's email address\"",
