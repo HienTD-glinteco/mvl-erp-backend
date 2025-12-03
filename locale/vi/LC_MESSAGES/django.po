@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 14:37+0700\n"
+"POT-Creation-Date: 2025-12-03 09:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,13 +60,6 @@ msgstr "Lỗi khi lấy dữ liệu chấm công: %(error)s"
 msgid "Failed to get device info: %(error)s"
 msgstr "Lỗi khi lấy thông tin thiết bị: %(error)s"
 
-#: apps/files/api/serializers/file_serializers.py:116
-#, python-brace-format
-msgid ""
-"Optional field name on related model to set as ForeignKey to this file. If "
-"provided, related_object.{related_field} = file_model"
-msgstr ""
-
 #: apps/files/api/serializers/file_serializers.py:129
 #, python-brace-format
 msgid "Invalid model label: {model}"
@@ -76,7 +69,9 @@ msgstr "Tên mẫu đối tượng không hợp lệ: {model}"
 msgid ""
 "Both related_model and related_object_id must be provided together, or both "
 "omitted"
-msgstr "Cả related_model và related_object_id phải được cung cấp cùng nhau, hoặc bỏ qua cả hai"
+msgstr ""
+"Cả related_model và related_object_id phải được cung cấp cùng nhau, hoặc bỏ "
+"qua cả hai"
 
 #: apps/files/api/serializers/file_serializers.py:149
 #, python-brace-format
@@ -136,14 +131,18 @@ msgstr "Job nhập dữ liệu không tồn tại"
 msgid ""
 "Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
 "{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
-msgstr "Số dòng xử lý mỗi lô (mặc định: {DEFAULT_BATCH_SIZE}, phạm vi: {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+msgstr ""
+"Số dòng xử lý mỗi lô (mặc định: {DEFAULT_BATCH_SIZE}, phạm vi: "
+"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
 
 #: apps/imports/api/serializers.py:48
 #, python-brace-format
 msgid ""
 "Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
 "{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
-msgstr "Số dòng tiêu đề để bỏ qua (mặc định: {DEFAULT_HEADER_ROWS}, phạm vi: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
+msgstr ""
+"Số dòng tiêu đề để bỏ qua (mặc định: {DEFAULT_HEADER_ROWS}, phạm vi: "
+"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 
 #: apps/imports/api/serializers.py:90
 msgid "batch_size must be an integer"
@@ -235,7 +234,9 @@ msgstr "Yêu cầu quyền xem trước dữ liệu thực"
 msgid ""
 "Failed to get recipients. Override get_recipients() or provide recipients in "
 "request."
-msgstr "Lấy người nhận thất bại. Ghi đè phương thức get_recipients() hoặc cung cấp người nhận trong yêu cầu."
+msgstr ""
+"Lấy người nhận thất bại. Ghi đè phương thức get_recipients() hoặc cung cấp "
+"người nhận trong yêu cầu."
 
 #: apps/mailtemplates/view_mixins.py:197
 msgid "No recipients found"
@@ -255,12 +256,15 @@ msgstr "Thông tin mẫu không tồn tại"
 
 #: apps/mailtemplates/view_mixins.py:294 apps/mailtemplates/view_mixins.py:509
 msgid "Template validation failed. Please check your data."
-msgstr "Thiếu sót trong việc xác thực mẫu. Vui lòng kiểm tra lại dữ liệu của bạn."
+msgstr ""
+"Thiếu sót trong việc xác thực mẫu. Vui lòng kiểm tra lại dữ liệu của bạn."
 
 #: apps/mailtemplates/view_mixins.py:383
 msgid ""
 "No email address found. Override get_recipients() to provide recipients."
-msgstr "Không tìm thấy địa chỉ email. Ghi đè phương thức get_recipients() để cung cấp người nhận."
+msgstr ""
+"Không tìm thấy địa chỉ email. Ghi đè phương thức get_recipients() để cung "
+"cấp người nhận."
 
 #: apps/mailtemplates/view_mixins.py:440
 msgid "Either object_ids or filters must be provided"
@@ -392,7 +396,9 @@ msgstr "Lỗi tham số delivery; cho phép: link, direct"
 #: libs/export_xlsx/mixins.py:170
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
-msgstr "Xuất dữ liệu đã bắt đầu. Kiểm tra trạng thái tại /api/export/status/?task_id={task_id}"
+msgstr ""
+"Xuất dữ liệu đã bắt đầu. Kiểm tra trạng thái tại /api/export/status/?"
+"task_id={task_id}"
 
 #: libs/export_xlsx/mixins.py:268
 #, python-brace-format
