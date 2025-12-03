@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional
 
@@ -65,6 +65,9 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     is_full_salary = models.BooleanField(default=True, verbose_name="Is full salary")
 
     count_for_payroll = models.BooleanField(default=True, verbose_name="Count for payroll")
+
+    # Flag to prevent automatic updates from overwriting manual corrections (e.g., from approved proposals)
+    is_manually_corrected = models.BooleanField(default=False, verbose_name="Is manually corrected")
 
     note = SafeTextField(blank=True, verbose_name="Note")
 
@@ -184,15 +187,35 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
                 if afternoon_actual_start < afternoon_actual_end:
                     afternoon_hours = Decimal((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600)
 
-        # TODO: Calculate overtime hours - complex business logic pending clarification
-        # The calculation of overtime is more complex than simply time outside official hours.
-        # It needs to consider:
-        # - Company policies on overtime calculation
-        # - Break times and their handling
-        # - Different overtime rates (1.5x, 2x, etc.)
-        # - Maximum daily/weekly overtime limits
-        # - Weekend and holiday overtime rules
+        # Calculate overtime hours
+        # Overtime is calculated as: (Actual Work Hours) - (Scheduled Work Hours)
+        # NOTE: This calculation considers only actual working time, not including breaks
         overtime_hours = Decimal("0.00")
+
+        if work_schedule:
+            # Calculate scheduled work duration from morning and afternoon sessions only
+            scheduled_work_hours = morning_hours + afternoon_hours
+
+            # Calculate total actual work hours
+            actual_work_hours = morning_hours + afternoon_hours
+
+            # Overtime = 0 because overtime should be time worked OUTSIDE scheduled hours
+            # The morning_hours and afternoon_hours already only count time within the scheduled sessions
+            # So we need to check if there's work outside these sessions
+
+            # Check if employee worked before morning_start or after afternoon_end
+            overtime_seconds = 0.0
+
+            # Before morning session
+            if morning_start and start < morning_start:
+                overtime_seconds += (morning_start - start).total_seconds()
+
+            # After afternoon session
+            if afternoon_end and end > afternoon_end:
+                overtime_seconds += (end - afternoon_end).total_seconds()
+
+            if overtime_seconds > 0:
+                overtime_hours = Decimal(overtime_seconds / 3600)
 
         self.morning_hours = quantize_decimal(morning_hours)
         self.afternoon_hours = quantize_decimal(afternoon_hours)
@@ -230,6 +253,42 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
         super().clean()
 
-    # TODO: implement this method
     def calculate_status(self) -> None:
-        pass
+        """Calculate timesheet status based on work schedule and actual times.
+
+        This method determines whether the employee was:
+        - ON_TIME: Started work on time (within allowed late minutes)
+        - NOT_ON_TIME: Started work late (beyond allowed late minutes)
+        - ABSENT: No attendance recorded or no start_time
+
+        The calculation compares the actual start_time with the scheduled morning_start_time
+        plus the allowed_late_minutes from the work schedule.
+        """
+        # If no start_time, consider as absent
+        if not self.start_time:
+            self.status = TimesheetStatus.ABSENT
+            return
+
+        # Get work schedule for this date
+        weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
+        work_schedule = get_work_schedule_by_weekday(weekday)
+
+        # If no work schedule exists for this day, cannot determine status
+        if not work_schedule or not work_schedule.morning_start_time:
+            # Keep current status or default to ABSENT
+            if not self.status:
+                self.status = TimesheetStatus.ABSENT
+            return
+
+        # Calculate the allowed start time (morning_start_time + allowed_late_minutes)
+        morning_start = timezone.make_aware(datetime.combine(self.date, work_schedule.morning_start_time))
+
+        # Add allowed late minutes if specified
+        allowed_late_minutes = work_schedule.allowed_late_minutes or 0
+        allowed_start_time = morning_start + timedelta(minutes=allowed_late_minutes)
+
+        # Compare actual start_time with allowed_start_time
+        if self.start_time <= allowed_start_time:
+            self.status = TimesheetStatus.ON_TIME
+        else:
+            self.status = TimesheetStatus.NOT_ON_TIME
