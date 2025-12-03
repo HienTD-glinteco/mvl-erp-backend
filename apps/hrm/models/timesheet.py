@@ -12,6 +12,8 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.models.contract import Contract
+from apps.hrm.models.contract_type import ContractType
 from apps.hrm.models.holiday import Holiday
 from apps.hrm.models.proposal import ProposalOvertimeEntry
 from apps.hrm.models.work_schedule import WorkSchedule
@@ -352,9 +354,6 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             # If employee or date is not set, keep default value (True)
             return
 
-        # Import Contract model here to avoid circular imports
-        from apps.hrm.models.contract import Contract
-
         # Fetch active contract for the employee on this date
         # Contract is active if:
         # - status is ACTIVE or ABOUT_TO_EXPIRE
@@ -372,9 +371,6 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         )
 
         if active_contract:
-            # Import ContractType to access NetPercentage choices
-            from apps.hrm.models.contract_type import ContractType
-
             # Set is_full_salary based on contract's net_percentage
             if active_contract.net_percentage == ContractType.NetPercentage.REDUCED:  # "85"
                 self.is_full_salary = False
