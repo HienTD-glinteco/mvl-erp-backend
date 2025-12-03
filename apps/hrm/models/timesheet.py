@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -365,7 +366,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
                 status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
                 effective_date__lte=self.date,
             )
-            .filter(models.Q(expiration_date__gte=self.date) | models.Q(expiration_date__isnull=True))
+            .filter(Q(expiration_date__gte=self.date) | Q(expiration_date__isnull=True))
             .order_by("-effective_date")
             .first()
         )
