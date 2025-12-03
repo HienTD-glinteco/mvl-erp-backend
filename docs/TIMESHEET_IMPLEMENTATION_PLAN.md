@@ -20,8 +20,13 @@ This plan breaks down the Gap Analysis into small, executable tasks for rapid im
     - **File**: `apps/hrm/models/timesheet.py`
     - **Action**: Update `calculate_hours_from_schedule`.
     - **Logic**:
-        - Calculate Overtime: `(Actual Work Duration) - (Scheduled Work Duration)`.
-        - Handle missing `end_time`: Do not zero out hours immediately; consider marking as `MISSING_CHECKOUT` (requires updating `TimesheetStatus` choices) or keep as is but ensure status reflects it.
+        - Calculate `actual_work_hours` = `(CheckOut - CheckIn) - BreakTime`.
+        - **Overtime Policy**: By business rule, OT is only counted when an overtime proposal has been approved for that date/time.
+            - Default: `overtime_hours = 0` when there is no approved `ProposalOvertimeEntry` for the date.
+            - If there is an approved `ProposalOvertimeEntry` for the date:
+                - `raw_ot = max(0, actual_work_hours - standard_work_hours)`
+                - `overtime_hours = min(raw_ot, approved_ot_duration)`
+        - Handle missing `end_time`: Do not zero out hours immediately; mark as `MISSING_CHECKOUT` (requires updating `TimesheetStatus` choices) or keep as is but ensure status reflects it.
 
 ## Phase 2: Contract Integration
 **Goal**: Ensure payroll-relevant flags are set correctly based on Contract.
@@ -46,7 +51,12 @@ This plan breaks down the Gap Analysis into small, executable tasks for rapid im
 - [ ] **Task 3.4: Implement Complaint Logic (Cannot Attend)**
     - **Logic**: Create `AttendanceRecord` with `type=OTHER`, `time=proposal.proposed_check_in_time` (and out time). This triggers existing signals.
 - [ ] **Task 3.5: Implement Overtime Logic**
-    - **Logic**: Iterate through `proposal.overtime_entries`. For each entry, find `TimesheetEntry` by `entry.date`. Update `overtime_hours` with `entry.duration_hours`.
+    - **Logic**: The approval process creates `ProposalOvertimeEntry` records which declare approved OT durations for specific dates/times.
+        - Do NOT blindly set `TimesheetEntry.overtime_hours` to the approved value.
+        - After approval, for each `ProposalOvertimeEntry`:
+            - Find the `TimesheetEntry` for the same date (create or update if needed).
+            - Trigger `timesheet_entry.calculate_hours_from_schedule()` and save so Phase 1 logic computes `overtime_hours = min(actual_ot, approved_ot_duration)`.
+        - This ensures OT is only counted when approved and capped by the approved duration; if an employee works less than the approved amount, only the actual worked OT is counted.
 - [ ] **Task 3.6: API Integration**
     - **File**: `apps/hrm/api/views/proposal.py`
     - **Action**: Update `approve` action to call `ProposalService.approve_proposal`.
