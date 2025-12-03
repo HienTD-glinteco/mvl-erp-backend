@@ -11,7 +11,13 @@ migrate:
 	python manage.py migrate
 
 messages:
-	python manage.py makemessages -l vi -i venv
+
+# generate translation messages (ignore environment, coverage, tests and non-Python dirs)
+messages:
+	python manage.py makemessages -l vi --no-obsolete \
+		--ignore=venv --ignore=.venv --ignore=htmlcov --ignore=tests \
+		--ignore=logs --ignore=.git --ignore=.mypy_cache \
+		--ignore=.pytest_cache --ignore=.ruff_cache
 
 start:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver

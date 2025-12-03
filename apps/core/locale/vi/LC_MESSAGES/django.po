@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-03 09:52+0700\n"
+"POT-Creation-Date: 2025-12-03 10:22+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -581,12 +581,12 @@ msgstr ""
 msgid "Province"
 msgstr "Tỉnh/Thành phố"
 
-#: apps/core/models/role.py:39 apps/core/tests/test_role_api.py:267
+#: apps/core/models/role.py:39
 msgid "System"
 msgstr "Hệ thống"
 
 # models/user.py:41
-#: apps/core/models/role.py:39 apps/core/tests/test_role_api.py:272
+#: apps/core/models/role.py:39
 msgid "User"
 msgstr "Người dùng"
 
