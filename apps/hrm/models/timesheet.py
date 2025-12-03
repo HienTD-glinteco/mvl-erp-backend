@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional
 
@@ -7,9 +7,12 @@ from django.utils import timezone
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (
+    ProposalStatus,
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.models.holiday import Holiday
+from apps.hrm.models.proposal import ProposalOvertimeEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.decimals import quantize_decimal
@@ -66,6 +69,9 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     count_for_payroll = models.BooleanField(default=True, verbose_name="Count for payroll")
 
+    # Flag to prevent automatic updates from overwriting manual corrections (e.g., from approved proposals)
+    is_manually_corrected = models.BooleanField(default=False, verbose_name="Is manually corrected")
+
     note = SafeTextField(blank=True, verbose_name="Note")
 
     class Meta:
@@ -120,7 +126,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         """
         # Get work schedule if not provided
         if work_schedule is None:
-            weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
+            # Convert Python's isoweekday (1=Monday, 7=Sunday) to WorkSchedule.Weekday (2=Monday, 8=Sunday)
+            weekday = self.date.isoweekday() + 1
             work_schedule = get_work_schedule_by_weekday(weekday)
 
         if not self.start_time:
@@ -184,15 +191,43 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
                 if afternoon_actual_start < afternoon_actual_end:
                     afternoon_hours = Decimal((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600)
 
-        # TODO: Calculate overtime hours - complex business logic pending clarification
-        # The calculation of overtime is more complex than simply time outside official hours.
-        # It needs to consider:
-        # - Company policies on overtime calculation
-        # - Break times and their handling
-        # - Different overtime rates (1.5x, 2x, etc.)
-        # - Maximum daily/weekly overtime limits
-        # - Weekend and holiday overtime rules
+        # Calculate overtime hours
+        # By business rule, OT is only counted when an overtime proposal has been approved for that date
         overtime_hours = Decimal("0.00")
+
+        if work_schedule:
+            # Check if there's an approved overtime proposal for this date
+            approved_overtime_entry = ProposalOvertimeEntry.objects.filter(
+                proposal__created_by=self.employee,
+                proposal__proposal_status=ProposalStatus.APPROVED,
+                date=self.date,
+            ).first()
+
+            if approved_overtime_entry:
+                # Calculate actual work hours: (CheckOut - CheckIn) - BreakTime
+                # Break time is the gap between morning and afternoon sessions
+                break_seconds = 0.0
+                if morning_end and afternoon_start:
+                    break_seconds = (afternoon_start - morning_end).total_seconds()
+
+                actual_work_seconds = (end - start).total_seconds() - break_seconds
+                actual_work_hours = Decimal(actual_work_seconds / 3600)
+
+                # Calculate standard work hours from schedule
+                standard_work_hours = Decimal("0.00")
+                if morning_start and morning_end:
+                    standard_work_hours += Decimal((morning_end - morning_start).total_seconds() / 3600)
+                if afternoon_start and afternoon_end:
+                    standard_work_hours += Decimal((afternoon_end - afternoon_start).total_seconds() / 3600)
+
+                # Calculate raw overtime: max(0, actual_work_hours - standard_work_hours)
+                raw_ot = max(Decimal("0.00"), actual_work_hours - standard_work_hours)
+
+                # Approved overtime duration from the proposal
+                approved_ot_duration = Decimal(str(approved_overtime_entry.duration_hours))
+
+                # Final overtime is the minimum of raw OT and approved OT
+                overtime_hours = min(raw_ot, approved_ot_duration)
 
         self.morning_hours = quantize_decimal(morning_hours)
         self.afternoon_hours = quantize_decimal(afternoon_hours)
@@ -230,6 +265,63 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
         super().clean()
 
-    # TODO: implement this method
     def calculate_status(self) -> None:
-        pass
+        """Calculate timesheet status based on work schedule and actual times.
+
+        This method determines whether the employee was:
+        - ON_TIME: Started work on time (within allowed late minutes)
+        - NOT_ON_TIME: Started work late (beyond allowed late minutes)
+        - ABSENT: No attendance recorded or no start_time
+
+        The calculation compares the actual start_time with the scheduled morning_start_time
+        plus the allowed_late_minutes from the work schedule.
+        """
+        # If no start_time, consider as absent
+        if not self.start_time:
+            self.status = TimesheetStatus.ABSENT
+            return
+
+        # Get work schedule for this date
+        # Convert Python's isoweekday (1=Monday, 7=Sunday) to WorkSchedule.Weekday (2=Monday, 8=Sunday)
+        weekday = self.date.isoweekday() + 1
+        work_schedule = get_work_schedule_by_weekday(weekday)
+
+        # If no work schedule exists for this day, cannot determine status
+        if not work_schedule or not work_schedule.morning_start_time:
+            # Keep current status or default to ABSENT
+            if not self.status:
+                self.status = TimesheetStatus.ABSENT
+            return
+
+        # Check if this date is a holiday
+        # Timesheet entries can be created in advance, so we need to verify
+        if self._is_holiday():
+            # Holiday - not a working day
+            if not self.status:
+                self.status = TimesheetStatus.ABSENT
+            return
+
+        # Calculate the allowed start time (morning_start_time + allowed_late_minutes)
+        morning_start = timezone.make_aware(datetime.combine(self.date, work_schedule.morning_start_time))
+
+        # Add allowed late minutes if specified
+        allowed_late_minutes = work_schedule.allowed_late_minutes or 0
+        allowed_start_time = morning_start + timedelta(minutes=allowed_late_minutes)
+
+        # Compare actual start_time with allowed_start_time
+        if self.start_time <= allowed_start_time:
+            self.status = TimesheetStatus.ON_TIME
+        else:
+            self.status = TimesheetStatus.NOT_ON_TIME
+
+    def _is_holiday(self) -> bool:
+        """Check if the date is a holiday.
+
+        Returns:
+            bool: True if it's a holiday, False if it's a working day
+        """
+        # Check if date falls within any holiday period
+        return Holiday.objects.filter(
+            start_date__lte=self.date,
+            end_date__gte=self.date,
+        ).exists()
