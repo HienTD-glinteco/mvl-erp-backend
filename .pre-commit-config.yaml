@@ -53,7 +53,7 @@ repos:
         stages: [pre-commit]
     -   id: django-makemessages
         name: Django makemessages update
-        entry: python manage.py makemessages --all --no-obsolete -i venv
+        entry: python manage.py makemessages -l vi --no-obsolete -i venv
         language: system
         pass_filenames: false
         stages: [pre-commit]
