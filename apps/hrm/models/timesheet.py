@@ -83,6 +83,11 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"TimesheetEntry {self.employee_id} - {self.date}"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Track the initial value of is_full_salary to detect explicit overrides
+        self._initial_is_full_salary = self.is_full_salary
+
     def save(self, *args, **kwargs):
         # Validate and ensure quantization before saving
         self.full_clean()
@@ -324,11 +329,24 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         and sets is_full_salary to False if the contract has a probation net_percentage (85%),
         or True if the contract has full net_percentage (100%) or no active contract exists.
 
+        This logic only runs when creating a new timesheet entry (self.pk is None) and
+        only if is_full_salary wasn't explicitly set to a non-default value.
+
         Business Rules:
         - If active contract exists and net_percentage == "85" (probation): is_full_salary = False
         - If active contract exists and net_percentage == "100" (full): is_full_salary = True
         - If no active contract exists: is_full_salary = True (default)
         """
+        # Only set is_full_salary from contract when creating a new entry
+        # For updates, preserve the existing value (allows manual corrections)
+        if self.pk is not None:
+            return
+
+        # Check if is_full_salary was explicitly set to a non-default value (False)
+        # If the initial value is False (non-default), respect that explicit override
+        if hasattr(self, "_initial_is_full_salary") and self._initial_is_full_salary is False:
+            return
+
         if not self.employee_id or not self.date:
             # If employee or date is not set, keep default value (True)
             return
