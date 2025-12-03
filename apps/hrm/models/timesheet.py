@@ -7,9 +7,12 @@ from django.utils import timezone
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (
+    ProposalStatus,
     TimesheetReason,
     TimesheetStatus,
 )
+from apps.hrm.models.holiday import Holiday
+from apps.hrm.models.proposal import ProposalOvertimeEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.decimals import quantize_decimal
@@ -194,9 +197,6 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
         if work_schedule:
             # Check if there's an approved overtime proposal for this date
-            from apps.hrm.constants import ProposalStatus
-            from apps.hrm.models.proposal import ProposalOvertimeEntry
-
             approved_overtime_entry = ProposalOvertimeEntry.objects.filter(
                 proposal__created_by=self.employee,
                 proposal__proposal_status=ProposalStatus.APPROVED,
@@ -293,10 +293,10 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
                 self.status = TimesheetStatus.ABSENT
             return
 
-        # Check if this date is a working day
+        # Check if this date is a holiday
         # Timesheet entries can be created in advance, so we need to verify
-        if not self._is_working_day():
-            # Not a working day (holiday or weekend without schedule)
+        if self._is_holiday():
+            # Holiday - not a working day
             if not self.status:
                 self.status = TimesheetStatus.ABSENT
             return
@@ -314,18 +314,14 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         else:
             self.status = TimesheetStatus.NOT_ON_TIME
 
-    def _is_working_day(self) -> bool:
-        """Check if the date is a working day.
+    def _is_holiday(self) -> bool:
+        """Check if the date is a holiday.
 
         Returns:
-            bool: True if it's a working day, False if it's a holiday or non-working day
+            bool: True if it's a holiday, False if it's a working day
         """
-        from apps.hrm.models.holiday import Holiday
-
         # Check if date falls within any holiday period
-        is_holiday = Holiday.objects.filter(
+        return Holiday.objects.filter(
             start_date__lte=self.date,
             end_date__gte=self.date,
         ).exists()
-
-        return not is_holiday
