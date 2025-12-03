@@ -146,13 +146,15 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
 
     def update(self, instance, validated_data):
         """Update the proposal and execute it if approved."""
+        from apps.hrm.services.proposal_service import ProposalService
+
         # Update the proposal status and fields
-        instance = super().update(instance, validated_data)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
 
         # Execute the proposal if it was approved
         if instance.proposal_status == ProposalStatus.APPROVED:
-            from apps.hrm.services.proposal_service import ProposalService
-
             try:
                 ProposalService.execute_approved_proposal(instance)
             except Exception as e:
