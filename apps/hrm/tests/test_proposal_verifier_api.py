@@ -84,7 +84,7 @@ class TestProposalVerifierModel:
         return Proposal.objects.create(
             code="DX000001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
             created_by=employee,
         )
@@ -213,7 +213,7 @@ class TestProposalVerifierAPI:
         return Proposal.objects.create(
             code="DX000003",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
             created_by=employee,
         )

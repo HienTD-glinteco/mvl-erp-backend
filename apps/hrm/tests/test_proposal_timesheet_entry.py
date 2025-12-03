@@ -133,7 +133,7 @@ def complaint_proposal(db, employee):
     return Proposal.objects.create(
         code="DX_TSE_001",
         proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-        complaint_reason="Test complaint reason",
+        timesheet_entry_complaint_complaint_reason="Test complaint reason",
         created_by=employee,
     )
 
@@ -268,13 +268,13 @@ class TestProposalTimeSheetEntryComplaintValidation:
         proposal1 = Proposal.objects.create(
             code="DX_DIFF_001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="First complaint",
+            timesheet_entry_complaint_complaint_reason="First complaint",
             created_by=employee,
         )
         proposal2 = Proposal.objects.create(
             code="DX_DIFF_002",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Second complaint",
+            timesheet_entry_complaint_complaint_reason="Second complaint",
             created_by=employee,
         )
 
@@ -304,7 +304,7 @@ class TestProposalTimeSheetEntryComplaintValidation:
         proposal = Proposal.objects.create(
             code="DX_UPD_001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Complaint reason",
+            timesheet_entry_complaint_complaint_reason="Complaint reason",
             created_by=employee,
         )
 
@@ -331,13 +331,13 @@ class TestProposalTimeSheetEntryComplaintValidation:
         proposal1 = Proposal.objects.create(
             code="DX_UPF_001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="First complaint",
+            timesheet_entry_complaint_complaint_reason="First complaint",
             created_by=employee,
         )
         proposal2 = Proposal.objects.create(
             code="DX_UPF_002",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Second complaint",
+            timesheet_entry_complaint_complaint_reason="Second complaint",
             created_by=employee,
         )
 

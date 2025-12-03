@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets.proposal import ProposalFilterSet
 from apps.hrm.api.serializers.proposal import (
+    ProposalApproveSerializer,
     ProposalAssetAllocationSerializer,
     ProposalJobTransferSerializer,
     ProposalLateExemptionSerializer,
@@ -21,6 +22,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalOvertimeWorkSerializer,
     ProposalPaidLeaveSerializer,
     ProposalPostMaternityBenefitsSerializer,
+    ProposalRejectSerializer,
     ProposalSerializer,
     ProposalTimesheetEntryComplaintApproveSerializer,
     ProposalTimesheetEntryComplaintRejectSerializer,
@@ -66,6 +68,46 @@ class ProposalMixin:
         )
         return queryset
 
+    def get_serializer_class(self):
+        """Return appropriate serializer class based on proposal type."""
+        if self.action == "approve":
+            return self.get_approve_serializer_class()
+        elif self.action == "reject":
+            return self.get_reject_serializer_class()
+        return super().get_serializer_class()
+
+    def get_approve_serializer_class(self):
+        return ProposalApproveSerializer
+
+    def get_reject_serializer_class(self):
+        return ProposalRejectSerializer
+
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        """Approve a proposal."""
+        proposal = self.get_object()
+
+        # Validate input and save
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return updated proposal with timesheet entry
+        return Response(self.serializer_class(proposal).data)
+
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        """Reject a proposal."""
+        proposal = self.get_object()
+
+        # Validate input and save
+        serializer = self.get_serializer(proposal, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return updated proposal with timesheet entry
+        return Response(self.serializer_class(proposal).data)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -88,7 +130,7 @@ class ProposalMixin:
                                 "proposal_date": "2025-01-15",
                                 "proposal_type": "timesheet_entry_complaint",
                                 "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                                "complaint_reason": "Incorrect check-in time recorded",
+                                "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                                 "proposed_check_in_time": "08:00:00",
                                 "proposed_check_out_time": "17:00:00",
                                 "approved_check_in_time": None,
@@ -103,7 +145,7 @@ class ProposalMixin:
                                 "proposal_date": "2025-01-16",
                                 "proposal_type": "paid_leave",
                                 "colored_proposal_status": {"value": "approved", "variant": "green"},
-                                "complaint_reason": None,
+                                "timesheet_entry_complaint_complaint_reason": None,
                                 "proposed_check_in_time": None,
                                 "proposed_check_out_time": None,
                                 "approved_check_in_time": None,
@@ -135,7 +177,7 @@ class ProposalMixin:
                         "proposal_date": "2025-01-15",
                         "proposal_type": "timesheet_entry_complaint",
                         "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                        "complaint_reason": "Incorrect check-in time recorded",
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                         "proposed_check_in_time": "08:00:00",
                         "proposed_check_out_time": "17:00:00",
                         "approved_check_in_time": None,
@@ -156,6 +198,98 @@ class ProposalViewSet(AuditLoggingMixin, ProposalMixin, BaseReadOnlyModelViewSet
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
+
+    @extend_schema(
+        summary="Approve proposal",
+        description="Approve a proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalSerializer},
+        tags=["10.2: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "timesheet_entry_complaint",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
+                        "proposed_check_in_time": "08:00:00",
+                        "proposed_check_out_time": "17:00:00",
+                        "approved_check_in_time": "08:00:00",
+                        "approved_check_out_time": "17:00:00",
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject proposal",
+        description="Reject a proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalSerializer},
+        tags=["10.2: Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "timesheet_entry_complaint",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
+                        "proposed_check_in_time": "08:00:00",
+                        "proposed_check_out_time": "17:00:00",
+                        "approved_check_in_time": None,
+                        "approved_check_out_time": None,
+                        "note": "Not enough evidence provided",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
 
 
 @extend_schema_view(
@@ -179,7 +313,7 @@ class ProposalViewSet(AuditLoggingMixin, ProposalMixin, BaseReadOnlyModelViewSet
                                 "proposal_date": "2025-01-15",
                                 "proposal_type": "timesheet_entry_complaint",
                                 "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                                "complaint_reason": "Incorrect check-in time recorded",
+                                "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                                 "proposed_check_in_time": "08:00:00",
                                 "proposed_check_out_time": "17:00:00",
                                 "approved_check_in_time": None,
@@ -212,7 +346,7 @@ class ProposalViewSet(AuditLoggingMixin, ProposalMixin, BaseReadOnlyModelViewSet
                         "proposal_date": "2025-01-15",
                         "proposal_type": "timesheet_entry_complaint",
                         "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                        "complaint_reason": "Incorrect check-in time recorded",
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                         "proposed_check_in_time": "08:00:00",
                         "proposed_check_out_time": "17:00:00",
                         "approved_check_in_time": None,
@@ -236,12 +370,11 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     permission_prefix = "proposal_timesheet_entry_complaint"
 
-    def get_serializer_class(self):
-        if self.action == "approve":
-            return ProposalTimesheetEntryComplaintApproveSerializer
-        elif self.action == "reject":
-            return ProposalTimesheetEntryComplaintRejectSerializer
-        return super().get_serializer_class()
+    def get_approve_serializer_class(self):
+        return ProposalTimesheetEntryComplaintApproveSerializer
+
+    def get_reject_serializer_class(self):
+        return ProposalTimesheetEntryComplaintRejectSerializer
 
     @extend_schema(
         summary="Approve complaint proposal",
@@ -260,7 +393,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
                         "proposal_date": "2025-01-15",
                         "proposal_type": "timesheet_entry_complaint",
                         "colored_proposal_status": {"value": "approved", "variant": "green"},
-                        "complaint_reason": "Incorrect check-in time recorded",
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                         "proposed_check_in_time": "08:00:00",
                         "proposed_check_out_time": "17:00:00",
                         "approved_check_in_time": "08:00:00",
@@ -288,16 +421,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     )
     @action(detail=True, methods=["post"], url_path="approve")
     def approve(self, request, pk=None):
-        """Approve a complaint proposal."""
-        proposal = self.get_object()
-
-        # Validate input and save
-        serializer = self.get_serializer(proposal, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        # Return updated proposal with timesheet entry
-        return Response(ProposalTimesheetEntryComplaintSerializer(proposal).data)
+        return super().approve(request, pk)
 
     @extend_schema(
         summary="Reject complaint proposal",
@@ -316,7 +440,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
                         "proposal_date": "2025-01-15",
                         "proposal_type": "timesheet_entry_complaint",
                         "colored_proposal_status": {"value": "rejected", "variant": "red"},
-                        "complaint_reason": "Incorrect check-in time recorded",
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
                         "proposed_check_in_time": "08:00:00",
                         "proposed_check_out_time": "17:00:00",
                         "approved_check_in_time": None,
@@ -344,16 +468,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     )
     @action(detail=True, methods=["post"], url_path="reject")
     def reject(self, request, pk=None):
-        """Reject a complaint proposal."""
-        proposal = self.get_object()
-
-        # Validate input and save
-        serializer = self.get_serializer(proposal, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        # Return updated proposal with timesheet entry
-        return Response(ProposalTimesheetEntryComplaintSerializer(proposal).data)
+        return super().reject(request, pk)
 
 
 @extend_schema_view(
@@ -489,6 +604,92 @@ class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, ProposalMixin, Bas
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
     serializer_class = ProposalPostMaternityBenefitsSerializer
     permission_prefix = "proposal_post_maternity_benefits"
+
+    @extend_schema(
+        summary="Approve post-maternity benefits proposal",
+        description="Approve a post-maternity benefits proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalPostMaternityBenefitsSerializer},
+        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "post_maternity_benefits",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "post_maternity_benefits_start_date": "2025-02-01",
+                        "post_maternity_benefits_end_date": "2025-03-01",
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject post-maternity benefits proposal",
+        description="Reject a post-maternity benefits proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalPostMaternityBenefitsSerializer},
+        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "post_maternity_benefits",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "post_maternity_benefits_start_date": "2025-02-01",
+                        "post_maternity_benefits_end_date": "2025-03-01",
+                        "note": "Request does not meet policy requirements",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
 
 
 @extend_schema_view(
@@ -629,6 +830,94 @@ class ProposalLateExemptionViewSet(AuditLoggingMixin, ProposalMixin, BaseModelVi
     proposal_type = ProposalType.LATE_EXEMPTION
     serializer_class = ProposalLateExemptionSerializer
     permission_prefix = "proposal_late_exemption"
+
+    @extend_schema(
+        summary="Approve late exemption proposal",
+        description="Approve a late exemption proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalLateExemptionSerializer},
+        tags=["10.2.3: Late Exemption Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "late_exemption",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "late_exemption_start_date": "2025-02-01",
+                        "late_exemption_end_date": "2025-02-28",
+                        "late_exemption_minutes": 30,
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject late exemption proposal",
+        description="Reject a late exemption proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalLateExemptionSerializer},
+        tags=["10.2.3: Late Exemption Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "late_exemption",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "late_exemption_start_date": "2025-02-01",
+                        "late_exemption_end_date": "2025-02-28",
+                        "late_exemption_minutes": 30,
+                        "note": "Late exemption not justified",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
 
 
 @extend_schema_view(
@@ -823,6 +1112,108 @@ class ProposalOvertimeWorkViewSet(AuditLoggingMixin, ProposalMixin, BaseModelVie
     def get_prefetch_related_fields(self) -> List[str]:
         return ["overtime_entries"]
 
+    @extend_schema(
+        summary="Approve overtime work proposal",
+        description="Approve an overtime work proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalOvertimeWorkSerializer},
+        tags=["10.2.4: Overtime Work Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "overtime_work",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "overtime_entries": [
+                            {
+                                "id": 1,
+                                "date": "2025-01-15",
+                                "start_time": "18:00:00",
+                                "end_time": "21:00:00",
+                                "description": "Project deadline",
+                                "duration_hours": 3.0,
+                            }
+                        ],
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject overtime work proposal",
+        description="Reject an overtime work proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalOvertimeWorkSerializer},
+        tags=["10.2.4: Overtime Work Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "overtime_work",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "overtime_entries": [
+                            {
+                                "id": 1,
+                                "date": "2025-01-15",
+                                "start_time": "18:00:00",
+                                "end_time": "21:00:00",
+                                "description": "Project deadline",
+                                "duration_hours": 3.0,
+                            }
+                        ],
+                        "note": "Overtime not approved due to budget constraints",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -965,6 +1356,96 @@ class ProposalPaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSe
     serializer_class = ProposalPaidLeaveSerializer
     permission_prefix = "proposal_paid_leave"
 
+    @extend_schema(
+        summary="Approve paid leave proposal",
+        description="Approve a paid leave proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalPaidLeaveSerializer},
+        tags=["10.2.5: Paid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "paid_leave",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "paid_leave_start_date": "2025-02-01",
+                        "paid_leave_end_date": "2025-02-05",
+                        "paid_leave_shift": "full_day",
+                        "paid_leave_reason": "Family vacation",
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject paid leave proposal",
+        description="Reject a paid leave proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalPaidLeaveSerializer},
+        tags=["10.2.5: Paid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "paid_leave",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "paid_leave_start_date": "2025-02-01",
+                        "paid_leave_end_date": "2025-02-05",
+                        "paid_leave_shift": "full_day",
+                        "paid_leave_reason": "Family vacation",
+                        "note": "Leave request conflicts with project deadline",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -1106,6 +1587,96 @@ class ProposalUnpaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelView
     proposal_type = ProposalType.UNPAID_LEAVE
     serializer_class = ProposalUnpaidLeaveSerializer
     permission_prefix = "proposal_unpaid_leave"
+
+    @extend_schema(
+        summary="Approve unpaid leave proposal",
+        description="Approve an unpaid leave proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalUnpaidLeaveSerializer},
+        tags=["10.2.6: Unpaid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "unpaid_leave",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "unpaid_leave_start_date": "2025-02-01",
+                        "unpaid_leave_end_date": "2025-02-05",
+                        "unpaid_leave_shift": "full_day",
+                        "unpaid_leave_reason": "Personal matters",
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject unpaid leave proposal",
+        description="Reject an unpaid leave proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalUnpaidLeaveSerializer},
+        tags=["10.2.6: Unpaid Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "unpaid_leave",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "unpaid_leave_start_date": "2025-02-01",
+                        "unpaid_leave_end_date": "2025-02-05",
+                        "unpaid_leave_shift": "full_day",
+                        "unpaid_leave_reason": "Personal matters",
+                        "note": "Leave request not approved due to staffing requirements",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
 
 
 @extend_schema_view(
@@ -1251,6 +1822,94 @@ class ProposalMaternityLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelV
         fields.append("maternity_leave_replacement_employee")
         return fields
 
+    @extend_schema(
+        summary="Approve maternity leave proposal",
+        description="Approve a maternity leave proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalMaternityLeaveSerializer},
+        tags=["10.2.7: Maternity Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "maternity_leave",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "maternity_leave_start_date": "2025-02-01",
+                        "maternity_leave_end_date": "2025-08-01",
+                        "maternity_leave_estimated_due_date": "2025-03-15",
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject maternity leave proposal",
+        description="Reject a maternity leave proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalMaternityLeaveSerializer},
+        tags=["10.2.7: Maternity Leave Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "maternity_leave",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "maternity_leave_start_date": "2025-02-01",
+                        "maternity_leave_end_date": "2025-08-01",
+                        "maternity_leave_estimated_due_date": "2025-03-15",
+                        "note": "Missing required documentation",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -1269,6 +1928,14 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
 
     proposal_type = ProposalType.ATTENDANCE_EXEMPTION
     permission_prefix = "proposal_attendance_exemption"
+
+    @extend_schema(exclude=True)
+    def approve(self, request, pk=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @extend_schema(exclude=True)
+    def reject(self, request, pk=None):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @extend_schema_view(
@@ -1444,6 +2111,108 @@ class ProposalJobTransferViewSet(AuditLoggingMixin, ProposalMixin, BaseModelView
         )
         return fields
 
+    @extend_schema(
+        summary="Approve job transfer proposal",
+        description="Approve a job transfer proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalJobTransferSerializer},
+        tags=["10.2.9: Job Transfer Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "job_transfer",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "job_transfer_new_branch": {"id": 1, "name": "Head Office"},
+                        "job_transfer_new_block": {"id": 2, "name": "Sales Block"},
+                        "job_transfer_new_department": {"id": 3, "name": "Marketing"},
+                        "job_transfer_new_department_id": 3,
+                        "job_transfer_new_position": {"id": 4, "name": "Senior Developer"},
+                        "job_transfer_new_position_id": 4,
+                        "job_transfer_effective_date": "2025-02-01",
+                        "job_transfer_reason": "Career development",
+                        "note": "Approved by manager",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": {"id": 2, "fullname": "Jane Manager", "email": "jane@example.com"},
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject job transfer proposal",
+        description="Reject a job transfer proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalJobTransferSerializer},
+        tags=["10.2.9: Job Transfer Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "job_transfer",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "job_transfer_new_branch": {"id": 1, "name": "Head Office"},
+                        "job_transfer_new_block": {"id": 2, "name": "Sales Block"},
+                        "job_transfer_new_department": {"id": 3, "name": "Marketing"},
+                        "job_transfer_new_department_id": 3,
+                        "job_transfer_new_position": {"id": 4, "name": "Senior Developer"},
+                        "job_transfer_new_position_id": 4,
+                        "job_transfer_effective_date": "2025-02-01",
+                        "job_transfer_reason": "Career development",
+                        "note": "Position not available at this time",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": None,
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -1607,6 +2376,106 @@ class ProposalAssetAllocationViewSet(AuditLoggingMixin, ProposalMixin, BaseModel
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["assets"]
+
+    @extend_schema(
+        summary="Approve asset allocation proposal",
+        description="Approve an asset allocation proposal",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalAssetAllocationSerializer},
+        tags=["10.2.10: Asset Allocation Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "asset_allocation",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "assets": [
+                            {
+                                "id": 1,
+                                "name": "Laptop Dell XPS 15",
+                                "unit_type": "piece",
+                                "quantity": 1,
+                                "note": None,
+                            }
+                        ],
+                        "note": "Approved by manager",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Already processed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Proposal has already been processed"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject asset allocation proposal",
+        description="Reject an asset allocation proposal with a required rejection reason",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalAssetAllocationSerializer},
+        tags=["10.2.10: Asset Allocation Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "asset_allocation",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "assets": [
+                            {
+                                "id": 1,
+                                "name": "Laptop Dell XPS 15",
+                                "unit_type": "piece",
+                                "quantity": 1,
+                                "note": None,
+                            }
+                        ],
+                        "note": "Asset not available in inventory",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T14:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing note",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"note": ["This field is required."]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        return super().reject(request, pk)
 
 
 @extend_schema_view(

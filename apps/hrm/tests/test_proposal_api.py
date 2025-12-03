@@ -77,7 +77,7 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             created_by=test_employee,
         )
         Proposal.objects.create(
@@ -107,7 +107,7 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000004",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -142,7 +142,7 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000007",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             created_by=test_employee,
         )
         Proposal.objects.create(
@@ -174,7 +174,7 @@ class TestProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000010",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test complaint",
+            timesheet_entry_complaint_complaint_reason="Test complaint",
             created_by=test_employee,
         )
 
@@ -192,7 +192,7 @@ class TestProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000011",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test complaint",
+            timesheet_entry_complaint_complaint_reason="Test complaint",
             created_by=test_employee,
         )
 
@@ -214,7 +214,7 @@ class TestProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000012",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test complaint",
+            timesheet_entry_complaint_complaint_reason="Test complaint",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -250,7 +250,7 @@ class TestProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000013",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test complaint",
+            timesheet_entry_complaint_complaint_reason="Test complaint",
             proposal_status=ProposalStatus.APPROVED,
             created_by=test_employee,
             approved_by=approver,
@@ -274,7 +274,7 @@ class TestProposalAPI:
         Proposal.objects.create(
             code="DX000014",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             created_by=test_employee,
         )
 
@@ -641,7 +641,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         Proposal.objects.create(
             code="DX000001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             created_by=test_employee,
         )
         Proposal.objects.create(
@@ -665,14 +665,14 @@ class TestTimesheetEntryComplaintProposalAPI:
         Proposal.objects.create(
             code="DX000003",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
         Proposal.objects.create(
             code="DX000004",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 2",
+            timesheet_entry_complaint_complaint_reason="Test 2",
             proposal_status=ProposalStatus.APPROVED,
             created_by=test_employee,
         )
@@ -692,7 +692,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000005",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Wrong time",
+            timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -708,8 +708,8 @@ class TestTimesheetEntryComplaintProposalAPI:
 
         proposal.refresh_from_db()
         assert proposal.proposal_status == ProposalStatus.APPROVED
-        assert str(proposal.approved_check_in_time) == "08:00:00"
-        assert str(proposal.approved_check_out_time) == "17:00:00"
+        assert str(proposal.timesheet_entry_complaint_approved_check_in_time) == "08:00:00"
+        assert str(proposal.timesheet_entry_complaint_approved_check_out_time) == "17:00:00"
         assert proposal.note == "Approved"
 
     def test_approve_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
@@ -740,7 +740,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000020",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Wrong time",
+            timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -768,7 +768,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000006",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Wrong time",
+            timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -814,7 +814,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000021",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Wrong time",
+            timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -842,7 +842,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         proposal = Proposal.objects.create(
             code="DX000007",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Wrong time",
+            timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -910,7 +910,7 @@ class TestPaidLeaveProposalAPI:
         Proposal.objects.create(
             code="DX000008",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Test 1",
+            timesheet_entry_complaint_complaint_reason="Test 1",
             created_by=test_employee,
         )
         Proposal.objects.create(
@@ -1036,7 +1036,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         proposal = Proposal.objects.create(
             code="DX_TS_001",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             created_by=test_employee,
         )
 
@@ -1068,7 +1068,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         proposal = Proposal.objects.create(
             code="DX_TS_002",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             created_by=test_employee,
         )
 
@@ -1092,7 +1092,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         proposal = Proposal.objects.create(
             code="DX_TS_003",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             created_by=test_employee,
         )
 
@@ -1113,7 +1113,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         proposal = Proposal.objects.create(
             code="DX_TS_004",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )
@@ -1144,7 +1144,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         proposal = Proposal.objects.create(
             code="DX_TS_005",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            complaint_reason="Incorrect check-in time",
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
         )

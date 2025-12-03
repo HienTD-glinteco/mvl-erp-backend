@@ -39,16 +39,6 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Proposal status",
     )
 
-    complaint_reason = SafeTextField(null=True, blank=True, verbose_name="Complaint reason")
-
-    proposed_check_in_time = models.TimeField(null=True, blank=True, verbose_name="Proposed check-in time")
-
-    proposed_check_out_time = models.TimeField(null=True, blank=True, verbose_name="Proposed check-out time")
-
-    approved_check_in_time = models.TimeField(null=True, blank=True, verbose_name="Approved check-in time")
-
-    approved_check_out_time = models.TimeField(null=True, blank=True, verbose_name="Approved check-out time")
-
     note = SafeTextField(null=True, blank=True, verbose_name="Note")
 
     created_by = models.ForeignKey(
@@ -66,8 +56,32 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name="Approved by",
     )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Approved at",
+    )
 
-    # Late exemption fields
+    # TIMESHEET_ENTRY_COMPLAINT fields
+    timesheet_entry_complaint_complaint_reason = SafeTextField(null=True, blank=True, verbose_name="Complaint reason")
+
+    timesheet_entry_complaint_proposed_check_in_time = models.TimeField(
+        null=True, blank=True, verbose_name="Proposed check-in time"
+    )
+
+    timesheet_entry_complaint_proposed_check_out_time = models.TimeField(
+        null=True, blank=True, verbose_name="Proposed check-out time"
+    )
+
+    timesheet_entry_complaint_approved_check_in_time = models.TimeField(
+        null=True, blank=True, verbose_name="Approved check-in time"
+    )
+
+    timesheet_entry_complaint_approved_check_out_time = models.TimeField(
+        null=True, blank=True, verbose_name="Approved check-out time"
+    )
+
+    # LATE_EXEMPTION fields
     late_exemption_start_date = models.DateField(
         null=True,
         blank=True,
@@ -84,7 +98,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Late exemption minutes",
     )
 
-    # Post-maternity benefits fields
+    # POST_MATERNITY_BENEFITS fields
     post_maternity_benefits_start_date = models.DateField(
         null=True,
         blank=True,
@@ -96,7 +110,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Post-maternity benefits end date",
     )
 
-    # Maternity leave fields
+    # MATERNITY_LEAVE fields
     maternity_leave_start_date = models.DateField(
         null=True,
         blank=True,
@@ -282,9 +296,18 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     def _clean_timesheet_entry_complaint_fields(self) -> None:
         """Validate timesheet entry complaint proposal fields."""
-        # If proposal type is complaint, complaint_reason cannot be empty
-        if not self.complaint_reason or not self.complaint_reason.strip():
-            raise ValidationError({"complaint_reason": _("Complaint reason is required for complaint proposals")})
+        # If proposal type is complaint, timesheet_entry_complaint_complaint_reason cannot be empty
+        if (
+            not self.timesheet_entry_complaint_complaint_reason
+            or not self.timesheet_entry_complaint_complaint_reason.strip()
+        ):
+            raise ValidationError(
+                {
+                    "timesheet_entry_complaint_complaint_reason": _(
+                        "TimeSheet Entry Complaint reason is required for complaint proposals"
+                    )
+                }
+            )
 
     def _clean_maternity_leave_fields(self) -> None:
         """Validate maternity leave proposal fields."""

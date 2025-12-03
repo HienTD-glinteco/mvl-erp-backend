@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-03 10:30+0700\n"
+"POT-Creation-Date: 2025-12-03 14:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,7 +178,7 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:360
+#: apps/hrm/api/serializers/proposal.py:389
 #, fuzzy
 #| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
@@ -1344,85 +1344,85 @@ msgstr ""
 msgid "A main department already exists for function %(function)s."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:250
+#: apps/hrm/models/proposal.py:264
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:252
+#: apps/hrm/models/proposal.py:266
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:254
+#: apps/hrm/models/proposal.py:268
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:259
+#: apps/hrm/models/proposal.py:273
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:269
+#: apps/hrm/models/proposal.py:283
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:271
+#: apps/hrm/models/proposal.py:285
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:277
+#: apps/hrm/models/proposal.py:291
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:287
-msgid "Complaint reason is required for complaint proposals"
+#: apps/hrm/models/proposal.py:307
+msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:296
+#: apps/hrm/models/proposal.py:319
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:308
+#: apps/hrm/models/proposal.py:331
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:320
+#: apps/hrm/models/proposal.py:343
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:331
+#: apps/hrm/models/proposal.py:354
 #, fuzzy
 #| msgid "Late exemption end date is required"
 msgid "Job transfer effective date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:335
+#: apps/hrm/models/proposal.py:358
 msgid "New department is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:339
+#: apps/hrm/models/proposal.py:362
 msgid "New position is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:355
+#: apps/hrm/models/proposal.py:378
 msgid "Note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:447
+#: apps/hrm/models/proposal.py:470
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:457
+#: apps/hrm/models/proposal.py:480
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:626
+#: apps/hrm/models/proposal.py:649
 #, fuzzy
 #| msgid "Overtime work end time must be after start time"
 msgid "End time must be after start time"
