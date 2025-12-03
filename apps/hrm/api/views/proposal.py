@@ -12,7 +12,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets.proposal import ProposalFilterSet
+from apps.hrm.api.filtersets.proposal import ProposalFilterSet, ProposalVerifierFilterSet
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalAssetAllocationSerializer,
@@ -2592,7 +2592,9 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
     serializer_class = ProposalVerifierSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalVerifierFilterSet
     ordering_fields = ["created_at", "verified_time"]
+    search_fields = ["proposal__code", "employee__fullname", "employee__code"]
     ordering = ["-created_at"]
 
     module = "HRM"

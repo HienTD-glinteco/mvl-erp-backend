@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from apps.hrm.constants import ProposalStatus, ProposalType, ProposalVerifierStatus
@@ -403,3 +404,257 @@ class TestProposalVerifierAPI:
         response = api_client.post(url, data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+class TestProposalVerifierFilterSet:
+    """Tests for ProposalVerifier FilterSet."""
+
+    @pytest.fixture
+    def province(self):
+        """Create a province for testing."""
+        from apps.core.models import Province
+
+        return Province.objects.create(name="Test Province", code="TP003")
+
+    @pytest.fixture
+    def administrative_unit(self, province):
+        """Create an administrative unit for testing."""
+        from apps.core.models import AdministrativeUnit
+
+        return AdministrativeUnit.objects.create(
+            name="Test Administrative Unit",
+            code="TAU003",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            parent_province=province,
+        )
+
+    @pytest.fixture
+    def branch(self, administrative_unit):
+        """Create a branch for testing."""
+        from apps.hrm.models import Branch
+
+        return Branch.objects.create(
+            name="Test Branch",
+            code="TB003",
+            administrative_unit=administrative_unit,
+            province=administrative_unit.parent_province,
+        )
+
+    @pytest.fixture
+    def block(self, branch):
+        """Create a block for testing."""
+        from apps.hrm.models import Block
+
+        return Block.objects.create(
+            name="Test Block", code="BLK003", branch=branch, block_type=Block.BlockType.BUSINESS
+        )
+
+    @pytest.fixture
+    def department(self, branch, block):
+        """Create a department for testing."""
+        from apps.hrm.models import Department
+
+        return Department.objects.create(
+            name="Test Department",
+            code="TD003",
+            branch=branch,
+            block=block,
+        )
+
+    @pytest.fixture
+    def employee1(self, branch, block, department):
+        """Create first employee for testing."""
+        return Employee.objects.create(
+            code_type="MV",
+            fullname="Employee One",
+            username="employee_filter_001",
+            email="employee_filter_001@example.com",
+            citizen_id="000000003001",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+        )
+
+    @pytest.fixture
+    def employee2(self, branch, block, department):
+        """Create second employee for testing."""
+        return Employee.objects.create(
+            code_type="MV",
+            fullname="Employee Two",
+            username="employee_filter_002",
+            email="employee_filter_002@example.com",
+            citizen_id="000000003002",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+        )
+
+    @pytest.fixture
+    def proposal1(self, employee1):
+        """Create first proposal for testing."""
+        return Proposal.objects.create(
+            code="DX000101",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=employee1,
+        )
+
+    @pytest.fixture
+    def proposal2(self, employee2):
+        """Create second proposal for testing."""
+        return Proposal.objects.create(
+            code="DX000102",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Missing check-out",
+            proposal_status=ProposalStatus.PENDING,
+            created_by=employee2,
+        )
+
+    @pytest.fixture
+    def verifier_not_verified(self, proposal1, employee1):
+        """Create a not verified proposal verifier."""
+        return ProposalVerifier.objects.create(
+            proposal=proposal1,
+            employee=employee1,
+            status=ProposalVerifierStatus.NOT_VERIFIED,
+        )
+
+    @pytest.fixture
+    def verifier_verified(self, proposal2, employee2):
+        """Create a verified proposal verifier."""
+        return ProposalVerifier.objects.create(
+            proposal=proposal2,
+            employee=employee2,
+            status=ProposalVerifierStatus.VERIFIED,
+            verified_time=timezone.now(),
+            note="Verified by employee2",
+        )
+
+    def test_filter_by_proposal_id(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by proposal ID."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"proposal": verifier_not_verified.proposal_id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_not_verified.id
+
+    def test_filter_by_employee_id(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by employee ID."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"employee": verifier_verified.employee_id})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
+
+    def test_filter_by_status(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by single status."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"status": ProposalVerifierStatus.VERIFIED})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
+        assert data["data"]["results"][0]["status"] == ProposalVerifierStatus.VERIFIED
+
+    def test_filter_by_status_not_verified(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by not_verified status."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"status": ProposalVerifierStatus.NOT_VERIFIED})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_not_verified.id
+        assert data["data"]["results"][0]["status"] == ProposalVerifierStatus.NOT_VERIFIED
+
+    def test_filter_by_verified_time_gte(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by verified_time__gte."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        # Get time before the verifier was created
+        time_before = timezone.now() - timedelta(hours=1)
+
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"verified_time__gte": time_before.isoformat()})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        # Only the verified verifier should match (it has verified_time set)
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
+
+    def test_filter_by_verified_time_lte(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by verified_time__lte."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        # Get time after the verifier was created
+        time_after = timezone.now() + timedelta(hours=1)
+
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"verified_time__lte": time_after.isoformat()})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        # Only the verified verifier should match (it has verified_time set)
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
+
+    def test_filter_by_verified_time_range(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test filtering proposal verifiers by verified_time range."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        time_from = timezone.now() - timedelta(hours=1)
+        time_to = timezone.now() + timedelta(hours=1)
+
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(
+            url,
+            {
+                "verified_time__gte": time_from.isoformat(),
+                "verified_time__lte": time_to.isoformat(),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
+
+    def test_combined_filters(self, api_client, superuser, verifier_not_verified, verifier_verified):
+        """Test combining multiple filters."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(
+            url,
+            {
+                "proposal": verifier_verified.proposal_id,
+                "employee": verifier_verified.employee_id,
+                "status": ProposalVerifierStatus.VERIFIED,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["id"] == verifier_verified.id
