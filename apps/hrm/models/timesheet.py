@@ -123,7 +123,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         """
         # Get work schedule if not provided
         if work_schedule is None:
-            weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
+            # Convert Python's isoweekday (1=Monday, 7=Sunday) to WorkSchedule.Weekday (2=Monday, 8=Sunday)
+            weekday = self.date.isoweekday() + 1
             work_schedule = get_work_schedule_by_weekday(weekday)
 
         if not self.start_time:
@@ -193,13 +194,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         overtime_hours = Decimal("0.00")
 
         if work_schedule:
-            # Calculate scheduled work duration from morning and afternoon sessions only
-            scheduled_work_hours = morning_hours + afternoon_hours
-
-            # Calculate total actual work hours
-            actual_work_hours = morning_hours + afternoon_hours
-
-            # Overtime = 0 because overtime should be time worked OUTSIDE scheduled hours
+            # Overtime = time worked OUTSIDE scheduled sessions
             # The morning_hours and afternoon_hours already only count time within the scheduled sessions
             # So we need to check if there's work outside these sessions
 
@@ -270,7 +265,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             return
 
         # Get work schedule for this date
-        weekday = self.date.isoweekday() + 1  # Convert to WorkSchedule.Weekday values (2-8)
+        # Convert Python's isoweekday (1=Monday, 7=Sunday) to WorkSchedule.Weekday (2=Monday, 8=Sunday)
+        weekday = self.date.isoweekday() + 1
         work_schedule = get_work_schedule_by_weekday(weekday)
 
         # If no work schedule exists for this day, cannot determine status
