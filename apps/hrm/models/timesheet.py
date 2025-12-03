@@ -263,6 +263,9 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         # Calculate status based on actual working hours
         self.calculate_status()
 
+        # Set is_full_salary based on active contract's net_percentage
+        self._set_is_full_salary_from_contract()
+
         super().clean()
 
     def calculate_status(self) -> None:
@@ -313,6 +316,55 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             self.status = TimesheetStatus.ON_TIME
         else:
             self.status = TimesheetStatus.NOT_ON_TIME
+
+    def _set_is_full_salary_from_contract(self) -> None:
+        """Set is_full_salary based on the active contract's net_percentage.
+
+        This method fetches the active contract for the employee on the timesheet entry's date
+        and sets is_full_salary to False if the contract has a probation net_percentage (85%),
+        or True if the contract has full net_percentage (100%) or no active contract exists.
+
+        Business Rules:
+        - If active contract exists and net_percentage == "85" (probation): is_full_salary = False
+        - If active contract exists and net_percentage == "100" (full): is_full_salary = True
+        - If no active contract exists: is_full_salary = True (default)
+        """
+        if not self.employee_id or not self.date:
+            # If employee or date is not set, keep default value (True)
+            return
+
+        # Import Contract model here to avoid circular imports
+        from apps.hrm.models.contract import Contract
+
+        # Fetch active contract for the employee on this date
+        # Contract is active if:
+        # - status is ACTIVE or ABOUT_TO_EXPIRE
+        # - effective_date <= self.date
+        # - expiration_date >= self.date OR expiration_date is None (indefinite)
+        active_contract = (
+            Contract.objects.filter(
+                employee_id=self.employee_id,
+                status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
+                effective_date__lte=self.date,
+            )
+            .filter(models.Q(expiration_date__gte=self.date) | models.Q(expiration_date__isnull=True))
+            .order_by("-effective_date")
+            .first()
+        )
+
+        if active_contract:
+            # Import ContractType to access NetPercentage choices
+            from apps.hrm.models.contract_type import ContractType
+
+            # Set is_full_salary based on contract's net_percentage
+            if active_contract.net_percentage == ContractType.NetPercentage.REDUCED:  # "85"
+                self.is_full_salary = False
+            else:
+                # For full percentage or any other value, set to True
+                self.is_full_salary = True
+        else:
+            # No active contract found, default to True
+            self.is_full_salary = True
 
     def _is_holiday(self) -> bool:
         """Check if the date is a holiday.
