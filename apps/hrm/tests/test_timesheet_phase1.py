@@ -176,13 +176,13 @@ class TestOvertimeCalculation:
             allowed_late_minutes=15,
         )
 
-    def test_no_overtime_when_working_exact_schedule(self, test_employee):
-        """Test that overtime is 0 when working exactly the scheduled hours."""
+    def test_no_overtime_without_approved_proposal(self, test_employee):
+        """Test that overtime is 0 when there is no approved overtime proposal."""
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
             start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -191,12 +191,30 @@ class TestOvertimeCalculation:
         assert entry.morning_hours == Decimal("4.00")
         assert entry.afternoon_hours == Decimal("4.00")
         assert entry.official_hours == Decimal("8.00")
-        # Overtime should be 0 (9 hours total - 9 hours scheduled = 0)
-        # Note: 9 hours total = 8:00-17:00 includes the 1-hour lunch break
+        # Overtime should be 0 because there's no approved proposal
         assert entry.overtime_hours == Decimal("0.00")
 
-    def test_overtime_when_working_extra_hours(self, test_employee):
-        """Test that overtime is calculated when working beyond scheduled hours."""
+    def test_overtime_with_approved_proposal(self, test_employee):
+        """Test that overtime is calculated when there's an approved overtime proposal."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        # Create overtime entry for the proposal (2 hours approved)
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(17, 0),
+            end_time=time(19, 0),
+            description="Overtime work",
+        )
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
@@ -210,16 +228,35 @@ class TestOvertimeCalculation:
         assert entry.morning_hours == Decimal("4.00")
         assert entry.afternoon_hours == Decimal("4.00")
         assert entry.official_hours == Decimal("8.00")
-        # Overtime should be 2 hours (11 hours total - 9 hours scheduled = 2 hours)
+        # Overtime should be 2 hours (approved in proposal)
         assert entry.overtime_hours == Decimal("2.00")
 
-    def test_overtime_when_arriving_early_and_leaving_late(self, test_employee):
-        """Test that overtime includes both early arrival and late departure."""
+    def test_overtime_capped_by_approved_duration(self, test_employee):
+        """Test that overtime is capped by the approved duration in the proposal."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        # Create overtime entry for the proposal (only 1 hour approved)
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(17, 0),
+            end_time=time(18, 0),
+            description="Overtime work",
+        )
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 7, 0, 0)),  # 1 hour early
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 18, 0, 0)),  # 1 hour late
+            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -228,16 +265,35 @@ class TestOvertimeCalculation:
         assert entry.morning_hours == Decimal("4.00")
         assert entry.afternoon_hours == Decimal("4.00")
         assert entry.official_hours == Decimal("8.00")
-        # Overtime should be 2 hours (11 hours total - 9 hours scheduled = 2 hours)
-        assert entry.overtime_hours == Decimal("2.00")
+        # Overtime should be 1 hour (capped by approved duration, even though worked 2 hours extra)
+        assert entry.overtime_hours == Decimal("1.00")
 
     def test_no_overtime_when_working_less_than_schedule(self, test_employee):
         """Test that overtime is 0 when working less than scheduled hours."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        # Create overtime entry for the proposal
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(17, 0),
+            end_time=time(19, 0),
+            description="Overtime work",
+        )
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
             start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 16, 0, 0)),  # 1 hour less
+            end_time=timezone.make_aware(datetime(2025, 12, 1, 16, 0, 0)),  # 1 hour less than schedule
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -246,11 +302,30 @@ class TestOvertimeCalculation:
         assert entry.morning_hours == Decimal("4.00")
         assert entry.afternoon_hours == Decimal("3.00")
         assert entry.official_hours == Decimal("7.00")
-        # Overtime should be 0 (not negative)
+        # Overtime should be 0 (raw_ot is negative, so max(0, -1) = 0)
         assert entry.overtime_hours == Decimal("0.00")
 
     def test_total_worked_hours_includes_overtime(self, test_employee):
         """Test that total_worked_hours correctly includes overtime."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        # Create overtime entry for the proposal (2 hours approved)
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(17, 0),
+            end_time=time(19, 0),
+            description="Overtime work",
+        )
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
@@ -286,6 +361,24 @@ class TestTimesheetIntegration:
 
     def test_complete_timesheet_entry_with_all_calculations(self, test_employee):
         """Test a complete timesheet entry with all calculations."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal (1.5 hours)
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(17, 0),
+            end_time=time(18, 30),
+            description="Overtime work",
+        )
+
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
@@ -305,6 +398,8 @@ class TestTimesheetIntegration:
         assert entry.morning_hours == Decimal("3.83")  # ~3 hours 50 minutes (8:10-12:00)
         assert entry.afternoon_hours == Decimal("4.00")  # 4 hours (13:00-17:00)
         assert entry.official_hours == Decimal("7.83")
-        assert entry.overtime_hours == Decimal("1.50")  # 17:00-18:30 = 1.5 hours overtime
-        assert entry.total_worked_hours == Decimal("9.33")  # 7.83 + 1.50
+        # Raw OT = (10.33 actual - 1 hour break) - 8 standard = 1.33 hours
+        # Approved OT = 1.50 hours, so final OT = min(1.33, 1.50) = 1.33
+        assert entry.overtime_hours == Decimal("1.33")  # Capped by actual work performed
+        assert entry.total_worked_hours == Decimal("9.16")  # 7.83 + 1.33
         assert entry.is_manually_corrected is False
