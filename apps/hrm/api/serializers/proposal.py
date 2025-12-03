@@ -10,6 +10,7 @@ from apps.hrm.api.serializers.common_nested import (
 )
 from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal, ProposalAsset, ProposalOvertimeEntry, ProposalTimeSheetEntry, ProposalVerifier
+from libs.drf.serializers import ColoredValueSerializer
 
 from .employee import EmployeeSerializer
 
@@ -19,14 +20,16 @@ class ProposalSerializer(serializers.ModelSerializer):
 
     created_by = EmployeeSerializer(read_only=True)
     approved_by = EmployeeSerializer(read_only=True)
+    colored_proposal_status = ColoredValueSerializer(read_only=True)
 
     class Meta:
         model = Proposal
         fields = [
             "id",
+            "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "complaint_reason",
             "proposed_check_in_time",
             "proposed_check_out_time",
@@ -227,6 +230,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
 
     created_by = EmployeeSerializer(read_only=True)
     approved_by = EmployeeSerializer(read_only=True)
+    colored_proposal_status = ColoredValueSerializer(read_only=True)
 
     def validate(self, attrs):
         user = self.context["request"].user
@@ -264,7 +268,7 @@ class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "late_exemption_start_date",
             "late_exemption_end_date",
             "late_exemption_minutes",
@@ -279,7 +283,7 @@ class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "created_by",
             "approved_by",
             "created_at",
@@ -328,7 +332,7 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "entries",
             "overtime_entries",
             "note",
@@ -342,7 +346,7 @@ class ProposalOvertimeWorkSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "overtime_entries",
             "created_by",
             "approved_by",
@@ -395,7 +399,7 @@ class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "post_maternity_benefits_start_date",
             "post_maternity_benefits_end_date",
             "note",
@@ -409,7 +413,7 @@ class ProposalPostMaternityBenefitsSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "created_by",
             "approved_by",
             "created_at",
@@ -445,7 +449,7 @@ class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "proposal_assets",
             "assets",
             "note",
@@ -459,7 +463,7 @@ class ProposalAssetAllocationSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "assets",
             "created_by",
             "approved_by",
@@ -508,7 +512,7 @@ class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "maternity_leave_start_date",
             "maternity_leave_end_date",
             "maternity_leave_estimated_due_date",
@@ -525,7 +529,7 @@ class ProposalMaternityLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "created_by",
             "approved_by",
             "created_at",
@@ -543,7 +547,7 @@ class ProposalPaidLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "paid_leave_start_date",
             "paid_leave_end_date",
             "paid_leave_shift",
@@ -559,7 +563,7 @@ class ProposalPaidLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "created_by",
             "approved_by",
             "created_at",
@@ -577,7 +581,7 @@ class ProposalUnpaidLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "unpaid_leave_start_date",
             "unpaid_leave_end_date",
             "unpaid_leave_shift",
@@ -593,7 +597,7 @@ class ProposalUnpaidLeaveSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "created_by",
             "approved_by",
             "created_at",
@@ -619,7 +623,7 @@ class ProposalJobTransferSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "job_transfer_new_branch",
             "job_transfer_new_department_id",
             "job_transfer_new_block",
@@ -639,7 +643,7 @@ class ProposalJobTransferSerializer(ProposalByTypeSerializer):
             "code",
             "proposal_date",
             "proposal_type",
-            "proposal_status",
+            "colored_proposal_status",
             "job_transfer_new_branch",
             "job_transfer_new_block",
             "job_transfer_new_department",

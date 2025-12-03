@@ -135,7 +135,7 @@ class TestProposalAPI:
         # Should return only pending proposals (2 items)
         assert data["data"]["count"] == 2
         for result in data["data"]["results"]:
-            assert result["proposal_status"] == ProposalStatus.PENDING
+            assert result["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
     def test_list_all_proposals_filter_by_type(self, api_client, superuser, test_employee):
         """Test filtering all proposals by proposal type."""
@@ -686,7 +686,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         data = response.json()
         assert data["success"] is True
         assert data["data"]["count"] == 1
-        assert data["data"]["results"][0]["proposal_status"] == ProposalStatus.PENDING
+        assert data["data"]["results"][0]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
     def test_approve_complaint_success(self, api_client, superuser, test_employee):
         proposal = Proposal.objects.create(

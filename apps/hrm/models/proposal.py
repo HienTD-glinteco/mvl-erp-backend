@@ -10,11 +10,12 @@ from apps.hrm.constants import (
     ProposalVerifierStatus,
     ProposalWorkShift,
 )
-from libs.models import AutoCodeMixin, BaseModel, SafeTextField
+from libs.constants import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
 
 @audit_logging_register
-class Proposal(AutoCodeMixin, BaseModel):
+class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Employee proposal model for various requests like leave, overtime, complaints, etc."""
 
     CODE_PREFIX = "DX"
@@ -224,9 +225,22 @@ class Proposal(AutoCodeMixin, BaseModel):
             models.Index(fields=["proposal_date"], name="proposal_date_idx"),
         ]
 
+    VARIANT_MAPPING = {
+        "proposal_status": {
+            ProposalStatus.PENDING: ColorVariant.YELLOW,
+            ProposalStatus.APPROVED: ColorVariant.GREEN,
+            ProposalStatus.REJECTED: ColorVariant.RED,
+        }
+    }
+
     def __str__(self) -> str:  # pragma: no cover - trivial
         code = getattr(self, "code", None) or f"#{self.pk}" if self.pk else "New"
         return f"Proposal {code} - {self.proposal_type}"
+
+    @property
+    def colored_proposal_status(self) -> dict:
+        """Get colored value representation for proposal_status field."""
+        return self.get_colored_value("proposal_status")
 
     def _clean_late_exemption_fields(self) -> None:
         """Validate late exemption proposal fields."""
