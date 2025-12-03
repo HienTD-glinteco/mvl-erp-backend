@@ -20,45 +20,45 @@ msgstr ""
 
 #: apps/devices/zk/service.py:93
 msgid "Failed to establish connection to device"
-msgstr ""
+msgstr "Lỗi kết nối đến thiết bị"
 
 #: apps/devices/zk/service.py:101
 #, python-format
 msgid "Network connection error: %(error)s"
-msgstr ""
+msgstr "Lỗi kết nối mạng: %(error)s"
 
 #: apps/devices/zk/service.py:106
 #, python-format
 msgid "Device response error: %(error)s"
-msgstr ""
+msgstr "Lỗi phản hồi từ thiết bị: %(error)s"
 
 #: apps/devices/zk/service.py:111 apps/devices/zk/service.py:150
 #, python-format
 msgid "Unexpected error: %(error)s"
-msgstr ""
+msgstr "Lỗi không xác định: %(error)s"
 
 #: apps/devices/zk/service.py:138
 #, python-format
 msgid "Connection successful. Firmware: %(firmware)s"
-msgstr ""
+msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 
 #: apps/devices/zk/service.py:142
 msgid "Connection object is None"
-msgstr ""
+msgstr "Kết nối bị trống"
 
 #: apps/devices/zk/service.py:170 apps/devices/zk/service.py:222
 msgid "Device not connected. Call connect() first."
-msgstr ""
+msgstr "Thiết bị chưa kết nối. Vui lòng nhấn Kết nối trước."
 
 #: apps/devices/zk/service.py:208
 #, python-format
 msgid "Failed to fetch attendance logs: %(error)s"
-msgstr ""
+msgstr "Lỗi khi lấy dữ liệu chấm công: %(error)s"
 
 #: apps/devices/zk/service.py:233
 #, python-format
 msgid "Failed to get device info: %(error)s"
-msgstr ""
+msgstr "Lỗi khi lấy thông tin thiết bị: %(error)s"
 
 #: apps/files/api/serializers/file_serializers.py:116
 #, python-brace-format
@@ -70,291 +70,305 @@ msgstr ""
 #: apps/files/api/serializers/file_serializers.py:129
 #, python-brace-format
 msgid "Invalid model label: {model}"
-msgstr ""
+msgstr "Tên mẫu đối tượng không hợp lệ: {model}"
 
 #: apps/files/api/serializers/file_serializers.py:140
 msgid ""
 "Both related_model and related_object_id must be provided together, or both "
 "omitted"
-msgstr ""
+msgstr "Cả related_model và related_object_id phải được cung cấp cùng nhau, hoặc bỏ qua cả hai"
 
 #: apps/files/api/serializers/file_serializers.py:149
 #, python-brace-format
 msgid "Object with ID {id} not found"
-msgstr ""
+msgstr "Không tìm thấy đối tượng với ID {id}"
 
 #: apps/files/api/serializers/file_serializers.py:152
 msgid "Invalid model"
-msgstr ""
+msgstr "Mẫu đối tượng không hợp lệ"
 
 #: apps/files/api/serializers/mixins.py:34
 msgid "Expected a string or list of strings."
-msgstr ""
+msgstr "Cần phải là chuỗi hoặc danh sách chuỗi."
 
 #: apps/files/api/serializers/mixins.py:35
 msgid "All items must be strings."
-msgstr ""
+msgstr "Tất cả mục phải là chuỗi."
 
 #: apps/files/api/views/file_views.py:96
 msgid "Generate presigned URL"
-msgstr ""
+msgstr "Tạo URL ký trước"
 
 #: apps/files/api/views/file_views.py:260
 msgid "Confirm multiple files"
-msgstr ""
+msgstr "Xác nhận nhiều tệp tin"
 
 #: apps/files/utils/s3_utils.py:93
 #, python-brace-format
 msgid "Failed to generate presigned URL: {error}"
-msgstr ""
+msgstr "Lỗi khi tạo URL ký trước: {error}"
 
 #: apps/files/utils/s3_utils.py:176
 #, python-brace-format
 msgid "Failed to move file in S3: {error}"
-msgstr ""
+msgstr "Lỗi khi di chuyển tệp tin trong S3: {error}"
 
 #: apps/files/utils/s3_utils.py:220
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
-msgstr ""
+msgstr "Lỗi khi xóa tệp tin khỏi S3: {error}"
 
 #: apps/files/utils/s3_utils.py:266
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
-msgstr ""
+msgstr "Lỗi khi tạo URL GET ký trước: {error}"
 
 #: apps/imports/api/mixins.py:126
 msgid "File not found"
-msgstr ""
+msgstr "Tệp tin không tồn tại"
 
 #: apps/imports/api/mixins.py:293 apps/imports/api/views.py:96
 msgid "Import job not found"
-msgstr ""
+msgstr "Job nhập dữ liệu không tồn tại"
+
+#: apps/imports/api/serializers.py:34
+#, python-brace-format
+msgid ""
+"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
+"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+msgstr "Số dòng xử lý mỗi lô (mặc định: {DEFAULT_BATCH_SIZE}, phạm vi: {MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
+
+#: apps/imports/api/serializers.py:48
+#, python-brace-format
+msgid ""
+"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
+"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
+msgstr "Số dòng tiêu đề để bỏ qua (mặc định: {DEFAULT_HEADER_ROWS}, phạm vi: {MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
 
 #: apps/imports/api/serializers.py:90
 msgid "batch_size must be an integer"
-msgstr ""
+msgstr "batch_size phải là một số nguyên"
 
 #: apps/imports/api/serializers.py:98
 msgid "count_total_first must be a boolean"
-msgstr ""
+msgstr "count_total_first phải là một giá trị boolean"
 
 #: apps/imports/api/serializers.py:106
 msgid "header_rows must be an integer"
-msgstr ""
+msgstr "header_rows phải là một số nguyên"
 
 #: apps/imports/api/serializers.py:114
 msgid "create_result_file_records must be a boolean"
-msgstr ""
+msgstr "create_result_file_records phải là một giá trị boolean"
 
 #: apps/imports/api/serializers.py:122
 msgid "handler_path must be a string or null"
-msgstr ""
+msgstr "handler_path phải là một chuỗi hoặc null"
 
 #: apps/imports/api/serializers.py:130
 msgid "handler_options must be a dictionary"
-msgstr ""
+msgstr "handler_options phải là một từ điển"
 
 #: apps/imports/api/serializers.py:138
 msgid "result_file_prefix must be a string"
-msgstr ""
+msgstr "result_file_prefix phải là một chuỗi"
 
 #: apps/imports/api/serializers.py:146
 msgid "allow_update must be a boolean"
-msgstr ""
+msgstr "allow_update phải là một giá trị boolean"
 
 #: apps/imports/api/serializers.py:158
 #, python-format
 msgid "output_format must be one of: %(formats)s"
-msgstr ""
+msgstr "output_format phải là một trong các giá trị: %(formats)s"
 
 #: apps/imports/api/serializers.py:174
 msgid "Unknown field"
-msgstr ""
+msgstr "Trường thông tin không xác định"
 
 #: apps/imports/api/views.py:51
 msgid "Check import status"
-msgstr ""
+msgstr "Kiểm tra trạng thái nhập dữ liệu"
 
 #: apps/imports/api/views.py:51
 msgid "Import Check Status"
-msgstr ""
+msgstr "Quyền kiểm tra trạng thái nhập dữ liệu"
 
 #: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
 msgid "Pending"
-msgstr ""
+msgstr "Đang chờ"
 
 #: apps/mailtemplates/models.py:21
 msgid "Running"
-msgstr ""
+msgstr "Đang chạy"
 
 #: apps/mailtemplates/models.py:22 apps/realestate/models/project.py:19
 msgid "Completed"
-msgstr ""
+msgstr "Đã hoàn thành"
 
 #: apps/mailtemplates/models.py:23 apps/mailtemplates/models.py:124
 msgid "Failed"
-msgstr ""
+msgstr "Đã thất bại"
 
 #: apps/mailtemplates/models.py:123
 msgid "Sent"
-msgstr ""
+msgstr "Đã gửi"
 
 #: apps/mailtemplates/permissions.py:18 apps/mailtemplates/permissions.py:39
 #: apps/mailtemplates/permissions.py:60
 msgid "Authentication required"
-msgstr ""
+msgstr "Yêu cầu xác thực"
 
 #: apps/mailtemplates/permissions.py:26
 msgid "Template editor permission required"
-msgstr ""
+msgstr "Yêu cầu quyền chỉnh sửa mẫu"
 
 #: apps/mailtemplates/permissions.py:47
 msgid "Mail sending permission required"
-msgstr ""
+msgstr "Yêu cầu quyền gửi thư"
 
 #: apps/mailtemplates/permissions.py:68
 msgid "Real data preview permission required"
-msgstr ""
+msgstr "Yêu cầu quyền xem trước dữ liệu thực"
 
 #: apps/mailtemplates/view_mixins.py:188
 msgid ""
 "Failed to get recipients. Override get_recipients() or provide recipients in "
 "request."
-msgstr ""
+msgstr "Lấy người nhận thất bại. Ghi đè phương thức get_recipients() hoặc cung cấp người nhận trong yêu cầu."
 
 #: apps/mailtemplates/view_mixins.py:197
 msgid "No recipients found"
-msgstr ""
+msgstr "Không tìm thấy người nhận"
 
 #: apps/mailtemplates/view_mixins.py:205 apps/mailtemplates/view_mixins.py:468
 msgid "Each recipient must have 'email' and 'data' fields"
-msgstr ""
+msgstr "Mỗi người nhận phải có các trường 'email' và 'data'"
 
 #: apps/mailtemplates/view_mixins.py:285
 msgid "Email send job enqueued"
-msgstr ""
+msgstr "Job gửi email đã được trong hàng đợi"
 
 #: apps/mailtemplates/view_mixins.py:291 apps/mailtemplates/view_mixins.py:506
 msgid "Template not found"
-msgstr ""
+msgstr "Thông tin mẫu không tồn tại"
 
 #: apps/mailtemplates/view_mixins.py:294 apps/mailtemplates/view_mixins.py:509
 msgid "Template validation failed. Please check your data."
-msgstr ""
+msgstr "Thiếu sót trong việc xác thực mẫu. Vui lòng kiểm tra lại dữ liệu của bạn."
 
 #: apps/mailtemplates/view_mixins.py:383
 msgid ""
 "No email address found. Override get_recipients() to provide recipients."
-msgstr ""
+msgstr "Không tìm thấy địa chỉ email. Ghi đè phương thức get_recipients() để cung cấp người nhận."
 
 #: apps/mailtemplates/view_mixins.py:440
 msgid "Either object_ids or filters must be provided"
-msgstr ""
+msgstr "Cần cung cấp object_ids hoặc filters"
 
 #: apps/mailtemplates/view_mixins.py:452
 msgid "Failed to get recipients for instance"
-msgstr ""
+msgstr "Lấy người nhận cho thể hiện thất bại"
 
 #: apps/mailtemplates/view_mixins.py:461
 msgid "No recipients found for the selected objects"
-msgstr ""
+msgstr "Không tìm thấy người nhận cho các đối tượng đã chọn"
 
 #: apps/mailtemplates/view_mixins.py:500
 msgid "Bulk email send job enqueued"
-msgstr ""
+msgstr "Job gửi email hàng loạt đã được trong hàng đợi"
 
 #: apps/mailtemplates/views.py:248
 msgid "Failed to save template"
-msgstr ""
+msgstr "Lưu mẫu thất bại"
 
 #: apps/mailtemplates/views.py:331
 msgid "Data or ref required for real mode"
-msgstr ""
+msgstr "Yêu cầu dữ liệu hoặc ref cho chế độ thực"
 
 #: apps/mailtemplates/views.py:449
 msgid "Job with this client_request_id already exists"
-msgstr ""
+msgstr "Job với client_request_id này đã tồn tại"
 
 #: apps/mailtemplates/views.py:496
 msgid "Job enqueued"
-msgstr ""
+msgstr "Job đã được trong hàng đợi"
 
 #: apps/mailtemplates/views.py:545
 msgid "Not authorized to view this job"
-msgstr ""
+msgstr "Không được phép xem job này"
 
 #: apps/mailtemplates/views.py:554
 msgid "Job not found"
-msgstr ""
+msgstr "Job không tồn tại"
 
 #: apps/realestate/models/project.py:17
 msgid "Active"
-msgstr ""
+msgstr "Đang hoạt động"
 
 #: apps/realestate/models/project.py:18
 msgid "Inactive"
-msgstr ""
+msgstr "Không hoạt động"
 
 #: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24
 #, python-brace-format
 msgid "List {model_name}"
-msgstr ""
+msgstr "Danh sách {model_name}"
 
 #: libs/drf/base_viewset.py:63 libs/drf/mixin/permission.py:25
 #, python-brace-format
 msgid "View list of {model_name}"
-msgstr ""
+msgstr "Xem danh sách {model_name}"
 
 #: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "View {model_name}"
-msgstr ""
+msgstr "Xem {model_name}"
 
 #: libs/drf/base_viewset.py:67 libs/drf/mixin/permission.py:29
 #, python-brace-format
 msgid "View details of a {model_name}"
-msgstr ""
+msgstr "Xem chi tiết của {model_name}"
 
 #: libs/drf/mixin/permission.py:32
 #, python-brace-format
 msgid "Create {model_name}"
-msgstr ""
+msgstr "Quyền tạo {model_name}"
 
 #: libs/drf/mixin/permission.py:33
 #, python-brace-format
 msgid "Create a new {model_name}"
-msgstr ""
+msgstr "Quyền tạo mới một {model_name}"
 
 #: libs/drf/mixin/permission.py:36
 #, python-brace-format
 msgid "Update {model_name}"
-msgstr ""
+msgstr "Quyền cập nhật {model_name}"
 
 #: libs/drf/mixin/permission.py:37
 #, python-brace-format
 msgid "Update a {model_name}"
-msgstr ""
+msgstr "Quyền cập nhật một {model_name}"
 
 #: libs/drf/mixin/permission.py:40
 #, python-brace-format
 msgid "Partially update {model_name}"
-msgstr ""
+msgstr "Quyền cập nhật một phần {model_name}"
 
 #: libs/drf/mixin/permission.py:41
 #, python-brace-format
 msgid "Partially update a {model_name}"
-msgstr ""
+msgstr "Quyền cập nhật một phần một {model_name}"
 
 #: libs/drf/mixin/permission.py:44
 #, python-brace-format
 msgid "Delete {model_name}"
-msgstr ""
+msgstr "Quyền xóa {model_name}"
 
 #: libs/drf/mixin/permission.py:45
 #, python-brace-format
 msgid "Delete a {model_name}"
-msgstr ""
+msgstr "Quyền xóa một {model_name}"
 
 #: libs/drf/mixin/protected_delete.py:117
 #, python-brace-format
@@ -369,45 +383,45 @@ msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo v�
 
 #: libs/export_xlsx/mixins.py:100
 msgid "Async export is not enabled"
-msgstr ""
+msgstr "Xuất XLSX không đồng bộ không được bật"
 
 #: libs/export_xlsx/mixins.py:110
 msgid "Invalid delivery parameter; allowed: link, direct"
-msgstr ""
+msgstr "Lỗi tham số delivery; cho phép: link, direct"
 
 #: libs/export_xlsx/mixins.py:170
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
-msgstr ""
+msgstr "Xuất dữ liệu đã bắt đầu. Kiểm tra trạng thái tại /api/export/status/?task_id={task_id}"
 
 #: libs/export_xlsx/mixins.py:268
 #, python-brace-format
 msgid "Failed to upload file to S3: {error}"
-msgstr ""
+msgstr "Lỗi khi tải tệp tin lên S3: {error}"
 
 #: libs/import_xlsx/import_mixin.py:377
 msgid "Import task has been queued for processing"
-msgstr ""
+msgstr "Job nhập dữ liệu đã được đưa vào hàng đợi để xử lý"
 
 #: libs/import_xlsx/utils.py:176
 msgid "Enter a valid email address"
-msgstr ""
+msgstr "Địa chỉ email không hợp lệ"
 
 #: libs/import_xlsx/utils.py:193
 msgid "This field is required"
-msgstr ""
+msgstr "Trường này là bắt buộc"
 
 #: libs/validators.py:6
 msgid "Citizen ID must contain from 9 to 12 digits"
-msgstr ""
+msgstr "Căn cước công dân phải chứa từ 9 đến 12 chữ số"
 
 #: templates/emails/base_email.html:6
 msgid "MaiVietLand"
-msgstr ""
+msgstr "MaiVietLand"
 
 #: templates/emails/base_email.html:26
 msgid "This email is sent automatically, please do not reply."
-msgstr ""
+msgstr "Email này được gửi tự động, vui lòng không trả lời."
 
 #: templates/emails/base_email.html:27
 msgid "All rights reserved."

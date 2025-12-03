@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 14:37+0700\n"
+"POT-Creation-Date: 2025-12-02 20:03+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -439,15 +439,15 @@ msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
 #: apps/core/api/views/export_status.py:43
 msgid "Check export status"
-msgstr ""
+msgstr "Quyền xem trạng thái xuất dữ liệu"
 
 #: apps/core/api/views/export_status.py:43
 msgid "Export status"
-msgstr ""
+msgstr "Trạng thái xuất dữ liệu"
 
 #: apps/core/api/views/export_status.py:66
 msgid "task_id parameter is required"
-msgstr ""
+msgstr "Tham số task_id là bắt buộc"
 
 #: apps/core/management/commands/import_administrative_data.py:14
 msgid ""
@@ -552,7 +552,7 @@ msgstr ""
 
 #: apps/core/models/administrative_unit.py:15
 msgid "District"
-msgstr ""
+msgstr "Quận/Huyện"
 
 #: apps/core/models/administrative_unit.py:16
 msgid "Commune"
@@ -560,7 +560,7 @@ msgstr ""
 
 #: apps/core/models/administrative_unit.py:17
 msgid "Ward"
-msgstr ""
+msgstr "Phuờng/Xã"
 
 #: apps/core/models/administrative_unit.py:18
 msgid "Township"
@@ -594,7 +594,7 @@ msgstr ""
 
 #: apps/core/models/province.py:16
 msgid "Province"
-msgstr ""
+msgstr "Tỉnh/Thành phố"
 
 #: apps/core/models/role.py:39 apps/core/tests/test_role_api.py:267
 msgid "System"

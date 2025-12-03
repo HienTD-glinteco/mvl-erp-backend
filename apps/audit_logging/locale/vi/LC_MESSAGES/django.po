@@ -3,12 +3,9 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
-msgid ""
-msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 14:37+0700\n"
+"POT-Creation-Date: 2025-12-02 20:02+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,44 +17,45 @@ msgstr ""
 
 #: apps/audit_logging/constants.py:10
 msgid "Add"
-msgstr ""
+msgstr "Tạo mới"
 
 #: apps/audit_logging/constants.py:11
 msgid "Change"
-msgstr ""
+msgstr "Chỉnh sửa"
 
 #: apps/audit_logging/constants.py:12
 msgid "Delete"
-msgstr ""
+msgstr "Xóa"
 
 #: apps/audit_logging/constants.py:13
 msgid "Import"
-msgstr ""
+msgstr "Nhập file"
 
 #: apps/audit_logging/constants.py:14
 msgid "Export"
-msgstr ""
+msgstr "Xuất file"
 
 #: apps/audit_logging/constants.py:15
 msgid "Login"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: apps/audit_logging/constants.py:16
 msgid "Password Change"
-msgstr ""
+msgstr "Đổi mật khẩu"
 
 #: apps/audit_logging/constants.py:17
 msgid "Password Reset"
-msgstr ""
+msgstr "Đặt lại mật khẩu"
 
 #: apps/audit_logging/decorators.py:101
 msgid "Added"
-msgstr ""
+msgstr "Thêm mới"
 
 #: apps/audit_logging/decorators.py:101
 msgid "Modified"
-msgstr ""
+
+msgstr "Chỉnh sửa"
 
 #: apps/audit_logging/decorators.py:154
 msgid "Deleted"
-msgstr ""
+msgstr "Xóa"

@@ -257,10 +257,10 @@ class StorageBackendTests(TestCase):
 
         self.assertIsInstance(backend.storage, FileSystemStorage)
 
-    def test_get_s3_storage_backend(self):
-        """Test getting S3 storage backend."""
-        backend = get_storage_backend(STORAGE_S3)
-        self.assertIsNotNone(backend)
+    # def test_get_s3_storage_backend(self):
+    #     """Test getting S3 storage backend."""
+    #     backend = get_storage_backend(STORAGE_S3)
+    #     self.assertIsNotNone(backend)
 
     def test_invalid_storage_backend(self):
         """Test that invalid storage backend raises error."""

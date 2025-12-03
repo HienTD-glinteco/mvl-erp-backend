@@ -112,7 +112,7 @@ class FileConfirmationSerializer(serializers.Serializer):
     related_field = serializers.CharField(
         required=False,
         allow_null=True,
-        help_text=_(
+        help_text=(
             "Optional field name on related model to set as ForeignKey to this file. "
             "If provided, related_object.{related_field} = file_model"
         ),

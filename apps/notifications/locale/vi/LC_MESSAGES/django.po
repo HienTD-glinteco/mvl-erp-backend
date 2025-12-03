@@ -53,7 +53,7 @@ msgstr "Tất cả thông báo đã được đánh dấu đã đọc"
 
 #: apps/notifications/api/views/notification.py:291
 msgid "Unread notification count"
-msgstr ""
+msgstr "Số lượng thông báo chưa đọc"
 
 #: apps/notifications/models.py:18
 msgid "Firebase"
@@ -70,7 +70,7 @@ msgstr "Cả hai"
 #: apps/notifications/tasks.py:71
 #, python-format
 msgid "Hello %(recipient_name)s,"
-msgstr ""
+msgstr "Xin chào %(recipient_name)s,"
 
 #: apps/notifications/tasks.py:73
 #, python-format
