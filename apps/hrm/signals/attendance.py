@@ -13,6 +13,9 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
     When an attendance record is created or updated, update the corresponding TimeSheetEntry
     by setting start_time (if missing), end_time (latest), and recalculating hours.
     Also flag the monthly timesheet to need_refresh and schedule a task.
+
+    Note: If a timesheet entry is marked as manually corrected (from approved proposals),
+    this signal will not overwrite the times to preserve manual corrections.
     """
     # Match employee by attendance_code
     employee = Employee.objects.filter(attendance_code=instance.attendance_code).first()
@@ -22,21 +25,23 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
     # find or create timesheet entry for the date
     entry, _ = TimeSheetEntry.objects.get_or_create(employee_id=employee.id, date=instance.timestamp.date())
 
-    # Determine new start_time and end_time, preserving existing values if not updating
-    if not entry.start_time or instance.timestamp < entry.start_time:
-        start_time = instance.timestamp
-    else:
-        start_time = entry.start_time
-    if not entry.end_time or instance.timestamp > entry.end_time:
-        end_time = instance.timestamp
-    else:
-        end_time = entry.end_time
-    entry.update_times(start_time, end_time)
+    # Skip updating times if entry is manually corrected (from approved proposals)
+    if not entry.is_manually_corrected:
+        # Determine new start_time and end_time, preserving existing values if not updating
+        if not entry.start_time or instance.timestamp < entry.start_time:
+            start_time = instance.timestamp
+        else:
+            start_time = entry.start_time
+        if not entry.end_time or instance.timestamp > entry.end_time:
+            end_time = instance.timestamp
+        else:
+            end_time = entry.end_time
+        entry.update_times(start_time, end_time)
 
-    # Calculate hours using the WorkSchedule integration
-    entry.calculate_hours_from_schedule()
+        # Calculate hours using the WorkSchedule integration
+        entry.calculate_hours_from_schedule()
 
-    entry.save()
+        entry.save()
 
     # Mark monthly timesheet for refresh
     yr = entry.date.year

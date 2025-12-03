@@ -144,6 +144,27 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
     def get_target_status(self):
         return ProposalStatus.APPROVED
 
+    def update(self, instance, validated_data):
+        """Update the proposal and execute it if approved."""
+        # Update the proposal status and fields
+        instance = super().update(instance, validated_data)
+
+        # Execute the proposal if it was approved
+        if instance.proposal_status == ProposalStatus.APPROVED:
+            from apps.hrm.services.proposal_service import ProposalService
+
+            try:
+                ProposalService.execute_approved_proposal(instance)
+            except Exception as e:
+                # Log the error but don't fail the approval
+                # The proposal is already approved, so we should not rollback
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to execute proposal {instance.id}: {str(e)}", exc_info=True)
+
+        return instance
+
 
 class ProposalRejectSerializer(ProposalChangeStatusSerializer):
     """
