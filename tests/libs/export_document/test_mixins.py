@@ -15,8 +15,8 @@ from libs.export_document.mixins import ExportDocumentMixin
 class TestExportDocumentMixinUnit:
     """Unit tests for ExportDocumentMixin methods"""
 
-    def test_direct_file_response(self):
-        """Test _direct_file_response method"""
+    def test_document_direct_file_response(self):
+        """Test _document_direct_file_response method"""
         # Create a temporary file
         tmp_file = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
         tmp_file.write(b"test content")
@@ -31,7 +31,7 @@ class TestExportDocumentMixinUnit:
 
         try:
             # Act
-            response = mixin._direct_file_response(file_info)
+            response = mixin._document_direct_file_response(file_info)
 
             # Assert
             assert response.status_code == status.HTTP_206_PARTIAL_CONTENT

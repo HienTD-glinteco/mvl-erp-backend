@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Hợp đồng lao động - {{ contract.code }}</title>
+        <style>
+            body {
+                font-family: "Times New Roman", serif;
+                line-height: 1.6;
+                margin: 40px;
+                color: #000;
+            }
+            h1,
+            h2,
+            h3 {
+                color: #333;
+            }
+            h1 {
+                text-align: center;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+            }
+            h2 {
+                margin-top: 30px;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 5px;
+            }
+            h3 {
+                margin-bottom: 5px;
+            }
+            p {
+                margin-top: 0;
+            }
+            .section {
+                margin-bottom: 20px;
+            }
+            .company-name {
+                text-align: center;
+                font-weight: bold;
+                font-size: 18px;
+                margin-bottom: 20px;
+            }
+            .contract-number {
+                text-align: center;
+                font-style: italic;
+                margin-bottom: 30px;
+            }
+            .info-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            .info-table th,
+            .info-table td {
+                padding: 8px 12px;
+                text-align: left;
+                border: 1px solid #ddd;
+            }
+            .info-table th {
+                background-color: #f5f5f5;
+                width: 35%;
+                font-weight: bold;
+            }
+            .money {
+                text-align: right;
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .status-draft {
+                background-color: #fff3cd;
+                color: #856404;
+            }
+            .status-not_effective {
+                background-color: #cce5ff;
+                color: #004085;
+            }
+            .status-active {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            .status-about_to_expire {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+            .status-expired {
+                background-color: #e2e3e5;
+                color: #383d41;
+            }
+            .signature-section {
+                margin-top: 50px;
+                display: flex;
+                justify-content: space-between;
+            }
+            .signature-box {
+                width: 45%;
+                text-align: center;
+            }
+            .signature-title {
+                font-weight: bold;
+                margin-bottom: 80px;
+            }
+            .signature-name {
+                border-top: 1px solid #000;
+                padding-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>HỢP ĐỒNG LAO ĐỘNG</h1>
+        <div class="company-name">
+            Công ty Cổ phần Địa ốc Mai Việt (Mai Việt Land)
+        </div>
+        <div class="contract-number">
+            Số: {{ contract.contract_number|default:contract.code }}
+        </div>
+
+        <!-- Contract Basic Information -->
+        <div class="section">
+            <h2>I. Thông tin hợp đồng</h2>
+            <table class="info-table">
+                <tr>
+                    <th>Mã hợp đồng</th>
+                    <td>{{ contract.code }}</td>
+                </tr>
+                <tr>
+                    <th>Số hợp đồng</th>
+                    <td>{{ contract.contract_number|default:"(Chưa có)" }}</td>
+                </tr>
+                <tr>
+                    <th>Loại hợp đồng</th>
+                    <td>{{ contract.contract_type.name|default:"(Chưa có thông tin)" }}</td>
+                </tr>
+                <tr>
+                    <th>Trạng thái</th>
+                    <td>
+                        <span class="status-badge status-{{ contract.status }}">
+                            {{ contract.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Thời hạn</th>
+                    <td>{{ contract.duration_display }}</td>
+                </tr>
+                {% if contract.duration_months %}
+                <tr>
+                    <th>Số tháng</th>
+                    <td>{{ contract.duration_months }} tháng</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Important Dates -->
+        <div class="section">
+            <h2>II. Thời gian</h2>
+            <table class="info-table">
+                <tr>
+                    <th>Ngày ký</th>
+                    <td>{{ contract.sign_date|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <th>Ngày có hiệu lực</th>
+                    <td>{{ contract.effective_date|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <th>Ngày hết hạn</th>
+                    <td>{{ contract.expiration_date|date:"d/m/Y"|default:"Không xác định (Hợp đồng không thời hạn)" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Employee Information -->
+        <div class="section">
+            <h2>III. Thông tin nhân viên</h2>
+            <table class="info-table">
+                <tr>
+                    <th>Mã nhân viên</th>
+                    <td>{{ contract.employee.code }}</td>
+                </tr>
+                <tr>
+                    <th>Họ và tên</th>
+                    <td>{{ contract.employee.fullname }}</td>
+                </tr>
+                {% if contract.employee.email %}
+                <tr>
+                    <th>Email</th>
+                    <td>{{ contract.employee.email }}</td>
+                </tr>
+                {% endif %}
+                {% if contract.employee.phone %}
+                <tr>
+                    <th>Số điện thoại</th>
+                    <td>{{ contract.employee.phone }}</td>
+                </tr>
+                {% endif %}
+                {% if contract.employee.citizen_id %}
+                <tr>
+                    <th>CCCD/CMND</th>
+                    <td>{{ contract.employee.citizen_id }}</td>
+                </tr>
+                {% endif %}
+                {% if contract.employee.department %}
+                <tr>
+                    <th>Phòng ban</th>
+                    <td>{{ contract.employee.department.name }}</td>
+                </tr>
+                {% endif %}
+                {% if contract.employee.position %}
+                <tr>
+                    <th>Chức vụ</th>
+                    <td>{{ contract.employee.position.name }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Salary Information -->
+        <div class="section">
+            <h2>IV. Thông tin lương và phụ cấp</h2>
+            <table class="info-table">
+                <tr>
+                    <th>Lương cơ bản</th>
+                    <td class="money">{{ contract.base_salary|floatformat:0|default:"0" }} VNĐ</td>
+                </tr>
+                <tr>
+                    <th>Lương KPI</th>
+                    <td class="money">{{ contract.kpi_salary|floatformat:0|default:"0" }} VNĐ</td>
+                </tr>
+                {% if contract.lunch_allowance %}
+                <tr>
+                    <th>Phụ cấp ăn trưa</th>
+                    <td class="money">{{ contract.lunch_allowance|floatformat:0 }} VNĐ</td>
+                </tr>
+                {% endif %}
+                {% if contract.phone_allowance %}
+                <tr>
+                    <th>Phụ cấp điện thoại</th>
+                    <td class="money">{{ contract.phone_allowance|floatformat:0 }} VNĐ</td>
+                </tr>
+                {% endif %}
+                {% if contract.other_allowance %}
+                <tr>
+                    <th>Phụ cấp khác</th>
+                    <td class="money">{{ contract.other_allowance|floatformat:0 }} VNĐ</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Tax and Insurance Information -->
+        <div class="section">
+            <h2>V. Thông tin thuế và bảo hiểm</h2>
+            <table class="info-table">
+                <tr>
+                    <th>Tỷ lệ NET</th>
+                    <td>{{ contract.get_net_percentage_display }}</td>
+                </tr>
+                <tr>
+                    <th>Phương thức tính thuế</th>
+                    <td>{{ contract.get_tax_calculation_method_display }}</td>
+                </tr>
+                <tr>
+                    <th>Loại hình làm việc</th>
+                    <td>{{ contract.get_working_time_type_display }}</td>
+                </tr>
+                <tr>
+                    <th>Số ngày phép năm</th>
+                    <td>{{ contract.annual_leave_days }} ngày</td>
+                </tr>
+                <tr>
+                    <th>Bảo hiểm xã hội</th>
+                    <td>{% if contract.has_social_insurance %}Có{% else %}Không{% endif %}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Working Conditions -->
+        {% if contract.working_conditions %}
+        <div class="section">
+            <h2>VI. Điều kiện làm việc</h2>
+            <div>{{ contract.working_conditions|safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Rights and Obligations -->
+        {% if contract.rights_and_obligations %}
+        <div class="section">
+            <h2>VII. Quyền và nghĩa vụ</h2>
+            <div>{{ contract.rights_and_obligations|safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Terms -->
+        {% if contract.terms %}
+        <div class="section">
+            <h2>VIII. Điều khoản hợp đồng</h2>
+            <div>{{ contract.terms|safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if contract.note %}
+        <div class="section">
+            <h2>IX. Ghi chú</h2>
+            <p>{{ contract.note }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-title">ĐẠI DIỆN CÔNG TY</div>
+                <div class="signature-name">(Ký và ghi rõ họ tên)</div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-title">NGƯỜI LAO ĐỘNG</div>
+                <div class="signature-name">{{ contract.employee.fullname }}</div>
+            </div>
+        </div>
+    </body>
+</html>

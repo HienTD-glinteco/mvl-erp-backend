@@ -16,7 +16,7 @@ from apps.hrm.api.serializers.contract import (
 )
 from apps.hrm.models import Contract, ContractType
 from apps.imports.api.mixins import AsyncImportProgressMixin
-from libs import BaseModelViewSet
+from libs import BaseModelViewSet, ExportDocumentMixin
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
 
@@ -260,11 +260,16 @@ from libs.export_xlsx import ExportXLSXMixin
     import_template=extend_schema(
         tags=["7.2: Contract"],
     ),
+    export_detail_document=extend_schema(
+        tags=["7.2: Contract"],
+    ),
 )
-class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class ContractViewSet(
+    ExportDocumentMixin, AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet
+):
     """ViewSet for Contract model.
 
-    Provides CRUD operations and XLSX export for contracts.
+    Provides CRUD operations, XLSX export, and document export (PDF/DOCX) for contracts.
     Supports filtering, searching, and ordering.
     Supports import from file via AsyncImportProgressMixin.
 
@@ -277,6 +282,8 @@ class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMix
         contract_type__category=ContractType.Category.CONTRACT,
     ).select_related(
         "employee",
+        "employee__department",
+        "employee__position",
         "contract_type",
         "attachment",
     )
@@ -305,8 +312,33 @@ class ContractViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMix
     export_serializer_class = ContractExportSerializer
     export_filename = "contracts"
 
+    # Document export configuration
+    document_template_name = "documents/contract.html"
+
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.contract.import_handler"  # type: ignore[assignment]
+
+    def get_export_context(self, instance):
+        """Prepare context for contract document export.
+
+        Args:
+            instance: Contract instance to export.
+
+        Returns:
+            dict: Context dictionary for template rendering.
+        """
+        return {"contract": instance}
+
+    def get_export_filename(self, instance):
+        """Generate filename for contract document export.
+
+        Args:
+            instance: Contract instance to export.
+
+        Returns:
+            str: Filename without extension.
+        """
+        return f"contract_{instance.code}"
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""

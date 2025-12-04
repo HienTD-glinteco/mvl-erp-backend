@@ -2,6 +2,8 @@
 
 from datetime import date, timedelta
 from decimal import Decimal
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -487,3 +489,74 @@ class TestContractAPI:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "DRAFT" in str(response.json()["error"])
+
+
+@pytest.mark.django_db
+class TestContractDocumentExport:
+    """Test cases for Contract document export (PDF/DOCX)."""
+
+    def test_export_document_pdf_direct(self, api_client, contract):
+        """Test exporting contract as PDF with direct download."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        response = api_client.get(url, {"type": "pdf", "delivery": "direct"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/pdf"
+        assert f'attachment; filename="contract_{contract.code.lower()}.pdf"' in response["Content-Disposition"]
+
+    def test_export_document_docx_direct(self, api_client, contract):
+        """Test exporting contract as DOCX with direct download."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        # Mock pypandoc.convert_file to create a valid DOCX file without requiring Pandoc
+        def mock_convert_file(source, to, outputfile, extra_args=None):
+            # Create a minimal valid DOCX file (empty but valid format)
+            docx_path = Path(outputfile)
+            # Write minimal DOCX content (PK header for zip-based format)
+            with open(docx_path, "wb") as f:
+                # Minimal DOCX is a ZIP file, write empty zip header
+                import zipfile
+
+                with zipfile.ZipFile(f, "w") as zf:
+                    zf.writestr("[Content_Types].xml", '<?xml version="1.0"?><Types></Types>')
+
+        with patch("pypandoc.convert_file", side_effect=mock_convert_file):
+            response = api_client.get(url, {"type": "docx", "delivery": "direct"})
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        assert f'attachment; filename="contract_{contract.code.lower()}.docx"' in response["Content-Disposition"]
+
+    def test_export_document_default_is_pdf(self, api_client, contract):
+        """Test that default export format is PDF."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_206_PARTIAL_CONTENT
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_export_document_invalid_type(self, api_client, contract):
+        """Test export with invalid file type returns error."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        response = api_client.get(url, {"type": "invalid"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_export_document_invalid_delivery(self, api_client, contract):
+        """Test export with invalid delivery method returns error."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": contract.pk})
+
+        response = api_client.get(url, {"delivery": "invalid"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_export_document_not_found(self, api_client):
+        """Test export with non-existent contract returns 404."""
+        url = reverse("hrm:contract-export-detail-document", kwargs={"pk": 99999})
+
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -181,14 +181,14 @@ class ExportDocumentMixin:
         # Handle delivery mode
         try:
             if delivery == DELIVERY_DIRECT:
-                return self._direct_file_response(file_info)
+                return self._document_direct_file_response(file_info)
             else:  # DELIVERY_LINK
-                return self._s3_delivery_response(file_info, instance)
+                return self._document_s3_delivery_response(file_info, instance)
         finally:
             # Clean up temporary file
             self._cleanup_temp_file(file_info.get("file_path"))
 
-    def _direct_file_response(self, file_info):
+    def _document_direct_file_response(self, file_info):
         """
         Create HTTP response for direct file download.
 
@@ -217,7 +217,7 @@ class ExportDocumentMixin:
         response["Content-Disposition"] = f'attachment; filename="{file_info["file_name"]}"'
         return response
 
-    def _s3_delivery_response(self, file_info, instance):
+    def _document_s3_delivery_response(self, file_info, instance):
         """
         Upload to S3 and return presigned URL response.
 

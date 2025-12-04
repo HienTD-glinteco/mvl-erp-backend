@@ -11,6 +11,7 @@ from .models import (
     Branch,
     BranchContactInfo,
     CompensatoryWorkday,
+    Contract,
     ContractType,
     Decision,
     Department,
@@ -86,6 +87,7 @@ admin.site.register(RecruitmentSource)
 admin.site.register(EmployeeCertificate)
 admin.site.register(EmployeeDependent)
 admin.site.register(EmployeeRelationship)
+admin.site.register(Contract)
 admin.site.register(ContractType)
 admin.site.register(JobDescription)
 admin.site.register(InterviewCandidate)
