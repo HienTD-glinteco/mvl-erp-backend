@@ -69,9 +69,14 @@ from .recruitment_candidate_contact_log import RecruitmentCandidateContactLogSer
 from .recruitment_candidate_export import RecruitmentCandidateExportSerializer
 from .recruitment_channel import RecruitmentChannelSerializer
 from .recruitment_dashboard import (
-    DashboardChartDataSerializer,
+    BranchBreakdownResponseSerializer,
+    CostBreakdownResponseSerializer,
+    CostByBranchesResponseSerializer,
     DashboardChartFilterSerializer,
     DashboardRealtimeDataSerializer,
+    ExperienceBreakdownResponseSerializer,
+    MonthlyTrendsResponseSerializer,
+    SourceTypeBreakdownResponseSerializer,
 )
 from .recruitment_expense import RecruitmentExpenseExportSerializer, RecruitmentExpenseSerializer
 from .recruitment_reports import (
@@ -152,8 +157,13 @@ __all__ = [
     "RecruitmentCostReportAggregatedSerializer",
     "HiredCandidateReportAggregatedSerializer",
     "DashboardRealtimeDataSerializer",
-    "DashboardChartDataSerializer",
     "DashboardChartFilterSerializer",
+    "ExperienceBreakdownResponseSerializer",
+    "BranchBreakdownResponseSerializer",
+    "CostBreakdownResponseSerializer",
+    "CostByBranchesResponseSerializer",
+    "SourceTypeBreakdownResponseSerializer",
+    "MonthlyTrendsResponseSerializer",
     "EmployeeRelationshipSerializer",
     "EmployeeSenioritySerializer",
     "EmployeeStatusBreakdownReportAggregatedSerializer",
