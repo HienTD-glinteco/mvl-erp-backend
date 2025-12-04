@@ -230,10 +230,24 @@ class TestComplaintProposalCorrection:
 class TestComplaintProposalCannotAttend:
     """Tests for TIMESHEET_ENTRY_COMPLAINT proposal execution (cannot attend case)."""
 
-    def test_execute_complaint_cannot_attend(self, test_employee):
-        """Test executing a complaint proposal for cannot attend (creates attendance records)."""
+    def test_execute_complaint_cannot_attend_with_existing_records(self, test_employee):
+        """Test executing a complaint proposal for cannot attend (updates existing attendance records)."""
         # Create an empty timesheet entry
         existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 13))
+
+        # Create attendance records that were created when the complaint was submitted
+        existing_check_in = AttendanceRecord.objects.create(
+            attendance_type="other",
+            employee=test_employee,
+            attendance_code=test_employee.attendance_code,
+            timestamp=timezone.make_aware(timezone.datetime(2025, 1, 13, 9, 0)),  # Original proposed time
+        )
+        existing_check_out = AttendanceRecord.objects.create(
+            attendance_type="other",
+            employee=test_employee,
+            attendance_code=test_employee.attendance_code,
+            timestamp=timezone.make_aware(timezone.datetime(2025, 1, 13, 18, 0)),  # Original proposed time
+        )
 
         # Create a complaint proposal without approved times (cannot attend case)
         proposal = Proposal.objects.create(
@@ -252,9 +266,44 @@ class TestComplaintProposalCannotAttend:
         # Execute the proposal
         ProposalService.execute_approved_proposal(proposal)
 
-        # Verify attendance records were created
+        # Verify attendance records were updated (not created new ones)
         attendance_records = AttendanceRecord.objects.filter(
             employee=test_employee, timestamp__date=date(2025, 1, 13)
+        )
+        assert attendance_records.count() == 2
+
+        # Verify times were updated to match proposed times
+        existing_check_in.refresh_from_db()
+        existing_check_out.refresh_from_db()
+        assert existing_check_in.timestamp.time() == time(8, 15)
+        assert existing_check_out.timestamp.time() == time(17, 30)
+
+    def test_execute_complaint_cannot_attend_without_existing_records(self, test_employee):
+        """Test executing a complaint proposal when no attendance records exist (fallback case)."""
+        # Create an empty timesheet entry
+        existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 14))
+
+        # Create a complaint proposal without approved times (cannot attend case)
+        # No attendance records exist yet (fallback scenario)
+        proposal = Proposal.objects.create(
+            code="DX_COMPLAINT_003",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            proposal_status=ProposalStatus.APPROVED,
+            timesheet_entry_complaint_complaint_reason="Device malfunction, could not check in",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 15),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 30),
+            created_by=test_employee,
+        )
+
+        # Link proposal to timesheet entry
+        ProposalTimeSheetEntry.objects.create(proposal=proposal, timesheet_entry=existing_entry)
+
+        # Execute the proposal
+        ProposalService.execute_approved_proposal(proposal)
+
+        # Verify attendance records were created as fallback
+        attendance_records = AttendanceRecord.objects.filter(
+            employee=test_employee, timestamp__date=date(2025, 1, 14)
         )
         assert attendance_records.count() == 2
 
@@ -268,11 +317,11 @@ class TestComplaintProposalCannotAttend:
 
     def test_complaint_without_proposed_times_raises_error(self, test_employee):
         """Test that complaint without proposed times raises an error."""
-        existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 14))
+        existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 15))
 
         # Create a complaint proposal without any times
         proposal = Proposal.objects.create(
-            code="DX_COMPLAINT_003",
+            code="DX_COMPLAINT_004",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
             proposal_status=ProposalStatus.APPROVED,
             timesheet_entry_complaint_complaint_reason="Missing times",

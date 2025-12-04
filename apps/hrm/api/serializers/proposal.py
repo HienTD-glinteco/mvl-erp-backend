@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -13,9 +14,12 @@ from apps.hrm.api.serializers.common_nested import (
 )
 from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal, ProposalAsset, ProposalOvertimeEntry, ProposalTimeSheetEntry, ProposalVerifier
+from apps.hrm.services.proposal_service import ProposalService
 from libs.drf.serializers import ColoredValueSerializer
 
 from .employee import EmployeeSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class ProposalSerializer(serializers.ModelSerializer):
@@ -146,8 +150,6 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
 
     def update(self, instance, validated_data):
         """Update the proposal and execute it if approved."""
-        from apps.hrm.services.proposal_service import ProposalService
-
         # Update the proposal status and fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -160,9 +162,6 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
             except Exception as e:
                 # Log the error but don't fail the approval
                 # The proposal is already approved, so we should not rollback
-                import logging
-
-                logger = logging.getLogger(__name__)
                 logger.error(f"Failed to execute proposal {instance.id}: {str(e)}", exc_info=True)
 
         return instance

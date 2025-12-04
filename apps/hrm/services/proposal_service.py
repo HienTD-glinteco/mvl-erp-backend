@@ -180,13 +180,17 @@ class ProposalService:
 
     @staticmethod
     def _create_attendance_for_complaint(proposal: Proposal, entry: TimeSheetEntry) -> None:
-        """Create attendance records for cannot-attend complaint case.
+        """Update attendance records for cannot-attend complaint case.
+
+        When a complaint is created for "cannot attend", attendance records with type=OTHER
+        are already created at that time. This method updates those existing records with
+        the approved times from the proposal.
 
         Args:
             proposal: The complaint Proposal instance
             entry: The TimesheetEntry to update
         """
-        # Get proposed times
+        # Get proposed times (which should be the same as approved in this case)
         proposed_check_in = proposal.timesheet_entry_complaint_proposed_check_in_time
         proposed_check_out = proposal.timesheet_entry_complaint_proposed_check_out_time
 
@@ -195,27 +199,47 @@ class ProposalService:
                 f"Complaint proposal {proposal.id} missing proposed check-in/out times"
             )
 
-        # Create attendance records with type OTHER
-        # The attendance signal will automatically update the timesheet entry
         employee = proposal.created_by
 
-        # Create check-in record
+        # Find and update existing attendance records for this employee and date
+        # These records should have been created when the complaint was submitted
         check_in_datetime = timezone.make_aware(datetime.combine(entry.date, proposed_check_in))
-        AttendanceRecord.objects.create(
-            attendance_type="other",
-            employee=employee,
-            attendance_code=employee.attendance_code or "",
-            timestamp=check_in_datetime,
-        )
-
-        # Create check-out record
         check_out_datetime = timezone.make_aware(datetime.combine(entry.date, proposed_check_out))
-        AttendanceRecord.objects.create(
-            attendance_type="other",
+
+        # Get attendance records for this date with type OTHER
+        attendance_records = AttendanceRecord.objects.filter(
             employee=employee,
-            attendance_code=employee.attendance_code or "",
-            timestamp=check_out_datetime,
-        )
+            timestamp__date=entry.date,
+            attendance_type="other"
+        ).order_by('timestamp')
+
+        if attendance_records:
+            # Update existing records - first record is check-in, last is check-out
+            if len(attendance_records) >= 1:
+                first_record = attendance_records[0]
+                first_record.timestamp = check_in_datetime
+                first_record.save()
+
+            if len(attendance_records) >= 2:
+                last_record = attendance_records[len(attendance_records) - 1]
+                last_record.timestamp = check_out_datetime
+                last_record.save()
+        else:
+            # Fallback: If no attendance records exist, create them
+            # This handles cases where the complaint was created without attendance records
+            AttendanceRecord.objects.create(
+                attendance_type="other",
+                employee=employee,
+                attendance_code=employee.attendance_code or "",
+                timestamp=check_in_datetime,
+            )
+
+            AttendanceRecord.objects.create(
+                attendance_type="other",
+                employee=employee,
+                attendance_code=employee.attendance_code or "",
+                timestamp=check_out_datetime,
+            )
 
     @staticmethod
     def _execute_overtime_proposal(proposal: Proposal) -> None:
@@ -234,9 +258,9 @@ class ProposalService:
             proposal: The approved overtime Proposal instance
         """
         # Get all overtime entries for this proposal
-        overtime_entries = ProposalOvertimeEntry.objects.filter(proposal=proposal)
+        overtime_entries = list(ProposalOvertimeEntry.objects.filter(proposal=proposal))
 
-        if not overtime_entries.exists():
+        if len(overtime_entries) == 0:
             raise ProposalExecutionError(f"Overtime proposal {proposal.id} has no overtime entries")
 
         for ot_entry in overtime_entries:
