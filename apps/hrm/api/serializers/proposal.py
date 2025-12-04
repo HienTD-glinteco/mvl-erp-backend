@@ -15,7 +15,7 @@ from apps.hrm.api.serializers.common_nested import (
 from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal, ProposalAsset, ProposalOvertimeEntry, ProposalTimeSheetEntry, ProposalVerifier
 from apps.hrm.services.proposal_service import ProposalService
-from libs.drf.serializers import ColoredValueSerializer
+from libs.drf.serializers import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 from .employee import EmployeeSerializer
 
@@ -588,3 +588,218 @@ class ProposalJobTransferSerializer(ProposalByTypeSerializer):
             "job_transfer_new_department",
             "job_transfer_new_position",
         ]
+
+
+# =============================================================================
+# Export XLSX Serializers
+# =============================================================================
+
+
+class ProposalExportXLSXSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+    """Base serializer for Proposal XLSX export.
+
+    This serializer provides the common fields for all proposal types
+    when exporting to XLSX. Type-specific serializers should inherit
+    from this class and add their specific fields.
+    """
+
+    proposal_status = serializers.CharField(
+        source="colored_proposal_status.value",
+        read_only=True,
+        label="Status",
+    )
+    created_by_code = serializers.CharField(
+        source="created_by.code",
+        read_only=True,
+        label="Created By Code",
+    )
+    created_by_name = serializers.CharField(
+        source="created_by.fullname",
+        read_only=True,
+        label="Created By Name",
+    )
+    approved_by_code = serializers.CharField(
+        source="approved_by.code",
+        read_only=True,
+        allow_null=True,
+        label="Approved By Code",
+    )
+    approved_by_name = serializers.CharField(
+        source="approved_by.fullname",
+        read_only=True,
+        allow_null=True,
+        label="Approved By Name",
+    )
+
+    class Meta:
+        model = Proposal
+        fields = [
+            "id",
+            "code",
+            "proposal_date",
+            "proposal_type",
+            "proposal_status",
+            "note",
+            "created_by_code",
+            "created_by_name",
+            "approved_by_code",
+            "approved_by_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class ProposalTimesheetEntryComplaintExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Timesheet Entry Complaint proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "timesheet_entry_complaint_complaint_reason",
+            "timesheet_entry_complaint_proposed_check_in_time",
+            "timesheet_entry_complaint_proposed_check_out_time",
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
+        ]
+        read_only_fields = fields
+
+
+class ProposalLateExemptionExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Late Exemption proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "late_exemption_start_date",
+            "late_exemption_end_date",
+            "late_exemption_minutes",
+        ]
+        read_only_fields = fields
+
+
+class ProposalOvertimeWorkExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Overtime Work proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields
+        read_only_fields = fields
+
+
+class ProposalPostMaternityBenefitsExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Post-Maternity Benefits proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "post_maternity_benefits_start_date",
+            "post_maternity_benefits_end_date",
+        ]
+        read_only_fields = fields
+
+
+class ProposalPaidLeaveExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Paid Leave proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "paid_leave_start_date",
+            "paid_leave_end_date",
+            "paid_leave_shift",
+            "paid_leave_reason",
+        ]
+        read_only_fields = fields
+
+
+class ProposalUnpaidLeaveExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Unpaid Leave proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "unpaid_leave_start_date",
+            "unpaid_leave_end_date",
+            "unpaid_leave_shift",
+            "unpaid_leave_reason",
+        ]
+        read_only_fields = fields
+
+
+class ProposalMaternityLeaveExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Maternity Leave proposals."""
+
+    replacement_employee_code = serializers.CharField(
+        source="maternity_leave_replacement_employee.code",
+        read_only=True,
+        allow_null=True,
+        label="Replacement Employee Code",
+    )
+    replacement_employee_name = serializers.CharField(
+        source="maternity_leave_replacement_employee.fullname",
+        read_only=True,
+        allow_null=True,
+        label="Replacement Employee Name",
+    )
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "maternity_leave_start_date",
+            "maternity_leave_end_date",
+            "maternity_leave_estimated_due_date",
+            "replacement_employee_code",
+            "replacement_employee_name",
+        ]
+        read_only_fields = fields
+
+
+class ProposalJobTransferExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Job Transfer proposals."""
+
+    new_branch_name = serializers.CharField(
+        source="job_transfer_new_branch.name",
+        read_only=True,
+        allow_null=True,
+        label="New Branch",
+    )
+    new_block_name = serializers.CharField(
+        source="job_transfer_new_block.name",
+        read_only=True,
+        allow_null=True,
+        label="New Block",
+    )
+    new_department_name = serializers.CharField(
+        source="job_transfer_new_department.name",
+        read_only=True,
+        allow_null=True,
+        label="New Department",
+    )
+    new_position_name = serializers.CharField(
+        source="job_transfer_new_position.name",
+        read_only=True,
+        allow_null=True,
+        label="New Position",
+    )
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "new_branch_name",
+            "new_block_name",
+            "new_department_name",
+            "new_position_name",
+            "job_transfer_effective_date",
+            "job_transfer_reason",
+        ]
+        read_only_fields = fields
+
+
+class ProposalAssetAllocationExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Export serializer for Asset Allocation proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalExportXLSXSerializer.Meta.fields
+        read_only_fields = fields
