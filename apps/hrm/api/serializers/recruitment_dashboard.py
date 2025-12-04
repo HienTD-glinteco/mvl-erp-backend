@@ -87,7 +87,7 @@ class SourceTypesMonthlyTrendsSerializer(serializers.Serializer):
 
 
 class DashboardChartDataSerializer(serializers.Serializer):
-    """Serializer for dashboard chart data."""
+    """Serializer for dashboard chart data (deprecated - use individual chart endpoints)."""
 
     experience_breakdown = ExperienceBreakdownSerializer(many=True, help_text="Breakdown by experience level")
     branch_breakdown = BranchBreakdownSerializer(many=True, help_text="Breakdown by branch")
@@ -100,5 +100,44 @@ class DashboardChartDataSerializer(serializers.Serializer):
 
 
 class DashboardChartFilterSerializer(serializers.Serializer):
-    from_date = serializers.DateField(required=False)
-    to_date = serializers.DateField(required=False)
+    """Filter serializer for dashboard charts."""
+
+    from_date = serializers.DateField(required=False, help_text="Start date for filtering (YYYY-MM-DD)")
+    to_date = serializers.DateField(required=False, help_text="End date for filtering (YYYY-MM-DD)")
+
+
+# Individual response serializers for each chart endpoint
+class ExperienceBreakdownResponseSerializer(serializers.Serializer):
+    """Response serializer for experience breakdown chart."""
+
+    data = ExperienceBreakdownSerializer(many=True)
+
+
+class BranchBreakdownResponseSerializer(serializers.Serializer):
+    """Response serializer for branch breakdown chart."""
+
+    data = BranchBreakdownSerializer(many=True)
+
+
+class CostBreakdownResponseSerializer(serializers.Serializer):
+    """Response serializer for cost breakdown chart."""
+
+    data = CostBreakdownByCategorySerializer(many=True)
+
+
+class CostByBranchesResponseSerializer(serializers.Serializer):
+    """Response serializer for cost by branches chart."""
+
+    data = CostBreakdownByBranchAggregrationSerializer()
+
+
+class SourceTypeBreakdownResponseSerializer(serializers.Serializer):
+    """Response serializer for source type breakdown chart."""
+
+    data = SourceTypeBreakdownSerializer(many=True)
+
+
+class MonthlyTrendsResponseSerializer(serializers.Serializer):
+    """Response serializer for monthly trends chart."""
+
+    data = SourceTypesMonthlyTrendsSerializer()

@@ -961,3 +961,410 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("data", cost_by_branches)
         self.assertEqual(len(cost_by_branches["data"]), 0)
         self.assertEqual(len(cost_by_branches["months"]), 0)
+
+
+class RecruitmentDashboardIndividualChartsAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for individual chart endpoints in Recruitment Dashboard"""
+
+    def setUp(self):
+        """Set up test data"""
+        self.user = User.objects.create_superuser(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        # Create organizational structure
+        self.province = Province.objects.create(name="Hanoi", code="01")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            name="City",
+            code="TP",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            name="Hanoi Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        self.block = Block.objects.create(
+            name="Business Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+
+        self.department = Department.objects.create(
+            name="IT Department",
+            branch=self.branch,
+            block=self.block,
+            function=Department.DepartmentFunction.BUSINESS,
+        )
+
+        self.employee = Employee.objects.create(
+            fullname="Nguyen Van A",
+            username="nguyenvana",
+            email="nguyenvana@example.com",
+            phone="0123456789",
+            attendance_code="EMP001",
+            citizen_id="000123456789",
+            date_of_birth="1990-01-01",
+            personal_email="nguyenvana.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+
+        # Set up test dates
+        self.today = date.today()
+        self.first_day_month = self.today.replace(day=1)
+        if self.today.month == 12:
+            self.last_day_month = date(self.today.year + 1, 1, 1) - timedelta(days=1)
+        else:
+            self.last_day_month = date(self.today.year, self.today.month + 1, 1) - timedelta(days=1)
+
+    def test_experience_breakdown_chart_endpoint(self):
+        """Test experience breakdown chart endpoint"""
+        # Arrange: Create test data
+        month_key = self.first_day_month.strftime("%m/%Y")
+
+        HiredCandidateReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month_key,
+            num_candidates_hired=20,
+            num_experienced=12,
+        )
+
+        # Act: Call the experience breakdown API
+        url = reverse("hrm:recruitment-dashboard-experience-breakdown-chart")
+        response = self.client.get(url)
+
+        # Assert: Verify response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 2)
+
+        labels = [item["label"] for item in data]
+        self.assertIn("Experienced", labels)
+        self.assertIn("Inexperienced", labels)
+
+        experienced = next(item for item in data if "Experienced" in item["label"])
+        inexperienced = next(item for item in data if "Inexperienced" in item["label"])
+
+        self.assertEqual(experienced["count"], 12)
+        self.assertEqual(experienced["percentage"], 60.0)
+        self.assertEqual(inexperienced["count"], 8)
+        self.assertEqual(inexperienced["percentage"], 40.0)
+
+    def test_branch_breakdown_chart_endpoint(self):
+        """Test branch breakdown chart endpoint"""
+        # Arrange: Create test data for multiple branches
+        branch2 = Branch.objects.create(
+            name="HCMC Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        month_key = self.first_day_month.strftime("%m/%Y")
+
+        HiredCandidateReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month_key,
+            num_candidates_hired=10,
+            num_experienced=5,
+        )
+
+        HiredCandidateReport.objects.create(
+            report_date=self.first_day_month,
+            branch=branch2,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month_key,
+            num_candidates_hired=15,
+            num_experienced=8,
+        )
+
+        # Act: Call the branch breakdown API
+        url = reverse("hrm:recruitment-dashboard-branch-breakdown-chart")
+        response = self.client.get(url)
+
+        # Assert: Verify response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 2)
+
+        for item in data:
+            self.assertIn("branch_name", item)
+            self.assertIn("count", item)
+            self.assertIn("percentage", item)
+
+        total_hires = sum(item["count"] for item in data)
+        self.assertEqual(total_hires, 25)
+
+    def test_cost_breakdown_chart_endpoint(self):
+        """Test cost breakdown chart endpoint"""
+        # Arrange: Create cost data
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("5000000.00"),
+            num_hires=10,
+            avg_cost_per_hire=Decimal("500000.00"),
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("2000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("400000.00"),
+        )
+
+        # Act: Call the cost breakdown API
+        url = reverse("hrm:recruitment-dashboard-cost-breakdown-chart")
+        response = self.client.get(url)
+
+        # Assert: Verify response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0)
+
+        for item in data:
+            self.assertIn("source_type", item)
+            self.assertIn("total_cost", item)
+            self.assertIn("percentage", item)
+
+    def test_cost_by_branches_chart_endpoint(self):
+        """Test cost by branches chart endpoint"""
+        # Arrange: Create cost data
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("2000000.00"),
+        )
+
+        # Act: Call the cost by branches API
+        url = reverse("hrm:recruitment-dashboard-cost-by-branches-chart")
+        response = self.client.get(url)
+
+        # Assert: Verify response structure
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, dict)
+        self.assertIn("months", data)
+        self.assertIn("data", data)
+
+        months = data["months"]
+        branches_data = data["data"]
+
+        self.assertEqual(len(months), 1)
+        self.assertEqual(months[0], cost_month_key)
+        self.assertEqual(len(branches_data), 1)
+
+        branch_data = branches_data[0]
+        self.assertEqual(branch_data["type"], "branch")
+        self.assertEqual(branch_data["name"], "Hanoi Branch")
+        self.assertIn("statistics", branch_data)
+
+    def test_source_type_breakdown_chart_endpoint(self):
+        """Test source type breakdown chart endpoint"""
+        # Arrange: Create cost data with different source types
+        cost_month_key = self.first_day_month.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("5000000.00"),
+            num_hires=10,
+            avg_cost_per_hire=Decimal("500000.00"),
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=self.first_day_month,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("2000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("400000.00"),
+        )
+
+        # Act: Call the source type breakdown API
+        url = reverse("hrm:recruitment-dashboard-source-type-breakdown-chart")
+        response = self.client.get(url)
+
+        # Assert: Verify response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0)
+
+        for item in data:
+            self.assertIn("source_type", item)
+            self.assertIn("count", item)
+            self.assertIn("percentage", item)
+
+    def test_monthly_trends_chart_endpoint(self):
+        """Test monthly trends chart endpoint"""
+        # Arrange: Create data for multiple months
+        month1 = self.first_day_month
+        month1_key = month1.strftime("%Y-%m")
+
+        if month1.month == 1:
+            month2 = month1.replace(year=month1.year - 1, month=12)
+        else:
+            month2 = month1.replace(month=month1.month - 1)
+        month2_key = month2.strftime("%Y-%m")
+
+        RecruitmentCostReport.objects.create(
+            report_date=month1,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month1_key,
+            total_cost=Decimal("10000000.00"),
+            num_hires=10,
+            avg_cost_per_hire=Decimal("1000000.00"),
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=month2,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.REFERRAL_SOURCE.value,
+            month_key=month2_key,
+            total_cost=Decimal("6000000.00"),
+            num_hires=5,
+            avg_cost_per_hire=Decimal("1200000.00"),
+        )
+
+        # Act: Call the monthly trends API with custom date range
+        url = reverse("hrm:recruitment-dashboard-monthly-trends-chart")
+        response = self.client.get(
+            url,
+            {
+                "from_date": month2.isoformat(),
+                "to_date": month1.isoformat(),
+            },
+        )
+
+        # Assert: Verify response structure
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+
+        self.assertIsInstance(data, dict)
+        self.assertIn("months", data)
+        self.assertIn("source_type_names", data)
+        self.assertIn("data", data)
+
+        self.assertIsInstance(data["months"], list)
+        self.assertIsInstance(data["source_type_names"], list)
+        self.assertIsInstance(data["data"], list)
+
+        if len(data["data"]) > 0:
+            source_data = data["data"][0]
+            self.assertIn("type", source_data)
+            self.assertIn("name", source_data)
+            self.assertIn("statistics", source_data)
+            self.assertEqual(source_data["type"], "source_type")
+            self.assertIsInstance(source_data["statistics"], list)
+
+    def test_individual_chart_endpoints_with_custom_date_range(self):
+        """Test all individual chart endpoints accept custom date range"""
+        # Arrange: Create test data
+        start_date = self.first_day_month
+        end_date = self.first_day_month + timedelta(days=15)
+        month_key = start_date.strftime("%m/%Y")
+        cost_month_key = start_date.strftime("%Y-%m")
+
+        HiredCandidateReport.objects.create(
+            report_date=start_date,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month_key,
+            num_candidates_hired=8,
+            num_experienced=5,
+        )
+
+        RecruitmentCostReport.objects.create(
+            report_date=start_date,
+            branch=self.branch,
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=cost_month_key,
+            total_cost=Decimal("3000000.00"),
+            num_hires=8,
+            avg_cost_per_hire=Decimal("375000.00"),
+        )
+
+        # Test all endpoints with custom date range
+        date_params = {
+            "from_date": start_date.isoformat(),
+            "to_date": end_date.isoformat(),
+        }
+
+        endpoints = [
+            "hrm:recruitment-dashboard-experience-breakdown-chart",
+            "hrm:recruitment-dashboard-branch-breakdown-chart",
+            "hrm:recruitment-dashboard-cost-breakdown-chart",
+            "hrm:recruitment-dashboard-cost-by-branches-chart",
+            "hrm:recruitment-dashboard-source-type-breakdown-chart",
+            "hrm:recruitment-dashboard-monthly-trends-chart",
+        ]
+
+        for endpoint_name in endpoints:
+            url = reverse(endpoint_name)
+            response = self.client.get(url, date_params)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                f"Endpoint {endpoint_name} should return 200 with custom date range",
+            )
+
+    def test_individual_chart_endpoints_without_filters(self):
+        """Test all individual chart endpoints work without filters (use defaults)"""
+        # No data needed - testing empty responses
+
+        endpoints = [
+            "hrm:recruitment-dashboard-experience-breakdown-chart",
+            "hrm:recruitment-dashboard-branch-breakdown-chart",
+            "hrm:recruitment-dashboard-cost-breakdown-chart",
+            "hrm:recruitment-dashboard-cost-by-branches-chart",
+            "hrm:recruitment-dashboard-source-type-breakdown-chart",
+            "hrm:recruitment-dashboard-monthly-trends-chart",
+        ]
+
+        for endpoint_name in endpoints:
+            url = reverse(endpoint_name)
+            response = self.client.get(url)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                f"Endpoint {endpoint_name} should return 200 without filters",
+            )
