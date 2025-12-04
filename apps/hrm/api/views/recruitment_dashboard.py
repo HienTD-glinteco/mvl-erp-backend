@@ -24,7 +24,6 @@ from ..serializers import (
     BranchBreakdownResponseSerializer,
     CostBreakdownResponseSerializer,
     CostByBranchesResponseSerializer,
-    DashboardChartDataSerializer,
     DashboardChartFilterSerializer,
     DashboardRealtimeDataSerializer,
     ExperienceBreakdownResponseSerializer,
@@ -91,27 +90,116 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
         return Response(serializer.data)
 
     @extend_schema(
-        summary="Dashboard Chart Data",
-        description="Get aggregated data for dashboard charts. DEPRECATED: Use individual chart endpoints instead.",
+        summary="Experience Breakdown Chart",
+        description="Get experience level breakdown data for hired candidates.",
         tags=["4.9: Recruitment Dashboard"],
         parameters=[DashboardChartFilterSerializer],
-        responses={200: DashboardChartDataSerializer},
-        deprecated=True,
+        responses={200: ExperienceBreakdownResponseSerializer},
         examples=[
             OpenApiExample(
-                "Success - Chart Data",
+                "Success - Experience Breakdown",
                 value={
                     "success": True,
                     "data": {
-                        "experience_breakdown": [
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-01-31",
+                        "data": [
                             {"label": "Experienced", "count": 45, "percentage": 60.0},
                             {"label": "Inexperienced", "count": 30, "percentage": 40.0},
                         ],
-                        "branch_breakdown": [
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="charts/experience-breakdown")
+    def experience_breakdown_chart(self, request):
+        """Get experience breakdown chart data."""
+        from_date, to_date, _, _ = self._get_date_range(request)
+        data = self._get_experience_breakdown(from_date, to_date)
+        response_data = {
+            "report_from_date": from_date,
+            "report_to_date": to_date,
+            "data": data,
+        }
+        return Response(response_data)
+
+    @extend_schema(
+        summary="Branch Breakdown Chart",
+        description="Get branch breakdown data for hired candidates.",
+        tags=["4.9: Recruitment Dashboard"],
+        parameters=[DashboardChartFilterSerializer],
+        responses={200: BranchBreakdownResponseSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Branch Breakdown",
+                value={
+                    "success": True,
+                    "data": {
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-01-31",
+                        "data": [
                             {"branch_name": "Hanoi Branch", "count": 40, "percentage": 53.3},
                             {"branch_name": "HCMC Branch", "count": 35, "percentage": 46.7},
                         ],
-                        "cost_breakdown": [
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="charts/branch-breakdown")
+    def branch_breakdown_chart(self, request):
+        """Get branch breakdown chart data."""
+        from_date, to_date, _, _ = self._get_date_range(request)
+        data = self._get_branch_breakdown(from_date, to_date)
+        response_data = {
+            "report_from_date": from_date,
+            "report_to_date": to_date,
+            "data": data,
+        }
+        return Response(response_data)
+
+    @extend_schema(
+        summary="Cost Breakdown Chart",
+        description="Get cost breakdown by source type categories.",
+        tags=["4.9: Recruitment Dashboard"],
+        parameters=[DashboardChartFilterSerializer],
+        responses={200: CostBreakdownResponseSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Cost Breakdown",
+                value={
+                    "success": True,
+                    "data": {
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-01-31",
+                        "data": [
                             {
                                 "source_type": "referral_source",
                                 "total_cost": 50000000.0,
@@ -123,7 +211,51 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
                                 "percentage": 64.3,
                             },
                         ],
-                        "cost_by_branches": {
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="charts/cost-breakdown")
+    def cost_breakdown_chart(self, request):
+        """Get cost breakdown by categories chart data."""
+        from_date, to_date, _, _ = self._get_date_range(request)
+        data = self._get_cost_breakdown_by_categories(from_date, to_date)
+        response_data = {
+            "report_from_date": from_date,
+            "report_to_date": to_date,
+            "data": data,
+        }
+        return Response(response_data)
+
+    @extend_schema(
+        summary="Cost by Branches Chart",
+        description="Get average cost breakdown by branches over time.",
+        tags=["4.9: Recruitment Dashboard"],
+        parameters=[DashboardChartFilterSerializer],
+        responses={200: CostByBranchesResponseSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Cost by Branches",
+                value={
+                    "success": True,
+                    "data": {
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-01-31",
+                        "data": {
                             "months": ["10/2025", "11/2025"],
                             "branch_names": ["Hanoi Branch", "HCMC Branch"],
                             "data": [
@@ -161,12 +293,100 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
                                 },
                             ],
                         },
-                        "source_type_breakdown": [
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="charts/cost-by-branches")
+    def cost_by_branches_chart(self, request):
+        """Get cost by branches chart data."""
+        from_date, to_date, _, _ = self._get_date_range(request)
+        data = self._get_average_cost_breakdown_by_branches(from_date, to_date)
+        response_data = {
+            "report_from_date": from_date,
+            "report_to_date": to_date,
+            "data": data,
+        }
+        return Response(response_data)
+
+    @extend_schema(
+        summary="Source Type Breakdown Chart",
+        description="Get recruitment source type breakdown data.",
+        tags=["4.9: Recruitment Dashboard"],
+        parameters=[DashboardChartFilterSerializer],
+        responses={200: SourceTypeBreakdownResponseSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Source Type Breakdown",
+                value={
+                    "success": True,
+                    "data": {
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-01-31",
+                        "data": [
                             {"source_type": "referral_source", "count": 25, "percentage": 33.3},
                             {"source_type": "marketing_channel", "count": 30, "percentage": 40.0},
                             {"source_type": "job_website_channel", "count": 20, "percentage": 26.7},
                         ],
-                        "monthly_trends": {
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid Date Range",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"from_date": ["Invalid date format"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="charts/source-type-breakdown")
+    def source_type_breakdown_chart(self, request):
+        """Get source type breakdown chart data."""
+        from_date, to_date, _, _ = self._get_date_range(request)
+        data = self._get_source_type_breakdown(from_date, to_date)
+        response_data = {
+            "report_from_date": from_date,
+            "report_to_date": to_date,
+            "data": data,
+        }
+        return Response(response_data)
+
+    @extend_schema(
+        summary="Monthly Trends Chart",
+        description="Get monthly trends of candidate sources over time.",
+        tags=["4.9: Recruitment Dashboard"],
+        parameters=[DashboardChartFilterSerializer],
+        responses={200: MonthlyTrendsResponseSerializer},
+        examples=[
+            OpenApiExample(
+                "Success - Monthly Trends",
+                value={
+                    "success": True,
+                    "data": {
+                        "report_from_date": "2024-01-01",
+                        "report_to_date": "2024-06-30",
+                        "data": {
                             "months": ["09/2025", "10/2025"],
                             "source_type_names": [
                                 "Referral Source",
@@ -205,317 +425,6 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
             ),
         ],
     )
-    @action(detail=False, methods=["get"])
-    def charts(self, request):
-        """Get aggregated chart data for dashboard (DEPRECATED)."""
-        from_date, to_date, monthly_chart_from_date, monthly_chart_to_date = self._get_date_range(request)
-
-        experience_breakdown = self._get_experience_breakdown(from_date, to_date)
-        branch_breakdown = self._get_branch_breakdown(from_date, to_date)
-        cost_by_categories = self._get_cost_breakdown_by_categories(from_date, to_date)
-        cost_by_branches = self._get_average_cost_breakdown_by_branches(from_date, to_date)
-        source_type_breakdown = self._get_source_type_breakdown(from_date, to_date)
-        monthly_trends = self._get_monthly_trends(monthly_chart_from_date, monthly_chart_to_date)
-
-        data = {
-            "experience_breakdown": experience_breakdown,
-            "branch_breakdown": branch_breakdown,
-            "cost_breakdown": cost_by_categories,
-            "cost_by_branches": cost_by_branches,
-            "source_type_breakdown": source_type_breakdown,
-            "monthly_trends": monthly_trends,
-        }
-
-        serializer = DashboardChartDataSerializer(data)
-        return Response(serializer.data)
-
-    @extend_schema(
-        summary="Experience Breakdown Chart",
-        description="Get experience level breakdown data for hired candidates.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: ExperienceBreakdownResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Experience Breakdown",
-                value={
-                    "success": True,
-                    "data": [
-                        {"label": "Experienced", "count": 45, "percentage": 60.0},
-                        {"label": "Inexperienced", "count": 30, "percentage": 40.0},
-                    ],
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="charts/experience-breakdown")
-    def experience_breakdown_chart(self, request):
-        """Get experience breakdown chart data."""
-        from_date, to_date, _, _ = self._get_date_range(request)
-        data = self._get_experience_breakdown(from_date, to_date)
-        return Response(data)
-
-    @extend_schema(
-        summary="Branch Breakdown Chart",
-        description="Get branch breakdown data for hired candidates.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: BranchBreakdownResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Branch Breakdown",
-                value={
-                    "success": True,
-                    "data": [
-                        {"branch_name": "Hanoi Branch", "count": 40, "percentage": 53.3},
-                        {"branch_name": "HCMC Branch", "count": 35, "percentage": 46.7},
-                    ],
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="charts/branch-breakdown")
-    def branch_breakdown_chart(self, request):
-        """Get branch breakdown chart data."""
-        from_date, to_date, _, _ = self._get_date_range(request)
-        data = self._get_branch_breakdown(from_date, to_date)
-        return Response(data)
-
-    @extend_schema(
-        summary="Cost Breakdown Chart",
-        description="Get cost breakdown by source type categories.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: CostBreakdownResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Cost Breakdown",
-                value={
-                    "success": True,
-                    "data": [
-                        {
-                            "source_type": "referral_source",
-                            "total_cost": 50000000.0,
-                            "percentage": 35.7,
-                        },
-                        {
-                            "source_type": "marketing_channel",
-                            "total_cost": 90000000.0,
-                            "percentage": 64.3,
-                        },
-                    ],
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="charts/cost-breakdown")
-    def cost_breakdown_chart(self, request):
-        """Get cost breakdown by categories chart data."""
-        from_date, to_date, _, _ = self._get_date_range(request)
-        data = self._get_cost_breakdown_by_categories(from_date, to_date)
-        return Response(data)
-
-    @extend_schema(
-        summary="Cost by Branches Chart",
-        description="Get average cost breakdown by branches over time.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: CostByBranchesResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Cost by Branches",
-                value={
-                    "success": True,
-                    "data": {
-                        "months": ["10/2025", "11/2025"],
-                        "branch_names": ["Hanoi Branch", "HCMC Branch"],
-                        "data": [
-                            {
-                                "name": "Hanoi Branch",
-                                "type": "branch",
-                                "statistics": [
-                                    {
-                                        "total_cost": 25000000.0,
-                                        "total_hires": 5,
-                                        "avg_cost": 5000000.0,
-                                    },
-                                    {
-                                        "total_cost": 21000000.0,
-                                        "total_hires": 3,
-                                        "avg_cost": 7000000.0,
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "HCMC Branch",
-                                "type": "branch",
-                                "statistics": [
-                                    {
-                                        "total_cost": 25000000.0,
-                                        "total_hires": 5,
-                                        "avg_cost": 5000000.0,
-                                    },
-                                    {
-                                        "total_cost": 21000000.0,
-                                        "total_hires": 3,
-                                        "avg_cost": 7000000.0,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="charts/cost-by-branches")
-    def cost_by_branches_chart(self, request):
-        """Get cost by branches chart data."""
-        from_date, to_date, _, _ = self._get_date_range(request)
-        data = self._get_average_cost_breakdown_by_branches(from_date, to_date)
-        return Response(data)
-
-    @extend_schema(
-        summary="Source Type Breakdown Chart",
-        description="Get recruitment source type breakdown data.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: SourceTypeBreakdownResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Source Type Breakdown",
-                value={
-                    "success": True,
-                    "data": [
-                        {"source_type": "referral_source", "count": 25, "percentage": 33.3},
-                        {"source_type": "marketing_channel", "count": 30, "percentage": 40.0},
-                        {"source_type": "job_website_channel", "count": 20, "percentage": 26.7},
-                    ],
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
-    @action(detail=False, methods=["get"], url_path="charts/source-type-breakdown")
-    def source_type_breakdown_chart(self, request):
-        """Get source type breakdown chart data."""
-        from_date, to_date, _, _ = self._get_date_range(request)
-        data = self._get_source_type_breakdown(from_date, to_date)
-        return Response(data)
-
-    @extend_schema(
-        summary="Monthly Trends Chart",
-        description="Get monthly trends of candidate sources over time.",
-        tags=["4.9: Recruitment Dashboard"],
-        parameters=[DashboardChartFilterSerializer],
-        responses={200: MonthlyTrendsResponseSerializer},
-        examples=[
-            OpenApiExample(
-                "Success - Monthly Trends",
-                value={
-                    "success": True,
-                    "data": {
-                        "months": ["09/2025", "10/2025"],
-                        "source_type_names": [
-                            "Referral Source",
-                            "Marketing Channel",
-                            "Job Website Channel",
-                            "Recruitment Department Source",
-                            "Returning Employee",
-                        ],
-                        "data": [
-                            {"type": "source_type", "name": "Referral Source", "statistics": [10, 20]},
-                            {"type": "source_type", "name": "Marketing Channel", "statistics": [10, 20]},
-                            {"type": "source_type", "name": "Job Website Channel", "statistics": [10, 20]},
-                            {
-                                "type": "source_type",
-                                "name": "Recruitment Department Source",
-                                "statistics": [10, 20],
-                            },
-                            {"type": "source_type", "name": "Returning Employee", "statistics": [10, 20]},
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error - Invalid Date Range",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"from_date": ["Invalid date format"]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-    )
     @action(detail=False, methods=["get"], url_path="charts/monthly-trends")
     def monthly_trends_chart(self, request):
         """Get monthly trends chart data."""
@@ -523,9 +432,19 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
         # For monthly trends, use the extended date range if no filter is provided
         if not request.query_params.get("from_date") and not request.query_params.get("to_date"):
             data = self._get_monthly_trends(monthly_chart_from_date, monthly_chart_to_date)
+            response_data = {
+                "report_from_date": monthly_chart_from_date,
+                "report_to_date": monthly_chart_to_date,
+                "data": data,
+            }
         else:
             data = self._get_monthly_trends(from_date, to_date)
-        return Response(data)
+            response_data = {
+                "report_from_date": from_date,
+                "report_to_date": to_date,
+                "data": data,
+            }
+        return Response(response_data)
 
     def _get_hires_today(self, today):
         """Get number of hires today from HiredCandidateReport."""

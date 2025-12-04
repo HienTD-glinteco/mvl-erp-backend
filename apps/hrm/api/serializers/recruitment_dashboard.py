@@ -86,19 +86,6 @@ class SourceTypesMonthlyTrendsSerializer(serializers.Serializer):
     )
 
 
-class DashboardChartDataSerializer(serializers.Serializer):
-    """Serializer for dashboard chart data (deprecated - use individual chart endpoints)."""
-
-    experience_breakdown = ExperienceBreakdownSerializer(many=True, help_text="Breakdown by experience level")
-    branch_breakdown = BranchBreakdownSerializer(many=True, help_text="Breakdown by branch")
-    cost_breakdown = CostBreakdownByCategorySerializer(many=True, help_text="Cost breakdown by source type")
-    cost_by_branches = CostBreakdownByBranchAggregrationSerializer(help_text="Cost breakdown by branches")
-    source_type_breakdown = SourceTypeBreakdownSerializer(many=True, help_text="Source type breakdown")
-    monthly_trends = SourceTypesMonthlyTrendsSerializer(
-        help_text="Monthly trends showing the number of candidates from each recruitment source type for every month",
-    )
-
-
 class DashboardChartFilterSerializer(serializers.Serializer):
     """Filter serializer for dashboard charts."""
 
@@ -110,34 +97,46 @@ class DashboardChartFilterSerializer(serializers.Serializer):
 class ExperienceBreakdownResponseSerializer(serializers.Serializer):
     """Response serializer for experience breakdown chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = ExperienceBreakdownSerializer(many=True)
 
 
 class BranchBreakdownResponseSerializer(serializers.Serializer):
     """Response serializer for branch breakdown chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = BranchBreakdownSerializer(many=True)
 
 
 class CostBreakdownResponseSerializer(serializers.Serializer):
     """Response serializer for cost breakdown chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = CostBreakdownByCategorySerializer(many=True)
 
 
 class CostByBranchesResponseSerializer(serializers.Serializer):
     """Response serializer for cost by branches chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = CostBreakdownByBranchAggregrationSerializer()
 
 
 class SourceTypeBreakdownResponseSerializer(serializers.Serializer):
     """Response serializer for source type breakdown chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = SourceTypeBreakdownSerializer(many=True)
 
 
 class MonthlyTrendsResponseSerializer(serializers.Serializer):
     """Response serializer for monthly trends chart."""
 
+    report_from_date = serializers.DateField(help_text="Start date of the report period")
+    report_to_date = serializers.DateField(help_text="End date of the report period")
     data = SourceTypesMonthlyTrendsSerializer()
