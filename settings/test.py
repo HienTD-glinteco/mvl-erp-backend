@@ -75,6 +75,14 @@ LOGGING = {
 # Disable email backend
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# GDAL library path for GeoDjango
-GDAL_LIBRARY_PATH = config("GDAL_LIBRARY_PATH", "")
-GEOS_LIBRARY_PATH = config("GEOS_LIBRARY_PATH", "")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+THUMBNAIL_DEFAULT_STORAGE = "django.core.files.storage.FileSystemStorage"

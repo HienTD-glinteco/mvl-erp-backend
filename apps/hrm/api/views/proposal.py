@@ -12,31 +12,21 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets.proposal import ProposalFilterSet, ProposalVerifierFilterSet
+from apps.hrm.api.filtersets.proposal import ProposalFilterSet
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
-    ProposalAssetAllocationExportXLSXSerializer,
     ProposalAssetAllocationSerializer,
-    ProposalExportXLSXSerializer,
-    ProposalJobTransferExportXLSXSerializer,
     ProposalJobTransferSerializer,
-    ProposalLateExemptionExportXLSXSerializer,
     ProposalLateExemptionSerializer,
-    ProposalMaternityLeaveExportXLSXSerializer,
     ProposalMaternityLeaveSerializer,
-    ProposalOvertimeWorkExportXLSXSerializer,
     ProposalOvertimeWorkSerializer,
-    ProposalPaidLeaveExportXLSXSerializer,
     ProposalPaidLeaveSerializer,
-    ProposalPostMaternityBenefitsExportXLSXSerializer,
     ProposalPostMaternityBenefitsSerializer,
     ProposalRejectSerializer,
     ProposalSerializer,
     ProposalTimesheetEntryComplaintApproveSerializer,
-    ProposalTimesheetEntryComplaintExportXLSXSerializer,
     ProposalTimesheetEntryComplaintRejectSerializer,
     ProposalTimesheetEntryComplaintSerializer,
-    ProposalUnpaidLeaveExportXLSXSerializer,
     ProposalUnpaidLeaveSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
@@ -44,10 +34,9 @@ from apps.hrm.api.serializers.proposal import (
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
-from libs.export_xlsx import ExportXLSXMixin
 
 
-class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
+class ProposalMixin:
     queryset = Proposal.objects.all()
     serializer_class = ProposalSerializer  # Subclasses should override
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -61,9 +50,6 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
 
     # Subclasses must define this
     proposal_type: ProposalType = None  # type: ignore
-
-    # Export serializer class - subclasses should override
-    export_serializer_class = ProposalExportXLSXSerializer
 
     def get_select_related_fields(self) -> List[str]:
         """Get list of fields for select_related optimization."""
@@ -88,8 +74,6 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             return self.get_approve_serializer_class()
         elif self.action == "reject":
             return self.get_reject_serializer_class()
-        elif self.action == "export":
-            return self.get_export_serializer_class()
         return super().get_serializer_class()
 
     def get_approve_serializer_class(self):
@@ -97,35 +81,6 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
 
     def get_reject_serializer_class(self):
         return ProposalRejectSerializer
-
-    def get_export_serializer_class(self):
-        """Return the export serializer class. Subclasses can override this method."""
-        return self.export_serializer_class
-
-    def get_export_data(self, request):
-        """Return the data for XLSX export."""
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        name = str(Proposal._meta.verbose_name)
-        if self.proposal_type:
-            name = f"{name} {self.proposal_type.label}"
-        data = {
-            "sheets": [
-                {
-                    "name": name,
-                    "headers": [str(field.label) for field in serializer.child.fields.values()],
-                    "field_names": list(serializer.child.fields.keys()),
-                    "data": serializer.data,
-                }
-            ]
-        }
-        return data
-
-    def _get_export_filename(self):
-        name = str(Proposal._meta.verbose_name)
-        if self.proposal_type:
-            name = f"{name} {self.proposal_type.label}"
-        return f"{name} export.xlsx"
 
     @action(detail=True, methods=["post"], url_path="approve")
     def approve(self, request, pk=None):
@@ -237,11 +192,8 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             ),
         ],
     ),
-    export=extend_schema(
-        tags=["10.2: Proposals"],
-    ),
 )
-class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
+class ProposalViewSet(AuditLoggingMixin, ProposalMixin, BaseReadOnlyModelViewSet):
     """Base ViewSet for specific Proposal types with common configuration."""
 
     def get_prefetch_related_fields(self) -> List[str]:
@@ -339,10 +291,6 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def reject(self, request, pk=None):
         return super().reject(request, pk)
 
-    @extend_schema(exclude=True)
-    def export(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 @extend_schema_view(
     list=extend_schema(
@@ -414,9 +362,6 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
             ),
         ],
     ),
-    export=extend_schema(
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
-    ),
 )
 class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
@@ -424,7 +369,6 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     permission_prefix = "proposal_timesheet_entry_complaint"
-    export_serializer_class = ProposalTimesheetEntryComplaintExportXLSXSerializer
 
     def get_approve_serializer_class(self):
         return ProposalTimesheetEntryComplaintApproveSerializer
@@ -653,17 +597,13 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
         description="Delete a post-maternity benefits proposal",
         tags=["10.2.2: Post-Maternity Benefits Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
-    ),
 )
-class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalPostMaternityBenefitsViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Post-Maternity Benefits proposals."""
 
     proposal_type = ProposalType.POST_MATERNITY_BENEFITS
     serializer_class = ProposalPostMaternityBenefitsSerializer
     permission_prefix = "proposal_post_maternity_benefits"
-    export_serializer_class = ProposalPostMaternityBenefitsExportXLSXSerializer
 
     @extend_schema(
         summary="Approve post-maternity benefits proposal",
@@ -883,17 +823,13 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete a late exemption proposal",
         tags=["10.2.3: Late Exemption Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.3: Late Exemption Proposals"],
-    ),
 )
-class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalLateExemptionViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Late Exemption proposals."""
 
     proposal_type = ProposalType.LATE_EXEMPTION
     serializer_class = ProposalLateExemptionSerializer
     permission_prefix = "proposal_late_exemption"
-    export_serializer_class = ProposalLateExemptionExportXLSXSerializer
 
     @extend_schema(
         summary="Approve late exemption proposal",
@@ -1165,17 +1101,13 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete an overtime work proposal",
         tags=["10.2.4: Overtime Work Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.4: Overtime Work Proposals"],
-    ),
 )
-class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalOvertimeWorkViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Overtime Work proposals."""
 
     proposal_type = ProposalType.OVERTIME_WORK
     serializer_class = ProposalOvertimeWorkSerializer
     permission_prefix = "proposal_overtime_work"
-    export_serializer_class = ProposalOvertimeWorkExportXLSXSerializer
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["overtime_entries"]
@@ -1416,17 +1348,13 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete a paid leave proposal",
         tags=["10.2.5: Paid Leave Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.5: Paid Leave Proposals"],
-    ),
 )
-class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalPaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Paid Leave proposals."""
 
     proposal_type = ProposalType.PAID_LEAVE
     serializer_class = ProposalPaidLeaveSerializer
     permission_prefix = "proposal_paid_leave"
-    export_serializer_class = ProposalPaidLeaveExportXLSXSerializer
 
     @extend_schema(
         summary="Approve paid leave proposal",
@@ -1652,17 +1580,13 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete an unpaid leave proposal",
         tags=["10.2.6: Unpaid Leave Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.6: Unpaid Leave Proposals"],
-    ),
 )
-class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalUnpaidLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Unpaid Leave proposals."""
 
     proposal_type = ProposalType.UNPAID_LEAVE
     serializer_class = ProposalUnpaidLeaveSerializer
     permission_prefix = "proposal_unpaid_leave"
-    export_serializer_class = ProposalUnpaidLeaveExportXLSXSerializer
 
     @extend_schema(
         summary="Approve unpaid leave proposal",
@@ -1885,17 +1809,13 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete a maternity leave proposal",
         tags=["10.2.7: Maternity Leave Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.7: Maternity Leave Proposals"],
-    ),
 )
-class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalMaternityLeaveViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Maternity Leave proposals."""
 
     proposal_type = ProposalType.MATERNITY_LEAVE
     serializer_class = ProposalMaternityLeaveSerializer
     permission_prefix = "proposal_maternity_leave"
-    export_serializer_class = ProposalMaternityLeaveExportXLSXSerializer
 
     def get_select_related_fields(self) -> List[str]:
         fields = super().get_select_related_fields()
@@ -2002,9 +1922,6 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Retrieve detailed information for a specific attendance exemption proposal",
         tags=["10.2.8: Attendance Exemption Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.8: Attendance Exemption Proposals"],
-    ),
 )
 class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     """ViewSet for Attendance Exemption proposals."""
@@ -2018,10 +1935,6 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
 
     @extend_schema(exclude=True)
     def reject(self, request, pk=None):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @extend_schema(exclude=True)
-    def export(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
@@ -2178,17 +2091,13 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
         description="Delete a job transfer proposal",
         tags=["10.2.9: Job Transfer Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.9: Job Transfer Proposals"],
-    ),
 )
-class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalJobTransferViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Job Transfer proposals."""
 
     proposal_type = ProposalType.JOB_TRANSFER
     serializer_class = ProposalJobTransferSerializer
     permission_prefix = "proposal_job_transfer"
-    export_serializer_class = ProposalJobTransferExportXLSXSerializer
 
     def get_select_related_fields(self) -> List[str]:
         fields = super().get_select_related_fields()
@@ -2457,17 +2366,13 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete an asset allocation proposal",
         tags=["10.2.10: Asset Allocation Proposals"],
     ),
-    export=extend_schema(
-        tags=["10.2.10: Asset Allocation Proposals"],
-    ),
 )
-class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalAssetAllocationViewSet(AuditLoggingMixin, ProposalMixin, BaseModelViewSet):
     """ViewSet for Asset Allocation proposals."""
 
     proposal_type = ProposalType.ASSET_ALLOCATION
     serializer_class = ProposalAssetAllocationSerializer
     permission_prefix = "proposal_asset_allocation"
-    export_serializer_class = ProposalAssetAllocationExportXLSXSerializer
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["assets"]
@@ -2680,19 +2585,14 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete a proposal verifier",
         tags=["10.3: Proposal Verifiers"],
     ),
-    export=extend_schema(
-        tags=["10.3: Proposal Verifiers"],
-    ),
 )
-class ProposalVerifierViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
+class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing proposal verifiers."""
 
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
     serializer_class = ProposalVerifierSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = ProposalVerifierFilterSet
     ordering_fields = ["created_at", "verified_time"]
-    search_fields = ["proposal__code", "employee__fullname", "employee__code"]
     ordering = ["-created_at"]
 
     module = "HRM"

@@ -1,7 +1,7 @@
 from django.db.models import Exists, OuterRef
 from django_filters import rest_framework as filters
 
-from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
+from apps.hrm.models import Proposal, ProposalTimeSheetEntry
 
 
 class ProposalFilterSet(filters.FilterSet):
@@ -52,25 +52,4 @@ class ProposalFilterSet(filters.FilterSet):
             "proposal_date": ["exact", "gte", "lte"],
             "created_by": ["exact"],
             "approved_by": ["exact"],
-        }
-
-
-class ProposalVerifierFilterSet(filters.FilterSet):
-    """FilterSet for ProposalVerifier model.
-
-    Supports filtering by:
-    - proposal: exact match (Proposal ID)
-    - employee: exact match (Employee ID)
-    - status: exact match (single status)
-    - status__in: multiple status filter
-    - verified_time: verified time exact match, greater than or equal to, less than or equal to
-    """
-
-    class Meta:
-        model = ProposalVerifier
-        fields = {
-            "proposal": ["exact"],
-            "employee": ["exact"],
-            "status": ["exact", "in"],
-            "verified_time": ["exact", "gte", "lte"],
         }

@@ -280,7 +280,6 @@ def create_demo_employees(org_structure):
                 "status": Employee.Status.ACTIVE,
                 "date_of_birth": timezone.now(),
                 "personal_email": emp_data["email"],
-                "citizen_id": str(900000000 + i),
             },
         )
         employees.append(emp)

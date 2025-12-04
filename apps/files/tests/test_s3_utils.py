@@ -102,10 +102,12 @@ class S3FileUploadServiceTest(TestCase):
                 purpose="test_purpose",
             )
 
+    @patch("apps.files.utils.s3_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_check_file_exists_true(self, mock_boto_client):
+    def test_check_file_exists_true(self, mock_boto_client, mock_get_prefix):
         """Test checking file existence when file exists."""
         # Arrange
+        mock_get_prefix.return_value = ""  # No prefix for this test
         mock_s3 = MagicMock()
         mock_s3.head_object.return_value = {"ContentLength": 123456}
         mock_boto_client.return_value = mock_s3
@@ -138,7 +140,7 @@ class S3FileUploadServiceTest(TestCase):
         # Assert
         self.assertFalse(result)
 
-    @patch("apps.files.utils.storage_utils.get_storage_prefix")
+    @patch("apps.files.utils.s3_utils.get_storage_prefix")
     @patch("boto3.client")
     def test_move_file_success(self, mock_boto_client, mock_get_prefix):
         """Test successful file move operation."""
@@ -227,10 +229,12 @@ class S3FileUploadServiceTest(TestCase):
         # Assert
         self.assertIsNone(result)
 
+    @patch("apps.files.utils.s3_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_delete_file_success(self, mock_boto_client):
+    def test_delete_file_success(self, mock_boto_client, mock_get_prefix):
         """Test successful file deletion."""
         # Arrange
+        mock_get_prefix.return_value = ""  # No prefix for this test
         mock_s3 = MagicMock()
         mock_boto_client.return_value = mock_s3
 
@@ -281,10 +285,12 @@ class S3FileUploadServiceTest(TestCase):
         self.assertEqual(call_args[1]["Params"]["Bucket"], "test-bucket")
         self.assertIn("uploads/test/file.pdf", call_args[1]["Params"]["Key"])
 
+    @patch("apps.files.utils.s3_utils.get_storage_prefix")
     @patch("boto3.client")
-    def test_generate_download_url_success(self, mock_boto_client):
+    def test_generate_download_url_success(self, mock_boto_client, mock_get_prefix):
         """Test successful download URL generation."""
         # Arrange
+        mock_get_prefix.return_value = ""  # No prefix for this test
         mock_s3 = MagicMock()
         mock_s3.generate_presigned_url.return_value = "https://s3.amazonaws.com/download-url"
         mock_boto_client.return_value = mock_s3
