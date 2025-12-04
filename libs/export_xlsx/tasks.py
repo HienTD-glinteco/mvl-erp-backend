@@ -2,9 +2,13 @@
 Celery tasks for async XLSX export.
 """
 
+import sentry_sdk
 from celery import shared_task
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
 
 from .constants import DEFAULT_PROGRESS_CHUNK_SIZE
 from .generator import XLSXGenerator
@@ -20,6 +24,7 @@ def generate_xlsx_task(self, schema, filename=None, storage_backend=None):
 
     Args:
         schema: Export schema definition
+            sentry_sdk.capture_exception(e)
         filename: Optional filename (default: export.xlsx)
         storage_backend: Storage backend type ('local' or 's3')
 
@@ -66,7 +71,7 @@ def generate_xlsx_task(self, schema, filename=None, storage_backend=None):
         # Mark as failed
         error_message = str(e)
         progress_tracker.set_failed(error_message)
-
+        sentry_sdk.capture_exception(e)
         return {
             "status": "error",
             "error": error_message,
@@ -145,6 +150,7 @@ def generate_xlsx_from_queryset_task(
         # Mark as failed
         error_message = str(e)
         progress_tracker.set_failed(error_message)
+        sentry_sdk.capture_exception(e)
 
         return {
             "status": "error",
@@ -159,6 +165,7 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
 
     This task supports custom export logic by reconstructing the ViewSet and request context
     in the worker, allowing even complex custom exports to be processed asynchronously.
+            sentry_sdk.capture_exception(e)
 
     Args:
         viewset_class_path: Full import path to ViewSet class (e.g., 'apps.myapp.views.MyViewSet')
@@ -176,10 +183,6 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
     progress_tracker = ExportProgressTracker(task_id=self.request.id, celery_task=self)
 
     try:
-        from django.contrib.auth import get_user_model
-        from rest_framework.request import Request
-        from rest_framework.test import APIRequestFactory
-
         # Import the ViewSet class dynamically
         module_path, class_name = viewset_class_path.rsplit(".", 1)
         module = __import__(module_path, fromlist=[class_name])
@@ -205,6 +208,7 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
         viewset = viewset_class()
         viewset.request = drf_request
         viewset.format_kwarg = None
+        viewset.action = "export"  # Set action for get_serializer_class()
 
         # Call get_export_data to build schema
         schema = viewset.get_export_data(drf_request)
@@ -242,6 +246,7 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
         # Mark as failed
         error_message = str(e)
         progress_tracker.set_failed(error_message)
+        sentry_sdk.capture_exception(e)
 
         return {
             "status": "error",

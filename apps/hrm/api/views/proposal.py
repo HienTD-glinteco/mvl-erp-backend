@@ -44,7 +44,7 @@ from apps.hrm.api.serializers.proposal import (
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
-from libs.export_xlsx.mixins import ExportXLSXMixin
+from libs.export_xlsx import ExportXLSXMixin
 
 
 class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
@@ -237,6 +237,9 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             ),
         ],
     ),
+    export=extend_schema(
+        tags=["10.2: Proposals"],
+    ),
 )
 class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """Base ViewSet for specific Proposal types with common configuration."""
@@ -410,6 +413,9 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
                 response_only=True,
             ),
         ],
+    ),
+    export=extend_schema(
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
     ),
 )
 class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
@@ -1996,6 +2002,9 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Retrieve detailed information for a specific attendance exemption proposal",
         tags=["10.2.8: Attendance Exemption Proposals"],
     ),
+    export=extend_schema(
+        tags=["10.2.8: Attendance Exemption Proposals"],
+    ),
 )
 class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     """ViewSet for Attendance Exemption proposals."""
@@ -2671,8 +2680,11 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
         description="Delete a proposal verifier",
         tags=["10.3: Proposal Verifiers"],
     ),
+    export=extend_schema(
+        tags=["10.3: Proposal Verifiers"],
+    ),
 )
-class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
+class ProposalVerifierViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing proposal verifiers."""
 
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
