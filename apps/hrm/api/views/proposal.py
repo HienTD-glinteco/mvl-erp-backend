@@ -2884,6 +2884,11 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     submodule = "ProposalVerifier"
     permission_prefix = "proposal_verifier"
 
+    def get_serializer_class(self):
+        if self.action == "verify":
+            return ProposalVerifierVerifySerializer
+        return super().get_serializer_class()
+
     @extend_schema(
         summary="Verify proposal",
         description="Mark a proposal as verified. Only applicable for timesheet entry complaint proposals.",
@@ -2933,8 +2938,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     def verify(self, request, pk=None):
         """Verify a proposal. Only applicable for timesheet entry complaint proposals."""
         verifier = self.get_object()
-        serializer = ProposalVerifierVerifySerializer(verifier, data=request.data, partial=True)
+        serializer = self.get_serializer(verifier, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(ProposalVerifierSerializer(verifier).data, status=status.HTTP_200_OK)
+        return Response(self.serializer_class(verifier).data, status=status.HTTP_200_OK)

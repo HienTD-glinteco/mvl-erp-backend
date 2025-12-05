@@ -259,11 +259,11 @@ class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
         if not self.instance:
             raise serializers.ValidationError("This serializer requires an existing verifier instance")
 
-        proposal = self.instance.proposal
-        if proposal.proposal_type != ProposalType.TIMESHEET_ENTRY_COMPLAINT:
-            raise serializers.ValidationError(
-                "Verification is only applicable for timesheet entry complaint proposals"
-            )
+        user = self.context["request"].user
+        employee = self.instance.employee
+        department = employee.department
+        if user.employee != department.leader:
+            raise serializers.ValidationError("Only the department leader can verify this proposal")
 
         return attrs
 
@@ -830,13 +830,33 @@ class ProposalCombinedSerializer(
     class Meta:
         model = Proposal
         fields = (
-            ProposalLateExemptionSerializer.Meta.read_only_fields
+            ProposalByTypeSerializer.Meta.fields
             + ProposalOvertimeWorkSerializer.Meta.read_only_fields
-            + ProposalPostMaternityBenefitsSerializer.Meta.read_only_fields
             + ProposalAssetAllocationSerializer.Meta.read_only_fields
-            + ProposalMaternityLeaveSerializer.Meta.read_only_fields
-            + ProposalPaidLeaveSerializer.Meta.read_only_fields
-            + ProposalUnpaidLeaveSerializer.Meta.read_only_fields
-            + ProposalJobTransferSerializer.Meta.read_only_fields
+            + [
+                "late_exemption_start_date",
+                "late_exemption_end_date",
+                "late_exemption_minutes",
+                "post_maternity_benefits_start_date",
+                "post_maternity_benefits_end_date",
+                "maternity_leave_start_date",
+                "maternity_leave_end_date",
+                "maternity_leave_estimated_due_date",
+                "maternity_leave_replacement_employee",
+                "paid_leave_start_date",
+                "paid_leave_end_date",
+                "paid_leave_shift",
+                "paid_leave_reason",
+                "unpaid_leave_start_date",
+                "unpaid_leave_end_date",
+                "unpaid_leave_shift",
+                "unpaid_leave_reason",
+                "job_transfer_new_branch",
+                "job_transfer_new_block",
+                "job_transfer_new_department",
+                "job_transfer_new_position",
+                "job_transfer_effective_date",
+                "job_transfer_reason",
+            ]
         )
         read_only_fields = fields

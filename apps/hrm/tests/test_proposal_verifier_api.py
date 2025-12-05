@@ -185,12 +185,30 @@ class TestProposalVerifierAPI:
         """Create a department for testing."""
         from apps.hrm.models import Department
 
-        return Department.objects.create(
+        dept = Department.objects.create(
             name="Test Department",
             code="TD002",
             branch=branch,
             block=block,
         )
+        return dept
+
+    @pytest.fixture
+    def department_leader(self, branch, block, department):
+        """Create a department leader employee for testing."""
+        employee = Employee.objects.create(
+            code_type="MV",
+            fullname="Department Leader",
+            username="deptleader001",
+            email="leader001@example.com",
+            citizen_id="000000001099",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+        )
+        employee.led_departments.add(department)
+        return employee
 
     @pytest.fixture
     def employee(self, branch, block, department):
@@ -206,6 +224,13 @@ class TestProposalVerifierAPI:
             block=block,
             department=department,
         )
+
+    @pytest.fixture
+    def superuser_with_employee(self, superuser, department_leader):
+        """Link the superuser to the department leader employee."""
+        department_leader.user = superuser
+        department_leader.save()
+        return superuser
 
     @pytest.fixture
     def timesheet_complaint_proposal(self, employee):
@@ -317,7 +342,7 @@ class TestProposalVerifierAPI:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not ProposalVerifier.objects.filter(id=proposal_verifier.id).exists()
 
-    def test_verify_timesheet_complaint_proposal_success(self, api_client, superuser, proposal_verifier):
+    def test_verify_timesheet_complaint_proposal_success(self, api_client, superuser_with_employee, proposal_verifier):
         """Test successfully verifying a timesheet entry complaint proposal."""
         url = reverse("hrm:proposal-verifier-verify", args=[proposal_verifier.id])
         data = {"note": "Verified and approved"}
@@ -336,7 +361,9 @@ class TestProposalVerifierAPI:
         assert proposal_verifier.verified_time is not None
         assert proposal_verifier.note == "Verified and approved"
 
-    def test_verify_timesheet_complaint_proposal_without_note(self, api_client, superuser, proposal_verifier):
+    def test_verify_timesheet_complaint_proposal_without_note(
+        self, api_client, superuser_with_employee, proposal_verifier
+    ):
         """Test verifying a proposal without providing a note."""
         url = reverse("hrm:proposal-verifier-verify", args=[proposal_verifier.id])
         data = {}
@@ -349,24 +376,7 @@ class TestProposalVerifierAPI:
         assert result["data"]["status"] == ProposalVerifierStatus.VERIFIED
         assert result["data"]["verified_time"] is not None
 
-    def test_verify_non_complaint_proposal_fails(self, api_client, superuser, paid_leave_proposal, employee):
-        """Test that verifying a non-complaint proposal raises an error."""
-        verifier = ProposalVerifier.objects.create(
-            proposal=paid_leave_proposal,
-            employee=employee,
-        )
-
-        url = reverse("hrm:proposal-verifier-verify", args=[verifier.id])
-        data = {"note": "Attempting to verify"}
-
-        response = api_client.post(url, data)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        result = response.json()
-        assert result["success"] is False
-        assert "timesheet entry complaint" in str(result["error"]).lower()
-
-    def test_verify_already_verified_proposal(self, api_client, superuser, proposal_verifier):
+    def test_verify_already_verified_proposal(self, api_client, superuser_with_employee, proposal_verifier):
         """Test verifying a proposal that has already been verified."""
         # First verification
         url = reverse("hrm:proposal-verifier-verify", args=[proposal_verifier.id])
