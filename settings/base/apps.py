@@ -28,6 +28,7 @@ INTERNAL_APPS = [
     "apps.audit_logging",
     "apps.devices",
     "apps.hrm",
+    "apps.payroll",
     "apps.notifications",
     "apps.files",
     "apps.imports",
