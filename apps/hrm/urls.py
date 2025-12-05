@@ -172,8 +172,8 @@ compensatory_router = DefaultRouter()
 compensatory_router.register(r"compensatory-days", CompensatoryWorkdayViewSet, basename="compensatory-day")
 
 urlpatterns = [
+    path("proposals/mine/", MeProposalViewSet.as_view({"get": "list"}), name="me-proposals"),
+    path("proposal-verifiers/mine/", MeProposalVerifierViewSet.as_view({"get": "list"}), name="me-proposal-verifiers"),
     path("", include(router.urls)),
     path("holidays/<int:holiday_pk>/", include(compensatory_router.urls)),
-    path("me/proposals/", MeProposalViewSet.as_view({"get": "list"}), name="me-proposals"),
-    path("me/proposal-verifiers/", MeProposalVerifierViewSet.as_view({"get": "list"}), name="me-proposal-verifiers"),
 ]
