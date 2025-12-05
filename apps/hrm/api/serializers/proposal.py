@@ -347,6 +347,18 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
         """
         return self.context["view"].proposal_type
 
+    def create(self, validated_data) -> Proposal:
+        """Create a proposal and its initial verifier (department leader)."""
+        instance = super().create(validated_data)
+        department = instance.created_by.department
+        leader = department.leader
+        if leader:
+            ProposalVerifier.objects.create(
+                proposal=instance,
+                employee=leader,
+            )
+        return instance
+
 
 class ProposalLateExemptionSerializer(ProposalByTypeSerializer):
     """Serializer for Late Exemption proposals."""
@@ -802,4 +814,29 @@ class ProposalAssetAllocationExportXLSXSerializer(ProposalExportXLSXSerializer):
     class Meta:
         model = Proposal
         fields = ProposalExportXLSXSerializer.Meta.fields
+        read_only_fields = fields
+
+
+class ProposalCombinedSerializer(
+    ProposalLateExemptionSerializer,
+    ProposalOvertimeWorkSerializer,
+    ProposalPostMaternityBenefitsSerializer,
+    ProposalAssetAllocationSerializer,
+    ProposalMaternityLeaveSerializer,
+    ProposalPaidLeaveSerializer,
+    ProposalUnpaidLeaveSerializer,
+    ProposalJobTransferSerializer,
+):
+    class Meta:
+        model = Proposal
+        fields = (
+            ProposalLateExemptionSerializer.Meta.read_only_fields
+            + ProposalOvertimeWorkSerializer.Meta.read_only_fields
+            + ProposalPostMaternityBenefitsSerializer.Meta.read_only_fields
+            + ProposalAssetAllocationSerializer.Meta.read_only_fields
+            + ProposalMaternityLeaveSerializer.Meta.read_only_fields
+            + ProposalPaidLeaveSerializer.Meta.read_only_fields
+            + ProposalUnpaidLeaveSerializer.Meta.read_only_fields
+            + ProposalJobTransferSerializer.Meta.read_only_fields
+        )
         read_only_fields = fields

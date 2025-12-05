@@ -17,6 +17,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalAssetAllocationExportXLSXSerializer,
     ProposalAssetAllocationSerializer,
+    ProposalCombinedSerializer,
     ProposalExportXLSXSerializer,
     ProposalJobTransferExportXLSXSerializer,
     ProposalJobTransferSerializer,
@@ -90,6 +91,8 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             return self.get_reject_serializer_class()
         elif self.action == "export":
             return self.get_export_serializer_class()
+        elif self.action in ["my_proposals", "proposals_need_approval"]:
+            return ProposalCombinedSerializer
         return super().get_serializer_class()
 
     def get_approve_serializer_class(self):
@@ -158,7 +161,7 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     list=extend_schema(
         summary="List all proposals",
         description="Retrieve a list of all proposals regardless of type with optional filtering",
-        tags=["10.2: Proposals"],
+        tags=["9.2: Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -210,7 +213,7 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     retrieve=extend_schema(
         summary="Get proposal details",
         description="Retrieve detailed information for a specific proposal",
-        tags=["10.2: Proposals"],
+        tags=["9.2: Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -249,7 +252,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         description="Approve a proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalSerializer},
-        tags=["10.2: Proposals"],
+        tags=["9.2: Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -295,7 +298,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         description="Reject a proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalSerializer},
-        tags=["10.2: Proposals"],
+        tags=["9.2: Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -339,6 +342,196 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     @extend_schema(exclude=True)
     def export(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @extend_schema(
+        summary="List my proposals",
+        description="Retrieve a list of proposals created by the current authenticated user",
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "paid_leave",
+                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                                "note": "Annual leave request",
+                                "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                                "approved_by": None,
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                                "late_exemption_start_date": None,
+                                "late_exemption_end_date": None,
+                                "late_exemption_minutes": None,
+                                "overtime_entries": [],
+                                "post_maternity_benefits_start_date": None,
+                                "post_maternity_benefits_end_date": None,
+                                "assets": [],
+                                "maternity_leave_start_date": None,
+                                "maternity_leave_end_date": None,
+                                "maternity_leave_estimated_due_date": None,
+                                "maternity_leave_replacement_employee": None,
+                                "paid_leave_start_date": "2025-01-20",
+                                "paid_leave_end_date": "2025-01-22",
+                                "paid_leave_shift": "full_day",
+                                "paid_leave_reason": "Family vacation",
+                                "unpaid_leave_start_date": None,
+                                "unpaid_leave_end_date": None,
+                                "unpaid_leave_shift": None,
+                                "unpaid_leave_reason": None,
+                                "job_transfer_new_branch": None,
+                                "job_transfer_new_block": None,
+                                "job_transfer_new_department": None,
+                                "job_transfer_new_position": None,
+                                "job_transfer_effective_date": None,
+                                "job_transfer_reason": None,
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - No employee profile",
+                value={"success": False, "data": None, "error": "User does not have an employee profile"},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+        filters=ProposalFilterSet,  # type: ignore
+        tags=["9.2: Proposals"],
+    )
+    @action(detail=False, methods=["get"], url_path="me/proposals")
+    def my_proposals(self, request):
+        """Return proposals created by the current user."""
+        user = request.user
+        if not hasattr(user, "employee") or not user.employee:
+            return Response(
+                {"detail": "User does not have an employee profile"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = self.filter_queryset(self.get_queryset().filter(created_by=user.employee))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="List proposals needing my approval",
+        description=(
+            "Retrieve a list of proposals that the current user needs to approve. "
+            "Returns proposals where the current user is assigned as a verifier. "
+            "Only department leaders can access this endpoint."
+        ),
+        examples=[
+            OpenApiExample(
+                "Success - User is department leader with proposals to verify",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "paid_leave",
+                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                                "note": "Annual leave request",
+                                "created_by": {"id": 5, "fullname": "Employee Name", "email": "emp@example.com"},
+                                "approved_by": None,
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                                "late_exemption_start_date": None,
+                                "late_exemption_end_date": None,
+                                "late_exemption_minutes": None,
+                                "overtime_entries": [],
+                                "post_maternity_benefits_start_date": None,
+                                "post_maternity_benefits_end_date": None,
+                                "assets": [],
+                                "maternity_leave_start_date": None,
+                                "maternity_leave_end_date": None,
+                                "maternity_leave_estimated_due_date": None,
+                                "maternity_leave_replacement_employee": None,
+                                "paid_leave_start_date": "2025-01-20",
+                                "paid_leave_end_date": "2025-01-22",
+                                "paid_leave_shift": "full_day",
+                                "paid_leave_reason": "Family vacation",
+                                "unpaid_leave_start_date": None,
+                                "unpaid_leave_end_date": None,
+                                "unpaid_leave_shift": None,
+                                "unpaid_leave_reason": None,
+                                "job_transfer_new_branch": None,
+                                "job_transfer_new_block": None,
+                                "job_transfer_new_department": None,
+                                "job_transfer_new_position": None,
+                                "job_transfer_effective_date": None,
+                                "job_transfer_reason": None,
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - User is not a department leader",
+                value={"success": False, "data": None, "error": "User is not a department leader"},
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - No employee profile",
+                value={"success": False, "data": None, "error": "User does not have an employee profile"},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+        filters=ProposalFilterSet,  # type: ignore
+        tags=["9.2: Proposals"],
+    )
+    @action(detail=False, methods=["get"], url_path="me/proposals/need-approval", filterset_class=ProposalFilterSet)
+    def proposals_need_approval(self, request):
+        """Return proposals that the current user needs to approve as department leader."""
+        user = request.user
+        if not hasattr(user, "employee") or not user.employee:
+            return Response(
+                {"detail": "User does not have an employee profile"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        employee = user.employee
+        if employee.department.leader_id != employee.id:
+            return Response(
+                {"detail": "User is not a department leader"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        proposal_ids = ProposalVerifier.objects.filter(
+            employee=employee,
+        ).values_list("proposal_id", flat=True)
+        queryset = self.filter_queryset(self.get_queryset().filter(id__in=proposal_ids))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema_view(
@@ -412,13 +605,16 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         ],
     ),
 )
-class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
+class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     permission_prefix = "proposal_timesheet_entry_complaint"
     export_serializer_class = ProposalTimesheetEntryComplaintExportXLSXSerializer
+
+    def get_prefetch_related_fields(self) -> List[str]:
+        return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
 
     def get_approve_serializer_class(self):
         return ProposalTimesheetEntryComplaintApproveSerializer
@@ -525,7 +721,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List post-maternity benefits proposals",
         description="Retrieve a list of post-maternity benefits proposals",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -559,7 +755,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     retrieve=extend_schema(
         summary="Get post-maternity benefits proposal details",
         description="Retrieve detailed information for a specific post-maternity benefits proposal",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -586,7 +782,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     create=extend_schema(
         summary="Create post-maternity benefits proposal",
         description="Create a new post-maternity benefits proposal",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -635,20 +831,20 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalViewSet):
     update=extend_schema(
         summary="Update post-maternity benefits proposal",
         description="Update a post-maternity benefits proposal",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update post-maternity benefits proposal",
         description="Partially update a post-maternity benefits proposal",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete post-maternity benefits proposal",
         description="Delete a post-maternity benefits proposal",
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
     ),
 )
 class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
@@ -664,7 +860,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a post-maternity benefits proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalPostMaternityBenefitsSerializer},
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -707,7 +903,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a post-maternity benefits proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalPostMaternityBenefitsSerializer},
-        tags=["10.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -750,7 +946,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List late exemption proposals",
         description="Retrieve a list of late exemption proposals",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -785,7 +981,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get late exemption proposal details",
         description="Retrieve detailed information for a specific late exemption proposal",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -813,7 +1009,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create late exemption proposal",
         description="Create a new late exemption proposal",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -865,20 +1061,20 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update late exemption proposal",
         description="Update a late exemption proposal",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update late exemption proposal",
         description="Partially update a late exemption proposal",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete late exemption proposal",
         description="Delete a late exemption proposal",
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
     ),
 )
 class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
@@ -894,7 +1090,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a late exemption proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalLateExemptionSerializer},
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -938,7 +1134,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a late exemption proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalLateExemptionSerializer},
-        tags=["10.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -982,7 +1178,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List overtime work proposals",
         description="Retrieve a list of overtime work proposals",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1024,7 +1220,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get overtime work proposal details",
         description="Retrieve detailed information for a specific overtime work proposal",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1059,7 +1255,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create overtime work proposal",
         description="Create a new overtime work proposal with one or more overtime entries",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1147,20 +1343,20 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update overtime work proposal",
         description="Update an overtime work proposal",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update overtime work proposal",
         description="Partially update an overtime work proposal",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete overtime work proposal",
         description="Delete an overtime work proposal",
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
     ),
 )
 class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
@@ -1179,7 +1375,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve an overtime work proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalOvertimeWorkSerializer},
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1230,7 +1426,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject an overtime work proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalOvertimeWorkSerializer},
-        tags=["10.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1281,7 +1477,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List paid leave proposals",
         description="Retrieve a list of paid leave proposals",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1317,7 +1513,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get paid leave proposal details",
         description="Retrieve detailed information for a specific paid leave proposal",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1346,7 +1542,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create paid leave proposal",
         description="Create a new paid leave proposal",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1398,20 +1594,20 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update paid leave proposal",
         description="Update a paid leave proposal",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update paid leave proposal",
         description="Partially update a paid leave proposal",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete paid leave proposal",
         description="Delete a paid leave proposal",
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
     ),
 )
 class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
@@ -1427,7 +1623,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a paid leave proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalPaidLeaveSerializer},
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1472,7 +1668,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a paid leave proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalPaidLeaveSerializer},
-        tags=["10.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1517,7 +1713,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List unpaid leave proposals",
         description="Retrieve a list of unpaid leave proposals",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1553,7 +1749,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get unpaid leave proposal details",
         description="Retrieve detailed information for a specific unpaid leave proposal",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1582,7 +1778,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create unpaid leave proposal",
         description="Create a new unpaid leave proposal",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1634,20 +1830,20 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update unpaid leave proposal",
         description="Update an unpaid leave proposal",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update unpaid leave proposal",
         description="Partially update an unpaid leave proposal",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete unpaid leave proposal",
         description="Delete an unpaid leave proposal",
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
     ),
 )
 class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
@@ -1663,7 +1859,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve an unpaid leave proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalUnpaidLeaveSerializer},
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1708,7 +1904,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject an unpaid leave proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalUnpaidLeaveSerializer},
-        tags=["10.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1753,7 +1949,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List maternity leave proposals",
         description="Retrieve a list of maternity leave proposals",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1788,7 +1984,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get maternity leave proposal details",
         description="Retrieve detailed information for a specific maternity leave proposal",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1816,7 +2012,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create maternity leave proposal",
         description="Create a new maternity leave proposal",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1867,20 +2063,20 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update maternity leave proposal",
         description="Update a maternity leave proposal",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update maternity leave proposal",
         description="Partially update a maternity leave proposal",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete maternity leave proposal",
         description="Delete a maternity leave proposal",
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
     ),
 )
 class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
@@ -1901,7 +2097,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a maternity leave proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalMaternityLeaveSerializer},
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1945,7 +2141,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a maternity leave proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalMaternityLeaveSerializer},
-        tags=["10.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1989,19 +2185,22 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List attendance exemption proposals",
         description="Retrieve a list of attendance exemption proposals",
-        tags=["10.2.8: Attendance Exemption Proposals"],
+        tags=["9.2.8: Attendance Exemption Proposals"],
     ),
     retrieve=extend_schema(
         summary="Get attendance exemption proposal details",
         description="Retrieve detailed information for a specific attendance exemption proposal",
-        tags=["10.2.8: Attendance Exemption Proposals"],
+        tags=["9.2.8: Attendance Exemption Proposals"],
     ),
 )
-class ProposalAttendanceExemptionViewSet(ProposalViewSet):
+class ProposalAttendanceExemptionViewSet(ProposalMixin, BaseModelViewSet):
     """ViewSet for Attendance Exemption proposals."""
 
     proposal_type = ProposalType.ATTENDANCE_EXEMPTION
     permission_prefix = "proposal_attendance_exemption"
+
+    def get_prefetch_related_fields(self) -> List[str]:
+        return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
 
     @extend_schema(exclude=True)
     def approve(self, request, pk=None):
@@ -2020,7 +2219,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     list=extend_schema(
         summary="List job transfer proposals",
         description="Retrieve a list of job transfer proposals",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2062,7 +2261,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     retrieve=extend_schema(
         summary="Get job transfer proposal details",
         description="Retrieve detailed information for a specific job transfer proposal",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2097,7 +2296,7 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     create=extend_schema(
         summary="Create job transfer proposal",
         description="Create a new job transfer proposal",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2157,20 +2356,20 @@ class ProposalAttendanceExemptionViewSet(ProposalViewSet):
     update=extend_schema(
         summary="Update job transfer proposal",
         description="Update a job transfer proposal",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update job transfer proposal",
         description="Partially update a job transfer proposal",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete job transfer proposal",
         description="Delete a job transfer proposal",
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
     ),
 )
 class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
@@ -2198,7 +2397,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a job transfer proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalJobTransferSerializer},
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2249,7 +2448,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a job transfer proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalJobTransferSerializer},
-        tags=["10.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2300,7 +2499,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List asset allocation proposals",
         description="Retrieve a list of asset allocation proposals",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2341,7 +2540,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get asset allocation proposal details",
         description="Retrieve detailed information for a specific asset allocation proposal",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2375,7 +2574,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create asset allocation proposal",
         description="Create a new asset allocation proposal with assets",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2436,20 +2635,20 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update asset allocation proposal",
         description="Update an asset allocation proposal",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
     ),
     partial_update=extend_schema(
         summary="Partially update asset allocation proposal",
         description="Partially update an asset allocation proposal",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
     ),
     destroy=extend_schema(
         summary="Delete asset allocation proposal",
         description="Delete an asset allocation proposal",
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
     ),
     export=extend_schema(
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
     ),
 )
 class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
@@ -2468,7 +2667,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve an asset allocation proposal",
         request=ProposalApproveSerializer,
         responses={200: ProposalAssetAllocationSerializer},
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2518,7 +2717,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject an asset allocation proposal with a required rejection reason",
         request=ProposalRejectSerializer,
         responses={200: ProposalAssetAllocationSerializer},
-        tags=["10.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2568,7 +2767,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List proposal verifiers",
         description="Retrieve a list of proposal verifiers with optional filtering",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2600,7 +2799,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get proposal verifier details",
         description="Retrieve detailed information for a specific proposal verifier",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2625,7 +2824,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create proposal verifier",
         description="Create a new proposal verifier",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2659,17 +2858,17 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update proposal verifier",
         description="Update a proposal verifier",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
     ),
     partial_update=extend_schema(
         summary="Partially update proposal verifier",
         description="Partially update a proposal verifier",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
     ),
     destroy=extend_schema(
         summary="Delete proposal verifier",
         description="Delete a proposal verifier",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
     ),
 )
 class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -2688,7 +2887,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Verify proposal",
         description="Mark a proposal as verified. Only applicable for timesheet entry complaint proposals.",
-        tags=["10.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers"],
         request=ProposalVerifierVerifySerializer,
         examples=[
             OpenApiExample(
