@@ -178,7 +178,7 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:423
+#: apps/hrm/api/serializers/proposal.py:440
 #, fuzzy
 #| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
@@ -1416,7 +1416,7 @@ msgstr ""
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:649
+#: apps/hrm/models/proposal.py:661
 #, fuzzy
 #| msgid "Overtime work end time must be after start time"
 msgid "End time must be after start time"

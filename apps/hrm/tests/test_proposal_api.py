@@ -1879,8 +1879,8 @@ class TestMyProposalsAPI:
     def test_my_proposals_returns_only_user_proposals(self, api_client, superuser, test_employee):
         """Test that my_proposals returns only proposals created by current user."""
         # Link the superuser to the test employee
-        superuser.employee = test_employee
-        superuser.save()
+        test_employee.user = superuser
+        test_employee.save()
 
         # Create proposals by the test employee
         Proposal.objects.create(
@@ -1918,7 +1918,7 @@ class TestMyProposalsAPI:
             created_by=other_employee,
         )
 
-        url = reverse("hrm:proposal-my-proposals")
+        url = reverse("hrm:me-proposals")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -1930,8 +1930,8 @@ class TestMyProposalsAPI:
 
     def test_my_proposals_supports_filtering(self, api_client, superuser, test_employee):
         """Test that my_proposals supports existing filters."""
-        superuser.employee = test_employee
-        superuser.save()
+        test_employee.user = superuser
+        test_employee.save()
 
         Proposal.objects.create(
             code="DX_MYFILTER001",
@@ -1948,7 +1948,7 @@ class TestMyProposalsAPI:
             created_by=test_employee,
         )
 
-        url = reverse("hrm:proposal-my-proposals")
+        url = reverse("hrm:me-proposals")
         response = api_client.get(url, {"proposal_status": ProposalStatus.PENDING})
 
         assert response.status_code == status.HTTP_200_OK
@@ -1957,24 +1957,10 @@ class TestMyProposalsAPI:
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
-    def test_my_proposals_user_without_employee_profile(self, api_client, superuser):
-        """Test that my_proposals returns error for user without employee profile."""
-        # Ensure superuser has no employee profile
-        if hasattr(superuser, "employee"):
-            superuser.employee = None
-            superuser.save()
-
-        url = reverse("hrm:proposal-my-proposals")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        data = response.json()
-        assert data["success"] is False
-
     def test_my_proposals_returns_empty_when_no_proposals(self, api_client, superuser, test_employee):
         """Test that my_proposals returns empty list when user has no proposals."""
-        superuser.employee = test_employee
-        superuser.save()
+        test_employee.user = superuser
+        test_employee.save()
 
         # Create proposal by another employee
         other_employee = Employee.objects.create(
@@ -1998,7 +1984,7 @@ class TestMyProposalsAPI:
             created_by=other_employee,
         )
 
-        url = reverse("hrm:proposal-my-proposals")
+        url = reverse("hrm:me-proposals")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2008,94 +1994,26 @@ class TestMyProposalsAPI:
         assert data["data"]["results"] == []
 
 
-class TestProposalsNeedApprovalAPI:
-    """Tests for the proposals_need_approval endpoint (me/proposals/need-approval/).
+class TestMeProposalVerifierAPI:
+    """Tests for the me/proposal-verifiers/ endpoint.
 
-    This endpoint returns proposals where the current user is assigned as a ProposalVerifier.
-    Only department leaders can access this endpoint.
+    This endpoint returns proposal verifiers where the current user is the assigned employee.
     """
 
-    def test_need_approval_returns_proposals_where_user_is_verifier(self, api_client, superuser, test_employee):
-        """Test that need_approval returns proposals where user is assigned as verifier."""
-        # Set up the test employee as department leader
-        department = test_employee.department
-        department.leader = test_employee
-        department.save()
+    def test_me_proposal_verifiers_returns_only_user_assignments(self, api_client, superuser, test_employee):
+        """Test that me-proposal-verifiers returns only verifiers where user is the assigned employee."""
+        # Link the superuser to the test employee
+        test_employee.user = superuser
+        test_employee.save()
 
-        superuser.employee = test_employee
-        superuser.save()
-
-        # Create another employee in the same department
-        subordinate = Employee.objects.create(
-            code="MV_SUB001",
-            fullname="Subordinate Employee",
-            username="subordinate_001",
-            email="subordinate001@example.com",
+        # Create another employee
+        other_employee = Employee.objects.create(
+            code="MV_OTHER_VERIFIER",
+            fullname="Other Verifier",
+            username="other_verifier_001",
+            email="otherverifier001@example.com",
             attendance_code="77001",
             citizen_id="777000000001",
-            branch=test_employee.branch,
-            block=test_employee.block,
-            department=department,
-            position=test_employee.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
-
-        # Create proposal by subordinate
-        proposal1 = Proposal.objects.create(
-            code="DX_APPROVAL001",
-            proposal_type=ProposalType.PAID_LEAVE,
-            note="Subordinate proposal",
-            created_by=subordinate,
-        )
-        # Add test_employee as verifier
-        ProposalVerifier.objects.create(proposal=proposal1, employee=test_employee)
-
-        # Create another proposal without verifier assignment
-        Proposal.objects.create(
-            code="DX_APPROVAL002",
-            proposal_type=ProposalType.OVERTIME_WORK,
-            note="No verifier proposal",
-            created_by=subordinate,
-        )
-
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["success"] is True
-        # Should only return proposal where user is verifier
-        assert data["data"]["count"] == 1
-        assert data["data"]["results"][0]["code"] == "DX_APPROVAL001"
-
-    def test_need_approval_returns_error_for_non_leader(self, api_client, superuser, test_employee):
-        """Test that need_approval returns 400 error for non-leader user."""
-        # Ensure department has no leader
-        department = test_employee.department
-        department.leader = None
-        department.save()
-
-        superuser.employee = test_employee
-        superuser.save()
-
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        data = response.json()
-        assert data["success"] is False
-
-    def test_need_approval_returns_error_when_different_leader(self, api_client, superuser, test_employee):
-        """Test that need_approval returns 400 when department has a different leader."""
-        # Create another employee as department leader
-        other_leader = Employee.objects.create(
-            code="MV_LEADER001",
-            fullname="Other Leader",
-            username="other_leader_001",
-            email="otherleader001@example.com",
-            attendance_code="88001",
-            citizen_id="888000000001",
             branch=test_employee.branch,
             block=test_employee.block,
             department=test_employee.department,
@@ -2104,193 +2022,65 @@ class TestProposalsNeedApprovalAPI:
             status=Employee.Status.ACTIVE,
         )
 
-        department = test_employee.department
-        department.leader = other_leader
-        department.save()
-
-        superuser.employee = test_employee
-        superuser.save()
-
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        data = response.json()
-        assert data["success"] is False
-
-    def test_need_approval_user_without_employee_profile(self, api_client, superuser):
-        """Test that need_approval returns error for user without employee profile."""
-        # Ensure superuser has no employee profile
-        if hasattr(superuser, "employee"):
-            superuser.employee = None
-            superuser.save()
-
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        data = response.json()
-        assert data["success"] is False
-
-    def test_need_approval_supports_filtering(self, api_client, superuser, test_employee):
-        """Test that need_approval supports existing filters."""
-        # Set up the test employee as department leader
-        department = test_employee.department
-        department.leader = test_employee
-        department.save()
-
-        superuser.employee = test_employee
-        superuser.save()
-
-        # Create subordinate
-        subordinate = Employee.objects.create(
-            code="MV_SUB002",
-            fullname="Subordinate Employee 2",
-            username="subordinate_002",
-            email="subordinate002@example.com",
-            attendance_code="77002",
-            citizen_id="777000000002",
-            branch=test_employee.branch,
-            block=test_employee.block,
-            department=department,
-            position=test_employee.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
-
-        # Create proposals with different statuses
-        proposal1 = Proposal.objects.create(
-            code="DX_FILTER_APPROVAL001",
+        # Create proposal
+        proposal = Proposal.objects.create(
+            code="DX_VERIFIER001",
             proposal_type=ProposalType.PAID_LEAVE,
-            proposal_status=ProposalStatus.PENDING,
-            note="Pending proposal",
-            created_by=subordinate,
+            note="Test proposal",
+            created_by=other_employee,
         )
-        ProposalVerifier.objects.create(proposal=proposal1, employee=test_employee)
 
+        # Add test_employee as verifier
+        ProposalVerifier.objects.create(proposal=proposal, employee=test_employee)
+
+        # Add other_employee as verifier to another proposal
         proposal2 = Proposal.objects.create(
-            code="DX_FILTER_APPROVAL002",
+            code="DX_VERIFIER002",
             proposal_type=ProposalType.PAID_LEAVE,
-            proposal_status=ProposalStatus.APPROVED,
-            note="Approved proposal",
-            created_by=subordinate,
+            note="Another proposal",
+            created_by=test_employee,
         )
-        ProposalVerifier.objects.create(proposal=proposal2, employee=test_employee)
+        ProposalVerifier.objects.create(proposal=proposal2, employee=other_employee)
 
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url, {"proposal_status": ProposalStatus.PENDING})
+        url = reverse("hrm:me-proposal-verifiers")
+        response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["success"] is True
+        # Should only return verifier where test_employee is the assigned employee
         assert data["data"]["count"] == 1
-        assert data["data"]["results"][0]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
+        assert data["data"]["results"][0]["employee"]["id"] == test_employee.id
 
-    def test_need_approval_only_includes_proposals_where_user_is_verifier(self, api_client, superuser, test_employee):
-        """Test that need_approval only includes proposals where user is assigned as verifier."""
-        # Set up the test employee as department leader
-        department = test_employee.department
-        department.leader = test_employee
-        department.save()
+    def test_me_proposal_verifiers_returns_empty_when_no_assignments(self, api_client, superuser, test_employee):
+        """Test that me-proposal-verifiers returns empty list when user has no verifier assignments."""
+        test_employee.user = superuser
+        test_employee.save()
 
-        superuser.employee = test_employee
-        superuser.save()
-
-        # Create subordinate in same department
-        subordinate = Employee.objects.create(
-            code="MV_SUB003",
-            fullname="Subordinate Employee 3",
-            username="subordinate_003",
-            email="subordinate003@example.com",
-            attendance_code="77003",
-            citizen_id="777000000003",
-            branch=test_employee.branch,
-            block=test_employee.block,
-            department=department,
-            position=test_employee.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
-
-        # Create another leader
-        other_leader = Employee.objects.create(
-            code="MV_OTHER_LEADER",
-            fullname="Other Leader",
-            username="other_leader",
-            email="otherleader@example.com",
+        # Create proposal without assigning test_employee as verifier
+        other_employee = Employee.objects.create(
+            code="MV_OTHER_EMP",
+            fullname="Other Employee",
+            username="other_emp_001",
+            email="otheremp001@example.com",
             attendance_code="66001",
             citizen_id="666000000001",
             branch=test_employee.branch,
             block=test_employee.block,
-            department=department,
+            department=test_employee.department,
             position=test_employee.position,
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
         )
-
-        # Create proposal where test_employee is verifier
-        proposal1 = Proposal.objects.create(
-            code="DX_VERIFIER001",
+        proposal = Proposal.objects.create(
+            code="DX_NO_ASSIGN001",
             proposal_type=ProposalType.PAID_LEAVE,
-            note="Assigned to test_employee",
-            created_by=subordinate,
+            note="Test proposal",
+            created_by=test_employee,
         )
-        ProposalVerifier.objects.create(proposal=proposal1, employee=test_employee)
+        ProposalVerifier.objects.create(proposal=proposal, employee=other_employee)
 
-        # Create proposal where other_leader is verifier (not test_employee)
-        proposal2 = Proposal.objects.create(
-            code="DX_VERIFIER002",
-            proposal_type=ProposalType.PAID_LEAVE,
-            note="Assigned to other leader",
-            created_by=subordinate,
-        )
-        ProposalVerifier.objects.create(proposal=proposal2, employee=other_leader)
-
-        url = reverse("hrm:proposal-proposals-need-approval")
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["success"] is True
-        # Should only include proposal where test_employee is verifier
-        assert data["data"]["count"] == 1
-        assert data["data"]["results"][0]["code"] == "DX_VERIFIER001"
-
-    def test_need_approval_returns_empty_when_no_verifier_assignments(self, api_client, superuser, test_employee):
-        """Test that need_approval returns empty list when user has no verifier assignments."""
-        # Set up the test employee as department leader
-        department = test_employee.department
-        department.leader = test_employee
-        department.save()
-
-        superuser.employee = test_employee
-        superuser.save()
-
-        # Create subordinate
-        subordinate = Employee.objects.create(
-            code="MV_SUB004",
-            fullname="Subordinate Employee 4",
-            username="subordinate_004",
-            email="subordinate004@example.com",
-            attendance_code="77004",
-            citizen_id="777000000004",
-            branch=test_employee.branch,
-            block=test_employee.block,
-            department=department,
-            position=test_employee.position,
-            start_date=date(2020, 1, 1),
-            status=Employee.Status.ACTIVE,
-        )
-
-        # Create proposal without any verifier
-        Proposal.objects.create(
-            code="DX_NO_VERIFIER001",
-            proposal_type=ProposalType.PAID_LEAVE,
-            note="No verifier assigned",
-            created_by=subordinate,
-        )
-
-        url = reverse("hrm:proposal-proposals-need-approval")
+        url = reverse("hrm:me-proposal-verifiers")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2298,3 +2088,51 @@ class TestProposalsNeedApprovalAPI:
         assert data["success"] is True
         assert data["data"]["count"] == 0
         assert data["data"]["results"] == []
+
+    def test_me_proposal_verifiers_supports_filtering(self, api_client, superuser, test_employee):
+        """Test that me-proposal-verifiers supports filtering."""
+        test_employee.user = superuser
+        test_employee.save()
+
+        # Create another employee
+        other_employee = Employee.objects.create(
+            code="MV_FILTER_EMP",
+            fullname="Filter Employee",
+            username="filter_emp_001",
+            email="filteremp001@example.com",
+            attendance_code="55001",
+            citizen_id="555000000001",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Create proposals with different statuses
+        proposal1 = Proposal.objects.create(
+            code="DX_FILTER_V001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.PENDING,
+            note="Pending proposal",
+            created_by=other_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal1, employee=test_employee)
+
+        proposal2 = Proposal.objects.create(
+            code="DX_FILTER_V002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            note="Approved proposal",
+            created_by=other_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal2, employee=test_employee)
+
+        url = reverse("hrm:me-proposal-verifiers")
+        response = api_client.get(url, {"proposal__proposal_status": ProposalStatus.PENDING})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1

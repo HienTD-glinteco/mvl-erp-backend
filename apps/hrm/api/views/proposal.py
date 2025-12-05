@@ -12,7 +12,12 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets.proposal import ProposalFilterSet
+from apps.hrm.api.filtersets.proposal import (
+    MeProposalFilterSet,
+    MeProposalVerifierFilterSet,
+    ProposalFilterSet,
+    ProposalVerifierFilterSet,
+)
 from apps.hrm.api.serializers.proposal import (
     ProposalApproveSerializer,
     ProposalAssetAllocationExportXLSXSerializer,
@@ -39,6 +44,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalTimesheetEntryComplaintSerializer,
     ProposalUnpaidLeaveExportXLSXSerializer,
     ProposalUnpaidLeaveSerializer,
+    ProposalVerifierNeedVerificationSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
 )
@@ -91,8 +97,6 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
             return self.get_reject_serializer_class()
         elif self.action == "export":
             return self.get_export_serializer_class()
-        elif self.action in ["my_proposals", "proposals_need_approval"]:
-            return ProposalCombinedSerializer
         return super().get_serializer_class()
 
     def get_approve_serializer_class(self):
@@ -343,195 +347,15 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def export(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @extend_schema(
-        summary="List my proposals",
-        description="Retrieve a list of proposals created by the current authenticated user",
-        examples=[
-            OpenApiExample(
-                "Success",
-                value={
-                    "success": True,
-                    "data": {
-                        "count": 1,
-                        "next": None,
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "code": "DX000001",
-                                "proposal_date": "2025-01-15",
-                                "proposal_type": "paid_leave",
-                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                                "note": "Annual leave request",
-                                "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
-                                "approved_by": None,
-                                "created_at": "2025-01-15T10:00:00Z",
-                                "updated_at": "2025-01-15T10:00:00Z",
-                                "late_exemption_start_date": None,
-                                "late_exemption_end_date": None,
-                                "late_exemption_minutes": None,
-                                "overtime_entries": [],
-                                "post_maternity_benefits_start_date": None,
-                                "post_maternity_benefits_end_date": None,
-                                "assets": [],
-                                "maternity_leave_start_date": None,
-                                "maternity_leave_end_date": None,
-                                "maternity_leave_estimated_due_date": None,
-                                "maternity_leave_replacement_employee": None,
-                                "paid_leave_start_date": "2025-01-20",
-                                "paid_leave_end_date": "2025-01-22",
-                                "paid_leave_shift": "full_day",
-                                "paid_leave_reason": "Family vacation",
-                                "unpaid_leave_start_date": None,
-                                "unpaid_leave_end_date": None,
-                                "unpaid_leave_shift": None,
-                                "unpaid_leave_reason": None,
-                                "job_transfer_new_branch": None,
-                                "job_transfer_new_block": None,
-                                "job_transfer_new_department": None,
-                                "job_transfer_new_position": None,
-                                "job_transfer_effective_date": None,
-                                "job_transfer_reason": None,
-                            }
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-            ),
-            OpenApiExample(
-                "Error - No employee profile",
-                value={"success": False, "data": None, "error": "User does not have an employee profile"},
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-        filters=ProposalFilterSet,  # type: ignore
-        tags=["9.2: Proposals"],
-    )
-    @action(detail=False, methods=["get"], url_path="me/proposals")
-    def my_proposals(self, request):
-        """Return proposals created by the current user."""
-        user = request.user
-        if not hasattr(user, "employee") or not user.employee:
-            return Response(
-                {"detail": "User does not have an employee profile"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
-        queryset = self.filter_queryset(self.get_queryset().filter(created_by=user.employee))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+class MeProposalViewSet(ProposalViewSet):
+    """ViewSet for current user's proposals."""
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    filterset_class = MeProposalFilterSet
+    serializer_class = ProposalCombinedSerializer
 
-    @extend_schema(
-        summary="List proposals needing my approval",
-        description=(
-            "Retrieve a list of proposals that the current user needs to approve. "
-            "Returns proposals where the current user is assigned as a verifier. "
-            "Only department leaders can access this endpoint."
-        ),
-        examples=[
-            OpenApiExample(
-                "Success - User is department leader with proposals to verify",
-                value={
-                    "success": True,
-                    "data": {
-                        "count": 1,
-                        "next": None,
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "code": "DX000001",
-                                "proposal_date": "2025-01-15",
-                                "proposal_type": "paid_leave",
-                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
-                                "note": "Annual leave request",
-                                "created_by": {"id": 5, "fullname": "Employee Name", "email": "emp@example.com"},
-                                "approved_by": None,
-                                "created_at": "2025-01-15T10:00:00Z",
-                                "updated_at": "2025-01-15T10:00:00Z",
-                                "late_exemption_start_date": None,
-                                "late_exemption_end_date": None,
-                                "late_exemption_minutes": None,
-                                "overtime_entries": [],
-                                "post_maternity_benefits_start_date": None,
-                                "post_maternity_benefits_end_date": None,
-                                "assets": [],
-                                "maternity_leave_start_date": None,
-                                "maternity_leave_end_date": None,
-                                "maternity_leave_estimated_due_date": None,
-                                "maternity_leave_replacement_employee": None,
-                                "paid_leave_start_date": "2025-01-20",
-                                "paid_leave_end_date": "2025-01-22",
-                                "paid_leave_shift": "full_day",
-                                "paid_leave_reason": "Family vacation",
-                                "unpaid_leave_start_date": None,
-                                "unpaid_leave_end_date": None,
-                                "unpaid_leave_shift": None,
-                                "unpaid_leave_reason": None,
-                                "job_transfer_new_branch": None,
-                                "job_transfer_new_block": None,
-                                "job_transfer_new_department": None,
-                                "job_transfer_new_position": None,
-                                "job_transfer_effective_date": None,
-                                "job_transfer_reason": None,
-                            }
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-            ),
-            OpenApiExample(
-                "Error - User is not a department leader",
-                value={"success": False, "data": None, "error": "User is not a department leader"},
-                response_only=True,
-                status_codes=["400"],
-            ),
-            OpenApiExample(
-                "Error - No employee profile",
-                value={"success": False, "data": None, "error": "User does not have an employee profile"},
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
-        filters=ProposalFilterSet,  # type: ignore
-        tags=["9.2: Proposals"],
-    )
-    @action(detail=False, methods=["get"], url_path="me/proposals/need-approval", filterset_class=ProposalFilterSet)
-    def proposals_need_approval(self, request):
-        """Return proposals that the current user needs to approve as department leader."""
-        user = request.user
-        if not hasattr(user, "employee") or not user.employee:
-            return Response(
-                {"detail": "User does not have an employee profile"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        employee = user.employee
-        if employee.department.leader_id != employee.id:
-            return Response(
-                {"detail": "User is not a department leader"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        proposal_ids = ProposalVerifier.objects.filter(
-            employee=employee,
-        ).values_list("proposal_id", flat=True)
-        queryset = self.filter_queryset(self.get_queryset().filter(id__in=proposal_ids))
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return super().get_queryset().filter(created_by=self.request.user.employee)
 
 
 @extend_schema_view(
@@ -605,7 +429,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         ],
     ),
 )
-class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
@@ -2193,7 +2017,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
         tags=["9.2.8: Attendance Exemption Proposals"],
     ),
 )
-class ProposalAttendanceExemptionViewSet(ProposalMixin, BaseModelViewSet):
+class ProposalAttendanceExemptionViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """ViewSet for Attendance Exemption proposals."""
 
     proposal_type = ProposalType.ATTENDANCE_EXEMPTION
@@ -2877,6 +2701,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = ProposalVerifier.objects.select_related("proposal", "employee")
     serializer_class = ProposalVerifierSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProposalVerifierFilterSet
     ordering_fields = ["created_at", "verified_time"]
     ordering = ["-created_at"]
 
@@ -2943,3 +2768,13 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
         serializer.save()
 
         return Response(self.serializer_class(verifier).data, status=status.HTTP_200_OK)
+
+
+class MeProposalVerifierViewSet(ProposalVerifierViewSet):
+    """ViewSet for current user's proposal verifiers."""
+
+    serializer_class = ProposalVerifierNeedVerificationSerializer
+    filterset_class = MeProposalVerifierFilterSet
+
+    def get_queryset(self):
+        return super().get_queryset().filter(employee=self.request.user.employee)

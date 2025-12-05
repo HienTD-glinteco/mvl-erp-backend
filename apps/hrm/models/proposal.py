@@ -486,7 +486,7 @@ class ProposalTimeSheetEntry(BaseModel):
 
 
 @audit_logging_register
-class ProposalVerifier(BaseModel):
+class ProposalVerifier(ColoredValueMixin, BaseModel):
     """Model linking proposals to employees who can verify them."""
 
     proposal = models.ForeignKey(
@@ -522,6 +522,13 @@ class ProposalVerifier(BaseModel):
         verbose_name="Note",
     )
 
+    VARIANT_MAPPING = {
+        "status": {
+            ProposalVerifierStatus.NOT_VERIFIED: ColorVariant.YELLOW,
+            ProposalVerifierStatus.VERIFIED: ColorVariant.GREEN,
+        }
+    }
+
     class Meta:
         db_table = "hrm_proposal_verifier"
         verbose_name = "Proposal Verifier"
@@ -534,6 +541,11 @@ class ProposalVerifier(BaseModel):
 
     def __str__(self) -> str:  # pragma: no cover - trivial
         return f"Proposal {self.proposal_id} - Verifier {self.employee_id}"
+
+    @property
+    def colored_status(self) -> dict:
+        """Get colored value representation for status field."""
+        return self.get_colored_value("status")
 
 
 @audit_logging_register

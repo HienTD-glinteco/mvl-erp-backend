@@ -220,13 +220,24 @@ class ProposalTimesheetEntryComplaintRejectSerializer(ProposalRejectSerializer):
 class ProposalVerifierSerializer(serializers.ModelSerializer):
     """Serializer for ProposalVerifier model."""
 
+    proposal_id = serializers.IntegerField(write_only=True)
+    employee_id = serializers.IntegerField(write_only=True)
+
+    proposal = ProposalSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+
+    colored_status = ColoredValueSerializer(read_only=True)
+
     class Meta:
         model = ProposalVerifier
         fields = [
             "id",
+            "proposal_id",
+            "employee_id",
             "proposal",
             "employee",
             "status",
+            "colored_status",
             "verified_time",
             "note",
             "created_at",
@@ -234,9 +245,15 @@ class ProposalVerifierSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "colored_status",
             "created_at",
             "updated_at",
+            "proposal",
+            "employee",
         ]
+        extra_kwargs = {
+            "status": {"write_only": True},
+        }
 
 
 class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
@@ -859,4 +876,25 @@ class ProposalCombinedSerializer(
                 "job_transfer_reason",
             ]
         )
+        read_only_fields = fields
+
+
+class ProposalVerifierNeedVerificationSerializer(ProposalVerifierSerializer):
+    """Serializer for ProposalVerifier model used in need-verification view."""
+
+    proposal = ProposalCombinedSerializer(read_only=True)
+    employee = EmployeeSerializer(read_only=True)
+
+    class Meta:
+        model = ProposalVerifier
+        fields = [
+            "id",
+            "proposal",
+            "employee",
+            "colored_status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = fields

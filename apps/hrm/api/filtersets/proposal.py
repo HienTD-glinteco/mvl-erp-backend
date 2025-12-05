@@ -1,7 +1,7 @@
 from django.db.models import Exists, OuterRef
 from django_filters import rest_framework as filters
 
-from apps.hrm.models import Proposal, ProposalTimeSheetEntry
+from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
 
 
 class ProposalFilterSet(filters.FilterSet):
@@ -52,4 +52,42 @@ class ProposalFilterSet(filters.FilterSet):
             "proposal_date": ["exact", "gte", "lte"],
             "created_by": ["exact"],
             "approved_by": ["exact"],
+        }
+
+
+class MeProposalFilterSet(ProposalFilterSet):
+    class Meta:
+        model = Proposal
+        fields = {
+            "proposal_type": ["exact", "in"],
+            "proposal_status": ["exact", "in"],
+            "proposal_date": ["exact", "gte", "lte"],
+            "approved_by": ["exact"],
+        }
+
+
+class ProposalVerifierFilterSet(filters.FilterSet):
+    """FilterSet for Proposal model used by verifiers."""
+
+    class Meta:
+        model = ProposalVerifier
+        fields = {
+            "proposal": ["exact"],
+            "proposal__proposal_type": ["exact", "in"],
+            "proposal__proposal_status": ["exact", "in"],
+            "status": ["exact", "in"],
+            "employee": ["exact"],
+        }
+
+
+class MeProposalVerifierFilterSet(filters.FilterSet):
+    """FilterSet for Proposal model used by verifiers."""
+
+    class Meta:
+        model = ProposalVerifier
+        fields = {
+            "proposal": ["exact"],
+            "proposal__proposal_type": ["exact", "in"],
+            "proposal__proposal_status": ["exact", "in"],
+            "status": ["exact", "in"],
         }

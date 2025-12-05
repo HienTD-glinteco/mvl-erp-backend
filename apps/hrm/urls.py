@@ -31,6 +31,8 @@ from apps.hrm.api.views import (
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
+    MeProposalVerifierViewSet,
+    MeProposalViewSet,
     PositionViewSet,
     ProposalAssetAllocationViewSet,
     ProposalAttendanceExemptionViewSet,
@@ -172,4 +174,6 @@ compensatory_router.register(r"compensatory-days", CompensatoryWorkdayViewSet, b
 urlpatterns = [
     path("", include(router.urls)),
     path("holidays/<int:holiday_pk>/", include(compensatory_router.urls)),
+    path("me/proposals/", MeProposalViewSet.as_view({"get": "list"}), name="me-proposals"),
+    path("me/proposal-verifiers/", MeProposalVerifierViewSet.as_view({"get": "list"}), name="me-proposal-verifiers"),
 ]
