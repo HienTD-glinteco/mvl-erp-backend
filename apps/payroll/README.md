@@ -142,6 +142,28 @@ Configuration can be edited through Django Admin at `/admin/payroll/salaryconfig
 - JSON editor for config field
 - Delete protection to maintain history
 
+### Initialization
+
+The module includes a management command to initialize the salary configuration with default fixtures.
+
+**Initialize with default fixtures:**
+```bash
+python manage.py init_salary_config
+```
+
+**Reset and initialize (delete all existing configs):**
+```bash
+python manage.py init_salary_config --reset
+```
+
+The default fixtures include:
+- 5 insurance types (including accident/occupational insurance)
+- 7 progressive tax brackets
+- 4 KPI performance tiers (A, B, C, D)
+- 5 business commission tiers (M0-M4) with criteria
+
+Fixtures are stored in `apps/payroll/fixtures/default_salary_config.json` and can be customized before initialization.
+
 ### Usage in Payroll Calculation
 
 When calculating payroll:
