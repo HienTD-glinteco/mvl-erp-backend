@@ -4,32 +4,35 @@ import re
 def _parse_tag_for_sorting(tag):
     """
     Parse tag to extract numeric prefix for proper sorting.
-    For example: "0.8: Geographic" -> (0, 8, "Geographic")
-                 "1.1: Auth" -> (1, 1, "Auth")
-                 "10.1: Decision" -> (10, 1, "Decision")
-                 "Geographic" -> (999999, 0, "Geographic")
+    For example: "0.8: Geographic" -> (0, 8, 0, "Geographic")
+                 "1.1: Auth" -> (1, 1, 0, "Auth")
+                 "9.2.10: Asset Allocation" -> (9, 2, 10, "Asset Allocation")
+                 "10.2: Decision" -> (10, 2, 0, "Decision")
+                 "Geographic" -> (999999, 0, 0, "Geographic")
     """
     if not tag:
-        return (999999, 0, "")
+        return (999999, 0, 0, "")
 
-    # Match pattern like "1.2: Name" or "10.2: Name" (with colon)
-    match = re.match(r"^(\d+)(?:\.(\d+))?:\s+(.*)$", tag)
+    # Match pattern like "1.2.3: Name" or "9.2.10: Name" (with colon, up to 3 numeric parts)
+    match = re.match(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?:\s+(.*)$", tag)
     if match:
         major = int(match.group(1))
         minor = int(match.group(2)) if match.group(2) else 0
-        name = match.group(3)
-        return (major, minor, name)
+        patch = int(match.group(3)) if match.group(3) else 0
+        name = match.group(4)
+        return (major, minor, patch, name)
 
-    # Fallback: Match old format "1.2 Name" (without colon) for backward compatibility
-    match = re.match(r"^(\d+)(?:\.(\d+))?\s+(.*)$", tag)
+    # Fallback: Match old format "1.2.3 Name" (without colon) for backward compatibility
+    match = re.match(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+(.*)$", tag)
     if match:
         major = int(match.group(1))
         minor = int(match.group(2)) if match.group(2) else 0
-        name = match.group(3)
-        return (major, minor, name)
+        patch = int(match.group(3)) if match.group(3) else 0
+        name = match.group(4)
+        return (major, minor, patch, name)
 
     # No numeric prefix, sort at the end
-    return (999999, 0, tag)
+    return (999999, 0, 0, tag)
 
 
 def sort_schema_by_tags(result, generator, request, public):

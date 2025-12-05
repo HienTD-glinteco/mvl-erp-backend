@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-04 18:13+0700\n"
+"POT-Creation-Date: 2025-12-05 14:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -287,6 +287,14 @@ msgstr "Không được phép xem job này"
 #: apps/mailtemplates/views.py:554
 msgid "Job not found"
 msgstr "Job không tồn tại"
+
+#: apps/payroll/api/views/salary_config.py:127
+msgid "View salary configuration"
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:130
+msgid "Payroll View Salary Configuration"
+msgstr ""
 
 #: apps/realestate/models/project.py:17
 msgid "Active"

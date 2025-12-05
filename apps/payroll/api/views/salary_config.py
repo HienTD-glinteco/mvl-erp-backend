@@ -21,7 +21,7 @@ class CurrentSalaryConfigView(APIView):
     @extend_schema(
         summary="Get current salary configuration",
         description="Retrieve the current active salary configuration including insurance rates, tax levels, KPI grades, and business progressive salary levels",
-        tags=["10.1 Payroll Configuration"],
+        tags=["10.1: Payroll Configuration"],
         responses={200: SalaryConfigSerializer},
         examples=[
             OpenApiExample(
