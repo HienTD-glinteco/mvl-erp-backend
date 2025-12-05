@@ -1,8 +1,11 @@
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.api.permissions import RoleBasedPermission
+from apps.core.utils.permissions import register_permission
 from apps.payroll.api.serializers import SalaryConfigSerializer
 from apps.payroll.models import SalaryConfig
 
@@ -13,10 +16,12 @@ class CurrentSalaryConfigView(APIView):
     This endpoint is read-only. Configuration editing is done through Django Admin.
     """
 
+    permission_classes = [RoleBasedPermission]
+
     @extend_schema(
         summary="Get current salary configuration",
         description="Retrieve the current active salary configuration including insurance rates, tax levels, KPI grades, and business progressive salary levels",
-        tags=["Payroll"],
+        tags=["10.1 Payroll Configuration"],
         responses={200: SalaryConfigSerializer},
         examples=[
             OpenApiExample(
@@ -116,6 +121,13 @@ class CurrentSalaryConfigView(APIView):
                 status_codes=["404"],
             ),
         ],
+    )
+    @register_permission(
+        "payroll.view_salary_config",
+        _("View salary configuration"),
+        "Payroll",
+        "Configuration",
+        _("Payroll View Salary Configuration"),
     )
     def get(self, request):
         """Get the current salary configuration."""
