@@ -83,7 +83,8 @@ class SalaryConfigAPITest(APITestCase):
 
         self.assertFalse(response_data["success"])
         self.assertIsNone(response_data["data"])
-        self.assertEqual(response_data["error"], "No salary configuration found")
+        self.assertIsInstance(response_data["error"], dict)
+        self.assertEqual(response_data["error"]["detail"], "No salary configuration found")
 
     def test_get_latest_config_when_multiple_exist(self):
         """Test that the API returns the latest configuration"""

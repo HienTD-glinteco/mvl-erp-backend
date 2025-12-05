@@ -85,7 +85,7 @@ class CurrentSalaryConfigView(APIView):
             OpenApiExample(
                 "Error - No Config Found",
                 description="Example response when no configuration exists",
-                value={"success": False, "data": None, "error": "No salary configuration found"},
+                value={"success": False, "data": None, "error": {"detail": "No salary configuration found"}},
                 response_only=True,
                 status_codes=["404"],
             ),
@@ -96,7 +96,7 @@ class CurrentSalaryConfigView(APIView):
         config = SalaryConfig.objects.first()
 
         if not config:
-            return Response("No salary configuration found", status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "No salary configuration found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = SalaryConfigSerializer(config)
         return Response(serializer.data, status=status.HTTP_200_OK)
