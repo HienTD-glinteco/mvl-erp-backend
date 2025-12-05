@@ -634,6 +634,157 @@ class TestProposalAPI:
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["approved_by"]["id"] == approver.id
 
+    def test_search_by_proposal_code(self, api_client, superuser, test_employee):
+        """Test searching proposals by proposal code."""
+        Proposal.objects.create(
+            code="DX_SEARCH001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="First proposal",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_SEARCH002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Second proposal",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX_OTHER999",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Other proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"search": "DX_SEARCH"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 2
+        codes = [result["code"] for result in data["data"]["results"]]
+        assert "DX_SEARCH001" in codes
+        assert "DX_SEARCH002" in codes
+        assert "DX_OTHER999" not in codes
+
+    def test_search_by_created_by_fullname(self, api_client, superuser, test_employee):
+        """Test searching proposals by created_by employee fullname."""
+        # Create another employee with different fullname
+        other_employee = Employee.objects.create(
+            code="MV_PROP_OTHER",
+            fullname="Nguyen Van An",
+            username="user_prop_other",
+            email="prop_other@example.com",
+            attendance_code="99095",
+            citizen_id="999000000095",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_NAME001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Proposal by test employee",
+            created_by=test_employee,  # fullname: "Proposal Test Employee"
+        )
+        Proposal.objects.create(
+            code="DX_NAME002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Proposal by other employee",
+            created_by=other_employee,  # fullname: "Nguyen Van An"
+        )
+
+        # Search by test employee's fullname
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"search": "Proposal Test Employee"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["code"] == "DX_NAME001"
+
+        # Search by other employee's fullname
+        response = api_client.get(url, {"search": "Nguyen Van An"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["code"] == "DX_NAME002"
+
+    def test_search_by_created_by_code(self, api_client, superuser, test_employee):
+        """Test searching proposals by created_by employee code."""
+        # Create another employee with different code
+        other_employee = Employee.objects.create(
+            code="MV_PROP_XYZ",
+            fullname="Another Employee",
+            username="user_prop_xyz",
+            email="prop_xyz@example.com",
+            attendance_code="99096",
+            citizen_id="999000000096",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        Proposal.objects.create(
+            code="DX_CODE001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Proposal by test employee",
+            created_by=test_employee,  # code: "MV_PROP_001"
+        )
+        Proposal.objects.create(
+            code="DX_CODE002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Proposal by other employee",
+            created_by=other_employee,  # code: "MV_PROP_XYZ"
+        )
+
+        # Search by test employee's code
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"search": "MV_PROP_001"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["code"] == "DX_CODE001"
+
+        # Search by other employee's code
+        response = api_client.get(url, {"search": "MV_PROP_XYZ"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["code"] == "DX_CODE002"
+
+    def test_search_returns_empty_when_no_match(self, api_client, superuser, test_employee):
+        """Test searching proposals returns empty when no match found."""
+        Proposal.objects.create(
+            code="DX_NOMATCH001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="A proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"search": "NONEXISTENT_STRING"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
 
 class TestTimesheetEntryComplaintProposalAPI:
     """Tests for Timesheet Entry Complaint Proposal API."""

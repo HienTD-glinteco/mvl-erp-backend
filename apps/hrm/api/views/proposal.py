@@ -52,14 +52,16 @@ from apps.hrm.api.serializers.proposal import (
 from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx.mixins import ExportXLSXMixin
 
 
 class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     queryset = Proposal.objects.all()
     serializer_class = ProposalSerializer  # Subclasses should override
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = ProposalFilterSet
+    search_fields = ["code", "created_by__fullname", "created_by__code"]
     ordering_fields = ["proposal_date", "created_at"]
     ordering = ["-proposal_date"]
 
