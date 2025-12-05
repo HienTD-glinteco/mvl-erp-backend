@@ -7,11 +7,6 @@ from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
 class ProposalFilterSet(filters.FilterSet):
     """FilterSet for Proposal model."""
 
-    timesheet_entry = filters.NumberFilter(
-        method="filter_timesheet_entry",
-        help_text="Filter by TimeSheetEntry ID",
-    )
-
     created_by_department = filters.NumberFilter(
         field_name="created_by__department",
         help_text="Filter by creator's department ID",
@@ -32,6 +27,25 @@ class ProposalFilterSet(filters.FilterSet):
         help_text="Filter by creator's position ID",
     )
 
+    class Meta:
+        model = Proposal
+        fields = {
+            "proposal_type": ["exact", "in"],
+            "proposal_status": ["exact", "in"],
+            "proposal_date": ["exact", "gte", "lte"],
+            "created_by": ["exact"],
+            "approved_by": ["exact"],
+        }
+
+
+class ProposalTimesheetEntryComplaintFilterSet(ProposalFilterSet):
+    """FilterSet for Proposal with type TIMESHEET_ENTRY_COMPLAINT."""
+
+    timesheet_entry = filters.NumberFilter(
+        method="filter_timesheet_entry",
+        help_text="Filter by TimeSheetEntry ID",
+    )
+
     def filter_timesheet_entry(self, queryset, name, value):
         """Filter proposals that have a specific timesheet entry using EXISTS subquery."""
         if not value:
@@ -43,16 +57,6 @@ class ProposalFilterSet(filters.FilterSet):
             timesheet_entry=value,
         )
         return queryset.filter(Exists(subquery))
-
-    class Meta:
-        model = Proposal
-        fields = {
-            "proposal_type": ["exact", "in"],
-            "proposal_status": ["exact", "in"],
-            "proposal_date": ["exact", "gte", "lte"],
-            "created_by": ["exact"],
-            "approved_by": ["exact"],
-        }
 
 
 class MeProposalFilterSet(ProposalFilterSet):
