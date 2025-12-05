@@ -17,6 +17,11 @@ class SalaryConfigSerializerTest(TestCase):
                 "health_insurance": {"employee_rate": 0.015, "employer_rate": 0.03, "salary_ceiling": 46800000},
                 "unemployment_insurance": {"employee_rate": 0.01, "employer_rate": 0.01, "salary_ceiling": 46800000},
                 "union_fee": {"employee_rate": 0.01, "employer_rate": 0.01, "salary_ceiling": 46800000},
+                "accident_occupational_insurance": {
+                    "employee_rate": 0.0,
+                    "employer_rate": 0.005,
+                    "salary_ceiling": 46800000,
+                },
             },
             "personal_income_tax": {
                 "standard_deduction": 11000000,
@@ -31,9 +36,36 @@ class SalaryConfigSerializerTest(TestCase):
                     {"up_to": None, "rate": 0.35},
                 ],
             },
-            "kpi_salary": {"grades": {"A": 0.10, "B": 0.05, "C": 0.00, "D": -0.05}},
+            "kpi_salary": {
+                "apply_on": "base_salary",
+                "tiers": [
+                    {"code": "A", "percentage": 0.10, "description": "Excellent"},
+                    {"code": "B", "percentage": 0.05, "description": "Good"},
+                    {"code": "C", "percentage": 0.00, "description": "Average"},
+                    {"code": "D", "percentage": -0.05, "description": "Below Average"},
+                ],
+            },
             "business_progressive_salary": {
-                "levels": {"M0": "base_salary", "M1": 7000000, "M2": 9000000, "M3": 11000000, "M4": 13000000}
+                "apply_on": "base_salary",
+                "tiers": [
+                    {"code": "M0", "amount": 0, "criteria": []},
+                    {
+                        "code": "M1",
+                        "amount": 7000000,
+                        "criteria": [
+                            {"name": "transaction_count", "min": 50},
+                            {"name": "revenue", "min": 100000000},
+                        ],
+                    },
+                    {
+                        "code": "M2",
+                        "amount": 9000000,
+                        "criteria": [
+                            {"name": "transaction_count", "min": 80},
+                            {"name": "revenue", "min": 150000000},
+                        ],
+                    },
+                ],
             },
         }
 
@@ -108,22 +140,22 @@ class SalaryConfigSerializerTest(TestCase):
         serializer = SalaryConfigSchemaSerializer(data=invalid_data)
         self.assertFalse(serializer.is_valid())
 
-    def test_kpi_grades_validation(self):
-        """Test that all KPI grades are required"""
+    def test_kpi_tiers_validation(self):
+        """Test that KPI tiers are validated correctly"""
         invalid_data = self.valid_config_data.copy()
-        invalid_data["kpi_salary"]["grades"] = {"A": 0.10, "B": 0.05}  # Missing C and D
+        invalid_data["kpi_salary"]["tiers"] = [
+            {"code": "A", "percentage": 0.10}  # Missing description
+        ]
 
         serializer = SalaryConfigSchemaSerializer(data=invalid_data)
         self.assertFalse(serializer.is_valid())
 
-    def test_business_levels_validation(self):
-        """Test that all business levels are required"""
+    def test_business_tiers_validation(self):
+        """Test that business commission tiers are validated correctly"""
         invalid_data = self.valid_config_data.copy()
-        invalid_data["business_progressive_salary"]["levels"] = {
-            "M0": "base_salary",
-            "M1": 7000000,
-            # Missing M2, M3, M4
-        }
+        invalid_data["business_progressive_salary"]["tiers"] = [
+            {"code": "M0", "amount": 0}  # Missing criteria
+        ]
 
         serializer = SalaryConfigSchemaSerializer(data=invalid_data)
         self.assertFalse(serializer.is_valid())

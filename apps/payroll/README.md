@@ -75,6 +75,11 @@ The config JSON must follow this structure:
       "employee_rate": 0.01,
       "employer_rate": 0.01,
       "salary_ceiling": 46800000
+    },
+    "accident_occupational_insurance": {
+      "employee_rate": 0.0,
+      "employer_rate": 0.005,
+      "salary_ceiling": 46800000
     }
   },
   "personal_income_tax": {
@@ -91,21 +96,39 @@ The config JSON must follow this structure:
     ]
   },
   "kpi_salary": {
-    "grades": {
-      "A": 0.10,
-      "B": 0.05,
-      "C": 0.00,
-      "D": -0.05
-    }
+    "apply_on": "base_salary",
+    "tiers": [
+      { "code": "A", "percentage": 0.10, "description": "Excellent" },
+      { "code": "B", "percentage": 0.05, "description": "Good" },
+      { "code": "C", "percentage": 0.00, "description": "Average" },
+      { "code": "D", "percentage": -0.05, "description": "Below Average" }
+    ]
   },
   "business_progressive_salary": {
-    "levels": {
-      "M0": "base_salary",
-      "M1": 7000000,
-      "M2": 9000000,
-      "M3": 11000000,
-      "M4": 13000000
-    }
+    "apply_on": "base_salary",
+    "tiers": [
+      {
+        "code": "M0",
+        "amount": 0,
+        "criteria": []
+      },
+      {
+        "code": "M1",
+        "amount": 7000000,
+        "criteria": [
+          { "name": "transaction_count", "min": 50 },
+          { "name": "revenue", "min": 100000000 }
+        ]
+      },
+      {
+        "code": "M2",
+        "amount": 9000000,
+        "criteria": [
+          { "name": "transaction_count", "min": 80 },
+          { "name": "revenue", "min": 150000000 }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -138,11 +161,16 @@ social_insurance_employee = config['insurance_contributions']['social_insurance'
 # Get tax progressive levels
 tax_levels = config['personal_income_tax']['progressive_levels']
 
-# Get KPI multiplier
-kpi_multiplier = config['kpi_salary']['grades']['A']
+# Get KPI tier by code
+kpi_tiers = config['kpi_salary']['tiers']
+kpi_tier_a = next((t for t in kpi_tiers if t['code'] == 'A'), None)
+kpi_percentage = kpi_tier_a['percentage']
 
-# Get business salary level
-m1_salary = config['business_progressive_salary']['levels']['M1']
+# Get business commission tier by code
+business_tiers = config['business_progressive_salary']['tiers']
+m1_tier = next((t for t in business_tiers if t['code'] == 'M1'), None)
+m1_amount = m1_tier['amount']
+m1_criteria = m1_tier['criteria']
 ```
 
 3. Save config snapshot with payroll record:

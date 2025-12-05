@@ -16,6 +16,7 @@ class InsuranceContributionsSerializer(serializers.Serializer):
     health_insurance = SocialInsuranceSerializer()
     unemployment_insurance = SocialInsuranceSerializer()
     union_fee = SocialInsuranceSerializer()
+    accident_occupational_insurance = SocialInsuranceSerializer()
 
 
 class ProgressiveTaxLevelSerializer(serializers.Serializer):
@@ -33,35 +34,41 @@ class PersonalIncomeTaxSerializer(serializers.Serializer):
     progressive_levels = ProgressiveTaxLevelSerializer(many=True)
 
 
-class KpiGradesSerializer(serializers.Serializer):
-    """Serializer for KPI grade multipliers"""
+class KpiTierSerializer(serializers.Serializer):
+    """Serializer for a single KPI tier"""
 
-    A = serializers.FloatField()
-    B = serializers.FloatField()
-    C = serializers.FloatField()
-    D = serializers.FloatField()
+    code = serializers.CharField()
+    percentage = serializers.FloatField()
+    description = serializers.CharField()
 
 
 class KpiSalarySerializer(serializers.Serializer):
     """Serializer for KPI salary configuration"""
 
-    grades = KpiGradesSerializer()
+    apply_on = serializers.CharField()
+    tiers = KpiTierSerializer(many=True)
 
 
-class BusinessLevelsSerializer(serializers.Serializer):
-    """Serializer for business progressive salary levels"""
+class BusinessCommissionCriteriaSerializer(serializers.Serializer):
+    """Serializer for business commission criteria"""
 
-    M0 = serializers.CharField()
-    M1 = serializers.IntegerField()
-    M2 = serializers.IntegerField()
-    M3 = serializers.IntegerField()
-    M4 = serializers.IntegerField()
+    name = serializers.CharField()
+    min = serializers.IntegerField()
+
+
+class BusinessCommissionTierSerializer(serializers.Serializer):
+    """Serializer for business commission tier"""
+
+    code = serializers.CharField()
+    amount = serializers.IntegerField()
+    criteria = BusinessCommissionCriteriaSerializer(many=True)
 
 
 class BusinessProgressiveSalarySerializer(serializers.Serializer):
     """Serializer for business progressive salary configuration"""
 
-    levels = BusinessLevelsSerializer()
+    apply_on = serializers.CharField()
+    tiers = BusinessCommissionTierSerializer(many=True)
 
 
 class SalaryConfigSchemaSerializer(serializers.Serializer):
