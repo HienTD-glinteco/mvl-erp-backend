@@ -49,19 +49,22 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     # Process based on event type
     if event_type == "create":
         # New work history record - increment counters
-        if isinstance(current, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(current, dict) and current.get("employee_code_type") != Employee.CodeType.OS:
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "update":
         # Updated work history - revert old values and apply new values
-        if isinstance(previous, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(previous, dict) and previous.get("employee_code_type") != Employee.CodeType.OS:
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
-        if isinstance(current, dict):
+        if isinstance(current, dict) and current.get("employee_code_type") != Employee.CodeType.OS:
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "delete":
         # Deleted work history - decrement counters
-        if isinstance(previous, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(previous, dict) and previous.get("employee_code_type") != Employee.CodeType.OS:
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
 
 
@@ -213,6 +216,10 @@ def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> Non
     if not data:
         return
 
+    # Skip if employee has code_type="OS"
+    if data.get("employee_code_type") == Employee.CodeType.OS:
+        return
+
     report_date = data["date"]
     branch_id = data["branch_id"]
     block_id = data["block_id"]
@@ -246,12 +253,13 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
     week_key = f"Week {week_number} - {month_key}"
 
     # Count work history events using aggregation
+    # Exclude employees with code_type="OS"
     work_histories = EmployeeWorkHistory.objects.filter(
         date=report_date,
         branch=branch,
         block=block,
         department=department,
-    )
+    ).exclude(employee__code_type=Employee.CodeType.OS)
 
     # Count different event types
     num_transfers = work_histories.filter(name=EmployeeWorkHistory.EventType.TRANSFER).count()
@@ -310,6 +318,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
     """
     # Get the latest work history for each employee up to the report_date
     # This gives us the historical snapshot of employee status at that point in time
+    # Exclude employees with code_type="OS"
     latest_work_histories = (
         EmployeeWorkHistory.objects.filter(
             branch=branch,
@@ -317,6 +326,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
             department=department,
             date__lte=report_date,
         )
+        .exclude(employee__code_type=Employee.CodeType.OS)
         .order_by("employee_id", "-date", "-id")
         .distinct("employee_id")
     )

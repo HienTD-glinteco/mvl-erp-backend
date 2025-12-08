@@ -29,6 +29,7 @@ def track_work_history_changes(sender, instance, **kwargs):  # noqa: ARG001
                 "department_id": old_instance.department_id,
                 "status": old_instance.status,
                 "previous_data": old_instance.previous_data,
+                "employee_code_type": old_instance.employee.code_type,
             }
         except EmployeeWorkHistory.DoesNotExist:
             instance._old_snapshot = None
@@ -55,6 +56,7 @@ def trigger_hr_reports_aggregation_on_save(sender, instance, created, **kwargs):
             "department_id": instance.department_id,
             "status": instance.status,
             "previous_data": instance.previous_data,
+            "employee_code_type": instance.employee.code_type,
         }
 
         # Mark affected reports for batch refresh
@@ -103,6 +105,7 @@ def trigger_hr_reports_aggregation_on_delete(sender, instance, **kwargs):  # noq
             "department_id": instance.department_id,
             "status": instance.status,
             "previous_data": instance.previous_data,
+            "employee_code_type": instance.employee.code_type,
         }
         snapshot = {"previous": previous_snapshot, "current": None}
         aggregate_hr_reports_for_work_history.delay("delete", snapshot)
