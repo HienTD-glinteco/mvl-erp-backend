@@ -394,7 +394,29 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     def save(self, *args, **kwargs):
         self.clean()
+        is_new = self.pk is None
         super().save(*args, **kwargs)
+
+        # Auto-assign department leader as verifier for new proposals
+        if is_new:
+            self._assign_department_leader_as_verifier()
+
+    def _assign_department_leader_as_verifier(self) -> None:
+        """Auto-assign the department leader of the proposal creator as a verifier.
+
+        This method creates a ProposalVerifier record linking the proposal to the
+        department leader of the employee who created the proposal.
+        """
+        # Get the department leader of the proposal creator
+        if self.created_by_id and self.created_by.department_id:
+            department_leader = self.created_by.department.leader
+            if department_leader:
+                # Create verifier only if leader exists
+                ProposalVerifier.objects.get_or_create(
+                    proposal=self,
+                    employee=department_leader,
+                    defaults={"status": ProposalVerifierStatus.NOT_VERIFIED},
+                )
 
 
 @audit_logging_register
