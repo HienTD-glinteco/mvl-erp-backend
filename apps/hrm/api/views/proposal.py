@@ -321,6 +321,11 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
 
+    def get_serializer_class(self):
+        if self.action == "mine":
+            return ProposalCombinedSerializer
+        return super().get_serializer_class()
+
     @extend_schema(
         summary="Approve proposal",
         description="Approve a proposal",
@@ -525,10 +530,10 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = ProposalCombinedSerializer(page, many=True)
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = ProposalCombinedSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -2973,6 +2978,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
             return ProposalVerifierVerifySerializer
         if self.action == "reject":
             return ProposalVerifierRejectSerializer
+        if self.action == "mine":
+            return ProposalVerifierNeedVerificationSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -3162,8 +3169,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = ProposalVerifierNeedVerificationSerializer(page, many=True)
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = ProposalVerifierNeedVerificationSerializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
