@@ -7,7 +7,8 @@ import logging
 from datetime import date
 from typing import Any, cast
 
-from django.db.models import F, Q
+from django.db.models import F, Q, Window
+from django.db.models.functions import RowNumber
 
 from apps.hrm.models import (
     Block,
@@ -20,6 +21,24 @@ from apps.hrm.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _should_process_employee(data: dict[str, Any]) -> bool:
+    """Check if employee data should be processed in reports.
+
+    Employees with code_type="OS" are excluded from reports.
+    If employee_code_type is missing from data, defaults to processing the employee
+    (safer to include than exclude).
+
+    Args:
+        data: Dictionary containing employee data with 'employee_code_type' key
+
+    Returns:
+        bool: True if employee should be processed, False if should be excluded
+    """
+    employee_code_type = data.get("employee_code_type")
+    # Exclude only if explicitly set to OS; otherwise, include by default
+    return employee_code_type != Employee.CodeType.OS
 
 
 def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
@@ -49,19 +68,22 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     # Process based on event type
     if event_type == "create":
         # New work history record - increment counters
-        if isinstance(current, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(current, dict) and _should_process_employee(current):
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "update":
         # Updated work history - revert old values and apply new values
-        if isinstance(previous, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(previous, dict) and _should_process_employee(previous):
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
-        if isinstance(current, dict):
+        if isinstance(current, dict) and _should_process_employee(current):
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "delete":
         # Deleted work history - decrement counters
-        if isinstance(previous, dict):
+        # Skip if employee has code_type="OS"
+        if isinstance(previous, dict) and _should_process_employee(previous):
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
 
 
@@ -173,7 +195,7 @@ def _update_staff_growth_counter(
         month_key: Month key for the report
         week_key: Week key for the report
     """
-    report, created = StaffGrowthReport.objects.get_or_create(
+    report, _ = StaffGrowthReport.objects.get_or_create(
         report_date=report_date,
         branch_id=branch_id,
         block_id=block_id,
@@ -213,6 +235,10 @@ def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> Non
     if not data:
         return
 
+    # Skip if employee has code_type="OS"
+    if not _should_process_employee(data):
+        return
+
     report_date = data["date"]
     branch_id = data["branch_id"]
     block_id = data["block_id"]
@@ -246,12 +272,13 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
     week_key = f"Week {week_number} - {month_key}"
 
     # Count work history events using aggregation
+    # Exclude employees with code_type="OS"
     work_histories = EmployeeWorkHistory.objects.filter(
         date=report_date,
         branch=branch,
         block=block,
         department=department,
-    )
+    ).exclude(employee__code_type=Employee.CodeType.OS)
 
     # Count different event types
     num_transfers = work_histories.filter(name=EmployeeWorkHistory.EventType.TRANSFER).count()
@@ -310,6 +337,9 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
     """
     # Get the latest work history for each employee up to the report_date
     # This gives us the historical snapshot of employee status at that point in time
+    # Exclude employees with code_type="OS"
+    # Use Window function with RowNumber to get latest record per employee
+    # This approach works on both PostgreSQL and SQLite (unlike distinct("employee_id"))
     latest_work_histories = (
         EmployeeWorkHistory.objects.filter(
             branch=branch,
@@ -317,8 +347,15 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
             department=department,
             date__lte=report_date,
         )
-        .order_by("employee_id", "-date", "-id")
-        .distinct("employee_id")
+        .exclude(employee__code_type=Employee.CodeType.OS)
+        .annotate(
+            row_num=Window(
+                expression=RowNumber(),
+                partition_by=[F("employee_id")],
+                order_by=[F("date").desc(), F("id").desc()],
+            )
+        )
+        .filter(row_num=1)
     )
 
     # Extract employee IDs and their statuses from work history
