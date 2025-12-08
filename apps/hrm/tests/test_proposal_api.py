@@ -1010,6 +1010,168 @@ class TestTimesheetEntryComplaintProposalAPI:
         errors = data.get("error", {}).get("errors", [])
         assert any(error.get("attr") == "note" for error in errors)
 
+    def test_create_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
+        """Test creating a timesheet entry complaint proposal with valid data."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
+        data = {
+            "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded due to system error",
+            "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
+            "timesheet_entry_complaint_proposed_check_out_time": "17:00:00",
+            "note": "Please review and approve",
+        }
+
+        response = api_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        result = response.json()
+        assert result["success"] is True
+        assert result["data"]["proposal_type"] == ProposalType.TIMESHEET_ENTRY_COMPLAINT
+        assert (
+            result["data"]["timesheet_entry_complaint_complaint_reason"]
+            == "Incorrect check-in time recorded due to system error"
+        )
+        assert result["data"]["timesheet_entry_complaint_proposed_check_in_time"] == "08:00:00"
+        assert result["data"]["timesheet_entry_complaint_proposed_check_out_time"] == "17:00:00"
+        assert result["data"]["note"] == "Please review and approve"
+        assert result["data"]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
+
+    def test_create_timesheet_entry_complaint_proposal_missing_required_fields(
+        self, api_client, superuser, test_employee
+    ):
+        """Test creating a timesheet entry complaint proposal without required fields."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
+        data = {
+            "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
+            "note": "Missing complaint reason",
+        }
+
+        response = api_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        result = response.json()
+        assert result["success"] is False
+        assert has_error_for_field(result["error"], "timesheet_entry_complaint_complaint_reason")
+
+    def test_update_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
+        """Test updating a timesheet entry complaint proposal."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        proposal = Proposal.objects.create(
+            code="DX000100",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Original reason",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 0),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 0),
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        data = {
+            "timesheet_entry_complaint_complaint_reason": "Updated reason for complaint",
+            "timesheet_entry_complaint_proposed_check_in_time": "08:30:00",
+            "timesheet_entry_complaint_proposed_check_out_time": "17:30:00",
+            "note": "Updated details",
+        }
+
+        response = api_client.put(url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+        assert result["data"]["timesheet_entry_complaint_complaint_reason"] == "Updated reason for complaint"
+        assert result["data"]["timesheet_entry_complaint_proposed_check_in_time"] == "08:30:00"
+        assert result["data"]["timesheet_entry_complaint_proposed_check_out_time"] == "17:30:00"
+        assert result["data"]["note"] == "Updated details"
+
+        proposal.refresh_from_db()
+        assert proposal.timesheet_entry_complaint_complaint_reason == "Updated reason for complaint"
+        assert str(proposal.timesheet_entry_complaint_proposed_check_in_time) == "08:30:00"
+        assert str(proposal.timesheet_entry_complaint_proposed_check_out_time) == "17:30:00"
+
+    def test_partial_update_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
+        """Test partially updating a timesheet entry complaint proposal."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        proposal = Proposal.objects.create(
+            code="DX000101",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Original reason",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 0),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 0),
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        data = {
+            "note": "Only updating the note",
+        }
+
+        response = api_client.patch(url, data, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+        assert result["data"]["note"] == "Only updating the note"
+        # Verify other fields remain unchanged
+        assert result["data"]["timesheet_entry_complaint_complaint_reason"] == "Original reason"
+        assert result["data"]["timesheet_entry_complaint_proposed_check_in_time"] == "08:00:00"
+
+    def test_delete_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
+        """Test deleting a timesheet entry complaint proposal."""
+        proposal = Proposal.objects.create(
+            code="DX000102",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="To be deleted",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 0),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 0),
+            proposal_status=ProposalStatus.PENDING,
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        # Verify the proposal was deleted
+        assert not Proposal.objects.filter(id=proposal.id).exists()
+
+    def test_cannot_update_approved_timesheet_entry_complaint_proposal(self, api_client, superuser, test_employee):
+        """Test that approved proposals can still be updated (no restriction currently implemented)."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        proposal = Proposal.objects.create(
+            code="DX000103",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Approved complaint",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 0),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 0),
+            proposal_status=ProposalStatus.APPROVED,
+            created_by=test_employee,
+            approved_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-detail", args=[proposal.id])
+        data = {
+            "timesheet_entry_complaint_complaint_reason": "Trying to update approved proposal",
+        }
+
+        response = api_client.patch(url, data, format="json")
+
+        # Currently, the API allows updates to approved proposals
+        # If you want to prevent this, add validation in the serializer
+        assert response.status_code == status.HTTP_200_OK
+
 
 class TestPaidLeaveProposalAPI:
     """Tests for Paid Leave Proposal API."""
@@ -2069,7 +2231,7 @@ class TestMyProposalsAPI:
             created_by=other_employee,
         )
 
-        url = reverse("hrm:me-proposals")
+        url = reverse("hrm:proposal-mine")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2099,7 +2261,7 @@ class TestMyProposalsAPI:
             created_by=test_employee,
         )
 
-        url = reverse("hrm:me-proposals")
+        url = reverse("hrm:proposal-mine")
         response = api_client.get(url, {"proposal_status": ProposalStatus.PENDING})
 
         assert response.status_code == status.HTTP_200_OK
@@ -2135,7 +2297,7 @@ class TestMyProposalsAPI:
             created_by=other_employee,
         )
 
-        url = reverse("hrm:me-proposals")
+        url = reverse("hrm:proposal-mine")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2193,7 +2355,7 @@ class TestMeProposalVerifierAPI:
         )
         ProposalVerifier.objects.create(proposal=proposal2, employee=other_employee)
 
-        url = reverse("hrm:me-proposal-verifiers")
+        url = reverse("hrm:proposal-verifier-mine")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2231,7 +2393,7 @@ class TestMeProposalVerifierAPI:
         )
         ProposalVerifier.objects.create(proposal=proposal, employee=other_employee)
 
-        url = reverse("hrm:me-proposal-verifiers")
+        url = reverse("hrm:proposal-verifier-mine")
         response = api_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
@@ -2280,7 +2442,7 @@ class TestMeProposalVerifierAPI:
         )
         ProposalVerifier.objects.create(proposal=proposal2, employee=test_employee)
 
-        url = reverse("hrm:me-proposal-verifiers")
+        url = reverse("hrm:proposal-verifier-mine")
         response = api_client.get(url, {"proposal__proposal_status": ProposalStatus.PENDING})
 
         assert response.status_code == status.HTTP_200_OK

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 09:27+0700\n"
+"POT-Creation-Date: 2025-12-08 12:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,7 +178,7 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:440
+#: apps/hrm/api/serializers/proposal.py:441
 #, fuzzy
 #| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
@@ -681,84 +681,80 @@ msgid "Overtime work"
 msgstr "Làm việc ngoài giờ (OT)"
 
 #: apps/hrm/constants.py:184
-msgid "Attendance exemption"
-msgstr "Miễn trừ chấm công"
-
-#: apps/hrm/constants.py:185
 msgid "Timesheet entry complaint"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/constants.py:186
+#: apps/hrm/constants.py:185
 msgid "Job Transfer"
 msgstr "Điều chuyển công tác"
 
-#: apps/hrm/constants.py:187
+#: apps/hrm/constants.py:186
 msgid "Asset Allocation"
 msgstr "Cấp tài sản"
 
-#: apps/hrm/constants.py:193
+#: apps/hrm/constants.py:192
 msgid "Piece"
 msgstr ""
 
-#: apps/hrm/constants.py:194
+#: apps/hrm/constants.py:193
 msgid "Box"
 msgstr ""
 
-#: apps/hrm/constants.py:195
+#: apps/hrm/constants.py:194
 msgid "Set"
 msgstr ""
 
-#: apps/hrm/constants.py:196
+#: apps/hrm/constants.py:195
 msgid "Gram"
 msgstr ""
 
-#: apps/hrm/constants.py:197
+#: apps/hrm/constants.py:196
 msgid "Liter"
 msgstr ""
 
-#: apps/hrm/constants.py:198
+#: apps/hrm/constants.py:197
 msgid "Meter"
 msgstr ""
 
-#: apps/hrm/constants.py:199
+#: apps/hrm/constants.py:198
 msgid "Cylinder"
 msgstr ""
 
-#: apps/hrm/constants.py:200
+#: apps/hrm/constants.py:199
 msgid "Bag"
 msgstr ""
 
-#: apps/hrm/constants.py:206
+#: apps/hrm/constants.py:205
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:207
+#: apps/hrm/constants.py:206
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:208 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:207 apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:60
+#: apps/hrm/constants.py:213 apps/hrm/models/holiday.py:60
 #, fuzzy
 #| msgid "Full Name"
 msgid "Full Day"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:58
+#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:58
 msgid "Morning"
 msgstr ""
 
-#: apps/hrm/constants.py:216 apps/hrm/models/holiday.py:59
+#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:59
 msgid "Afternoon"
 msgstr ""
 
-#: apps/hrm/constants.py:222
+#: apps/hrm/constants.py:221
 msgid "Verified"
 msgstr "Đã xác minh"
 
-#: apps/hrm/constants.py:223
+#: apps/hrm/constants.py:222
 msgid "Not verified"
 msgstr "Chưa xác minh"
 

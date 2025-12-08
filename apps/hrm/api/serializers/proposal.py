@@ -45,6 +45,7 @@ class ProposalSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "code",
             "proposal_date",
             "proposal_status",
             "approved_check_in_time",
@@ -54,40 +55,6 @@ class ProposalSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
-
-class ProposalTimesheetEntryComplaintSerializer(ProposalSerializer):
-    """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
-
-    This serializer extends ProposalSerializer to include the linked timesheet entry ID
-    for complaint proposals. A complaint proposal links to exactly one timesheet entry.
-    """
-
-    timesheet_entry_id = serializers.SerializerMethodField(
-        help_text="ID of the linked timesheet entry", required=False
-    )
-
-    class Meta(ProposalSerializer.Meta):
-        fields = ProposalSerializer.Meta.fields + [
-            "timesheet_entry_id",
-            "timesheet_entry_complaint_complaint_reason",
-            "timesheet_entry_complaint_proposed_check_in_time",
-            "timesheet_entry_complaint_proposed_check_out_time",
-            "timesheet_entry_complaint_approved_check_in_time",
-            "timesheet_entry_complaint_approved_check_out_time",
-        ]
-
-    def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
-        """Get the ID of the linked timesheet entry for this complaint proposal.
-
-        Returns:
-            The timesheet entry ID, or None if no entry is linked.
-        """
-        # Use .only() to fetch only the timesheet_entry_id field for optimization
-        junction = ProposalTimeSheetEntry.objects.filter(proposal_id=obj.id).only("timesheet_entry_id").first()
-        if junction:
-            return junction.timesheet_entry_id
-        return None
 
 
 class ProposalChangeStatusSerializer(serializers.ModelSerializer):
@@ -375,6 +342,40 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
                 employee=leader,
             )
         return instance
+
+
+class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
+    """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
+
+    This serializer extends ProposalByTypeSerializer to include the linked timesheet entry ID
+    for complaint proposals. A complaint proposal links to exactly one timesheet entry.
+    """
+
+    timesheet_entry_id = serializers.SerializerMethodField(
+        help_text="ID of the linked timesheet entry", required=False
+    )
+
+    class Meta(ProposalByTypeSerializer.Meta):
+        fields = ProposalByTypeSerializer.Meta.fields + [
+            "timesheet_entry_id",
+            "timesheet_entry_complaint_complaint_reason",
+            "timesheet_entry_complaint_proposed_check_in_time",
+            "timesheet_entry_complaint_proposed_check_out_time",
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
+        ]
+
+    def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
+        """Get the ID of the linked timesheet entry for this complaint proposal.
+
+        Returns:
+            The timesheet entry ID, or None if no entry is linked.
+        """
+        # Use .only() to fetch only the timesheet_entry_id field for optimization
+        junction = ProposalTimeSheetEntry.objects.filter(proposal_id=obj.id).only("timesheet_entry_id").first()
+        if junction:
+            return junction.timesheet_entry_id
+        return None
 
 
 class ProposalLateExemptionSerializer(ProposalByTypeSerializer):

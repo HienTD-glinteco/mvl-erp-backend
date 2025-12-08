@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-05 14:26+0700\n"
+"POT-Creation-Date: 2025-12-08 12:29+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -375,22 +375,22 @@ msgstr "Không thể xóa {model_name} vì đang được sử dụng bởi: {re
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo vệ."
 
-#: libs/export_xlsx/mixins.py:100
+#: libs/export_xlsx/mixins.py:130
 msgid "Async export is not enabled"
 msgstr "Xuất XLSX không đồng bộ không được bật"
 
-#: libs/export_xlsx/mixins.py:110
+#: libs/export_xlsx/mixins.py:140
 msgid "Invalid delivery parameter; allowed: link, direct"
 msgstr "Lỗi tham số delivery; cho phép: link, direct"
 
-#: libs/export_xlsx/mixins.py:170
+#: libs/export_xlsx/mixins.py:200
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
 msgstr ""
 "Xuất dữ liệu đã bắt đầu. Kiểm tra trạng thái tại /api/export/status/?"
 "task_id={task_id}"
 
-#: libs/export_xlsx/mixins.py:268
+#: libs/export_xlsx/mixins.py:298
 #, python-brace-format
 msgid "Failed to upload file to S3: {error}"
 msgstr "Lỗi khi tải tệp tin lên S3: {error}"

@@ -3,6 +3,7 @@ from typing import List
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
+    OpenApiParameter,
     extend_schema,
     extend_schema_view,
 )
@@ -54,6 +55,71 @@ from apps.hrm.models import Proposal, ProposalVerifier
 from libs import BaseModelViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx.mixins import ExportXLSXMixin
+
+
+def get_common_list_parameters(search_fields=None, ordering_fields=None, additional_filters=None):
+    """
+    Generate common parameters for list endpoints including search, ordering, and pagination.
+
+    Args:
+        search_fields: List of field names that can be searched
+        ordering_fields: List of field names that can be used for ordering
+        additional_filters: List of OpenApiParameter objects for filterset fields
+
+    Returns:
+        List of OpenApiParameter objects
+    """
+    params = []
+
+    # Add filter parameters
+    if additional_filters:
+        params.extend(additional_filters)
+
+    # Add search parameter
+    if search_fields:
+        params.append(
+            OpenApiParameter(
+                name="search",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description=f"Search in fields: {', '.join(search_fields)}",
+                required=False,
+            )
+        )
+
+    # Add ordering parameter
+    if ordering_fields:
+        params.append(
+            OpenApiParameter(
+                name="ordering",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description=f"Order by fields: {', '.join(ordering_fields)}. Prefix with '-' for descending order.",
+                required=False,
+            )
+        )
+
+    # Add pagination parameters
+    params.extend(
+        [
+            OpenApiParameter(
+                name="page",
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description="Page number for pagination",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="page_size",
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description="Number of results per page",
+                required=False,
+            ),
+        ]
+    )
+
+    return params
 
 
 class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
@@ -350,15 +416,119 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     def export(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    @extend_schema(
+        summary="List my proposals",
+        description="Retrieve a list of proposals created by the current user with optional filtering and pagination",
+        tags=["9.2: Proposals"],
+        parameters=get_common_list_parameters(
+            search_fields=["code", "created_by__fullname", "created_by__code"],
+            ordering_fields=["proposal_date", "created_at"],
+            additional_filters=[
+                OpenApiParameter(
+                    name="proposal_type",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal type",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal_status",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal status",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal_date",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by exact proposal date (YYYY-MM-DD)",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal_date__gte",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal date greater than or equal to (YYYY-MM-DD)",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal_date__lte",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal date less than or equal to (YYYY-MM-DD)",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="approved_by",
+                    type=int,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by approver employee ID",
+                    required=False,
+                ),
+            ],
+        ),
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DX000001",
+                                "proposal_date": "2025-01-15",
+                                "proposal_type": "timesheet_entry_complaint",
+                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                                "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded",
+                                "proposed_check_in_time": "08:00:00",
+                                "proposed_check_out_time": "17:00:00",
+                                "approved_check_in_time": None,
+                                "approved_check_out_time": None,
+                                "note": "",
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "code": "DX000002",
+                                "proposal_date": "2025-01-16",
+                                "proposal_type": "paid_leave",
+                                "colored_proposal_status": {"value": "approved", "variant": "green"},
+                                "note": "Annual leave",
+                                "created_at": "2025-01-16T09:00:00Z",
+                                "updated_at": "2025-01-16T14:00:00Z",
+                            },
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="mine")
+    def mine(self, request):
+        """Get proposals created by the current user."""
+        # Temporarily override filterset_class for this action
+        self.filterset_class = MeProposalFilterSet
 
-class MeProposalViewSet(ProposalViewSet):
-    """ViewSet for current user's proposals."""
+        queryset = self.filter_queryset(self.get_queryset().filter(created_by=request.user.employee))
 
-    filterset_class = MeProposalFilterSet
-    serializer_class = ProposalCombinedSerializer
+        # Reset to original filterset_class
+        self.filterset_class = ProposalFilterSet
 
-    def get_queryset(self):
-        return super().get_queryset().filter(created_by=self.request.user.employee)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ProposalCombinedSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ProposalCombinedSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema_view(
@@ -431,8 +601,126 @@ class MeProposalViewSet(ProposalViewSet):
             ),
         ],
     ),
+    create=extend_schema(
+        summary="Create timesheet entry complaint proposal",
+        description="Create a new timesheet entry complaint proposal",
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded due to system error",
+                    "proposed_check_in_time": "08:00:00",
+                    "proposed_check_out_time": "17:00:00",
+                    "note": "Please review and approve",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "timesheet_entry_complaint",
+                        "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                        "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded due to system error",
+                        "proposed_check_in_time": "08:00:00",
+                        "proposed_check_out_time": "17:00:00",
+                        "approved_check_in_time": None,
+                        "approved_check_out_time": None,
+                        "note": "Please review and approve",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T10:00:00Z",
+                        "timesheet_entry_id": None,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing required fields",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "timesheet_entry_complaint_complaint_reason": ["This field is required."],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update timesheet entry complaint proposal",
+        description="Update a timesheet entry complaint proposal",
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "timesheet_entry_complaint_complaint_reason": "Updated reason for complaint",
+                    "proposed_check_in_time": "08:30:00",
+                    "proposed_check_out_time": "17:30:00",
+                    "note": "Updated details",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DX000001",
+                        "proposal_date": "2025-01-15",
+                        "proposal_type": "timesheet_entry_complaint",
+                        "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                        "timesheet_entry_complaint_complaint_reason": "Updated reason for complaint",
+                        "proposed_check_in_time": "08:30:00",
+                        "proposed_check_out_time": "17:30:00",
+                        "approved_check_in_time": None,
+                        "approved_check_out_time": None,
+                        "note": "Updated details",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T11:00:00Z",
+                        "timesheet_entry_id": None,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update timesheet entry complaint proposal",
+        description="Partially update a timesheet entry complaint proposal",
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
+    ),
+    destroy=extend_schema(
+        summary="Delete timesheet entry complaint proposal",
+        description="Delete a timesheet entry complaint proposal",
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": None,
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    export=extend_schema(
+        tags=["6.8: Timesheet Entry Complaint Proposals"],
+    ),
 )
-class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
+class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     """ViewSet for Timesheet Entry Complaint proposals with approve and reject actions."""
 
     proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
@@ -2011,40 +2299,6 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="List attendance exemption proposals",
-        description="Retrieve a list of attendance exemption proposals",
-        tags=["9.2.8: Attendance Exemption Proposals"],
-    ),
-    retrieve=extend_schema(
-        summary="Get attendance exemption proposal details",
-        description="Retrieve detailed information for a specific attendance exemption proposal",
-        tags=["9.2.8: Attendance Exemption Proposals"],
-    ),
-)
-class ProposalAttendanceExemptionViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
-    """ViewSet for Attendance Exemption proposals."""
-
-    proposal_type = ProposalType.ATTENDANCE_EXEMPTION
-    permission_prefix = "proposal_attendance_exemption"
-
-    def get_prefetch_related_fields(self) -> List[str]:
-        return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
-
-    @extend_schema(exclude=True)
-    def approve(self, request, pk=None):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @extend_schema(exclude=True)
-    def reject(self, request, pk=None):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    @extend_schema(exclude=True)
-    def export(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-@extend_schema_view(
-    list=extend_schema(
         summary="List job transfer proposals",
         description="Retrieve a list of job transfer proposals",
         tags=["9.2.9: Job Transfer Proposals"],
@@ -2773,12 +3027,87 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
 
         return Response(self.serializer_class(verifier).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        summary="List my proposal verifiers",
+        description="Retrieve a list of proposal verifiers assigned to the current user that need verification with optional filtering and pagination",
+        tags=["9.3: Proposal Verifiers"],
+        parameters=get_common_list_parameters(
+            search_fields=None,  # No search fields for verifiers
+            ordering_fields=["created_at", "verified_time"],
+            additional_filters=[
+                OpenApiParameter(
+                    name="proposal",
+                    type=int,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal ID",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal__proposal_type",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal type",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="proposal__proposal_status",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by proposal status",
+                    required=False,
+                ),
+                OpenApiParameter(
+                    name="status",
+                    type=str,
+                    location=OpenApiParameter.QUERY,
+                    description="Filter by verifier status",
+                    required=False,
+                ),
+            ],
+        ),
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "proposal": 1,
+                                "employee": 1,
+                                "status": "not_verified",
+                                "verified_time": None,
+                                "note": None,
+                                "created_at": "2025-01-15T10:00:00Z",
+                                "updated_at": "2025-01-15T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="mine")
+    def mine(self, request):
+        """Get proposal verifiers for the current user."""
+        # Temporarily override filterset_class for this action
+        self.filterset_class = MeProposalVerifierFilterSet
 
-class MeProposalVerifierViewSet(ProposalVerifierViewSet):
-    """ViewSet for current user's proposal verifiers."""
+        queryset = self.filter_queryset(self.get_queryset().filter(employee=request.user.employee))
 
-    serializer_class = ProposalVerifierNeedVerificationSerializer
-    filterset_class = MeProposalVerifierFilterSet
+        # Reset to original filterset_class
+        self.filterset_class = ProposalVerifierFilterSet
 
-    def get_queryset(self):
-        return super().get_queryset().filter(employee=self.request.user.employee)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ProposalVerifierNeedVerificationSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ProposalVerifierNeedVerificationSerializer(queryset, many=True)
+        return Response(serializer.data)

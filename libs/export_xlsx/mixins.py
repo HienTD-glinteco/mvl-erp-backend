@@ -44,14 +44,44 @@ class ExportXLSXMixin:
                         "data": [...]
                     }]
                 }
+
+            # Optional: add search/filter parameters to export schema
+            def get_export_schema_parameters(self):
+                return [
+                    OpenApiParameter(name="search", ...),
+                    OpenApiParameter(name="ordering", ...),
+                ]
     """
+
+    def get_export_schema_parameters(self):
+        """
+        Get additional schema parameters for the export endpoint.
+        ViewSets can override this to add search, ordering, and filter parameters.
+
+        Returns:
+            List of OpenApiParameter objects
+        """
+        return []
 
     @extend_schema(
         summary="Export to XLSX",
         description="Export filtered queryset data to XLSX format. "
+        "Supports search, ordering, and filtering. "
         "By default, returns a presigned S3 URL. Use delivery=direct for direct file download. "
         "For async export, use async=true (requires EXPORTER_CELERY_ENABLED=true).",
         parameters=[
+            OpenApiParameter(
+                name="search",
+                description="Search query (searches across configured search_fields)",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="ordering",
+                description="Order by field(s). Prefix with '-' for descending order. Example: '-created_at'",
+                required=False,
+                type=str,
+            ),
             OpenApiParameter(
                 name="async",
                 description="If 'true', process export in background using Celery (requires EXPORTER_CELERY_ENABLED=true)",
