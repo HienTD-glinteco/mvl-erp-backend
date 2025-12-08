@@ -4,6 +4,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from apps.hrm.models import (
+    EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
     StaffGrowthReport,
@@ -138,3 +139,6 @@ def _mark_hr_reports_for_refresh(report_date, branch_id, block_id, department_id
 
     # Mark EmployeeStatusBreakdownReport records
     EmployeeStatusBreakdownReport.objects.filter(**filter_criteria).update(need_refresh=True)
+
+    # Mark EmployeeResignedReasonReport records
+    EmployeeResignedReasonReport.objects.filter(**filter_criteria).update(need_refresh=True)

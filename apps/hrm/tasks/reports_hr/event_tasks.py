@@ -10,6 +10,7 @@ from typing import Any, cast
 from celery import shared_task
 
 from .helpers import (
+    _increment_employee_resigned_reason,
     _increment_employee_status,
     _increment_staff_growth,
 )
@@ -48,3 +49,4 @@ def aggregate_hr_reports_for_work_history(action_type: str, snapshot: dict[str, 
     # Perform incremental updates
     _increment_staff_growth(action_type, snapshot)
     _increment_employee_status(action_type, snapshot)
+    _increment_employee_resigned_reason(action_type, snapshot)
