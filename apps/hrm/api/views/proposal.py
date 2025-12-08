@@ -426,54 +426,8 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         summary="List my proposals",
         description="Retrieve a list of proposals created by the current user with optional filtering and pagination",
         tags=["9.2: Proposals"],
-        parameters=get_common_list_parameters(
-            search_fields=["code", "created_by__fullname", "created_by__code"],
-            ordering_fields=["proposal_date", "created_at"],
-            additional_filters=[
-                OpenApiParameter(
-                    name="proposal_type",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal type",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal_status",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal status",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal_date",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by exact proposal date (YYYY-MM-DD)",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal_date__gte",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal date greater than or equal to (YYYY-MM-DD)",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal_date__lte",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal date less than or equal to (YYYY-MM-DD)",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="approved_by",
-                    type=int,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by approver employee ID",
-                    required=False,
-                ),
-            ],
-        ),
+        filters=MeProposalFilterSet,  # type: ignore
+        operation_id="hrm_proposals_mine_list",
         examples=[
             OpenApiExample(
                 "Success",
@@ -517,12 +471,9 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
             ),
         ],
     )
-    @action(detail=False, methods=["get"], url_path="mine")
+    @action(detail=False, methods=["get"], url_path="mine", filterset_class=MeProposalFilterSet)
     def mine(self, request):
         """Get proposals created by the current user."""
-        # Temporarily override filterset_class for this action
-        self.filterset_class = MeProposalFilterSet
-
         queryset = self.filter_queryset(self.get_queryset().filter(created_by=request.user.employee))
 
         # Reset to original filterset_class
@@ -3094,40 +3045,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
         summary="List my proposal verifiers",
         description="Retrieve a list of proposal verifiers assigned to the current user that need verification with optional filtering and pagination",
         tags=["9.3: Proposal Verifiers"],
-        parameters=get_common_list_parameters(
-            search_fields=None,  # No search fields for verifiers
-            ordering_fields=["created_at", "verified_time"],
-            additional_filters=[
-                OpenApiParameter(
-                    name="proposal",
-                    type=int,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal ID",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal__proposal_type",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal type",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="proposal__proposal_status",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by proposal status",
-                    required=False,
-                ),
-                OpenApiParameter(
-                    name="status",
-                    type=str,
-                    location=OpenApiParameter.QUERY,
-                    description="Filter by verifier status",
-                    required=False,
-                ),
-            ],
-        ),
+        filters=MeProposalVerifierFilterSet,  # type: ignore
+        operation_id="hrm_proposal_verifiers_mine_list",
         examples=[
             OpenApiExample(
                 "Success",
@@ -3156,12 +3075,9 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
             ),
         ],
     )
-    @action(detail=False, methods=["get"], url_path="mine")
+    @action(detail=False, methods=["get"], url_path="mine", filterset_class=MeProposalVerifierFilterSet)
     def mine(self, request):
         """Get proposal verifiers for the current user."""
-        # Temporarily override filterset_class for this action
-        self.filterset_class = MeProposalVerifierFilterSet
-
         queryset = self.filter_queryset(self.get_queryset().filter(employee=request.user.employee))
 
         # Reset to original filterset_class
