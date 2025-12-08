@@ -428,6 +428,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         tags=["9.2: Proposals"],
         filters=MeProposalFilterSet,  # type: ignore
         operation_id="hrm_proposals_mine_list",
+        responses={200: ProposalCombinedSerializer(many=True)},
         examples=[
             OpenApiExample(
                 "Success",
@@ -3047,6 +3048,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
         tags=["9.3: Proposal Verifiers"],
         filters=MeProposalVerifierFilterSet,  # type: ignore
         operation_id="hrm_proposal_verifiers_mine_list",
+        responses={200: ProposalVerifierNeedVerificationSerializer(many=True)},
         examples=[
             OpenApiExample(
                 "Success",
