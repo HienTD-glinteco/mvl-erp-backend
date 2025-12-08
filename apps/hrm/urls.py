@@ -31,11 +31,8 @@ from apps.hrm.api.views import (
     InterviewCandidateViewSet,
     InterviewScheduleViewSet,
     JobDescriptionViewSet,
-    MeProposalVerifierViewSet,
-    MeProposalViewSet,
     PositionViewSet,
     ProposalAssetAllocationViewSet,
-    ProposalAttendanceExemptionViewSet,
     ProposalJobTransferViewSet,
     ProposalLateExemptionViewSet,
     ProposalMaternityLeaveViewSet,
@@ -139,11 +136,6 @@ router.register(
     basename="proposal-maternity-leave",
 )
 router.register(
-    r"proposals/attendance-exemption",
-    ProposalAttendanceExemptionViewSet,
-    basename="proposal-attendance-exemption",
-)
-router.register(
     r"proposals/job-transfer",
     ProposalJobTransferViewSet,
     basename="proposal-job-transfer",
@@ -172,8 +164,6 @@ compensatory_router = DefaultRouter()
 compensatory_router.register(r"compensatory-days", CompensatoryWorkdayViewSet, basename="compensatory-day")
 
 urlpatterns = [
-    path("proposals/mine/", MeProposalViewSet.as_view({"get": "list"}), name="me-proposals"),
-    path("proposal-verifiers/mine/", MeProposalVerifierViewSet.as_view({"get": "list"}), name="me-proposal-verifiers"),
     path("", include(router.urls)),
     path("holidays/<int:holiday_pk>/", include(compensatory_router.urls)),
 ]

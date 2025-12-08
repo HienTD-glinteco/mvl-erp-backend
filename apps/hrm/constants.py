@@ -181,7 +181,6 @@ class ProposalType(models.TextChoices):
     PAID_LEAVE = "paid_leave", _("Paid leave")
     UNPAID_LEAVE = "unpaid_leave", _("Unpaid leave")
     MATERNITY_LEAVE = "maternity_leave", _("Maternity leave")
-    ATTENDANCE_EXEMPTION = "attendance_exemption", _("Attendance exemption")
     TIMESHEET_ENTRY_COMPLAINT = "timesheet_entry_complaint", _("Timesheet entry complaint")
     JOB_TRANSFER = "job_transfer", _("Job Transfer")
     ASSET_ALLOCATION = "asset_allocation", _("Asset Allocation")

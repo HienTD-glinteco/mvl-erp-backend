@@ -29,10 +29,7 @@ from .organization import (
     PositionViewSet,
 )
 from .proposal import (
-    MeProposalVerifierViewSet,
-    MeProposalViewSet,
     ProposalAssetAllocationViewSet,
-    ProposalAttendanceExemptionViewSet,
     ProposalJobTransferViewSet,
     ProposalLateExemptionViewSet,
     ProposalMaternityLeaveViewSet,
@@ -102,12 +99,9 @@ __all__ = [
     "ProposalPaidLeaveViewSet",
     "ProposalUnpaidLeaveViewSet",
     "ProposalMaternityLeaveViewSet",
-    "ProposalAttendanceExemptionViewSet",
     "ProposalJobTransferViewSet",
     "ProposalAssetAllocationViewSet",
     "ProposalVerifierViewSet",
     "ProposalViewSet",
-    "MeProposalVerifierViewSet",
-    "MeProposalViewSet",
     "DecisionViewSet",
 ]
