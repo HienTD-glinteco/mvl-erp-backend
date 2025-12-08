@@ -654,6 +654,18 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         tags=["5.5: Employee Reports"],
         parameters=[
             OpenApiParameter(
+                name="page",
+                type=int,
+                required=False,
+                description="A page number within the paginated result set.",
+            ),
+            OpenApiParameter(
+                name="page_size",
+                type=int,
+                required=False,
+                description="Number of results to return per page.",
+            ),
+            OpenApiParameter(
                 name="branch_id",
                 type=int,
                 required=False,
