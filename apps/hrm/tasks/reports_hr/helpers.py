@@ -491,15 +491,22 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
     )
 
 
-def _get_resignation_reason_field_name(reason: str) -> str | None:
+def _get_resignation_reason_field_name(reason: str | Employee.ResignationReason) -> str | None:
     """Map Employee.ResignationReason enum value to EmployeeResignedReasonReport field name.
 
     Args:
-        reason: Resignation reason enum value (e.g., "AGREEMENT_TERMINATION")
+        reason: Resignation reason (string value or enum member)
 
     Returns:
         Field name in snake_case (e.g., "agreement_termination") or None if invalid
     """
+    # Convert string to enum if needed
+    if isinstance(reason, str):
+        try:
+            reason = Employee.ResignationReason(reason)
+        except ValueError:
+            return None
+    
     reason_field_map = {
         Employee.ResignationReason.AGREEMENT_TERMINATION: "agreement_termination",
         Employee.ResignationReason.PROBATION_FAIL: "probation_fail",
