@@ -42,13 +42,14 @@ from .models import (
 class PositionAdmin(admin.ModelAdmin):
     """Admin configuration for Position model"""
 
-    list_display = ["code", "name", "data_scope", "is_leadership", "is_active"]
-    list_filter = ["data_scope", "is_leadership", "is_active"]
+    list_display = ["code", "name", "data_scope", "is_leadership", "include_in_employee_report", "is_active"]
+    list_filter = ["data_scope", "is_leadership", "include_in_employee_report", "is_active"]
     search_fields = ["code", "name"]
     readonly_fields = ["code", "created_at", "updated_at"]
     fieldsets = [
         (None, {"fields": ["code", "name", "description"]}),
         ("Data Access", {"fields": ["data_scope", "is_leadership"]}),
+        ("Reporting", {"fields": ["include_in_employee_report"]}),
         ("Status", {"fields": ["is_active"]}),
         ("Timestamps", {"fields": ["created_at", "updated_at"]}),
     ]

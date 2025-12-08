@@ -87,7 +87,8 @@ class PositionFilterSet(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr="icontains")
     code = django_filters.CharFilter(lookup_expr="icontains")
     is_active = django_filters.BooleanFilter()
+    include_in_employee_report = django_filters.BooleanFilter()
 
     class Meta:
         model = Position
-        fields = ["name", "code", "is_active"]
+        fields = ["name", "code", "is_active", "include_in_employee_report"]
