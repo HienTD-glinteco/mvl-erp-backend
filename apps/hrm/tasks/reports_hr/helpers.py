@@ -311,12 +311,15 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
 
     # Count work history events using aggregation
     # Exclude employees with code_type="OS"
+    # Exclude employees whose position has include_in_employee_report=False
     work_histories = EmployeeWorkHistory.objects.filter(
         date=report_date,
         branch=branch,
         block=block,
         department=department,
-    ).exclude(employee__code_type=Employee.CodeType.OS)
+    ).exclude(employee__code_type=Employee.CodeType.OS).exclude(
+        employee__position__include_in_employee_report=False
+    )
 
     # Count different event types
     num_transfers = work_histories.filter(name=EmployeeWorkHistory.EventType.TRANSFER).count()
@@ -376,6 +379,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
     # Get the latest work history for each employee up to the report_date
     # This gives us the historical snapshot of employee status at that point in time
     # Exclude employees with code_type="OS"
+    # Exclude employees whose position has include_in_employee_report=False
     # Use Window function with RowNumber to get latest record per employee
     # This approach works on both PostgreSQL and SQLite (unlike distinct("employee_id"))
     latest_work_histories = (
@@ -386,6 +390,7 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
             date__lte=report_date,
         )
         .exclude(employee__code_type=Employee.CodeType.OS)
+        .exclude(employee__position__include_in_employee_report=False)
         .annotate(
             row_num=Window(
                 expression=RowNumber(),
@@ -471,6 +476,7 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
     """
     # Get work history records for employees who resigned on this specific date
     # Filter for CHANGE_STATUS events where status changed to RESIGNED
+    # Exclude employees whose position has include_in_employee_report=False
     resigned_work_histories = (
         EmployeeWorkHistory.objects.filter(
             branch=branch,
@@ -481,6 +487,7 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
             status=Employee.Status.RESIGNED,
         )
         .exclude(employee__code_type=Employee.CodeType.OS)
+        .exclude(employee__position__include_in_employee_report=False)
         .select_related("employee")
     )
 
