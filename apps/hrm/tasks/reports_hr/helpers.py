@@ -14,6 +14,7 @@ from apps.hrm.models import (
     Branch,
     Department,
     Employee,
+    EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
     StaffGrowthReport,
@@ -231,6 +232,39 @@ def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> Non
     _aggregate_employee_status_for_date(report_date, branch, block, department)
 
 
+def _increment_employee_resigned_reason(event_type: str, snapshot: dict[str, Any]) -> None:
+    """Incrementally update employee resigned reason report based on event snapshot.
+
+    For resigned reason report, we need to re-aggregate as it's based on resignation dates
+    and reasons. We only update the affected org unit.
+
+    Args:
+        event_type: "create", "update", or "delete"
+        snapshot: Dict with previous and current state
+    """
+    # Get the date and org unit from the snapshot
+    data = snapshot.get("current") or snapshot.get("previous")
+    if not data:
+        return
+
+    report_date = data["date"]
+    branch_id = data["branch_id"]
+    block_id = data["block_id"]
+    department_id = data["department_id"]
+
+    # Get org unit objects
+    try:
+        branch = Branch.objects.get(id=branch_id)
+        block = Block.objects.get(id=block_id)
+        department = Department.objects.get(id=department_id)
+    except (Branch.DoesNotExist, Block.DoesNotExist, Department.DoesNotExist):
+        logger.warning(f"Org unit not found for resigned reason update: {branch_id}/{block_id}/{department_id}")
+        return
+
+    # Re-aggregate employee resigned reasons for this org unit
+    _aggregate_employee_resigned_reason_for_date(report_date, branch, block, department)
+
+
 def _aggregate_staff_growth_for_date(report_date: date, branch, block, department) -> None:
     """Full re-aggregation of staff growth report for batch processing.
 
@@ -377,3 +411,122 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
         f"{branch.name}/{block.name}/{department.name}: "
         f"active={count_active}, resigned={count_resigned}"
     )
+
+
+def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, block, department) -> None:
+    """Aggregate employee resigned reason report using EmployeeWorkHistory for historical accuracy.
+
+    Uses EmployeeWorkHistory to get resigned employees for the specified date,
+    counting by resignation reason. Only counts employees who:
+    - Changed status to RESIGNED on the report_date
+    - Do not have code_type = "OS"
+    - Have valid resignation_reason
+
+    Args:
+        report_date: Date to aggregate (counts resignations that occurred on this date)
+        branch: Branch instance
+        block: Block instance
+        department: Department instance
+    """
+    # Get work history records for employees who resigned on this specific date
+    # Filter for CHANGE_STATUS events where status changed to RESIGNED
+    resigned_work_histories = EmployeeWorkHistory.objects.filter(
+        branch=branch,
+        block=block,
+        department=department,
+        date=report_date,
+        name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+        status=Employee.Status.RESIGNED,
+    ).select_related("employee")
+
+    # Filter out OS employees and get resignation reasons
+    employee_resignation_reasons: dict[str, int] = {}
+    count_resigned = 0
+
+    for wh in resigned_work_histories:
+        employee = wh.employee
+        # Skip OS employees
+        if employee.code_type == Employee.CodeType.OS:
+            continue
+        
+        count_resigned += 1
+        # Get resignation reason from work history or employee record
+        reason = wh.resignation_reason or employee.resignation_reason
+        if reason:
+            # Map resignation reason to field name
+            field_name = _get_resignation_reason_field_name(reason)
+            if field_name:
+                employee_resignation_reasons[field_name] = employee_resignation_reasons.get(field_name, 0) + 1
+
+    # Prepare defaults dict with all reason fields
+    defaults = {
+        "count_resigned": count_resigned,
+        "agreement_termination": employee_resignation_reasons.get("agreement_termination", 0),
+        "probation_fail": employee_resignation_reasons.get("probation_fail", 0),
+        "job_abandonment": employee_resignation_reasons.get("job_abandonment", 0),
+        "disciplinary_termination": employee_resignation_reasons.get("disciplinary_termination", 0),
+        "workforce_reduction": employee_resignation_reasons.get("workforce_reduction", 0),
+        "underperforming": employee_resignation_reasons.get("underperforming", 0),
+        "contract_expired": employee_resignation_reasons.get("contract_expired", 0),
+        "voluntary_health": employee_resignation_reasons.get("voluntary_health", 0),
+        "voluntary_personal": employee_resignation_reasons.get("voluntary_personal", 0),
+        "voluntary_career_change": employee_resignation_reasons.get("voluntary_career_change", 0),
+        "voluntary_other": employee_resignation_reasons.get("voluntary_other", 0),
+        "other": employee_resignation_reasons.get("other", 0),
+    }
+
+    # Update or create the report record
+    EmployeeResignedReasonReport.objects.update_or_create(
+        report_date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+        defaults=defaults,
+    )
+
+    logger.debug(
+        f"Aggregated employee resigned reasons for {report_date} - "
+        f"{branch.name}/{block.name}/{department.name}: "
+        f"total_resigned={count_resigned}"
+    )
+
+    # Update or create the report record
+    EmployeeResignedReasonReport.objects.update_or_create(
+        report_date=report_date,
+        branch=branch,
+        block=block,
+        department=department,
+        defaults=defaults,
+    )
+
+    logger.debug(
+        f"Aggregated employee resigned reasons for {report_date} - "
+        f"{branch.name}/{block.name}/{department.name}: "
+        f"total_resigned={count_resigned}"
+    )
+
+
+def _get_resignation_reason_field_name(reason: str) -> str | None:
+    """Map Employee.ResignationReason enum value to EmployeeResignedReasonReport field name.
+
+    Args:
+        reason: Resignation reason enum value (e.g., "AGREEMENT_TERMINATION")
+
+    Returns:
+        Field name in snake_case (e.g., "agreement_termination") or None if invalid
+    """
+    reason_field_map = {
+        Employee.ResignationReason.AGREEMENT_TERMINATION: "agreement_termination",
+        Employee.ResignationReason.PROBATION_FAIL: "probation_fail",
+        Employee.ResignationReason.JOB_ABANDONMENT: "job_abandonment",
+        Employee.ResignationReason.DISCIPLINARY_TERMINATION: "disciplinary_termination",
+        Employee.ResignationReason.WORKFORCE_REDUCTION: "workforce_reduction",
+        Employee.ResignationReason.UNDERPERFORMING: "underperforming",
+        Employee.ResignationReason.CONTRACT_EXPIRED: "contract_expired",
+        Employee.ResignationReason.VOLUNTARY_HEALTH: "voluntary_health",
+        Employee.ResignationReason.VOLUNTARY_PERSONAL: "voluntary_personal",
+        Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE: "voluntary_career_change",
+        Employee.ResignationReason.VOLUNTARY_OTHER: "voluntary_other",
+        Employee.ResignationReason.OTHER: "other",
+    }
+    return reason_field_map.get(reason)

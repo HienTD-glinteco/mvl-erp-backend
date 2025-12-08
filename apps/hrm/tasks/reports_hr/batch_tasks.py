@@ -16,11 +16,13 @@ from apps.hrm.models import (
     Block,
     Branch,
     Department,
+    EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
     StaffGrowthReport,
 )
 
 from .helpers import (
+    _aggregate_employee_resigned_reason_for_date,
     _aggregate_employee_status_for_date,
     _aggregate_staff_growth_for_date,
 )
@@ -47,8 +49,12 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
         Min("report_date")
     )["report_date__min"]
 
-    # Get the earliest of the two
-    dates = [d for d in [staff_growth_date, status_breakdown_date] if d is not None]
+    resigned_reason_date = EmployeeResignedReasonReport.objects.filter(need_refresh=True).aggregate(Min("report_date"))[
+        "report_date__min"
+    ]
+
+    # Get the earliest of the three
+    dates = [d for d in [staff_growth_date, status_breakdown_date, resigned_reason_date] if d is not None]
     if not dates:
         return None, []
 
@@ -69,6 +75,16 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
     # Collect org units from EmployeeStatusBreakdownReport
     for report in (
         EmployeeStatusBreakdownReport.objects.filter(
+            need_refresh=True, report_date__gte=earliest_date, report_date__lte=today
+        )
+        .values("branch_id", "block_id", "department_id")
+        .distinct()
+    ):
+        org_units_set.add((report["branch_id"], report["block_id"], report["department_id"]))
+
+    # Collect org units from EmployeeResignedReasonReport
+    for report in (
+        EmployeeResignedReasonReport.objects.filter(
             need_refresh=True, report_date__gte=earliest_date, report_date__lte=today
         )
         .values("branch_id", "block_id", "department_id")
@@ -131,11 +147,14 @@ def aggregate_hr_reports_batch() -> int:
                 # Aggregate both types of HR reports
                 _aggregate_staff_growth_for_date(current_date, branch, block, department)
                 _aggregate_employee_status_for_date(current_date, branch, block, department)
+                _aggregate_employee_resigned_reason_for_date(current_date, branch, block, department)
 
             # Clear need_refresh flag for this date after successful processing
             StaffGrowthReport.objects.filter(report_date=current_date).update(need_refresh=False)
 
             EmployeeStatusBreakdownReport.objects.filter(report_date=current_date).update(need_refresh=False)
+
+            EmployeeResignedReasonReport.objects.filter(report_date=current_date).update(need_refresh=False)
 
         dates_processed += 1
         current_date += timedelta(days=1)
