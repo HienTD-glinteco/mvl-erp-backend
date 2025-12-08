@@ -62,7 +62,6 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         help_text="Network address for device communication",
     )
     port = models.PositiveIntegerField(
-        default=4370,
         verbose_name="Port",
         help_text="Network port for device communication",
     )

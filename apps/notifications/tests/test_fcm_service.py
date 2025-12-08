@@ -5,8 +5,9 @@ from unittest.mock import Mock, patch
 import pytest
 from firebase_admin import messaging
 
+import apps.notifications.fcm_service as fcm_module
 from apps.core.models import User, UserDevice
-from apps.notifications.fcm_service import FCMService, initialize_firebase
+from apps.notifications.fcm_service import FCMResult, FCMService, initialize_firebase
 from apps.notifications.models import Notification
 
 
@@ -40,8 +41,7 @@ class TestFCMService:
         """Create a recipient user with a device."""
         UserDevice.objects.create(
             user=recipient,
-            device_id="test-device-123",
-            fcm_token="test-fcm-token-xyz",
+            device_id="test-fcm-token-xyz",
             platform="android",
             active=True,
         )
@@ -122,34 +122,6 @@ class TestFCMService:
         notification = Notification.objects.create(
             actor=actor,
             recipient=recipient_with_device,
-            verb="mentioned you",
-        )
-
-        # Act
-        result = FCMService.send_notification(notification)
-
-        # Assert
-        assert result is False
-
-    @patch("apps.notifications.fcm_service.initialize_firebase")
-    @patch("apps.notifications.fcm_service.settings")
-    def test_send_notification_no_fcm_token(self, mock_settings, mock_init, actor, recipient):
-        """Test send_notification when device has no FCM token."""
-        # Arrange
-        mock_settings.FCM_ENABLED = True
-        mock_init.return_value = True
-
-        UserDevice.objects.create(
-            user=recipient,
-            device_id="test-device",
-            fcm_token="",  # Empty FCM token
-            platform="android",
-            active=True,
-        )
-
-        notification = Notification.objects.create(
-            actor=actor,
-            recipient=recipient,
             verb="mentioned you",
         )
 
@@ -351,9 +323,6 @@ class TestFCMService:
         mock_settings.FCM_CREDENTIALS = {"type": "service_account"}
         mock_cert.return_value = Mock()
 
-        # Reset the global state
-        import apps.notifications.fcm_service as fcm_module
-
         fcm_module._firebase_initialized = False
 
         # Act
@@ -368,9 +337,6 @@ class TestFCMService:
         """Test Firebase initialization when FCM is disabled."""
         # Arrange
         mock_settings.FCM_ENABLED = False
-
-        # Reset the global state
-        import apps.notifications.fcm_service as fcm_module
 
         fcm_module._firebase_initialized = False
 
@@ -387,9 +353,6 @@ class TestFCMService:
         mock_settings.FCM_ENABLED = True
         mock_settings.FCM_CREDENTIALS = None
 
-        # Reset the global state
-        import apps.notifications.fcm_service as fcm_module
-
         fcm_module._firebase_initialized = False
 
         # Act
@@ -397,3 +360,485 @@ class TestFCMService:
 
         # Assert
         assert result is False
+
+
+@pytest.mark.django_db
+class TestFCMServiceTopicMessaging:
+    """Test cases for FCM topic-based messaging."""
+
+    # =========================================================================
+    # send_to_topic tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.send")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_to_topic_success(self, mock_settings, mock_init, mock_send):
+        """Test successful topic notification sending."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_send.return_value = "message-id-123"
+
+        # Act
+        result = FCMService.send_to_topic(
+            topic="announcements",
+            title="Test Title",
+            body="Test Body",
+            data={"key": "value"},
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.message_id == "message-id-123"
+        assert result.successful_tokens == ["announcements"]
+        mock_send.assert_called_once()
+        call_args = mock_send.call_args[0][0]
+        assert call_args.topic == "announcements"
+
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_to_topic_when_fcm_disabled(self, mock_settings):
+        """Test send_to_topic when FCM is disabled."""
+        # Arrange
+        mock_settings.FCM_ENABLED = False
+
+        # Act
+        result = FCMService.send_to_topic(
+            topic="announcements",
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.error == "FCM is disabled"
+
+    @patch("apps.notifications.fcm_service.messaging.send")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_to_topic_with_exception(self, mock_settings, mock_init, mock_send):
+        """Test send_to_topic handling exceptions."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_send.side_effect = Exception("Network error")
+
+        # Act
+        result = FCMService.send_to_topic(
+            topic="announcements",
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.error == "Network error"
+        assert result.failed_tokens == {"announcements": "Network error"}
+
+    # =========================================================================
+    # send_to_topics tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.send")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_to_topics_success(self, mock_settings, mock_init, mock_send):
+        """Test sending to multiple topics."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_send.return_value = "message-id-123"
+
+        # Act
+        result = FCMService.send_to_topics(
+            topics=["news", "announcements", "alerts"],
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 3
+        assert result.failure_count == 0
+        assert result.successful_tokens == ["news", "announcements", "alerts"]
+        assert mock_send.call_count == 3
+
+    # =========================================================================
+    # subscribe_to_topic tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.subscribe_to_topic")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_subscribe_to_topic_success(self, mock_settings, mock_init, mock_subscribe):
+        """Test successful topic subscription."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_response = Mock()
+        mock_response.success_count = 3
+        mock_response.failure_count = 0
+        mock_response.errors = []
+        mock_subscribe.return_value = mock_response
+
+        tokens = ["token1", "token2", "token3"]
+
+        # Act
+        result = FCMService.subscribe_to_topic(tokens, "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 3
+        assert result.failure_count == 0
+        assert result.successful_tokens == tokens
+        assert result.failed_tokens == {}
+        mock_subscribe.assert_called_once_with(tokens, "news")
+
+    @patch("apps.notifications.fcm_service.messaging.subscribe_to_topic")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_subscribe_to_topic_partial_failure(self, mock_settings, mock_init, mock_subscribe):
+        """Test topic subscription with partial failures."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_error = Mock()
+        mock_error.index = 2
+        mock_error.reason = "INVALID_ARGUMENT"
+        mock_response = Mock()
+        mock_response.success_count = 2
+        mock_response.failure_count = 1
+        mock_response.errors = [mock_error]
+        mock_subscribe.return_value = mock_response
+
+        tokens = ["token1", "token2", "invalid_token"]
+
+        # Act
+        result = FCMService.subscribe_to_topic(tokens, "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 2
+        assert result.failure_count == 1
+        assert result.successful_tokens == ["token1", "token2"]
+        assert result.failed_tokens == {"invalid_token": "INVALID_ARGUMENT"}
+
+    @patch("apps.notifications.fcm_service.settings")
+    def test_subscribe_to_topic_when_fcm_disabled(self, mock_settings):
+        """Test subscribe_to_topic when FCM is disabled."""
+        # Arrange
+        mock_settings.FCM_ENABLED = False
+        tokens = ["token1", "token2"]
+
+        # Act
+        result = FCMService.subscribe_to_topic(tokens, "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 0
+        assert result.failure_count == 2
+        assert result.failed_tokens == {"token1": "FCM is disabled", "token2": "FCM is disabled"}
+        assert result.error == "FCM is disabled"
+
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_subscribe_to_topic_empty_tokens(self, mock_settings, mock_init):
+        """Test subscribe_to_topic with empty token list."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+
+        # Act
+        result = FCMService.subscribe_to_topic([], "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 0
+        assert result.failure_count == 0
+
+    # =========================================================================
+    # subscribe_to_topics tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.subscribe_to_topic")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_subscribe_to_topics_success(self, mock_settings, mock_init, mock_subscribe):
+        """Test subscribing a single token to multiple topics."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_response = Mock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.errors = []
+        mock_subscribe.return_value = mock_response
+
+        # Act
+        result = FCMService.subscribe_to_topics("token1", ["news", "alerts", "updates"])
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 3
+        assert result.failure_count == 0
+        assert result.successful_tokens == ["news", "alerts", "updates"]
+        assert mock_subscribe.call_count == 3
+
+    # =========================================================================
+    # unsubscribe_from_topic tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.unsubscribe_from_topic")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_unsubscribe_from_topic_success(self, mock_settings, mock_init, mock_unsubscribe):
+        """Test successful topic unsubscription."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_response = Mock()
+        mock_response.success_count = 2
+        mock_response.failure_count = 0
+        mock_response.errors = []
+        mock_unsubscribe.return_value = mock_response
+
+        tokens = ["token1", "token2"]
+
+        # Act
+        result = FCMService.unsubscribe_from_topic(tokens, "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 2
+        assert result.failure_count == 0
+        assert result.successful_tokens == tokens
+        assert result.failed_tokens == {}
+        mock_unsubscribe.assert_called_once_with(tokens, "news")
+
+    @patch("apps.notifications.fcm_service.settings")
+    def test_unsubscribe_from_topic_when_fcm_disabled(self, mock_settings):
+        """Test unsubscribe_from_topic when FCM is disabled."""
+        # Arrange
+        mock_settings.FCM_ENABLED = False
+        tokens = ["token1", "token2"]
+
+        # Act
+        result = FCMService.unsubscribe_from_topic(tokens, "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 0
+        assert result.failure_count == 2
+        assert result.failed_tokens == {"token1": "FCM is disabled", "token2": "FCM is disabled"}
+        assert result.error == "FCM is disabled"
+
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_unsubscribe_from_topic_empty_tokens(self, mock_settings, mock_init):
+        """Test unsubscribe_from_topic with empty token list."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+
+        # Act
+        result = FCMService.unsubscribe_from_topic([], "news")
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 0
+        assert result.failure_count == 0
+
+    # =========================================================================
+    # unsubscribe_from_topics tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.unsubscribe_from_topic")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_unsubscribe_from_topics_success(self, mock_settings, mock_init, mock_unsubscribe):
+        """Test unsubscribing a single token from multiple topics."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_response = Mock()
+        mock_response.success_count = 1
+        mock_response.failure_count = 0
+        mock_response.errors = []
+        mock_unsubscribe.return_value = mock_response
+
+        # Act
+        result = FCMService.unsubscribe_from_topics("token1", ["news", "alerts"])
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 2
+        assert result.failure_count == 0
+        assert result.successful_tokens == ["news", "alerts"]
+        assert mock_unsubscribe.call_count == 2
+
+    # =========================================================================
+    # send_multicast tests
+    # =========================================================================
+
+    @patch("apps.notifications.fcm_service.messaging.send_each_for_multicast")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_multicast_success(self, mock_settings, mock_init, mock_send):
+        """Test successful multicast sending."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+
+        # Create mock responses for each token
+        mock_response1 = Mock()
+        mock_response1.success = True
+        mock_response2 = Mock()
+        mock_response2.success = True
+        mock_response3 = Mock()
+        mock_response3.success = True
+
+        mock_response = Mock()
+        mock_response.success_count = 3
+        mock_response.failure_count = 0
+        mock_response.responses = [mock_response1, mock_response2, mock_response3]
+        mock_send.return_value = mock_response
+
+        tokens = ["token1", "token2", "token3"]
+
+        # Act
+        result = FCMService.send_multicast(
+            tokens=tokens,
+            title="Test Title",
+            body="Test Body",
+            data={"key": "value"},
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 3
+        assert result.failure_count == 0
+        assert result.successful_tokens == tokens
+        assert result.failed_tokens == {}
+        mock_send.assert_called_once()
+
+    @patch("apps.notifications.fcm_service.messaging.send_each_for_multicast")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_multicast_partial_failure(self, mock_settings, mock_init, mock_send):
+        """Test multicast with partial failures."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+
+        success_response = Mock()
+        success_response.success = True
+        failure_response = Mock()
+        failure_response.success = False
+        failure_response.exception = "Invalid token"
+
+        mock_response = Mock()
+        mock_response.success_count = 2
+        mock_response.failure_count = 1
+        mock_response.responses = [success_response, success_response, failure_response]
+        mock_send.return_value = mock_response
+
+        tokens = ["token1", "token2", "invalid_token"]
+
+        # Act
+        result = FCMService.send_multicast(
+            tokens=tokens,
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 2
+        assert result.failure_count == 1
+        assert result.successful_tokens == ["token1", "token2"]
+        assert result.failed_tokens == {"invalid_token": "Invalid token"}
+
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_multicast_when_fcm_disabled(self, mock_settings):
+        """Test send_multicast when FCM is disabled."""
+        # Arrange
+        mock_settings.FCM_ENABLED = False
+        tokens = ["token1", "token2"]
+
+        # Act
+        result = FCMService.send_multicast(
+            tokens=tokens,
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 0
+        assert result.failure_count == 2
+        assert result.failed_tokens == {"token1": "FCM is disabled", "token2": "FCM is disabled"}
+        assert result.error == "FCM is disabled"
+
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_multicast_empty_tokens(self, mock_settings, mock_init):
+        """Test send_multicast with empty token list."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+
+        # Act
+        result = FCMService.send_multicast(
+            tokens=[],
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is True
+        assert result.success_count == 0
+        assert result.failure_count == 0
+
+    @patch("apps.notifications.fcm_service.messaging.send_each_for_multicast")
+    @patch("apps.notifications.fcm_service.initialize_firebase")
+    @patch("apps.notifications.fcm_service.settings")
+    def test_send_multicast_with_exception(self, mock_settings, mock_init, mock_send):
+        """Test send_multicast handling exceptions."""
+        # Arrange
+        mock_settings.FCM_ENABLED = True
+        mock_init.return_value = True
+        mock_send.side_effect = Exception("Network error")
+
+        tokens = ["token1", "token2"]
+
+        # Act
+        result = FCMService.send_multicast(
+            tokens=tokens,
+            title="Test Title",
+            body="Test Body",
+        )
+
+        # Assert
+        assert isinstance(result, FCMResult)
+        assert result.success is False
+        assert result.success_count == 0
+        assert result.failure_count == 2
+        assert result.failed_tokens == {"token1": "Network error", "token2": "Network error"}
+        assert result.error == "Network error"

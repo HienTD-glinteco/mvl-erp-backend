@@ -74,6 +74,7 @@ class AttendanceDeviceModelTest(TestCase):
         device = AttendanceDevice.objects.create(
             name="Minimal Device",
             ip_address="10.0.0.1",
+            port=4370,
         )
 
         # Assert
@@ -97,9 +98,9 @@ class AttendanceDeviceModelTest(TestCase):
     def test_default_ordering_by_name(self):
         """Test devices are ordered by name."""
         # Arrange & Act
-        device_c = AttendanceDevice.objects.create(name="C Device", ip_address="192.168.1.3")
-        device_a = AttendanceDevice.objects.create(name="A Device", ip_address="192.168.1.1")
-        device_b = AttendanceDevice.objects.create(name="B Device", ip_address="192.168.1.2")
+        device_c = AttendanceDevice.objects.create(name="C Device", ip_address="192.168.1.3", port=4370)
+        device_a = AttendanceDevice.objects.create(name="A Device", ip_address="192.168.1.1", port=4370)
+        device_b = AttendanceDevice.objects.create(name="B Device", ip_address="192.168.1.2", port=4370)
 
         # Assert
         devices = list(AttendanceDevice.objects.all())
@@ -110,7 +111,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_get_sync_start_time_no_previous_sync(self):
         """Test get_sync_start_time returns lookback time when no previous sync."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
         lookback_days = 2
 
         # Act
@@ -126,7 +127,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_get_sync_start_time_with_previous_sync(self):
         """Test get_sync_start_time returns last sync time when available."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
         previous_sync = django_timezone.now() - timedelta(hours=1)
         device.polling_synced_at = previous_sync
         device.save()
@@ -140,7 +141,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_mark_sync_success(self):
         """Test mark_sync_success updates device state correctly."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
         device.is_connected = False
         device.save()
 
@@ -158,7 +159,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_mark_sync_success_re_enables_realtime(self):
         """Test mark_sync_success re-enables realtime if it was disabled."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
         device.realtime_enabled = False
         device.realtime_disabled_at = django_timezone.now()
         device.save()
@@ -174,7 +175,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_mark_sync_failed(self):
         """Test mark_sync_failed sets connection status to False."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
         device.is_connected = True
         device.save()
 
@@ -188,7 +189,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_is_enabled_field(self):
         """Test is_enabled field controls device activation."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
 
         # Assert default
         self.assertTrue(device.is_enabled)
@@ -204,7 +205,7 @@ class AttendanceDeviceModelTest(TestCase):
     def test_realtime_fields(self):
         """Test realtime_enabled and realtime_disabled_at fields."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Test Device", ip_address="192.168.1.100", port=4370)
 
         # Assert defaults
         self.assertTrue(device.realtime_enabled)
@@ -239,6 +240,7 @@ class AttendanceRecordModelTest(TestCase):
         self.biometric_device = AttendanceDevice.objects.create(
             name="Test Device",
             ip_address="192.168.1.100",
+            port=4370,
         )
 
         self.record_data = {

@@ -131,10 +131,10 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         """Test listing attendance devices."""
         # Arrange - Create devices directly in DB (bypass validation)
         device1 = AttendanceDevice.objects.create(
-            name="Device 1", ip_address="192.168.1.100", serial_number="SN001", is_connected=True
+            name="Device 1", ip_address="192.168.1.100", port=4370, serial_number="SN001", is_connected=True
         )
         device2 = AttendanceDevice.objects.create(
-            name="Device 2", ip_address="192.168.1.101", serial_number="SN002", is_connected=False
+            name="Device 2", ip_address="192.168.1.101", port=4370, serial_number="SN002", is_connected=False
         )
 
         # Act
@@ -175,7 +175,9 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
     def test_update_attendance_device(self, mock_service):
         """Test updating an attendance device."""
         # Arrange - Create initial device
-        device = AttendanceDevice.objects.create(name="Original Name", ip_address="192.168.1.100", is_connected=False)
+        device = AttendanceDevice.objects.create(
+            name="Original Name", ip_address="192.168.1.100", port=4370, is_connected=False
+        )
 
         # Mock successful connection for update
         mock_service_instance = MagicMock()
@@ -219,6 +221,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         device = AttendanceDevice.objects.create(
             name="Original Name",
             ip_address="192.168.1.100",
+            port=4370,
             is_connected=False,
             is_enabled=True,
         )
@@ -251,7 +254,7 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
     def test_delete_attendance_device(self, mock_service):
         """Test deleting an attendance device."""
         # Arrange
-        device = AttendanceDevice.objects.create(name="Device to Delete", ip_address="192.168.1.100")
+        device = AttendanceDevice.objects.create(name="Device to Delete", ip_address="192.168.1.100", port=4370)
         device_id = device.id
 
         # Act
@@ -266,8 +269,10 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
     def test_filter_by_is_enabled(self, mock_service):
         """Test filtering devices by is_enabled status."""
         # Arrange
-        AttendanceDevice.objects.create(name="Enabled Device", ip_address="192.168.1.100", is_enabled=True)
-        AttendanceDevice.objects.create(name="Disabled Device", ip_address="192.168.1.101", is_enabled=False)
+        AttendanceDevice.objects.create(name="Enabled Device", ip_address="192.168.1.100", port=4370, is_enabled=True)
+        AttendanceDevice.objects.create(
+            name="Disabled Device", ip_address="192.168.1.101", port=4370, is_enabled=False
+        )
 
         # Act
         url = reverse("hrm:attendance-device-list")
@@ -284,10 +289,10 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         """Test filtering devices by is_connected status."""
         # Arrange
         AttendanceDevice.objects.create(
-            name="Connected Device", ip_address="192.168.1.100", is_connected=True, is_enabled=True
+            name="Connected Device", ip_address="192.168.1.100", port=4370, is_connected=True, is_enabled=True
         )
         AttendanceDevice.objects.create(
-            name="Disconnected Device", ip_address="192.168.1.101", is_connected=False, is_enabled=True
+            name="Disconnected Device", ip_address="192.168.1.101", port=4370, is_connected=False, is_enabled=True
         )
 
         # Act
@@ -304,8 +309,8 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
     def test_search_devices(self, mock_service):
         """Test searching devices by name or IP address."""
         # Arrange
-        AttendanceDevice.objects.create(name="Main Entrance", ip_address="192.168.1.100", is_enabled=True)
-        AttendanceDevice.objects.create(name="Back Door", ip_address="192.168.1.101", is_enabled=True)
+        AttendanceDevice.objects.create(name="Main Entrance", ip_address="192.168.1.100", port=4370, is_enabled=True)
+        AttendanceDevice.objects.create(name="Back Door", ip_address="192.168.1.101", port=4370, is_enabled=True)
 
         # Act - Search by name
         url = reverse("hrm:attendance-device-list")
@@ -321,9 +326,9 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
     def test_ordering_by_name(self, mock_service):
         """Test ordering devices by name."""
         # Arrange
-        AttendanceDevice.objects.create(name="Z Device", ip_address="192.168.1.100")
-        AttendanceDevice.objects.create(name="A Device", ip_address="192.168.1.101")
-        AttendanceDevice.objects.create(name="M Device", ip_address="192.168.1.102")
+        AttendanceDevice.objects.create(name="Z Device", ip_address="192.168.1.100", port=4370)
+        AttendanceDevice.objects.create(name="A Device", ip_address="192.168.1.101", port=4370)
+        AttendanceDevice.objects.create(name="M Device", ip_address="192.168.1.102", port=4370)
 
         # Act
         url = reverse("hrm:attendance-device-list")

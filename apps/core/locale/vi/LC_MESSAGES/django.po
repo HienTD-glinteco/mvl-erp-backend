@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 09:27+0700\n"
+"POT-Creation-Date: 2025-12-08 12:38+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -551,15 +551,15 @@ msgstr "Phuờng/Xã"
 msgid "Township"
 msgstr ""
 
-#: apps/core/models/device.py:31
+#: apps/core/models/device.py:10
 msgid "iOS"
 msgstr "iOS"
 
-#: apps/core/models/device.py:32
+#: apps/core/models/device.py:11
 msgid "Android"
 msgstr "Android"
 
-#: apps/core/models/device.py:33
+#: apps/core/models/device.py:12
 msgid "Web"
 msgstr "Web"
 

@@ -45,8 +45,10 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         self.client.force_authenticate(user=self.user)
 
         # Create test devices
-        self.device1 = AttendanceDevice.objects.create(name="Main Entrance Device", ip_address="192.168.1.100")
-        self.device2 = AttendanceDevice.objects.create(name="Back Door Device", ip_address="192.168.1.101")
+        self.device1 = AttendanceDevice.objects.create(
+            name="Main Entrance Device", ip_address="192.168.1.100", port=4370
+        )
+        self.device2 = AttendanceDevice.objects.create(name="Back Door Device", ip_address="192.168.1.101", port=4370)
 
         # Create test records
         self.record1 = AttendanceRecord.objects.create(

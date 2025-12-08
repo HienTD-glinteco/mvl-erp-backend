@@ -302,10 +302,12 @@ class TestSyncAllAttendanceDevices(TestCase):
         self.device1 = AttendanceDevice.objects.create(
             name="Device 1",
             ip_address="192.168.1.100",
+            port=4370,
         )
         self.device2 = AttendanceDevice.objects.create(
             name="Device 2",
             ip_address="192.168.1.101",
+            port=4370,
         )
 
     @patch("apps.hrm.tasks.attendances.sync_attendance_logs_for_device")

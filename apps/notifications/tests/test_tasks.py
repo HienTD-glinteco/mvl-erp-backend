@@ -233,8 +233,7 @@ class TestPushNotificationTasks:
         # Create device for recipient
         UserDevice.objects.create(
             user=recipient,
-            device_id="test-device-123",
-            fcm_token="test-fcm-token",
+            device_id="test-fcm-token",
             platform="android",
             active=True,
         )
