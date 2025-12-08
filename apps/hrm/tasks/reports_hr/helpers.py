@@ -7,7 +7,7 @@ import logging
 from datetime import date
 from typing import Any, cast
 
-from django.db.models import F, Q, Window
+from django.db.models import Exists, F, OuterRef, Q, QuerySet, Window
 from django.db.models.functions import RowNumber
 
 from apps.hrm.models import (
@@ -18,10 +18,49 @@ from apps.hrm.models import (
     EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
+    Position,
     StaffGrowthReport,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_work_history_queryset(filters: dict[str, Any] | None = None) -> QuerySet[EmployeeWorkHistory]:
+    """Get a filtered EmployeeWorkHistory queryset with common exclusions.
+
+    This helper function creates a queryset that:
+    - Excludes employees with code_type="OS"
+    - Excludes employees whose position has include_in_employee_report=False (using Exists subquery)
+    - Applies additional filters if provided
+
+    Args:
+        filters: Optional dict of additional filters to apply to the queryset.
+                 Keys should be valid field lookups for EmployeeWorkHistory.
+                 Example: {"date": report_date, "branch": branch, "block": block}
+
+    Returns:
+        QuerySet[EmployeeWorkHistory]: Filtered queryset ready for further operations
+    """
+    # Build subquery for positions that should be excluded
+    # Using Exists is more efficient than direct join for exclusion
+    excluded_positions_subquery = Position.objects.filter(
+        id=OuterRef("employee__position_id"),
+        include_in_employee_report=False,
+    )
+
+    # Start with base queryset
+    queryset = EmployeeWorkHistory.objects.all()
+
+    # Apply additional filters if provided
+    if filters:
+        queryset = queryset.filter(**filters)
+
+    # Apply common exclusions
+    # 1. Exclude employees with code_type="OS"
+    # 2. Exclude employees whose position has include_in_employee_report=False
+    queryset = queryset.exclude(employee__code_type=Employee.CodeType.OS).exclude(Exists(excluded_positions_subquery))
+
+    return queryset
 
 
 def _should_process_employee(data: dict[str, Any]) -> bool:
@@ -310,13 +349,15 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
     week_key = f"Week {week_number} - {month_key}"
 
     # Count work history events using aggregation
-    # Exclude employees with code_type="OS"
-    work_histories = EmployeeWorkHistory.objects.filter(
-        date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-    ).exclude(employee__code_type=Employee.CodeType.OS)
+    # Uses helper function to apply common exclusions
+    work_histories = _get_work_history_queryset(
+        filters={
+            "date": report_date,
+            "branch": branch,
+            "block": block,
+            "department": department,
+        }
+    )
 
     # Count different event types
     num_transfers = work_histories.filter(name=EmployeeWorkHistory.EventType.TRANSFER).count()
@@ -375,17 +416,18 @@ def _aggregate_employee_status_for_date(report_date: date, branch, block, depart
     """
     # Get the latest work history for each employee up to the report_date
     # This gives us the historical snapshot of employee status at that point in time
-    # Exclude employees with code_type="OS"
+    # Uses helper function to apply common exclusions
     # Use Window function with RowNumber to get latest record per employee
     # This approach works on both PostgreSQL and SQLite (unlike distinct("employee_id"))
     latest_work_histories = (
-        EmployeeWorkHistory.objects.filter(
-            branch=branch,
-            block=block,
-            department=department,
-            date__lte=report_date,
+        _get_work_history_queryset(
+            filters={
+                "branch": branch,
+                "block": block,
+                "department": department,
+                "date__lte": report_date,
+            }
         )
-        .exclude(employee__code_type=Employee.CodeType.OS)
         .annotate(
             row_num=Window(
                 expression=RowNumber(),
@@ -471,29 +513,24 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
     """
     # Get work history records for employees who resigned on this specific date
     # Filter for CHANGE_STATUS events where status changed to RESIGNED
-    resigned_work_histories = (
-        EmployeeWorkHistory.objects.filter(
-            branch=branch,
-            block=block,
-            department=department,
-            date=report_date,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            status=Employee.Status.RESIGNED,
-        )
-        .exclude(employee__code_type=Employee.CodeType.OS)
-        .select_related("employee")
-    )
+    # Uses helper function to apply common exclusions
+    resigned_work_histories = _get_work_history_queryset(
+        filters={
+            "branch": branch,
+            "block": block,
+            "department": department,
+            "date": report_date,
+            "name": EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            "status": Employee.Status.RESIGNED,
+        }
+    ).select_related("employee")
 
-    # Filter out OS employees and get resignation reasons
+    # Process resignation reasons and count resigned employees
     employee_resignation_reasons: dict[str, int] = {}
     count_resigned = 0
 
     for wh in resigned_work_histories:
         employee = wh.employee
-        # Skip OS employees
-        if employee.code_type == Employee.CodeType.OS:
-            continue
-
         count_resigned += 1
         # Get resignation reason from work history or employee record
         reason = wh.resignation_reason or employee.resignation_reason
