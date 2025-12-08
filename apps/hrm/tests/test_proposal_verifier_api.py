@@ -90,13 +90,13 @@ class TestProposalVerifierModel:
         )
 
     def test_create_proposal_verifier_with_default_status(self, timesheet_complaint_proposal, employee):
-        """Test creating a proposal verifier has default status of NOT_VERIFIED."""
+        """Test creating a proposal verifier has default status of PENDING."""
         verifier = ProposalVerifier.objects.create(
             proposal=timesheet_complaint_proposal,
             employee=employee,
         )
 
-        assert verifier.status == ProposalVerifierStatus.NOT_VERIFIED
+        assert verifier.status == ProposalVerifierStatus.PENDING
         assert verifier.verified_time is None
         assert verifier.note is None
 
@@ -288,7 +288,7 @@ class TestProposalVerifierAPI:
         assert data["success"] is True
         assert data["data"]["count"] == 1
         assert data["data"]["results"][0]["id"] == proposal_verifier.id
-        assert data["data"]["results"][0]["colored_status"]["value"] == ProposalVerifierStatus.NOT_VERIFIED
+        assert data["data"]["results"][0]["colored_status"]["value"] == ProposalVerifierStatus.PENDING
 
     def test_retrieve_proposal_verifier(self, api_client, superuser, proposal_verifier):
         """Test retrieving a specific proposal verifier."""
@@ -318,7 +318,7 @@ class TestProposalVerifierAPI:
         assert result["success"] is True
         assert result["data"]["proposal"]["id"] == paid_leave_proposal.id
         assert result["data"]["employee"]["id"] == department_leader.id
-        assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.NOT_VERIFIED
+        assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.PENDING
         assert result["data"]["note"] == "New verifier assignment"
         assert result["data"]["verified_time"] is None
 
@@ -410,6 +410,56 @@ class TestProposalVerifierAPI:
         proposal_verifier_for_verify.refresh_from_db()
         assert proposal_verifier_for_verify.status == ProposalVerifierStatus.VERIFIED
         assert proposal_verifier_for_verify.note == "Second verification"
+
+    def test_reject_proposal_success(self, api_client, superuser_with_employee, proposal_verifier_for_verify):
+        """Test successfully rejecting a proposal verification."""
+        url = reverse("hrm:proposal-verifier-reject", args=[proposal_verifier_for_verify.id])
+        data = {"note": "Rejected due to insufficient evidence"}
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+        assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.NOT_VERIFIED
+        assert result["data"]["verified_time"] is None
+        assert result["data"]["note"] == "Rejected due to insufficient evidence"
+
+        proposal_verifier_for_verify.refresh_from_db()
+        assert proposal_verifier_for_verify.status == ProposalVerifierStatus.NOT_VERIFIED
+        assert proposal_verifier_for_verify.verified_time is None
+        assert proposal_verifier_for_verify.note == "Rejected due to insufficient evidence"
+
+    def test_reject_proposal_without_note(self, api_client, superuser_with_employee, proposal_verifier_for_verify):
+        """Test rejecting a proposal without providing a note."""
+        url = reverse("hrm:proposal-verifier-reject", args=[proposal_verifier_for_verify.id])
+        data = {}
+
+        response = api_client.post(url, data)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()
+        assert result["success"] is True
+        assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.NOT_VERIFIED
+
+    def test_reject_after_verify(self, api_client, superuser_with_employee, proposal_verifier_for_verify):
+        """Test rejecting a proposal that was previously verified."""
+        # First verify the proposal
+        verify_url = reverse("hrm:proposal-verifier-verify", args=[proposal_verifier_for_verify.id])
+        response = api_client.post(verify_url, {"note": "Verified"})
+        assert response.status_code == status.HTTP_200_OK
+
+        proposal_verifier_for_verify.refresh_from_db()
+        assert proposal_verifier_for_verify.status == ProposalVerifierStatus.VERIFIED
+
+        # Then reject it
+        reject_url = reverse("hrm:proposal-verifier-reject", args=[proposal_verifier_for_verify.id])
+        response = api_client.post(reject_url, {"note": "Changed decision"})
+        assert response.status_code == status.HTTP_200_OK
+
+        proposal_verifier_for_verify.refresh_from_db()
+        assert proposal_verifier_for_verify.status == ProposalVerifierStatus.NOT_VERIFIED
+        assert proposal_verifier_for_verify.verified_time is None
 
 
 class TestProposalAutoAssignVerifier:
@@ -537,7 +587,7 @@ class TestProposalAutoAssignVerifier:
         verifier = ProposalVerifier.objects.filter(proposal=proposal).first()
         assert verifier is not None
         assert verifier.employee == department_leader
-        assert verifier.status == ProposalVerifierStatus.NOT_VERIFIED
+        assert verifier.status == ProposalVerifierStatus.PENDING
 
     def test_no_verifier_when_department_has_no_leader(self, employee_without_leader):
         """Test that no verifier is created when department has no leader."""
@@ -601,4 +651,4 @@ class TestProposalAutoAssignVerifier:
 
             verifier = ProposalVerifier.objects.filter(proposal=proposal, employee=department_leader).first()
             assert verifier is not None, f"Verifier not created for proposal type {proposal_type}"
-            assert verifier.status == ProposalVerifierStatus.NOT_VERIFIED
+            assert verifier.status == ProposalVerifierStatus.PENDING

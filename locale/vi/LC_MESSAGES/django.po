@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-08 12:38+0700\n"
+"POT-Creation-Date: 2025-12-08 16:06+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -125,20 +125,6 @@ msgstr "Tệp tin không tồn tại"
 #: apps/imports/api/mixins.py:293 apps/imports/api/views.py:96
 msgid "Import job not found"
 msgstr "Job nhập dữ liệu không tồn tại"
-
-#: apps/imports/api/serializers.py:34
-#, python-brace-format
-msgid ""
-"Number of rows to process per batch (default: {DEFAULT_BATCH_SIZE}, range: "
-"{MIN_BATCH_SIZE}-{MAX_BATCH_SIZE})"
-msgstr ""
-
-#: apps/imports/api/serializers.py:48
-#, python-brace-format
-msgid ""
-"Number of header rows to skip (default: {DEFAULT_HEADER_ROWS}, range: "
-"{MIN_HEADER_ROWS}-{MAX_HEADER_ROWS})"
-msgstr ""
 
 #: apps/imports/api/serializers.py:90
 msgid "batch_size must be an integer"

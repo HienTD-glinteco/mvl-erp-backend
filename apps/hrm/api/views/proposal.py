@@ -47,6 +47,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalUnpaidLeaveExportXLSXSerializer,
     ProposalUnpaidLeaveSerializer,
     ProposalVerifierNeedVerificationSerializer,
+    ProposalVerifierRejectSerializer,
     ProposalVerifierSerializer,
     ProposalVerifierVerifySerializer,
 )
@@ -2970,6 +2971,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     def get_serializer_class(self):
         if self.action == "verify":
             return ProposalVerifierVerifySerializer
+        if self.action == "reject":
+            return ProposalVerifierRejectSerializer
         return super().get_serializer_class()
 
     @extend_schema(
@@ -3020,6 +3023,59 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @action(detail=True, methods=["post"])
     def verify(self, request, pk=None):
         """Verify a proposal. Only applicable for timesheet entry complaint proposals."""
+        verifier = self.get_object()
+        serializer = self.get_serializer(verifier, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(self.serializer_class(verifier).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Reject proposal verification",
+        description="Mark a proposal verification as rejected (not verified).",
+        tags=["9.3: Proposal Verifiers"],
+        request=ProposalVerifierRejectSerializer,
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "note": "Rejected due to insufficient evidence",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "proposal": 1,
+                        "employee": 1,
+                        "status": "not_verified",
+                        "verified_time": None,
+                        "note": "Rejected due to insufficient evidence",
+                        "created_at": "2025-01-15T10:00:00Z",
+                        "updated_at": "2025-01-15T11:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Not authorized",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"non_field_errors": ["Only the department leader can reject this proposal"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        """Reject a proposal verification. Sets status to NOT_VERIFIED."""
         verifier = self.get_object()
         serializer = self.get_serializer(verifier, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

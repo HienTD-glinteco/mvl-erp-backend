@@ -443,3 +443,197 @@ class OrganizationLeadershipFieldsTest(TestCase):
         leader.delete()
         self.department.refresh_from_db()
         self.assertIsNone(self.department.leader)
+
+
+class ProposalShortDescriptionTest(TestCase):
+    """Test cases for Proposal short_description property."""
+
+    def setUp(self):
+        # Create required dependencies
+        self.province = Province.objects.create(
+            code="10",
+            name="Test Province",
+            english_name="Test Province",
+            level=Province.ProvinceLevel.CENTRAL_CITY,
+            enabled=True,
+        )
+        self.administrative_unit = AdministrativeUnit.objects.create(
+            code="100",
+            name="Test Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+            enabled=True,
+        )
+        self.branch = Branch.objects.create(
+            name="Test Branch",
+            code="TB001",
+            province=self.province,
+            administrative_unit=self.administrative_unit,
+        )
+        self.block = Block.objects.create(
+            name="Test Block",
+            code="TBL001",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        self.department = Department.objects.create(
+            name="Test Department",
+            code="TD001",
+            branch=self.branch,
+            block=self.block,
+        )
+        self.position = Position.objects.create(
+            name="Test Position",
+            code="TP001",
+        )
+        self.employee = Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee",
+            username="testemployee",
+            email="test@example.com",
+            citizen_id="123456789001",
+            start_date="2023-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+        )
+
+    def test_short_description_returns_none_for_no_type(self):
+        """Test that short_description returns None when proposal_type is not set."""
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal(created_by=self.employee)
+        self.assertIsNone(proposal.short_description)
+
+    def test_short_description_post_maternity_benefits(self):
+        """Test short_description for post_maternity_benefits proposal."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
+            created_by=self.employee,
+            post_maternity_benefits_start_date=date(2024, 1, 1),
+            post_maternity_benefits_end_date=date(2024, 3, 31),
+        )
+        self.assertEqual(proposal.short_description, "2024-01-01 - 2024-03-31")
+
+    def test_short_description_late_exemption(self):
+        """Test short_description for late_exemption proposal."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.LATE_EXEMPTION,
+            created_by=self.employee,
+            late_exemption_start_date=date(2024, 1, 1),
+            late_exemption_end_date=date(2024, 1, 31),
+            late_exemption_minutes=30,
+        )
+        # Format: "{minutes} day - {start_date} - {end_date} "
+        self.assertIn("30", proposal.short_description)
+        self.assertIn("2024-01-01", proposal.short_description)
+        self.assertIn("2024-01-31", proposal.short_description)
+
+    def test_short_description_paid_leave(self):
+        """Test short_description for paid_leave proposal."""
+        from apps.hrm.constants import ProposalType, ProposalWorkShift
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.PAID_LEAVE,
+            created_by=self.employee,
+            paid_leave_start_date=date(2024, 1, 15),
+            paid_leave_end_date=date(2024, 1, 15),
+            paid_leave_shift=ProposalWorkShift.MORNING,
+            paid_leave_reason="Doctor appointment",
+        )
+        # Format: "{shift} - {start_date} - {end_date}"
+        self.assertEqual(proposal.short_description, "morning - 2024-01-15 - 2024-01-15")
+
+    def test_short_description_unpaid_leave(self):
+        """Test short_description for unpaid_leave proposal."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.UNPAID_LEAVE,
+            created_by=self.employee,
+            unpaid_leave_start_date=date(2024, 2, 1),
+            unpaid_leave_end_date=date(2024, 2, 5),
+            unpaid_leave_reason="Personal matters",
+        )
+        self.assertEqual(proposal.short_description, "2024-02-01 - 2024-02-05")
+
+    def test_short_description_maternity_leave(self):
+        """Test short_description for maternity_leave proposal."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.MATERNITY_LEAVE,
+            created_by=self.employee,
+            maternity_leave_start_date=date(2024, 6, 1),
+            maternity_leave_end_date=date(2024, 12, 1),
+        )
+        self.assertEqual(proposal.short_description, "2024-06-01 - 2024-12-01")
+
+    def test_short_description_timesheet_entry_complaint(self):
+        """Test short_description for timesheet_entry_complaint proposal returns None."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            created_by=self.employee,
+            timesheet_entry_complaint_complaint_reason="Incorrect check-in time recorded",
+        )
+        # Timesheet entry complaint returns None as per implementation
+        self.assertIsNone(proposal.short_description)
+
+    def test_short_description_timesheet_entry_complaint_returns_none(self):
+        """Test short_description for timesheet_entry_complaint proposal returns None even with long reason."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        long_reason = "A" * 100
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            created_by=self.employee,
+            timesheet_entry_complaint_complaint_reason=long_reason,
+        )
+        # Timesheet entry complaint returns None as per implementation
+        self.assertIsNone(proposal.short_description)
+
+    def test_short_description_job_transfer(self):
+        """Test short_description for job_transfer proposal."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        new_department = Department.objects.create(
+            name="New Department",
+            code="ND001",
+            branch=self.branch,
+            block=self.block,
+        )
+        proposal = Proposal.objects.create(
+            proposal_type=ProposalType.JOB_TRANSFER,
+            created_by=self.employee,
+            job_transfer_new_department=new_department,
+            job_transfer_new_position=self.position,
+            job_transfer_effective_date=date(2024, 3, 1),
+        )
+        # Format: "{branch_name}, {block_name}, {department_name}, {position_name}"
+        self.assertEqual(proposal.short_description, "Test Branch, Test Block, New Department, Test Position")
+
+    def test_short_description_returns_none_for_missing_data(self):
+        """Test that short_description returns None when required data is missing."""
+        from apps.hrm.constants import ProposalType
+        from apps.hrm.models import Proposal
+
+        # Post maternity benefits without dates
+        proposal = Proposal(
+            proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
+            created_by=self.employee,
+        )
+        self.assertIsNone(proposal.short_description)

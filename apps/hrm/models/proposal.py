@@ -256,6 +256,99 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """Get colored value representation for proposal_status field."""
         return self.get_colored_value("proposal_status")
 
+    @property
+    def short_description(self) -> str | None:
+        """Get short description based on proposal type.
+
+        Returns:
+            Short description string or None if no method exists for the proposal type.
+        """
+        if not self.proposal_type:
+            return None
+        method = getattr(self, f"_get_{self.proposal_type}_short_description", None)
+        if method and callable(method):
+            return method()
+        return None
+
+    def _get_post_maternity_benefits_short_description(self) -> str | None:
+        """Get short description for post-maternity benefits proposal."""
+        if self.post_maternity_benefits_start_date and self.post_maternity_benefits_end_date:
+            return f"{self.post_maternity_benefits_start_date} - {self.post_maternity_benefits_end_date}"
+        return None
+
+    def _get_late_exemption_short_description(self) -> str | None:
+        """Get short description for late exemption proposal."""
+        day_string = _("day")
+        if self.late_exemption_start_date and self.late_exemption_end_date and self.late_exemption_minutes:
+            return f"{self.late_exemption_minutes} {day_string} - {self.late_exemption_start_date} - {self.late_exemption_end_date} "
+        return None
+
+    def _get_overtime_work_short_description(self) -> str | None:
+        """Get short description for overtime work proposal."""
+        # Overtime entries are stored in related ProposalOvertimeEntry model
+        entries = getattr(self, "overtime_entries", None)
+        if not entries:
+            return None
+        descriptions = []
+        for entry in entries.all():
+            descriptions.append(f"{entry.overtime_date} ({entry.start_time} - {entry.end_time})")
+        return ", ".join(descriptions)
+
+    def _get_paid_leave_short_description(self) -> str | None:
+        """Get short description for paid leave proposal."""
+        if self.paid_leave_start_date and self.paid_leave_end_date:
+            shift = f"{self.paid_leave_shift} - " if self.paid_leave_shift else ""
+            return f"{shift}{self.paid_leave_start_date} - {self.paid_leave_end_date}"
+        return None
+
+    def _get_unpaid_leave_short_description(self) -> str | None:
+        """Get short description for unpaid leave proposal."""
+        if self.unpaid_leave_start_date and self.unpaid_leave_end_date:
+            shift = f"{self.unpaid_leave_shift} - " if self.unpaid_leave_shift else ""
+            return f"{shift}{self.unpaid_leave_start_date} - {self.unpaid_leave_end_date}"
+        return None
+
+    def _get_maternity_leave_short_description(self) -> str | None:
+        """Get short description for maternity leave proposal."""
+        if self.maternity_leave_start_date and self.maternity_leave_end_date:
+            return f"{self.maternity_leave_start_date} - {self.maternity_leave_end_date}"
+        return None
+
+    def _get_timesheet_entry_complaint_short_description(self) -> str | None:
+        """
+        Get short description for timesheet entry complaint proposal.
+        Return None since we don't need a description for this proposal type.
+        """
+        return None
+
+    def _get_job_transfer_short_description(self) -> str | None:
+        """Get short description for job transfer proposal."""
+        parts = []
+        if self.job_transfer_new_department:
+            parts.extend(
+                [
+                    self.job_transfer_new_department.branch.name,
+                    self.job_transfer_new_department.block.name,
+                    self.job_transfer_new_department.name,
+                ]
+            )
+        if self.job_transfer_new_position:
+            parts.append(self.job_transfer_new_position.name)
+        if parts:
+            return ", ".join(parts)
+        return None
+
+    def _get_asset_allocation_short_description(self) -> str | None:
+        """Get short description for asset allocation proposal."""
+        # Assets are stored in related ProposalAsset model
+        assets = getattr(self, "assets", None)
+        if not assets:
+            return None
+        descriptions = []
+        for asset in assets.all():
+            descriptions.append(f"{asset.quantity} {asset.unit_type} {asset.name}")
+        return ", ".join(descriptions)
+
     def _clean_late_exemption_fields(self) -> None:
         """Validate late exemption proposal fields."""
         errors = {}
@@ -415,7 +508,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
                 ProposalVerifier.objects.get_or_create(
                     proposal=self,
                     employee=department_leader,
-                    defaults={"status": ProposalVerifierStatus.NOT_VERIFIED},
+                    defaults={"status": ProposalVerifierStatus.PENDING},
                 )
 
 
@@ -528,7 +621,7 @@ class ProposalVerifier(ColoredValueMixin, BaseModel):
     status = models.CharField(
         max_length=32,
         choices=ProposalVerifierStatus.choices,
-        default=ProposalVerifierStatus.NOT_VERIFIED,
+        default=ProposalVerifierStatus.PENDING,
         verbose_name="Status",
     )
 
@@ -546,7 +639,8 @@ class ProposalVerifier(ColoredValueMixin, BaseModel):
 
     VARIANT_MAPPING = {
         "status": {
-            ProposalVerifierStatus.NOT_VERIFIED: ColorVariant.YELLOW,
+            ProposalVerifierStatus.PENDING: ColorVariant.YELLOW,
+            ProposalVerifierStatus.NOT_VERIFIED: ColorVariant.RED,
             ProposalVerifierStatus.VERIFIED: ColorVariant.GREEN,
         }
     }

@@ -269,6 +269,50 @@ class ProposalVerifierVerifySerializer(serializers.ModelSerializer):
         return instance
 
 
+class ProposalVerifierRejectSerializer(serializers.ModelSerializer):
+    """Serializer for rejecting a proposal verification."""
+
+    note = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text="Optional note for rejection",
+    )
+
+    class Meta:
+        model = ProposalVerifier
+        fields = ["note"]
+
+    def validate(self, attrs):
+        """Validate that the user can reject this proposal verification."""
+        # self.instance is the ProposalVerifier object being updated
+        if not self.instance:
+            raise serializers.ValidationError(_("This serializer requires an existing verifier instance"))
+
+        user = self.context["request"].user
+        employee = self.instance.employee
+        department = employee.department
+        if user.employee != department.leader:
+            raise serializers.ValidationError(_("Only the department leader can reject this proposal"))
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        """Update the verifier instance with not_verified status."""
+        from apps.hrm.constants import ProposalVerifierStatus
+
+        # Update status to NOT_VERIFIED
+        instance.status = ProposalVerifierStatus.NOT_VERIFIED
+        instance.verified_time = None
+
+        # Update note if provided
+        if validated_data.get("note"):
+            instance.note = validated_data["note"]
+
+        instance.save()
+        return instance
+
+
 class ProposalByTypeSerializer(serializers.ModelSerializer):
     """
     Serializer for proposals of a specific type.
@@ -279,6 +323,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
     created_by = EmployeeSerializer(read_only=True)
     approved_by = EmployeeSerializer(read_only=True)
     colored_proposal_status = ColoredValueSerializer(read_only=True)
+    short_description = serializers.CharField(read_only=True)
 
     class Meta:
         model = Proposal
@@ -288,6 +333,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
             "proposal_date",
             "proposal_type",
             "colored_proposal_status",
+            "short_description",
             "note",
             "created_by",
             "approved_by",
@@ -300,6 +346,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
             "proposal_date",
             "proposal_type",
             "colored_proposal_status",
+            "short_description",
             "created_by",
             "approved_by",
             "created_at",

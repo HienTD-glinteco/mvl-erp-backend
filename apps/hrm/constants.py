@@ -218,5 +218,6 @@ class ProposalWorkShift(models.TextChoices):
 class ProposalVerifierStatus(models.TextChoices):
     """Proposal verifier status choices."""
 
+    PENDING = "pending", _("Pending")
     VERIFIED = "verified", _("Verified")
     NOT_VERIFIED = "not_verified", _("Not verified")
