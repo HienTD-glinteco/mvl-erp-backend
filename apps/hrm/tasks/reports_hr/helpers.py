@@ -26,6 +26,8 @@ def _should_process_employee(data: dict[str, Any]) -> bool:
     """Check if employee data should be processed in reports.
 
     Employees with code_type="OS" are excluded from reports.
+    If employee_code_type is missing from data, defaults to processing the employee
+    (safer to include than exclude).
 
     Args:
         data: Dictionary containing employee data with 'employee_code_type' key
@@ -33,7 +35,9 @@ def _should_process_employee(data: dict[str, Any]) -> bool:
     Returns:
         bool: True if employee should be processed, False if should be excluded
     """
-    return data.get("employee_code_type") != Employee.CodeType.OS
+    employee_code_type = data.get("employee_code_type")
+    # Exclude only if explicitly set to OS; otherwise, include by default
+    return employee_code_type != Employee.CodeType.OS
 
 
 def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
