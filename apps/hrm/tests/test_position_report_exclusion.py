@@ -107,7 +107,7 @@ class TestPositionReportExclusion(TestCase):
         self.report_date = date.today()
 
     def test_aggregate_staff_growth_excludes_position(self):
-        """Test that batch aggregation excludes employees with position.include_in_employee_report=False."""
+        """Test that staff growth aggregation excludes employees with position.include_in_employee_report=False."""
         # Create work history for included employee
         EmployeeWorkHistory.objects.create(
             employee=self.included_employee,
@@ -143,7 +143,7 @@ class TestPositionReportExclusion(TestCase):
         self.assertEqual(report.num_resignations, 1, "Should count only employee with included position")
 
     def test_aggregate_employee_status_excludes_position(self):
-        """Test that batch aggregation excludes employees with position.include_in_employee_report=False."""
+        """Test that employee status aggregation excludes employees with position.include_in_employee_report=False."""
         # Create work history for included employee
         EmployeeWorkHistory.objects.create(
             employee=self.included_employee,
@@ -180,7 +180,7 @@ class TestPositionReportExclusion(TestCase):
         self.assertEqual(report.total_not_resigned, 1, "Total should be 1 (included employee only)")
 
     def test_aggregate_resigned_reason_excludes_position(self):
-        """Test that batch aggregation excludes employees with position.include_in_employee_report=False."""
+        """Test that resigned reason aggregation excludes employees with position.include_in_employee_report=False."""
         # Create work history for included employee with resignation
         EmployeeWorkHistory.objects.create(
             employee=self.included_employee,

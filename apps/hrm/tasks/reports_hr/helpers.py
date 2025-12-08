@@ -493,7 +493,7 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
         .select_related("employee")
     )
 
-    # Get resignation reasons
+    # Process resignation reasons and count resigned employees
     employee_resignation_reasons: dict[str, int] = {}
     count_resigned = 0
 
