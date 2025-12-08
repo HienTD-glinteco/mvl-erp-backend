@@ -312,13 +312,15 @@ def _aggregate_staff_growth_for_date(report_date: date, branch, block, departmen
     # Count work history events using aggregation
     # Exclude employees with code_type="OS"
     # Exclude employees whose position has include_in_employee_report=False
-    work_histories = EmployeeWorkHistory.objects.filter(
-        date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-    ).exclude(employee__code_type=Employee.CodeType.OS).exclude(
-        employee__position__include_in_employee_report=False
+    work_histories = (
+        EmployeeWorkHistory.objects.filter(
+            date=report_date,
+            branch=branch,
+            block=block,
+            department=department,
+        )
+        .exclude(employee__code_type=Employee.CodeType.OS)
+        .exclude(employee__position__include_in_employee_report=False)
     )
 
     # Count different event types
@@ -491,16 +493,12 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
         .select_related("employee")
     )
 
-    # Filter out OS employees and get resignation reasons
+    # Get resignation reasons
     employee_resignation_reasons: dict[str, int] = {}
     count_resigned = 0
 
     for wh in resigned_work_histories:
         employee = wh.employee
-        # Skip OS employees
-        if employee.code_type == Employee.CodeType.OS:
-            continue
-
         count_resigned += 1
         # Get resignation reason from work history or employee record
         reason = wh.resignation_reason or employee.resignation_reason
