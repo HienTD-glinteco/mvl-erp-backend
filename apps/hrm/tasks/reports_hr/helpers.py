@@ -22,6 +22,20 @@ from apps.hrm.models import (
 logger = logging.getLogger(__name__)
 
 
+def _should_process_employee(data: dict[str, Any]) -> bool:
+    """Check if employee data should be processed in reports.
+
+    Employees with code_type="OS" are excluded from reports.
+
+    Args:
+        data: Dictionary containing employee data with 'employee_code_type' key
+
+    Returns:
+        bool: True if employee should be processed, False if should be excluded
+    """
+    return data.get("employee_code_type") != Employee.CodeType.OS
+
+
 def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     """Incrementally update staff growth report based on event snapshot.
 
@@ -50,21 +64,21 @@ def _increment_staff_growth(event_type: str, snapshot: dict[str, Any]) -> None:
     if event_type == "create":
         # New work history record - increment counters
         # Skip if employee has code_type="OS"
-        if isinstance(current, dict) and current.get("employee_code_type") != Employee.CodeType.OS:
+        if isinstance(current, dict) and _should_process_employee(current):
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "update":
         # Updated work history - revert old values and apply new values
         # Skip if employee has code_type="OS"
-        if isinstance(previous, dict) and previous.get("employee_code_type") != Employee.CodeType.OS:
+        if isinstance(previous, dict) and _should_process_employee(previous):
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
-        if isinstance(current, dict) and current.get("employee_code_type") != Employee.CodeType.OS:
+        if isinstance(current, dict) and _should_process_employee(current):
             _process_staff_growth_change(cast(dict[str, Any], current), delta=1)
 
     elif event_type == "delete":
         # Deleted work history - decrement counters
         # Skip if employee has code_type="OS"
-        if isinstance(previous, dict) and previous.get("employee_code_type") != Employee.CodeType.OS:
+        if isinstance(previous, dict) and _should_process_employee(previous):
             _process_staff_growth_change(cast(dict[str, Any], previous), delta=-1)
 
 
@@ -217,7 +231,7 @@ def _increment_employee_status(event_type: str, snapshot: dict[str, Any]) -> Non
         return
 
     # Skip if employee has code_type="OS"
-    if data.get("employee_code_type") == Employee.CodeType.OS:
+    if not _should_process_employee(data):
         return
 
     report_date = data["date"]

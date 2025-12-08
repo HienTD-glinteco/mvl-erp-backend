@@ -7,7 +7,6 @@ from StaffGrowthReport and EmployeeStatusBreakdownReport.
 from datetime import date
 from unittest.mock import patch
 
-import pytest
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -30,7 +29,6 @@ from apps.hrm.tasks.reports_hr.helpers import (
 )
 
 
-@pytest.mark.django_db
 class TestOSEmployeeExclusion(TestCase):
     """Test cases for OS employee exclusion from reports."""
 
