@@ -309,6 +309,7 @@ class PositionModelTest(TestCase):
         self.assertEqual(position.name, "Tổng Giám đốc")
         self.assertEqual(position.code, "TGD")
         self.assertTrue(position.is_active)
+        self.assertTrue(position.include_in_hr_report)
 
     def test_position_code_unique(self):
         """Test position code uniqueness"""
@@ -328,6 +329,16 @@ class PositionModelTest(TestCase):
         self.assertEqual(positions[0], director)  # "Giám đốc" alphabetically first
         self.assertEqual(positions[1], staff)  # "Nhân viên" second
         self.assertEqual(positions[2], ceo)  # "Tổng Giám đốc" last
+
+    def test_position_include_in_hr_report_default(self):
+        """Test that include_in_hr_report defaults to True"""
+        position = Position.objects.create(name="Manager", code="MGR")
+        self.assertTrue(position.include_in_hr_report)
+
+    def test_position_include_in_hr_report_false(self):
+        """Test creating a position with include_in_hr_report=False"""
+        position = Position.objects.create(name="Contractor", code="CTR", include_in_hr_report=False)
+        self.assertFalse(position.include_in_hr_report)
 
 
 # OrganizationChartModelTest class removed as OrganizationChart model no longer exists

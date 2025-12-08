@@ -306,6 +306,7 @@ class Position(AutoCodeMixin, BaseModel):
         verbose_name="Data scope",
     )
     is_leadership = models.BooleanField(default=False, verbose_name="Leadership position")
+    include_in_hr_report = models.BooleanField(default=True, verbose_name="Include in HR report")
     description = SafeTextField(blank=True, verbose_name="Description")
     is_active = models.BooleanField(default=True, verbose_name="Active")
 

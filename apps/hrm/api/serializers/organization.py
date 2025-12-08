@@ -301,6 +301,7 @@ class PositionSerializer(serializers.ModelSerializer):
             "data_scope",
             "data_scope_display",
             "is_leadership",
+            "include_in_hr_report",
             "description",
             "is_active",
             "created_at",
