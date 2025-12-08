@@ -490,21 +490,6 @@ def _aggregate_employee_resigned_reason_for_date(report_date: date, branch, bloc
         f"total_resigned={count_resigned}"
     )
 
-    # Update or create the report record
-    EmployeeResignedReasonReport.objects.update_or_create(
-        report_date=report_date,
-        branch=branch,
-        block=block,
-        department=department,
-        defaults=defaults,
-    )
-
-    logger.debug(
-        f"Aggregated employee resigned reasons for {report_date} - "
-        f"{branch.name}/{block.name}/{department.name}: "
-        f"total_resigned={count_resigned}"
-    )
-
 
 def _get_resignation_reason_field_name(reason: str) -> str | None:
     """Map Employee.ResignationReason enum value to EmployeeResignedReasonReport field name.
