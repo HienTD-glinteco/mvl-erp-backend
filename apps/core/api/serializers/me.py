@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.models import Permission, Role
@@ -50,13 +51,37 @@ class EmployeeSummarySerializer(serializers.Serializer):
         return None
 
 
+class MeLinksSerializer(serializers.Serializer):
+    """Serializer for links in user profile response"""
+
+    self = serializers.CharField(read_only=True, help_text="Link to the current resource")
+    employee = serializers.CharField(
+        required=False,
+        allow_null=True,
+        read_only=True,
+        help_text="Link to employee detail endpoint if user has employee record",
+    )
+
+
 class MeSerializer(serializers.ModelSerializer):
     """Serializer for authenticated user's profile"""
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
     role = RoleSummarySerializer(read_only=True)
-    employee = serializers.SerializerMethodField()
+    employee = EmployeeSummarySerializer(allow_null=True, read_only=True)
     links = serializers.SerializerMethodField()
+
+    @extend_schema_field(MeLinksSerializer)
+    def get_links(self, obj):
+        """Get resource links"""
+        request = self.context.get("request")
+        links = {"self": "/api/me"}
+
+        if hasattr(obj, "employee") and obj.employee:
+            employee_id = obj.employee.id
+            links["employee"] = f"/api/hrm/employees/{employee_id}"
+
+        return links
 
     class Meta:
         model = User
@@ -90,23 +115,6 @@ class MeSerializer(serializers.ModelSerializer):
             "employee",
             "links",
         ]
-
-    def get_employee(self, obj):
-        """Get employee information if exists"""
-        if hasattr(obj, "employee") and obj.employee:
-            return EmployeeSummarySerializer(obj.employee).data
-        return None
-
-    def get_links(self, obj):
-        """Get resource links"""
-        request = self.context.get("request")
-        links = {"self": "/api/me"}
-
-        if hasattr(obj, "employee") and obj.employee:
-            employee_id = obj.employee.id
-            links["employee"] = f"/api/hrm/employees/{employee_id}"
-
-        return links
 
 
 class PermissionDetailSerializer(serializers.ModelSerializer):
