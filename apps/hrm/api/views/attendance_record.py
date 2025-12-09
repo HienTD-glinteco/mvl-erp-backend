@@ -132,7 +132,7 @@ class AttendanceRecordViewSet(
     @extend_schema(
         summary="Record attendance by GeoLocation",
         description="Record attendance using GeoLocation coordinates. Validates location against geolocation radius and status.",
-        tags=["6.11: Attendance Record"],
+        tags=["6.11: Attendance Record - For Mobile"],
         request=GeoLocationAttendanceSerializer,
         responses={201: AttendanceRecordSerializer},
         examples=[
@@ -197,7 +197,7 @@ class AttendanceRecordViewSet(
     @extend_schema(
         summary="Record attendance by WiFi",
         description="Record attendance using WiFi BSSID. Validates WiFi device status.",
-        tags=["6.11: Attendance Record"],
+        tags=["6.11: Attendance Record - For Mobile"],
         request=WiFiAttendanceSerializer,
         responses={201: AttendanceRecordSerializer},
         examples=[
