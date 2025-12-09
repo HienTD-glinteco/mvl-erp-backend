@@ -40,7 +40,10 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Proposal status",
     )
 
-    note = SafeTextField(null=True, blank=True, verbose_name="Note")
+    note = SafeTextField(null=True, blank=True, verbose_name="Note for employee who create the proposal")
+    resolution_note = SafeTextField(
+        null=True, blank=True, verbose_name="Note for employee who approve/reject the proposal"
+    )
 
     created_by = models.ForeignKey(
         "Employee",

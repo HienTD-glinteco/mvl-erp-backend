@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 11:37+0700\n"
+"POT-Creation-Date: 2025-12-09 13:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1348,89 +1348,89 @@ msgstr ""
 msgid "A main department already exists for function %(function)s."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:303
+#: apps/hrm/models/proposal.py:306
 msgid "day"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:379
+#: apps/hrm/models/proposal.py:382
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:381
+#: apps/hrm/models/proposal.py:384
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:383
+#: apps/hrm/models/proposal.py:386
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:388
+#: apps/hrm/models/proposal.py:391
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:398
+#: apps/hrm/models/proposal.py:401
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:400
+#: apps/hrm/models/proposal.py:403
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:406
+#: apps/hrm/models/proposal.py:409
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:422
+#: apps/hrm/models/proposal.py:425
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:434
+#: apps/hrm/models/proposal.py:437
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:446
+#: apps/hrm/models/proposal.py:449
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:458
+#: apps/hrm/models/proposal.py:461
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:469
+#: apps/hrm/models/proposal.py:472
 #, fuzzy
 #| msgid "Late exemption end date is required"
 msgid "Job transfer effective date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:473
+#: apps/hrm/models/proposal.py:476
 msgid "New department is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:477
+#: apps/hrm/models/proposal.py:480
 msgid "New position is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:493
+#: apps/hrm/models/proposal.py:496
 msgid "Note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:607
+#: apps/hrm/models/proposal.py:610
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:617
+#: apps/hrm/models/proposal.py:620
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:799
+#: apps/hrm/models/proposal.py:802
 #, fuzzy
 #| msgid "Overtime work end time must be after start time"
 msgid "End time must be after start time"
