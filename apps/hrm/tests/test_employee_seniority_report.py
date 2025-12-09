@@ -94,8 +94,17 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             else f"{hash(code) % 1000000000000:012d}"
         )
 
+        # Determine code_type based on code prefix
+        if code.startswith("OS"):
+            code_type = Employee.CodeType.OS
+        elif code.startswith("CTV"):
+            code_type = Employee.CodeType.CTV
+        else:
+            code_type = Employee.CodeType.MV
+
         employee_data = {
             "code": code,
+            "code_type": code_type,
             "fullname": f"Test Employee {code}",
             "username": f"user_{code.lower()}",
             "email": f"{code.lower()}@example.com",
