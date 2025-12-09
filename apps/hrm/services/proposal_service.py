@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.hrm.constants import ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import AttendanceRecord, Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
+from apps.notifications.utils import create_notification
 
 
 class ProposalExecutionError(Exception):
@@ -261,3 +262,44 @@ class ProposalService:
             entry.calculate_hours_from_schedule()
 
             entry.save()
+
+    @staticmethod
+    def notify_proposal_approval(proposal: Proposal) -> None:
+        """Notify the user about proposal approval.
+
+        Args:
+            proposal: The approved Proposal instance
+        """
+        handler_map = {
+            ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._notify_complaint_proposal,
+        }
+
+        handler = handler_map.get(proposal.proposal_type)  # type: ignore
+        if handler:
+            handler(proposal)
+
+    @staticmethod
+    def _notify_complaint_proposal(proposal: Proposal) -> None:
+        """Notify user about timesheet entry complaint proposal approval.
+
+        Args:
+            proposal: The approved complaint Proposal instance
+        """
+        if not proposal.approved_by:
+            # NOTE: only send notification if approved_by is set
+            return
+
+        status_display = proposal.get_proposal_status_display()
+        message = (
+            f"Your timesheet complaint has been {status_display} with approved "
+            f"check-in time: {proposal.timesheet_entry_complaint_approved_check_in_time} "
+            f"and check-out time: {proposal.timesheet_entry_complaint_approved_check_out_time}."
+        )  # noqa: E501
+
+        create_notification(
+            actor=proposal.approved_by.user,  # type: ignore
+            recipient=proposal.created_by.user,  # type: ignore
+            verb=f"Your timesheet complaint has been {status_display}.",
+            message=message,
+            extra_data={"proposal_id": str(proposal.id)},
+        )

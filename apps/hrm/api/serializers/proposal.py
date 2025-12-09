@@ -95,6 +95,26 @@ class ProposalChangeStatusSerializer(serializers.ModelSerializer):
         """
         return None
 
+    def update(self, instance, validated_data):
+        """Update the proposal and execute it if approved."""
+        # Update the proposal status and fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        self.post_update(instance)
+
+        return instance
+
+    def post_update(self, instance: Proposal) -> None:
+        """Hook for additional actions after updating the proposal."""
+        # Execute the proposal if it was approved
+        try:
+            ProposalService.notify_proposal_approval(instance)
+        except Exception as e:
+            # Log the error but don't fail the approval
+            logger.error(f"Failed to send approval notification for proposal {instance.id}: {str(e)}", exc_info=True)
+
 
 class ProposalApproveSerializer(ProposalChangeStatusSerializer):
     """
@@ -116,14 +136,8 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
     def get_target_status(self):
         return ProposalStatus.APPROVED
 
-    def update(self, instance, validated_data):
-        """Update the proposal and execute it if approved."""
-        # Update the proposal status and fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        # Execute the proposal if it was approved
+    def post_update(self, instance: Proposal) -> None:
+        super().post_update(instance)
         if instance.proposal_status == ProposalStatus.APPROVED:
             try:
                 ProposalService.execute_approved_proposal(instance)
@@ -131,8 +145,6 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
                 # Log the error but don't fail the approval
                 # The proposal is already approved, so we should not rollback
                 logger.error(f"Failed to execute proposal {instance.id}: {str(e)}", exc_info=True)
-
-        return instance
 
 
 class ProposalRejectSerializer(ProposalChangeStatusSerializer):

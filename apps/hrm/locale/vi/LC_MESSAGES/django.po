@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 16:18+0700\n"
+"POT-Creation-Date: 2025-12-09 17:28+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,16 +176,17 @@ msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
 
-#: apps/hrm/api/serializers/proposal.py:291
+#: apps/hrm/api/serializers/proposal.py:303
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:297
+#: apps/hrm/api/serializers/proposal.py:309
 msgid "Only the department leader can reject this proposal"
 msgstr "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/proposal.py:479
-#: apps/hrm/api/serializers/proposal.py:482
+#: apps/hrm/api/serializers/proposal.py:494
+#, fuzzy
+#| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
 msgstr "Thời gian kết thúc ca là bắt buộc"
 
