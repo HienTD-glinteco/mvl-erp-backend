@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.models import Permission, Role
+from apps.files.api.serializers import FileSerializer
 
 User = get_user_model()
 
@@ -30,13 +31,11 @@ class EmployeeSummarySerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     start_date = serializers.DateField(read_only=True)
 
-    def get_avatar(self, obj):
+    def get_avatar(self, obj) -> FileSerializer:
         """Get avatar information"""
         if obj.avatar:
-            from apps.files.api.serializers import FileSerializer
-
             return FileSerializer(obj.avatar).data
-        return None
+        return None  # type: ignore
 
     def get_department(self, obj):
         """Get department name"""
