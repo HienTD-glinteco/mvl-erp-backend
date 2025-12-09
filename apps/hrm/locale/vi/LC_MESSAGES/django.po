@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 13:51+0700\n"
+"POT-Creation-Date: 2025-12-09 14:04+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,15 +178,15 @@ msgstr ""
 msgid "This holiday overlaps with an existing holiday"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:290
+#: apps/hrm/api/serializers/proposal.py:291
 msgid "This serializer requires an existing verifier instance"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:296
+#: apps/hrm/api/serializers/proposal.py:297
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:479
+#: apps/hrm/api/serializers/proposal.py:482
 #, fuzzy
 #| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
@@ -1417,7 +1417,9 @@ msgid "New position is required for job transfer"
 msgstr ""
 
 #: apps/hrm/models/proposal.py:496
-msgid "Note is required when rejecting a proposal"
+#, fuzzy
+#| msgid "Note is required when rejecting a proposal"
+msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
 #: apps/hrm/models/proposal.py:610
