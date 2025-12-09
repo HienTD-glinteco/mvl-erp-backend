@@ -7,8 +7,8 @@ import logging
 from datetime import date
 from typing import Any, cast
 
-from django.db.models import Exists, F, OuterRef, Q, QuerySet, Window
-from django.db.models.functions import RowNumber
+from django.db.models import Exists, F, OuterRef, Q, QuerySet, Value, Window
+from django.db.models.functions import Greatest, RowNumber
 
 from apps.hrm.models import (
     Block,
@@ -252,8 +252,11 @@ def _update_staff_growth_counter(
     )
 
     # Update the specific counter using F() for atomic operation
-    setattr(report, counter_field, F(counter_field) + delta)
-    report.save(update_fields=[counter_field])
+    StaffGrowthReport.objects.filter(pk=report.pk).update(
+        **{counter_field: Greatest(F(counter_field) + Value(delta), Value(0))}
+    )
+    # Refresh instance for accurate logging
+    report.refresh_from_db(fields=[counter_field])
 
     logger.debug(
         f"Updated {counter_field} by {delta} for {report_date} - Branch{branch_id}/Block{block_id}/Dept{department_id}"
