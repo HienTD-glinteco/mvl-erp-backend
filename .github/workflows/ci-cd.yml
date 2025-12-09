@@ -20,9 +20,9 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
   push:
-    branches: [ master ]
+    branches: [master]
 
 env:
   PYTHON_VERSION: "3.12"
@@ -35,40 +35,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Cache Poetry installation
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.local/share/pypoetry
-          ~/.local/bin/poetry
-        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Cache Poetry installation
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/pypoetry
+            ~/.local/bin/poetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
-    - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
 
   # Django checks job: Runs system checks and linting
   # Depends on 'prepare' job and restores cached dependencies
@@ -78,52 +78,52 @@ jobs:
     needs: [prepare]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Restore Poetry from cache
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.local/share/pypoetry
-          ~/.local/bin/poetry
-        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+      - name: Restore Poetry from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.local/share/pypoetry
+            ~/.local/bin/poetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          fail-on-cache-miss: true
 
-    - name: Restore venv from cache
-      uses: actions/cache/restore@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+      - name: Restore venv from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          fail-on-cache-miss: true
 
-    - name: Create environment file
-      run: |
-        cat > .env << 'EOF'
-        DEBUG=false
-        SECRET_KEY=test-secret-key-for-ci
-        DATABASE_URL=sqlite:///db.sqlite3
-        REDIS_URL=redis://localhost:6379/0
-        ALLOWED_HOSTS=localhost,127.0.0.1
-        EOF
+      - name: Create environment file
+        run: |
+          cat > .env << 'EOF'
+          DEBUG=false
+          SECRET_KEY=test-secret-key-for-ci
+          DATABASE_URL=sqlite:///db.sqlite3
+          REDIS_URL=redis://localhost:6379/0
+          ALLOWED_HOSTS=localhost,127.0.0.1
+          EOF
 
-    - name: Run Django system checks
-      run: |
-        source .venv/bin/activate
-        ENVIRONMENT=test python manage.py check
+      - name: Run Django system checks
+        run: |
+          source .venv/bin/activate
+          ENVIRONMENT=test python manage.py check
 
-    - name: Run pre-commit hooks
-      env:
-        SKIP: no-commit-to-branch
-      run: |
-        source .venv/bin/activate
-        pre-commit run
+      - name: Run pre-commit hooks
+        env:
+          SKIP: no-commit-to-branch
+        run: |
+          source .venv/bin/activate
+          pre-commit run
 
   # Test job: Runs the test suite with coverage
   # Depends on 'prepare' job (runs independently from django-checks)
@@ -147,7 +147,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-        - 5432:5432
+          - 5432:5432
 
       redis:
         image: redis:7
@@ -157,68 +157,68 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-        - 6379:6379
+          - 6379:6379
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Restore Poetry from cache
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.local/share/pypoetry
-          ~/.local/bin/poetry
-        key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+      - name: Restore Poetry from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.local/share/pypoetry
+            ~/.local/bin/poetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          fail-on-cache-miss: true
 
-    - name: Restore venv from cache
-      uses: actions/cache/restore@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        fail-on-cache-miss: true
+      - name: Restore venv from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          fail-on-cache-miss: true
 
-    - name: Create environment file
-      run: |
-        cat > .env << 'EOF'
-        DEBUG=false
-        SECRET_KEY=test-secret-key-for-ci
-        DATABASE_URL=postgres://backend:password@localhost:5432/backend
-        REDIS_URL=redis://localhost:6379/0
-        ALLOWED_HOSTS=localhost,127.0.0.1
-        EOF
+      - name: Create environment file
+        run: |
+          cat > .env << 'EOF'
+          DEBUG=false
+          SECRET_KEY=test-secret-key-for-ci
+          DATABASE_URL=postgres://backend:password@localhost:5432/backend
+          REDIS_URL=redis://localhost:6379/0
+          ALLOWED_HOSTS=localhost,127.0.0.1
+          EOF
 
-    - name: Run tests
-      run: |
-        source .venv/bin/activate
-        # Run tests with optimized settings for CI/CD
-        # --dist=loadgroup: distribute tests by module for better caching
-        # -n auto: use all available CPU cores
-        # --maxfail=10: fail fast after 10 failures
-        ENVIRONMENT=test python -m pytest apps/ \
-          -v \
-          --tb=short \
-          --cov=apps \
-          --cov-report=xml \
-          -n auto \
-          --dist=loadgroup \
-          --maxfail=10
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          # Run tests with optimized settings for CI/CD
+          # --dist=loadgroup: distribute tests by module for better caching
+          # -n auto: use all available CPU cores
+          # --maxfail=10: fail fast after 10 failures
+          ENVIRONMENT=test python -m pytest apps/ \
+            -v \
+            --tb=short \
+            --cov=apps \
+            --cov-report=xml \
+            -n auto \
+            --dist=loadgroup \
+            --maxfail=10
 
-    - name: Upload coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   # Deploy job: Deploys to development environment
   # Depends on both django-checks and test jobs to ensure all validations pass
@@ -233,71 +233,72 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.ENABLE_DEPLOY == 'true'
 
     steps:
-    - name: Deploy to EC2 Develop Server
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.DEVELOP_HOST }}
-        username: ${{ secrets.DEVELOP_USERNAME }}
-        key: ${{ secrets.DEVELOP_SSH_KEY }}
-        script: |
+      - name: Deploy to EC2 Develop Server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.DEVELOP_HOST }}
+          username: ${{ secrets.DEVELOP_USERNAME }}
+          key: ${{ secrets.DEVELOP_SSH_KEY }}
+          script: |
+            set -Eeuo pipefail
+            trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
+
+            # Navigate to application directory
+            cd /home/ubuntu/maivietland/backend
+
+            # Pull latest changes from master
+            git fetch --all --prune
+            git pull origin master
+
+            # Update API documentation version in .env file
+            API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
+              sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
+            else
+              echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
+            fi
+
+            # Activate virtual environment and install dependencies
+            export PATH="$HOME/.local/bin:$PATH"
+            poetry config virtualenvs.in-project true
+            poetry install --no-interaction --no-root --without dev
+
+            # Run database migrations
+            poetry run python manage.py migrate --noinput
+            poetry run python manage.py collectstatic --noinput
+            poetry run python manage.py collect_permissions
+            poetry run python manage.py compilemessages -l vi
+            poetry run python manage.py upload_import_templates
+
+
+            # Update supervisor configuration and restart gunicorn workers
+            sudo supervisorctl reread
+            sudo supervisorctl update
+            sudo supervisorctl restart maivietland-api maivietland-worker maivietland-consume-audit-logs maivietland-realtime-attendance-listener
+
+            # Reload nginx configuration
+            sudo nginx -t && sudo nginx -s reload
+
+      - name: Health Check (with retry)
+        run: |
           set -Eeuo pipefail
-          trap 'echo "❌ Error at line $LINENO"; exit 1' ERR
+          url="${{ vars.DEVELOP_APP_URL }}/health/"
+          for i in {1..10}; do
+            status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
+            if [ "$status" = "200" ]; then
+              echo "✅ Deploy thành công: 200 OK (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Chưa sẵn sàng (HTTP $status) — thử lại ($i/10)"; sleep 5
+          done
+          echo "❌ Deploy thất bại: không nhận được 200 OK sau 10 lần thử"
+          exit 1
 
-          # Navigate to application directory
-          cd /home/ubuntu/maivietland/backend
-
-          # Pull latest changes from master
-          git fetch --all --prune
-          git pull origin master
-
-          # Update API documentation version in .env file
-          API_DOC_VERSION=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          if grep -q "^API_DOC_VERSION=" .env 2>/dev/null; then
-            sed -i "s/^API_DOC_VERSION=.*/API_DOC_VERSION=$API_DOC_VERSION/" .env
-          else
-            echo "API_DOC_VERSION=$API_DOC_VERSION" >> .env
-          fi
-
-          # Activate virtual environment and install dependencies
-          export PATH="$HOME/.local/bin:$PATH"
-          poetry config virtualenvs.in-project true
-          poetry install --no-interaction --no-root --without dev
-
-          # Run database migrations
-          poetry run python manage.py migrate --noinput
-          poetry run python manage.py collectstatic --noinput
-          poetry run python manage.py collect_permissions
-          poetry run python manage.py upload_import_templates
-
-
-          # Update supervisor configuration and restart gunicorn workers
-          sudo supervisorctl reread
-          sudo supervisorctl update
-          sudo supervisorctl restart maivietland-api maivietland-worker maivietland-consume-audit-logs maivietland-realtime-attendance-listener
-
-          # Reload nginx configuration
-          sudo nginx -t && sudo nginx -s reload
-
-    - name: Health Check (with retry)
-      run: |
-        set -Eeuo pipefail
-        url="${{ vars.DEVELOP_APP_URL }}/health/"
-        for i in {1..10}; do
-          status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
-          if [ "$status" = "200" ]; then
-            echo "✅ Deploy thành công: 200 OK (attempt $i)"
-            exit 0
-          fi
-          echo "⏳ Chưa sẵn sàng (HTTP $status) — thử lại ($i/10)"; sleep 5
-        done
-        echo "❌ Deploy thất bại: không nhận được 200 OK sau 10 lần thử"
-        exit 1
-
-    - name: Notify Deployment
-      uses: 8398a7/action-slack@v3
-      if: always()
-      with:
-        status: ${{ job.status }}
-        text: "DEVELOP deployment completed with status: ${{ job.status }}"
-      env:
-        SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
+      - name: Notify Deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: "DEVELOP deployment completed with status: ${{ job.status }}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
