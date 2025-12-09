@@ -1,11 +1,11 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.db.models import Prefetch, Sum
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from apps.hrm.constants import ExtendedReportPeriodType
@@ -790,7 +790,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
                 Employee.Status.MATERNITY_LEAVE,
                 Employee.Status.UNPAID_LEAVE,
             ]
-        ).exclude(code__startswith="OS")
+        ).exclude(code_type="OS")
 
         # Apply filters
         filterset = EmployeeSeniorityFilterSet(request.GET, queryset=queryset)
@@ -814,14 +814,17 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         ordering_filter = SeniorityOrderingFilter()
         queryset = ordering_filter.filter_queryset(request, queryset, self)
 
-        # Apply pagination
-        paginator = PageNumberPagination()
-        paginator.page_size = 20
-        page = paginator.paginate_queryset(queryset, request)
+        # Apply pagination using REST framework settings
+        pagination_class = settings.REST_FRAMEWORK.get("DEFAULT_PAGINATION_CLASS")
+        if pagination_class:
+            from django.utils.module_loading import import_string
 
-        if page is not None:
-            serializer = EmployeeSenioritySerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            paginator = import_string(pagination_class)()
+            page = paginator.paginate_queryset(queryset, request)
+
+            if page is not None:
+                serializer = EmployeeSenioritySerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
 
         serializer = EmployeeSenioritySerializer(queryset, many=True)
         return Response(serializer.data)

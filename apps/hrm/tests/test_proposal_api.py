@@ -850,7 +850,11 @@ class TestTimesheetEntryComplaintProposalAPI:
         )
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-approve", args=[proposal.id])
-        data = {"approved_check_in_time": "08:00:00", "approved_check_out_time": "17:00:00", "note": "Approved"}
+        data = {
+            "approved_check_in_time": "08:00:00",
+            "approved_check_out_time": "17:00:00",
+            "approval_note": "Approved",
+        }
 
         response = api_client.post(url, data)
 
@@ -862,7 +866,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert proposal.proposal_status == ProposalStatus.APPROVED
         assert str(proposal.timesheet_entry_complaint_approved_check_in_time) == "08:00:00"
         assert str(proposal.timesheet_entry_complaint_approved_check_out_time) == "17:00:00"
-        assert proposal.note == "Approved"
+        assert proposal.approval_note == "Approved"
 
     def test_approve_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
         """Test that approved_by is set to the current user's employee when approving."""
@@ -926,7 +930,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         )
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
-        data = {"note": "Rejected due to lack of evidence"}
+        data = {"approval_note": "Rejected due to lack of evidence"}
 
         response = api_client.post(url, data)
 
@@ -936,7 +940,7 @@ class TestTimesheetEntryComplaintProposalAPI:
 
         proposal.refresh_from_db()
         assert proposal.proposal_status == ProposalStatus.REJECTED
-        assert proposal.note == "Rejected due to lack of evidence"
+        assert proposal.approval_note == "Rejected due to lack of evidence"
 
     def test_reject_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
         """Test that approved_by is set to the current user's employee when rejecting."""
@@ -976,7 +980,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         client.force_authenticate(user=rejecter_user)
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
-        data = {"note": "Rejected due to lack of evidence"}
+        data = {"approval_note": "Rejected due to lack of evidence"}
 
         response = client.post(url, data)
 
@@ -1000,7 +1004,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         )
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
-        data = {"note": ""}
+        data = {"approval_note": ""}
 
         response = api_client.post(url, data)
 
@@ -1008,7 +1012,7 @@ class TestTimesheetEntryComplaintProposalAPI:
         data = response.json()
         # Check if any error attribute is 'note'
         errors = data.get("error", {}).get("errors", [])
-        assert any(error.get("attr") == "note" for error in errors)
+        assert any(error.get("attr") == "approval_note" for error in errors)
 
     def test_create_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
         """Test creating a timesheet entry complaint proposal with valid data."""
@@ -1524,7 +1528,7 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         )
 
         url = reverse("hrm:proposal-timesheet-entry-complaint-reject", args=[proposal.id])
-        response = api_client.post(url, {"note": "Not enough evidence"})
+        response = api_client.post(url, {"approval_note": "Not enough evidence"})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

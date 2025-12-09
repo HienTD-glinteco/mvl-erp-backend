@@ -40,6 +40,7 @@ class ProposalSerializer(serializers.ModelSerializer):
             "created_by",
             "approved_by",
             "note",
+            "approval_note",
             "created_at",
             "updated_at",
         ]
@@ -98,10 +99,10 @@ class ProposalChangeStatusSerializer(serializers.ModelSerializer):
 class ProposalApproveSerializer(ProposalChangeStatusSerializer):
     """
     Base serializer for approving a Proposal.
-    Note is not required.
+    approval_note is not required.
     """
 
-    note = serializers.CharField(
+    approval_note = serializers.CharField(
         required=False,
         allow_blank=True,
         allow_null=True,
@@ -110,7 +111,7 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
 
     class Meta:
         model = Proposal
-        fields = ["note"]
+        fields = ["approval_note"]
 
     def get_target_status(self):
         return ProposalStatus.APPROVED
@@ -137,10 +138,10 @@ class ProposalApproveSerializer(ProposalChangeStatusSerializer):
 class ProposalRejectSerializer(ProposalChangeStatusSerializer):
     """
     Base serializer for rejecting a Proposal.
-    Note is required.
+    approval_note is required.
     """
 
-    note = serializers.CharField(
+    approval_note = serializers.CharField(
         required=True,
         allow_blank=False,
         help_text="Reason for rejection (required)",
@@ -148,7 +149,7 @@ class ProposalRejectSerializer(ProposalChangeStatusSerializer):
 
     class Meta:
         model = Proposal
-        fields = ["note"]
+        fields = ["approval_note"]
 
     def get_target_status(self):
         return ProposalStatus.REJECTED
@@ -335,6 +336,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
             "colored_proposal_status",
             "short_description",
             "note",
+            "approval_note",
             "created_by",
             "approved_by",
             "created_at",
@@ -347,6 +349,7 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
             "proposal_type",
             "colored_proposal_status",
             "short_description",
+            "approval_note",
             "created_by",
             "approved_by",
             "created_at",

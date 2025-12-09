@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 11:37+0700\n"
+"POT-Creation-Date: 2025-12-09 16:18+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,15 +176,16 @@ msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
 
-#: apps/hrm/api/serializers/proposal.py:290
+#: apps/hrm/api/serializers/proposal.py:291
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:296
+#: apps/hrm/api/serializers/proposal.py:297
 msgid "Only the department leader can reject this proposal"
 msgstr "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
 #: apps/hrm/api/serializers/proposal.py:479
+#: apps/hrm/api/serializers/proposal.py:482
 msgid "At least one overtime entry is required"
 msgstr "Thời gian kết thúc ca là bắt buộc"
 
@@ -765,6 +766,10 @@ msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực"
 msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
+#: apps/hrm/import_handlers/employee.py:675
+msgid "Imported from file"
+msgstr ""
+
 #: apps/hrm/management/commands/import_work_schedule.py:9
 msgid "Import work schedule data for specified weekdays"
 msgstr ""
@@ -1334,81 +1339,89 @@ msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
 msgid "A main department already exists for function %(function)s."
 msgstr "Phòng ban đầu mối đã tồn tại cho chức năng %(function)s."
 
-#: apps/hrm/models/proposal.py:303
+#: apps/hrm/models/proposal.py:306
 msgid "day"
 msgstr "Ngày"
 
-#: apps/hrm/models/proposal.py:379
+#: apps/hrm/models/proposal.py:382
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:381
+#: apps/hrm/models/proposal.py:384
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:383
+#: apps/hrm/models/proposal.py:386
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:388
+#: apps/hrm/models/proposal.py:391
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:398
+#: apps/hrm/models/proposal.py:401
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:400
+#: apps/hrm/models/proposal.py:403
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:406
+#: apps/hrm/models/proposal.py:409
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:422
+#: apps/hrm/models/proposal.py:425
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr "Nhập lý do khiếu nại chấm công"
 
 #: apps/hrm/models/proposal.py:434
+#: apps/hrm/models/proposal.py:437
+
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
 #: apps/hrm/models/proposal.py:446
+#: apps/hrm/models/proposal.py:449
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
 #: apps/hrm/models/proposal.py:458
+#: apps/hrm/models/proposal.py:461
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
 #: apps/hrm/models/proposal.py:469
+#: apps/hrm/models/proposal.py:472
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
 
-#: apps/hrm/models/proposal.py:473
+#: apps/hrm/models/proposal.py:476
 msgid "New department is required for job transfer"
 msgstr "Phong ban mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:477
+#: apps/hrm/models/proposal.py:480
 msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:493
-msgid "Note is required when rejecting a proposal"
+#: apps/hrm/models/proposal.py:496
+#, fuzzy
+#| msgid "Note is required when rejecting a proposal"
+msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:607
+#: apps/hrm/models/proposal.py:610
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:617
+#: apps/hrm/models/proposal.py:620
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
 #: apps/hrm/models/proposal.py:799
+#: apps/hrm/models/proposal.py:802
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 

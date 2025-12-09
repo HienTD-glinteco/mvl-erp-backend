@@ -8,6 +8,7 @@ from typing import Any
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 
 from apps.core.models import AdministrativeUnit, Nationality, Province
 from apps.hrm.constants import EmployeeType
@@ -18,7 +19,13 @@ from apps.hrm.models import (
     Branch,
     Department,
     Employee,
+    EmployeeWorkHistory,
     Position,
+)
+from apps.hrm.services.employee import (
+    create_position_change_event,
+    create_state_change_event,
+    create_transfer_event,
 )
 from libs.strings import normalize_header
 
@@ -654,7 +661,463 @@ def parse_emergency_contact(value: Any) -> tuple[str, str]:
     return strip_non_digits(value_str), ""
 
 
-def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
+def _handle_work_history(employee: Employee, created: bool, old_state: dict, effective_date: date | None) -> None:
+    """
+    Handle creation of work history records with duplicate prevention.
+
+    Args:
+        employee: The employee instance
+        created: Whether the employee was just created
+        old_state: Dictionary containing old status, position, department
+        effective_date: The effective date for the change
+    """
+    effective_date = effective_date or date.today()
+    import_note = _("Imported from file")
+
+    # Check for existing history created today by import to avoid duplicates
+    today = date.today()
+    latest_history = EmployeeWorkHistory.objects.filter(employee=employee).order_by("-created_at").first()
+
+    # If latest history is from today AND has the import note, override it
+    if latest_history and latest_history.created_at.date() == today and latest_history.note == import_note:
+        # Update the existing record with the new "current" state
+        latest_history.status = employee.status
+        latest_history.position = employee.position
+        latest_history.department = employee.department
+        latest_history.date = effective_date
+        latest_history.save()
+        return
+
+    if created:
+        # Initial status history for new employees
+        create_state_change_event(
+            employee=employee,
+            old_status=None,
+            new_status=employee.status,
+            effective_date=effective_date,
+            note=import_note,
+        )
+    else:
+        # Detect changes for existing employees
+        old_status = old_state.get("status")
+        old_position = old_state.get("position")
+        old_department = old_state.get("department")
+
+        # 1. Department Transfer (takes precedence over simple position change)
+        if old_department != employee.department:
+            create_transfer_event(
+                employee=employee,
+                old_department=old_department,
+                new_department=employee.department,
+                old_position=old_position,
+                new_position=employee.position,
+                effective_date=effective_date,
+                note=import_note,
+            )
+        # 2. Position Change (only if department didn't change)
+        elif old_position != employee.position:
+            create_position_change_event(
+                employee=employee,
+                old_position=old_position,
+                new_position=employee.position,
+                effective_date=effective_date,
+                note=import_note,
+            )
+        # 3. Status Change
+        elif old_status != employee.status:
+            create_state_change_event(
+                employee=employee,
+                old_status=old_status,
+                new_status=employee.status,
+                effective_date=effective_date,
+                note=import_note,
+            )
+
+
+def _handle_bank_accounts(employee: Employee, row_dict: dict, options: dict) -> None:
+    """
+    Handle creation/update of bank accounts.
+
+    Args:
+        employee: The employee instance
+        row_dict: The row data dictionary
+        options: Import options containing bank references
+    """
+    vpbank_account = normalize_value(row_dict.get("vpbank_account", ""))
+    vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
+
+    if vpbank_account or vietcombank_account:
+        # Get pre-initialized banks from options (created once at import start)
+        vpbank = options.get("_vpbank")
+        vietcombank = options.get("_vietcombank")
+
+        # Create VPBank account if provided
+        if vpbank_account and vpbank:
+            BankAccount.objects.update_or_create(
+                employee=employee,
+                bank=vpbank,
+                defaults={
+                    "account_number": vpbank_account,
+                    "account_name": employee.fullname,
+                    "is_primary": not vietcombank_account,  # Primary if only one
+                },
+            )
+
+        # Create Vietcombank account if provided
+        if vietcombank_account and vietcombank:
+            BankAccount.objects.update_or_create(
+                employee=employee,
+                bank=vietcombank,
+                defaults={
+                    "account_number": vietcombank_account,
+                    "account_name": employee.fullname,
+                    "is_primary": not vpbank_account,  # Primary if only one
+                },
+            )
+
+
+def _extract_employee_data(  # noqa: C901
+    row_dict: dict, options: dict
+) -> tuple[dict, list[str], dict]:
+    """
+    Extract and validate employee data from row dictionary.
+
+    Args:
+        row_dict: Normalized row data
+        options: Import options
+
+    Returns:
+        Tuple of (employee_data, warnings, created_references)
+    """
+    employee_data: dict[str, Any] = {}
+    warnings = []
+    created_references = {}
+
+    # Code and fullname (already validated as present)
+    code = normalize_value(row_dict.get("code", ""))
+    fullname = normalize_value(row_dict.get("fullname", ""))
+    employee_data["code"] = code
+    employee_data["fullname"] = fullname
+
+    # Extract and set code_type from code
+    code_type = extract_code_type(code)
+    employee_data["code_type"] = code_type
+
+    # Attendance code (digits only)
+    attendance_code = strip_non_digits(row_dict.get("attendance_code", ""))
+    if attendance_code:
+        employee_data["attendance_code"] = attendance_code
+
+    # Start date (combine day, month, year)
+    start_day = row_dict.get("start_day")
+    start_month = row_dict.get("start_month")
+    start_year = row_dict.get("start_year")
+
+    start_date = None
+    if start_day or start_month or start_year:
+        start_date, date_warnings = combine_start_date(start_day, start_month, start_year)
+        warnings.extend(date_warnings)
+
+    # If no start_date from components, try parsing start_day as full date
+    if not start_date and start_day:
+        start_date = parse_date(start_day)
+
+    if start_date:
+        employee_data["start_date"] = start_date
+    else:
+        # start_date is required, use today's date as default if not provided
+        employee_data["start_date"] = date.today()
+        warnings.append("No start date provided, using today's date")
+
+    # Status and Contract type (combined logic)
+    status_raw = normalize_value(row_dict.get("status", "")).lower()
+    contract_type_name = normalize_value(row_dict.get("contract_type", ""))
+
+    # Determine status based on status code and contract type
+    status = None
+    contract_type_lower = contract_type_name.lower()
+
+    # Prioritize status code mapping first
+    if status_raw in STATUS_CODE_MAPPING:
+        status = STATUS_CODE_MAPPING[status_raw]
+
+    # Only check contract type mapping if status code is W (Working/Active)
+    if status_raw == "w" and contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
+        status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
+
+    if status:
+        employee_data["status"] = status
+        # If status is RESIGNED, set resignation_date and resignation_reason to pass validation
+        if status == Employee.Status.RESIGNED:
+            employee_data["resignation_start_date"] = date.today()
+            # Set a default resignation_reason since it's required when status is RESIGNED
+            employee_data["resignation_reason"] = Employee.ResignationReason.VOLUNTARY_PERSONAL
+    elif status_raw:
+        warnings.append(f"Unknown status code: {status_raw}")
+
+    # Map contract type to employee_type instead of creating ContractType records
+    if contract_type_name and contract_type_lower not in CONTRACT_TYPE_STATUS_MAPPING:
+        employee_type = map_import_contract_type_to_employee_type(contract_type_name)
+        if employee_type:
+            employee_data["employee_type"] = employee_type
+
+    # Branch (reference)
+    branch_name = normalize_value(row_dict.get("branch", ""))
+    branch = None
+    if branch_name:
+        branch, created = lookup_or_create_branch(branch_name)
+        if branch:
+            if created:
+                created_references["branch"] = {
+                    "id": branch.id,
+                    "name": branch.name,
+                }
+
+    # Block (reference)
+    block_name = normalize_value(row_dict.get("block", ""))
+    block = None
+    if block_name:
+        block, created = lookup_or_create_block(block_name, branch)
+        if block:
+            if created:
+                created_references["block"] = {
+                    "id": block.id,
+                    "name": block.name,
+                }
+            # Update branch if not set
+            if not branch:
+                branch = block.branch
+
+    # Department (reference, required)
+    department_name = normalize_value(row_dict.get("department", ""))
+    department = None
+    if department_name:
+        department, created = lookup_or_create_department(department_name, block, branch)
+        if department:
+            employee_data["department"] = department
+            if created:
+                created_references["department"] = {
+                    "id": department.id,
+                    "name": department.name,
+                }
+            # Update branch and block from department
+            if not branch:
+                branch = department.branch
+            if not block:
+                block = department.block
+
+    # Position (reference)
+    position_name = normalize_value(row_dict.get("position", ""))
+    if position_name:
+        position, created = lookup_or_create_position(position_name)
+        if position:
+            employee_data["position"] = position
+            if created:
+                created_references["position"] = {
+                    "id": position.id,
+                    "name": position.name,
+                }
+
+    # Phone
+    phone_raw = row_dict.get("phone", "")
+    phone, phone_warnings = parse_phone(phone_raw)
+    if phone:
+        employee_data["phone"] = phone
+    warnings.extend(phone_warnings)
+
+    # Personal email
+    personal_email = normalize_value(row_dict.get("personal_email", ""))
+    if personal_email:
+        employee_data["personal_email"] = personal_email
+
+    # Email (required, generate if missing)
+    email = normalize_value(row_dict.get("email", ""))
+    username = normalize_value(row_dict.get("username", ""))
+
+    # Get or initialize existing usernames/emails set from options
+    existing_usernames = options.get("_existing_usernames", set())
+    existing_emails = options.get("_existing_emails", set())
+
+    # Generate username if missing
+    if not username:
+        username = generate_username(code, fullname, existing_usernames)
+        warnings.append(f"Generated username: {username}")
+    else:
+        existing_usernames.add(username)
+
+    employee_data["username"] = username
+
+    # Generate email if missing
+    if not email:
+        email = generate_email(username, existing_emails)
+        warnings.append(f"Generated email: {email}")
+    else:
+        existing_emails.add(email)
+
+    employee_data["email"] = email
+
+    # Tax code
+    tax_code = normalize_value(row_dict.get("tax_code", ""))
+    if tax_code:
+        employee_data["tax_code"] = tax_code
+
+    # Emergency contact
+    emergency_contact_raw = row_dict.get("emergency_contact", "")
+    if emergency_contact_raw:
+        emergency_phone, emergency_name = parse_emergency_contact(emergency_contact_raw)
+        if emergency_phone:
+            employee_data["emergency_contact_phone"] = emergency_phone
+        if emergency_name:
+            employee_data["emergency_contact_name"] = emergency_name
+
+    # Gender
+    gender_raw = normalize_value(row_dict.get("gender", "")).lower()
+    if gender_raw:
+        gender = GENDER_MAPPING.get(gender_raw)
+        if gender:
+            employee_data["gender"] = gender
+        else:
+            warnings.append(f"Unknown gender: {gender_raw}")
+
+    # Date of birth
+    dob_raw = row_dict.get("date_of_birth", "")
+    dob = parse_date(dob_raw)
+    if dob:
+        employee_data["date_of_birth"] = dob
+
+    # Place of birth
+    place_of_birth = normalize_value(row_dict.get("place_of_birth", ""))
+    if place_of_birth:
+        employee_data["place_of_birth"] = place_of_birth
+
+    # Marital status
+    marital_status_raw = normalize_value(row_dict.get("marital_status", "")).lower()
+    if marital_status_raw:
+        marital_status = MARITAL_STATUS_MAPPING.get(marital_status_raw)
+        if marital_status:
+            employee_data["marital_status"] = marital_status
+        else:
+            warnings.append(f"Unknown marital status: {marital_status_raw}")
+
+    # Ethnicity
+    ethnicity = normalize_value(row_dict.get("ethnicity", ""))
+    if ethnicity:
+        employee_data["ethnicity"] = ethnicity
+
+    # Religion
+    religion = normalize_value(row_dict.get("religion", ""))
+    if religion:
+        employee_data["religion"] = religion
+
+    # Nationality (reference)
+    nationality_name = normalize_value(row_dict.get("nationality", ""))
+    if nationality_name:
+        nationality, created = lookup_or_create_nationality(nationality_name)
+        if nationality:
+            employee_data["nationality"] = nationality
+            if created:
+                created_references["nationality"] = {
+                    "id": nationality.id,
+                    "name": nationality.name,
+                }
+
+    # Citizen ID (digits only)
+    citizen_id = strip_non_digits(row_dict.get("citizen_id", ""))
+    if citizen_id:
+        employee_data["citizen_id"] = citizen_id
+
+    # Citizen ID issued date
+    citizen_id_issued_date_raw = row_dict.get("citizen_id_issued_date", "")
+    citizen_id_issued_date = parse_date(citizen_id_issued_date_raw)
+    if citizen_id_issued_date:
+        employee_data["citizen_id_issued_date"] = citizen_id_issued_date
+
+    # Citizen ID issued place
+    citizen_id_issued_place = normalize_value(row_dict.get("citizen_id_issued_place", ""))
+    if citizen_id_issued_place:
+        employee_data["citizen_id_issued_place"] = citizen_id_issued_place
+
+    # Residential address
+    residential_address = normalize_value(row_dict.get("residential_address", ""))
+    if residential_address:
+        employee_data["residential_address"] = residential_address
+
+    # Permanent address
+    permanent_address = normalize_value(row_dict.get("permanent_address", ""))
+    if permanent_address:
+        employee_data["permanent_address"] = permanent_address
+
+    # Note
+    note = normalize_value(row_dict.get("note", ""))
+    if note:
+        employee_data["note"] = note
+
+    return employee_data, warnings, created_references
+
+
+def _validate_row(row_index: int, row: list, options: dict) -> tuple[dict | None, dict | None]:
+    """
+    Validate row and return (row_dict, error_result).
+    If error_result is returned, it should be returned by the handler.
+    """
+    # Get headers
+    headers = options.get("headers", [])
+    if not headers:
+        return None, {
+            "ok": False,
+            "row_index": row_index,
+            "error": "Headers not provided in options",
+            "action": "skipped",
+        }
+
+    # Map row to dictionary
+    row_dict = {}
+    for i, header in enumerate(headers):
+        if i < len(row):
+            normalized_header = normalize_header(header)
+            field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
+            row_dict[field_name] = row[i]
+
+    # Check section header
+    first_col = normalize_value(row[0]) if row else ""
+    second_col = normalize_value(row[1]) if len(row) > 1 else ""
+    if is_section_header_row(row, first_col) or is_section_header_row(row, second_col):
+        return None, {
+            "ok": True,
+            "row_index": row_index,
+            "action": "skipped",
+            "employee_code": None,
+            "warnings": ["Section header row, skipped"],
+        }
+
+    # Required fields
+    code = normalize_value(row_dict.get("code", ""))
+    fullname = normalize_value(row_dict.get("fullname", ""))
+    if not code or not fullname:
+        return None, {
+            "ok": True,
+            "row_index": row_index,
+            "action": "skipped",
+            "employee_code": code or None,
+            "warnings": ["Missing required fields (code or fullname)"],
+        }
+
+    # Check existing
+    allow_update = options.get("allow_update", False)
+    if not allow_update:
+        if Employee.objects.filter(code=code).exists():
+            return None, {
+                "ok": True,
+                "row_index": row_index,
+                "action": "skipped",
+                "employee_code": code,
+                "warnings": ["Employee with this code already exists (allow_update=False)"],
+            }
+
+    return row_dict, None
+
+
+def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:
     """
     Import handler for HRM employees.
 
@@ -687,333 +1150,30 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped"
             }
     """
-    errors = []  # type: ignore[var-annotated]
-    warnings = []
-    created_references = {}
-
     try:
-        # Get headers from options (should be set by worker)
-        headers = options.get("headers", [])
-        if not headers:
-            return {
-                "ok": False,
-                "row_index": row_index,
-                "error": "Headers not provided in options",
-                "action": "skipped",
-            }
+        row_dict, error_result = _validate_row(row_index, row, options)
+        if error_result:
+            return error_result
 
-        # Map row to dictionary
-        row_dict = {}
-        for i, header in enumerate(headers):
-            if i < len(row):
-                normalized_header = normalize_header(header)
-                field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
-                row_dict[field_name] = row[i]
+        if row_dict is None:
+            return {"ok": False, "row_index": row_index, "error": "Internal error: row data is missing"}
 
-        # Extract and normalize values
         code = normalize_value(row_dict.get("code", ""))
-        fullname = normalize_value(row_dict.get("fullname", ""))
-
-        # Check if this is a section header row (check before required fields)
-        first_col = normalize_value(row[0]) if row else ""
-        second_col = normalize_value(row[1]) if len(row) > 1 else ""
-
-        # Check both first and second columns for section headers
-        if is_section_header_row(row, first_col) or is_section_header_row(row, second_col):
-            return {
-                "ok": True,
-                "row_index": row_index,
-                "action": "skipped",
-                "employee_code": None,
-                "warnings": ["Section header row, skipped"],
-            }
-
-        # Required fields check
-        if not code or not fullname:
-            return {
-                "ok": True,
-                "row_index": row_index,
-                "action": "skipped",
-                "employee_code": code or None,
-                "warnings": ["Missing required fields (code or fullname)"],
-            }
-
-        # Check if employee already exists and skip if allow_update is False
-        allow_update = options.get("allow_update", False)
-        if not allow_update:
-            # Check if employee with this code already exists
-            if Employee.objects.filter(code=code).exists():
-                return {
-                    "ok": True,
-                    "row_index": row_index,
-                    "action": "skipped",
-                    "employee_code": code,
-                    "warnings": ["Employee with this code already exists (allow_update=False)"],
-                }
 
         # Use a single transaction for this row
         with transaction.atomic():
-            # Parse and validate fields
-            employee_data = {}
+            # Extract and validate data
+            employee_data, warnings, created_references = _extract_employee_data(row_dict, options)
 
-            # Code and fullname (required)
-            employee_data["code"] = code
-            employee_data["fullname"] = fullname
-
-            # Extract and set code_type from code
-            code_type = extract_code_type(code)
-            employee_data["code_type"] = code_type
-
-            # Attendance code (digits only)
-            attendance_code = strip_non_digits(row_dict.get("attendance_code", ""))
-            if attendance_code:
-                employee_data["attendance_code"] = attendance_code
-
-            # Start date (combine day, month, year)
-            start_day = row_dict.get("start_day")
-            start_month = row_dict.get("start_month")
-            start_year = row_dict.get("start_year")
-
-            start_date = None
-            if start_day or start_month or start_year:
-                start_date, date_warnings = combine_start_date(start_day, start_month, start_year)
-                warnings.extend(date_warnings)
-
-            # If no start_date from components, try parsing start_day as full date
-            if not start_date and start_day:
-                start_date = parse_date(start_day)
-
-            if start_date:
-                employee_data["start_date"] = start_date  # type: ignore[assignment]
-            else:
-                # start_date is required, use today's date as default if not provided
-                employee_data["start_date"] = date.today()  # type: ignore[assignment]
-                warnings.append("No start date provided, using today's date")
-
-            # Status and Contract type (combined logic)
-            # Status code: W = Working (Active), C = Ceased (Resigned)
-            status_raw = normalize_value(row_dict.get("status", "")).lower()
-            contract_type_name = normalize_value(row_dict.get("contract_type", ""))
-
-            # Determine status based on status code and contract type
-            status = None
-            contract_type_lower = contract_type_name.lower()
-
-            # Prioritize status code mapping first
-            if status_raw in STATUS_CODE_MAPPING:
-                status = STATUS_CODE_MAPPING[status_raw]
-
-            # Only check contract type mapping if status code is W (Working/Active)
-            if status_raw == "w" and contract_type_lower in CONTRACT_TYPE_STATUS_MAPPING:
-                status = CONTRACT_TYPE_STATUS_MAPPING[contract_type_lower]
-
-            if status:
-                employee_data["status"] = status
-                # If status is RESIGNED, set resignation_date and resignation_reason to pass validation
-                if status == Employee.Status.RESIGNED:
-                    employee_data["resignation_start_date"] = date.today()  # type: ignore[assignment]
-                    # Set a default resignation_reason since it's required when status is RESIGNED
-                    employee_data["resignation_reason"] = Employee.ResignationReason.VOLUNTARY_PERSONAL
-            elif status_raw:
-                warnings.append(f"Unknown status code: {status_raw}")
-
-            # Map contract type to employee_type instead of creating ContractType records
-            if contract_type_name and contract_type_lower not in CONTRACT_TYPE_STATUS_MAPPING:
-                employee_type = map_import_contract_type_to_employee_type(contract_type_name)
-                if employee_type:
-                    employee_data["employee_type"] = employee_type
-
-            # Branch (reference)
-            branch_name = normalize_value(row_dict.get("branch", ""))
-            branch = None
-            if branch_name:
-                branch, created = lookup_or_create_branch(branch_name)
-                if branch:
-                    if created:
-                        created_references["branch"] = {
-                            "id": branch.id,
-                            "name": branch.name,
-                        }
-
-            # Block (reference)
-            block_name = normalize_value(row_dict.get("block", ""))
-            block = None
-            if block_name:
-                block, created = lookup_or_create_block(block_name, branch)
-                if block:
-                    if created:
-                        created_references["block"] = {
-                            "id": block.id,
-                            "name": block.name,
-                        }
-                    # Update branch if not set
-                    if not branch:
-                        branch = block.branch
-
-            # Department (reference, required)
-            department_name = normalize_value(row_dict.get("department", ""))
-            department = None
-            if department_name:
-                department, created = lookup_or_create_department(department_name, block, branch)
-                if department:
-                    employee_data["department"] = department  # type: ignore[assignment]
-                    if created:
-                        created_references["department"] = {
-                            "id": department.id,
-                            "name": department.name,
-                        }
-                    # Update branch and block from department
-                    if not branch:
-                        branch = department.branch
-                    if not block:
-                        block = department.block
-
-            # Position (reference)
-            position_name = normalize_value(row_dict.get("position", ""))
-            if position_name:
-                position, created = lookup_or_create_position(position_name)
-                if position:
-                    employee_data["position"] = position  # type: ignore[assignment]
-                    if created:
-                        created_references["position"] = {
-                            "id": position.id,
-                            "name": position.name,
-                        }
-
-            # Phone
-            phone_raw = row_dict.get("phone", "")
-            phone, phone_warnings = parse_phone(phone_raw)
-            if phone:
-                employee_data["phone"] = phone
-            warnings.extend(phone_warnings)
-
-            # Personal email
-            personal_email = normalize_value(row_dict.get("personal_email", ""))
-            if personal_email:
-                employee_data["personal_email"] = personal_email
-
-            # Email (required, generate if missing)
-            email = normalize_value(row_dict.get("email", ""))
-            username = normalize_value(row_dict.get("username", ""))
-
-            # Get or initialize existing usernames/emails set from options
-            # This maintains uniqueness across all rows in the import job
-            existing_usernames = options.get("_existing_usernames", set())
-            existing_emails = options.get("_existing_emails", set())
-
-            # Generate username if missing
-            if not username:
-                username = generate_username(code, fullname, existing_usernames)
-                warnings.append(f"Generated username: {username}")
-            else:
-                existing_usernames.add(username)
-
-            employee_data["username"] = username
-
-            # Generate email if missing
-            if not email:
-                email = generate_email(username, existing_emails)
-                warnings.append(f"Generated email: {email}")
-            else:
-                existing_emails.add(email)
-
-            employee_data["email"] = email
-
-            # Tax code
-            tax_code = normalize_value(row_dict.get("tax_code", ""))
-            if tax_code:
-                employee_data["tax_code"] = tax_code
-
-            # Emergency contact
-            emergency_contact_raw = row_dict.get("emergency_contact", "")
-            if emergency_contact_raw:
-                emergency_phone, emergency_name = parse_emergency_contact(emergency_contact_raw)
-                if emergency_phone:
-                    employee_data["emergency_contact_phone"] = emergency_phone
-                if emergency_name:
-                    employee_data["emergency_contact_name"] = emergency_name
-
-            # Gender
-            gender_raw = normalize_value(row_dict.get("gender", "")).lower()
-            if gender_raw:
-                gender = GENDER_MAPPING.get(gender_raw)
-                if gender:
-                    employee_data["gender"] = gender
-                else:
-                    warnings.append(f"Unknown gender: {gender_raw}")
-
-            # Date of birth
-            dob_raw = row_dict.get("date_of_birth", "")
-            dob = parse_date(dob_raw)
-            if dob:
-                employee_data["date_of_birth"] = dob  # type: ignore[assignment]
-
-            # Place of birth
-            place_of_birth = normalize_value(row_dict.get("place_of_birth", ""))
-            if place_of_birth:
-                employee_data["place_of_birth"] = place_of_birth
-
-            # Marital status
-            marital_status_raw = normalize_value(row_dict.get("marital_status", "")).lower()
-            if marital_status_raw:
-                marital_status = MARITAL_STATUS_MAPPING.get(marital_status_raw)
-                if marital_status:
-                    employee_data["marital_status"] = marital_status
-                else:
-                    warnings.append(f"Unknown marital status: {marital_status_raw}")
-
-            # Ethnicity
-            ethnicity = normalize_value(row_dict.get("ethnicity", ""))
-            if ethnicity:
-                employee_data["ethnicity"] = ethnicity
-
-            # Religion
-            religion = normalize_value(row_dict.get("religion", ""))
-            if religion:
-                employee_data["religion"] = religion
-
-            # Nationality (reference)
-            nationality_name = normalize_value(row_dict.get("nationality", ""))
-            if nationality_name:
-                nationality, created = lookup_or_create_nationality(nationality_name)
-                if nationality:
-                    employee_data["nationality"] = nationality  # type: ignore[assignment]
-                    if created:
-                        created_references["nationality"] = {
-                            "id": nationality.id,
-                            "name": nationality.name,
-                        }
-
-            # Citizen ID (digits only)
-            citizen_id = strip_non_digits(row_dict.get("citizen_id", ""))
-            if citizen_id:
-                employee_data["citizen_id"] = citizen_id
-
-            # Citizen ID issued date
-            citizen_id_issued_date_raw = row_dict.get("citizen_id_issued_date", "")
-            citizen_id_issued_date = parse_date(citizen_id_issued_date_raw)
-            if citizen_id_issued_date:
-                employee_data["citizen_id_issued_date"] = citizen_id_issued_date  # type: ignore[assignment]
-
-            # Citizen ID issued place
-            citizen_id_issued_place = normalize_value(row_dict.get("citizen_id_issued_place", ""))
-            if citizen_id_issued_place:
-                employee_data["citizen_id_issued_place"] = citizen_id_issued_place
-
-            # Residential address
-            residential_address = normalize_value(row_dict.get("residential_address", ""))
-            if residential_address:
-                employee_data["residential_address"] = residential_address
-
-            # Permanent address
-            permanent_address = normalize_value(row_dict.get("permanent_address", ""))
-            if permanent_address:
-                employee_data["permanent_address"] = permanent_address
-
-            # Note
-            note = normalize_value(row_dict.get("note", ""))
-            if note:
-                employee_data["note"] = note
+            # Capture old state for history tracking
+            employee = Employee.objects.filter(code=code).first()
+            old_state = {}
+            if employee:
+                old_state = {
+                    "status": employee.status,
+                    "position": employee.position,
+                    "department": employee.department,
+                }
 
             # Update or create employee
             try:
@@ -1024,41 +1184,11 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
                 action = "created" if created else "updated"
 
-                # Handle bank accounts - create BankAccount records
-                vpbank_account = normalize_value(row_dict.get("vpbank_account", ""))
-                vietcombank_account = normalize_value(row_dict.get("vietcombank_account", ""))
+                # Handle Work History
+                _handle_work_history(employee, created, old_state, employee_data.get("start_date"))
 
-                if vpbank_account or vietcombank_account:
-                    # Get pre-initialized banks from options (created once at import start)
-                    vpbank = options.get("_vpbank")
-                    vietcombank = options.get("_vietcombank")
-
-                    # Create VPBank account if provided
-                    if vpbank_account and vpbank:
-                        BankAccount.objects.update_or_create(
-                            employee=employee,
-                            bank=vpbank,
-                            defaults={
-                                "account_number": vpbank_account,
-                                "account_name": employee.fullname,
-                                "is_primary": not vietcombank_account,  # Primary if only one
-                            },
-                        )
-
-                    # Create Vietcombank account if provided
-                    if vietcombank_account and vietcombank:
-                        BankAccount.objects.update_or_create(
-                            employee=employee,
-                            bank=vietcombank,
-                            defaults={
-                                "account_number": vietcombank_account,
-                                "account_name": employee.fullname,
-                                "is_primary": not vpbank_account,  # Primary if only one
-                            },
-                        )
-
-                # OrganizationChart is now handled automatically in Employee.save()
-                # when position changes, so no need to manage it here
+                # Handle bank accounts
+                _handle_bank_accounts(employee, row_dict, options)
 
                 return {
                     "ok": True,

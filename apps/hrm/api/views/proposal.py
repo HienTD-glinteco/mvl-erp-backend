@@ -425,7 +425,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     @extend_schema(
         summary="List my proposals",
         description="Retrieve a list of proposals created by the current user with optional filtering and pagination",
-        tags=["9.2: Proposals"],
+        tags=["9.2: Proposals", "9.2: Proposals - For Mobile"],
         filters=MeProposalFilterSet,  # type: ignore
         operation_id="hrm_proposals_mine_list",
         responses={200: ProposalCombinedSerializer(many=True)},
@@ -531,7 +531,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     retrieve=extend_schema(
         summary="Get timesheet entry complaint proposal details",
         description="Retrieve detailed information for a specific timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        tags=["6.8: Timesheet Entry Complaint Proposals", "6.8: Timesheet Entry Complaint Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -562,7 +562,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     create=extend_schema(
         summary="Create timesheet entry complaint proposal",
         description="Create a new timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        tags=["6.8: Timesheet Entry Complaint Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -615,7 +615,7 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     update=extend_schema(
         summary="Update timesheet entry complaint proposal",
         description="Update a timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        tags=["6.8: Timesheet Entry Complaint Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -656,12 +656,12 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     partial_update=extend_schema(
         summary="Partially update timesheet entry complaint proposal",
         description="Partially update a timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        tags=["6.8: Timesheet Entry Complaint Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete timesheet entry complaint proposal",
         description="Delete a timesheet entry complaint proposal",
-        tags=["6.8: Timesheet Entry Complaint Proposals"],
+        tags=["6.8: Timesheet Entry Complaint Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -829,7 +829,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get post-maternity benefits proposal details",
         description="Retrieve detailed information for a specific post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals", "9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -856,7 +856,7 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create post-maternity benefits proposal",
         description="Create a new post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -905,17 +905,17 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update post-maternity benefits proposal",
         description="Update a post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update post-maternity benefits proposal",
         description="Partially update a post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete post-maternity benefits proposal",
         description="Delete a post-maternity benefits proposal",
-        tags=["9.2.2: Post-Maternity Benefits Proposals"],
+        tags=["9.2.2: Post-Maternity Benefits Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.2: Post-Maternity Benefits Proposals"],
@@ -1055,7 +1055,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get late exemption proposal details",
         description="Retrieve detailed information for a specific late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals", "9.2.3: Late Exemption Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1083,7 +1083,7 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create late exemption proposal",
         description="Create a new late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1135,17 +1135,17 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update late exemption proposal",
         description="Update a late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update late exemption proposal",
         description="Partially update a late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete late exemption proposal",
         description="Delete a late exemption proposal",
-        tags=["9.2.3: Late Exemption Proposals"],
+        tags=["9.2.3: Late Exemption Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.3: Late Exemption Proposals"],
@@ -1294,7 +1294,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get overtime work proposal details",
         description="Retrieve detailed information for a specific overtime work proposal",
-        tags=["9.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals", "9.2.4: Overtime Work Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1329,7 +1329,7 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create overtime work proposal",
         description="Create a new overtime work proposal with one or more overtime entries",
-        tags=["9.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1417,17 +1417,17 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update overtime work proposal",
         description="Update an overtime work proposal",
-        tags=["9.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update overtime work proposal",
         description="Partially update an overtime work proposal",
-        tags=["9.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete overtime work proposal",
         description="Delete an overtime work proposal",
-        tags=["9.2.4: Overtime Work Proposals"],
+        tags=["9.2.4: Overtime Work Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.4: Overtime Work Proposals"],
@@ -1587,7 +1587,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get paid leave proposal details",
         description="Retrieve detailed information for a specific paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals", "9.2.5: Paid Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1616,7 +1616,7 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create paid leave proposal",
         description="Create a new paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1668,17 +1668,17 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update paid leave proposal",
         description="Update a paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update paid leave proposal",
         description="Partially update a paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete paid leave proposal",
         description="Delete a paid leave proposal",
-        tags=["9.2.5: Paid Leave Proposals"],
+        tags=["9.2.5: Paid Leave Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.5: Paid Leave Proposals"],
@@ -1823,7 +1823,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get unpaid leave proposal details",
         description="Retrieve detailed information for a specific unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals", "9.2.6: Unpaid Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -1852,7 +1852,7 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create unpaid leave proposal",
         description="Create a new unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -1904,17 +1904,17 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update unpaid leave proposal",
         description="Update an unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update unpaid leave proposal",
         description="Partially update an unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete unpaid leave proposal",
         description="Delete an unpaid leave proposal",
-        tags=["9.2.6: Unpaid Leave Proposals"],
+        tags=["9.2.6: Unpaid Leave Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.6: Unpaid Leave Proposals"],
@@ -2058,7 +2058,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get maternity leave proposal details",
         description="Retrieve detailed information for a specific maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals", "9.2.7: Maternity Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2086,7 +2086,7 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create maternity leave proposal",
         description="Create a new maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2137,17 +2137,17 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update maternity leave proposal",
         description="Update a maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update maternity leave proposal",
         description="Partially update a maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete maternity leave proposal",
         description="Delete a maternity leave proposal",
-        tags=["9.2.7: Maternity Leave Proposals"],
+        tags=["9.2.7: Maternity Leave Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.7: Maternity Leave Proposals"],
@@ -2301,7 +2301,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get job transfer proposal details",
         description="Retrieve detailed information for a specific job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals", "9.2.9: Job Transfer Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2336,7 +2336,7 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create job transfer proposal",
         description="Create a new job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2396,17 +2396,17 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update job transfer proposal",
         description="Update a job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update job transfer proposal",
         description="Partially update a job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete job transfer proposal",
         description="Delete a job transfer proposal",
-        tags=["9.2.9: Job Transfer Proposals"],
+        tags=["9.2.9: Job Transfer Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.9: Job Transfer Proposals"],
@@ -2580,7 +2580,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get asset allocation proposal details",
         description="Retrieve detailed information for a specific asset allocation proposal",
-        tags=["9.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals", "9.2.10: Asset Allocation Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2614,7 +2614,7 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create asset allocation proposal",
         description="Create a new asset allocation proposal with assets",
-        tags=["9.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2675,17 +2675,17 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update asset allocation proposal",
         description="Update an asset allocation proposal",
-        tags=["9.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update asset allocation proposal",
         description="Partially update an asset allocation proposal",
-        tags=["9.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete asset allocation proposal",
         description="Delete an asset allocation proposal",
-        tags=["9.2.10: Asset Allocation Proposals"],
+        tags=["9.2.10: Asset Allocation Proposals - For Mobile"],
     ),
     export=extend_schema(
         tags=["9.2.10: Asset Allocation Proposals"],
@@ -2807,7 +2807,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List proposal verifiers",
         description="Retrieve a list of proposal verifiers with optional filtering",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2839,7 +2839,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get proposal verifier details",
         description="Retrieve detailed information for a specific proposal verifier",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -2864,7 +2864,7 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     create=extend_schema(
         summary="Create proposal verifier",
         description="Create a new proposal verifier",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request",
@@ -2898,17 +2898,17 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     update=extend_schema(
         summary="Update proposal verifier",
         description="Update a proposal verifier",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers - For Mobile"],
     ),
     partial_update=extend_schema(
         summary="Partially update proposal verifier",
         description="Partially update a proposal verifier",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers - For Mobile"],
     ),
     destroy=extend_schema(
         summary="Delete proposal verifier",
         description="Delete a proposal verifier",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers - For Mobile"],
     ),
 )
 class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
@@ -2937,7 +2937,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Verify proposal",
         description="Mark a proposal as verified. Only applicable for timesheet entry complaint proposals.",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         request=ProposalVerifierVerifySerializer,
         examples=[
             OpenApiExample(
@@ -2992,7 +2992,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="Reject proposal verification",
         description="Mark a proposal verification as rejected (not verified).",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         request=ProposalVerifierRejectSerializer,
         examples=[
             OpenApiExample(
@@ -3045,7 +3045,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     @extend_schema(
         summary="List my proposal verifiers",
         description="Retrieve a list of proposal verifiers assigned to the current user that need verification with optional filtering and pagination",
-        tags=["9.3: Proposal Verifiers"],
+        tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         filters=MeProposalVerifierFilterSet,  # type: ignore
         operation_id="hrm_proposal_verifiers_mine_list",
         responses={200: ProposalVerifierNeedVerificationSerializer(many=True)},
