@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -79,6 +80,27 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     timesheet_entry_complaint_approved_check_out_time = models.TimeField(
         null=True, blank=True, verbose_name="Approved check-out time"
+    )
+    timesheet_entry_complaint_latitude = models.DecimalField(
+        max_digits=20,
+        decimal_places=17,
+        verbose_name="Latitude",
+        help_text="Timesheet Entry Complaint Latitude coordinate",
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+        blank=True,
+        null=True,
+    )
+    timesheet_entry_complaint_longitude = models.DecimalField(
+        max_digits=20,
+        decimal_places=17,
+        verbose_name="Longitude",
+        help_text="Timesheet Entry Complaint Longitude coordinate",
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+        blank=True,
+        null=True,
+    )
+    timesheet_entry_complaint_address = models.CharField(
+        max_length=255, blank=True, verbose_name="Timesheet Entry Complaint Address", null=True
     )
 
     # LATE_EXEMPTION fields

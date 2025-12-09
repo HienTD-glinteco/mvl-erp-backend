@@ -378,18 +378,6 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
         """
         return self.context["view"].proposal_type
 
-    def create(self, validated_data) -> Proposal:
-        """Create a proposal and its initial verifier (department leader)."""
-        instance = super().create(validated_data)
-        department = instance.created_by.department
-        leader = department.leader
-        if leader:
-            ProposalVerifier.objects.create(
-                proposal=instance,
-                employee=leader,
-            )
-        return instance
-
 
 class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
     """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
@@ -410,6 +398,9 @@ class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
             "timesheet_entry_complaint_proposed_check_out_time",
             "timesheet_entry_complaint_approved_check_in_time",
             "timesheet_entry_complaint_approved_check_out_time",
+            "timesheet_entry_complaint_latitude",
+            "timesheet_entry_complaint_longitude",
+            "timesheet_entry_complaint_address",
         ]
 
     def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
