@@ -1,3 +1,4 @@
+import logging
 from calendar import monthrange
 from datetime import date
 from typing import List
@@ -6,6 +7,8 @@ from django.db import transaction
 
 from apps.hrm.models import Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_year_month(year: int | None, month: int | None) -> tuple[int, int]:
@@ -19,6 +22,11 @@ def create_entries_for_employee_month(
 ) -> List[TimeSheetEntry]:
     year, month = _normalize_year_month(year, month)
     _, last_day = monthrange(year, month)
+
+    # Guard: ensure employee still exists to avoid FK violations when inserting
+    if not Employee.objects.filter(pk=employee_id).exists():
+        logger.warning("create_entries_for_employee_month: employee id %s not found, skipping", employee_id)
+        return []
 
     # Generate all dates for the month
     all_dates = [date(year, month, d) for d in range(1, last_day + 1)]
@@ -53,7 +61,7 @@ def create_entries_for_month_all(year: int | None = None, month: int | None = No
 
 def create_monthly_timesheet_for_employee(
     employee_id: int, year: int | None = None, month: int | None = None
-) -> EmployeeMonthlyTimesheet:
+) -> EmployeeMonthlyTimesheet | None:
     """Create or initialize a monthly timesheet row for an employee.
 
     Behavior and business rules:
@@ -86,6 +94,11 @@ def create_monthly_timesheet_for_employee(
     """
     year, month = _normalize_year_month(year, month)
     report_date = date(year, month, 1)
+    # Guard: ensure employee exists before creating monthly row to avoid FK errors
+    if not Employee.objects.filter(pk=employee_id).exists():
+        logger.warning("create_monthly_timesheet_for_employee: employee id %s not found, skipping", employee_id)
+        return None
+
     obj, created = EmployeeMonthlyTimesheet.objects.get_or_create(employee_id=employee_id, report_date=report_date)
 
     # If created, initialize these fields according to the business rules
@@ -117,5 +130,7 @@ def create_monthly_timesheets_for_month_all(
     employees = Employee.objects.filter(status__in=[Employee.Status.ACTIVE, Employee.Status.ONBOARDING])
     created = []
     for emp in employees.iterator():
-        created.append(create_monthly_timesheet_for_employee(emp.id, year, month))
+        result = create_monthly_timesheet_for_employee(emp.id, year, month)
+        if result:
+            created.append(result)
     return created

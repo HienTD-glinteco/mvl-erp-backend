@@ -40,7 +40,10 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Proposal status",
     )
 
-    note = SafeTextField(null=True, blank=True, verbose_name="Note")
+    note = SafeTextField(null=True, blank=True, verbose_name="Note for employee who create the proposal")
+    resolution_note = SafeTextField(
+        null=True, blank=True, verbose_name="Note for employee who approve/reject the proposal"
+    )
 
     created_by = models.ForeignKey(
         "Employee",
@@ -489,8 +492,8 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         # If proposal status is rejected, note cannot be empty
         if self.proposal_status == ProposalStatus.REJECTED:
-            if not self.note or not self.note.strip():
-                raise ValidationError({"note": _("Note is required when rejecting a proposal")})
+            if not self.resolution_note or not self.resolution_note.strip():
+                raise ValidationError({"resolution_note": _("Resolution note is required when rejecting a proposal")})
 
         # Call type-specific validation methods
         # NOTE: add more here when needed
