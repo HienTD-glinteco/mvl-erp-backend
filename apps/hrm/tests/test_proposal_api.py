@@ -1020,6 +1020,9 @@ class TestTimesheetEntryComplaintProposalAPI:
             "timesheet_entry_complaint_complaint_reason": "Incorrect check-in time recorded due to system error",
             "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
             "timesheet_entry_complaint_proposed_check_out_time": "17:00:00",
+            "timesheet_entry_complaint_latitude": "21.02776",
+            "timesheet_entry_complaint_longitude": "105.85194",
+            "timesheet_entry_complaint_address": "123 Test Street, Hanoi",
             "note": "Please review and approve",
         }
 
@@ -1035,6 +1038,9 @@ class TestTimesheetEntryComplaintProposalAPI:
         )
         assert result["data"]["timesheet_entry_complaint_proposed_check_in_time"] == "08:00:00"
         assert result["data"]["timesheet_entry_complaint_proposed_check_out_time"] == "17:00:00"
+        assert result["data"]["timesheet_entry_complaint_latitude"] == "21.02776000000000000"
+        assert result["data"]["timesheet_entry_complaint_longitude"] == "105.85194000000000000"
+        assert result["data"]["timesheet_entry_complaint_address"] == "123 Test Street, Hanoi"
         assert result["data"]["note"] == "Please review and approve"
         assert result["data"]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
@@ -1058,6 +1064,48 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert result["success"] is False
         assert has_error_for_field(result["error"], "timesheet_entry_complaint_complaint_reason")
 
+    def test_create_timesheet_entry_complaint_proposal_invalid_latitude(self, api_client, superuser, test_employee):
+        """Test creating a timesheet entry complaint proposal with invalid latitude (out of range)."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
+        data = {
+            "timesheet_entry_complaint_complaint_reason": "Test complaint",
+            "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
+            "timesheet_entry_complaint_proposed_check_out_time": "17:00:00",
+            "timesheet_entry_complaint_latitude": "91.0",  # Invalid: > 90
+            "timesheet_entry_complaint_longitude": "105.85194",
+        }
+
+        response = api_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        result = response.json()
+        assert result["success"] is False
+        assert has_error_for_field(result["error"], "timesheet_entry_complaint_latitude")
+
+    def test_create_timesheet_entry_complaint_proposal_invalid_longitude(self, api_client, superuser, test_employee):
+        """Test creating a timesheet entry complaint proposal with invalid longitude (out of range)."""
+        superuser.employee = test_employee
+        superuser.save()
+
+        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
+        data = {
+            "timesheet_entry_complaint_complaint_reason": "Test complaint",
+            "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
+            "timesheet_entry_complaint_proposed_check_out_time": "17:00:00",
+            "timesheet_entry_complaint_latitude": "21.02776",
+            "timesheet_entry_complaint_longitude": "181.0",  # Invalid: > 180
+        }
+
+        response = api_client.post(url, data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        result = response.json()
+        assert result["success"] is False
+        assert has_error_for_field(result["error"], "timesheet_entry_complaint_longitude")
+
     def test_update_timesheet_entry_complaint_proposal_success(self, api_client, superuser, test_employee):
         """Test updating a timesheet entry complaint proposal."""
         superuser.employee = test_employee
@@ -1078,6 +1126,9 @@ class TestTimesheetEntryComplaintProposalAPI:
             "timesheet_entry_complaint_complaint_reason": "Updated reason for complaint",
             "timesheet_entry_complaint_proposed_check_in_time": "08:30:00",
             "timesheet_entry_complaint_proposed_check_out_time": "17:30:00",
+            "timesheet_entry_complaint_latitude": "21.02776",
+            "timesheet_entry_complaint_longitude": "105.85194",
+            "timesheet_entry_complaint_address": "456 Updated Street, Hanoi",
             "note": "Updated details",
         }
 
@@ -1089,6 +1140,9 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert result["data"]["timesheet_entry_complaint_complaint_reason"] == "Updated reason for complaint"
         assert result["data"]["timesheet_entry_complaint_proposed_check_in_time"] == "08:30:00"
         assert result["data"]["timesheet_entry_complaint_proposed_check_out_time"] == "17:30:00"
+        assert result["data"]["timesheet_entry_complaint_latitude"] == "21.02776000000000000"
+        assert result["data"]["timesheet_entry_complaint_longitude"] == "105.85194000000000000"
+        assert result["data"]["timesheet_entry_complaint_address"] == "456 Updated Street, Hanoi"
         assert result["data"]["note"] == "Updated details"
 
         proposal.refresh_from_db()

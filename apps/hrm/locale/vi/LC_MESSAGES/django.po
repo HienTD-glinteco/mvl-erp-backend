@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 12:44+0700\n"
+"POT-Creation-Date: 2025-12-09 11:37+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -186,7 +186,7 @@ msgstr ""
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 
-#: apps/hrm/api/serializers/proposal.py:488
+#: apps/hrm/api/serializers/proposal.py:479
 #, fuzzy
 #| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
@@ -991,10 +991,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1003,22 +1005,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1112,7 +1119,6 @@ msgid "Progressive tax"
 msgstr ""
 
 #: apps/hrm/models/contract_type.py:61
-#, python-format
 msgid "10% flat tax"
 msgstr ""
 
@@ -1342,89 +1348,89 @@ msgstr ""
 msgid "A main department already exists for function %(function)s."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:281
+#: apps/hrm/models/proposal.py:303
 msgid "day"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:357
+#: apps/hrm/models/proposal.py:379
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:359
+#: apps/hrm/models/proposal.py:381
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:361
+#: apps/hrm/models/proposal.py:383
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:366
+#: apps/hrm/models/proposal.py:388
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:376
+#: apps/hrm/models/proposal.py:398
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:378
+#: apps/hrm/models/proposal.py:400
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:384
+#: apps/hrm/models/proposal.py:406
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:400
+#: apps/hrm/models/proposal.py:422
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:412
+#: apps/hrm/models/proposal.py:434
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:424
+#: apps/hrm/models/proposal.py:446
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:436
+#: apps/hrm/models/proposal.py:458
 #, fuzzy
 #| msgid "Post-maternity benefits end date must be on or after start date"
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:447
+#: apps/hrm/models/proposal.py:469
 #, fuzzy
 #| msgid "Late exemption end date is required"
 msgid "Job transfer effective date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:451
+#: apps/hrm/models/proposal.py:473
 msgid "New department is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:455
+#: apps/hrm/models/proposal.py:477
 msgid "New position is required for job transfer"
 msgstr ""
 
-#: apps/hrm/models/proposal.py:471
+#: apps/hrm/models/proposal.py:493
 msgid "Note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:585
+#: apps/hrm/models/proposal.py:607
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:595
+#: apps/hrm/models/proposal.py:617
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:777
+#: apps/hrm/models/proposal.py:799
 #, fuzzy
 #| msgid "Overtime work end time must be after start time"
 msgid "End time must be after start time"

@@ -134,6 +134,9 @@ def complaint_proposal(db, employee):
         code="DX_TSE_001",
         proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
         timesheet_entry_complaint_complaint_reason="Test complaint reason",
+        timesheet_entry_complaint_latitude=Decimal("21.02776"),
+        timesheet_entry_complaint_longitude=Decimal("105.85194"),
+        timesheet_entry_complaint_address="123 Test Street, Hanoi",
         created_by=employee,
     )
 
