@@ -28,6 +28,7 @@ from .models import (
     Proposal,
     ProposalAsset,
     ProposalOvertimeEntry,
+    ProposalVerifier,
     RecruitmentCandidate,
     RecruitmentCandidateContactLog,
     RecruitmentChannel,
@@ -97,6 +98,7 @@ admin.site.register(RecruitmentRequest)
 admin.site.register(RecruitmentCandidate)
 admin.site.register(RecruitmentCandidateContactLog)
 admin.site.register(RecruitmentExpense)
+admin.site.register(ProposalVerifier)
 admin.site.register(WorkSchedule)
 
 admin.site.register(CompensatoryWorkday)

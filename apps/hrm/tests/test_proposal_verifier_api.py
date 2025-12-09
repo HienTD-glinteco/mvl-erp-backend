@@ -235,8 +235,13 @@ class TestProposalVerifierAPI:
         return superuser
 
     @pytest.fixture
-    def timesheet_complaint_proposal(self, employee):
-        """Create a timesheet entry complaint proposal for testing."""
+    def timesheet_complaint_proposal(self, employee, department_leader):
+        """Create a timesheet entry complaint proposal for testing.
+
+        Note: department_leader fixture must be resolved first to ensure
+        the department has a leader when the proposal is created. This allows
+        the auto-assignment of department leader as verifier to work correctly.
+        """
         return Proposal.objects.create(
             code="DX000003",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
@@ -256,13 +261,60 @@ class TestProposalVerifierAPI:
         )
 
     @pytest.fixture
-    def proposal_verifier(self, timesheet_complaint_proposal, employee):
-        """Create a proposal verifier for testing."""
-        return ProposalVerifier.objects.create(
-            proposal=timesheet_complaint_proposal,
-            employee=employee,
-            note="Assigned as verifier",
+    def paid_leave_proposal_no_auto_verifier(self, branch, block):
+        """Create a paid leave proposal without auto-assigned verifier for testing.
+
+        This creates an employee in a department without a leader, so no verifier
+        is auto-assigned when the proposal is created.
+        """
+        from apps.hrm.models import Department
+
+        dept = Department.objects.create(
+            name="No Leader Dept",
+            code="NL_DEPT_API",
+            branch=branch,
+            block=block,
         )
+        emp = Employee.objects.create(
+            code_type="MV",
+            fullname="Employee No Leader",
+            username="emp_no_leader_api",
+            email="emp_no_leader@example.com",
+            citizen_id="000000999001",
+            start_date="2023-01-01",
+            branch=branch,
+            block=block,
+            department=dept,
+        )
+        return Proposal.objects.create(
+            code="DX000099",
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.PENDING,
+            created_by=emp,
+        )
+
+    @pytest.fixture
+    def proposal_verifier(self, timesheet_complaint_proposal, department_leader):
+        """Get the auto-created proposal verifier for testing.
+
+        Note: The ProposalVerifier is auto-created when the Proposal is saved,
+        so we retrieve it instead of creating a new one (limit is 1 verifier).
+        """
+        verifier = ProposalVerifier.objects.filter(
+            proposal=timesheet_complaint_proposal,
+            employee=department_leader,
+        ).first()
+        if verifier:
+            verifier.note = "Assigned as verifier"
+            verifier.save()
+        else:
+            # Fallback: create if not auto-created (e.g., no department leader)
+            verifier = ProposalVerifier.objects.create(
+                proposal=timesheet_complaint_proposal,
+                employee=department_leader,
+                note="Assigned as verifier",
+            )
+        return verifier
 
     @pytest.fixture
     def proposal_verifier_for_verify(self, timesheet_complaint_proposal, department_leader):
@@ -302,11 +354,17 @@ class TestProposalVerifierAPI:
         assert data["data"]["proposal"]["id"] == proposal_verifier.proposal.id
         assert data["data"]["employee"]["id"] == proposal_verifier.employee.id
 
-    def test_create_proposal_verifier(self, api_client, superuser, paid_leave_proposal, department_leader):
-        """Test creating a new proposal verifier."""
+    def test_create_proposal_verifier(
+        self, api_client, superuser, paid_leave_proposal_no_auto_verifier, department_leader
+    ):
+        """Test creating a new proposal verifier.
+
+        Uses a proposal without auto-assigned verifier to test the create API,
+        since most proposals auto-assign their department leader as verifier.
+        """
         url = reverse("hrm:proposal-verifier-list")
         data = {
-            "proposal_id": paid_leave_proposal.id,
+            "proposal_id": paid_leave_proposal_no_auto_verifier.id,
             "employee_id": department_leader.id,
             "note": "New verifier assignment",
         }
@@ -316,7 +374,7 @@ class TestProposalVerifierAPI:
         assert response.status_code == status.HTTP_201_CREATED
         result = response.json()
         assert result["success"] is True
-        assert result["data"]["proposal"]["id"] == paid_leave_proposal.id
+        assert result["data"]["proposal"]["id"] == paid_leave_proposal_no_auto_verifier.id
         assert result["data"]["employee"]["id"] == department_leader.id
         assert result["data"]["colored_status"]["value"] == ProposalVerifierStatus.PENDING
         assert result["data"]["note"] == "New verifier assignment"

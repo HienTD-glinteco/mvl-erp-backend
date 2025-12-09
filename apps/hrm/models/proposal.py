@@ -272,6 +272,18 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         }
     }
 
+    VERIFIER_QUANTITY_LIMIT_MAPPING = {
+        ProposalType.LATE_EXEMPTION: 1,
+        ProposalType.POST_MATERNITY_BENEFITS: 1,
+        ProposalType.TIMESHEET_ENTRY_COMPLAINT: 1,
+        ProposalType.MATERNITY_LEAVE: 1,
+        ProposalType.PAID_LEAVE: 1,
+        ProposalType.UNPAID_LEAVE: 1,
+        ProposalType.JOB_TRANSFER: 2,
+        ProposalType.ASSET_ALLOCATION: 1,
+        ProposalType.OVERTIME_WORK: 1,
+    }
+
     def __str__(self) -> str:  # pragma: no cover - trivial
         code = getattr(self, "code", None) or f"#{self.pk}" if self.pk else "New"
         return f"Proposal {code} - {self.proposal_type}"
@@ -687,6 +699,23 @@ class ProposalVerifier(ColoredValueMixin, BaseModel):
     def colored_status(self) -> dict:
         """Get colored value representation for status field."""
         return self.get_colored_value("status")
+
+    def clean(self):
+        super().clean()
+        # Build queryset for existing verifiers, excluding self if this is an update
+        existing_verifiers = self.proposal.verifiers.all()
+        if self.pk:
+            existing_verifiers = existing_verifiers.exclude(pk=self.pk)
+
+        limit = Proposal.VERIFIER_QUANTITY_LIMIT_MAPPING.get(self.proposal.proposal_type, 1)
+        if existing_verifiers.count() >= limit:
+            raise ValidationError(
+                {"proposal": _("Only one verifier is allowed per proposal in the current system design.")}
+            )
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 @audit_logging_register

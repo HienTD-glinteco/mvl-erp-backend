@@ -394,6 +394,20 @@ class ProposalByTypeSerializer(serializers.ModelSerializer):
         return self.context["view"].proposal_type
 
 
+class ProposalTimesheetEntryComplaintVerifierSerializer(ProposalVerifierSerializer):
+    """
+    Serializer for ProposalVerifier model used in Timesheet Entry Complaint proposals.
+    Returns only necessary fields.
+    """
+
+    class Meta:
+        model = ProposalVerifier
+        fields = read_only_fields = [
+            "id",
+            "colored_status",
+        ]
+
+
 class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
     """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
 
@@ -404,6 +418,7 @@ class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
     timesheet_entry_id = serializers.SerializerMethodField(
         help_text="ID of the linked timesheet entry", required=False
     )
+    proposal_verifier = ProposalTimesheetEntryComplaintVerifierSerializer(read_only=True, source="verifiers.first")
 
     class Meta(ProposalByTypeSerializer.Meta):
         fields = ProposalByTypeSerializer.Meta.fields + [
@@ -416,6 +431,7 @@ class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
             "timesheet_entry_complaint_latitude",
             "timesheet_entry_complaint_longitude",
             "timesheet_entry_complaint_address",
+            "proposal_verifier",
         ]
 
     def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
