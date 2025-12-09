@@ -576,7 +576,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
     def test_pagination(self):
         """Test that results are paginated"""
         # Arrange - Create more employees than page size
-        for i in range(25):
+        for i in range(35):
             self.create_employee(code=f"MV{100 + i:03d}", start_date=date(2020, 1, 1))
 
         # Act
@@ -588,7 +588,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.assertIn("count", data)
         self.assertIn("next", data)
         self.assertIn("results", data)
-        self.assertEqual(data["count"], 25)
-        # Default page size is 20
-        self.assertEqual(len(data["results"]), 20)
+        self.assertEqual(data["count"], 35)
+        # Default page size is 25
+        self.assertEqual(len(data["results"]), 25)
         self.assertIsNotNone(data["next"])
