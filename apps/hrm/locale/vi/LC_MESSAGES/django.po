@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 17:28+0700\n"
+"POT-Creation-Date: 2025-12-09 17:58+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,9 @@ msgstr "Thiêt bi có IP {ip} và cổng {port} đã tồn tại."
 #: apps/hrm/api/serializers/attendance_exemption.py:80
 msgid ""
 "Only active or onboarding employees can be exempt from attendance tracking"
-msgstr "Chỉ những nhân viên đang hoạt động hoặc trong giai đoạn thử việc mới có thể được miễn theo dõi chấm công"
+msgstr ""
+"Chỉ những nhân viên đang hoạt động hoặc trong giai đoạn thử việc mới có thể "
+"được miễn theo dõi chấm công"
 
 #: apps/hrm/api/serializers/attendance_exemption.py:86
 msgid "Employee already has an active exemption."
@@ -84,7 +86,9 @@ msgstr "Những ID tệp không được tìm thấy hoặc chưa được xác 
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
 "instead."
-msgstr "Trường này không thể được cập nhật trực tiếp. Vui lòng sử dụng hành động '{action}' thay thế"
+msgstr ""
+"Trường này không thể được cập nhật trực tiếp. Vui lòng sử dụng hành động "
+"'{action}' thay thế"
 
 #: apps/hrm/api/serializers/employee.py:289
 msgid "An employee with this attendance code already exists."
@@ -104,7 +108,9 @@ msgstr "Nhân viên đã ở trạng thái Đang hoạt động."
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
 "{old_status} to {new_status}."
-msgstr "Nhân viên trở lại làm việc từ trạng thái đã nghỉ việc. Trạng thái thay đổi từ {old_status} sang {new_status}."
+msgstr ""
+"Nhân viên trở lại làm việc từ trạng thái đã nghỉ việc. Trạng thái thay đổi "
+"từ {old_status} sang {new_status}."
 
 #: apps/hrm/api/serializers/employee.py:473
 msgid "Seniority retained from previous employment period."
@@ -182,13 +188,12 @@ msgstr "Thông tin người xác mình là bắt buộc"
 
 #: apps/hrm/api/serializers/proposal.py:309
 msgid "Only the department leader can reject this proposal"
-msgstr "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
+msgstr ""
+"Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
 #: apps/hrm/api/serializers/proposal.py:494
-#, fuzzy
-#| msgid "Overtime work end time is required"
 msgid "At least one overtime entry is required"
-msgstr "Thời gian kết thúc ca là bắt buộc"
+msgstr "Thời gian làm thêm giờ là bắt buộc"
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:217
 msgid "Candidate not found in context."
@@ -234,7 +239,8 @@ msgstr "Lỗi kết nối đến thiết bị: %(message)s"
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
-msgstr "Không thể xóa {model_name} này vì nó được tham chiếu bởi: {relationships}"
+msgstr ""
+"Không thể xóa {model_name} này vì nó được tham chiếu bởi: {relationships}"
 
 #: apps/hrm/api/views/attendance_geolocation.py:444
 #: apps/hrm/api/views/attendance_wifi_device.py:402
@@ -483,7 +489,9 @@ msgstr "Tổng"
 msgid ""
 "Cannot delete recruitment request. Only requests with DRAFT status can be "
 "deleted."
-msgstr "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP mới có thể bị xóa."
+msgstr ""
+"Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
+"mới có thể bị xóa."
 
 #: apps/hrm/api/views/timesheet.py:118
 msgid "Month filter cannot be in the future."
@@ -987,12 +995,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1001,27 +1007,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1069,7 +1070,8 @@ msgstr "Chưa sử dụng"
 
 #: apps/hrm/models/bank_account.py:62
 msgid "Employee already has a primary bank account. Please unset it first."
-msgstr "Nhân viên đã có tài khoản ngân hàng chính. Vui lòng hủy thiết lập trước."
+msgstr ""
+"Nhân viên đã có tài khoản ngân hàng chính. Vui lòng hủy thiết lập trước."
 
 #: apps/hrm/models/contract.py:55 apps/hrm/models/decision.py:34
 #: apps/hrm/models/recruitment_request.py:24
@@ -1115,6 +1117,8 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
+#, fuzzy, python-format
+#| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"
 
@@ -1215,7 +1219,9 @@ msgstr "Không thể thay đổi trạng thái On-boarding cho nhân viên đã 
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
-msgstr "Ngày bắt đầu nghỉ việc là bắt buộc khi thay đổi trạng thái thành Đã nghỉ việc, Nghỉ việc hưởng chế độ thai sản hoặc Nghỉ không lương."
+msgstr ""
+"Ngày bắt đầu nghỉ việc là bắt buộc khi thay đổi trạng thái thành Đã nghỉ "
+"việc, Nghỉ việc hưởng chế độ thai sản hoặc Nghỉ không lương."
 
 #: apps/hrm/models/employee.py:431
 msgid "Resignation reason is required when status is Resigned."
@@ -1223,7 +1229,9 @@ msgstr "Lý do nghỉ việc là bắt buộc khi trạng thái là Đã nghỉ 
 
 #: apps/hrm/models/employee.py:436
 msgid "Resignation end date is required when status is Maternity Leave."
-msgstr "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ thai sản."
+msgstr ""
+"Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
+"thai sản."
 
 #: apps/hrm/models/employee_certificate.py:29
 msgid "Valid"
@@ -1370,29 +1378,26 @@ msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt bu�
 
 #: apps/hrm/models/proposal.py:409
 msgid "Post-maternity benefits end date must be on or after start date"
-msgstr "Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
+msgstr ""
+"Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt "
+"đầu"
 
 #: apps/hrm/models/proposal.py:425
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr "Nhập lý do khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:434
 #: apps/hrm/models/proposal.py:437
-
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:446
 #: apps/hrm/models/proposal.py:449
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:458
 #: apps/hrm/models/proposal.py:461
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:469
 #: apps/hrm/models/proposal.py:472
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
@@ -1406,8 +1411,6 @@ msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
 #: apps/hrm/models/proposal.py:496
-#, fuzzy
-#| msgid "Note is required when rejecting a proposal"
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
@@ -1421,7 +1424,6 @@ msgstr ""
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:799
 #: apps/hrm/models/proposal.py:802
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
@@ -1501,12 +1503,16 @@ msgstr "Người giới thiệu là bắt buộc khi nguồn tuyển dụng là 
 #: apps/hrm/models/recruitment_expense.py:124
 msgid ""
 "Referee must not be set when recruitment source does not allow referral."
-msgstr "Người được giới thiệu không được thiết lập khi nguồn tuyển dụng không phải giới thiệu."
+msgstr ""
+"Người được giới thiệu không được thiết lập khi nguồn tuyển dụng không phải "
+"giới thiệu."
 
 #: apps/hrm/models/recruitment_expense.py:126
 msgid ""
 "Referrer must not be set when recruitment source does not allow referral."
-msgstr "Người giới thiệu không được thiết lập khi nguồn tuyển dụng không phải giới thiệu."
+msgstr ""
+"Người giới thiệu không được thiết lập khi nguồn tuyển dụng không phải giới "
+"thiệu."
 
 #: apps/hrm/models/recruitment_expense.py:129
 msgid "Referrer and referee cannot be the same person."
@@ -1562,7 +1568,9 @@ msgstr "Chủ Nhật"
 
 #: apps/hrm/models/work_schedule.py:122
 msgid "Invalid weekday value. Must be one of the predefined weekdays."
-msgstr "Giá trị ngày trong tuần không hợp lệ. Phải là một trong các ngày trong tuần đã định nghĩa."
+msgstr ""
+"Giá trị ngày trong tuần không hợp lệ. Phải là một trong các ngày trong tuần "
+"đã định nghĩa."
 
 #: apps/hrm/models/work_schedule.py:144
 msgid "Morning start time"
@@ -1593,14 +1601,18 @@ msgstr "Kết thúc ca chiều"
 msgid ""
 "For weekdays Monday-Friday, all working time fields must be provided. "
 "Missing: %(fields)s"
-msgstr "Trong các ngày từ Thứ Hai đến Thứ Sáu, tất cả các trường thời gian làm việc phải được cung cấp. Thiếu: %(fields)s"
+msgstr ""
+"Trong các ngày từ Thứ Hai đến Thứ Sáu, tất cả các trường thời gian làm việc "
+"phải được cung cấp. Thiếu: %(fields)s"
 
 #: apps/hrm/models/work_schedule.py:193
 #, python-format
 msgid ""
 "%(next_field)s (%(next_time)s) must be greater than or equal to "
 "%(current_field)s (%(current_time)s)"
-msgstr "%(next_field)s (%(next_time)s) phải lớn hơn hoặc bằng %(current_field)s (%(current_time)s)"
+msgstr ""
+"%(next_field)s (%(next_time)s) phải lớn hơn hoặc bằng %(current_field)s "
+"(%(current_time)s)"
 
 #: apps/hrm/services/employee/work_history.py:39
 #: apps/hrm/services/employee/work_history.py:80
@@ -1627,7 +1639,9 @@ msgstr "Vị trí thay đổi từ {old_position} sang {new_position}"
 msgid ""
 "Transferred from {old_branch}/{old_block}/{old_dept} to {new_branch}/"
 "{new_block}/{new_dept}"
-msgstr "Chuyển từ {old_branch}/{old_block}/{old_dept} sang {new_branch}/"
+msgstr ""
+"Chuyển từ {old_branch}/{old_block}/{old_dept} sang {new_branch}/{new_block}/"
+"{new_dept}"
 
 #: apps/hrm/utils/functions.py:18
 msgid "Unknown"
