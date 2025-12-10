@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 15:20+0700\n"
+"POT-Creation-Date: 2025-12-10 15:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -170,8 +170,32 @@ msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
+#: apps/hrm/api/serializers/holiday.py:70
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
 #: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:98
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:109
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
 #: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
@@ -181,6 +205,49 @@ msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 #: apps/hrm/api/serializers/holiday.py:208
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
+
+#: apps/hrm/api/serializers/holiday.py:214
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday must be on Saturday or Sunday"
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
+
+#: apps/hrm/api/serializers/holiday.py:234
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "For Saturday compensatory workdays, only afternoon session is allowed"
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
+
+#: apps/hrm/api/serializers/holiday.py:244
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/api/serializers/holiday.py:260
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/api/serializers/holiday.py:277
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:288
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
+msgstr ""
 
 #: apps/hrm/api/serializers/proposal.py:305
 msgid "This serializer requires an existing verifier instance"
@@ -390,28 +457,7 @@ msgstr "Tên Đăng Nhập"
 msgid "Notes"
 msgstr "Ghi Chú"
 
-#: apps/hrm/api/views/employee_reports.py:61
-#: apps/hrm/api/views/recruitment_reports.py:680 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr "Tuần"
-
-#: apps/hrm/api/views/employee_reports.py:81
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:69
-#: apps/hrm/constants.py:74
-msgid "Month"
-msgstr "Tháng"
-
-#: apps/hrm/api/views/employee_reports.py:107 apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr "Quý"
-
-#: apps/hrm/api/views/employee_reports.py:128 apps/hrm/constants.py:76
-msgid "Year"
-msgstr "Năm"
-
-#: apps/hrm/api/views/employee_reports.py:333
+#: apps/hrm/api/views/employee_reports.py:335
 msgid "Average"
 msgstr "Trung Bình"
 
@@ -459,7 +505,7 @@ msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
-#: apps/hrm/api/views/employee_reports.py:558 apps/hrm/constants.py:48
+#: apps/hrm/api/views/employee_reports.py:560 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
 #: apps/hrm/models/contract_type.py:69 apps/hrm/models/employee.py:134
 #: apps/hrm/models/recruitment_channel.py:22
@@ -563,6 +609,22 @@ msgstr "Phòng tuyển dụng"
 #: apps/hrm/constants.py:56
 msgid "Returning Employee"
 msgstr "Quay lại"
+
+#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr "Quý"
+
+#: apps/hrm/constants.py:76
+msgid "Year"
+msgstr "Năm"
 
 #: apps/hrm/constants.py:82
 msgid "All data"
