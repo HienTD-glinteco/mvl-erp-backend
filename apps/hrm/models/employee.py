@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.crypto import get_random_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.constants import ColorVariant
@@ -69,7 +69,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         OS = "OS", _("OS")
 
     class Status(models.TextChoices):
-        ACTIVE = "Active", _("Active")
+        ACTIVE = "Active", pgettext_lazy("employee status", "Active")
         ONBOARDING = "Onboarding", _("Onboarding")
         RESIGNED = "Resigned", _("Resigned")
         MATERNITY_LEAVE = "Maternity Leave", _("Maternity Leave")
