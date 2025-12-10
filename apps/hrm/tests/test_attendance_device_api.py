@@ -146,6 +146,22 @@ class AttendanceDeviceAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 2)
 
+    def test_filter_attendance_devices_by_invalid_block_returns_empty(self):
+        """Filtering by a non-existent block should return an empty list."""
+        AttendanceDevice.objects.create(
+            name="Unassigned Device",
+            ip_address="192.168.1.150",
+            port=4370,
+            serial_number="SN999",
+        )
+
+        url = reverse("hrm:attendance-device-list")
+        response = self.client.get(url, {"block": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 0)
+
     @patch("apps.hrm.api.serializers.attendance_device.ZKDeviceService")
     def test_retrieve_attendance_device(self, mock_service):
         """Test retrieving a specific attendance device."""

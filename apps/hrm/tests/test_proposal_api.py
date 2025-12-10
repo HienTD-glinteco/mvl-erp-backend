@@ -170,6 +170,58 @@ class TestProposalAPI:
         for result in data["data"]["results"]:
             assert result["proposal_type"] == ProposalType.PAID_LEAVE
 
+    def test_filter_proposals_by_invalid_created_by_returns_empty(self, api_client, superuser, test_employee):
+        """Filtering proposals by a non-existent creator ID should return an empty result."""
+        Proposal.objects.create(
+            code="DX010001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Test proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"created_by": 999999})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
+    def test_mine_proposals_filter_by_invalid_approved_by_returns_empty(self, api_client, superuser, test_employee):
+        """Filtering my proposals by a non-existent approver ID should return an empty result."""
+        superuser_employee = Employee.objects.create(
+            code="MV_SUPER_01",
+            fullname="Superuser Employee",
+            username="superemployee",
+            email="superemployee@example.com",
+            phone="0999999999",
+            attendance_code="SUP001",
+            start_date=date(2024, 1, 1),
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=test_employee.position,
+            citizen_id="999999999999",
+            user=superuser,
+        )
+        Proposal.objects.create(
+            code="DX010002",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Owned by superuser employee",
+            created_by=superuser_employee,
+            approved_by=superuser_employee,
+        )
+
+        url = reverse("hrm:proposal-mine")
+        response = api_client.get(url, {"approved_by": 999999})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
     def test_retrieve_proposal(self, api_client, superuser, test_employee):
         """Test retrieving a single proposal by ID."""
         proposal = Proposal.objects.create(

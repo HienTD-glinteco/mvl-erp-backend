@@ -396,6 +396,57 @@ class TestProposalVerifierAPI:
         assert result["success"] is True
         assert result["data"]["note"] == "Updated note"
 
+    def test_filter_proposal_verifiers_by_invalid_proposal_returns_empty(
+        self, api_client, superuser, proposal_verifier
+    ):
+        """Filtering proposal verifiers by a non-existent proposal ID should return an empty list."""
+        url = reverse("hrm:proposal-verifier-list")
+        response = api_client.get(url, {"proposal": 999999})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
+    def test_mine_proposal_verifiers_filter_by_invalid_proposal_returns_empty(
+        self, api_client, superuser, branch, block, department
+    ):
+        """Filtering my proposal verifiers by a non-existent proposal ID should return an empty list."""
+        employee = Employee.objects.create(
+            code="MV_SUP_VER",
+            fullname="Verifier Employee",
+            username="superverifier",
+            email="verifier@example.com",
+            phone="0888888888",
+            attendance_code="VER001",
+            start_date="2024-01-01",
+            branch=branch,
+            block=block,
+            department=department,
+            citizen_id="111222333444",
+            user=superuser,
+        )
+        proposal = Proposal.objects.create(
+            code="DX020001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Verifier proposal",
+            created_by=employee,
+        )
+        ProposalVerifier.objects.create(
+            proposal=proposal,
+            employee=employee,
+        )
+
+        url = reverse("hrm:proposal-verifier-mine")
+        response = api_client.get(url, {"proposal": 999999})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 0
+        assert data["data"]["results"] == []
+
     def test_partial_update_proposal_verifier(self, api_client, superuser, proposal_verifier):
         """Test partially updating a proposal verifier."""
         url = reverse("hrm:proposal-verifier-detail", args=[proposal_verifier.id])

@@ -1629,6 +1629,24 @@ class EmployeeFilterTest(TestCase, APITestMixin):
         )
 
     @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    def test_filter_by_invalid_branch_returns_empty(self, mock_s3_service_class):
+        """Filtering employees by a non-existent branch should return an empty list."""
+        mock_s3_instance = MagicMock()
+        mock_s3_service_class.return_value = mock_s3_instance
+        mock_s3_instance.generate_view_url.return_value = "https://example.com/view/avatar.pdf"
+        mock_s3_instance.generate_download_url.return_value = "https://example.com/download/avatar.pdf"
+
+        url = reverse("hrm:employee-list")
+        response = self.client.get(url, {"branch": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        results, count = self.normalize_list_response(data)
+
+        self.assertEqual(count, 0)
+        self.assertEqual(results, [])
+
+    @patch("apps.files.utils.s3_utils.S3FileUploadService")
     def test_filter_by_position_is_leadership_true(self, mock_s3_service_class):
         """Test filtering employees by leadership positions"""
         mock_s3_instance = MagicMock()

@@ -8,29 +8,11 @@ class EmployeeRoleFilterSet(django_filters.FilterSet):
     """FilterSet for filtering employees by role and organizational structure"""
 
     # Organization filters
-    branch = django_filters.ModelChoiceFilter(
-        field_name="employee__branch",
-        queryset=Branch.objects.filter(is_active=True),
-        distinct=True,
-    )
-    block = django_filters.ModelChoiceFilter(
-        field_name="employee__block",
-        queryset=Block.objects.filter(is_active=True),
-        distinct=True,
-    )
-    department = django_filters.ModelChoiceFilter(
-        field_name="employee__department",
-        queryset=Department.objects.filter(is_active=True),
-        distinct=True,
-    )
-    position = django_filters.ModelChoiceFilter(
-        field_name="employee__position",
-        queryset=Position.objects.filter(is_active=True),
-        distinct=True,
-    )
-    role = django_filters.ModelChoiceFilter(
-        queryset=Role.objects.all(),
-    )
+    branch = django_filters.NumberFilter(field_name="employee__branch", distinct=True)
+    block = django_filters.NumberFilter(field_name="employee__block", distinct=True)
+    department = django_filters.NumberFilter(field_name="employee__department", distinct=True)
+    position = django_filters.NumberFilter(field_name="employee__position", distinct=True)
+    role = django_filters.NumberFilter(field_name="role", distinct=True)
 
     class Meta:
         model = User

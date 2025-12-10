@@ -16,6 +16,10 @@ class EmployeeFilterSet(django_filters.FilterSet):
         field_name="status",
         choices=Employee.Status.choices,
     )
+    branch = django_filters.NumberFilter(field_name="branch")
+    block = django_filters.NumberFilter(field_name="block")
+    department = django_filters.NumberFilter(field_name="department")
+    position = django_filters.NumberFilter(field_name="position")
     position__is_leadership = django_filters.BooleanFilter()
     is_onboarding_email_sent = django_filters.BooleanFilter()
     date_of_birth__month = django_filters.NumberFilter(field_name="date_of_birth", lookup_expr="month")

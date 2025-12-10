@@ -26,6 +26,8 @@ class ProposalFilterSet(filters.FilterSet):
         field_name="created_by__position",
         help_text="Filter by creator's position ID",
     )
+    created_by = filters.NumberFilter(field_name="created_by")
+    approved_by = filters.NumberFilter(field_name="approved_by")
 
     class Meta:
         model = Proposal
@@ -73,6 +75,9 @@ class MeProposalFilterSet(ProposalFilterSet):
 class ProposalVerifierFilterSet(filters.FilterSet):
     """FilterSet for Proposal model used by verifiers."""
 
+    proposal = filters.NumberFilter(field_name="proposal")
+    employee = filters.NumberFilter(field_name="employee")
+
     class Meta:
         model = ProposalVerifier
         fields = {
@@ -86,6 +91,8 @@ class ProposalVerifierFilterSet(filters.FilterSet):
 
 class MeProposalVerifierFilterSet(filters.FilterSet):
     """FilterSet for Proposal model used by verifiers."""
+
+    proposal = filters.NumberFilter(field_name="proposal")
 
     class Meta:
         model = ProposalVerifier

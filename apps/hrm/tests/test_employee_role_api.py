@@ -202,6 +202,15 @@ class EmployeeRoleAPITest(TransactionTestCase, APITestMixin):
         for field in required_fields:
             self.assertIn(field, first_employee)
 
+    def test_filter_employee_roles_by_invalid_branch_returns_empty(self):
+        """Filtering employee roles by a non-existent branch should return an empty list."""
+        url = reverse("hrm:employee-role-list")
+        response = self.client.get(url, {"branch": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 0)
+
     def test_list_employee_roles_ordering(self):
         """Test QTNV 3.2.1.1 - Sắp xếp giảm dần theo Mã Nhân viên"""
         url = reverse("hrm:employee-role-list")

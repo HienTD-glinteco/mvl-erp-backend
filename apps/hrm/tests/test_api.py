@@ -237,6 +237,22 @@ class BranchContactInfoAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["business_line"], "Mortgage")
 
+    def test_filter_branch_contact_info_by_invalid_branch_returns_empty(self):
+        BranchContactInfo.objects.create(
+            branch=self.branch,
+            business_line="Mortgage",
+            name="Alice Nguyen",
+            phone_number="0912345678",
+            email="alice.nguyen@example.com",
+        )
+
+        url = reverse("hrm:branch-contact-info-list")
+        response = self.client.get(url, {"branch": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 0)
+
     def test_update_branch_contact_info(self):
         contact = BranchContactInfo.objects.create(
             branch=self.branch,
@@ -340,6 +356,21 @@ class BlockAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(len(response_data), 1)
         self.assertEqual(response_data[0]["code"], support_block.code)
 
+    def test_filter_blocks_by_invalid_branch_returns_empty(self):
+        Block.objects.create(
+            name="Khối Hỗ trợ",
+            code="HTX",
+            block_type=Block.BlockType.SUPPORT,
+            branch=self.branch,
+        )
+
+        url = reverse("hrm:block-list")
+        response = self.client.get(url, {"branch": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 0)
+
 
 class DepartmentAPITest(TransactionTestCase, APITestMixin):
     """Test cases for Department API endpoints"""
@@ -419,6 +450,20 @@ class DepartmentAPITest(TransactionTestCase, APITestMixin):
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)  # One root department
         self.assertEqual(len(response_data[0]["children"]), 1)  # One child
+
+    def test_filter_departments_by_invalid_block_returns_empty(self):
+        Department.objects.create(
+            name="Phòng Nhân sự",
+            branch=self.branch,
+            block=self.block,
+        )
+
+        url = reverse("hrm:department-list")
+        response = self.client.get(url, {"block": 999999})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = self.get_response_data(response)
+        self.assertEqual(len(response_data), 0)
 
 
 class PositionAPITest(TransactionTestCase, APITestMixin):
