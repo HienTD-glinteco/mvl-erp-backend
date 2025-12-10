@@ -97,24 +97,28 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
 
 @shared_task(queue="reports_batch")
 def aggregate_hr_reports_batch() -> int:
-    """Business logic for HR batch aggregation using need_refresh flag.
+    """
+    Batch aggregation for HR reports.
 
-    This function:
-    1. Finds all reports marked with need_refresh=True
-    2. Identifies earliest date and affected org units
-    3. Processes all dates from earliest to today for those org units
-    4. Clears need_refresh flag after successful processing
+    This task performs two main actions:
+    1. For the current day, processes all active departments and generates a daily employee status snapshot for each department. This ensures every department has a status breakdown for today, even if no reports need refresh.
+    2. For any reports marked with need_refresh=True, identifies the earliest date and affected org units, then processes all dates from that date up to today for those org units. After processing, clears the need_refresh flag for those dates.
 
     Returns:
-        Number of dates successfully processed
+        Number of dates successfully processed for need_refresh reports (does not count today's department snapshot).
     """
+    today = timezone.now().date()
+
     earliest_date, org_units = _get_reports_needing_refresh()
+
+    logger.info("Processing all active departments for daily employee status snapshot: %s", today)
+    for depart in Department.objects.filter(is_active=True).select_related("branch", "block"):
+        _aggregate_employee_status_for_date(today, depart.branch, depart.block, depart)
 
     if earliest_date is None or not org_units:
         logger.info("No HR reports need refresh")
         return 0
 
-    today = timezone.now().date()
     logger.info(f"Batch aggregating HR reports from {earliest_date} to {today} for {len(org_units)} org units")
 
     # Fetch all org units in bulk BEFORE loop (optimization per code review)
