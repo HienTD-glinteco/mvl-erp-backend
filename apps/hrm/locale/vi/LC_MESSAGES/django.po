@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 15:20+0700\n"
+"POT-Creation-Date: 2025-12-10 15:53+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -708,67 +708,71 @@ msgstr "Điều chuyển công tác"
 msgid "Asset Allocation"
 msgstr "Cấp tài sản"
 
-#: apps/hrm/constants.py:192
-msgid "Piece"
+#: apps/hrm/constants.py:187
+msgid "Device Change"
 msgstr ""
 
 #: apps/hrm/constants.py:193
-msgid "Box"
+msgid "Piece"
 msgstr ""
 
 #: apps/hrm/constants.py:194
-msgid "Set"
+msgid "Box"
 msgstr ""
 
 #: apps/hrm/constants.py:195
-msgid "Gram"
+msgid "Set"
 msgstr ""
 
 #: apps/hrm/constants.py:196
-msgid "Liter"
+msgid "Gram"
 msgstr ""
 
 #: apps/hrm/constants.py:197
-msgid "Meter"
+msgid "Liter"
 msgstr ""
 
 #: apps/hrm/constants.py:198
-msgid "Cylinder"
+msgid "Meter"
 msgstr ""
 
 #: apps/hrm/constants.py:199
+msgid "Cylinder"
+msgstr ""
+
+#: apps/hrm/constants.py:200
 msgid "Bag"
 msgstr ""
 
-#: apps/hrm/constants.py:205 apps/hrm/constants.py:221
+#: apps/hrm/constants.py:206 apps/hrm/constants.py:222
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:206
+#: apps/hrm/constants.py:207
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:207 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:208 apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:213 apps/hrm/models/holiday.py:60
+#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:60
 msgid "Full Day"
 msgstr "Cả ngày"
 
-#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:58
+#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:58
 msgid "Morning"
 msgstr "Buổi sáng"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:59
+#: apps/hrm/constants.py:216 apps/hrm/models/holiday.py:59
 msgid "Afternoon"
 msgstr "Buổi chiều"
 
-#: apps/hrm/constants.py:222
+#: apps/hrm/constants.py:223
 msgid "Verified"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/constants.py:223
+#: apps/hrm/constants.py:224
 msgid "Not verified"
 msgstr "Không xác nhận"
 
@@ -1001,12 +1005,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1015,27 +1017,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1136,7 +1133,7 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
-#, fuzzy
+#, fuzzy, python-format
 #| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"
@@ -1372,87 +1369,87 @@ msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
 msgid "A main department already exists for function %(function)s."
 msgstr "Phòng ban đầu mối đã tồn tại cho chức năng %(function)s."
 
-#: apps/hrm/models/proposal.py:326
+#: apps/hrm/models/proposal.py:356
 msgid "day"
 msgstr "Ngày"
 
-#: apps/hrm/models/proposal.py:402
+#: apps/hrm/models/proposal.py:439
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:404
+#: apps/hrm/models/proposal.py:441
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:406
+#: apps/hrm/models/proposal.py:443
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:411
+#: apps/hrm/models/proposal.py:448
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:421
+#: apps/hrm/models/proposal.py:458
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:423
+#: apps/hrm/models/proposal.py:460
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:429
+#: apps/hrm/models/proposal.py:466
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr ""
 "Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt "
 "đầu"
 
-#: apps/hrm/models/proposal.py:445
+#: apps/hrm/models/proposal.py:482
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr "Nhập lý do khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:457
+#: apps/hrm/models/proposal.py:494
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:469
+#: apps/hrm/models/proposal.py:506
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:481
+#: apps/hrm/models/proposal.py:518
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:492
+#: apps/hrm/models/proposal.py:529
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
 
-#: apps/hrm/models/proposal.py:496
+#: apps/hrm/models/proposal.py:533
 msgid "New department is required for job transfer"
 msgstr "Phong ban mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:500
+#: apps/hrm/models/proposal.py:537
 msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:516
+#: apps/hrm/models/proposal.py:553
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:630
+#: apps/hrm/models/proposal.py:667
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:640
+#: apps/hrm/models/proposal.py:677
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:721
+#: apps/hrm/models/proposal.py:758
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:839
+#: apps/hrm/models/proposal.py:876
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
