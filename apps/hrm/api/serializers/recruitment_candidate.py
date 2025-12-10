@@ -216,6 +216,12 @@ class CandidateToEmployeeSerializer(serializers.Serializer):
         if not self.candidate:
             raise serializers.ValidationError({"non_field_errors": [_("Candidate not found in context.")]})
 
+        # Check if candidate status is HIRED
+        if self.candidate.status != RecruitmentCandidate.Status.HIRED:
+            raise serializers.ValidationError(
+                {"non_field_errors": [_("Candidate must be in HIRED status to be converted to an employee.")]}
+            )
+
         # Check if candidate is already converted
         if self.candidate.employee:
             raise serializers.ValidationError(

@@ -661,6 +661,183 @@ class EmployeeModelTest(TestCase):
         employee.refresh_from_db()
         self.assertIsNone(employee.citizen_id_file)
 
+    def test_employee_phone_must_be_unique(self):
+        """Test that phone number must be unique across employees"""
+        # Arrange: Create first employee
+        Employee.objects.create(
+            fullname="First Employee",
+            username="firstemployee",
+            email="firstemployee@example.com",
+            phone="0123456789",
+            attendance_code="12345",
+            date_of_birth="1990-01-01",
+            personal_email="first.personal@example.com",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="111111111111",
+        )
+
+        # Act & Assert: Creating second employee with same phone should raise error
+        from django.db import IntegrityError
+
+        with self.assertRaises(IntegrityError):
+            Employee.objects.create(
+                fullname="Second Employee",
+                username="secondemployee",
+                email="secondemployee@example.com",
+                phone="0123456789",  # Same phone number
+                attendance_code="54321",
+                date_of_birth="1991-01-01",
+                personal_email="second.personal@example.com",
+                start_date="2024-01-01",
+                branch=self.branch,
+                block=self.block,
+                department=self.department,
+                citizen_id="222222222222",
+            )
+
+    def test_employee_code_generated_with_code_type_prefix(self):
+        """Test that employee code is generated using code_type as prefix"""
+        # Test MV code type
+        employee_mv = Employee.objects.create(
+            fullname="MV Employee",
+            username="mvemployee",
+            email="mvemployee@example.com",
+            phone="0123456781",
+            attendance_code="12345",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="111111111111",
+            code_type=Employee.CodeType.MV,
+        )
+        self.assertTrue(employee_mv.code.startswith("MV"))
+
+        # Test CTV code type
+        employee_ctv = Employee.objects.create(
+            fullname="CTV Employee",
+            username="ctvemployee",
+            email="ctvemployee@example.com",
+            phone="0123456782",
+            attendance_code="12346",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="222222222222",
+            code_type=Employee.CodeType.CTV,
+        )
+        self.assertTrue(employee_ctv.code.startswith("CTV"))
+
+        # Test OS code type
+        employee_os = Employee.objects.create(
+            fullname="OS Employee",
+            username="osemployee",
+            email="osemployee@example.com",
+            phone="0123456783",
+            attendance_code="12347",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            citizen_id="333333333333",
+            code_type=Employee.CodeType.OS,
+        )
+        self.assertTrue(employee_os.code.startswith("OS"))
+
+
+class EmployeeGenerateCodeFunctionTest(TestCase):
+    """Test cases for the generate_code function in Employee module"""
+
+    def test_generate_code_with_mv_code_type(self):
+        """Test generate_code returns code with MV prefix"""
+        from apps.hrm.models.employee import generate_code
+
+        # Arrange: Create a mock employee-like object
+        class MockEmployee:
+            def __init__(self, id, code_type):
+                self.id = id
+                self.code_type = code_type
+
+        employee = MockEmployee(id=1, code_type="MV")
+
+        # Act
+        code = generate_code(employee)
+
+        # Assert
+        self.assertEqual(code, "MV001")
+
+    def test_generate_code_with_ctv_code_type(self):
+        """Test generate_code returns code with CTV prefix"""
+        from apps.hrm.models.employee import generate_code
+
+        class MockEmployee:
+            def __init__(self, id, code_type):
+                self.id = id
+                self.code_type = code_type
+
+        employee = MockEmployee(id=12, code_type="CTV")
+
+        # Act
+        code = generate_code(employee)
+
+        # Assert
+        self.assertEqual(code, "CTV012")
+
+    def test_generate_code_with_os_code_type(self):
+        """Test generate_code returns code with OS prefix"""
+        from apps.hrm.models.employee import generate_code
+
+        class MockEmployee:
+            def __init__(self, id, code_type):
+                self.id = id
+                self.code_type = code_type
+
+        employee = MockEmployee(id=444, code_type="OS")
+
+        # Act
+        code = generate_code(employee)
+
+        # Assert
+        self.assertEqual(code, "OS444")
+
+    def test_generate_code_with_four_digit_id(self):
+        """Test generate_code with ID >= 1000 does not pad"""
+        from apps.hrm.models.employee import generate_code
+
+        class MockEmployee:
+            def __init__(self, id, code_type):
+                self.id = id
+                self.code_type = code_type
+
+        employee = MockEmployee(id=5555, code_type="MV")
+
+        # Act
+        code = generate_code(employee)
+
+        # Assert
+        self.assertEqual(code, "MV5555")
+
+    def test_generate_code_without_id_raises_error(self):
+        """Test generate_code raises ValueError when employee has no id"""
+        from apps.hrm.models.employee import generate_code
+
+        class MockEmployee:
+            def __init__(self, id, code_type):
+                self.id = id
+                self.code_type = code_type
+
+        employee = MockEmployee(id=None, code_type="MV")
+
+        # Act & Assert
+        with self.assertRaises(ValueError) as context:
+            generate_code(employee)
+
+        self.assertIn("must have an id", str(context.exception))
+
 
 class EmployeeAPITest(TestCase, APITestMixin):
     """Test cases for Employee API endpoints"""
@@ -959,7 +1136,7 @@ class EmployeeAPITest(TestCase, APITestMixin):
             "fullname": "Employee With Citizen ID File",
             "username": "empwithfile",
             "email": "empwithfile@example.com",
-            "phone": "1234567890",
+            "phone": "2139557490",
             "attendance_code": "58607083146091314661",
             "date_of_birth": "1995-01-01",
             "personal_email": "empwithfile.personal@example.com",

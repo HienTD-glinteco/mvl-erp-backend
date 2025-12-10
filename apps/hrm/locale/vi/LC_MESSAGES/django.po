@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 15:07+0700\n"
+"POT-Creation-Date: 2025-12-10 15:20+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgstr ""
 msgid "An employee with this attendance code already exists."
 msgstr "Mã chấm công này đã được sử dụng bởi một nhân viên khác."
 
-#: apps/hrm/api/serializers/employee.py:303 apps/hrm/api/views/employee.py:415
+#: apps/hrm/api/serializers/employee.py:303
 msgid "Employee created"
 msgstr "Tạo nhân viên thành công"
 
@@ -200,18 +200,24 @@ msgid "Candidate not found in context."
 msgstr "Không tim thấy ứng viên"
 
 #: apps/hrm/api/serializers/recruitment_candidate.py:222
+#, fuzzy
+#| msgid "This candidate has already been converted to an employee."
+msgid "Candidate must be in HIRED status to be converted to an employee."
+msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
+
+#: apps/hrm/api/serializers/recruitment_candidate.py:228
 msgid "This candidate has already been converted to an employee."
 msgstr "Ứng viên này đã được chuyển đổi thành nhân viên."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:227
+#: apps/hrm/api/serializers/recruitment_candidate.py:233
 msgid "An employee with this email already exists."
 msgstr "Nhân viên với email này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:231
+#: apps/hrm/api/serializers/recruitment_candidate.py:237
 msgid "An employee with this citizen ID already exists."
 msgstr "Nhân viên với số CMND/CCCD này đã tồn tại."
 
-#: apps/hrm/api/serializers/recruitment_candidate.py:273
+#: apps/hrm/api/serializers/recruitment_candidate.py:279
 #, python-brace-format
 msgid "Converted from recruitment candidate {code}"
 msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
@@ -248,139 +254,139 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/employee.py:513
+#: apps/hrm/api/views/employee.py:486
 msgid "No."
 msgstr "STT"
 
-#: apps/hrm/api/views/employee.py:514
+#: apps/hrm/api/views/employee.py:487
 msgid "Employee Code"
 msgstr "Mã Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:515
+#: apps/hrm/api/views/employee.py:488
 msgid "Full Name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/api/views/employee.py:516
+#: apps/hrm/api/views/employee.py:489
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:517
+#: apps/hrm/api/views/employee.py:490
 msgid "Status"
 msgstr "Trạng Thái"
 
-#: apps/hrm/api/views/employee.py:518
+#: apps/hrm/api/views/employee.py:491
 msgid "Start Date"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/api/views/employee.py:519
+#: apps/hrm/api/views/employee.py:492
 msgid "Resignation Reason"
 msgstr "Lý Do Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:520
+#: apps/hrm/api/views/employee.py:493
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:521
+#: apps/hrm/api/views/employee.py:494
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:522
+#: apps/hrm/api/views/employee.py:495
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:523
+#: apps/hrm/api/views/employee.py:496
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:524
+#: apps/hrm/api/views/employee.py:497
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:525
+#: apps/hrm/api/views/employee.py:498
 msgid "Department"
 msgstr "Phòng Ban"
 
-#: apps/hrm/api/views/employee.py:526
+#: apps/hrm/api/views/employee.py:499
 msgid "Phone"
 msgstr "Số điện thoại"
 
-#: apps/hrm/api/views/employee.py:527
+#: apps/hrm/api/views/employee.py:500
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:528
+#: apps/hrm/api/views/employee.py:501
 msgid "Email"
 msgstr "Email"
 
-#: apps/hrm/api/views/employee.py:529
+#: apps/hrm/api/views/employee.py:502
 msgid "Bank Name"
 msgstr "Tên Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:530
+#: apps/hrm/api/views/employee.py:503
 msgid "Bank Account Number"
 msgstr "Số Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:531
+#: apps/hrm/api/views/employee.py:504
 msgid "Tax Code"
 msgstr "Mã Số Thuế"
 
-#: apps/hrm/api/views/employee.py:532
+#: apps/hrm/api/views/employee.py:505
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:533
+#: apps/hrm/api/views/employee.py:506
 msgid "Gender"
 msgstr "Giới Tính"
 
-#: apps/hrm/api/views/employee.py:534
+#: apps/hrm/api/views/employee.py:507
 msgid "Date of Birth"
 msgstr "Ngày Sinh"
 
-#: apps/hrm/api/views/employee.py:535
+#: apps/hrm/api/views/employee.py:508
 msgid "Place of Birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/api/views/employee.py:536
+#: apps/hrm/api/views/employee.py:509
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:537
+#: apps/hrm/api/views/employee.py:510
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:538
+#: apps/hrm/api/views/employee.py:511
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:539
+#: apps/hrm/api/views/employee.py:512
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:540
+#: apps/hrm/api/views/employee.py:513
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:541
+#: apps/hrm/api/views/employee.py:514
 msgid "ID Issued Date"
 msgstr "Ngày Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:542
+#: apps/hrm/api/views/employee.py:515
 msgid "ID Issued Place"
 msgstr "Nơi Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:543
+#: apps/hrm/api/views/employee.py:516
 msgid "Residential Address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/api/views/employee.py:544
+#: apps/hrm/api/views/employee.py:517
 msgid "Permanent Address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/api/views/employee.py:545
+#: apps/hrm/api/views/employee.py:518
 msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
-#: apps/hrm/api/views/employee.py:546
+#: apps/hrm/api/views/employee.py:519
 msgid "Notes"
 msgstr "Ghi Chú"
 
@@ -409,53 +415,53 @@ msgstr "Năm"
 msgid "Average"
 msgstr "Trung Bình"
 
-#: apps/hrm/api/views/employee_reports.py:539 apps/hrm/models/employee.py:96
+#: apps/hrm/api/views/employee_reports.py:539 apps/hrm/models/employee.py:123
 msgid "Agreement Termination"
 msgstr "Thỏa thuận chấm dứt Hợp đồng lao động trước thời hạn"
 
-#: apps/hrm/api/views/employee_reports.py:540 apps/hrm/models/employee.py:97
+#: apps/hrm/api/views/employee_reports.py:540 apps/hrm/models/employee.py:124
 msgid "Probation Fail"
 msgstr "Thử việc không đạt"
 
-#: apps/hrm/api/views/employee_reports.py:541 apps/hrm/models/employee.py:98
+#: apps/hrm/api/views/employee_reports.py:541 apps/hrm/models/employee.py:125
 msgid "Job Abandonment"
 msgstr "Bỏ việc"
 
-#: apps/hrm/api/views/employee_reports.py:545 apps/hrm/models/employee.py:99
+#: apps/hrm/api/views/employee_reports.py:545 apps/hrm/models/employee.py:126
 msgid "Disciplinary Termination"
 msgstr "Sa thải do kỷ luật"
 
-#: apps/hrm/api/views/employee_reports.py:547 apps/hrm/models/employee.py:100
+#: apps/hrm/api/views/employee_reports.py:547 apps/hrm/models/employee.py:127
 msgid "Workforce Reduction"
 msgstr "Thanh lọc"
 
-#: apps/hrm/api/views/employee_reports.py:548 apps/hrm/models/employee.py:101
+#: apps/hrm/api/views/employee_reports.py:548 apps/hrm/models/employee.py:128
 msgid "Underperforming"
 msgstr "Thành tích kém trong công việc"
 
-#: apps/hrm/api/views/employee_reports.py:549 apps/hrm/models/employee.py:102
+#: apps/hrm/api/views/employee_reports.py:549 apps/hrm/models/employee.py:129
 msgid "Contract Expired"
 msgstr "Hết hợp đồng"
 
-#: apps/hrm/api/views/employee_reports.py:550 apps/hrm/models/employee.py:103
+#: apps/hrm/api/views/employee_reports.py:550 apps/hrm/models/employee.py:130
 msgid "Voluntary - Health Reasons"
 msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
 
-#: apps/hrm/api/views/employee_reports.py:551 apps/hrm/models/employee.py:104
+#: apps/hrm/api/views/employee_reports.py:551 apps/hrm/models/employee.py:131
 msgid "Voluntary - Personal Reasons"
 msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
 
-#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/models/employee.py:105
+#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/models/employee.py:132
 msgid "Voluntary - Career Change"
 msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 
-#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:106
+#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:133
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
 #: apps/hrm/api/views/employee_reports.py:558 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
-#: apps/hrm/models/contract_type.py:69 apps/hrm/models/employee.py:107
+#: apps/hrm/models/contract_type.py:69 apps/hrm/models/employee.py:134
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr "Khác"
@@ -702,71 +708,67 @@ msgstr "Điều chuyển công tác"
 msgid "Asset Allocation"
 msgstr "Cấp tài sản"
 
-#: apps/hrm/constants.py:187
-msgid "Device Change"
-msgstr ""
-
-#: apps/hrm/constants.py:193
+#: apps/hrm/constants.py:192
 msgid "Piece"
 msgstr ""
 
-#: apps/hrm/constants.py:194
+#: apps/hrm/constants.py:193
 msgid "Box"
 msgstr ""
 
-#: apps/hrm/constants.py:195
+#: apps/hrm/constants.py:194
 msgid "Set"
 msgstr ""
 
-#: apps/hrm/constants.py:196
+#: apps/hrm/constants.py:195
 msgid "Gram"
 msgstr ""
 
-#: apps/hrm/constants.py:197
+#: apps/hrm/constants.py:196
 msgid "Liter"
 msgstr ""
 
-#: apps/hrm/constants.py:198
+#: apps/hrm/constants.py:197
 msgid "Meter"
 msgstr ""
 
-#: apps/hrm/constants.py:199
+#: apps/hrm/constants.py:198
 msgid "Cylinder"
 msgstr ""
 
-#: apps/hrm/constants.py:200
+#: apps/hrm/constants.py:199
 msgid "Bag"
 msgstr ""
 
-#: apps/hrm/constants.py:206 apps/hrm/constants.py:222
+#: apps/hrm/constants.py:205 apps/hrm/constants.py:221
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:207
+#: apps/hrm/constants.py:206
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:208 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:207 apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:60
+#: apps/hrm/constants.py:213 apps/hrm/models/holiday.py:60
 msgid "Full Day"
 msgstr "Cả ngày"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:58
+#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:58
 msgid "Morning"
 msgstr "Buổi sáng"
 
-#: apps/hrm/constants.py:216 apps/hrm/models/holiday.py:59
+#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:59
 msgid "Afternoon"
 msgstr "Buổi chiều"
 
-#: apps/hrm/constants.py:223
+#: apps/hrm/constants.py:222
 msgid "Verified"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/constants.py:224
+#: apps/hrm/constants.py:223
 msgid "Not verified"
 msgstr "Không xác nhận"
 
@@ -999,10 +1001,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1011,22 +1015,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1101,11 +1110,11 @@ msgid "Expired"
 msgstr "Hết hạn"
 
 #: apps/hrm/models/contract.py:350 apps/hrm/models/contract_type.py:48
-#: apps/hrm/models/contract_type.py:278
+#: apps/hrm/models/contract_type.py:280
 msgid "Indefinite term"
 msgstr "Không xác định thời hạn"
 
-#: apps/hrm/models/contract.py:351 apps/hrm/models/contract_type.py:279
+#: apps/hrm/models/contract.py:351 apps/hrm/models/contract_type.py:281
 #, python-brace-format
 msgid "{months} months"
 msgstr "{months} tháng"
@@ -1127,7 +1136,7 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
-#, fuzzy, python-format
+#, fuzzy
 #| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"
@@ -1152,7 +1161,7 @@ msgstr "Hợp đồng"
 msgid "Appendix"
 msgstr "Phụ lục"
 
-#: apps/hrm/models/contract_type.py:348
+#: apps/hrm/models/contract_type.py:350
 msgid ""
 "No contract type with category 'appendix' found. Please create one first."
 msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."
@@ -1161,76 +1170,76 @@ msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."
 msgid "Issued"
 msgstr "Ngày ban hành"
 
-#: apps/hrm/models/employee.py:67
+#: apps/hrm/models/employee.py:94
 msgid "MV"
 msgstr ""
 
-#: apps/hrm/models/employee.py:68
+#: apps/hrm/models/employee.py:95
 msgid "CTV"
 msgstr ""
 
-#: apps/hrm/models/employee.py:69
+#: apps/hrm/models/employee.py:96
 msgid "OS"
 msgstr ""
 
-#: apps/hrm/models/employee.py:72
+#: apps/hrm/models/employee.py:99
 msgctxt "employee status"
 msgid "Active"
 msgstr "Đang làm việc"
 
-#: apps/hrm/models/employee.py:73
+#: apps/hrm/models/employee.py:100
 msgid "Onboarding"
 msgstr ""
 
-#: apps/hrm/models/employee.py:74
+#: apps/hrm/models/employee.py:101
 msgid "Resigned"
 msgstr "Đã nghỉ việc"
 
-#: apps/hrm/models/employee.py:75
+#: apps/hrm/models/employee.py:102
 msgid "Maternity Leave"
 msgstr "Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/models/employee.py:76
+#: apps/hrm/models/employee.py:103
 msgid "Unpaid Leave"
 msgstr "Nghỉ không lương"
 
-#: apps/hrm/models/employee.py:87
+#: apps/hrm/models/employee.py:114
 msgid "Male"
 msgstr "Nam"
 
-#: apps/hrm/models/employee.py:88
+#: apps/hrm/models/employee.py:115
 msgid "Female"
 msgstr "Nữ"
 
-#: apps/hrm/models/employee.py:91
+#: apps/hrm/models/employee.py:118
 msgid "Single"
 msgstr "Độc thân"
 
-#: apps/hrm/models/employee.py:92
+#: apps/hrm/models/employee.py:119
 msgid "Married"
 msgstr "Đã kết hôn"
 
-#: apps/hrm/models/employee.py:93
+#: apps/hrm/models/employee.py:120
 msgid "Divorced"
 msgstr "Đã ly hôn"
 
-#: apps/hrm/models/employee.py:146
+#: apps/hrm/models/employee.py:173
 msgid "Attendance code must contain only digits"
 msgstr "Mã chấm công chỉ được chứa chữ số"
 
-#: apps/hrm/models/employee.py:285
+#: apps/hrm/models/employee.py:313
 msgid "Phone number must be exactly 10 digits"
 msgstr "Số điện thoại phải đúng 10 chữ số"
 
-#: apps/hrm/models/employee.py:321
+#: apps/hrm/models/employee.py:349
 msgid "Phone number must contain only digits"
 msgstr "Số điện thoại chỉ được chứa chữ số"
 
-#: apps/hrm/models/employee.py:410
+#: apps/hrm/models/employee.py:438
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr "Không thể thay đổi trạng thái On-boarding cho nhân viên đã làm việc."
 
-#: apps/hrm/models/employee.py:425
+#: apps/hrm/models/employee.py:453
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
@@ -1238,11 +1247,11 @@ msgstr ""
 "Ngày bắt đầu nghỉ việc là bắt buộc khi thay đổi trạng thái thành Đã nghỉ "
 "việc, Nghỉ việc hưởng chế độ thai sản hoặc Nghỉ không lương."
 
-#: apps/hrm/models/employee.py:432
+#: apps/hrm/models/employee.py:460
 msgid "Resignation reason is required when status is Resigned."
 msgstr "Lý do nghỉ việc là bắt buộc khi trạng thái là Đã nghỉ việc."
 
-#: apps/hrm/models/employee.py:437
+#: apps/hrm/models/employee.py:465
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
@@ -1363,87 +1372,87 @@ msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
 msgid "A main department already exists for function %(function)s."
 msgstr "Phòng ban đầu mối đã tồn tại cho chức năng %(function)s."
 
-#: apps/hrm/models/proposal.py:356
+#: apps/hrm/models/proposal.py:326
 msgid "day"
 msgstr "Ngày"
 
-#: apps/hrm/models/proposal.py:439
+#: apps/hrm/models/proposal.py:402
 msgid "Late exemption start date is required"
 msgstr "Ngày bắt đầu miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:441
+#: apps/hrm/models/proposal.py:404
 msgid "Late exemption end date is required"
 msgstr "Ngày kết thúc miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:443
+#: apps/hrm/models/proposal.py:406
 msgid "Late exemption minutes is required"
 msgstr "Số phút miễn trừ trễ là bắt buộc"
 
-#: apps/hrm/models/proposal.py:448
+#: apps/hrm/models/proposal.py:411
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:458
+#: apps/hrm/models/proposal.py:421
 msgid "Post-maternity benefits start date is required"
 msgstr "Ngày bắt đầu chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:460
+#: apps/hrm/models/proposal.py:423
 msgid "Post-maternity benefits end date is required"
 msgstr "Ngày kết thúc chế độ làm việc hậu thai sản là bắt buộc"
 
-#: apps/hrm/models/proposal.py:466
+#: apps/hrm/models/proposal.py:429
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr ""
 "Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt "
 "đầu"
 
-#: apps/hrm/models/proposal.py:482
+#: apps/hrm/models/proposal.py:445
 msgid "TimeSheet Entry Complaint reason is required for complaint proposals"
 msgstr "Nhập lý do khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:494
+#: apps/hrm/models/proposal.py:457
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:506
+#: apps/hrm/models/proposal.py:469
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:518
+#: apps/hrm/models/proposal.py:481
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:529
+#: apps/hrm/models/proposal.py:492
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
 
-#: apps/hrm/models/proposal.py:533
+#: apps/hrm/models/proposal.py:496
 msgid "New department is required for job transfer"
 msgstr "Phong ban mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:537
+#: apps/hrm/models/proposal.py:500
 msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:553
+#: apps/hrm/models/proposal.py:516
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:667
+#: apps/hrm/models/proposal.py:630
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:677
+#: apps/hrm/models/proposal.py:640
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:758
+#: apps/hrm/models/proposal.py:721
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:876
+#: apps/hrm/models/proposal.py:839
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 

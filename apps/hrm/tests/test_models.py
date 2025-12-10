@@ -502,6 +502,7 @@ class ProposalShortDescriptionTest(TestCase):
             fullname="Test Employee",
             username="testemployee",
             email="test@example.com",
+            phone="0900789001",
             citizen_id="123456789001",
             start_date="2023-01-01",
             branch=self.branch,

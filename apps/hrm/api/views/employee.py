@@ -6,7 +6,6 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -25,7 +24,6 @@ from apps.hrm.api.serializers import (
 )
 from apps.hrm.callbacks import mark_employee_onboarding_email_sent
 from apps.hrm.models import Employee
-from apps.hrm.services.employee import create_state_change_event
 from apps.imports.api.mixins import AsyncImportProgressMixin
 from apps.mailtemplates.serializers import TemplatePreviewResponseSerializer
 from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
@@ -392,31 +390,6 @@ class EmployeeViewSet(
                 ),
             }
         ]
-
-    @extend_schema(
-        summary="Copy employee",
-        description="Create a duplicate of an existing employee with unique identifiers for code, username, email, and citizen_id",
-        tags=["5.1: Employee"],
-        request=None,
-        responses={200: EmployeeSerializer},
-    )
-    @action(detail=True, methods=["post"], url_path="copy")
-    def copy(self, request, pk=None):
-        """Create a duplicate of an existing employee"""
-        original = self.get_object()
-        copied = original.copy()
-
-        # Create work history record for the copied employee
-        create_state_change_event(
-            employee=copied,
-            old_status=None,
-            new_status=copied.status,
-            effective_date=copied.start_date,
-            note=_("Employee created"),
-        )
-
-        serializer = self.get_serializer(copied)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Update employee avatar",

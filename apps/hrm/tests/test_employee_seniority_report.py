@@ -108,6 +108,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             "fullname": f"Test Employee {code}",
             "username": f"user_{code.lower()}",
             "email": f"{code.lower()}@example.com",
+            "phone": f"090{int(code[2:]) if (code.startswith('MV') or code.startswith('OS')) else hash(code) % 10000000:07d}",
             "attendance_code": f"{int(code[2:]):05d}" if (code.startswith("MV") or code.startswith("OS")) else "12345",
             "citizen_id": citizen_id,
             "branch": self.branch,

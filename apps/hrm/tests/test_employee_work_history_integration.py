@@ -1,6 +1,5 @@
 """Tests for employee work history integration with employee operations."""
 
-import json
 from datetime import date
 
 from django.contrib.auth import get_user_model
@@ -81,7 +80,7 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             "attendance_code": "123456",
             "status": Employee.Status.ONBOARDING,
             "citizen_id": "123456789012",
-            "phone": "0123456789",
+            "phone": "7609500021",
         }
 
         # Act
@@ -428,50 +427,6 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
         self.assertEqual(work_history.status, Employee.Status.MATERNITY_LEAVE)
         self.assertEqual(work_history.from_date, date(2024, 6, 1))
         self.assertEqual(work_history.to_date, date(2024, 9, 1))
-
-    def test_employee_copy_creates_work_history(self):
-        """Test that copying an employee creates a work history record for the copy."""
-        # Arrange - Create employee
-        employee = Employee.objects.create(
-            fullname="John Doe",
-            username="johndoe_copy_orig",
-            email="johndoe_copy_orig@example.com",
-            code_type="MV",
-            branch=self.branch,
-            block=self.block,
-            department=self.department,
-            position=self.position,
-            start_date=date(2024, 1, 1),
-            citizen_id="000000020209",
-            attendance_code="12353",
-            phone="0123456781",
-            status=Employee.Status.ACTIVE,
-        )
-
-        # Act - Call copy action
-        url = reverse("hrm:employee-copy", kwargs={"pk": employee.pk})
-        response = self.client.post(url, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Get the copied employee - parse from JSON response
-        response_data = json.loads(response.content)
-
-        # The response should contain the data in a 'data' field due to envelope wrapping
-        if "data" in response_data:
-            copied_employee = Employee.objects.get(pk=response_data["data"]["id"])
-        else:
-            copied_employee = Employee.objects.get(pk=response_data["id"])
-
-        # Check that work history was created for the copied employee
-        work_histories = EmployeeWorkHistory.objects.filter(employee=copied_employee)
-        self.assertEqual(work_histories.count(), 1)
-
-        work_history = work_histories.first()
-        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_STATUS)
-        # The note should be "Employee created" (same as regular employee creation)
-        self.assertEqual(work_history.note, "Employee created")
 
     def test_recruitment_candidate_to_employee_creates_work_history(self):
         """Test that converting a recruitment candidate to employee creates a work history record."""

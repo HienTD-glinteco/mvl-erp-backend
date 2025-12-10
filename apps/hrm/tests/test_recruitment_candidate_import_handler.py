@@ -233,6 +233,7 @@ class TestEntityCreation:
             fullname="Test Proposer",
             username="proposer",
             email="proposer@test.com",
+            phone="0977777777",
             citizen_id="777777777777",  # Unique citizen ID
             start_date=date.today(),
             status=Employee.Status.ACTIVE,
@@ -266,6 +267,7 @@ class TestEntityCreation:
             fullname="Test Proposer",
             username="proposer",
             email="proposer@test.com",
+            phone="0966666666",
             citizen_id="666666666666",  # Unique citizen ID
             start_date=date.today(),
             status=Employee.Status.ACTIVE,
@@ -354,6 +356,7 @@ class TestImportHandler:
             fullname="Test Referrer",
             username="referrer",
             email="referrer@test.com",
+            phone="0999999999",
             citizen_id="999999999999",  # Unique citizen ID for referrer
             start_date=date.today(),
             status=Employee.Status.ACTIVE,
@@ -849,6 +852,7 @@ def sample_proposer(sample_branch, sample_block, sample_department):
         fullname="Test Proposer",
         username="proposer",
         email="proposer@test.com",
+        phone="0988888888",
         citizen_id="888888888888",  # Unique citizen ID for proposer
         start_date=date.today(),
         status=Employee.Status.ACTIVE,

@@ -31,6 +31,7 @@ def test_attendance_record_create_updates_timesheet_and_monthly(db):
         fullname="Jane Doe",
         username="jane",
         email="jane@example.com",
+        phone="0912300001",
         attendance_code="00002",
         citizen_id="000000000002",
         branch=branch,
