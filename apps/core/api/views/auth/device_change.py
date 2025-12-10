@@ -208,6 +208,24 @@ class DeviceChangeVerifyOTPView(APIView):
         user = device_request.user
         employee = device_request.employee
 
+        # Ensure user has employee mapping (required for creating Proposal)
+        if not employee:
+            try:
+                employee = user.employee
+            except Exception:
+                logger.error(f"User {user.username} has no employee mapping, cannot create device change proposal")
+                return Response(
+                    {
+                        "non_field_errors": [
+                            _(
+                                "Your account is not linked to an employee record. "
+                                "Please contact HR to set up your employee profile before requesting device change."
+                            )
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         # Get old device_id if exists
         old_device_id = None
         if hasattr(user, "device") and user.device is not None:
@@ -222,7 +240,7 @@ class DeviceChangeVerifyOTPView(APIView):
             proposal = Proposal.objects.create(
                 proposal_type=ProposalType.DEVICE_CHANGE,
                 proposal_status=ProposalStatus.PENDING,
-                created_by=employee if employee else None,
+                created_by=employee,
                 device_change_new_device_id=device_request.new_device_id,
                 device_change_new_platform=device_request.new_platform,
                 device_change_old_device_id=old_device_id,
