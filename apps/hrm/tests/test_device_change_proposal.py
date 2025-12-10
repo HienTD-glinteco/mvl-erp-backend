@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 
 from apps.core.models import User, UserDevice
 from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Branch, Block, Department, Employee, Position, Proposal
+from apps.hrm.models import Block, Branch, Department, Employee, Position, Proposal
 
 
 class DeviceChangeProposalApprovalTestCase(TestCase):
@@ -16,11 +16,24 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         """Set up test data."""
         self.client = APIClient()
 
+        # Create province and administrative unit first
+        from apps.core.models import AdministrativeUnit, Province
+
+        province = Province.objects.create(name="Test Province", code="TP")
+        admin_unit = AdministrativeUnit.objects.create(
+            parent_province=province,
+            name="Test Admin Unit",
+            code="TAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
         # Create organizational structure
-        self.branch = Branch.objects.create(name="Main Branch", code="MB001")
-        self.block = Block.objects.create(name="Block A", code="BLA", branch=self.branch)
+        self.branch = Branch.objects.create(
+            name="Main Branch", code="MB001", province=province, administrative_unit=admin_unit
+        )
+        self.block = Block.objects.create(name="Block A", code="BLA", branch=self.branch, block_type=Block.BlockType.BUSINESS)
         self.department = Department.objects.create(
-            name="IT Department", code="IT", branch=self.branch, block=self.block
+            name="IT Department", code="IT", branch=self.branch, block=self.block, function=Department.DepartmentFunction.BUSINESS
         )
         self.position = Position.objects.create(name="Developer", code="DEV")
         self.admin_position = Position.objects.create(name="Admin", code="ADM")

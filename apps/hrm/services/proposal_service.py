@@ -405,13 +405,13 @@ class ProposalService:
         status_display = proposal.get_proposal_status_display()
         requester_user = proposal.created_by.user
 
-        if proposal.proposal_status == "approved":
+        if proposal.proposal_status == ProposalStatus.APPROVED:
             message = (
                 f"Your device change request has been {status_display}. "
                 f"Device {proposal.device_change_new_device_id} has been assigned to your account. "
                 f"Please log in again to use the new device."
             )
-        elif proposal.proposal_status == "rejected":
+        elif proposal.proposal_status == ProposalStatus.REJECTED:
             message = f"Your device change request has been {status_display}."
             if proposal.approval_note:
                 message += f" Reason: {proposal.approval_note}"

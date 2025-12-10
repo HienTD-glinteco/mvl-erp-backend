@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.core.models import DeviceChangeRequest, User, UserDevice
 from apps.hrm.constants import ProposalStatus, ProposalType
-from apps.hrm.models import Branch, Block, Department, Employee, Position, Proposal
+from apps.hrm.models import Block, Branch, Department, Employee, Position, Proposal
 
 
 class DeviceChangeRequestTestCase(TestCase):
@@ -19,11 +19,24 @@ class DeviceChangeRequestTestCase(TestCase):
         """Set up test data."""
         self.client = APIClient()
 
+        # Create province and administrative unit first
+        from apps.core.models import AdministrativeUnit, Province
+
+        self.province = Province.objects.create(name="Test Province", code="TP")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            parent_province=self.province,
+            name="Test Admin Unit",
+            code="TAU",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
         # Create organizational structure
-        self.branch = Branch.objects.create(name="Main Branch", code="MB001")
-        self.block = Block.objects.create(name="Block A", code="BLA", branch=self.branch)
+        self.branch = Branch.objects.create(
+            name="Main Branch", code="MB001", province=self.province, administrative_unit=self.admin_unit
+        )
+        self.block = Block.objects.create(name="Block A", code="BLA", branch=self.branch, block_type=Block.BlockType.BUSINESS)
         self.department = Department.objects.create(
-            name="IT Department", code="IT", branch=self.branch, block=self.block
+            name="IT Department", code="IT", branch=self.branch, block=self.block, function=Department.DepartmentFunction.BUSINESS
         )
         self.position = Position.objects.create(name="Developer", code="DEV")
 
@@ -158,7 +171,7 @@ class DeviceChangeRequestTestCase(TestCase):
         device_request.refresh_from_db()
         self.assertEqual(device_request.status, DeviceChangeRequest.Status.VERIFIED)
 
-    @patch("apps.core.api.views.auth/device_change.send_otp_email_task.delay")
+    @patch("apps.core.api.views.auth.device_change.send_otp_email_task.delay")
     def test_verify_otp_wrong_otp(self, mock_email_task):
         """Test that wrong OTP is rejected and attempts are tracked."""
         mock_email_task.return_value = MagicMock()
