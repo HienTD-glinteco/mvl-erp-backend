@@ -77,7 +77,7 @@ def calc_grade_from_percent(config_json: dict[str, Any], percent: float) -> dict
     return {"grade": possible_codes[0], "ambiguous": False}
 
 
-def validate_unit_distribution(
+def validate_unit_distribution(  # noqa: C901
     config_json: dict[str, Any], unit_type: str, counts_per_grade: dict[str, int]
 ) -> list[dict[str, Any]]:
     """Validate grade distribution for a unit against configured limits.
@@ -180,7 +180,7 @@ def validate_unit_distribution(
     return violations
 
 
-def validate_kpi_config_structure(config_json: dict[str, Any]) -> list[str]:
+def validate_kpi_config_structure(config_json: dict[str, Any]) -> list[str]:  # noqa: C901
     """Validate the structure of KPI configuration JSON.
 
     Args:
