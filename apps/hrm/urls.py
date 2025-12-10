@@ -24,6 +24,7 @@ from apps.hrm.api.views import (
     EmployeeRelationshipViewSet,
     EmployeeReportsViewSet,
     EmployeeRoleViewSet,
+    EmployeeSeniorityReportViewSet,
     EmployeeTimesheetViewSet,
     EmployeeViewSet,
     EmployeeWorkHistoryViewSet,
@@ -160,6 +161,9 @@ router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 # Report endpoints (single ViewSet with custom actions)
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")
+router.register(
+    r"reports/employee-seniority-report", EmployeeSeniorityReportViewSet, basename="employee-seniority-reports"
+)
 router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-reports")
 
 # Dashboard endpoints (single ViewSet with custom actions)

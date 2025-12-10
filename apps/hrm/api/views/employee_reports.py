@@ -3,8 +3,9 @@ from datetime import date, timedelta
 
 from django.conf import settings
 from django.db.models import Prefetch, Sum
+from django.utils.module_loading import import_string
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -23,6 +24,7 @@ from apps.hrm.utils import (
     get_current_week_range,
 )
 from libs.drf.base_viewset import BaseGenericViewSet
+from libs.export_xlsx import ExportXLSXMixin
 
 from ..filtersets.employee_seniority_filter import EmployeeSeniorityFilterSet
 from ..filtersets.seniority_ordering_filter import SeniorityOrderingFilter
@@ -642,6 +644,29 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         serializer = EmployeeResignedReasonSummarySerializer(data)
         return Response(serializer.data)
 
+
+@extend_schema_view(
+    export=extend_schema(
+        tags=["5.5: Employee Reports"],
+    ),
+)
+class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
+    """ViewSet for employee seniority report.
+
+    - Supports `list` (with filtering, ordering and pagination) and `/export/` via `ExportXLSXMixin`.
+    - Reuses the existing `EmployeeSeniorityFilterSet`, `SeniorityOrderingFilter` and serializer.
+    """
+
+    module = "REPORT"
+    submodule = "Employee"
+    permission_prefix = "employee_seniority_report"
+
+    queryset = Employee.objects.none()
+
+    # Provide filterset and serializer for ExportXLSXMixin to work with
+    filterset_class = EmployeeSeniorityFilterSet
+    serializer_class = EmployeeSenioritySerializer
+
     @extend_schema(
         operation_id="hrm_reports_employee_seniority_report_list",
         summary="Employee Seniority Report",
@@ -654,35 +679,14 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         tags=["5.5: Employee Reports"],
         parameters=[
             OpenApiParameter(
-                name="page",
-                type=int,
-                required=False,
-                description="A page number within the paginated result set.",
+                name="page", type=int, required=False, description="A page number within the paginated result set."
             ),
             OpenApiParameter(
-                name="page_size",
-                type=int,
-                required=False,
-                description="Number of results to return per page.",
+                name="page_size", type=int, required=False, description="Number of results to return per page."
             ),
-            OpenApiParameter(
-                name="branch_id",
-                type=int,
-                required=False,
-                description="Filter by branch ID",
-            ),
-            OpenApiParameter(
-                name="block_id",
-                type=int,
-                required=False,
-                description="Filter by block ID",
-            ),
-            OpenApiParameter(
-                name="department_id",
-                type=int,
-                required=False,
-                description="Filter by department ID",
-            ),
+            OpenApiParameter(name="branch_id", type=int, required=False, description="Filter by branch ID"),
+            OpenApiParameter(name="block_id", type=int, required=False, description="Filter by block ID"),
+            OpenApiParameter(name="department_id", type=int, required=False, description="Filter by department ID"),
             OpenApiParameter(
                 name="function_block",
                 type=str,
@@ -707,82 +711,8 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             ),
         ],
         responses={200: EmployeeSenioritySerializer(many=True)},
-        examples=[
-            OpenApiExample(
-                "Success",
-                value={
-                    "success": True,
-                    "data": {
-                        "count": 100,
-                        "next": "http://api.example.com/api/hrm/reports/employee-seniority-report/?page=2",
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "code": "MV001",
-                                "fullname": "John Doe",
-                                "branch": 1,
-                                "block": 2,
-                                "department": 3,
-                                "seniority": "5-3-15",
-                                "work_history": [
-                                    {
-                                        "id": 15,
-                                        "date": "2022-01-01",
-                                        "name": "Change Status",
-                                        "name_display": "Change Status",
-                                        "detail": "Return to work",
-                                        "employee": {
-                                            "id": 1,
-                                            "code": "MV001",
-                                            "fullname": "John Doe",
-                                        },
-                                        "branch": {
-                                            "id": 1,
-                                            "name": "Branch A",
-                                            "code": "CN001",
-                                        },
-                                        "block": {
-                                            "id": 2,
-                                            "name": "Block X",
-                                            "code": "KH001",
-                                        },
-                                        "department": {
-                                            "id": 3,
-                                            "name": "Department Y",
-                                            "code": "PB001",
-                                        },
-                                        "position": {
-                                            "id": 4,
-                                            "name": "Developer",
-                                        },
-                                        "created_at": "2022-01-01T00:00:00Z",
-                                        "updated_at": "2022-01-01T00:00:00Z",
-                                    },
-                                ],
-                            }
-                        ],
-                    },
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Error",
-                value={
-                    "success": False,
-                    "data": None,
-                    "error": {"branch_id": ["Invalid branch ID."]},
-                },
-                response_only=True,
-                status_codes=["400"],
-            ),
-        ],
     )
-    @action(detail=False, methods=["get"], url_path="employee-seniority-report")
-    def employee_seniority_report(self, request):
-        """Retrieve employee seniority report with filtering and sorting."""
+    def list(self, request, *args, **kwargs):
         # Build base queryset with business rules BR-1
         queryset = Employee.objects.filter(
             status__in=[
@@ -792,14 +722,14 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
             ]
         ).exclude(code_type="OS")
 
-        # Apply filters
+        # Apply filters (validate explicitly to keep previous behavior)
         filterset = EmployeeSeniorityFilterSet(request.GET, queryset=queryset)
         if not filterset.is_valid():
             return Response(filterset.errors, status=400)
 
         queryset = filterset.qs
 
-        # Optimize query with prefetch
+        # Optimize query with prefetch of work histories
         work_history_prefetch = Prefetch(
             "work_histories",
             queryset=EmployeeWorkHistory.objects.select_related(
@@ -817,8 +747,6 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
         # Apply pagination using REST framework settings
         pagination_class = settings.REST_FRAMEWORK.get("DEFAULT_PAGINATION_CLASS")
         if pagination_class:
-            from django.utils.module_loading import import_string
-
             paginator = import_string(pagination_class)()
             page = paginator.paginate_queryset(queryset, request)
 

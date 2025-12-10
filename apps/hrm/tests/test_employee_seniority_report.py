@@ -193,7 +193,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         )
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -248,7 +248,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         employee.save()
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -316,7 +316,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         employee.save()
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -389,7 +389,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         employee.save()
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -422,7 +422,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.create_employee(code="MV014", status=Employee.Status.ONBOARDING)
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -442,7 +442,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.create_employee(code="OS002", status=Employee.Status.ACTIVE)
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         results = self.get_response_data(response)
 
@@ -487,7 +487,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.department = saved_dept
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url, {"branch_id": self.branch.id})
         results = self.get_response_data(response)
 
@@ -524,7 +524,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         self.department = saved_dept
 
         # Act - Filter by business block
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url, {"function_block": "business"})
         results = self.get_response_data(response)
 
@@ -546,7 +546,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         emp3 = self.create_employee(code="MV052", start_date=date(2023, 1, 1))
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url, {"ordering": "-seniority_days"})
         results = self.get_response_data(response)
 
@@ -564,7 +564,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
         emp3 = self.create_employee(code="MV062", start_date=date(2023, 1, 1))
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url, {"ordering": "seniority_days"})
         results = self.get_response_data(response)
 
@@ -581,7 +581,7 @@ class EmployeeSeniorityReportTest(TransactionTestCase, APITestMixin):
             self.create_employee(code=f"MV{100 + i:03d}", start_date=date(2020, 1, 1))
 
         # Act
-        url = reverse("hrm:employee-reports-employee-seniority-report")
+        url = reverse("hrm:employee-seniority-reports-list")
         response = self.client.get(url)
         data = json.loads(response.content.decode())["data"]
 
