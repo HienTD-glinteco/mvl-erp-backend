@@ -25,6 +25,8 @@ from apps.hrm.api.serializers.proposal import (
     ProposalAssetAllocationExportXLSXSerializer,
     ProposalAssetAllocationSerializer,
     ProposalCombinedSerializer,
+    ProposalDeviceChangeExportXLSXSerializer,
+    ProposalDeviceChangeSerializer,
     ProposalExportXLSXSerializer,
     ProposalJobTransferExportXLSXSerializer,
     ProposalJobTransferSerializer,
@@ -3098,7 +3100,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     list=extend_schema(
         summary="List device change proposals",
         description="Retrieve a list of all device change proposals",
-        tags=["9.2.10: Device Change Proposals"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3136,7 +3138,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     retrieve=extend_schema(
         summary="Get device change proposal",
         description="Retrieve a specific device change proposal by ID",
-        tags=["9.2.10: Device Change Proposals"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3164,6 +3166,77 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
             ),
         ],
     ),
+    create=extend_schema(
+        summary="Create device change proposal",
+        description="Create a new device change proposal",
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
+        examples=[
+            OpenApiExample(
+                "Request",
+                value={
+                    "device_change_new_device_id": "new_device_fcm_token_123",
+                    "device_change_new_platform": "android",
+                    "device_change_contact_info": "Switching to new phone",
+                    "note": "Request to change device",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DC000001",
+                        "proposal_date": "2025-12-10",
+                        "proposal_type": "device_change",
+                        "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                        "device_change_new_device_id": "new_device_fcm_token_123",
+                        "device_change_new_platform": "android",
+                        "device_change_old_device_id": "old_device_fcm_token_456",
+                        "device_change_contact_info": "Switching to new phone",
+                        "note": "Request to change device",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": None,
+                        "created_at": "2025-12-10T10:00:00Z",
+                        "updated_at": "2025-12-10T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Error - Missing required field",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "device_change_new_device_id": ["This field is required."],
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    update=extend_schema(
+        summary="Update device change proposal",
+        description="Update a device change proposal",
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
+    ),
+    partial_update=extend_schema(
+        summary="Partially update device change proposal",
+        description="Partially update a device change proposal",
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
+    ),
+    destroy=extend_schema(
+        summary="Delete device change proposal",
+        description="Delete a device change proposal",
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
+    ),
+    export=extend_schema(
+        tags=["9.2.11: Device Change Proposals"],
+    ),
 )
 class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
     """ViewSet for Device Change proposals with approve and reject actions."""
@@ -3178,7 +3251,7 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
         description="Approve a device change proposal and reassign device to requester",
         request=ProposalApproveSerializer,
         responses={200: ProposalDeviceChangeSerializer},
-        tags=["9.2.10: Device Change Proposals"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3208,6 +3281,7 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
             ),
         ],
     )
+    @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a device change proposal."""
         return super().approve(request, pk)
@@ -3217,7 +3291,7 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
         description="Reject a device change proposal with required approval note",
         request=ProposalRejectSerializer,
         responses={200: ProposalDeviceChangeSerializer},
-        tags=["9.2.10: Device Change Proposals"],
+        tags=["9.2.11: Device Change Proposals"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -3247,6 +3321,7 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
             ),
         ],
     )
+    @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
         """Reject a device change proposal."""
         return super().reject(request, pk)

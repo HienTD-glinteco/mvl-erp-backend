@@ -978,15 +978,12 @@ class ProposalDeviceChangeExportXLSXSerializer(ProposalExportXLSXSerializer):
     """Serializer for Device Change proposal XLSX export."""
 
     class Meta(ProposalExportXLSXSerializer.Meta):
-        fields = (
-            ProposalExportXLSXSerializer.Meta.fields
-            + [
-                "device_change_new_device_id",
-                "device_change_new_platform",
-                "device_change_old_device_id",
-                "device_change_contact_info",
-            ]
-        )
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "device_change_new_device_id",
+            "device_change_new_platform",
+            "device_change_old_device_id",
+            "device_change_contact_info",
+        ]
         read_only_fields = fields
 
 

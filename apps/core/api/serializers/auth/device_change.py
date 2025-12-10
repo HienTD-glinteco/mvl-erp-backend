@@ -83,10 +83,7 @@ class DeviceChangeRequestSerializer(serializers.Serializer):
         if hasattr(user, "device") and user.device is not None:
             if user.device.device_id == device_id:
                 raise serializers.ValidationError(
-                    _(
-                        "This device is already registered for your account. "
-                        "No need to create a device change request."
-                    )
+                    _("This device is already registered for your account. No need to create a device change request.")
                 )
 
         attrs["user"] = user
@@ -96,7 +93,7 @@ class DeviceChangeRequestSerializer(serializers.Serializer):
 class DeviceChangeVerifyOTPSerializer(serializers.Serializer):
     """Serializer for verifying OTP and creating device change proposal."""
 
-    request_id = serializers.UUIDField(
+    request_id = serializers.IntegerField(
         help_text="Device change request ID",
         error_messages={
             "required": _("Please provide request ID."),
@@ -139,7 +136,7 @@ class DeviceChangeVerifyOTPSerializer(serializers.Serializer):
 
         # Retrieve device change request
         try:
-            device_request = DeviceChangeRequest.objects.get(request_id=request_id)
+            device_request = DeviceChangeRequest.objects.get(id=request_id)
         except DeviceChangeRequest.DoesNotExist:
             logger.warning(f"Device change request not found: {request_id}")
             raise serializers.ValidationError(_("Invalid or expired request. Please start over."))

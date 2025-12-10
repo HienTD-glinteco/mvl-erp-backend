@@ -33,6 +33,7 @@ from apps.hrm.api.views import (
     JobDescriptionViewSet,
     PositionViewSet,
     ProposalAssetAllocationViewSet,
+    ProposalDeviceChangeViewSet,
     ProposalJobTransferViewSet,
     ProposalLateExemptionViewSet,
     ProposalMaternityLeaveViewSet,

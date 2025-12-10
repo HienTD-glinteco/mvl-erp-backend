@@ -59,27 +59,27 @@ class OTPVerificationSerializer(serializers.Serializer):
             logger.warning(f"Invalid OTP attempt for user {username}")
             raise serializers.ValidationError(_("OTP code is incorrect or has expired."))
 
-        # Check if this is device-change flow (via context flag)
-        flow_type = self.context.get("flow")
-        
         # Validate device_id if provided
         if device_id:
             existing_device = UserDevice.objects.filter(device_id=device_id).first()
             if existing_device and existing_device.user != user:
                 logger.warning(f"Device ID {device_id} already registered to user {existing_device.user.username}")
                 raise serializers.ValidationError(_("This device is already registered to another user."))
-            
-            # If device-change flow is attempted via this serializer, prevent redundant change
-            if flow_type == "device_change_request":
-                # Check if device_id equals user's registered device_id
-                if hasattr(user, "device") and user.device is not None:
-                    if user.device.device_id == device_id:
-                        raise serializers.ValidationError(
-                            _(
-                                "This device is already registered for your account. "
-                                "No need to create a device change request."
-                            )
+
+            # CRITICAL: If user has a registered device and trying to login with a different device
+            # that is not assigned to anyone yet, this should be rejected
+            if hasattr(user, "device") and user.device is not None:
+                if user.device.device_id != device_id and not existing_device:
+                    logger.warning(
+                        f"User {user.username} attempting to login with different device {device_id} "
+                        f"(current device: {user.device.device_id})"
+                    )
+                    raise serializers.ValidationError(
+                        _(
+                            "You are attempting to login from a different device. "
+                            "Please use the device change request process to change your device."
                         )
+                    )
 
         attrs["user"] = user
         attrs["device_id"] = device_id

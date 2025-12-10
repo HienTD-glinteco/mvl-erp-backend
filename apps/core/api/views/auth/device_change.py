@@ -50,7 +50,7 @@ class DeviceChangeRequestView(APIView):
                             "success": True,
                             "data": {
                                 "message": "OTP code has been sent to your email. Please verify to complete the device change request.",
-                                "request_id": "11111111-2222-3333-4444-555555555555",
+                                "request_id": 1,
                                 "expires_in_seconds": 300,
                             },
                         },
@@ -76,7 +76,7 @@ class DeviceChangeRequestView(APIView):
             ),
             429: OpenApiResponse(description="Too many requests"),
         },
-        tags=["1.1: Auth"],
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Request device change",
@@ -112,7 +112,7 @@ class DeviceChangeRequestView(APIView):
         employee = None
         try:
             employee = user.employee
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
         # Create device change request
@@ -131,7 +131,7 @@ class DeviceChangeRequestView(APIView):
 
             # Log audit event
             log_audit_event(
-                action=LogAction.CREATE,
+                action=LogAction.ADD,
                 modified_object=device_request,
                 user=user,
                 request=request,
@@ -141,15 +141,13 @@ class DeviceChangeRequestView(APIView):
         # Send OTP email asynchronously
         try:
             send_otp_email_task.delay(user.id, otp_code)
-            logger.info(f"OTP sent for device change request {device_request.request_id} for user {user.username}")
+            logger.info(f"OTP sent for device change request {device_request.id} for user {user.username}")
         except Exception as e:
             logger.error(f"Failed to queue OTP email for device change request: {e}")
 
         response_data = {
-            "message": _(
-                "OTP code has been sent to your email. Please verify to complete the device change request."
-            ),
-            "request_id": str(device_request.request_id),
+            "message": _("OTP code has been sent to your email. Please verify to complete the device change request."),
+            "request_id": device_request.id,
             "expires_in_seconds": 300,
         }
         return Response(response_data, status=status.HTTP_202_ACCEPTED)
@@ -188,11 +186,11 @@ class DeviceChangeVerifyOTPView(APIView):
             410: OpenApiResponse(description="Request expired"),
             429: OpenApiResponse(description="Too many attempts"),
         },
-        tags=["1.1: Auth"],
+        tags=["9.2.11: Device Change Proposals - For Mobile"],
         examples=[
             OpenApiExample(
                 "Verify OTP",
-                value={"request_id": "11111111-2222-3333-4444-555555555555", "otp": "123456"},
+                value={"request_id": 1, "otp": "123456"},
                 request_only=True,
             )
         ],
@@ -250,11 +248,11 @@ class DeviceChangeVerifyOTPView(APIView):
 
             # Log audit event
             log_audit_event(
-                action=LogAction.CREATE,
+                action=LogAction.ADD,
                 modified_object=proposal,
                 user=user,
                 request=request,
-                change_message=f"Device change proposal created from request {device_request.request_id}",
+                change_message=f"Device change proposal created from request {device_request.id}",
             )
 
             logger.info(

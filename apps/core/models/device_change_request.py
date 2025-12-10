@@ -1,5 +1,4 @@
 import hashlib
-import uuid
 
 from django.conf import settings
 from django.db import models
@@ -21,14 +20,6 @@ class DeviceChangeRequest(BaseModel):
         VERIFIED = "verified", "Verified"
         FAILED = "failed", "Failed"
         EXPIRED = "expired", "Expired"
-
-    request_id = models.UUIDField(
-        unique=True,
-        default=uuid.uuid4,
-        editable=False,
-        verbose_name="Request ID",
-        help_text="Unique identifier for this device change request",
-    )
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -101,13 +92,12 @@ class DeviceChangeRequest(BaseModel):
         verbose_name_plural = "Device Change Requests"
         db_table = "core_device_change_request"
         indexes = [
-            models.Index(fields=["request_id"], name="dcr_request_id_idx"),
             models.Index(fields=["user"], name="dcr_user_idx"),
             models.Index(fields=["status"], name="dcr_status_idx"),
         ]
 
     def __str__(self):
-        return f"DeviceChangeRequest {self.request_id} - {self.user.username}"
+        return f"DeviceChangeRequest {self.id} - {self.user.username}"
 
     @staticmethod
     def hash_otp(otp_code: str) -> str:

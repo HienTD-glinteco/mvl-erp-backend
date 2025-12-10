@@ -309,7 +309,7 @@ class ProposalService:
 
         # Step 2: Delete requester's old device (single device policy)
         # This ensures user has only one device registered
-        if hasattr(requester_user, "device") and requester_user.device is not None:
+        if requester_user and hasattr(requester_user, "device") and requester_user.device is not None:
             old_device = requester_user.device
             if old_device.device_id != new_device_id:
                 # Delete old device mapping
@@ -326,17 +326,18 @@ class ProposalService:
 
         # Step 5: Send notifications
         # Notify requester about approval and device assignment
-        create_notification(
-            actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
-            recipient=requester_user,
-            verb="Device change approved",
-            message=f"Your device change request has been approved. New device {new_device_id} has been assigned to your account. Please log in again.",
-            extra_data={
-                "proposal_id": str(proposal.id),
-                "new_device_id": new_device_id,
-                "tokens_revoked": revoked_count,
-            },
-        )
+        if requester_user:
+            create_notification(
+                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
+                recipient=requester_user,
+                verb="Device change approved",
+                message=f"Your device change request has been approved. New device {new_device_id} has been assigned to your account. Please log in again.",
+                extra_data={
+                    "proposal_id": str(proposal.id),
+                    "new_device_id": new_device_id,
+                    "tokens_revoked": revoked_count,
+                },
+            )
 
         # Notify previous owner (if device was reassigned from another user)
         if previous_owner_user:
@@ -418,13 +419,14 @@ class ProposalService:
         else:
             message = f"Your device change request status: {status_display}."
 
-        create_notification(
-            actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
-            recipient=requester_user,
-            verb=f"Device change request {status_display}",
-            message=message,
-            extra_data={
-                "proposal_id": str(proposal.id),
-                "new_device_id": proposal.device_change_new_device_id,
-            },
-        )
+        if requester_user:
+            create_notification(
+                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
+                recipient=requester_user,
+                verb=f"Device change request {status_display}",
+                message=message,
+                extra_data={
+                    "proposal_id": str(proposal.id),
+                    "new_device_id": proposal.device_change_new_device_id,
+                },
+            )

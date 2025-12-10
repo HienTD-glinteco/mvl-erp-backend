@@ -11,7 +11,7 @@ from django.test import TestCase, override_settings
 from openpyxl import load_workbook
 
 from libs.export_xlsx import SchemaBuilder, XLSXGenerator, get_storage_backend
-from libs.export_xlsx.constants import ERROR_INVALID_SCHEMA, STORAGE_LOCAL, STORAGE_S3
+from libs.export_xlsx.constants import ERROR_INVALID_SCHEMA, STORAGE_LOCAL
 
 User = get_user_model()
 

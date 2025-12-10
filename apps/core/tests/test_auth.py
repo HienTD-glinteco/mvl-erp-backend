@@ -471,3 +471,37 @@ class AuthenticationTestCase(TestCase):
         # Verify no device was created
         self.user.refresh_from_db()
         self.assertFalse(hasattr(self.user, "device") and self.user.device is not None)
+
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    def test_otp_verification_user_with_device_trying_different_unassigned_device(self):
+        """Test OTP verification fails when user with registered device tries to login with different unassigned device.
+
+        This is a critical security check to prevent users from bypassing the device change request process.
+        """
+        # Create user with a registered device
+        existing_device_id = "user-existing-device-789"
+        UserDevice.objects.create(user=self.user, device_id=existing_device_id, platform="android")
+
+        # User tries to login with a different device that is not assigned to anyone
+        new_device_id = "different-unassigned-device-999"
+        otp_code = self.user.generate_otp()
+        data = {"username": "testuser001", "otp_code": otp_code, "device_id": new_device_id}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        # Should reject the login
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+
+        # Check error message mentions device change process
+        error_data = response_data["error"]
+        error_message = str(error_data)
+        self.assertIn("different device", error_message.lower())
+        self.assertIn("device change request", error_message.lower())
+
+        # Verify the new device was NOT created
+        self.assertFalse(UserDevice.objects.filter(device_id=new_device_id).exists())
+
+        # Verify user still has only their original device
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.device.device_id, existing_device_id)

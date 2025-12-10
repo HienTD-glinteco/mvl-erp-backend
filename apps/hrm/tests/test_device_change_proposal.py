@@ -31,9 +31,15 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.branch = Branch.objects.create(
             name="Main Branch", code="MB001", province=province, administrative_unit=admin_unit
         )
-        self.block = Block.objects.create(name="Block A", code="BLA", branch=self.branch, block_type=Block.BlockType.BUSINESS)
+        self.block = Block.objects.create(
+            name="Block A", code="BLA", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
         self.department = Department.objects.create(
-            name="IT Department", code="IT", branch=self.branch, block=self.block, function=Department.DepartmentFunction.BUSINESS
+            name="IT Department",
+            code="IT",
+            branch=self.branch,
+            block=self.block,
+            function=Department.DepartmentFunction.BUSINESS,
         )
         self.position = Position.objects.create(name="Developer", code="DEV")
         self.admin_position = Position.objects.create(name="Admin", code="ADM")
@@ -167,7 +173,9 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.assertEqual(requester_device.device_id, self.conflicting_device_id)
 
         # Verify other_user no longer has the device
-        self.assertFalse(UserDevice.objects.filter(user=self.other_user, device_id=self.conflicting_device_id).exists())
+        self.assertFalse(
+            UserDevice.objects.filter(user=self.other_user, device_id=self.conflicting_device_id).exists()
+        )
 
         # Verify old device was removed from requester
         self.assertFalse(UserDevice.objects.filter(device_id=self.old_device_id).exists())

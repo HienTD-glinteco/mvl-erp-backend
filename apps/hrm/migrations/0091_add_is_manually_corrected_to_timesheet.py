@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('hrm', '0090_create_appendix_contract_type'),
+        ("hrm", "0090_create_appendix_contract_type"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='timesheetentry',
-            name='is_manually_corrected',
-            field=models.BooleanField(default=False, verbose_name='Is manually corrected'),
+            model_name="timesheetentry",
+            name="is_manually_corrected",
+            field=models.BooleanField(default=False, verbose_name="Is manually corrected"),
         ),
     ]

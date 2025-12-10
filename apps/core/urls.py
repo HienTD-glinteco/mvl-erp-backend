@@ -6,6 +6,8 @@ from apps.imports.api.views import ImportStatusView
 from .api.views import (
     AdministrativeUnitViewSet,
     ConstantsView,
+    DeviceChangeRequestView,
+    DeviceChangeVerifyOTPView,
     ExportStatusView,
     LoginView,
     MePermissionsView,
