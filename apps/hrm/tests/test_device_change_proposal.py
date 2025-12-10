@@ -53,9 +53,12 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.requester_employee = Employee.objects.create(
             user=self.requester_user,
             fullname="Requester User",
+            username="requester",
+            email="requester@example.com",
+            citizen_id="1234567890",
             department=self.department,
             position=self.position,
-            employee_code="EMP001",
+            start_date="2024-01-01",
         )
 
         # Create admin user with employee
@@ -67,9 +70,12 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.admin_employee = Employee.objects.create(
             user=self.admin_user,
             fullname="Admin User",
+            username="admin",
+            email="admin@example.com",
+            citizen_id="0987654321",
             department=self.department,
             position=self.admin_position,
-            employee_code="ADM001",
+            start_date="2024-01-01",
         )
 
         # Create existing device for requester
@@ -87,9 +93,12 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.other_employee = Employee.objects.create(
             user=self.other_user,
             fullname="Other User",
+            username="otheruser",
+            email="other@example.com",
+            citizen_id="1122334455",
             department=self.department,
             position=self.position,
-            employee_code="EMP002",
+            start_date="2024-01-01",
         )
         self.conflicting_device_id = "device_to_reassign"
         self.other_device = UserDevice.objects.create(
