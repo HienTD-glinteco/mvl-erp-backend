@@ -357,6 +357,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name = "Employee"
         verbose_name_plural = "Employees"
         db_table = "hrm_employee"
+        ordering = ["-id"]
         constraints = [
             models.UniqueConstraint(
                 fields=["tax_code"],
