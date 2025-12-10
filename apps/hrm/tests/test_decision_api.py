@@ -77,6 +77,7 @@ class DecisionTestMixin:
             fullname="John Doe",
             email="john.doe@example.com",
             username="johndoe",
+            phone="0900000001",
             branch=self.branch,
             block=self.block,
             department=self.department,

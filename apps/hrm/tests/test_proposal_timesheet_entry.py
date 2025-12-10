@@ -84,6 +84,7 @@ def employee(db, branch, block, department, position):
         fullname="Timesheet Test Employee",
         username="user_tse_001",
         email="tse001@example.com",
+        phone="0900077001",
         attendance_code="99901",
         citizen_id="999000000901",
         branch=branch,

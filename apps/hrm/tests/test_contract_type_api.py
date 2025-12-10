@@ -198,15 +198,23 @@ class TestContractTypeModel:
         contract_type.save()
         colored_value = contract_type.colored_tax_calculation_method
         assert colored_value["value"] == ContractType.TaxCalculationMethod.PROGRESSIVE
-        assert colored_value["variant"] == "YELLOW"
+        assert colored_value["variant"] == "BLUE"
 
-    def test_colored_tax_calculation_method_unmapped(self, contract_type):
-        """Test colored_tax_calculation_method for unmapped value."""
+    def test_colored_tax_calculation_method_flat_10(self, contract_type):
+        """Test colored_tax_calculation_method for flat 10% tax."""
         contract_type.tax_calculation_method = ContractType.TaxCalculationMethod.FLAT_10
         contract_type.save()
         colored_value = contract_type.colored_tax_calculation_method
         assert colored_value["value"] == ContractType.TaxCalculationMethod.FLAT_10
-        assert colored_value["variant"] is None
+        assert colored_value["variant"] == "YELLOW"
+
+    def test_colored_tax_calculation_method_none(self, contract_type):
+        """Test colored_tax_calculation_method for no tax."""
+        contract_type.tax_calculation_method = ContractType.TaxCalculationMethod.NONE
+        contract_type.save()
+        colored_value = contract_type.colored_tax_calculation_method
+        assert colored_value["value"] == ContractType.TaxCalculationMethod.NONE
+        assert colored_value["variant"] == "GREY"
 
     def test_colored_working_time_type_full_time(self, contract_type):
         """Test colored_working_time_type for full-time."""
@@ -564,7 +572,7 @@ class TestContractTypeAPI:
         assert data["colored_net_percentage"]["variant"] == "RED"
 
         assert data["colored_tax_calculation_method"]["value"] == "progressive"
-        assert data["colored_tax_calculation_method"]["variant"] == "YELLOW"
+        assert data["colored_tax_calculation_method"]["variant"] == "BLUE"
 
         assert data["colored_working_time_type"]["value"] == "full_time"
         assert data["colored_working_time_type"]["variant"] == "BLUE"
@@ -622,9 +630,8 @@ class TestContractTypeAPI:
         assert data["colored_has_social_insurance"]["value"] == "False"
         assert data["colored_has_social_insurance"]["variant"] == "GREY"
 
-    def test_colored_tax_method_unmapped_value_returns_null_variant(self, api_client, contract_type_data):
-        """Test that unmapped tax method returns null variant."""
-        # Create with flat_10 tax method which is not in VARIANT_MAPPING
+    def test_colored_tax_method_flat_10_returns_yellow_variant(self, api_client, contract_type_data):
+        """Test that flat_10 tax method returns yellow variant."""
         contract_type_data["name"] = "Flat Tax Contract"
         contract_type_data["tax_calculation_method"] = "flat_10"
 
@@ -635,4 +642,4 @@ class TestContractTypeAPI:
         data = response.json()["data"]
 
         assert data["colored_tax_calculation_method"]["value"] == "flat_10"
-        assert data["colored_tax_calculation_method"]["variant"] is None
+        assert data["colored_tax_calculation_method"]["variant"] == "YELLOW"

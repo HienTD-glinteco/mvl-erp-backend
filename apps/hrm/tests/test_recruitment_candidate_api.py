@@ -881,6 +881,28 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         response_data = response2.json()
         self.assertIn("non_field_errors", response_data["error"])
 
+    def test_convert_candidate_to_employee_requires_hired_status(self):
+        """Test converting candidate without HIRED status returns error"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van Not Hired",
+            citizen_id="123456789099",
+            email="nguyenvannothired@example.com",
+            phone="0123456700",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.ONE_TO_THREE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.INTERVIEWED_1,  # Not HIRED status
+        )
+
+        url = reverse("hrm:recruitment-candidate-to-employee", kwargs={"pk": candidate.pk})
+        response = self.client.post(url, {"code_type": "MV"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertIn("non_field_errors", response_data["error"])
+
     def test_convert_candidate_to_employee_duplicate_email(self):
         """Test converting candidate when email already exists as employee"""
         # Create an employee with the same email first

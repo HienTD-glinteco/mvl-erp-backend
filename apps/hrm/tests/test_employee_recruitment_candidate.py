@@ -66,7 +66,7 @@ class EmployeeRecruitmentCandidateTest(TransactionTestCase):
             fullname="Proposer User",
             username="proposer",
             email="proposer@example.com",
-            phone="0987654321",
+            phone="5553905045",
             attendance_code="99999",
             code_type="MV",
             branch=self.branch,

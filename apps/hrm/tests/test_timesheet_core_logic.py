@@ -51,6 +51,7 @@ def test_employee(db):
         fullname="John Doe",
         username="user_mv001",
         email="mv001@example.com",
+        phone="0900100002",
         attendance_code="00001",
         citizen_id="000000000001",
         branch=branch,

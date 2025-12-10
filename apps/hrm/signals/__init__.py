@@ -30,6 +30,7 @@ from apps.hrm.models import (
     RecruitmentRequest,
     RecruitmentSource,
 )
+from apps.hrm.models.employee import generate_code as employee_generate_code
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -47,7 +48,7 @@ from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403
 from .work_schedule import *  # noqa: E402, F401, F403
 
-# Register auto-code generation for models
+# Register auto-code generation for models (excluding Employee)
 register_auto_code_signal(
     AttendanceGeolocation,
     AttendanceDevice,
@@ -57,7 +58,6 @@ register_auto_code_signal(
     Block,
     ContractType,
     Department,
-    Employee,
     EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
@@ -70,4 +70,11 @@ register_auto_code_signal(
     RecruitmentExpense,
     Proposal,
     temp_code_prefix=TEMP_CODE_PREFIX,
+)
+
+# Register auto-code generation for Employee with custom generate_code
+register_auto_code_signal(
+    Employee,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+    custom_generate_code=employee_generate_code,
 )

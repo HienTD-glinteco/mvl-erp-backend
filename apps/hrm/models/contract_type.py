@@ -87,7 +87,9 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
             NetPercentage.REDUCED: ColorVariant.GREY,
         },
         "tax_calculation_method": {
-            TaxCalculationMethod.PROGRESSIVE: ColorVariant.YELLOW,
+            TaxCalculationMethod.PROGRESSIVE: ColorVariant.BLUE,
+            TaxCalculationMethod.FLAT_10: ColorVariant.YELLOW,
+            TaxCalculationMethod.NONE: ColorVariant.GREY,
         },
         "working_time_type": {
             WorkingTimeType.FULL_TIME: ColorVariant.BLUE,

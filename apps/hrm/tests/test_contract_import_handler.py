@@ -228,6 +228,7 @@ class TestPreImportInitialize:
             fullname="Test Employee",
             username="testuser",
             email="test@example.com",
+            phone="0900000001",
             department=department,
             start_date=date(2024, 1, 1),
         )
@@ -357,6 +358,7 @@ class TestContractImportHandler:
             fullname="Test Employee",
             username="testuser",
             email="test@example.com",
+            phone="0900000002",
             department=department,
             start_date=date(2024, 1, 1),
         )

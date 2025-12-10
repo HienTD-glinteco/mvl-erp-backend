@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -11,6 +10,34 @@ from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextFie
 from libs.validators import CitizenIdValidator
 
 from ..constants import TEMP_CODE_PREFIX, EmployeeType
+
+
+def generate_code(employee: "Employee") -> str:
+    """Generate a code for an Employee instance based on its code_type.
+
+    The code format is: {code_type}{subcode}
+    where code_type is the employee's code_type (MV, CTV, or OS)
+    and subcode is the instance ID zero-padded to at least 3 digits.
+
+    Args:
+        employee: Employee instance that must have an id and code_type attribute.
+
+    Returns:
+        Generated code string (e.g., "MV001", "CTV012", "OS444")
+    """
+    if not hasattr(employee, "id") or employee.id is None:
+        raise ValueError("Employee must have an id to generate code")
+
+    prefix = employee.code_type
+    instance_id = employee.id
+
+    # Format with at least 3 digits, but allow more if needed
+    if instance_id < 1000:
+        subcode = f"{instance_id:03d}"
+    else:
+        subcode = str(instance_id)
+
+    return f"{prefix}{subcode}"
 
 
 @audit_logging_register
@@ -282,6 +309,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     # Contact information
     phone = models.CharField(
         max_length=10,
+        unique=True,
         validators=[RegexValidator(regex=r"^\d{10}$", message=_("Phone number must be exactly 10 digits"))],
         verbose_name="Phone number",
     )
@@ -478,25 +506,3 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             BankAccount | None: The default BankAccount instance or None if not set
         """
         return self.bank_accounts.filter(is_primary=True).first()
-
-    def copy(self, save: bool = True) -> "Employee":
-        """Create a copy of the Employee instance.
-
-        The copied instance will have a temporary code and no associated User account.
-        Args:
-            save (bool): Whether to save the copied instance to the database. Defaults to True.
-            If False, the caller is responsible for saving the instance.
-        """
-        self.id = self.pk = None
-        self.user = None
-
-        self.code = f"{Employee.TEMP_CODE_PREFIX}{get_random_string(8)}"[:10]
-        self.username = f"{self.username}_copy_{get_random_string(10)}"
-        self.email = f"{self.username}@example.com"
-        self.citizen_id = get_random_string(10, allowed_chars="0123456789")
-        self.tax_code = get_random_string(10)
-
-        if save:
-            self.save()
-
-        return self
