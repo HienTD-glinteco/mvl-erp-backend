@@ -1,5 +1,3 @@
-import pytest
-
 from apps.payroll.utils.kpi_helpers import (
     calc_grade_from_percent,
     validate_kpi_config_structure,

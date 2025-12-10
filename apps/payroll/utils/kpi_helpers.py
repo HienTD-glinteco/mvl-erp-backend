@@ -59,6 +59,8 @@ def calc_grade_from_percent(config_json: dict[str, Any], percent: float) -> dict
         }
 
     if ambiguous_assignment == "auto_prefer_default":
+        # Note: default_code validity is also checked in validate_kpi_config_structure()
+        # during config creation, but we check again here at runtime for safety
         if default_code and default_code in possible_codes:
             return {"grade": default_code, "ambiguous": False}
         # Fallback to first
