@@ -45,6 +45,7 @@ class ProposalService:
             ProposalType.MATERNITY_LEAVE: ProposalService._execute_leave_proposal,
             ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._execute_complaint_proposal,
             ProposalType.OVERTIME_WORK: ProposalService._execute_overtime_proposal,
+            ProposalType.DEVICE_CHANGE: ProposalService._execute_device_change_proposal,
         }
 
         handler = handler_map.get(proposal.proposal_type)  # type: ignore
@@ -264,6 +265,90 @@ class ProposalService:
             entry.save()
 
     @staticmethod
+    def _execute_device_change_proposal(proposal: Proposal) -> None:
+        """Execute a device change proposal by reassigning device to requester.
+
+        For device change proposals, this method:
+        1. Removes existing UserDevice mapping if device_id is mapped to another user
+        2. Removes requester's old UserDevice (if single device policy)
+        3. Creates/updates UserDevice for requester with new device_id
+        4. Revokes outstanding tokens for requester (force re-login)
+        5. Sends notifications to affected users
+
+        Args:
+            proposal: The approved device change Proposal instance
+
+        Raises:
+            ProposalExecutionError: If proposal execution fails
+        """
+        from apps.core.models import UserDevice
+        from apps.core.utils.jwt import revoke_user_outstanding_tokens
+
+        new_device_id = proposal.device_change_new_device_id
+        new_platform = proposal.device_change_new_platform or ""
+
+        if not new_device_id:
+            raise ProposalExecutionError(f"Device change proposal {proposal.id} missing new_device_id")
+
+        # Get requester user (proposal.created_by is Employee, need User)
+        if not proposal.created_by:
+            raise ProposalExecutionError(f"Device change proposal {proposal.id} has no created_by")
+
+        requester_user = proposal.created_by.user
+
+        # Step 1: Check if new_device_id is already mapped to another user
+        existing_device = UserDevice.objects.filter(device_id=new_device_id).first()
+        previous_owner_user = None
+        if existing_device:
+            if existing_device.user != requester_user:
+                # Device belongs to another user, need to reassign
+                previous_owner_user = existing_device.user
+                # Delete the existing mapping
+                existing_device.delete()
+            # If it already belongs to requester, we'll update it below
+
+        # Step 2: Delete requester's old device (single device policy)
+        # This ensures user has only one device registered
+        if hasattr(requester_user, "device") and requester_user.device is not None:
+            old_device = requester_user.device
+            if old_device.device_id != new_device_id:
+                # Delete old device mapping
+                old_device.delete()
+
+        # Step 3: Create or update UserDevice for requester with new device
+        UserDevice.objects.update_or_create(
+            user=requester_user,
+            defaults={"device_id": new_device_id, "platform": new_platform, "active": True},
+        )
+
+        # Step 4: Revoke outstanding tokens for requester (force re-login)
+        revoked_count = revoke_user_outstanding_tokens(requester_user)
+
+        # Step 5: Send notifications
+        # Notify requester about approval and device assignment
+        create_notification(
+            actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
+            recipient=requester_user,
+            verb="Device change approved",
+            message=f"Your device change request has been approved. New device {new_device_id} has been assigned to your account. Please log in again.",
+            extra_data={
+                "proposal_id": str(proposal.id),
+                "new_device_id": new_device_id,
+                "tokens_revoked": revoked_count,
+            },
+        )
+
+        # Notify previous owner (if device was reassigned from another user)
+        if previous_owner_user:
+            create_notification(
+                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
+                recipient=previous_owner_user,
+                verb="Device reassigned",
+                message=f"Your device {new_device_id} has been reassigned to another user per admin approval.",
+                extra_data={"proposal_id": str(proposal.id), "device_id": new_device_id},
+            )
+
+    @staticmethod
     def notify_proposal_approval(proposal: Proposal) -> None:
         """Notify the user about proposal approval.
 
@@ -272,6 +357,7 @@ class ProposalService:
         """
         handler_map = {
             ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._notify_complaint_proposal,
+            ProposalType.DEVICE_CHANGE: ProposalService._notify_device_change_proposal,
         }
 
         handler = handler_map.get(proposal.proposal_type)  # type: ignore
@@ -302,4 +388,43 @@ class ProposalService:
             verb=f"Your timesheet complaint has been {status_display}.",
             message=message,
             extra_data={"proposal_id": str(proposal.id)},
+        )
+
+    @staticmethod
+    def _notify_device_change_proposal(proposal: Proposal) -> None:
+        """Notify user about device change proposal status.
+
+        This is called for both approval and rejection notifications.
+
+        Args:
+            proposal: The device change Proposal instance
+        """
+        if not proposal.created_by:
+            return
+
+        status_display = proposal.get_proposal_status_display()
+        requester_user = proposal.created_by.user
+
+        if proposal.proposal_status == "approved":
+            message = (
+                f"Your device change request has been {status_display}. "
+                f"Device {proposal.device_change_new_device_id} has been assigned to your account. "
+                f"Please log in again to use the new device."
+            )
+        elif proposal.proposal_status == "rejected":
+            message = f"Your device change request has been {status_display}."
+            if proposal.approval_note:
+                message += f" Reason: {proposal.approval_note}"
+        else:
+            message = f"Your device change request status: {status_display}."
+
+        create_notification(
+            actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
+            recipient=requester_user,
+            verb=f"Device change request {status_display}",
+            message=message,
+            extra_data={
+                "proposal_id": str(proposal.id),
+                "new_device_id": proposal.device_change_new_device_id,
+            },
         )
