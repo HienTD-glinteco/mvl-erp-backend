@@ -145,6 +145,11 @@ router.register(
     ProposalAssetAllocationViewSet,
     basename="proposal-asset-allocation",
 )
+router.register(
+    r"proposals/device-change",
+    ProposalDeviceChangeViewSet,
+    basename="proposal-device-change",
+)
 
 # Proposal verifiers
 router.register(r"proposal-verifiers", ProposalVerifierViewSet, basename="proposal-verifier")

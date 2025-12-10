@@ -3092,3 +3092,161 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List device change proposals",
+        description="Retrieve a list of all device change proposals",
+        tags=["9.2.10: Device Change Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 1,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "code": "DC000001",
+                                "proposal_date": "2025-12-10",
+                                "proposal_type": "device_change",
+                                "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                                "device_change_new_device_id": "new_device_fcm_token_123",
+                                "device_change_new_platform": "android",
+                                "device_change_old_device_id": "old_device_fcm_token_456",
+                                "device_change_contact_info": "Switching to new phone",
+                                "note": "Request to change device",
+                                "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                                "approved_by": None,
+                                "created_at": "2025-12-10T10:00:00Z",
+                                "updated_at": "2025-12-10T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get device change proposal",
+        description="Retrieve a specific device change proposal by ID",
+        tags=["9.2.10: Device Change Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DC000001",
+                        "proposal_date": "2025-12-10",
+                        "proposal_type": "device_change",
+                        "colored_proposal_status": {"value": "pending", "variant": "yellow"},
+                        "device_change_new_device_id": "new_device_fcm_token_123",
+                        "device_change_new_platform": "android",
+                        "device_change_old_device_id": "old_device_fcm_token_456",
+                        "device_change_contact_info": "Switching to new phone",
+                        "note": "Request to change device",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": None,
+                        "created_at": "2025-12-10T10:00:00Z",
+                        "updated_at": "2025-12-10T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    ),
+)
+class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
+    """ViewSet for Device Change proposals with approve and reject actions."""
+
+    proposal_type = ProposalType.DEVICE_CHANGE
+    serializer_class = ProposalDeviceChangeSerializer
+    permission_prefix = "proposal_device_change"
+    export_serializer_class = ProposalDeviceChangeExportXLSXSerializer
+
+    @extend_schema(
+        summary="Approve device change proposal",
+        description="Approve a device change proposal and reassign device to requester",
+        request=ProposalApproveSerializer,
+        responses={200: ProposalDeviceChangeSerializer},
+        tags=["9.2.10: Device Change Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DC000001",
+                        "proposal_date": "2025-12-10",
+                        "proposal_type": "device_change",
+                        "colored_proposal_status": {"value": "approved", "variant": "green"},
+                        "device_change_new_device_id": "new_device_fcm_token_123",
+                        "device_change_new_platform": "android",
+                        "device_change_old_device_id": "old_device_fcm_token_456",
+                        "device_change_contact_info": "Switching to new phone",
+                        "note": "Request to change device",
+                        "approval_note": "Approved by admin",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": {"id": 2, "fullname": "Admin User", "email": "admin@example.com"},
+                        "approved_at": "2025-12-10T11:00:00Z",
+                        "created_at": "2025-12-10T10:00:00Z",
+                        "updated_at": "2025-12-10T11:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    def approve(self, request, pk=None):
+        """Approve a device change proposal."""
+        return super().approve(request, pk)
+
+    @extend_schema(
+        summary="Reject device change proposal",
+        description="Reject a device change proposal with required approval note",
+        request=ProposalRejectSerializer,
+        responses={200: ProposalDeviceChangeSerializer},
+        tags=["9.2.10: Device Change Proposals"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "DC000001",
+                        "proposal_date": "2025-12-10",
+                        "proposal_type": "device_change",
+                        "colored_proposal_status": {"value": "rejected", "variant": "red"},
+                        "device_change_new_device_id": "new_device_fcm_token_123",
+                        "device_change_new_platform": "android",
+                        "device_change_old_device_id": "old_device_fcm_token_456",
+                        "device_change_contact_info": "Switching to new phone",
+                        "note": "Request to change device",
+                        "approval_note": "Device not authorized for company use",
+                        "created_by": {"id": 1, "fullname": "John Doe", "email": "john@example.com"},
+                        "approved_by": {"id": 2, "fullname": "Admin User", "email": "admin@example.com"},
+                        "approved_at": "2025-12-10T11:00:00Z",
+                        "created_at": "2025-12-10T10:00:00Z",
+                        "updated_at": "2025-12-10T11:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+        ],
+    )
+    def reject(self, request, pk=None):
+        """Reject a device change proposal."""
+        return super().reject(request, pk)
