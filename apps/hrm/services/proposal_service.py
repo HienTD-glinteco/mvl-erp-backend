@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from apps.hrm.constants import ProposalType, TimesheetReason, TimesheetStatus
+from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import AttendanceRecord, Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 from apps.notifications.utils import create_notification
 
