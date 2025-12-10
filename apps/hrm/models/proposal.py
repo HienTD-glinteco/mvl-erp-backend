@@ -105,6 +105,14 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     timesheet_entry_complaint_address = models.CharField(
         max_length=255, blank=True, verbose_name="Timesheet Entry Complaint Address", null=True
     )
+    timesheet_entry_complaint_complaint_image = models.ForeignKey(
+        "files.FileModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="timesheet_entry_complaint_proposals",
+        verbose_name="Timesheet Entry Complaint Image",
+    )
 
     # LATE_EXEMPTION fields
     late_exemption_start_date = models.DateField(

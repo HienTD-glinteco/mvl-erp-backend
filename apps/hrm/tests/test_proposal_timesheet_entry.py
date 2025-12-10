@@ -377,3 +377,94 @@ class TestProposalTimeSheetEntryUniqueConstraint:
                 proposal=complaint_proposal,
                 timesheet_entry=timesheet_entry,
             )
+
+
+class TestProposalTimesheetEntryComplaintSerializerFileConfirm:
+    """Tests for FileConfirmSerializerMixin integration in ProposalTimesheetEntryComplaintSerializer."""
+
+    def test_serializer_has_file_confirm_fields(self):
+        """Test that serializer has file_confirm_fields attribute."""
+        from apps.hrm.api.serializers.proposal import ProposalTimesheetEntryComplaintSerializer
+
+        assert hasattr(ProposalTimesheetEntryComplaintSerializer, "file_confirm_fields")
+        assert (
+            "timesheet_entry_complaint_complaint_image"
+            in ProposalTimesheetEntryComplaintSerializer.file_confirm_fields
+        )
+
+    def test_serializer_has_files_field(self):
+        """Test that serializer instance has 'files' field injected by mixin."""
+        from unittest.mock import MagicMock
+
+        from apps.hrm.api.serializers.proposal import ProposalTimesheetEntryComplaintSerializer
+        from apps.hrm.constants import ProposalType
+
+        # Create mock context with view
+        mock_view = MagicMock()
+        mock_view.proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
+        mock_request = MagicMock()
+
+        serializer = ProposalTimesheetEntryComplaintSerializer(context={"view": mock_view, "request": mock_request})
+
+        assert "files" in serializer.fields
+        assert serializer.fields["files"].write_only is True
+        assert serializer.fields["files"].required is False
+
+    def test_files_field_contains_complaint_image_field(self):
+        """Test that files field contains the complaint image field."""
+        from unittest.mock import MagicMock
+
+        from apps.hrm.api.serializers.proposal import ProposalTimesheetEntryComplaintSerializer
+        from apps.hrm.constants import ProposalType
+
+        # Create mock context
+        mock_view = MagicMock()
+        mock_view.proposal_type = ProposalType.TIMESHEET_ENTRY_COMPLAINT
+        mock_request = MagicMock()
+
+        serializer = ProposalTimesheetEntryComplaintSerializer(context={"view": mock_view, "request": mock_request})
+
+        files_field = serializer.fields["files"]
+        # The files field should be a serializer with nested fields
+        assert hasattr(files_field, "fields")
+        assert "timesheet_entry_complaint_complaint_image" in files_field.fields
+
+    def test_complaint_image_field_in_serializer_meta_fields(self):
+        """Test that complaint image field is included in Meta.fields."""
+        from apps.hrm.api.serializers.proposal import ProposalTimesheetEntryComplaintSerializer
+
+        assert "timesheet_entry_complaint_complaint_image" in ProposalTimesheetEntryComplaintSerializer.Meta.fields
+
+
+class TestProposalComplaintImageField:
+    """Tests for the timesheet_entry_complaint_complaint_image field in Proposal model."""
+
+    def test_proposal_has_complaint_image_field(self):
+        """Test that Proposal model has the complaint image field."""
+        from django.db.models import ForeignKey
+
+        from apps.hrm.models import Proposal
+
+        field = Proposal._meta.get_field("timesheet_entry_complaint_complaint_image")
+        assert isinstance(field, ForeignKey)
+        assert field.null is True
+        assert field.blank is True
+
+    def test_proposal_complaint_image_can_be_null(self, employee):
+        """Test that complaint proposal can be created without image."""
+        proposal = Proposal.objects.create(
+            code="DX_IMG_001",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Complaint without image",
+            created_by=employee,
+            timesheet_entry_complaint_complaint_image=None,
+        )
+        assert proposal.pk is not None
+        assert proposal.timesheet_entry_complaint_complaint_image is None
+
+    def test_proposal_complaint_image_related_name(self):
+        """Test that FileModel has related_name for complaint proposals."""
+        from apps.files.models import FileModel
+
+        # Check the related name exists
+        assert hasattr(FileModel, "timesheet_entry_complaint_proposals")

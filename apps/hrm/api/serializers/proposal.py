@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from apps.files.api.serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.api.serializers.common_nested import (
     BlockNestedSerializer,
     BranchNestedSerializer,
@@ -408,17 +410,21 @@ class ProposalTimesheetEntryComplaintVerifierSerializer(ProposalVerifierSerializ
         ]
 
 
-class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
+class ProposalTimesheetEntryComplaintSerializer(FileConfirmSerializerMixin, ProposalByTypeSerializer):
     """Serializer for Timesheet Entry Complaint proposals with linked timesheet entry ID.
 
     This serializer extends ProposalByTypeSerializer to include the linked timesheet entry ID
     for complaint proposals. A complaint proposal links to exactly one timesheet entry.
+    Uses FileConfirmSerializerMixin to handle complaint image confirmation.
     """
+
+    file_confirm_fields = ["timesheet_entry_complaint_complaint_image"]
 
     timesheet_entry_id = serializers.SerializerMethodField(
         help_text="ID of the linked timesheet entry", required=False
     )
     proposal_verifier = ProposalTimesheetEntryComplaintVerifierSerializer(read_only=True, source="verifiers.first")
+    timesheet_entry_complaint_complaint_image = FileSerializer(read_only=True)
 
     class Meta(ProposalByTypeSerializer.Meta):
         fields = ProposalByTypeSerializer.Meta.fields + [
@@ -431,6 +437,7 @@ class ProposalTimesheetEntryComplaintSerializer(ProposalByTypeSerializer):
             "timesheet_entry_complaint_latitude",
             "timesheet_entry_complaint_longitude",
             "timesheet_entry_complaint_address",
+            "timesheet_entry_complaint_complaint_image",
             "proposal_verifier",
         ]
 
