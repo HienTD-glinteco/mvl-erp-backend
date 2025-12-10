@@ -1,0 +1,60 @@
+{
+  "name": "Default KPI Config",
+  "description": "Standard grading scale and unit control",
+  "ambiguous_assignment": "manual",
+  "grade_thresholds": [
+    {
+      "min": 0,
+      "max": 60,
+      "possible_codes": ["D"],
+      "label": "Poor"
+    },
+    {
+      "min": 60,
+      "max": 70,
+      "possible_codes": ["C", "D"],
+      "default_code": "C",
+      "label": "Average or Poor"
+    },
+    {
+      "min": 70,
+      "max": 90,
+      "possible_codes": ["B", "C"],
+      "default_code": "B",
+      "label": "Good or Average"
+    },
+    {
+      "min": 90,
+      "max": 110,
+      "possible_codes": ["A"],
+      "label": "Excellent"
+    }
+  ],
+  "unit_control": {
+    "A": {
+      "max_pct_A": 0.20,
+      "max_pct_B": 0.30,
+      "max_pct_C": 0.50,
+      "min_pct_D": null
+    },
+    "B": {
+      "max_pct_A": 0.10,
+      "max_pct_B": 0.30,
+      "max_pct_C": 0.50,
+      "min_pct_D": 0.10
+    },
+    "C": {
+      "max_pct_A": 0.05,
+      "max_pct_B": 0.20,
+      "max_pct_C": 0.60,
+      "min_pct_D": 0.15
+    },
+    "D": {
+      "max_pct_A": 0.05,
+      "max_pct_B": 0.10,
+      "max_pct_C": 0.65,
+      "min_pct_D": 0.20
+    }
+  },
+  "meta": {}
+}

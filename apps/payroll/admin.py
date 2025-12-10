@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import SalaryConfig
+from .models import KPIConfig, SalaryConfig
 
 
 @admin.register(SalaryConfig)
@@ -19,6 +19,32 @@ class SalaryConfigAdmin(admin.ModelAdmin):
             {
                 "fields": ["version", "config"],
                 "description": "Edit the salary configuration JSON. Version is auto-incremented on save.",
+            },
+        ),
+        ("Timestamps", {"fields": ["created_at", "updated_at"], "classes": ["collapse"]}),
+    ]
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion through admin to maintain history."""
+        return False
+
+
+@admin.register(KPIConfig)
+class KPIConfigAdmin(admin.ModelAdmin):
+    """Admin configuration for KPIConfig model.
+
+    Configuration editing is done through Django Admin.
+    Version field is read-only and auto-incremented.
+    """
+
+    list_display = ["version", "updated_at", "created_at"]
+    readonly_fields = ["version", "created_at", "updated_at"]
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": ["version", "config"],
+                "description": "Edit the KPI configuration JSON. Version is auto-incremented on save.",
             },
         ),
         ("Timestamps", {"fields": ["created_at", "updated_at"], "classes": ["collapse"]}),
