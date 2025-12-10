@@ -297,7 +297,7 @@ msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ I
 # api/views/auth/otp_verification.py:81
 #: apps/core/api/views/auth/otp_verification.py:90
 msgid "logged in"
-msgstr "đã đăng nhập"
+msgstr "Đã đăng nhập"
 
 # api/views/auth/otp_verification.py:58
 #: apps/core/api/views/auth/otp_verification.py:100
