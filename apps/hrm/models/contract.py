@@ -4,7 +4,7 @@ from datetime import date
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
@@ -54,7 +54,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         DRAFT = "draft", _("Draft")
         NOT_EFFECTIVE = "not_effective", _("Not effective")
-        ACTIVE = "active", _("Active")
+        ACTIVE = "active", pgettext_lazy("contract status", "Active")
         ABOUT_TO_EXPIRE = "about_to_expire", _("About to expire")
         EXPIRED = "expired", _("Expired")
 

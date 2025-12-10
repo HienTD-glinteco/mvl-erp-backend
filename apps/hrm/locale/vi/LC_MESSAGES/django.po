@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 10:31+0700\n"
+"POT-Creation-Date: 2025-12-10 10:47+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -995,12 +995,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1009,27 +1007,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1058,12 +1051,13 @@ msgstr "Tọa độ vĩ độ phải nằm trong khoảng từ -90 đến 90 đ�
 msgid "Longitude must be between -180 and 180 degrees"
 msgstr "Tọa độ kinh độ phải nằm trong khoảng từ -180 đến 180 độ"
 
-#: apps/hrm/models/attendance_geolocation.py:33 apps/hrm/models/contract.py:57
-#: apps/hrm/models/employee.py:72
+#: apps/hrm/models/attendance_geolocation.py:33
+msgctxt "geolocation status"
 msgid "Active"
 msgstr "Hoạt động"
 
 #: apps/hrm/models/attendance_geolocation.py:34
+msgctxt "geolocation status"
 msgid "Inactive"
 msgstr "Không hoạt động"
 
@@ -1088,6 +1082,11 @@ msgstr "Bản nháp"
 #: apps/hrm/models/contract.py:56
 msgid "Not effective"
 msgstr "Chưa hiệu lực"
+
+#: apps/hrm/models/contract.py:57
+msgctxt "contract status"
+msgid "Active"
+msgstr "Đang hiệu lực"
 
 #: apps/hrm/models/contract.py:58
 msgid "About to expire"
@@ -1124,7 +1123,7 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
-#, fuzzy
+#, fuzzy, python-format
 #| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"
@@ -1169,6 +1168,11 @@ msgstr ""
 #: apps/hrm/models/employee.py:69
 msgid "OS"
 msgstr ""
+
+#: apps/hrm/models/employee.py:72
+msgctxt "employee status"
+msgid "Active"
+msgstr "Đang làm việc"
 
 #: apps/hrm/models/employee.py:73
 msgid "Onboarding"

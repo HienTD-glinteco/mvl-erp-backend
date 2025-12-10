@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
@@ -30,8 +30,8 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class Status(models.TextChoices):
-        ACTIVE = "active", _("Active")
-        INACTIVE = "inactive", _("Inactive")
+        ACTIVE = "active", pgettext_lazy("geolocation status", "Active")
+        INACTIVE = "inactive", pgettext_lazy("geolocation status", "Inactive")
 
     # Basic fields
     name = models.CharField(max_length=200, verbose_name="Geolocation name")
