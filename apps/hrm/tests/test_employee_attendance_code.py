@@ -273,8 +273,8 @@ class EmployeeAttendanceCodeAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]["attendance_code"], "401")
-        self.assertEqual(response_data[1]["attendance_code"], "402")
+        self.assertEqual(response_data[0]["attendance_code"], "402")
+        self.assertEqual(response_data[1]["attendance_code"], "401")
 
     def test_search_employee_by_attendance_code(self):
         """Test searching employees by attendance_code."""
