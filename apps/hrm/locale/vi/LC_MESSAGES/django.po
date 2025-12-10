@@ -772,35 +772,35 @@ msgstr "Cấp tài sản"
 
 #: apps/hrm/constants.py:192
 msgid "Piece"
-msgstr ""
+msgstr "Cái"
 
 #: apps/hrm/constants.py:193
 msgid "Box"
-msgstr ""
+msgstr "Hộp"
 
 #: apps/hrm/constants.py:194
 msgid "Set"
-msgstr ""
+msgstr "Bộ"
 
 #: apps/hrm/constants.py:195
 msgid "Gram"
-msgstr ""
+msgstr "Gram"
 
 #: apps/hrm/constants.py:196
 msgid "Liter"
-msgstr ""
+msgstr "Lít"
 
 #: apps/hrm/constants.py:197
 msgid "Meter"
-msgstr ""
+msgstr "Mét"
 
 #: apps/hrm/constants.py:198
 msgid "Cylinder"
-msgstr ""
+msgstr "Bình"
 
 #: apps/hrm/constants.py:199
 msgid "Bag"
-msgstr ""
+msgstr "Túi"
 
 #: apps/hrm/constants.py:205 apps/hrm/constants.py:221
 msgid "Pending"
@@ -845,7 +845,7 @@ msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
 #: apps/hrm/import_handlers/employee.py:675
 msgid "Imported from file"
-msgstr ""
+msgstr "Đã nhập từ tệp"
 
 #: apps/hrm/management/commands/import_work_schedule.py:9
 msgid "Import work schedule data for specified weekdays"
@@ -995,12 +995,12 @@ msgstr ""
 #: apps/hrm/management/commands/setup_default_org_data.py:95
 #: apps/hrm/models/organization.py:89
 msgid "Business Block"
-msgstr ""
+msgstr "Khối kinh doanh"
 
 #: apps/hrm/management/commands/setup_default_org_data.py:100
 #: apps/hrm/models/organization.py:88
 msgid "Support Block"
-msgstr ""
+msgstr "Khối hỗ trợ"
 
 #: apps/hrm/management/commands/setup_default_org_data.py:118
 #, python-format

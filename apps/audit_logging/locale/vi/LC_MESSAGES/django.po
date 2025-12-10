@@ -56,3 +56,7 @@ msgstr "Thêm mới"
 #: apps/audit_logging/decorators.py:101
 msgid "Modified"
 msgstr "Chỉnh sửa"
+
+#: apps/audit_logging/decorators.py:154
+msgid "Deleted"
+msgstr "Xóa"
