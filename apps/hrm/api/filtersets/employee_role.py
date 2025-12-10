@@ -1,7 +1,6 @@
 import django_filters
 
-from apps.core.models import Role, User
-from apps.hrm.models import Block, Branch, Department, Position
+from apps.core.models import User
 
 
 class EmployeeRoleFilterSet(django_filters.FilterSet):

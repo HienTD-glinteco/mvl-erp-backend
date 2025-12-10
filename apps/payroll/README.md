@@ -9,7 +9,7 @@ This module manages salary structure configuration for the MVL Backend ERP syste
 The system stores all salary-related rules and parameters in a single JSON configuration:
 - Insurance contribution rates (Social, Health, Unemployment, Union)
 - Personal income tax progressive levels
-- KPI salary grades  
+- KPI salary grades
 - Business progressive salary levels
 
 ### Key Components

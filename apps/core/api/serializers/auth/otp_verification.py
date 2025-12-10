@@ -66,6 +66,21 @@ class OTPVerificationSerializer(serializers.Serializer):
                 logger.warning(f"Device ID {device_id} already registered to user {existing_device.user.username}")
                 raise serializers.ValidationError(_("This device is already registered to another user."))
 
+            # CRITICAL: If user has a registered device and trying to login with a different device
+            # that is not assigned to anyone yet, this should be rejected
+            if hasattr(user, "device") and user.device is not None:
+                if user.device.device_id != device_id and not existing_device:
+                    logger.warning(
+                        f"User {user.username} attempting to login with different device {device_id} "
+                        f"(current device: {user.device.device_id})"
+                    )
+                    raise serializers.ValidationError(
+                        _(
+                            "You are attempting to login from a different device. "
+                            "Please use the device change request process to change your device."
+                        )
+                    )
+
         attrs["user"] = user
         attrs["device_id"] = device_id
         return attrs

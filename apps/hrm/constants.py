@@ -184,6 +184,7 @@ class ProposalType(models.TextChoices):
     TIMESHEET_ENTRY_COMPLAINT = "timesheet_entry_complaint", _("Timesheet entry complaint")
     JOB_TRANSFER = "job_transfer", _("Job Transfer")
     ASSET_ALLOCATION = "asset_allocation", _("Asset Allocation")
+    DEVICE_CHANGE = "device_change", _("Device Change")
 
 
 class ProposalAssetUnitType(models.TextChoices):

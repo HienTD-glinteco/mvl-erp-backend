@@ -696,6 +696,20 @@ class ProposalJobTransferSerializer(ProposalByTypeSerializer):
         ]
 
 
+class ProposalDeviceChangeSerializer(ProposalByTypeSerializer):
+    """Serializer for Device Change proposals."""
+
+    class Meta:
+        model = Proposal
+        fields = ProposalByTypeSerializer.Meta.fields + [
+            "device_change_new_device_id",
+            "device_change_new_platform",
+            "device_change_old_device_id",
+            "device_change_contact_info",
+        ]
+        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
+
+
 # =============================================================================
 # Export XLSX Serializers
 # =============================================================================
@@ -951,8 +965,25 @@ class ProposalCombinedSerializer(
                 "job_transfer_new_position",
                 "job_transfer_effective_date",
                 "job_transfer_reason",
+                "device_change_new_device_id",
+                "device_change_new_platform",
+                "device_change_old_device_id",
+                "device_change_contact_info",
             ]
         )
+        read_only_fields = fields
+
+
+class ProposalDeviceChangeExportXLSXSerializer(ProposalExportXLSXSerializer):
+    """Serializer for Device Change proposal XLSX export."""
+
+    class Meta(ProposalExportXLSXSerializer.Meta):
+        fields = ProposalExportXLSXSerializer.Meta.fields + [
+            "device_change_new_device_id",
+            "device_change_new_platform",
+            "device_change_old_device_id",
+            "device_change_contact_info",
+        ]
         read_only_fields = fields
 
 

@@ -34,6 +34,7 @@ from apps.hrm.api.views import (
     JobDescriptionViewSet,
     PositionViewSet,
     ProposalAssetAllocationViewSet,
+    ProposalDeviceChangeViewSet,
     ProposalJobTransferViewSet,
     ProposalLateExemptionViewSet,
     ProposalMaternityLeaveViewSet,
@@ -145,6 +146,11 @@ router.register(
     r"proposals/asset-allocation",
     ProposalAssetAllocationViewSet,
     basename="proposal-asset-allocation",
+)
+router.register(
+    r"proposals/device-change",
+    ProposalDeviceChangeViewSet,
+    basename="proposal-device-change",
 )
 
 # Proposal verifiers

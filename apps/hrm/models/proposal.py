@@ -263,6 +263,35 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name="Job transfer reason",
     )
 
+    # DEVICE_CHANGE fields
+    device_change_new_device_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="New device ID",
+        help_text="New device ID being requested",
+    )
+    device_change_new_platform = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        verbose_name="New platform",
+        help_text="Platform of the new device (ios, android, web)",
+    )
+    device_change_old_device_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Old device ID",
+        help_text="Previous device ID (if any)",
+    )
+    device_change_contact_info = SafeTextField(
+        null=True,
+        blank=True,
+        verbose_name="Contact info / notes",
+        help_text="Additional contact information or notes for device change request",
+    )
+
     class Meta:
         db_table = "hrm_proposal"
         verbose_name = "Proposal"
@@ -290,6 +319,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         ProposalType.JOB_TRANSFER: 2,
         ProposalType.ASSET_ALLOCATION: 1,
         ProposalType.OVERTIME_WORK: 1,
+        ProposalType.DEVICE_CHANGE: 1,
     }
 
     def __str__(self) -> str:  # pragma: no cover - trivial
@@ -393,6 +423,13 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         for asset in assets.all():
             descriptions.append(f"{asset.quantity} {asset.unit_type} {asset.name}")
         return ", ".join(descriptions)
+
+    def _get_device_change_short_description(self) -> str | None:
+        """Get short description for device change proposal."""
+        if self.device_change_new_device_id:
+            platform = f" ({self.device_change_new_platform})" if self.device_change_new_platform else ""
+            return f"New device: {self.device_change_new_device_id}{platform}"
+        return None
 
     def _clean_late_exemption_fields(self) -> None:
         """Validate late exemption proposal fields."""
