@@ -11,4 +11,8 @@ class JobDescriptionFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = JobDescription
-        fields = ["title", "code"]
+        fields = {
+            "title": ["icontains"],
+            "code": ["icontains"],
+            "created_at": ["exact", "gte", "lte"],
+        }

@@ -92,7 +92,6 @@ class EmployeeViewSet(
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["code", "fullname", "username", "email", "attendance_code", "phone", "citizen_id"]
     ordering_fields = ["code", "fullname", "start_date", "created_at"]
-    ordering = ["code"]
 
     # Permission registration attributes
     module = "HRM"
