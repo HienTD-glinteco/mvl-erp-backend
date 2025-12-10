@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 14:03+0700\n"
+"POT-Creation-Date: 2025-12-10 15:03+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -364,7 +364,7 @@ msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
 # api/views/auth/login.py:52
-#: apps/core/api/views/auth/device_change.py:149
+#: apps/core/api/views/auth/device_change.py:148
 #, fuzzy
 #| msgid ""
 #| "OTP code has been sent to your email. Please check your email and enter "
@@ -376,13 +376,13 @@ msgstr ""
 "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP "
 "để hoàn tất đăng nhập."
 
-#: apps/core/api/views/auth/device_change.py:219
+#: apps/core/api/views/auth/device_change.py:218
 msgid ""
 "Your account is not linked to an employee record. Please contact HR to set "
 "up your employee profile before requesting device change."
 msgstr ""
 
-#: apps/core/api/views/auth/device_change.py:266
+#: apps/core/api/views/auth/device_change.py:265
 msgid ""
 "Device change request verified. Your request is pending approval from admin."
 msgstr ""

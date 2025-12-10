@@ -1,5 +1,3 @@
-import hashlib
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -58,10 +56,10 @@ class DeviceChangeRequest(BaseModel):
         help_text="Additional notes from the requester",
     )
 
-    otp_hash = models.CharField(
-        max_length=255,
-        verbose_name="OTP Hash",
-        help_text="Hashed OTP code for verification",
+    otp_code = models.CharField(
+        max_length=6,
+        verbose_name="OTP Code",
+        help_text="OTP code for verification (stored in plaintext for admin viewing)",
     )
 
     otp_sent_at = models.DateTimeField(
@@ -99,20 +97,8 @@ class DeviceChangeRequest(BaseModel):
     def __str__(self):
         return f"DeviceChangeRequest {self.id} - {self.user.username}"
 
-    @staticmethod
-    def hash_otp(otp_code: str) -> str:
-        """Hash OTP code using SHA256.
-
-        Args:
-            otp_code: Plain OTP code
-
-        Returns:
-            Hashed OTP code
-        """
-        return hashlib.sha256(otp_code.encode()).hexdigest()
-
     def verify_otp(self, otp_code: str) -> bool:
-        """Verify OTP code against stored hash.
+        """Verify OTP code against stored code.
 
         Args:
             otp_code: Plain OTP code to verify
@@ -126,8 +112,8 @@ class DeviceChangeRequest(BaseModel):
             self.save(update_fields=["status"])
             return False
 
-        # Verify hash
-        if self.hash_otp(otp_code) == self.otp_hash:
+        # Verify OTP code
+        if otp_code == self.otp_code:
             return True
 
         return False

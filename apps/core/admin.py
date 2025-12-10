@@ -1,6 +1,16 @@
 from django.contrib import admin
 
-from .models import AdministrativeUnit, Nationality, PasswordResetOTP, Permission, Province, Role, User, UserDevice
+from .models import (
+    AdministrativeUnit,
+    DeviceChangeRequest,
+    Nationality,
+    PasswordResetOTP,
+    Permission,
+    Province,
+    Role,
+    User,
+    UserDevice,
+)
 
 
 @admin.register(Permission)
@@ -20,3 +30,4 @@ admin.site.register(UserDevice)
 admin.site.register(Province)
 admin.site.register(AdministrativeUnit)
 admin.site.register(Nationality)
+admin.site.register(DeviceChangeRequest)

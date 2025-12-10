@@ -105,7 +105,6 @@ class DeviceChangeRequestView(APIView):
 
         # Generate OTP
         otp_code = user.generate_otp()
-        otp_hash = DeviceChangeRequest.hash_otp(otp_code)
         otp_expires_at = timezone.now() + timedelta(seconds=300)  # 5 minutes
 
         # Get employee if exists
@@ -123,7 +122,7 @@ class DeviceChangeRequestView(APIView):
                 new_device_id=device_id,
                 new_platform=platform,
                 notes=notes,
-                otp_hash=otp_hash,
+                otp_code=otp_code,
                 otp_sent_at=timezone.now(),
                 otp_expires_at=otp_expires_at,
                 status=DeviceChangeRequest.Status.OTP_SENT,
