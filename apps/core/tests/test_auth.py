@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
-from apps.core.models import PasswordResetOTP, User
+from apps.core.models import PasswordResetOTP, User, UserDevice
 
 
 class AuthenticationTestCase(TestCase):
@@ -387,3 +387,87 @@ class AuthenticationTestCase(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         envelope = resp.json()
         self.assertFalse(envelope["success"])  # error envelope
+
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_otp_verification_with_device_id_success(self, mock_trigger_send_notification):
+        """Test OTP verification with device_id creates UserDevice"""
+        otp_code = self.user.generate_otp()
+        device_id = "test-device-123"
+
+        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+
+        # Verify device was created
+        self.user.refresh_from_db()
+        self.assertTrue(hasattr(self.user, "device"))
+        self.assertEqual(self.user.device.device_id, device_id)
+
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    def test_otp_verification_device_id_already_registered_to_another_user(self):
+        """Test OTP verification fails when device_id is registered to another user"""
+        # Create another user with a device
+        other_user = User.objects.create_user(
+            username="otheruser",
+            email="other@example.com",
+            password="testpass123",
+        )
+        device_id = "shared-device-123"
+        UserDevice.objects.create(user=other_user, device_id=device_id)
+
+        # Try to verify OTP for first user with same device_id
+        otp_code = self.user.generate_otp()
+        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertFalse(response_data["success"])
+
+        # Check error message
+        error_data = response_data["error"]
+        self.assertTrue(
+            "non_field_errors" in error_data
+            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
+        )
+
+        # Verify the error message mentions the device is already registered
+        error_message = str(error_data)
+        self.assertIn("already registered", error_message)
+
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_otp_verification_device_id_same_user_no_error(self, mock_trigger_send_notification):
+        """Test OTP verification succeeds when device_id is already registered to same user"""
+        device_id = "my-device-456"
+        UserDevice.objects.create(user=self.user, device_id=device_id)
+
+        otp_code = self.user.generate_otp()
+        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertIn("tokens", response_data["data"])
+
+    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_otp_verification_without_device_id(self, mock_trigger_send_notification):
+        """Test OTP verification without device_id still works"""
+        otp_code = self.user.generate_otp()
+
+        data = {"username": "testuser001", "otp_code": otp_code}
+        response = self.client.post(self.otp_url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+
+        # Verify no device was created
+        self.user.refresh_from_db()
+        self.assertFalse(hasattr(self.user, "device") and self.user.device is not None)

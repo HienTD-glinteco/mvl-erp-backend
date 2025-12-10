@@ -48,6 +48,8 @@ class OTPVerificationSerializer(serializers.Serializer):
     def validate(self, attrs):
         username = attrs.get("username")
         otp_code = attrs.get("otp_code")
+        device_id = attrs.get("device_id")
+
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
@@ -57,8 +59,15 @@ class OTPVerificationSerializer(serializers.Serializer):
             logger.warning(f"Invalid OTP attempt for user {username}")
             raise serializers.ValidationError(_("OTP code is incorrect or has expired."))
 
+        # Validate device_id if provided
+        if device_id:
+            existing_device = UserDevice.objects.filter(device_id=device_id).first()
+            if existing_device and existing_device.user != user:
+                logger.warning(f"Device ID {device_id} already registered to user {existing_device.user.username}")
+                raise serializers.ValidationError(_("This device is already registered to another user."))
+
         attrs["user"] = user
-        attrs["device_id"] = attrs.get("device_id", None)
+        attrs["device_id"] = device_id
         return attrs
 
     def get_tokens(self, user, device_id=None):
