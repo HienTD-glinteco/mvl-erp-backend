@@ -22,7 +22,7 @@ def generate_model_code(instance) -> str:
             ...
 
         block = Block(id=1)
-        code = generate_model_code(block)  # Returns "BL001"
+        code = generate_model_code(block)  # Returns "BL000000001"
     """
     if not hasattr(instance.__class__, "CODE_PREFIX"):
         raise AttributeError(f"{instance.__class__.__name__} must have a CODE_PREFIX class attribute")
@@ -32,12 +32,7 @@ def generate_model_code(instance) -> str:
 
     prefix = instance.__class__.CODE_PREFIX
     instance_id = instance.id
-
-    # Format with at least 3 digits, but allow more if needed
-    if instance_id < 1000:
-        subcode = f"{instance_id:03d}"
-    else:
-        subcode = str(instance_id)
+    subcode = str(instance_id).zfill(9)
 
     return f"{prefix}{subcode}"
 

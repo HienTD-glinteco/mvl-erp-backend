@@ -100,9 +100,9 @@ class RecruitmentChannelAutoCodeGenerationAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
 
-        # Verify code format (should be at least 3 digits)
+        # Verify code format (should be at least 9 digits)
         channel = RecruitmentChannel.objects.first()
-        self.assertEqual(channel.code, f"CH{channel.id:03d}")
+        self.assertEqual(channel.code, f"CH{channel.id:09d}")
 
     def test_auto_generated_code_multiple_channels(self):
         """Test auto-generated codes for multiple channels."""

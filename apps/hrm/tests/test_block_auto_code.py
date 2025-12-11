@@ -126,9 +126,9 @@ class BlockAutoCodeGenerationAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
 
-        # Verify code format (should be at least 3 digits)
+        # Verify code format (should be at least 9 digits)
         block = Block.objects.first()
-        self.assertEqual(block.code, f"KH{block.id:03d}")
+        self.assertEqual(block.code, f"KH{block.id:09d}")
 
     def test_auto_generated_code_multiple_blocks(self):
         """Test auto-generated codes for multiple blocks."""

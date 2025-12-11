@@ -31,10 +31,10 @@ class GenerateModelCodeTest(unittest.TestCase):
         code = generate_model_code(instance)
 
         # Assert
-        self.assertEqual(code, "TST001")
+        self.assertEqual(code, "TST000000001")
 
     def test_generate_code_two_digits(self):
-        """Test code generation for two digit ID (id=12 -> TST012)."""
+        """Test code generation for two digit ID (id=12 -> TST000000012)."""
         # Arrange
         instance = MockModel(12)
 
@@ -42,10 +42,10 @@ class GenerateModelCodeTest(unittest.TestCase):
         code = generate_model_code(instance)
 
         # Assert
-        self.assertEqual(code, "TST012")
+        self.assertEqual(code, "TST000000012")
 
     def test_generate_code_three_digits(self):
-        """Test code generation for three digit ID (id=444 -> TST444)."""
+        """Test code generation for three digit ID (id=444 -> TST000000444)."""
         # Arrange
         instance = MockModel(444)
 
@@ -53,10 +53,10 @@ class GenerateModelCodeTest(unittest.TestCase):
         code = generate_model_code(instance)
 
         # Assert
-        self.assertEqual(code, "TST444")
+        self.assertEqual(code, "TST000000444")
 
     def test_generate_code_four_digits(self):
-        """Test code generation for four digit ID (id=5555 -> TST5555)."""
+        """Test code generation for four digit ID (id=5555 -> TST000005555)."""
         # Arrange
         instance = MockModel(5555)
 
@@ -64,7 +64,7 @@ class GenerateModelCodeTest(unittest.TestCase):
         code = generate_model_code(instance)
 
         # Assert
-        self.assertEqual(code, "TST5555")
+        self.assertEqual(code, "TST000005555")
 
     def test_generate_code_without_prefix_raises_error(self):
         """Test that missing CODE_PREFIX raises AttributeError."""
@@ -118,7 +118,7 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
 
         # Assert
         # Verify generate_model_code was called and code was updated
-        self.assertEqual(mock_instance.code, "TST042")
+        self.assertEqual(mock_instance.code, "TST000000042")
         mock_instance.save.assert_called_once_with(update_fields=["code"])
 
     def test_handler_ignores_existing_instances(self):
@@ -183,7 +183,7 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
         handler(sender=MagicMock, instance=mock_instance, created=True)
 
         # Assert
-        self.assertEqual(mock_instance.code, "TST099")
+        self.assertEqual(mock_instance.code, "TST000000099")
         mock_instance.save.assert_called_once_with(update_fields=["code"])
 
     def test_handler_with_custom_generate_code_function(self):
@@ -219,7 +219,7 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
         handler(sender=MagicMock, instance=mock_instance, created=True)
 
         # Assert
-        self.assertEqual(mock_instance.code, "DEF005")
+        self.assertEqual(mock_instance.code, "DEF000000005")
         mock_instance.save.assert_called_once_with(update_fields=["code"])
 
 
@@ -281,7 +281,7 @@ class RegisterAutoCodeSignalTest(unittest.TestCase):
         mock_instance.id = 1
         mock_instance.__class__.CODE_PREFIX = "TST"
         handler(sender=mock_model, instance=mock_instance, created=True)
-        self.assertEqual(mock_instance.code, "TST001")
+        self.assertEqual(mock_instance.code, "TST000000001")
 
     @patch("libs.code_generation.post_save")
     def test_register_with_custom_generate_code(self, mock_post_save):

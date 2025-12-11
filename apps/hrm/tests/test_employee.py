@@ -768,7 +768,7 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
         code = generate_code(employee)
 
         # Assert
-        self.assertEqual(code, "MV001")
+        self.assertEqual(code, "MV000000001")
 
     def test_generate_code_with_ctv_code_type(self):
         """Test generate_code returns code with CTV prefix"""
@@ -785,7 +785,7 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
         code = generate_code(employee)
 
         # Assert
-        self.assertEqual(code, "CTV012")
+        self.assertEqual(code, "CTV000000012")
 
     def test_generate_code_with_os_code_type(self):
         """Test generate_code returns code with OS prefix"""
@@ -802,7 +802,7 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
         code = generate_code(employee)
 
         # Assert
-        self.assertEqual(code, "OS444")
+        self.assertEqual(code, "OS000000444")
 
     def test_generate_code_with_four_digit_id(self):
         """Test generate_code with ID >= 1000 does not pad"""
@@ -819,7 +819,7 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
         code = generate_code(employee)
 
         # Assert
-        self.assertEqual(code, "MV5555")
+        self.assertEqual(code, "MV000005555")
 
     def test_generate_code_without_id_raises_error(self):
         """Test generate_code raises ValueError when employee has no id"""

@@ -23,19 +23,14 @@ def generate_code(employee: "Employee") -> str:
         employee: Employee instance that must have an id and code_type attribute.
 
     Returns:
-        Generated code string (e.g., "MV001", "CTV012", "OS444")
+        Generated code string (e.g., "MV000000001", "CTV000000012", "OS000000444")
     """
     if not hasattr(employee, "id") or employee.id is None:
         raise ValueError("Employee must have an id to generate code")
 
     prefix = employee.code_type
     instance_id = employee.id
-
-    # Format with at least 3 digits, but allow more if needed
-    if instance_id < 1000:
-        subcode = f"{instance_id:03d}"
-    else:
-        subcode = str(instance_id)
+    subcode = str(instance_id).zfill(9)
 
     return f"{prefix}{subcode}"
 
