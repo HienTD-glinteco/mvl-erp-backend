@@ -60,7 +60,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     )
 
     status = models.CharField(
-        max_length=32, choices=TimesheetStatus.choices, default=TimesheetStatus.ABSENT, verbose_name="Status"
+        max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name="Status"
     )
 
     absent_reason = models.CharField(

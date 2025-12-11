@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 14:35+0700\n"
+"POT-Creation-Date: 2025-12-11 15:51+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,16 +46,16 @@ msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 msgid "Connection object is None"
 msgstr "Kết nối bị trống"
 
-#: apps/devices/zk/service.py:170 apps/devices/zk/service.py:222
+#: apps/devices/zk/service.py:170 apps/devices/zk/service.py:225
 msgid "Device not connected. Call connect() first."
 msgstr "Thiết bị chưa kết nối. Vui lòng nhấn Kết nối trước."
 
-#: apps/devices/zk/service.py:208
+#: apps/devices/zk/service.py:211
 #, python-format
 msgid "Failed to fetch attendance logs: %(error)s"
 msgstr "Lỗi khi lấy dữ liệu chấm công: %(error)s"
 
-#: apps/devices/zk/service.py:233
+#: apps/devices/zk/service.py:236
 #, python-format
 msgid "Failed to get device info: %(error)s"
 msgstr "Lỗi khi lấy thông tin thiết bị: %(error)s"
