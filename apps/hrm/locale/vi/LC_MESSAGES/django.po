@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 16:43+0700\n"
+"POT-Creation-Date: 2025-12-11 17:33+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,7 +98,7 @@ msgstr "Mã chấm công này đã được sử dụng bởi một nhân viên 
 msgid "Employee created"
 msgstr "Tạo nhân viên thành công"
 
-#: apps/hrm/api/serializers/employee.py:420
+#: apps/hrm/api/serializers/employee.py:392
 #, fuzzy
 #| msgid "Effective date cannot be in the future."
 msgid "Start date cannot be in the future."
@@ -110,7 +110,7 @@ msgstr "Ngày hiệu lực không thể ở tương lai."
 msgid "Only employees with 'Onboarding' status can be activated."
 msgstr "Chỉnh sửa chỉ áp dụng cho phụ lục hợp đồng có trạng thái BẢN NHÁP."
 
-#: apps/hrm/api/serializers/employee.py:453
+#: apps/hrm/api/serializers/employee.py:454
 #, fuzzy, python-brace-format
 #| msgid "Effective date cannot be earlier than the latest work history date."
 msgid "Start date cannot be earlier than the resignation start date of {date}."
@@ -118,13 +118,13 @@ msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
 "nhân viên gần nhất."
 
-#: apps/hrm/api/serializers/employee.py:462
+#: apps/hrm/api/serializers/employee.py:463
 #, fuzzy
 #| msgid "Only appendices with DRAFT status can be edited."
 msgid "Only employees with 'Resigned' status can be reactivated."
 msgstr "Chỉnh sửa chỉ áp dụng cho phụ lục hợp đồng có trạng thái BẢN NHÁP."
 
-#: apps/hrm/api/serializers/employee.py:494
+#: apps/hrm/api/serializers/employee.py:495
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
@@ -133,16 +133,16 @@ msgstr ""
 "Nhân viên trở lại làm việc từ trạng thái đã nghỉ việc. Trạng thái thay đổi "
 "từ {old_status} sang {new_status}."
 
-#: apps/hrm/api/serializers/employee.py:498
+#: apps/hrm/api/serializers/employee.py:499
 msgid "Seniority retained from previous employment period."
 msgstr "Thâm niên được giữ lại từ giai đoạn làm việc trước đó."
 
-#: apps/hrm/api/serializers/employee.py:516
+#: apps/hrm/api/serializers/employee.py:517
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr "Đổii trạng thái từ {old_status} sang {new_status} (Kích hoạt lại)"
 
-#: apps/hrm/api/serializers/employee.py:541
+#: apps/hrm/api/serializers/employee.py:543
 #, fuzzy
 #| msgid "Effective date cannot be earlier than the latest work history date."
 msgid ""
@@ -152,17 +152,17 @@ msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
 "nhân viên gần nhất."
 
-#: apps/hrm/api/serializers/employee.py:553
+#: apps/hrm/api/serializers/employee.py:555
 msgid "Employee must be in an active or leave status to resign."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:573
+#: apps/hrm/api/serializers/employee.py:575
 #: apps/hrm/services/employee/work_history.py:44
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
 msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
 
-#: apps/hrm/api/serializers/employee.py:598
+#: apps/hrm/api/serializers/employee.py:600
 #, fuzzy
 #| msgid ""
 #| "Only active or onboarding employees can be exempt from attendance tracking"
@@ -171,15 +171,15 @@ msgstr ""
 "Chỉ những nhân viên đang hoạt động hoặc trong giai đoạn thử việc mới có thể "
 "được miễn theo dõi chấm công"
 
-#: apps/hrm/api/serializers/employee.py:701
+#: apps/hrm/api/serializers/employee.py:703
 msgid "Effective date cannot be in the future."
 msgstr "Ngày hiệu lực không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:707
+#: apps/hrm/api/serializers/employee.py:709
 msgid "The new employee type must be different from the current type."
 msgstr "Loại nhân viên mới phải khác loại hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:724
+#: apps/hrm/api/serializers/employee.py:726
 msgid "Effective date cannot be earlier than the latest work history date."
 msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
@@ -1057,10 +1057,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1069,22 +1071,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -1185,7 +1192,7 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
-#, fuzzy, python-format
+#, fuzzy
 #| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"

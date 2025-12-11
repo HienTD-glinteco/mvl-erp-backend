@@ -387,6 +387,11 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
         self.employee_update_fields = []
         self.old_status = self.employee.status if self.employee else None
 
+    def validate_start_date(self, value):
+        if value > date.today():
+            raise serializers.ValidationError(_("Start date cannot be in the future."))
+        return value
+
     def _validate_employee(self):
         try:
             self.employee.clean()
@@ -414,11 +419,6 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
 
 class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
     """Serializer for the 'active' action."""
-
-    def validate_start_date(self, value):
-        if value > date.today():
-            raise serializers.ValidationError(_("Start date cannot be in the future."))
-        return value
 
     def validate(self, attrs):
         if self.employee.status != Employee.Status.ONBOARDING:
@@ -448,6 +448,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
     is_seniority_retained = serializers.BooleanField(default=False, required=False)
 
     def validate_start_date(self, value):
+        value = super().validate_start_date(value)
         if value < self.employee.resignation_start_date:
             raise serializers.ValidationError(
                 _("Start date cannot be earlier than the resignation start date of {date}.").format(
@@ -535,6 +536,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
     resignation_reason = serializers.ChoiceField(choices=Employee.ResignationReason.choices, required=True)
 
     def validate_start_date(self, value):
+        value = super().validate_start_date(value)
         if value < self.employee.start_date:
             raise serializers.ValidationError(
                 _(
