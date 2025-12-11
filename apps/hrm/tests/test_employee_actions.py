@@ -176,10 +176,10 @@ class EmployeeActionAPITest(TestCase):
             "resignation_reason": Employee.ResignationReason.VOLUNTARY_CAREER_CHANGE,
         }
         response = self.client.post(url, payload, format="json")
-        # The resigned action allows ONBOARDING -> RESIGNED transition
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # The resigned action does NOT allow ONBOARDING -> RESIGNED transition
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.onboarding_employee.refresh_from_db()
-        self.assertEqual(self.onboarding_employee.status, Employee.Status.RESIGNED)
+        self.assertEqual(self.onboarding_employee.status, Employee.Status.ONBOARDING)
 
     def test_maternity_leave_action(self):
         url = reverse("hrm:employee-maternity-leave", kwargs={"pk": self.active_employee.id})
@@ -196,10 +196,10 @@ class EmployeeActionAPITest(TestCase):
         url = reverse("hrm:employee-maternity-leave", kwargs={"pk": self.onboarding_employee.id})
         payload = {"start_date": "2024-10-01", "end_date": "2025-04-01"}
         response = self.client.post(url, payload, format="json")
-        # The maternity leave action allows ONBOARDING -> MATERNITY_LEAVE transition
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # The maternity leave action does NOT allow ONBOARDING -> MATERNITY_LEAVE transition
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.onboarding_employee.refresh_from_db()
-        self.assertEqual(self.onboarding_employee.status, Employee.Status.MATERNITY_LEAVE)
+        self.assertEqual(self.onboarding_employee.status, Employee.Status.ONBOARDING)
 
     def test_transfer_action(self):
         """Test transferring an employee to a new department and position"""

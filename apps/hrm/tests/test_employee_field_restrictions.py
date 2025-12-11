@@ -299,7 +299,11 @@ class EmployeeReturnToWorkEventTest(TestCase):
         )
 
     def test_reactive_maternity_leave_creates_change_status_event(self):
-        """Test that reactivating maternity leave employee creates CHANGE_STATUS event."""
+        """Test that reactivating maternity leave employee is NOT allowed.
+
+        The reactive action only allows reactivating RESIGNED employees.
+        Employees on maternity leave should return to work through a different process.
+        """
         # Create maternity leave employee
         employee = Employee.objects.create(
             fullname="Maternity Leave Employee",
@@ -320,7 +324,7 @@ class EmployeeReturnToWorkEventTest(TestCase):
         employee.resignation_end_date = date(2024, 12, 1)
         employee.save(update_fields=["status", "resignation_start_date", "resignation_end_date"])
 
-        # Reactivate employee
+        # Attempt to reactivate employee - should fail
         url = reverse("hrm:employee-reactive", kwargs={"pk": employee.id})
         response = self.client.post(
             url,
@@ -332,28 +336,11 @@ class EmployeeReturnToWorkEventTest(TestCase):
             format="json",
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # The reactive action does NOT allow MATERNITY_LEAVE -> ACTIVE transition
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         employee.refresh_from_db()
-        self.assertEqual(employee.status, Employee.Status.ACTIVE)
-
-        # Should NOT create RETURN_TO_WORK event
-        return_to_work_count = EmployeeWorkHistory.objects.filter(
-            employee=employee,
-            name=EmployeeWorkHistory.EventType.RETURN_TO_WORK,
-        ).count()
-        self.assertEqual(return_to_work_count, 0, "Should not create RETURN_TO_WORK event for maternity leave")
-
-        # Should create CHANGE_STATUS event instead
-        change_status_event = EmployeeWorkHistory.objects.filter(
-            employee=employee,
-            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
-            date=date(2024, 12, 1),
-        ).first()
-
-        self.assertIsNotNone(change_status_event, "Should create CHANGE_STATUS event")
-        self.assertEqual(change_status_event.status, Employee.Status.ACTIVE)
-        self.assertTrue(change_status_event.retain_seniority)
-        self.assertIn("reactivated", change_status_event.detail.lower())
+        # Employee status should remain unchanged
+        self.assertEqual(employee.status, Employee.Status.MATERNITY_LEAVE)
 
     def test_reactive_resigned_without_seniority_retained(self):
         """Test reactive resigned employee without seniority retained."""
