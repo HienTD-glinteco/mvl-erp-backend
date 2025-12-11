@@ -1,5 +1,4 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
 
