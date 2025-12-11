@@ -72,8 +72,8 @@ class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruitmentCandidate
-        fields = ["id", "name", "code"]
-        read_only_fields = ["id", "name", "code"]
+        fields = ["id", "name", "code", "years_of_experience"]
+        read_only_fields = ["id", "name", "code", "years_of_experience"]
 
 
 class EmployeeBankAccountNestedSerializer(serializers.ModelSerializer):
