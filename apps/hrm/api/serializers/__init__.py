@@ -24,6 +24,7 @@ from .decision import DecisionExportSerializer, DecisionSerializer
 from .employee import (
     EmployeeActiveActionSerializer,
     EmployeeAvatarSerializer,
+    EmployeeChangeTypeActionSerializer,
     EmployeeExportXLSXSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
@@ -125,6 +126,7 @@ __all__ = [
     "EmployeeResignedActionSerializer",
     "EmployeeSerializer",
     "EmployeeTransferActionSerializer",
+    "EmployeeChangeTypeActionSerializer",
     "EmployeeCertificateSerializer",
     "EmployeeDependentSerializer",
     "EmployeeExportXLSXSerializer",

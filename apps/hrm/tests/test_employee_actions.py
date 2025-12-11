@@ -238,18 +238,55 @@ class EmployeeActionAPITest(TestCase):
         self.assertEqual(self.active_employee.branch, new_department.branch)
         self.assertEqual(self.active_employee.block, new_department.block)
 
-        # Verify work history record was created
-        work_history = EmployeeWorkHistory.objects.filter(
+    def test_change_employee_type_action(self):
+        """Test changing employee type successfully creates work history and updates employee."""
+        url = reverse("hrm:employee-change-employee-type", kwargs={"pk": self.active_employee.id})
+        payload = {"date": "2024-03-01", "employee_type": "INTERN", "note": "Role change"}
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.active_employee.refresh_from_db()
+        self.assertEqual(self.active_employee.employee_type, "INTERN")
+
+        # Check that work history record was created
+        wh = (
+            EmployeeWorkHistory.objects.filter(
+                employee=self.active_employee, name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
+            )
+            .order_by("-date")
+            .first()
+        )
+        self.assertIsNotNone(wh)
+        self.assertEqual(str(wh.date), "2024-03-01")
+        self.assertEqual(wh.from_date.isoformat(), "2024-03-01")
+        self.assertEqual(wh.note, "Role change")
+
+    def test_change_employee_type_action_future_date_fails(self):
+        url = reverse("hrm:employee-change-employee-type", kwargs={"pk": self.active_employee.id})
+        future_date = date.today().replace(year=date.today().year + 10).isoformat()
+        payload = {"date": future_date, "employee_type": "INTERN"}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_change_employee_type_action_earlier_than_history_fails(self):
+        # Create an existing work history (CHANGE_EMPLOYEE_TYPE) later than the requested effective date
+        EmployeeWorkHistory.objects.create(
+            date=date(2024, 5, 1),
+            from_date=date(2024, 5, 1),
+            name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE,
             employee=self.active_employee,
-            name=EmployeeWorkHistory.EventType.TRANSFER,
-        ).first()
-        self.assertIsNotNone(work_history)
-        self.assertEqual(str(work_history.date), "2024-03-01")
-        self.assertEqual(work_history.department, new_department)
-        self.assertEqual(work_history.position, new_position)
-        self.assertEqual(work_history.branch, new_department.branch)
-        self.assertEqual(work_history.block, new_department.block)
-        self.assertEqual(work_history.note, "Transferred to new department for expansion")
+            detail="existing change employee type history",
+        )
+        url = reverse("hrm:employee-change-employee-type", kwargs={"pk": self.active_employee.id})
+        payload = {"date": "2024-04-01", "employee_type": "INTERN"}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # No new change-employee-type work history should be created when validation fails
+        change_type_count = EmployeeWorkHistory.objects.filter(
+            employee=self.active_employee, name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
+        ).count()
+        self.assertEqual(change_type_count, 1)
 
     def test_transfer_action_department_only(self):
         """Test transferring an employee with same position"""

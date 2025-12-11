@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.transaction import atomic
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -8,6 +9,7 @@ from apps.core.api.serializers import SimpleUserSerializer
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.models import FileModel
+from apps.hrm.constants import EmployeeType
 from apps.hrm.models import (
     BankAccount,
     Block,
@@ -18,7 +20,12 @@ from apps.hrm.models import (
     Position,
     RecruitmentCandidate,
 )
-from apps.hrm.services.employee import create_position_change_event, create_state_change_event, create_transfer_event
+from apps.hrm.services.employee import (
+    create_employee_type_change_event,
+    create_position_change_event,
+    create_state_change_event,
+    create_transfer_event,
+)
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 from .common_nested import BankNestedSerializer
@@ -630,6 +637,81 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
             new_department=self.employee.department,
             old_position=self.old_position,
             new_position=self.employee.position,
+            effective_date=self.validated_data["date"],
+            note=self.validated_data.get("note", ""),
+        )
+
+
+class EmployeeChangeTypeActionSerializer(serializers.Serializer):
+    """Serializer for the 'change_employee_type' action.
+
+    Fields:
+      - date: Event effective date
+      - employee_type: EmployeeType choice
+      - note: optional description
+    """
+
+    date = serializers.DateField(required=True)
+    employee_type = serializers.ChoiceField(choices=EmployeeType.choices, required=True)
+    note = serializers.CharField(required=False, allow_blank=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.employee: Employee = self.context.get("employee", None)
+        self.old_employee_type = self.employee.employee_type if self.employee else None
+
+    def validate_date(self, effective_date):
+        """Validate that effective_date is not in the future."""
+        if effective_date > date.today():
+            raise serializers.ValidationError(_("Effective date cannot be in the future."))
+        return effective_date
+
+    def validate_employee_type(self, employee_type):
+        """Validate that the new employee_type is different from the current one."""
+        if self.employee and employee_type == self.employee.employee_type:
+            raise serializers.ValidationError(_("The new employee type must be different from the current type."))
+        return employee_type
+
+    def validate(self, attrs):
+        effective_date = attrs["date"]
+
+        # Prevent setting effective date less than latest history date
+        latest_history = (
+            self.employee.work_histories.filter(name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE)
+            .order_by("-from_date")
+            .first()
+            if self.employee
+            else None
+        )
+        # Compare only using from_date
+        if latest_history and latest_history.from_date and effective_date < latest_history.from_date:
+            raise serializers.ValidationError(
+                {"date": _("Effective date cannot be earlier than the latest work history date.")}
+            )
+
+        # Assign new employee_type and validate model
+        self.employee.employee_type = attrs["employee_type"]
+
+        try:
+            self.employee.clean()
+        except DjangoValidationError as e:
+            if hasattr(e, "error_dict"):
+                raise serializers.ValidationError(e.message_dict)
+            else:
+                raise serializers.ValidationError({"non_field_errors": e.messages})
+
+        return attrs
+
+    @atomic
+    def save(self, **kwargs):
+        """Save employee and create a work history change record."""
+        self.employee.save(update_fields=["employee_type", "updated_at"])
+
+        # Create work history record
+        create_employee_type_change_event(
+            employee=self.employee,
+            old_employee_type=self.old_employee_type,
+            new_employee_type=self.employee.employee_type,
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
         )

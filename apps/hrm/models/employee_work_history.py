@@ -40,6 +40,7 @@ class EmployeeWorkHistory(BaseModel):
         CHANGE_POSITION = "Change Position", _("Change Position")
         CHANGE_STATUS = "Change Status", _("Change Status")
         TRANSFER = "Transfer", _("Transfer")
+        CHANGE_EMPLOYEE_TYPE = "Change Employee Type", _("Change Employee Type")
         CHANGE_CONTRACT = "Change Contract", _("Change Contract")
         RETURN_TO_WORK = "Return to Work", _("Return to Work")
 

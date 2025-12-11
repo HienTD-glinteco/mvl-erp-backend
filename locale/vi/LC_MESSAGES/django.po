@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-10 15:57+0700\n"
+"POT-Creation-Date: 2025-12-11 14:35+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -287,6 +287,14 @@ msgstr "Không được phép xem job này"
 #: apps/mailtemplates/views.py:554
 msgid "Job not found"
 msgstr "Job không tồn tại"
+
+#: apps/payroll/api/views/kpi_config.py:84
+msgid "View KPI configuration"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_config.py:87
+msgid "Payroll View KPI Configuration"
+msgstr ""
 
 #: apps/payroll/api/views/salary_config.py:127
 msgid "View salary configuration"

@@ -167,6 +167,45 @@ def create_transfer_event(
     )
 
 
+def create_employee_type_change_event(
+    employee,
+    old_employee_type,
+    new_employee_type,
+    effective_date,
+    note=None,
+):
+    """Create an employee type change event in work history.
+
+    Args:
+        employee: Employee instance
+        old_employee_type: Previous EmployeeType value
+        new_employee_type: New EmployeeType value
+        effective_date: Date when the type change takes effect
+        note: Optional note
+
+    Returns:
+        EmployeeWorkHistory: The created work history record
+    """
+    old_type_display = old_employee_type if old_employee_type is not None else _("None")
+    new_type_display = new_employee_type if new_employee_type is not None else _("None")
+
+    previous_data = {"employee_type": old_employee_type}
+
+    detail = _("Employee type changed from {old_type} to {new_type}").format(
+        old_type=old_type_display, new_type=new_type_display
+    )
+
+    return EmployeeWorkHistory.objects.create(
+        employee=employee,
+        name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE,
+        date=effective_date,
+        from_date=effective_date,
+        note=note or "",
+        detail=detail,
+        previous_data=previous_data,
+    )
+
+
 # TODO: Uncomment when Contract model is implemented
 # def create_contract_change_event(
 #     employee,

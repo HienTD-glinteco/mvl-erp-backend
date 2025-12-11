@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from apps.hrm.api.filtersets import EmployeeFilterSet
 from apps.hrm.api.serializers import (
     EmployeeActiveActionSerializer,
     EmployeeAvatarSerializer,
+    EmployeeChangeTypeActionSerializer,
     EmployeeExportXLSXSerializer,
     EmployeeMaternityLeaveActionSerializer,
     EmployeeReactiveActionSerializer,
@@ -112,6 +113,8 @@ class EmployeeViewSet(
             return EmployeeMaternityLeaveActionSerializer
         if self.action == "transfer":
             return EmployeeTransferActionSerializer
+        if self.action == "change_employee_type":
+            return EmployeeChangeTypeActionSerializer
         if self.action == "update_avatar":
             return EmployeeAvatarSerializer
         return super().get_serializer_class()
@@ -234,6 +237,60 @@ class EmployeeViewSet(
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def transfer(self, request, *args, **kwargs):
+        employee = self.get_object()
+        serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(EmployeeSerializer(instance=employee).data)
+
+    @extend_schema(
+        summary="Change employee type",
+        request=EmployeeChangeTypeActionSerializer,
+        responses={200: EmployeeSerializer},
+        examples=[
+            OpenApiExample(
+                "Request example",
+                value={"date": "2024-03-01", "employee_type": "INTERN", "note": "Role change"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "fullname": "Active Employee",
+                        "username": "active001",
+                        "employee_type": "INTERN",
+                        "branch": {"id": 1, "name": "Test Branch"},
+                        "department": {"id": 1, "name": "Test Department"},
+                        "position": {"id": 1, "name": "Manager"},
+                        "start_date": "2019-01-01",
+                        "status": "active",
+                        "email": "active1@example.com",
+                    },
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Invalid date",
+                value={"success": False, "error": {"date": ["Effective date cannot be in the future."]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Not found",
+                value={"success": False, "error": "Not found."},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
+        tags=["5.1: Employee"],
+    )
+    @action(detail=True, methods=["post"], url_path="change-employee-type")
+    @transaction.atomic
+    def change_employee_type(self, request, *args, **kwargs):
         employee = self.get_object()
         serializer = self.get_serializer(instance=employee, data=request.data, context={"employee": employee})
         serializer.is_valid(raise_exception=True)
