@@ -274,7 +274,7 @@ jobs:
             # Update supervisor configuration and restart gunicorn workers
             sudo supervisorctl reread
             sudo supervisorctl update
-            sudo supervisorctl restart maivietland-api maivietland-worker maivietland-consume-audit-logs maivietland-realtime-attendance-listener
+            sudo supervisorctl restart maivietland-api maivietland-worker maivietland-beat maivietland-consume-audit-logs maivietland-realtime-attendance-listener
 
             # Reload nginx configuration
             sudo nginx -t && sudo nginx -s reload
