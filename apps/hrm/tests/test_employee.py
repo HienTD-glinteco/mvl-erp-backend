@@ -76,17 +76,17 @@ class EmployeeModelTest(TestCase):
             block=self.block,
         )
 
-        # Patch the Celery task "delay" call used by signal handlers.
+        # Patch the Celery task `apply_async` call used by signal handlers.
         # Keep both the patcher (for stopping) and the mock (for assertions).
-        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay")
+        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.apply_async")
         self.mock_hr_report_delay = self.hr_report_patcher.start()
 
         self.recruitment_report_patcher = patch(
-            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.apply_async"
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
         # Patch the timesheet prepare task
-        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay")
+        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.apply_async")
         self.mock_prepare_timesheet_delay = self.prepare_timesheet_patcher.start()
 
     def tearDown(self):

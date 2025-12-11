@@ -9,9 +9,12 @@ from apps.hrm.tasks.attendance_report import update_attendance_daily_report_task
 def trigger_attendance_report_update_on_save(sender, instance, created, **kwargs):
     """Trigger attendance report update when an attendance record is saved."""
     if instance.employee_id and instance.timestamp:
-        update_attendance_daily_report_task.delay(
-            instance.employee_id,
-            instance.timestamp.date().strftime("%Y-%m-%d"),
+        update_attendance_daily_report_task.apply_async(
+            args=(
+                instance.employee_id,
+                instance.timestamp.date().strftime("%Y-%m-%d"),
+            ),
+            countdown=5,
         )
 
 
@@ -19,7 +22,10 @@ def trigger_attendance_report_update_on_save(sender, instance, created, **kwargs
 def trigger_attendance_report_update_on_delete(sender, instance, **kwargs):
     """Trigger attendance report update when an attendance record is deleted."""
     if instance.employee_id and instance.timestamp:
-        update_attendance_daily_report_task.delay(
-            instance.employee_id,
-            instance.timestamp.date().strftime("%Y-%m-%d"),
+        update_attendance_daily_report_task.apply_async(
+            args=(
+                instance.employee_id,
+                instance.timestamp.date().strftime("%Y-%m-%d"),
+            ),
+            countdown=5,
         )
