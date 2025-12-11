@@ -8,8 +8,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from django.utils.translation import gettext as _
 from django.utils.timezone import get_current_timezone
+from django.utils.translation import gettext as _
 from zk import ZK
 from zk.exception import ZKErrorConnection, ZKErrorResponse
 
