@@ -433,11 +433,17 @@ class ProposalTimesheetEntryComplaintSerializer(FileConfirmSerializerMixin, Prop
             "timesheet_entry_complaint_complaint_reason",
             "timesheet_entry_complaint_proposed_check_in_time",
             "timesheet_entry_complaint_proposed_check_out_time",
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
             "timesheet_entry_complaint_latitude",
             "timesheet_entry_complaint_longitude",
             "timesheet_entry_complaint_address",
             "timesheet_entry_complaint_complaint_image",
             "proposal_verifier",
+        ]
+        read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields + [
+            "timesheet_entry_complaint_approved_check_in_time",
+            "timesheet_entry_complaint_approved_check_out_time",
         ]
 
     def get_timesheet_entry_id(self, obj: Proposal) -> int | None:
