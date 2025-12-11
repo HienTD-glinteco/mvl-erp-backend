@@ -67,22 +67,27 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # TIMESHEET_ENTRY_COMPLAINT fields
-    timesheet_entry_complaint_complaint_reason = SafeTextField(null=True, blank=True, verbose_name="Complaint reason")
+    timesheet_entry_complaint_complaint_date = models.DateField(
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint date"
+    )
+    timesheet_entry_complaint_complaint_reason = SafeTextField(
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint Complaint reason"
+    )
 
     timesheet_entry_complaint_proposed_check_in_time = models.TimeField(
-        null=True, blank=True, verbose_name="Proposed check-in time"
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint Proposed check-in time"
     )
 
     timesheet_entry_complaint_proposed_check_out_time = models.TimeField(
-        null=True, blank=True, verbose_name="Proposed check-out time"
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint Proposed check-out time"
     )
 
     timesheet_entry_complaint_approved_check_in_time = models.TimeField(
-        null=True, blank=True, verbose_name="Approved check-in time"
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint Approved check-in time"
     )
 
     timesheet_entry_complaint_approved_check_out_time = models.TimeField(
-        null=True, blank=True, verbose_name="Approved check-out time"
+        null=True, blank=True, verbose_name="Timesheet Entry Complaint Approved check-out time"
     )
     timesheet_entry_complaint_latitude = models.DecimalField(
         max_digits=20,

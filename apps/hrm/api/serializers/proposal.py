@@ -429,11 +429,10 @@ class ProposalTimesheetEntryComplaintSerializer(FileConfirmSerializerMixin, Prop
     class Meta(ProposalByTypeSerializer.Meta):
         fields = ProposalByTypeSerializer.Meta.fields + [
             "timesheet_entry_id",
+            "timesheet_entry_complaint_complaint_date",
             "timesheet_entry_complaint_complaint_reason",
             "timesheet_entry_complaint_proposed_check_in_time",
             "timesheet_entry_complaint_proposed_check_out_time",
-            "timesheet_entry_complaint_approved_check_in_time",
-            "timesheet_entry_complaint_approved_check_out_time",
             "timesheet_entry_complaint_latitude",
             "timesheet_entry_complaint_longitude",
             "timesheet_entry_complaint_address",

@@ -437,6 +437,40 @@ class TestProposalTimesheetEntryComplaintSerializerFileConfirm:
         assert "timesheet_entry_complaint_complaint_image" in ProposalTimesheetEntryComplaintSerializer.Meta.fields
 
 
+class TestProposalComplaintDateField:
+    """Tests for the timesheet_entry_complaint_complaint_date field in Proposal model."""
+
+    def test_proposal_has_complaint_date_field(self):
+        """Test that Proposal model has the complaint date field."""
+        from django.db.models import DateField
+
+        from apps.hrm.models import Proposal
+
+        field = Proposal._meta.get_field("timesheet_entry_complaint_complaint_date")
+        assert isinstance(field, DateField)
+        assert field.null is True
+        assert field.blank is True
+
+    def test_proposal_complaint_date_can_be_set(self, employee):
+        """Test that complaint proposal can be created with complaint date."""
+        complaint_date = date.today()
+        proposal = Proposal.objects.create(
+            code="DX_DATE_001",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Complaint with date",
+            timesheet_entry_complaint_complaint_date=complaint_date,
+            created_by=employee,
+        )
+        assert proposal.pk is not None
+        assert proposal.timesheet_entry_complaint_complaint_date == complaint_date
+
+    def test_serializer_includes_complaint_date_field(self):
+        """Test that complaint date field is included in serializer Meta.fields."""
+        from apps.hrm.api.serializers.proposal import ProposalTimesheetEntryComplaintSerializer
+
+        assert "timesheet_entry_complaint_complaint_date" in ProposalTimesheetEntryComplaintSerializer.Meta.fields
+
+
 class TestProposalComplaintImageField:
     """Tests for the timesheet_entry_complaint_complaint_image field in Proposal model."""
 
