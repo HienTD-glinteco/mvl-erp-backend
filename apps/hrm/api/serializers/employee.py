@@ -372,7 +372,7 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
     """Base serializer for employee actions."""
 
     start_date = serializers.DateField(required=True)
-    description = serializers.CharField(max_length=100, required=False)
+    description = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
     def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, **kwargs)
