@@ -82,6 +82,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
             "date_of_birth": "2010-05-12",
+            "effective_date": "2024-01-01",
         }
 
         # Act
@@ -136,6 +137,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
             "date_of_birth": "2010-05-12",
+            "effective_date": "2024-01-01",
             "tax_code": "1234567890",
         }
 
@@ -155,12 +157,16 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
         self.assertEqual(dependent.tax_code, "1234567890")
 
     def test_create_dependent_without_optional_fields(self):
-        """Test creating a dependent without optional fields (effective_date, tax_code)."""
+        """Test creating a dependent without optional fields (date_of_birth, tax_code).
+
+        Note: effective_date is now required.
+        """
         # Arrange
         dependent_data = {
             "employee_id": self.employee.id,
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
+            "effective_date": "2024-01-01",
         }
 
         # Act
@@ -172,12 +178,12 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
         response_data = self.get_response_data(response)
 
         # Verify optional fields are null/empty
-        self.assertIsNone(response_data.get("effective_date"))
+        self.assertIsNone(response_data.get("date_of_birth"))
         self.assertEqual(response_data.get("tax_code"), "")
 
         # Verify in database
         dependent = EmployeeDependent.objects.first()
-        self.assertIsNone(dependent.effective_date)
+        self.assertIsNone(dependent.date_of_birth)
         self.assertEqual(dependent.tax_code, "")
 
     def test_dependent_code_format(self):
@@ -187,6 +193,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
             employee=self.employee,
             dependent_name="Test Dependent",
             relationship="CHILD",
+            effective_date="2024-01-01",
         )
 
         # Verify code format
@@ -204,6 +211,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
                 employee=self.employee,
                 dependent_name=f"Test Dependent {i}",
                 relationship="CHILD",
+                effective_date="2024-01-01",
             )
             dependents.append(dep)
 
@@ -222,6 +230,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
             "employee_id": self.employee.id,
             "dependent_name": "Jane Doe",
             "relationship": "CHILD",
+            "effective_date": "2024-01-01",
             "code": "CUSTOM_CODE",  # This should be ignored
         }
 
@@ -244,6 +253,7 @@ class EmployeeDependentEnhancementsAPITest(TransactionTestCase):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
         )
 
         # Update with new fields

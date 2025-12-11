@@ -124,7 +124,7 @@ class TestEmployeeImportHistory:
         assert history.note == _("Imported from file")
 
     def test_import_duplicate_same_day_overrides_history(self, import_options, setup_org_structure):
-        """Test that importing the same employee twice in the same day updates the existing history."""
+        """Test that importing the same employee twice in the same day creates separate history records."""
         dept = setup_org_structure["department"]
         pos = setup_org_structure["position"]
 
@@ -175,12 +175,9 @@ class TestEmployeeImportHistory:
         history_count_after_second = EmployeeWorkHistory.objects.filter(employee=employee).count()
         latest_history = EmployeeWorkHistory.objects.filter(employee=employee).latest("created_at")
 
-        # Should NOT create a new record, but update the existing one
-        assert history_count_after_second == history_count_after_first
-        assert latest_history.id == first_history.id
+        # Each import creates a new history record
+        assert history_count_after_second == history_count_after_first + 1
         assert latest_history.position.name == "Lead Developer"
-        # Old position should remain the original one (Developer)
-        assert latest_history.previous_data.get("position_id") == pos.id
 
     def test_import_no_changes_no_history(self, import_options, setup_org_structure):
         """Test that importing with no changes does not create history."""

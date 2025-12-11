@@ -247,7 +247,7 @@ class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
         - Available fields: created_at, dependent_name, relationship
     """
 
-    queryset = EmployeeDependent.objects.select_related("employee", "attachment", "created_by").all()
+    queryset = EmployeeDependent.objects.select_related("employee", "attachment", "created_by").filter(is_active=True)
     serializer_class = EmployeeDependentSerializer
     filterset_class = EmployeeDependentFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
