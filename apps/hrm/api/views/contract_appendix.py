@@ -266,7 +266,7 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
     export_filename = "contract_appendices"
 
     # Import configuration
-    import_template_name = "contract_appendix_template"
+    import_template_name = "hrm_contract_appendix_template"
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
