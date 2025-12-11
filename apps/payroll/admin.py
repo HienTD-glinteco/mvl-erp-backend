@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import KPIConfig, SalaryConfig
+from .models import KPIConfig, KPICriterion, SalaryConfig
 
 
 @admin.register(SalaryConfig)
@@ -53,3 +53,63 @@ class KPIConfigAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         """Prevent deletion through admin to maintain history."""
         return False
+
+
+@admin.register(KPICriterion)
+class KPICriterionAdmin(admin.ModelAdmin):
+    """Admin configuration for KPICriterion model.
+
+    Provides interface to manage KPI evaluation criteria with filtering
+    and search capabilities.
+    """
+
+    list_display = [
+        "target",
+        "evaluation_type",
+        "name",
+        "component_total_score",
+        "ordering",
+        "active",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = ["target", "evaluation_type", "active", "created_at"]
+    search_fields = ["name", "description", "target", "evaluation_type"]
+    readonly_fields = ["created_by", "updated_by", "created_at", "updated_at"]
+    ordering = ["target", "evaluation_type", "ordering", "name"]
+
+    fieldsets = [
+        (
+            "Basic Information",
+            {
+                "fields": ["target", "evaluation_type", "name", "description"],
+            },
+        ),
+        (
+            "Scoring",
+            {
+                "fields": ["component_total_score", "ordering"],
+            },
+        ),
+        (
+            "Status",
+            {
+                "fields": ["active"],
+            },
+        ),
+        (
+            "Audit Information",
+            {
+                "fields": ["created_by", "updated_by", "created_at", "updated_at"],
+                "classes": ["collapse"],
+            },
+        ),
+    ]
+
+    def save_model(self, request, obj, form, change):
+        """Set created_by or updated_by when saving through admin."""
+        if not change:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
