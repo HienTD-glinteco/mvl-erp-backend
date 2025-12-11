@@ -10,6 +10,8 @@ from .config_schemas import (
     SalaryConfigSchemaSerializer,
     SocialInsuranceSerializer,
 )
+from .kpi_config import KPIConfigSerializer
+from .kpi_config_schemas import GradeThresholdSerializer, KPIConfigSchemaSerializer, UnitControlSerializer
 from .salary_config import SalaryConfigSerializer
 
 __all__ = [
@@ -24,4 +26,8 @@ __all__ = [
     "BusinessProgressiveSalarySerializer",
     "SalaryConfigSchemaSerializer",
     "SalaryConfigSerializer",
+    "KPIConfigSerializer",
+    "KPIConfigSchemaSerializer",
+    "GradeThresholdSerializer",
+    "UnitControlSerializer",
 ]
