@@ -318,6 +318,9 @@ class ContractViewSet(
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.contract.import_handler"  # type: ignore[assignment]
 
+    # Import configuration
+    import_template_filename = "contract_template"
+
     def get_export_context(self, instance):
         """Prepare context for contract document export.
 
