@@ -27,7 +27,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "target": "sales",
+                                "target": "SALES",
                                 "evaluation_type": "job_performance",
                                 "name": "Revenue Achievement",
                                 "description": "Monthly revenue target achievement",
@@ -41,7 +41,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                             },
                             {
                                 "id": 2,
-                                "target": "sales",
+                                "target": "SALES",
                                 "evaluation_type": "discipline",
                                 "name": "Attendance",
                                 "description": "Monthly attendance record",

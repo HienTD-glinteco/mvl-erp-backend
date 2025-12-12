@@ -135,7 +135,7 @@ class KPICriterionAPITest(APITestCase):
     def test_create_criterion_missing_required_field(self):
         """Test creating criterion with missing required field"""
         data = self.valid_data.copy()
-        del data["target"]
+        del data["evaluation_type"]
 
         url = reverse("payroll:kpi-criteria-list")
         response = self.client.post(url, data=data, format="json")
@@ -149,7 +149,7 @@ class KPICriterionAPITest(APITestCase):
         error = response_data["error"]
         self.assertEqual(error["type"], "validation_error")
         error_attrs = [e["attr"] for e in error["errors"]]
-        self.assertIn("target", error_attrs)
+        self.assertIn("evaluation_type", error_attrs)
 
     def test_create_criterion_invalid_score(self):
         """Test creating criterion with invalid score"""

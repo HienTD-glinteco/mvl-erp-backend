@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-from rest_framework.exceptions import ValidationError
 
 from apps.core.models import User
 from apps.payroll.api.serializers import KPICriterionSerializer
@@ -110,7 +109,7 @@ class TestKPICriterionSerializer:
 
     def test_required_fields(self):
         """Test that required fields are validated"""
-        required_fields = ["target", "evaluation_type", "name", "component_total_score"]
+        required_fields = ["evaluation_type", "name", "component_total_score"]
         for field in required_fields:
             data = self.valid_data.copy()
             del data[field]

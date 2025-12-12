@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -32,13 +33,14 @@ class KPICriterion(BaseModel):
     """
 
     class TargetChoices(models.TextChoices):
-        SALES = "sales", "Sales"
-        BACKOFFICE = "backoffice", "Backoffice"
+        SALES = "sales", _("Sales")
+        BACKOFFICE = "backoffice", _("Backoffice")
 
     target = models.CharField(
         max_length=200,
         choices=TargetChoices.choices,
         verbose_name="Target",
+        default=TargetChoices.SALES,
         help_text="Target group or role",
     )
 
