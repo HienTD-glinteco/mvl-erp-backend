@@ -382,7 +382,9 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     # Available leave days (e.g., remaining annual leave)
-    available_leave_days = models.IntegerField(
+    available_leave_days = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
         default=0,
         verbose_name="Available leave days",
         help_text="Number of available leave days for the employee",
