@@ -206,42 +206,41 @@ def create_employee_type_change_event(
     )
 
 
-# TODO: Uncomment when Contract model is implemented
-# def create_contract_change_event(
-#     employee,
-#     old_contract,
-#     new_contract,
-#     effective_date,
-#     note=None,
-# ):
-#     """Create a contract change event in employee work history.
-#
-#     Args:
-#         employee: Employee instance
-#         old_contract: Previous contract (ContractType instance or None)
-#         new_contract: New contract (ContractType instance)
-#         effective_date: Date when the contract change takes effect
-#         note: Optional additional notes
-#
-#     Returns:
-#         EmployeeWorkHistory: The created work history record
-#     """
-#     old_contract_name = old_contract.name if old_contract else _("None")
-#     new_contract_name = new_contract.name if new_contract else _("None")
-#
-#     previous_data = {
-#         "contract_id": old_contract.id if old_contract else None,
-#         "contract_name": str(old_contract_name),  # Convert lazy translation to string for JSON
-#     }
-#
-#     return EmployeeWorkHistory.objects.create(
-#         employee=employee,
-#         name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
-#         date=effective_date,
-#         contract=new_contract,
-#         note=note or "",
-#         detail=_("Contract changed from {old_contract} to {new_contract}").format(
-#             old_contract=old_contract_name, new_contract=new_contract_name
-#         ),
-#         previous_data=previous_data,
-#     )
+def create_contract_change_event(
+    employee,
+    old_contract,
+    new_contract,
+    effective_date,
+    note=None,
+):
+    """Create a contract change event in employee work history.
+
+    Args:
+        employee: Employee instance
+        old_contract: Previous contract (Contract instance or None)
+        new_contract: New contract (Contract instance)
+        effective_date: Date when the contract change takes effect
+        note: Optional additional notes
+
+    Returns:
+        EmployeeWorkHistory: The created work history record
+    """
+    old_contract_display = old_contract.code if old_contract else _("None")
+    new_contract_display = new_contract.code if new_contract else _("None")
+
+    previous_data = {
+        "contract_id": old_contract.id if old_contract else None,
+        "contract_code": old_contract.code if old_contract else None,
+    }
+
+    return EmployeeWorkHistory.objects.create(
+        employee=employee,
+        name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+        date=effective_date,
+        contract=new_contract,
+        note=note or "",
+        detail=_("Contract changed from {old_contract} to {new_contract}").format(
+            old_contract=old_contract_display, new_contract=new_contract_display
+        ),
+        previous_data=previous_data,
+    )

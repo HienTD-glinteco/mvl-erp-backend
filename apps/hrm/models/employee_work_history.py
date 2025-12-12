@@ -142,7 +142,7 @@ class EmployeeWorkHistory(BaseModel):
         help_text="Reason for resignation (if applicable)",
     )
     contract = models.ForeignKey(
-        "hrm.ContractType",
+        "hrm.Contract",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
