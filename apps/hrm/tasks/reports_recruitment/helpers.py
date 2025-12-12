@@ -5,10 +5,11 @@ This module contains all helper functions used by both event-driven and batch ta
 
 import logging
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any, cast
 
-from django.db.models import Count, F, Sum
+from django.db.models import Count, F, Sum, Value
+from django.db.models.functions import Greatest
 
 from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
@@ -102,8 +103,23 @@ def _process_recruitment_change(data: dict[str, Any], delta: int) -> None:
         onboard_date, branch_id, block_id, department_id, source_type, is_experienced, referrer_id, delta
     )
 
-    # Update staff growth report (num_recruitment_source)
-    _increment_staff_growth_recruitment(onboard_date, branch_id, block_id, department_id, delta)
+    # Update recruitment cost report incrementally
+    recruitment_request_id = data.get("recruitment_request_id")
+    _increment_recruitment_cost_report(
+        onboard_date,
+        branch_id,
+        block_id,
+        department_id,
+        source_type,
+        recruitment_request_id,
+        delta,
+    )
+
+    # Determine whether this candidate's source allows referrals and update staff growth
+    source_has_allow_referral = bool(data.get("source_allow_referral"))
+    _increment_staff_growth_recruitment(
+        onboard_date, branch_id, block_id, department_id, delta, source_has_allow_referral=source_has_allow_referral
+    )
 
 
 def _determine_source_type_from_snapshot(data: dict[str, Any]) -> str:
@@ -148,8 +164,11 @@ def _increment_source_report(
         defaults={"num_hires": 0},
     )
 
-    report.num_hires = F("num_hires") + delta
-    report.save(update_fields=["num_hires"])
+    # Atomic, non-negative update
+    RecruitmentSourceReport.objects.filter(pk=report.pk).update(
+        num_hires=Greatest(F("num_hires") + Value(delta), Value(0))
+    )
+    report.refresh_from_db(fields=["num_hires"])
 
 
 def _increment_channel_report(
@@ -170,8 +189,11 @@ def _increment_channel_report(
         defaults={"num_hires": 0},
     )
 
-    report.num_hires = F("num_hires") + delta
-    report.save(update_fields=["num_hires"])
+    # Atomic, non-negative update
+    RecruitmentChannelReport.objects.filter(pk=report.pk).update(
+        num_hires=Greatest(F("num_hires") + Value(delta), Value(0))
+    )
+    report.refresh_from_db(fields=["num_hires"])
 
 
 def _increment_hired_candidate_report(
@@ -189,7 +211,7 @@ def _increment_hired_candidate_report(
     week_number = report_date.isocalendar()[1]
     week_key = f"Week {week_number} - {month_key}"
 
-    report, created = HiredCandidateReport.objects.get_or_create(
+    report, __ = HiredCandidateReport.objects.get_or_create(
         report_date=report_date,
         branch_id=branch_id,
         block_id=block_id,
@@ -204,10 +226,13 @@ def _increment_hired_candidate_report(
         },
     )
 
-    report.num_candidates_hired = F("num_candidates_hired") + delta
+    # Atomic, non-negative updates for candidate counts
+    updates = {"num_candidates_hired": Greatest(F("num_candidates_hired") + Value(delta), Value(0))}
     if is_experienced:
-        report.num_experienced = F("num_experienced") + delta
-    report.save(update_fields=["num_candidates_hired", "num_experienced"])
+        updates["num_experienced"] = Greatest(F("num_experienced") + Value(delta), Value(0))
+
+    HiredCandidateReport.objects.filter(pk=report.pk).update(**updates)
+    report.refresh_from_db(fields=list(updates.keys()))
 
 
 def _increment_staff_growth_recruitment(
@@ -222,12 +247,12 @@ def _increment_staff_growth_recruitment(
     Increment/decrement staff growth counters for recruitment.
 
     Business logic (as clarified):
-    - num_introductions: Hired candidates from referral sources (allow_referrer=True)
-    - num_recruitment_source: Hired candidates from non-referral sources (allow_referrer=False)
+    - num_introductions: Hired candidates from referral sources (allow_referral=True)
+    - num_recruitment_source: Hired candidates from non-referral sources (allow_referral=False)
 
-    The allow_referrer field on RecruitmentSource distinguishes:
-    - allow_referrer=True: Referral sources
-    - allow_referrer=False: Recruitment department sources
+    The allow_referral field on RecruitmentSource distinguishes:
+    - allow_referral=True: Referral sources
+    - allow_referral=False: Recruitment department sources
 
     Args:
         report_date: Report date
@@ -254,15 +279,131 @@ def _increment_staff_growth_recruitment(
         },
     )
 
-    # Update counters based on source type
+    # Update counters based on source type using clamped atomic updates
     if source_has_allow_referral:
-        # Referral source
-        report.num_introductions = F("num_introductions") + delta
+        StaffGrowthReport.objects.filter(pk=report.pk).update(
+            num_introductions=Greatest(F("num_introductions") + Value(delta), Value(0))
+        )
+        report.refresh_from_db(fields=["num_introductions"])
     else:
-        # Recruitment department source
-        report.num_recruitment_source = F("num_recruitment_source") + delta
+        StaffGrowthReport.objects.filter(pk=report.pk).update(
+            num_recruitment_source=Greatest(F("num_recruitment_source") + Value(delta), Value(0))
+        )
+        report.refresh_from_db(fields=["num_recruitment_source"])
 
-    report.save(update_fields=["num_introductions", "num_recruitment_source"])
+
+def _increment_recruitment_cost_report(
+    report_date: date,
+    branch_id: int,
+    block_id: int,
+    department_id: int,
+    source_type: str,
+    recruitment_request_id: int | None,
+    delta: int,
+) -> None:
+    """Incrementally update RecruitmentCostReport for a single candidate change.
+
+    The function attempts to approximate the per-hire cost contribution for the
+    given `recruitment_request_id` by dividing the total expenses for that
+    request by the current number of hired candidates for the same request and
+    report date. It then increments/decrements `total_cost` and `num_hires`
+    accordingly and recomputes `avg_cost_per_hire`.
+    """
+    # Only certain source types have associated expenses
+    if source_type not in (
+        RecruitmentSourceType.MARKETING_CHANNEL,
+        RecruitmentSourceType.JOB_WEBSITE_CHANNEL,
+        RecruitmentSourceType.REFERRAL_SOURCE,
+    ):
+        return
+
+    if not recruitment_request_id:
+        return
+
+    # Fetch total expense for the recruitment request up to report_date
+    expense_agg = RecruitmentExpense.objects.filter(
+        recruitment_request_id=recruitment_request_id, date__lte=report_date
+    ).aggregate(total=Sum("total_cost"))
+
+    total_expense = expense_agg.get("total")
+    if not total_expense:
+        return
+
+    total_expense = Decimal(str(total_expense))
+
+    # Count current hired candidates for this request and date
+    hired_count = RecruitmentCandidate.objects.filter(
+        status=RecruitmentCandidate.Status.HIRED,
+        recruitment_request_id=recruitment_request_id,
+        onboard_date=report_date,
+    ).count()
+
+    # Determine denominator for per-hire share. For increments, attribute
+    # cost across (existing + incoming) hires; for decrements, use existing
+    # hires to compute how much to remove. Ensure denominator >= 1.
+    if delta > 0:
+        denom = max(1, hired_count + delta)
+    else:
+        denom = max(1, hired_count)
+
+    cost_per_hire = total_expense / Decimal(denom)
+
+    month_key = report_date.strftime("%Y-%m")
+
+    report, created = RecruitmentCostReport.objects.get_or_create(
+        report_date=report_date,
+        branch_id=branch_id,
+        block_id=block_id,
+        department_id=department_id,
+        source_type=source_type,
+        defaults={
+            "month_key": month_key,
+            "total_cost": Decimal("0"),
+            "num_hires": 0,
+            "avg_cost_per_hire": Decimal("0"),
+        },
+    )
+
+    # Apply increments using F expressions for atomicity
+    report.total_cost = F("total_cost") + (cost_per_hire * Decimal(delta))
+    report.num_hires = F("num_hires") + delta
+    report.save(update_fields=["total_cost", "num_hires"])
+
+    # Refresh and recompute average safely; clamp negative values to zero
+    report.refresh_from_db()
+
+    # Ensure num_hires is non-negative integer
+    try:
+        num_hires_value = int(report.num_hires or 0)
+    except Exception:
+        num_hires_value = 0
+
+    # Clamp total_cost and num_hires
+    try:
+        total_cost_value = Decimal(report.total_cost or Decimal("0"))
+        if total_cost_value < 0:
+            total_cost_value = Decimal("0")
+    except (TypeError, InvalidOperation, ValueError):
+        # report.total_cost may be a CombinedExpression (F expression) in tests/mocks
+        total_cost_value = Decimal("0")
+
+    if num_hires_value <= 0:
+        report.total_cost = total_cost_value
+        report.num_hires = 0
+        report.avg_cost_per_hire = Decimal("0")
+        report.save(update_fields=["total_cost", "num_hires", "avg_cost_per_hire"])
+        return
+
+    # Recompute average
+    try:
+        report.avg_cost_per_hire = (total_cost_value) / Decimal(num_hires_value)
+    except Exception:
+        report.avg_cost_per_hire = Decimal("0")
+
+    # Persist average (and ensure total_cost stored is non-negative)
+    report.total_cost = total_cost_value
+    report.num_hires = num_hires_value
+    report.save(update_fields=["total_cost", "num_hires", "avg_cost_per_hire"])
 
 
 #### Batch aggregation helper functions
@@ -347,7 +488,7 @@ def _aggregate_recruitment_channel_for_date(report_date: date, branch, block, de
 def _fetch_expenses_by_request(request_ids: set[int], report_date: date) -> dict[int, Decimal]:
     """Fetch total expenses per recruitment_request in bulk and return mapping.
 
-    Returns a dict mapping recruitment_request_id -> Decimal(total_amount).
+    Returns a dict mapping recruitment_request_id -> Decimal(total).
     """
     expenses_by_request: dict[int, Decimal] = {}
     if not request_ids:
@@ -359,7 +500,7 @@ def _fetch_expenses_by_request(request_ids: set[int], report_date: date) -> dict
             date__lte=report_date,
         )
         .values("recruitment_request_id")
-        .annotate(total=Sum("amount"))
+        .annotate(total=Sum("total_cost"))
     )
 
     for expense in expenses:
@@ -543,16 +684,10 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         report_date: Date to aggregate
         branch, block, department: Org unit objects
     """
-    # Identify referral sources using allow_referrer field
-
-    # Fetch referral source IDs directly
+    # Fetch referral source IDs directly (may be empty; counts below will handle zero)
     referral_source_ids = list(RecruitmentSource.objects.filter(allow_referral=True).values_list("id", flat=True))
 
-    if not referral_source_ids:
-        logger.warning("No recruitment sources with allow_referrer=True found")
-        return
-
-    # num_introductions: All hired candidates from referral sources (allow_referrer=True)
+    # num_introductions: All hired candidates from referral sources (allow_referral=True)
     num_introductions = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,
@@ -562,8 +697,8 @@ def _update_staff_growth_for_recruitment(report_date: date, branch, block, depar
         recruitment_source__allow_referral=True,  # Referral sources
     ).count()
 
-    # num_recruitment_source: Hired candidates with department sources (allow_referrer=False)
-    # According to comment: allow_referrer=False means department sources
+    # num_recruitment_source: Hired candidates with department sources (allow_referral=False)
+    # According to comment: allow_referral=False means department sources
     num_recruitment_source = RecruitmentCandidate.objects.filter(
         status=RecruitmentCandidate.Status.HIRED,
         onboard_date=report_date,

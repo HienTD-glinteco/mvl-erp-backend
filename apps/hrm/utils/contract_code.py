@@ -13,16 +13,37 @@ from libs.retry import retry
 def generate_contract_code(instance, force_save: bool = True):
     """Generate and assign unique `code` and `contract_number` for a Contract.
 
-    This helper computes two identifiers for a `Contract` instance and assigns
-    them on the instance. It supports both regular contracts and appendices:
+    This helper computes two identifiers for a `Contract` instance and
+    assigns them on the instance. It supports both regular contracts and
+    appendices and uses a suffix-based sequence calculation for the
+    human-facing `contract_number` while keeping the system `code` derived
+    from the model `id` to avoid uniqueness collisions.
 
+    Behavior summary:
     - Contracts (category == ContractType.Category.CONTRACT):
-        - `code`: system identifier in the form `HDxxxxx` (at least 5 digits)
-        - `contract_number`: business identifier in the form `xx/YYYY/<symbol> - MVL`
+            - `code`: system identifier in the form `HDxxxxx` (uses `instance.id`,
+                padded to at least 5 digits to ensure uniqueness)
+            - `contract_number`: business identifier in the form
+                `<seq>/<year>/<symbol> - MVL` where `<seq>` is computed from the
+                latest existing `contract_number` that ends with the same
+                suffix (see sequence algorithm below)
 
     - Appendices (category == ContractType.Category.APPENDIX):
-        - `code`: system identifier in the form `PLHDxxxxx` (at least 5 digits)
-        - `contract_number`: business identifier in the form `xx/YYYY/PLHD-MVL`
+            - `code`: system identifier in the form `PLHDxxxxx` (uses `instance.id`)
+            - `contract_number`: business identifier in the form
+                `<seq>/<year>/PLHD-MVL` with the same sequence algorithm as above
+
+    Sequence algorithm:
+    1. Build a suffix for this year and type (e.g. `/<year>/PLHD-MVL` or
+            `/<year>/<symbol> - MVL`).
+    2. Query the latest `Contract` whose `contract_number` ends with that
+            suffix and extract the numeric prefix (the part before the first
+            `/`).
+    3. Cast that prefix to `int` (fallback to 0 when parsing fails) and
+            increment by one to obtain the next sequence value.
+    4. Format the new sequence for display (two digits if <100, otherwise
+            the raw number) and compose the final `contract_number` using the
+            suffix.
 
     Side effects:
     - Sets `instance.code` and `instance.contract_number`.
@@ -33,8 +54,9 @@ def generate_contract_code(instance, force_save: bool = True):
     - The function requires `instance.id` to be set. If `id` is missing a
         `ValueError` is raised.
     - Database collisions (e.g. `IntegrityError`) may occur when saving; the
-        function is commonly decorated with a retry helper to tolerate transient
-        uniqueness conflicts (see the module-level `@retry` decorator).
+        function is commonly decorated with a retry helper to tolerate
+        transient uniqueness conflicts (see the module-level `@retry`
+        decorator).
 
     Args:
             instance: `Contract` instance with a non-null `id`.

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import functools
 import logging
-import random
+import secrets
 import time
 from typing import Any, Callable, Optional, Tuple, Type
 
@@ -76,7 +76,10 @@ def retry(
 
                     sleep_for = cur_delay
                     if jitter and jitter > 0.0:
-                        sleep_for += random.random() * float(jitter)
+                        max_ms = int(jitter * 1000)
+                        # secrets.randbelow(n) returns int in range(0, n)
+                        # pass max_ms + 1 to include max_ms itself
+                        sleep_for += secrets.randbelow(max_ms + 1) / 1000.0
 
                     time.sleep(sleep_for)
 
