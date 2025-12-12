@@ -43,10 +43,10 @@ def prepare_timesheet_on_hire_post_save(sender, instance: Employee, created, **k
 
     # If the employee was just created and is in an active status, schedule timesheet preparation for the current month.
     if created and instance.status in working_statuses:
-        prepare_monthly_timesheets.delay(employee_id=instance.id)
+        prepare_monthly_timesheets.apply_async(employee_id=instance.id, countdown=5)
         return
 
     # If this is an update and the employee's status changed from a leave status to an active status, schedule timesheet preparation.
     old_status = getattr(instance, "old_status", None)
     if old_status in leave_statuses and instance.status in working_statuses:
-        prepare_monthly_timesheets.delay(employee_id=instance.id, increment_leave=False)
+        prepare_monthly_timesheets.apply_async(employee_id=instance.id, increment_leave=False, countdown=5)

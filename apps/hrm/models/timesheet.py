@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
@@ -60,7 +60,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     )
 
     status = models.CharField(
-        max_length=32, choices=TimesheetStatus.choices, default=TimesheetStatus.ABSENT, verbose_name="Status"
+        max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name="Status"
     )
 
     absent_reason = models.CharField(
@@ -277,53 +277,47 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         super().clean()
 
     def calculate_status(self) -> None:
-        """Calculate timesheet status based on work schedule and actual times.
+        """Calculate timesheet `status` using schedule, holidays, compensatory days and attendance.
 
-        This method determines whether the employee was:
-        - ON_TIME: Started work on time (within allowed late minutes)
-        - NOT_ON_TIME: Started work late (beyond allowed late minutes)
-        - ABSENT: No attendance recorded or no start_time
+        Behavior summary:
+        - Non-working day / holiday:
+                - If there is no defined working session for the date (and it is not a
+                    compensatory workday) or the recorded attendance falls entirely
+                    outside defined sessions, the day is considered non-working.
+                - For non-working/holiday days: if the employee did NOT attend
+                    (`start_time` is None) => `status = None`; if they DID attend =>
+                    `status = ON_TIME` by default.
+        - Working day:
+                - If a working session is defined for the date and there is no
+                    `start_time` => `status = ABSENT`.
+                - If `start_time` exists and schedule morning start time is available
+                    then punctuality is determined by comparing `start_time` to
+                    (`morning_start_time` + `allowed_late_minutes`):
+                        - `<= allowed_start_time` => `ON_TIME`
+                        - `> allowed_start_time` => `NOT_ON_TIME`
 
-        The calculation compares the actual start_time with the scheduled morning_start_time
-        plus the allowed_late_minutes from the work schedule.
+        Compensatory workday rules:
+        - A `CompensatoryWorkday` defined for `self.date` overrides holiday/non-working
+            defaults and specifies which session(s) (morning / afternoon / full) are
+            treated as working for that date.
+        - When a compensatory workday is present but the normal `WorkSchedule`
+            lacks time definitions (common for weekend schedules), any attendance
+            in the compensatory session(s) is treated as `ON_TIME` (no lateness
+            computation is possible without schedule times).
+        - Compensatory days are considered working days for absence/attendance
+            purposes (i.e., lack of `start_time` => `ABSENT`).
+
+        Notes:
+        - Weekday lookup converts Python `isoweekday()` (1=Mon, 7=Sun) to
+            `WorkSchedule.Weekday` (2=Mon, ..., 8=Sun).
+        - Holidays are checked via `_is_holiday()`; compensatory workdays take
+            precedence over holidays for that date.
         """
-        # If no start_time, consider as absent
-        if not self.start_time:
-            self.status = TimesheetStatus.ABSENT
-            return
 
-        # Get work schedule for this date
-        # Convert Python's isoweekday (1=Monday, 7=Sunday) to WorkSchedule.Weekday (2=Monday, 8=Sunday)
-        weekday = self.date.isoweekday() + 1
-        work_schedule = get_work_schedule_by_weekday(weekday)
+        # Delegate to service implementation to keep model thin and avoid circular imports
+        from apps.hrm.services.timesheets import compute_timesheet_status
 
-        # If no work schedule exists for this day, cannot determine status
-        if not work_schedule or not work_schedule.morning_start_time:
-            # Keep current status or default to ABSENT
-            if not self.status:
-                self.status = TimesheetStatus.ABSENT
-            return
-
-        # Check if this date is a holiday
-        # Timesheet entries can be created in advance, so we need to verify
-        if self._is_holiday():
-            # Holiday - not a working day
-            if not self.status:
-                self.status = TimesheetStatus.ABSENT
-            return
-
-        # Calculate the allowed start time (morning_start_time + allowed_late_minutes)
-        morning_start = timezone.make_aware(datetime.combine(self.date, work_schedule.morning_start_time))
-
-        # Add allowed late minutes if specified
-        allowed_late_minutes = work_schedule.allowed_late_minutes or 0
-        allowed_start_time = morning_start + timedelta(minutes=allowed_late_minutes)
-
-        # Compare actual start_time with allowed_start_time
-        if self.start_time <= allowed_start_time:
-            self.status = TimesheetStatus.ON_TIME
-        else:
-            self.status = TimesheetStatus.NOT_ON_TIME
+        compute_timesheet_status(self)
 
     def _set_is_full_salary_from_contract(self) -> None:
         """Set is_full_salary based on the active contract's net_percentage.

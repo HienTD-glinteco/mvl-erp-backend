@@ -11,9 +11,7 @@ def run_import(fixture_path: str = FIXTURE_PATH):
 
     devices = []
     for device_info in device_infos:
-        devices.append(AttendanceDevice(**device_info))
-
-    devices, _ = AttendanceDevice.objects.bulk_create(devices)
+        AttendanceDevice.objects.create(**device_info)
 
     for device in devices:
         print(f"test device: {device.id} - {device.name}")

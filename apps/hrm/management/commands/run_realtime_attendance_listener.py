@@ -115,6 +115,9 @@ def handle_attendance_event(event: ZKAttendanceEvent) -> None:
         timestamp = event.timestamp
         if timestamp.tzinfo is None:
             timestamp = timezone.make_aware(timestamp)
+        else:
+            # Force replace tzinfo with current timezone without converting the instant
+            timestamp = timestamp.replace(tzinfo=timezone.get_current_timezone())
 
         # Create attendance record
         # Try to find matching employee by attendance_code

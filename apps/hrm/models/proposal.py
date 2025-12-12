@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -13,6 +15,8 @@ from apps.hrm.constants import (
 )
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
+
+logger = logging.getLogger(__name__)
 
 
 @audit_logging_register
@@ -477,17 +481,19 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def _clean_timesheet_entry_complaint_fields(self) -> None:
         """Validate timesheet entry complaint proposal fields."""
         # If proposal type is complaint, timesheet_entry_complaint_complaint_reason cannot be empty
-        if (
-            not self.timesheet_entry_complaint_complaint_reason
-            or not self.timesheet_entry_complaint_complaint_reason.strip()
-        ):
-            raise ValidationError(
-                {
-                    "timesheet_entry_complaint_complaint_reason": _(
-                        "TimeSheet Entry Complaint reason is required for complaint proposals"
-                    )
-                }
-            )
+        # if (
+        #     not self.timesheet_entry_complaint_complaint_reason
+        #     or not self.timesheet_entry_complaint_complaint_reason.strip()
+        # ):
+        #     raise ValidationError(
+        #         {
+        #             "timesheet_entry_complaint_complaint_reason": _(
+        #                 "TimeSheet Entry Complaint reason is required for complaint proposals"
+        #             )
+        #         }
+        #     )
+        # NOTE: skip this check for now, leave it in comments.
+        pass
 
     def _clean_maternity_leave_fields(self) -> None:
         """Validate maternity leave proposal fields."""
@@ -580,6 +586,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Auto-assign department leader as verifier for new proposals
         if is_new:
             self._assign_department_leader_as_verifier()
+            self._assign_to_timesheet_entry()
 
     def _assign_department_leader_as_verifier(self) -> None:
         """Auto-assign the department leader of the proposal creator as a verifier.
@@ -597,6 +604,43 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
                     employee=department_leader,
                     defaults={"status": ProposalVerifierStatus.PENDING},
                 )
+
+    def _assign_to_timesheet_entry(self) -> None:
+        """Ensure exactly one ProposalTimeSheetEntry is created for this complaint proposal if possible."""
+        from apps.hrm.models import TimeSheetEntry
+
+        # Only run for TIMESHEET_ENTRY_COMPLAINT proposals
+        if self.proposal_type != ProposalType.TIMESHEET_ENTRY_COMPLAINT:
+            logger.info("Proposal type is not TIMESHEET_ENTRY_COMPLAINT")
+            return
+
+        # Must have a complaint date and created_by
+        if not self.timesheet_entry_complaint_complaint_date or not self.created_by_id:
+            logger.error("Missing complaint date or created_by for TIMESHEET_ENTRY_COMPLAINT proposal")
+            return
+
+        # Find the timesheet entry for the complaint date and created_by
+        # It should not happened, but we need to handle for the case one day has multiple timesheet entries
+        # then we will use the latest one.
+        timesheet_entry = (
+            TimeSheetEntry.objects.filter(
+                employee_id=self.created_by_id,
+                date=self.timesheet_entry_complaint_complaint_date,
+            )
+            .order_by("-id")
+            .first()
+        )
+        if not timesheet_entry:
+            logger.warning(
+                f"No TimeSheetEntry found for employee {self.created_by_id} on date {self.timesheet_entry_complaint_complaint_date}"
+            )
+            return
+
+        # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
+        ProposalTimeSheetEntry.objects.get_or_create(
+            proposal=self,
+            timesheet_entry=timesheet_entry,
+        )
 
 
 @audit_logging_register

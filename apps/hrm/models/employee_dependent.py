@@ -80,8 +80,6 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
     )
 
     effective_date = models.DateField(
-        null=True,
-        blank=True,
         verbose_name="Effective date",
         help_text="Start date for tax deduction applicability",
     )

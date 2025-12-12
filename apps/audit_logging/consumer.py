@@ -33,6 +33,10 @@ class AuditLogConsumer:
         self.opensearch_client = get_opensearch_client()
         self.rabbitmq_consumer = None
 
+        # Message processing counter
+        self.counter = 0
+        self.BATCH_SIZE = 100
+
     async def _index_to_opensearch(self, log_data: dict):
         """
         Index log data to OpenSearch with retry logic.
@@ -80,6 +84,13 @@ class AuditLogConsumer:
 
             # Index to OpenSearch for real-time search with retry logic
             await self._index_to_opensearch(log_data)
+
+            self.counter += 1
+            if self.counter % self.BATCH_SIZE == 0:
+                self.rabbitmq_consumer.store_offset(
+                    subscriber_name=self.consumer_name, stream=settings.RABBITMQ_STREAM_NAME, offset=message.offset
+                )
+                logger.info(f"Stored offset at {message.offset} after processing {self.counter} messages.")
 
         except json.JSONDecodeError:
             logger.warning(f"Skipping message with offset {context.offset} due to JSON decode error.")

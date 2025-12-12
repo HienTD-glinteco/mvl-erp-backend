@@ -87,6 +87,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             "relationship": "CHILD",
             "date_of_birth": "2010-05-12",
             "citizen_id": "123456789",
+            "effective_date": "2024-01-01",
             "note": "Primary dependent",
         }
 
@@ -120,6 +121,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             "employee_id": self.employee.id,
             "dependent_name": "Bob Smith",
             "relationship": "FATHER",
+            "effective_date": "2024-01-01",
         }
         response = self.client.post(url, minimal_data, format="json")
 
@@ -187,12 +189,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Child 1",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
         EmployeeDependent.objects.create(
             employee=self.employee,
             dependent_name="Child 2",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -209,6 +213,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -226,6 +231,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -234,6 +240,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             "employee_id": self.employee.id,
             "dependent_name": "Jane Updated",
             "relationship": "CHILD",
+            "effective_date": "2024-01-01",
             "note": "Updated note",
         }
         response = self.client.put(url, update_data, format="json")
@@ -249,6 +256,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -267,6 +275,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -283,12 +292,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Alice Smith",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
         EmployeeDependent.objects.create(
             employee=self.employee,
             dependent_name="Bob Jones",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -306,6 +317,7 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Jane Doe",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -322,12 +334,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Child 1",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
         EmployeeDependent.objects.create(
             employee=self.employee,
             dependent_name="Wife",
             relationship="WIFE",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -359,12 +373,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="Child 1",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
         EmployeeDependent.objects.create(
             employee=employee2,
             dependent_name="Child 2",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 
@@ -381,12 +397,14 @@ class EmployeeDependentAPITest(TransactionTestCase, APITestMixin):
             employee=self.employee,
             dependent_name="First",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
         dependent2 = EmployeeDependent.objects.create(
             employee=self.employee,
             dependent_name="Second",
             relationship="CHILD",
+            effective_date="2024-01-01",
             created_by=self.user,
         )
 

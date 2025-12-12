@@ -21,6 +21,11 @@ CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cas
 CELERY_TASK_EAGER_PROPAGATES = config("CELERY_TASK_EAGER_PROPAGATES", default=False, cast=bool)
 
 CELERY_BEAT_SCHEDULE: dict[str, dict] = {
+    # Reactivate employees from maternity leave when leave period ends
+    "reactive_maternity_leave_employees": {
+        "task": "apps.hrm.tasks.employee.reactive_maternity_leave_employees_task",
+        "schedule": crontab(hour=0, minute=0),  # Daily at midnight
+    },
     # Sync attendance logs from all devices once a day at midnight
     "backup_database": {
         "task": "apps.core.tasks.dbbackup.run_dbbackup",

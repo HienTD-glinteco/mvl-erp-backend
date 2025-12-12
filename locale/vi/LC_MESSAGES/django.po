@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 14:35+0700\n"
+"POT-Creation-Date: 2025-12-12 13:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,44 +18,44 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: apps/devices/zk/service.py:93
+#: apps/devices/zk/service.py:94
 msgid "Failed to establish connection to device"
 msgstr "Lỗi kết nối đến thiết bị"
 
-#: apps/devices/zk/service.py:101
+#: apps/devices/zk/service.py:102
 #, python-format
 msgid "Network connection error: %(error)s"
 msgstr "Lỗi kết nối mạng: %(error)s"
 
-#: apps/devices/zk/service.py:106
+#: apps/devices/zk/service.py:107
 #, python-format
 msgid "Device response error: %(error)s"
 msgstr "Lỗi phản hồi từ thiết bị: %(error)s"
 
-#: apps/devices/zk/service.py:111 apps/devices/zk/service.py:150
+#: apps/devices/zk/service.py:112 apps/devices/zk/service.py:151
 #, python-format
 msgid "Unexpected error: %(error)s"
 msgstr "Lỗi không xác định: %(error)s"
 
-#: apps/devices/zk/service.py:138
+#: apps/devices/zk/service.py:139
 #, python-format
 msgid "Connection successful. Firmware: %(firmware)s"
 msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 
-#: apps/devices/zk/service.py:142
+#: apps/devices/zk/service.py:143
 msgid "Connection object is None"
 msgstr "Kết nối bị trống"
 
-#: apps/devices/zk/service.py:170 apps/devices/zk/service.py:222
+#: apps/devices/zk/service.py:171 apps/devices/zk/service.py:226
 msgid "Device not connected. Call connect() first."
 msgstr "Thiết bị chưa kết nối. Vui lòng nhấn Kết nối trước."
 
-#: apps/devices/zk/service.py:208
+#: apps/devices/zk/service.py:212
 #, python-format
 msgid "Failed to fetch attendance logs: %(error)s"
 msgstr "Lỗi khi lấy dữ liệu chấm công: %(error)s"
 
-#: apps/devices/zk/service.py:233
+#: apps/devices/zk/service.py:237
 #, python-format
 msgid "Failed to get device info: %(error)s"
 msgstr "Lỗi khi lấy thông tin thiết bị: %(error)s"
@@ -108,12 +108,12 @@ msgstr "Lỗi khi tạo URL ký trước: {error}"
 msgid "Failed to move file in S3: {error}"
 msgstr "Lỗi khi di chuyển tệp tin trong S3: {error}"
 
-#: apps/files/utils/s3_utils.py:220
+#: apps/files/utils/s3_utils.py:218
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr "Lỗi khi xóa tệp tin khỏi S3: {error}"
 
-#: apps/files/utils/s3_utils.py:266
+#: apps/files/utils/s3_utils.py:264
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr "Lỗi khi tạo URL GET ký trước: {error}"

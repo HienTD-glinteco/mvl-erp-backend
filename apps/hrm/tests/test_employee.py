@@ -76,17 +76,17 @@ class EmployeeModelTest(TestCase):
             block=self.block,
         )
 
-        # Patch the Celery task "delay" call used by signal handlers.
+        # Patch the Celery task `apply_async` call used by signal handlers.
         # Keep both the patcher (for stopping) and the mock (for assertions).
-        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.delay")
+        self.hr_report_patcher = patch("apps.hrm.signals.hr_reports.aggregate_hr_reports_for_work_history.apply_async")
         self.mock_hr_report_delay = self.hr_report_patcher.start()
 
         self.recruitment_report_patcher = patch(
-            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.delay"
+            "apps.hrm.signals.recruitment_reports.aggregate_recruitment_reports_for_candidate.apply_async"
         )
         self.mock_recruitment_report_delay = self.recruitment_report_patcher.start()
         # Patch the timesheet prepare task
-        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.delay")
+        self.prepare_timesheet_patcher = patch("apps.hrm.signals.employee.prepare_monthly_timesheets.apply_async")
         self.mock_prepare_timesheet_delay = self.prepare_timesheet_patcher.start()
 
     def tearDown(self):
@@ -761,14 +761,19 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
             def __init__(self, id, code_type):
                 self.id = id
                 self.code_type = code_type
+                self.code = None
+
+            def save(self, update_fields=None):
+                # mimic Django model save signature used by generate_code
+                return None
 
         employee = MockEmployee(id=1, code_type="MV")
 
         # Act
-        code = generate_code(employee)
+        generate_code(employee)
 
-        # Assert
-        self.assertEqual(code, "MV000000001")
+        # Assert on the instance (function mutates the object)
+        self.assertEqual(employee.code, "MV000000001")
 
     def test_generate_code_with_ctv_code_type(self):
         """Test generate_code returns code with CTV prefix"""
@@ -778,14 +783,18 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
             def __init__(self, id, code_type):
                 self.id = id
                 self.code_type = code_type
+                self.code = None
+
+            def save(self, update_fields=None):
+                return None
 
         employee = MockEmployee(id=12, code_type="CTV")
 
         # Act
-        code = generate_code(employee)
+        generate_code(employee)
 
-        # Assert
-        self.assertEqual(code, "CTV000000012")
+        # Assert on the instance
+        self.assertEqual(employee.code, "CTV000000012")
 
     def test_generate_code_with_os_code_type(self):
         """Test generate_code returns code with OS prefix"""
@@ -795,14 +804,18 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
             def __init__(self, id, code_type):
                 self.id = id
                 self.code_type = code_type
+                self.code = None
+
+            def save(self, update_fields=None):
+                return None
 
         employee = MockEmployee(id=444, code_type="OS")
 
         # Act
-        code = generate_code(employee)
+        generate_code(employee)
 
-        # Assert
-        self.assertEqual(code, "OS000000444")
+        # Assert on the instance
+        self.assertEqual(employee.code, "OS000000444")
 
     def test_generate_code_with_four_digit_id(self):
         """Test generate_code with ID >= 1000 does not pad"""
@@ -812,14 +825,18 @@ class EmployeeGenerateCodeFunctionTest(TestCase):
             def __init__(self, id, code_type):
                 self.id = id
                 self.code_type = code_type
+                self.code = None
+
+            def save(self, update_fields=None):
+                return None
 
         employee = MockEmployee(id=5555, code_type="MV")
 
         # Act
-        code = generate_code(employee)
+        generate_code(employee)
 
-        # Assert
-        self.assertEqual(code, "MV000005555")
+        # Assert on the instance
+        self.assertEqual(employee.code, "MV000005555")
 
     def test_generate_code_without_id_raises_error(self):
         """Test generate_code raises ValueError when employee has no id"""

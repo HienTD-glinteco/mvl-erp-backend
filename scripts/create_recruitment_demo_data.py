@@ -281,6 +281,7 @@ def create_demo_employees(org_structure):
                 "date_of_birth": timezone.now(),
                 "personal_email": emp_data["email"],
                 "citizen_id": str(900000000 + i),
+                "phone": "090000000" + str(i),
             },
         )
         employees.append(emp)

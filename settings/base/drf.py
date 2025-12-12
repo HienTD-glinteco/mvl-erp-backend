@@ -29,7 +29,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "libs.drf.pagination.PageNumberWithSizePagination",
     "PAGE_SIZE": 25,
     "DEFAULT_SCHEMA_CLASS": "libs.drf.spectacular.field_filtering.EnhancedAutoSchema",
-    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
+    "EXCEPTION_HANDLER": "libs.drf.custom_exception_handler.exception_handler",
+    # "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
 # drf-spectacular settings

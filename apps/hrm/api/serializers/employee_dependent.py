@@ -31,7 +31,6 @@ class EmployeeDependentSerializer(FileConfirmSerializerMixin, serializers.ModelS
         help_text="Human-readable relationship label",
     )
 
-    effective_date = serializers.DateField(required=False, allow_null=True)
     tax_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:

@@ -72,8 +72,8 @@ class EmployeeRecruitmentCandidateNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruitmentCandidate
-        fields = ["id", "name", "code"]
-        read_only_fields = ["id", "name", "code"]
+        fields = ["id", "name", "code", "years_of_experience"]
+        read_only_fields = ["id", "name", "code", "years_of_experience"]
 
 
 class EmployeeBankAccountNestedSerializer(serializers.ModelSerializer):
@@ -387,6 +387,11 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
         self.employee_update_fields = []
         self.old_status = self.employee.status if self.employee else None
 
+    def validate_start_date(self, value):
+        if value > date.today():
+            raise serializers.ValidationError(_("Start date cannot be in the future."))
+        return value
+
     def _validate_employee(self):
         try:
             self.employee.clean()
@@ -416,8 +421,10 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
     """Serializer for the 'active' action."""
 
     def validate(self, attrs):
-        if self.employee.status == Employee.Status.ACTIVE:
-            raise serializers.ValidationError({"status": _("Employee is already Active.")})
+        if self.employee.status != Employee.Status.ONBOARDING:
+            raise serializers.ValidationError(
+                {"status": _("Only employees with 'Onboarding' status can be activated.")}
+            )
 
         self.employee.start_date = attrs["start_date"]
         self.employee.status = Employee.Status.ACTIVE
@@ -440,9 +447,21 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
 
     is_seniority_retained = serializers.BooleanField(default=False, required=False)
 
+    def validate_start_date(self, value):
+        value = super().validate_start_date(value)
+        if value < self.employee.resignation_start_date:
+            raise serializers.ValidationError(
+                _("Start date cannot be earlier than the resignation start date of {date}.").format(
+                    date=self.employee.resignation_start_date
+                )
+            )
+        return value
+
     def validate(self, attrs):
-        if self.employee.status == Employee.Status.ACTIVE:
-            raise serializers.ValidationError({"status": _("Employee is already Active.")})
+        if self.employee.status != Employee.Status.RESIGNED:
+            raise serializers.ValidationError(
+                {"status": _("Only employees with 'Resigned' status can be reactivated.")}
+            )
 
         # Store resignation data before modifying employee
         if self.old_status == Employee.Status.RESIGNED:
@@ -516,9 +535,25 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
 
     resignation_reason = serializers.ChoiceField(choices=Employee.ResignationReason.choices, required=True)
 
+    def validate_start_date(self, value):
+        value = super().validate_start_date(value)
+        if value < self.employee.start_date:
+            raise serializers.ValidationError(
+                _(
+                    "Resignation start date cannot be earlier than the employee's start date or latest comeback start date."
+                )
+            )
+        return value
+
     def validate(self, attrs):
-        if self.employee.status in Employee.Status.get_leave_statuses():
-            raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
+        if self.employee.status not in [
+            Employee.Status.ACTIVE,
+            Employee.Status.MATERNITY_LEAVE,
+            Employee.Status.UNPAID_LEAVE,
+        ]:
+            raise serializers.ValidationError(
+                {"status": _("Employee must be in an active or leave status to resign.")}
+            )
 
         self.employee.resignation_start_date = attrs["start_date"]
         self.employee.status = Employee.Status.RESIGNED
@@ -560,8 +595,10 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
     end_date = serializers.DateField(required=True)
 
     def validate(self, attrs):
-        if self.employee.status in Employee.Status.get_leave_statuses():
-            raise serializers.ValidationError({"status": _("Employee is already in a resigned status.")})
+        if self.employee.status not in [Employee.Status.ACTIVE, Employee.Status.UNPAID_LEAVE]:
+            raise serializers.ValidationError(
+                {"status": _("Only active or unpaid leave employees can go on maternity leave.")}
+            )
 
         self.employee.resignation_start_date = attrs["start_date"]
         self.employee.resignation_end_date = attrs["end_date"]

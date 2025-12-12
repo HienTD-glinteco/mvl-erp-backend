@@ -17,7 +17,6 @@ from apps.hrm.api.filtersets.proposal import (
     MeProposalFilterSet,
     MeProposalVerifierFilterSet,
     ProposalFilterSet,
-    ProposalTimesheetEntryComplaintFilterSet,
     ProposalVerifierFilterSet,
 )
 from apps.hrm.api.serializers.proposal import (
@@ -687,7 +686,6 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     permission_prefix = "proposal_timesheet_entry_complaint"
     export_serializer_class = ProposalTimesheetEntryComplaintExportXLSXSerializer
-    filterset_class = ProposalTimesheetEntryComplaintFilterSet
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]

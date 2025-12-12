@@ -15,6 +15,7 @@ from apps.hrm.models import (
     AttendanceWifiDevice,
     Block,
     Branch,
+    Contract,
     ContractType,
     Department,
     Employee,
@@ -31,6 +32,7 @@ from apps.hrm.models import (
     RecruitmentSource,
 )
 from apps.hrm.models.employee import generate_code as employee_generate_code
+from apps.hrm.utils import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
 
@@ -42,7 +44,6 @@ from libs.code_generation import register_auto_code_signal  # noqa: E402
 
 from .attendance import *  # noqa: E402, F401, F403
 from .attendance_report import *  # noqa: E402, F401, F403
-from .contract import *  # noqa: E402, F401, F403
 from .employee import *  # noqa: E402, F401, F403
 from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403
@@ -77,4 +78,11 @@ register_auto_code_signal(
     Employee,
     temp_code_prefix=TEMP_CODE_PREFIX,
     custom_generate_code=employee_generate_code,
+)
+
+# Register auto-code generation for Contract with custom generate_code
+register_auto_code_signal(
+    Contract,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+    custom_generate_code=generate_contract_code,
 )

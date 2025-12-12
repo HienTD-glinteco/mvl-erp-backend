@@ -28,21 +28,6 @@ class ProposalFilterSet(filters.FilterSet):
     )
     created_by = filters.NumberFilter(field_name="created_by")
     approved_by = filters.NumberFilter(field_name="approved_by")
-
-    class Meta:
-        model = Proposal
-        fields = {
-            "proposal_type": ["exact", "in"],
-            "proposal_status": ["exact", "in"],
-            "proposal_date": ["exact", "gte", "lte"],
-            "created_by": ["exact"],
-            "approved_by": ["exact"],
-        }
-
-
-class ProposalTimesheetEntryComplaintFilterSet(ProposalFilterSet):
-    """FilterSet for Proposal with type TIMESHEET_ENTRY_COMPLAINT."""
-
     timesheet_entry = filters.NumberFilter(
         method="filter_timesheet_entry",
         help_text="Filter by TimeSheetEntry ID",
@@ -59,6 +44,16 @@ class ProposalTimesheetEntryComplaintFilterSet(ProposalFilterSet):
             timesheet_entry=value,
         )
         return queryset.filter(Exists(subquery))
+
+    class Meta:
+        model = Proposal
+        fields = {
+            "proposal_type": ["exact", "in"],
+            "proposal_status": ["exact", "in"],
+            "proposal_date": ["exact", "gte", "lte"],
+            "created_by": ["exact"],
+            "approved_by": ["exact"],
+        }
 
 
 class MeProposalFilterSet(ProposalFilterSet):
