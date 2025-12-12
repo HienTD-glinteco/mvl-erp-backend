@@ -1,8 +1,8 @@
-from django.db.models import Max, Min
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from apps.hrm.models import AttendanceRecord, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
+from apps.hrm.services.timesheets import update_start_end_times
 
 __all__ = ["handle_attendance_record_save", "handle_attendance_record_delete"]
 
@@ -28,30 +28,7 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
 
     # Skip updating times if entry is manually corrected (from approved proposals)
     if not entry.is_manually_corrected:
-        # Use aggregated values to determine start_time and end_time.
-        # - If `first_ts` exists, use it for `start_time`.
-        # - If no `last_ts` or `last_ts == first_ts`, set `end_time = None`.
-        # - Otherwise set `end_time = last_ts`.
-        agg = AttendanceRecord.objects.filter(
-            attendance_code=instance.attendance_code, timestamp__date=entry.date
-        ).aggregate(first_ts=Min("timestamp"), last_ts=Max("timestamp"))
-
-        first_ts = agg.get("first_ts")
-        last_ts = agg.get("last_ts")
-
-        start_time = first_ts if first_ts is not None else None
-
-        if last_ts is None or last_ts == first_ts:
-            end_time = None
-        else:
-            end_time = last_ts
-
-        entry.update_times(start_time, end_time)
-
-        # Calculate hours using the WorkSchedule integration
-        entry.calculate_hours_from_schedule()
-
-        entry.save()
+        update_start_end_times(instance.attendance_code, entry)
 
     # Mark monthly timesheet for refresh
     yr = entry.date.year
@@ -77,27 +54,7 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
     if not entry:
         return
 
-    # Recompute timesheet entry: find all attendance records for that date and update entry
-    records = AttendanceRecord.objects.filter(
-        attendance_code=instance.attendance_code, timestamp__date=instance.timestamp.date()
-    ).order_by("timestamp")
-
-    first = records.first()
-    last = records.last()
-
-    # If there are no records, clear the times; otherwise, use first and last timestamps
-    if not first or not last:
-        entry.update_times(None, None)
-    else:
-        start_time = first.timestamp
-        # end time only set if user has at least 2 records that day
-        end_time = None
-        if first != last:
-            end_time = last.timestamp
-        entry.update_times(start_time, end_time)
-
-    entry.calculate_hours_from_schedule()
-    entry.save()
+    update_start_end_times(instance.attendance_code, entry)
 
     # Mark monthly timesheet for refresh and schedule update
     yr = instance.timestamp.date().year

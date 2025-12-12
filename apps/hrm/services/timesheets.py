@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 from typing import List, Tuple
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Max, Min, Q
 from django.utils import timezone
 
 from apps.hrm.constants import (
@@ -14,7 +14,7 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
-from apps.hrm.models import Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
+from apps.hrm.models import AttendanceRecord, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.proposal import Proposal
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -478,3 +478,28 @@ def _compensatory_fallback_punctuality_for_entry(
             entry.status = TimesheetStatus.NOT_ON_TIME
         return True
     return False
+
+
+def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntry):
+    # Use aggregated values to determine start_time and end_time.
+    # - If `first_ts` exists, use it for `start_time`.
+    # - If no `last_ts` or `last_ts == first_ts`, set `end_time = None`.
+    # - Otherwise set `end_time = last_ts`.
+
+    agg = AttendanceRecord.objects.filter(
+        attendance_code=attendance_code, timestamp__date=timehsheet_entry.date
+    ).aggregate(first_ts=Min("timestamp"), last_ts=Max("timestamp"))
+
+    first_ts = agg.get("first_ts")
+    last_ts = agg.get("last_ts")
+
+    start_time = first_ts if first_ts is not None else None
+
+    if last_ts is None or last_ts == first_ts:
+        end_time = None
+    else:
+        end_time = last_ts
+
+    timehsheet_entry.update_times(start_time, end_time)
+    timehsheet_entry.calculate_hours_from_schedule()
+    timehsheet_entry.save()
