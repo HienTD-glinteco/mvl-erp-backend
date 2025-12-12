@@ -1,3 +1,4 @@
+from django.db.models import Max, Min
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
@@ -27,15 +28,24 @@ def handle_attendance_record_save(sender, instance: AttendanceRecord, created, *
 
     # Skip updating times if entry is manually corrected (from approved proposals)
     if not entry.is_manually_corrected:
-        # Determine new start_time and end_time, preserving existing values if not updating
-        if not entry.start_time or instance.timestamp < entry.start_time:
-            start_time = instance.timestamp
+        # Use aggregated values to determine start_time and end_time.
+        # - If `first_ts` exists, use it for `start_time`.
+        # - If no `last_ts` or `last_ts == first_ts`, set `end_time = None`.
+        # - Otherwise set `end_time = last_ts`.
+        agg = AttendanceRecord.objects.filter(
+            attendance_code=instance.attendance_code, timestamp__date=entry.date
+        ).aggregate(first_ts=Min("timestamp"), last_ts=Max("timestamp"))
+
+        first_ts = agg.get("first_ts")
+        last_ts = agg.get("last_ts")
+
+        start_time = first_ts if first_ts is not None else None
+
+        if last_ts is None or last_ts == first_ts:
+            end_time = None
         else:
-            start_time = entry.start_time
-        if not entry.end_time or instance.timestamp > entry.end_time:
-            end_time = instance.timestamp
-        else:
-            end_time = entry.end_time
+            end_time = last_ts
+
         entry.update_times(start_time, end_time)
 
         # Calculate hours using the WorkSchedule integration
@@ -80,7 +90,10 @@ def handle_attendance_record_delete(sender, instance: AttendanceRecord, **kwargs
         entry.update_times(None, None)
     else:
         start_time = first.timestamp
-        end_time = last.timestamp
+        # end time only set if user has at least 2 records that day
+        end_time = None
+        if first != last:
+            end_time = last.timestamp
         entry.update_times(start_time, end_time)
 
     entry.calculate_hours_from_schedule()

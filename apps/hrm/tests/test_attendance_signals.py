@@ -44,19 +44,23 @@ def test_attendance_record_create_updates_timesheet_and_monthly(db):
 
     device = AttendanceDevice.objects.create(name="Dev1", ip_address="127.0.0.1", port=4370, is_enabled=True)
 
-    now = timezone.now()
+    d1 = timezone.datetime(2024, 6, 15, 8, 0, 0, tzinfo=timezone.get_current_timezone())
+    d2 = timezone.datetime(2024, 6, 15, 17, 0, 0, tzinfo=timezone.get_current_timezone())
     _ = AttendanceRecord.objects.create(
-        code="TEST001", biometric_device=device, attendance_code=emp.attendance_code, timestamp=now
+        code="TEST001", biometric_device=device, attendance_code=emp.attendance_code, timestamp=d1
+    )
+    _ = AttendanceRecord.objects.create(
+        code="TEST002", biometric_device=device, attendance_code=emp.attendance_code, timestamp=d2
     )
 
     # Entry should be created for today's date
-    entry = TimeSheetEntry.objects.filter(employee=emp, date=now.date()).first()
+    entry = TimeSheetEntry.objects.filter(employee=emp, date=timezone.datetime(2024, 6, 15).date()).first()
     assert entry is not None
-    assert entry.start_time is not None
-    assert entry.end_time is not None
+    assert entry.start_time == d1
+    assert entry.end_time == d2
 
     # Monthly timesheet must exist and be marked for refresh
-    month_key = f"{now.year:04d}{now.month:02d}"
+    month_key = "202406"
     m = EmployeeMonthlyTimesheet.objects.filter(employee=emp, month_key=month_key).first()
     assert m is not None
     assert m.need_refresh is True
