@@ -10,6 +10,7 @@ from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
     Block,
     Branch,
+    Contract,
     ContractType,
     Department,
     Employee,
@@ -17,7 +18,7 @@ from apps.hrm.models import (
     Position,
 )
 from apps.hrm.services.employee import (
-    # create_contract_change_event,  # TODO: Uncomment when Contract model is implemented
+    create_contract_change_event,
     create_position_change_event,
     create_state_change_event,
     create_transfer_event,
@@ -91,8 +92,21 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
     def test_create_work_history_with_new_fields(self):
         """Test creating a work history with new fields."""
         # Arrange
-        old_contract = ContractType.objects.create(name="Full-time Contract")
-        new_contract = ContractType.objects.create(name="Part-time Contract")
+        contract_type = ContractType.objects.create(name="Full-time Contract")
+        old_contract = Contract.objects.create(
+            employee=self.employee,
+            contract_type=contract_type,
+            sign_date=date(2023, 1, 1),
+            effective_date=date(2023, 1, 1),
+            code="OLD_CODE",
+        )
+        new_contract = Contract.objects.create(
+            employee=self.employee,
+            contract_type=contract_type,
+            sign_date=date(2024, 1, 1),
+            effective_date=date(2024, 1, 1),
+            code="NEW_CODE",
+        )
 
         # Act
         work_history = EmployeeWorkHistory.objects.create(
@@ -105,7 +119,7 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
             from_date=date(2024, 6, 1),
             to_date=date(2024, 12, 31),
             contract=new_contract,
-            previous_data={"contract_id": old_contract.id, "contract_type": "Full-time Contract"},
+            previous_data={"contract_id": old_contract.id, "contract_code": old_contract.code},
         )
 
         # Assert
@@ -115,7 +129,7 @@ class EmployeeWorkHistoryEnhancementsTest(TransactionTestCase):
         self.assertEqual(work_history.from_date, date(2024, 6, 1))
         self.assertEqual(work_history.to_date, date(2024, 12, 31))
         self.assertEqual(work_history.contract, new_contract)
-        self.assertEqual(work_history.previous_data["contract_type"], "Full-time Contract")
+        self.assertEqual(work_history.previous_data["contract_code"], old_contract.code)
 
     def test_retain_seniority_field(self):
         """Test retain_seniority field for return to work events."""
@@ -188,8 +202,8 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
         )
         self.position = Position.objects.create(code="CV002", name="Developer")
         self.new_position = Position.objects.create(code="CV003", name="Senior Developer")
-        self.contract_type = ContractType.objects.create(name="Contract Type A")
-        self.new_contract_type = ContractType.objects.create(name="Contract Type B")
+        self.contract_type_a = ContractType.objects.create(name="Contract Type A")
+        self.contract_type_b = ContractType.objects.create(name="Contract Type B")
 
         # Create test employee
         self.employee = Employee.objects.create(
@@ -205,6 +219,20 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
             citizen_id="000000030302",
             attendance_code="54321",
             phone="0987654321",
+        )
+        self.old_contract = Contract.objects.create(
+            employee=self.employee,
+            contract_type=self.contract_type_a,
+            sign_date=date(2023, 1, 1),
+            effective_date=date(2023, 1, 1),
+            code="OLD_CONTRACT",
+        )
+        self.new_contract = Contract.objects.create(
+            employee=self.employee,
+            contract_type=self.contract_type_b,
+            sign_date=date(2024, 1, 1),
+            effective_date=date(2024, 1, 1),
+            code="NEW_CONTRACT",
         )
 
     def test_create_state_change_event(self):
@@ -285,29 +313,27 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
         # Assert
         self.assertEqual(work_history.date, date.today())
 
-    @skip("TODO: Enable when Contract model is implemented")
     def test_create_contract_change_event(self):
         """Test creating a contract change event using service helper."""
         # Act
-        # work_history = create_contract_change_event(
-        #     employee=self.employee,
-        #     old_contract=self.contract_type,
-        #     new_contract=self.new_contract_type,
-        #     effective_date=date(2024, 6, 1),
-        #     note="Contract type updated",
-        # )
-        #
-        # # Assert
-        # self.assertIsNotNone(work_history.id)
-        # self.assertEqual(work_history.employee, self.employee)
-        # self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_CONTRACT)
-        # self.assertEqual(work_history.contract, self.new_contract_type)
-        # self.assertEqual(work_history.note, "Contract type updated")
-        # self.assertEqual(work_history.previous_data["contract_id"], self.contract_type.id)
-        # self.assertEqual(work_history.previous_data["contract_name"], self.contract_type.name)
-        # self.assertIn(self.contract_type.name, work_history.detail)
-        # self.assertIn(self.new_contract_type.name, work_history.detail)
-        pass
+        work_history = create_contract_change_event(
+            employee=self.employee,
+            old_contract=self.old_contract,
+            new_contract=self.new_contract,
+            effective_date=date(2024, 6, 1),
+            note="Contract updated",
+        )
+
+        # Assert
+        self.assertIsNotNone(work_history.id)
+        self.assertEqual(work_history.employee, self.employee)
+        self.assertEqual(work_history.name, EmployeeWorkHistory.EventType.CHANGE_CONTRACT)
+        self.assertEqual(work_history.contract, self.new_contract)
+        self.assertEqual(work_history.note, "Contract updated")
+        self.assertEqual(work_history.previous_data["contract_id"], self.old_contract.id)
+        self.assertEqual(work_history.previous_data["contract_code"], self.old_contract.code)
+        self.assertIn(self.old_contract.code, work_history.detail)
+        self.assertIn(self.new_contract.code, work_history.detail)
 
     def test_create_position_change_event_from_none(self):
         """Test creating a position change event when old position is None."""
@@ -323,18 +349,16 @@ class EmployeeWorkHistoryServiceTest(TransactionTestCase):
         self.assertIsNotNone(work_history.id)
         self.assertIsNone(work_history.previous_data["position_id"])
 
-    @skip("TODO: Enable when Contract model is implemented")
     def test_create_contract_change_event_from_none(self):
         """Test creating a contract change event when old contract is None."""
         # Act
-        # work_history = create_contract_change_event(
-        #     employee=self.employee,
-        #     old_contract=None,
-        #     new_contract=self.new_contract_type,
-        #     effective_date=date(2024, 6, 1),
-        # )
-        #
-        # # Assert
-        # self.assertIsNotNone(work_history.id)
-        # self.assertIsNone(work_history.previous_data["contract_id"])
-        pass
+        work_history = create_contract_change_event(
+            employee=self.employee,
+            old_contract=None,
+            new_contract=self.new_contract,
+            effective_date=date(2024, 6, 1),
+        )
+
+        # Assert
+        self.assertIsNotNone(work_history.id)
+        self.assertIsNone(work_history.previous_data["contract_id"])
