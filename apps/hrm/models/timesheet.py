@@ -104,10 +104,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             end_time: DateTime for when work ended. If None, do not update.
         """
         # Only update if argument is not None
-        if start_time is not None:
-            self.start_time = start_time
-        if end_time is not None:
-            self.end_time = end_time
+        self.start_time = start_time
+        self.end_time = end_time
         # Basic validation: if both are set, ensure start_time <= end_time
         if self.start_time is not None and self.end_time is not None:
             if self.start_time > self.end_time:
