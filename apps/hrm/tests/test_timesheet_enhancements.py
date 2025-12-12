@@ -12,6 +12,8 @@ from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import (
     Block,
     Branch,
+    Contract,
+    ContractType,
     Department,
     Employee,
     EmployeeMonthlyTimesheet,
@@ -64,6 +66,19 @@ def test_employee(db):
         start_date=date(2020, 1, 1),
         status=Employee.Status.ACTIVE,
     )
+
+    # Create Contract
+    contract_type = ContractType.objects.create(name="Full Time", code="FT")
+    Contract.objects.create(
+        employee=employee,
+        contract_type=contract_type,
+        sign_date=date(2020, 1, 1),
+        effective_date=date(2020, 1, 1),
+        status=Contract.ContractStatus.ACTIVE,
+        annual_leave_days=12,
+        base_salary=10000000,
+    )
+
     return employee
 
 
@@ -397,7 +412,7 @@ class TestWorkScheduleCache:
 
 @pytest.mark.django_db(transaction=True)
 class TestPrepareMonthlyTimesheetsTask:
-    """Test prepare_monthly_timesheets task with integrated leave increment."""
+    """Test prepare_monthly_timesheets task with integrated leave calculation."""
 
     @pytest.fixture(autouse=True)
     def cleanup_monthly_timesheets(self, db):
@@ -406,53 +421,146 @@ class TestPrepareMonthlyTimesheetsTask:
         # Clean up after each test
         EmployeeMonthlyTimesheet.objects.all().delete()
 
-    def test_prepare_timesheets_increments_leave_for_all_employees(self, test_employee):
-        """Test that prepare_monthly_timesheets increments available_leave_days."""
-        # Set initial leave days
-        test_employee.available_leave_days = 10
-        test_employee.save()
-
-        # Use a unique month to avoid conflicts
+    def test_prepare_timesheets_updates_leave_for_all_employees(self, test_employee):
+        """Test that prepare_monthly_timesheets calculates and updates available_leave_days."""
+        # Use a unique month
         year, month = 2025, 5
+
+        # Create a previous month timesheet to simulate opening balance
+        # April 2025 (month=4)
+        EmployeeMonthlyTimesheet.objects.create(
+            employee=test_employee,
+            report_date=date(2025, 4, 1),
+            month_key="202504",
+            remaining_leave_days=Decimal("10.00"),
+        )
+
+        # Run task
         result = prepare_monthly_timesheets(employee_id=None, year=year, month=month, increment_leave=True)
 
         assert result["success"]
-        assert result["leave_incremented"] >= 1
+        assert result["leave_updated"] >= 1
 
-        # Check that leave was incremented
+        # Check that leave was updated
+        # Opening (10) + Generated (1) - Consumed (0) = 11
         test_employee.refresh_from_db()
-        assert test_employee.available_leave_days == 11
+        assert test_employee.available_leave_days == Decimal("11.00")
 
-    def test_prepare_timesheets_can_skip_leave_increment(self, test_employee):
-        """Test that prepare_monthly_timesheets can skip leave increment when requested."""
-        # Set initial leave days
-        test_employee.available_leave_days = 10
+    def test_prepare_timesheets_can_skip_leave_update(self, test_employee):
+        """Test that prepare_monthly_timesheets can skip leave update when requested."""
+        # Set initial leave days to something different from what calculation would produce
+        test_employee.available_leave_days = Decimal("100.00")
         test_employee.save()
 
-        # Use a different unique month to avoid conflicts
+        # Use a different unique month
         year, month = 2025, 6
+
+        # No previous month, so Opening=0, Generated=1 -> Remaining=1.
+        # If we skip update, it should stay 100.
+
         result = prepare_monthly_timesheets(employee_id=None, year=year, month=month, increment_leave=False)
 
         assert result["success"]
-        assert result["leave_incremented"] == 0
+        assert result["leave_updated"] == 0
 
-        # Check that leave was NOT incremented
+        # Check that leave was NOT updated
         test_employee.refresh_from_db()
-        assert test_employee.available_leave_days == 10
+        assert test_employee.available_leave_days == Decimal("100.00")
 
-    def test_prepare_timesheets_for_single_employee_does_not_increment(self, test_employee):
-        """Test that prepare_monthly_timesheets for single employee doesn't increment leave."""
-        # Set initial leave days
-        test_employee.available_leave_days = 10
+    def test_prepare_timesheets_for_single_employee_does_not_update_global_leave(self, test_employee):
+        """Test that prepare_monthly_timesheets for single employee doesn't update global leave counters."""
+        test_employee.available_leave_days = Decimal("10.00")
         test_employee.save()
 
-        # Use another unique month to avoid conflicts
         year, month = 2025, 7
         result = prepare_monthly_timesheets(employee_id=test_employee.id, year=year, month=month)
 
         assert result["success"]
-        assert "leave_incremented" not in result
+        assert "leave_updated" not in result
 
-        # Check that leave was NOT incremented (single employee mode)
+        # Check that leave was NOT updated via the bulk update mechanism
         test_employee.refresh_from_db()
-        assert test_employee.available_leave_days == 10
+        assert test_employee.available_leave_days == Decimal("10.00")
+
+@pytest.mark.django_db
+class TestLeaveCalculation:
+    """Test specific leave calculation logic."""
+
+    def test_start_date_partial_month(self, test_employee):
+        """Test that generated leave is 0 if start date is in same month and day > 1."""
+        # Modify contract effective date to mid-month
+        contract = test_employee.contracts.first()
+        contract.effective_date = date(2025, 3, 15)
+        contract.save()
+
+        from apps.hrm.services.timesheets import calculate_generated_leave
+
+        # Check March 2025
+        gen = calculate_generated_leave(test_employee.id, 2025, 3)
+        assert gen == Decimal("0.00")
+
+        # Check April 2025
+        gen_apr = calculate_generated_leave(test_employee.id, 2025, 4)
+        assert gen_apr == Decimal("1.00")
+
+    def test_start_date_first_of_month(self, test_employee):
+        """Test that generated leave is calculated if start date is 1st of month."""
+        contract = test_employee.contracts.first()
+        contract.effective_date = date(2025, 3, 1)
+        contract.save()
+
+        from apps.hrm.services.timesheets import calculate_generated_leave
+
+        # Check March 2025
+        gen = calculate_generated_leave(test_employee.id, 2025, 3)
+        assert gen == Decimal("1.00")
+
+    def test_april_expiration_of_carried_over(self, test_employee):
+        """Test that carried over leave expires in April if unused."""
+        # Setup:
+        # Jan 2025: Carried Over = 5.
+        # Used Jan-Mar = 2.
+        # April Opening should expire 3.
+
+        # Create Jan timesheet
+        EmployeeMonthlyTimesheet.objects.create(
+            employee=test_employee,
+            report_date=date(2025, 1, 1),
+            month_key="202501",
+            carried_over_leave=Decimal("5.00"),
+            consumed_leave_days=Decimal("1.00"),
+            remaining_leave_days=Decimal("4.00") # simplified
+        )
+
+        # Create Feb timesheet
+        EmployeeMonthlyTimesheet.objects.create(
+            employee=test_employee,
+            report_date=date(2025, 2, 1),
+            month_key="202502",
+            consumed_leave_days=Decimal("1.00"),
+            remaining_leave_days=Decimal("3.00")
+        )
+
+        # Create Mar timesheet
+        # Remaining from Feb is 3. New Gen=1. Consumed=0. Total Remaining = 4.
+        EmployeeMonthlyTimesheet.objects.create(
+            employee=test_employee,
+            report_date=date(2025, 3, 1),
+            month_key="202503",
+            remaining_leave_days=Decimal("4.00")
+        )
+
+        from apps.hrm.services.timesheets import create_monthly_timesheet_for_employee
+
+        # Create Apr timesheet
+        ts_apr = create_monthly_timesheet_for_employee(test_employee.id, 2025, 4)
+
+        # Calculations:
+        # Initial Carried (Jan) = 5.
+        # Total Consumed Jan-Mar = 1+1+0 = 2.
+        # Unused Carried = 5 - 2 = 3.
+        # Prev Remaining (Mar) = 4.
+        # Opening (Apr) = Prev Remaining - Unused Carried = 4 - 3 = 1.
+
+        assert ts_apr.opening_balance_leave_days == Decimal("1.00")
+        assert ts_apr.carried_over_leave == Decimal("0.00")

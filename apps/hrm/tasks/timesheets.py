@@ -49,19 +49,17 @@ def prepare_monthly_timesheets(
 
     # otherwise do for all employees
     create_entries_for_month_all(year, month)
-    create_monthly_timesheets_for_month_all(year, month)
+    timesheets = create_monthly_timesheets_for_month_all(year, month)
 
-    # Increment available leave days for eligible employees
-    # TODO: rework on this after SRS for available leave day is clear.
-    working_statuses = Employee.Status.get_working_statuses()
+    # Update available leave days for eligible employees based on the calculated monthly timesheet
     updated_leave = 0
     if increment_leave:
-        updated_leave = Employee.objects.filter(status__in=working_statuses).update(
-            available_leave_days=F("available_leave_days") + 1
-        )
-        logger.info("prepare_monthly_timesheets: incremented leave days for %s employees", updated_leave)
+        for ts in timesheets:
+            Employee.objects.filter(pk=ts.employee_id).update(available_leave_days=ts.remaining_leave_days)
+        updated_leave = len(timesheets)
+        logger.info("prepare_monthly_timesheets: updated leave days for %s employees", updated_leave)
 
-    return {"success": True, "employee_id": None, "year": year, "month": month, "leave_incremented": updated_leave}
+    return {"success": True, "employee_id": None, "year": year, "month": month, "leave_updated": updated_leave}
 
 
 @shared_task
