@@ -9,6 +9,7 @@ from datetime import date, timedelta
 
 from celery import shared_task
 from django.db import transaction
+from django.db.models import Min
 from django.utils import timezone
 
 from apps.hrm.models import (
@@ -42,7 +43,6 @@ def _get_recruitment_reports_needing_refresh() -> tuple[date | None, list[tuple[
         Tuple of (earliest_date, list of org_unit tuples)
         earliest_date is None if no reports need refresh
     """
-    from django.db.models import Min
 
     # Find earliest date needing refresh across all recruitment report models
     source_date = RecruitmentSourceReport.objects.filter(need_refresh=True).aggregate(Min("report_date"))[

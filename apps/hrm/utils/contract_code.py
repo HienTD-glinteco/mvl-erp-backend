@@ -54,65 +54,48 @@ def generate_contract_code(instance, force_save: bool = True):
     # Determine if this is a contract or appendix based on contract_type category
     is_appendix = instance.contract_type and instance.contract_type.category == ContractType.Category.APPENDIX
 
+    # Build suffix and code prefix depending on contract vs appendix
     if is_appendix:
-        # For appendices, generate PLHD-prefixed codes
-        # Count existing appendices for this year (appendices are contracts with category='appendix')
-        existing_count = (
-            Contract.objects.filter(
-                created_at__year=current_year,
-                contract_type__category=ContractType.Category.APPENDIX,
-            )
-            .exclude(pk=instance.pk)
-            .count()
-        )
-        sequence = existing_count + 1
-
-        # Format the sequence number for contract_number with 2 digits (or more if needed)
-        if sequence < 100:
-            contract_number_seq_str = f"{sequence:02d}"
-        else:
-            contract_number_seq_str = str(sequence)
-
-        # Generate contract_number (Business ID): xx/yyyy/PLHD-MVL
-        contract_number = f"{contract_number_seq_str}/{current_year}/PLHD-MVL"
-
-        # Generate code (System ID): PLHDxxxxx (at least 5 digits)
-        if instance.id < 100000:
-            code_seq_str = f"{instance.id:05d}"
-        else:
-            code_seq_str = str(instance.id)
-        code = f"PLHD{code_seq_str}"
+        suffix = f"/{current_year}/PLHD-MVL"
+        code_prefix = "PLHD"
     else:
-        # For contracts, generate HD-prefixed codes
-        # Get the contract type symbol
         contract_type_symbol = instance.contract_type.symbol if instance.contract_type else "HD"
+        suffix = f"/{current_year}/{contract_type_symbol} - MVL"
+        code_prefix = "HD"
 
-        # Count existing contracts for this year (contracts are contracts with category='contract')
-        existing_count = (
-            Contract.objects.filter(
-                created_at__year=current_year,
-                contract_type__category=ContractType.Category.CONTRACT,
-            )
-            .exclude(pk=instance.pk)
-            .count()
-        )
-        sequence = existing_count + 1
+    # Find the latest existing contract with contract_number that ends with the suffix
+    latest_contract_number = (
+        Contract.objects.filter(contract_number__endswith=suffix)
+        .exclude(pk=instance.pk)
+        .order_by("-contract_number")
+        .values_list("contract_number", flat=True)
+        .first()
+    )
 
-        # Format the sequence number with 2 digits (or more if needed)
-        if sequence < 100:
-            contract_number_seq_str = f"{sequence:02d}"
-        else:
-            contract_number_seq_str = str(sequence)
+    # Extract sequence from the latest contract_number like "<seq>/<year>/..."
+    if latest_contract_number:
+        try:
+            latest_seq_str = latest_contract_number.split("/")[0].strip()
+            latest_seq = int(latest_seq_str)
+        except Exception:
+            latest_seq = 0
+    else:
+        latest_seq = 0
 
-        # Generate contract_number (Business ID): xx/yyyy/abc - MVL
-        contract_number = f"{contract_number_seq_str}/{current_year}/{contract_type_symbol} - MVL"
+    new_seq = latest_seq + 1
 
-        # Generate code (System ID): HDxxxxx (at least 5 digits)
-        if instance.id < 100000:
-            code_seq_str = f"{instance.id:05d}"
-        else:
-            code_seq_str = str(instance.id)
-        code = f"HD{code_seq_str}"
+    # Format sequence for human-facing contract_number: two digits if <100, else raw number
+    contract_number_seq_str = f"{new_seq:0>2}"
+
+    # Build contract_number using the new sequence and suffix (suffix already contains leading slash)
+    contract_number = f"{contract_number_seq_str}{suffix}"
+
+    # For system code (unique), continue using the instance id padded to at least 5 digits
+    if instance.id < 100000:
+        code_seq_str = f"{instance.id:05d}"
+    else:
+        code_seq_str = str(instance.id)
+    code = f"{code_prefix}{code_seq_str}"
 
     instance.code = code
     instance.contract_number = contract_number
