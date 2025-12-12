@@ -12,7 +12,7 @@ from .common_nested import (
 
 
 class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
-    """Serializer for EmployeeWorkHistory model (read-only)."""
+    """Serializer for EmployeeWorkHistory model."""
 
     # Nested representations for read operations
     employee = EmployeeNestedSerializer(read_only=True)
@@ -20,6 +20,12 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
     block = BlockNestedSerializer(read_only=True)
     department = DepartmentNestedSerializer(read_only=True)
     position = PositionNestedSerializer(read_only=True)
+
+    # _id fields for update operations (write-only)
+    branch_id = serializers.IntegerField(write_only=True)
+    block_id = serializers.IntegerField(write_only=True)
+    department_id = serializers.IntegerField(write_only=True)
+    position_id = serializers.IntegerField(write_only=True)
 
     # Display field for event type
     name_display = serializers.CharField(
@@ -38,18 +44,22 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
             "detail",
             "employee",
             "branch",
+            "branch_id",
             "block",
+            "block_id",
             "department",
+            "department_id",
             "position",
+            "position_id",
             "from_date",
             "to_date",
             "retain_seniority",
+            "note",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
-            "date",
             "name",
             "name_display",
             "detail",

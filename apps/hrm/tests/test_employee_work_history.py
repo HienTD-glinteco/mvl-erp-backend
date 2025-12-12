@@ -283,8 +283,8 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
         self.assertIsNotNone(response_data["department"])
         self.assertIsNotNone(response_data["position"])
 
-    def test_api_is_read_only_create_not_allowed(self):
-        """Test that creating work history via API is not allowed (read-only)."""
+    def test_api_create_not_allowed(self):
+        """Test that creating work history via API returns 404 NotFound."""
         # Arrange
         data = {
             "employee_id": self.employee.id,
@@ -297,11 +297,11 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
         url = reverse("hrm:employee-work-history-list")
         response = self.client.post(url, data, format="json")
 
-        # Assert - POST should not be allowed
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # Assert - POST returns 404 NotFound
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_api_is_read_only_update_not_allowed(self):
-        """Test that updating work history via API is not allowed (read-only)."""
+    def test_api_partial_update_allowed(self):
+        """Test that partial update (PATCH) is allowed for writable fields."""
         # Arrange
         work_history = EmployeeWorkHistory.objects.create(
             employee=self.employee,
@@ -309,17 +309,19 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
             name=EmployeeWorkHistory.EventType.CHANGE_POSITION,
             detail="Original details",
         )
-        data = {"name": EmployeeWorkHistory.EventType.TRANSFER}
+        data = {"note": "Updated note"}
 
         # Act
         url = reverse("hrm:employee-work-history-detail", kwargs={"pk": work_history.id})
         response = self.client.patch(url, data, format="json")
 
-        # Assert - PATCH should not be allowed
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # Assert - PATCH should be allowed for writable fields
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        work_history.refresh_from_db()
+        self.assertEqual(work_history.note, "Updated note")
 
-    def test_api_is_read_only_delete_not_allowed(self):
-        """Test that deleting work history via API is not allowed (read-only)."""
+    def test_api_delete_latest_record_allowed(self):
+        """Test that deleting the latest work history record is allowed."""
         # Arrange
         work_history = EmployeeWorkHistory.objects.create(
             employee=self.employee,
@@ -332,8 +334,33 @@ class EmployeeWorkHistoryAPITest(TransactionTestCase):
         url = reverse("hrm:employee-work-history-detail", kwargs={"pk": work_history.id})
         response = self.client.delete(url)
 
-        # Assert - DELETE should not be allowed
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        # Assert - DELETE should be allowed for the latest record
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(EmployeeWorkHistory.objects.filter(pk=work_history.id).exists())
+
+    def test_api_delete_non_latest_record_not_allowed(self):
+        """Test that deleting a non-latest work history record is not allowed."""
+        # Arrange - Create two records, the first one is older
+        older_record = EmployeeWorkHistory.objects.create(
+            employee=self.employee,
+            date=date(2024, 5, 1),
+            name=EmployeeWorkHistory.EventType.CHANGE_POSITION,
+            detail="Older record",
+        )
+        EmployeeWorkHistory.objects.create(
+            employee=self.employee,
+            date=date(2024, 6, 1),
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+            detail="Latest record",
+        )
+
+        # Act - Try to delete the older record
+        url = reverse("hrm:employee-work-history-detail", kwargs={"pk": older_record.id})
+        response = self.client.delete(url)
+
+        # Assert - DELETE should not be allowed for non-latest record
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(EmployeeWorkHistory.objects.filter(pk=older_record.id).exists())
 
     def test_filter_by_employee(self):
         """Test filtering work histories by employee."""

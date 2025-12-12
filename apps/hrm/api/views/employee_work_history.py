@@ -1,12 +1,15 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeWorkHistoryFilterSet
 from apps.hrm.api.serializers import EmployeeWorkHistorySerializer
 from apps.hrm.models import EmployeeWorkHistory
-from libs import BaseReadOnlyModelViewSet
+from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
 
@@ -74,14 +77,20 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             )
         ],
     ),
+    update=extend_schema(
+        tags=["5.6: Employee Work History"],
+    ),
+    create=extend_schema(exclude=True),
+    partial_update=extend_schema(
+        tags=["5.6: Employee Work History"],
+    ),
+    destroy=extend_schema(
+        tags=["5.6: Employee Work History"],
+    ),
 )
-class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseModelViewSet):
     """
-    ViewSet for EmployeeWorkHistory model (read-only).
-
-    Provides read-only operations for employee work histories with:
-    - List: Paginated list with filtering and search
-    - Retrieve: Get detailed information
+    ViewSet for EmployeeWorkHistory model.
 
     Note: This ViewSet is read-only. Create, update, and delete operations are not available.
 
@@ -113,3 +122,15 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = "HRM"
     submodule = "Employee Management"
     permission_prefix = "employee_work_history"
+
+    def create(self, request, *args, **kwargs):
+        raise NotFound("This endpoint does not support creation of employee work history records.")
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        latest_record = EmployeeWorkHistory.objects.filter(employee=instance.employee).only("id").first()
+        if latest_record and instance.id != latest_record.id:
+            return Response(
+                "Only the latest employee work history record can be deleted.", status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
