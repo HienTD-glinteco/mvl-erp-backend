@@ -341,6 +341,43 @@ class TestOvertimeCalculation:
         assert entry.overtime_hours == Decimal("2.00")
         assert entry.total_worked_hours == Decimal("10.00")
 
+    def test_overtime_during_lunch(self, test_employee):
+        """Test that overtime is calculated for work during lunch break."""
+        from apps.hrm.constants import ProposalStatus, ProposalType
+        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+
+        # Create an approved overtime proposal for lunch
+        proposal = Proposal.objects.create(
+            created_by=test_employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED,
+        )
+
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2025, 12, 1),
+            start_time=time(12, 0),
+            end_time=time(13, 0),
+            description="Lunch Overtime",
+        )
+
+        entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 12, 1),  # Monday
+            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+        )
+        entry.calculate_hours_from_schedule(self.work_schedule)
+        entry.save()
+
+        # Morning: 8-12 (4h)
+        # Afternoon: 13-17 (4h)
+        # OT: 12-13 (1h)
+        assert entry.morning_hours == Decimal("4.00")
+        assert entry.afternoon_hours == Decimal("4.00")
+        assert entry.overtime_hours == Decimal("1.00")
+        assert entry.total_worked_hours == Decimal("9.00")
+
 
 @pytest.mark.django_db
 class TestTimesheetIntegration:
@@ -399,8 +436,8 @@ class TestTimesheetIntegration:
         assert entry.morning_hours == Decimal("3.83")  # ~3 hours 50 minutes (8:10-12:00)
         assert entry.afternoon_hours == Decimal("4.00")  # 4 hours (13:00-17:00)
         assert entry.official_hours == Decimal("7.83")
-        # Raw OT = (10.33 actual - 1 hour break) - 8 standard = 1.33 hours
-        # Approved OT = 1.50 hours, so final OT = min(1.33, 1.50) = 1.33
-        assert entry.overtime_hours == Decimal("1.33")  # Capped by actual work performed
-        assert entry.total_worked_hours == Decimal("9.16")  # 7.83 + 1.33
+        # OT is calculated based on intersection with approved proposal (17:00-18:30)
+        # Actual work covers full proposal duration.
+        assert entry.overtime_hours == Decimal("1.50")
+        assert entry.total_worked_hours == Decimal("9.33")  # 7.83 + 1.50
         assert entry.is_manually_corrected is False

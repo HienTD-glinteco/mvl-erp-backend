@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from fractions import Fraction
 from typing import Optional
 
 from django.db import models
@@ -18,6 +19,7 @@ from apps.hrm.models.holiday import Holiday
 from apps.hrm.models.proposal import ProposalOvertimeEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
+from libs.datetimes import compute_intersection_hours
 from libs.decimals import quantize_decimal
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
 
@@ -125,7 +127,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             This implementation uses the cached WorkSchedule to calculate hours.
             - Morning hours: time worked during morning session
             - Afternoon hours: time worked during afternoon session (including noon)
-            - Overtime hours: TODO - Complex business logic pending clarification
+            - Overtime hours: intersection of actual worked time and approved overtime entries.
 
         Raises:
             ValueError: If start_time or end_time is not set, or if no work schedule is found.
@@ -156,8 +158,13 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         start = self.start_time
         end = self.end_time
 
-        morning_hours = Decimal("0.00")
-        afternoon_hours = Decimal("0.00")
+        morning_hours = Fraction(0)
+        afternoon_hours = Fraction(0)
+
+        morning_start = None
+        morning_end = None
+        afternoon_start = None
+        afternoon_end = None
 
         # Only calculate morning and afternoon hours if work schedule exists
         if work_schedule:
@@ -185,59 +192,55 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
             # Calculate morning session hours
             if morning_start and morning_end:
-                morning_actual_start = max(start, morning_start)
-                morning_actual_end = min(end, morning_end)
-                if morning_actual_start < morning_actual_end:
-                    morning_hours = Decimal((morning_actual_end - morning_actual_start).total_seconds() / 3600)
+                morning_hours = compute_intersection_hours(start, end, morning_start, morning_end)
 
             # Calculate afternoon session hours (including noon)
             if afternoon_start and afternoon_end:
-                afternoon_actual_start = max(start, afternoon_start)
-                afternoon_actual_end = min(end, afternoon_end)
-                if afternoon_actual_start < afternoon_actual_end:
-                    afternoon_hours = Decimal((afternoon_actual_end - afternoon_actual_start).total_seconds() / 3600)
+                afternoon_hours = compute_intersection_hours(start, end, afternoon_start, afternoon_end)
 
         # Calculate overtime hours
-        # By business rule, OT is only counted when an overtime proposal has been approved for that date
-        overtime_hours = Decimal("0.00")
+        overtime_hours = Fraction(0)
 
-        if work_schedule:
-            # Check if there's an approved overtime proposal for this date
-            approved_overtime_entry = ProposalOvertimeEntry.objects.filter(
-                proposal__created_by=self.employee,
-                proposal__proposal_status=ProposalStatus.APPROVED,
-                date=self.date,
-            ).first()
+        # Check if there's an approved overtime proposal for this date
+        # Fetch all approved entries for this date
+        approved_overtime_entries = ProposalOvertimeEntry.objects.filter(
+            proposal__created_by=self.employee,
+            proposal__proposal_status=ProposalStatus.APPROVED,
+            date=self.date,
+        )
 
-            if approved_overtime_entry:
-                # Calculate actual work hours: (CheckOut - CheckIn) - BreakTime
-                # Break time is the gap between morning and afternoon sessions
-                break_seconds = 0.0
-                if morning_end and afternoon_start:
-                    break_seconds = (afternoon_start - morning_end).total_seconds()
+        for entry in approved_overtime_entries:
+            ot_start = timezone.make_aware(datetime.combine(self.date, entry.start_time))
+            ot_end = timezone.make_aware(datetime.combine(self.date, entry.end_time))
 
-                actual_work_seconds = (end - start).total_seconds() - break_seconds
-                actual_work_hours = Decimal(actual_work_seconds / 3600)
+            # Calculate intersection with actual work
+            raw_ot_hours = compute_intersection_hours(start, end, ot_start, ot_end)
 
-                # Calculate standard work hours from schedule
-                standard_work_hours = Decimal("0.00")
+            # Deduct any overlap with standard working hours to avoid double counting
+            overlap_morning = Fraction(0)
+            overlap_afternoon = Fraction(0)
+
+            # Use intersection of (Actual work AND OT entry) to check against standard hours
+            effective_ot_start = max(start, ot_start)
+            effective_ot_end = min(end, ot_end)
+
+            if effective_ot_start < effective_ot_end:
                 if morning_start and morning_end:
-                    standard_work_hours += Decimal((morning_end - morning_start).total_seconds() / 3600)
+                    overlap_morning = compute_intersection_hours(
+                        effective_ot_start, effective_ot_end, morning_start, morning_end
+                    )
                 if afternoon_start and afternoon_end:
-                    standard_work_hours += Decimal((afternoon_end - afternoon_start).total_seconds() / 3600)
+                    overlap_afternoon = compute_intersection_hours(
+                        effective_ot_start, effective_ot_end, afternoon_start, afternoon_end
+                    )
 
-                # Calculate raw overtime: max(0, actual_work_hours - standard_work_hours)
-                raw_ot = max(Decimal("0.00"), actual_work_hours - standard_work_hours)
+            overtime_hours += raw_ot_hours - overlap_morning - overlap_afternoon
 
-                # Approved overtime duration from the proposal
-                approved_ot_duration = Decimal(str(approved_overtime_entry.duration_hours))
-
-                # Final overtime is the minimum of raw OT and approved OT
-                overtime_hours = min(raw_ot, approved_ot_duration)
-
-        self.morning_hours = quantize_decimal(morning_hours)
-        self.afternoon_hours = quantize_decimal(afternoon_hours)
-        self.overtime_hours = quantize_decimal(overtime_hours)
+        self.morning_hours = quantize_decimal(Decimal(morning_hours.numerator) / Decimal(morning_hours.denominator))
+        self.afternoon_hours = quantize_decimal(
+            Decimal(afternoon_hours.numerator) / Decimal(afternoon_hours.denominator)
+        )
+        self.overtime_hours = quantize_decimal(Decimal(overtime_hours.numerator) / Decimal(overtime_hours.denominator))
 
     def clean(self) -> None:
         # Ensure hours are quantized to 2 decimals and calculate derived fields
