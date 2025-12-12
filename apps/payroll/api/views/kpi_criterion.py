@@ -13,7 +13,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
 @extend_schema_view(
     list=extend_schema(
         summary="List all KPI criteria",
-        description="Retrieve a paginated list of all KPI evaluation criteria with support for filtering and search",
+        description="Retrieve a paginated list of all KPI evaluation criteria with support for filtering and search. Target field accepts: 'sales' or 'backoffice'.",
         tags=["10.2: KPI Criteria"],
         examples=[
             OpenApiExample(
@@ -104,7 +104,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     ),
     create=extend_schema(
         summary="Create a new KPI criterion",
-        description="Create a new KPI evaluation criterion. The created_by field is set automatically.",
+        description="Create a new KPI evaluation criterion. The created_by field is set automatically. Target must be either 'sales' or 'backoffice'.",
         tags=["10.2: KPI Criteria"],
         examples=[
             OpenApiExample(

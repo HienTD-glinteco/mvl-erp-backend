@@ -31,10 +31,15 @@ class KPICriterion(BaseModel):
         updated_by: User who last updated this criterion
     """
 
+    class TargetChoices(models.TextChoices):
+        SALES = "sales", "Sales"
+        BACKOFFICE = "backoffice", "Backoffice"
+
     target = models.CharField(
         max_length=200,
+        choices=TargetChoices.choices,
         verbose_name="Target",
-        help_text="Target group or role (e.g., 'sales', 'backoffice')",
+        help_text="Target group or role",
     )
 
     evaluation_type = models.CharField(
