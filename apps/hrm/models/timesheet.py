@@ -61,6 +61,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name="Total worked hours"
     )
 
+    # TODO: add a new field to store working_days. Also add logic to autopopulate it using working hours, and other business rules.
+
     status = models.CharField(
         max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name="Status"
     )
