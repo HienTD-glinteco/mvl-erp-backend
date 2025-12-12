@@ -191,7 +191,9 @@ class CreateAutoCodeSignalHandlerTest(unittest.TestCase):
 
         # Arrange
         def custom_code_gen(instance):
-            return f"{instance.__class__.CODE_PREFIX}{instance.id:05d}"
+            # custom generator must assign and persist instance.code when used
+            instance.code = f"{instance.__class__.CODE_PREFIX}{instance.id:05d}"
+            instance.save(update_fields=["code"])
 
         handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
         mock_instance = MagicMock()
@@ -290,7 +292,9 @@ class RegisterAutoCodeSignalTest(unittest.TestCase):
         mock_model = MagicMock()
 
         def custom_code_gen(instance):
-            return f"{instance.__class__.CODE_PREFIX}-{instance.id:04d}"
+            # assign and persist code (handler expects the custom function to save)
+            instance.code = f"{instance.__class__.CODE_PREFIX}-{instance.id:04d}"
+            instance.save(update_fields=["code"])
 
         # Act
         register_auto_code_signal(mock_model, custom_generate_code=custom_code_gen)

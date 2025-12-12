@@ -38,39 +38,35 @@ def generate_model_code(instance) -> str:
 
 
 def create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=None):
-    """Factory function to create a generic signal handler for auto-code generation.
+    """Factory that returns a post-save signal handler for auto-generating model codes.
 
-    This creates a reusable signal handler that can automatically generate codes
-    for any model that has a CODE_PREFIX class attribute.
+    The returned handler will, for newly created instances whose current `code`
+    value starts with `temp_code_prefix`, generate a final code and persist it.
+
+    Behavior and side-effects:
+    - When `created` is True and `instance.code` exists and begins with
+      `temp_code_prefix`, the handler will attempt to generate a permanent code.
+    - If `custom_generate_code` is provided, it will be called with the
+      instance and is responsible for assigning and saving `instance.code`.
+      The custom function may implement retries or alternate persistence logic.
+    - If no custom generator is provided, `generate_model_code(instance)` will be
+      used and `instance.save(update_fields=["code"])` will be called to persist
+      only the `code` field, avoiding recursive signal invocation.
 
     Args:
-        temp_code_prefix: The prefix used to identify temporary codes (e.g., "TEMP_")
-        custom_generate_code: Optional custom function to generate codes.
-                            If provided, this function will be used instead of generate_model_code.
-                            The function should accept an instance and return a string code.
+        temp_code_prefix: Prefix identifying temporary placeholder codes (e.g. "TEMP_").
+        custom_generate_code: Optional callable(instance) -> None or str. If it
+            returns a string it will be used as the code; if it handles saving
+            itself it may return None.
 
     Returns:
-        A signal handler function that can be connected to post_save signal
+        Callable[[type, object, bool], None]: A signal handler function with
+        the signature `(sender, instance, created, **kwargs)` suitable for
+        connecting to `post_save`.
 
     Example:
-        from django.db.models.signals import post_save
-        from django.dispatch import receiver
-
-        # Create generic handler with default code generation
         auto_code_handler = create_auto_code_signal_handler("TEMP_")
-
-        # Create handler with custom code generation
-        def custom_code_gen(instance):
-            return f"{instance.CODE_PREFIX}{instance.id:05d}"
-
-        custom_handler = create_auto_code_signal_handler("TEMP_", custom_generate_code=custom_code_gen)
-
-        # Register for multiple models
-        @receiver(post_save, sender=Branch)
-        @receiver(post_save, sender=Block)
-        @receiver(post_save, sender=Department)
-        def generate_code(sender, instance, created, **kwargs):
-            auto_code_handler(sender, instance, created, **kwargs)
+        post_save.connect(auto_code_handler, sender=Branch)
     """
 
     def signal_handler(sender, instance, created, **kwargs):
@@ -92,40 +88,47 @@ def create_auto_code_signal_handler(temp_code_prefix: str, custom_generate_code=
         # Only generate code for new instances that have a temporary code
         if created and hasattr(instance, "code") and instance.code and instance.code.startswith(temp_code_prefix):
             if custom_generate_code:
-                instance.code = custom_generate_code(instance)
+                # let custom_generate_code handle the code generation and saving, or even retry logic
+                custom_generate_code(instance)
             else:
                 instance.code = generate_model_code(instance)
-            # Use update_fields to prevent triggering the signal again (avoid infinite loop)
-            instance.save(update_fields=["code"])
+                # Use update_fields to prevent triggering the signal again (avoid infinite loop)
+                instance.save(update_fields=["code"])
 
     return signal_handler
 
 
 def register_auto_code_signal(*models, temp_code_prefix: str = "TEMP_", custom_generate_code=None):
-    """Register auto-code generation signal for multiple models.
+    """Connect an auto-code generation handler to `post_save` for models.
 
-    This is a convenience function to register the auto-code generation signal
-    for multiple models at once.
+    This convenience wrapper constructs the handler via
+    `create_auto_code_signal_handler` and connects it to Django's
+    `post_save` signal for each supplied model class.
+
+    Behavior:
+    - For every provided `model`, the returned handler will be connected as a
+      receiver for `post_save(sender=model)`. The handler will only act when
+      a new instance is created and its `code` value starts with
+      `temp_code_prefix`.
+    - If `custom_generate_code` is provided it will be invoked with the
+      instance; otherwise a default generator (`generate_model_code`) will be
+      used and the code persisted with `instance.save(update_fields=["code"])`.
 
     Args:
-        *models: Model classes to register the signal for
-        temp_code_prefix: The prefix used to identify temporary codes (default: "TEMP_")
-        custom_generate_code: Optional custom function to generate codes.
-                            If provided, this function will be used instead of generate_model_code.
-                            The function should accept an instance and return a string code.
+        *models: One or more Django model classes to register the handler for.
+        temp_code_prefix: Prefix that identifies placeholder/temporary codes
+            that should be replaced (default: "TEMP_").
+        custom_generate_code: Optional callable(instance) used to generate and
+            optionally persist the final code. If it returns a string, the
+            handler will assign that string to `instance.code` and save it;
+            if it performs its own save it may return None.
+
+    Returns:
+        None
 
     Example:
-        from apps.hrm.models import Branch, Block, Department
-        from libs.code_generation import register_auto_code_signal
-
-        # Register with default code generation
-        register_auto_code_signal(Branch, Block, Department)
-
-        # Register with custom code generation
-        def custom_code_gen(instance):
-            return f"{instance.CODE_PREFIX}{instance.id:05d}"
-
-        register_auto_code_signal(Branch, Block, custom_generate_code=custom_code_gen)
+        from apps.hrm.models import Branch, Block
+        register_auto_code_signal(Branch, Block, temp_code_prefix="TEMP_")
     """
     handler = create_auto_code_signal_handler(temp_code_prefix, custom_generate_code=custom_generate_code)
 

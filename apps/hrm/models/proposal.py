@@ -607,6 +607,8 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     def _assign_to_timesheet_entry(self) -> None:
         """Ensure exactly one ProposalTimeSheetEntry is created for this complaint proposal if possible."""
+        from apps.hrm.models import TimeSheetEntry
+
         # Only run for TIMESHEET_ENTRY_COMPLAINT proposals
         if self.proposal_type != ProposalType.TIMESHEET_ENTRY_COMPLAINT:
             logger.info("Proposal type is not TIMESHEET_ENTRY_COMPLAINT")
@@ -614,10 +616,8 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         # Must have a complaint date and created_by
         if not self.timesheet_entry_complaint_complaint_date or not self.created_by_id:
-            logger.info("Missing complaint date or created_by for TIMESHEET_ENTRY_COMPLAINT proposal")
+            logger.error("Missing complaint date or created_by for TIMESHEET_ENTRY_COMPLAINT proposal")
             return
-
-        from apps.hrm.models import TimeSheetEntry
 
         # Find the timesheet entry for the complaint date and created_by
         # It should not happened, but we need to handle for the case one day has multiple timesheet entries
@@ -631,19 +631,16 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
             .first()
         )
         if not timesheet_entry:
-            logger.info(
+            logger.warning(
                 f"No TimeSheetEntry found for employee {self.created_by_id} on date {self.timesheet_entry_complaint_complaint_date}"
             )
             return
 
-        try:
-            # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
-            ProposalTimeSheetEntry.objects.create(
-                proposal=self,
-                timesheet_entry=timesheet_entry,
-            )
-        except ValidationError as ve:
-            logger.error(f"ValidationError when creating ProposalTimeSheetEntry: {ve}")
+        # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
+        ProposalTimeSheetEntry.objects.get_or_create(
+            proposal=self,
+            timesheet_entry=timesheet_entry,
+        )
 
 
 @audit_logging_register

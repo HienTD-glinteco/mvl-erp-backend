@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 15:54+0700\n"
+"POT-Creation-Date: 2025-12-12 13:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,12 +108,12 @@ msgstr "Lỗi khi tạo URL ký trước: {error}"
 msgid "Failed to move file in S3: {error}"
 msgstr "Lỗi khi di chuyển tệp tin trong S3: {error}"
 
-#: apps/files/utils/s3_utils.py:220
+#: apps/files/utils/s3_utils.py:218
 #, python-brace-format
 msgid "Failed to delete file from S3: {error}"
 msgstr "Lỗi khi xóa tệp tin khỏi S3: {error}"
 
-#: apps/files/utils/s3_utils.py:266
+#: apps/files/utils/s3_utils.py:264
 #, python-brace-format
 msgid "Failed to generate presigned GET URL: {error}"
 msgstr "Lỗi khi tạo URL GET ký trước: {error}"

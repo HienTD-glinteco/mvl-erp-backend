@@ -1,11 +1,23 @@
 import logging
 from calendar import monthrange
-from datetime import date
-from typing import List
+from datetime import date, datetime, timedelta
+from typing import List, Tuple
 
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
+from apps.hrm.constants import (
+    ProposalStatus,
+    ProposalType,
+    ProposalWorkShift,
+    TimesheetReason,
+    TimesheetStatus,
+)
 from apps.hrm.models import Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
+from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
+from apps.hrm.models.proposal import Proposal
+from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
 
 logger = logging.getLogger(__name__)
@@ -134,3 +146,335 @@ def create_monthly_timesheets_for_month_all(
         if result:
             created.append(result)
     return created
+
+
+# ---------------------------------------------------------------------------
+# Timesheet status calculation service
+# ---------------------------------------------------------------------------
+
+
+def _determine_sessions(work_schedule, compensatory, half_day_shift):
+    has_morning = bool(work_schedule and work_schedule.morning_start_time and work_schedule.morning_end_time)
+    has_afternoon = bool(work_schedule and work_schedule.afternoon_start_time and work_schedule.afternoon_end_time)
+
+    if compensatory:
+        # compensatory overrides: mark as working according to session
+        if compensatory.session == CompensatoryWorkday.Session.FULL_DAY:
+            has_morning = True
+            has_afternoon = True
+        elif compensatory.session == CompensatoryWorkday.Session.MORNING:
+            has_morning = True
+            has_afternoon = False
+        else:
+            has_morning = False
+            has_afternoon = True
+
+    # half-day proposal overrides
+    if half_day_shift == ProposalWorkShift.MORNING:
+        has_morning = False
+        has_afternoon = True
+    elif half_day_shift == ProposalWorkShift.AFTERNOON:
+        has_morning = True
+        has_afternoon = False
+
+    return has_morning, has_afternoon
+
+
+def _handle_full_day_leaves(entry, paid, unpaid, maternity) -> bool:
+    if paid or unpaid or maternity:
+        entry.status = TimesheetStatus.ABSENT
+        if maternity:
+            entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
+        elif unpaid:
+            entry.absent_reason = TimesheetReason.UNPAID_LEAVE
+        else:
+            entry.absent_reason = TimesheetReason.PAID_LEAVE
+        entry.count_for_payroll = False
+        return True
+    return False
+
+
+def _handle_non_working_day(entry, day_defined_as_working, times_outside_schedule, is_holiday) -> bool:
+    non_working_day = (not day_defined_as_working) or times_outside_schedule or is_holiday
+    if non_working_day:
+        if not entry.start_time:
+            entry.status = None
+        else:
+            entry.status = TimesheetStatus.ON_TIME
+        return True
+    return False
+
+
+def _handle_single_punch(entry) -> bool:
+    if (entry.start_time and not entry.end_time) or (not entry.start_time and entry.end_time):
+        entry.status = TimesheetStatus.NOT_ON_TIME
+        return True
+    return False
+
+
+def _evaluate_work_duration(entry, work_schedule, has_morning, has_afternoon, allowed_late_minutes):
+    def _make(dt_time):
+        return timezone.make_aware(datetime.combine(entry.date, dt_time)) if dt_time else None
+
+    m_start = _make(work_schedule.morning_start_time) if work_schedule else None
+    m_end = _make(work_schedule.morning_end_time) if work_schedule else None
+    a_start = _make(work_schedule.afternoon_start_time) if work_schedule else None
+    a_end = _make(work_schedule.afternoon_end_time) if work_schedule else None
+
+    scheduled_seconds = 0.0
+    if has_morning and m_start and m_end:
+        scheduled_seconds += (m_end - m_start).total_seconds()
+    if has_afternoon and a_start and a_end:
+        scheduled_seconds += (a_end - a_start).total_seconds()
+
+    break_seconds = 0.0
+    if m_end and a_start:
+        break_seconds = (a_start - m_end).total_seconds()
+
+    if not entry.end_time:
+        entry.status = TimesheetStatus.NOT_ON_TIME
+        return
+
+    actual_work_seconds = (entry.end_time - entry.start_time).total_seconds() - break_seconds
+    allowed_seconds = allowed_late_minutes * 60
+
+    if scheduled_seconds - actual_work_seconds > allowed_seconds:
+        entry.status = TimesheetStatus.NOT_ON_TIME
+    else:
+        entry.status = TimesheetStatus.ON_TIME
+
+
+def compute_timesheet_status(entry) -> None:
+    """Compute and set `entry.status`, `entry.absent_reason`, and `entry.count_for_payroll`.
+
+    This function is behavior-preserving with the previous `TimeSheetEntry.calculate_status`.
+    It intentionally accepts a `TimeSheetEntry` instance to avoid importing the model here
+    (prevents circular imports when the model imports this service).
+    """
+    # gather base inputs
+    weekday = entry.date.isoweekday() + 1
+    work_schedule = get_work_schedule_by_weekday(weekday)
+    is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
+    compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
+    compensatory_day = compensatory is not None
+
+    (
+        has_full_day_paid_leave,
+        has_full_day_unpaid_leave,
+        has_maternity_leave,
+        late_exemption_minutes,
+        half_day_shift,
+    ) = _fetch_approved_proposals_flags_for_entry(entry)
+
+    # preserve externally-set absent (early exit)
+    if _preserve_explicit_absent(entry):
+        return
+
+    # determine which sessions are defined for this date
+    has_morning, has_afternoon = _determine_sessions(work_schedule, compensatory, half_day_shift)
+
+    # handle full-day leaves
+    if _handle_full_day_leaves(entry, has_full_day_paid_leave, has_full_day_unpaid_leave, has_maternity_leave):
+        return
+
+    # non-working day or attendance outside scheduled sessions
+    times_outside_schedule = _is_attendance_outside_schedule_for_entry(entry, work_schedule, compensatory_day)
+    if _handle_non_working_day(entry, has_morning or has_afternoon, times_outside_schedule, is_holiday):
+        return
+
+    # working day: require start_time
+    if not entry.start_time:
+        entry.status = TimesheetStatus.ABSENT
+        return
+
+    # single-punch detection
+    if _handle_single_punch(entry):
+        return
+
+    base_start_time = _determine_base_start_time_for_entry(work_schedule, has_morning, has_afternoon)
+
+    # if we don't have a concrete base start time, attempt compensatory fallback
+    if base_start_time is None:
+        if compensatory_day and (has_morning or has_afternoon):
+            if _compensatory_fallback_punctuality_for_entry(entry, late_exemption_minutes, has_maternity_leave):
+                return
+            entry.status = TimesheetStatus.ON_TIME
+            return
+
+        if not work_schedule:
+            entry.status = None if not entry.start_time else TimesheetStatus.ON_TIME
+            return
+
+        if not entry.status:
+            entry.status = TimesheetStatus.ABSENT
+        return
+
+    # Determine allowed lateness
+    schedule_allowed = (
+        work_schedule.allowed_late_minutes if work_schedule and work_schedule.allowed_late_minutes is not None else 5
+    )
+    allowed_late_minutes = max(schedule_allowed, late_exemption_minutes or 0)
+    if has_maternity_leave:
+        allowed_late_minutes = max(allowed_late_minutes, 60)
+
+    allowed_start_time = timezone.make_aware(datetime.combine(entry.date, base_start_time)) + timedelta(
+        minutes=allowed_late_minutes
+    )
+
+    if entry.start_time <= allowed_start_time:
+        entry.status = TimesheetStatus.ON_TIME
+        return
+
+    # Fall through to evaluate actual worked seconds vs scheduled seconds
+    _evaluate_work_duration(entry, work_schedule, has_morning, has_afternoon, allowed_late_minutes)
+
+
+def _fetch_approved_proposals_flags_for_entry(entry) -> Tuple[bool, bool, bool, int, object]:
+    approved_proposals = _get_approved_proposals_for_entry(entry)
+    return _aggregate_proposal_flags(approved_proposals, entry)
+
+
+def _get_approved_proposals_for_entry(entry):
+    """Return queryset of approved proposals that may affect the given entry date."""
+    if not getattr(entry, "employee_id", None):
+        return Proposal.objects.none()
+
+    return Proposal.objects.filter(created_by_id=entry.employee_id, proposal_status=ProposalStatus.APPROVED).filter(
+        Q(paid_leave_start_date__lte=entry.date, paid_leave_end_date__gte=entry.date)
+        | Q(unpaid_leave_start_date__lte=entry.date, unpaid_leave_end_date__gte=entry.date)
+        | Q(maternity_leave_start_date__lte=entry.date, maternity_leave_end_date__gte=entry.date)
+        | Q(late_exemption_start_date__lte=entry.date, late_exemption_end_date__gte=entry.date)
+    )
+
+
+def _aggregate_proposal_flags(approved_proposals, entry) -> Tuple[bool, bool, bool, int, object]:
+    """Aggregate approved proposals into flags used by the timesheet calculation.
+
+    Returns: (has_full_day_paid_leave, has_full_day_unpaid_leave, has_maternity_leave,
+              late_exemption_minutes, half_day_shift)
+    """
+    has_full_day_paid_leave = False
+    has_full_day_unpaid_leave = False
+    has_maternity_leave = False
+    late_exemption_minutes = 0
+    half_day_shift = None
+
+    for p in approved_proposals:
+        if p.proposal_type == ProposalType.PAID_LEAVE and p.paid_leave_start_date and p.paid_leave_end_date:
+            if p.paid_leave_start_date <= entry.date <= p.paid_leave_end_date:
+                if not p.paid_leave_shift or p.paid_leave_shift == ProposalWorkShift.FULL_DAY:
+                    has_full_day_paid_leave = True
+                else:
+                    half_day_shift = p.paid_leave_shift
+
+        if p.proposal_type == ProposalType.UNPAID_LEAVE and p.unpaid_leave_start_date and p.unpaid_leave_end_date:
+            if p.unpaid_leave_start_date <= entry.date <= p.unpaid_leave_end_date:
+                if not p.unpaid_leave_shift or p.unpaid_leave_shift == ProposalWorkShift.FULL_DAY:
+                    has_full_day_unpaid_leave = True
+                else:
+                    half_day_shift = p.unpaid_leave_shift
+
+        if (
+            p.proposal_type == ProposalType.MATERNITY_LEAVE
+            and p.maternity_leave_start_date
+            and p.maternity_leave_end_date
+        ):
+            if p.maternity_leave_start_date <= entry.date <= p.maternity_leave_end_date:
+                has_maternity_leave = True
+
+        if (
+            p.proposal_type == ProposalType.LATE_EXEMPTION
+            and p.late_exemption_start_date
+            and p.late_exemption_end_date
+        ):
+            if p.late_exemption_start_date <= entry.date <= p.late_exemption_end_date and p.late_exemption_minutes:
+                late_exemption_minutes = max(late_exemption_minutes, p.late_exemption_minutes)
+
+    return (
+        has_full_day_paid_leave,
+        has_full_day_unpaid_leave,
+        has_maternity_leave,
+        late_exemption_minutes,
+        half_day_shift,
+    )
+
+
+def _preserve_explicit_absent(entry) -> bool:
+    if (
+        entry.absent_reason
+        in (TimesheetReason.PAID_LEAVE, TimesheetReason.UNPAID_LEAVE, TimesheetReason.MATERNITY_LEAVE)
+        or entry.status == TimesheetStatus.ABSENT
+    ):
+        entry.count_for_payroll = False
+        return True
+    return False
+
+
+def _is_attendance_outside_schedule_for_entry(entry, work_schedule, compensatory_day) -> bool:
+    if (not compensatory_day) and work_schedule and entry.start_time and entry.end_time:
+
+        def _make(dt_time):
+            return timezone.make_aware(datetime.combine(entry.date, dt_time)) if dt_time else None
+
+        m_start = _make(work_schedule.morning_start_time)
+        m_end = _make(work_schedule.morning_end_time)
+        a_start = _make(work_schedule.afternoon_start_time)
+        a_end = _make(work_schedule.afternoon_end_time)
+
+        within_morning = False
+        within_afternoon = False
+        if m_start and m_end:
+            within_morning = not (entry.end_time <= m_start or entry.start_time >= m_end)
+        if a_start and a_end:
+            within_afternoon = not (entry.end_time <= a_start or entry.start_time >= a_end)
+
+        return not (within_morning or within_afternoon)
+    return False
+
+
+def _determine_base_start_time_for_entry(work_schedule, has_morning, has_afternoon):
+    if not work_schedule:
+        return None
+    if has_morning and getattr(work_schedule, "morning_start_time", None):
+        return work_schedule.morning_start_time
+    if has_afternoon and getattr(work_schedule, "afternoon_start_time", None):
+        return work_schedule.afternoon_start_time
+    if getattr(work_schedule, "morning_start_time", None):
+        return work_schedule.morning_start_time
+    if getattr(work_schedule, "afternoon_start_time", None):
+        return work_schedule.afternoon_start_time
+    return None
+
+
+def _compensatory_fallback_punctuality_for_entry(
+    entry, late_exemption_minutes: int, has_maternity_leave: bool
+) -> bool:
+    fallback_start = None
+    fallback_allowed = 0
+    for wd in range(2, 7):
+        fallback = get_work_schedule_by_weekday(wd)
+        if not fallback:
+            continue
+        if getattr(fallback, "morning_start_time", None):
+            fallback_start = fallback.morning_start_time
+            fallback_allowed = fallback.allowed_late_minutes or 0
+            break
+        if getattr(fallback, "afternoon_start_time", None):
+            fallback_start = fallback.afternoon_start_time
+            fallback_allowed = fallback.allowed_late_minutes or 0
+            break
+
+    if fallback_start is not None:
+        fallback_allowed_final = max(fallback_allowed or 5, late_exemption_minutes or 0)
+        if has_maternity_leave:
+            fallback_allowed_final = max(fallback_allowed_final, 60)
+
+        allowed_start_time = timezone.make_aware(datetime.combine(entry.date, fallback_start)) + timedelta(
+            minutes=fallback_allowed_final
+        )
+        if entry.start_time <= allowed_start_time:
+            entry.status = TimesheetStatus.ON_TIME
+        else:
+            entry.status = TimesheetStatus.NOT_ON_TIME
+        return True
+    return False

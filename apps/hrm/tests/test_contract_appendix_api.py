@@ -225,10 +225,10 @@ class TestContractAppendixCodeGeneration:
             content="Test content",
         )
 
-        # Now generate code using the function
-        code = generate_contract_code(appendix)
+        # Now generate code using the function (function mutates instance)
+        generate_contract_code(appendix)
         # Code format: PLHDxxxxx (System ID)
-        assert code.startswith("PLHD")
+        assert appendix.code.startswith("PLHD")
         # contract_number format: xx/yyyy/PLHD-MVL (Business ID) - set by generate_contract_code
         assert appendix.contract_number is not None
         assert "/PLHD-MVL" in appendix.contract_number

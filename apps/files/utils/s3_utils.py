@@ -1,7 +1,6 @@
 """S3 utilities for file upload management."""
 
 import logging
-import time
 import uuid
 from typing import Optional
 
@@ -17,6 +16,7 @@ from apps.files.constants import (
     S3_UPLOADS_PREFIX,
 )
 from apps.files.utils.storage_utils import build_storage_key, get_storage_prefix
+from libs.retry import retry
 
 logger = logging.getLogger(__name__)
 
@@ -143,39 +143,37 @@ class S3FileUploadService:
         source_key = self._get_s3_key(source_path)
         dest_key = self._get_s3_key(destination_path)
 
-        retry_delay = 1  # Initial delay in seconds
+        # Wrap the actual copy/delete into a small callable and use the
+        # reusable `retry` decorator for retry/backoff behavior. We catch and
+        # transform ClientError into a user-friendly Exception below to keep the
+        # original behavior.
 
-        for attempt in range(max_retries):
-            try:
-                # Copy object to new location
-                copy_source = {"Bucket": self.bucket_name, "Key": source_key}
-                self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key)
+        @retry(
+            max_attempts=max_retries,
+            exceptions=(ClientError,),
+            delay=1.0,
+            backoff=2.0,
+            logger=logger,
+            raise_on_final=True,
+        )
+        def _do_move() -> bool:
+            copy_source = {"Bucket": self.bucket_name, "Key": source_key}
+            self.s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key)
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_key)
 
-                # Delete original object
-                self.s3_client.delete_object(Bucket=self.bucket_name, Key=source_key)
+            logger.info(
+                f"Successfully moved file: {source_path} -> {destination_path} (S3: {source_key} -> {dest_key})"
+            )
 
-                logger.info(
-                    f"Successfully moved file: {source_path} -> {destination_path} (S3: {source_key} -> {dest_key})"
-                )
-                return True
+            return True
 
-            except ClientError as e:
-                logger.warning(
-                    f"Failed to move file (attempt {attempt + 1}/{max_retries}): {source_path} -> {destination_path}, error: {e}"
-                )
-
-                if attempt < max_retries - 1:
-                    # Exponential backoff
-                    time.sleep(retry_delay)
-                    retry_delay *= 2
-                else:
-                    # Final attempt failed
-                    logger.error(
-                        f"Failed to move file after {max_retries} attempts: {source_path} -> {destination_path}"
-                    )
-                    raise Exception(_("Failed to move file in S3: {error}").format(error=str(e)))
-
-        return False
+        try:
+            return _do_move()
+        except ClientError as e:
+            logger.error(
+                f"Failed to move file after {max_retries} attempts: {source_path} -> {destination_path}, error: {e}"
+            )
+            raise Exception(_("Failed to move file in S3: {error}").format(error=str(e)))
 
     def get_file_metadata(self, file_path: str) -> Optional[dict]:
         """

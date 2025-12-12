@@ -223,10 +223,10 @@ class TestContractCodeGeneration:
             base_salary=contract_type.base_salary,
         )
 
-        # Now generate code using the function
-        code = generate_contract_code(contract)
+        # Now generate code using the function (function sets fields on instance)
+        generate_contract_code(contract)
         # Code format: HDxxxxx (System ID)
-        assert code.startswith("HD")
+        assert contract.code.startswith("HD")
         # contract_number format: xx/yyyy/abc - MVL (Business ID) - set by generate_contract_code
         assert contract.contract_number is not None
         assert " - MVL" in contract.contract_number

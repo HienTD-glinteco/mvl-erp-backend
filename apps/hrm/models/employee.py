@@ -12,18 +12,27 @@ from libs.validators import CitizenIdValidator
 from ..constants import TEMP_CODE_PREFIX, EmployeeType
 
 
-def generate_code(employee: "Employee") -> str:
-    """Generate a code for an Employee instance based on its code_type.
+def generate_code(employee: "Employee", force_save: bool = True) -> None:
+    """Generate and assign a code for an Employee instance.
 
-    The code format is: {code_type}{subcode}
-    where code_type is the employee's code_type (MV, CTV, or OS)
-    and subcode is the instance ID zero-padded to at least 3 digits.
+    This function composes an employee code using the employee's `code_type`
+    (e.g. "MV") and the employee's numeric id zero-padded to 9 digits
+    (e.g. "000000123"), producing a value like "MV000000123".
+
+    Side effects:
+    - sets `employee.code` to the generated value
+    - if `force_save` is True, persists only the `code` field with
+      `employee.save(update_fields=["code"])` (to avoid saving unrelated fields)
 
     Args:
-        employee: Employee instance that must have an id and code_type attribute.
+        employee: Employee instance which MUST have a non-None `id` and a
+            valid `code_type` attribute.
+        force_save: If True (default), call `employee.save(update_fields=["code"])`
+            after assigning the generated code. If False, the caller is
+            responsible for saving the instance.
 
-    Returns:
-        Generated code string (e.g., "MV000000001", "CTV000000012", "OS000000444")
+    Raises:
+        ValueError: If the provided `employee` has no `id` set.
     """
     if not hasattr(employee, "id") or employee.id is None:
         raise ValueError("Employee must have an id to generate code")
@@ -32,7 +41,10 @@ def generate_code(employee: "Employee") -> str:
     instance_id = employee.id
     subcode = str(instance_id).zfill(9)
 
-    return f"{prefix}{subcode}"
+    employee.code = f"{prefix}{subcode}"
+
+    if force_save:
+        employee.save(update_fields=["code"])
 
 
 @audit_logging_register

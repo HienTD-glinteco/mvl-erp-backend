@@ -2,30 +2,50 @@
 
 from datetime import date
 
+from django.db.utils import IntegrityError
+
 from apps.hrm.models import Contract
 from apps.hrm.models.contract_type import ContractType
+from libs.retry import retry
 
 
-def generate_contract_code(instance) -> str:
-    """Generate unique codes for a contract or appendix instance.
+@retry(max_attempts=5, delay=0.1, backoff=0, exceptions=(IntegrityError,))
+def generate_contract_code(instance, force_save: bool = True):
+    """Generate and assign unique `code` and `contract_number` for a Contract.
 
-    For contracts (category='contract'):
-    - code: System ID format HDxxxxx (e.g., HD00001)
-    - contract_number: Business ID format xx/yyyy/abc - MVL (e.g., 01/2025/HDLD - MVL)
+    This helper computes two identifiers for a `Contract` instance and assigns
+    them on the instance. It supports both regular contracts and appendices:
 
-    For appendices (category='appendix'):
-    - code: System ID format PLHDxxxxx (e.g., PLHD00001)
-    - contract_number: Business ID format xx/yyyy/PLHD-MVL (e.g., 01/2025/PLHD-MVL)
+    - Contracts (category == ContractType.Category.CONTRACT):
+        - `code`: system identifier in the form `HDxxxxx` (at least 5 digits)
+        - `contract_number`: business identifier in the form `xx/YYYY/<symbol> - MVL`
 
-    The contract_number is also assigned to the instance. The signal handler
-    will save both fields with update_fields=['code', 'contract_number'].
+    - Appendices (category == ContractType.Category.APPENDIX):
+        - `code`: system identifier in the form `PLHDxxxxx` (at least 5 digits)
+        - `contract_number`: business identifier in the form `xx/YYYY/PLHD-MVL`
+
+    Side effects:
+    - Sets `instance.code` and `instance.contract_number`.
+    - If `force_save` is True (default) the instance is saved with
+        `update_fields=["code", "contract_number"]`.
+
+    Notes:
+    - The function requires `instance.id` to be set. If `id` is missing a
+        `ValueError` is raised.
+    - Database collisions (e.g. `IntegrityError`) may occur when saving; the
+        function is commonly decorated with a retry helper to tolerate transient
+        uniqueness conflicts (see the module-level `@retry` decorator).
 
     Args:
-        instance: Contract model instance that needs codes generated.
+            instance: `Contract` instance with a non-null `id`.
+            force_save: If True, persist the generated fields to the database.
 
-    Returns:
-        Generated code string for the `code` field
+    Raises:
+            ValueError: if `instance.id` is None or missing.
+            IntegrityError: when database constraints prevent saving (may be
+                    retried by the decorator).
     """
+
     if not hasattr(instance, "id") or instance.id is None:
         raise ValueError("Instance must have an id to generate code")
 
@@ -94,7 +114,7 @@ def generate_contract_code(instance) -> str:
             code_seq_str = str(instance.id)
         code = f"HD{code_seq_str}"
 
-    # Assign contract_number to instance - will be saved by signal handler
+    instance.code = code
     instance.contract_number = contract_number
-
-    return code
+    if force_save:
+        instance.save(update_fields=["code", "contract_number"])
