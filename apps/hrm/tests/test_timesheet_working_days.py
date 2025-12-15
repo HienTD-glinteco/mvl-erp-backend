@@ -4,11 +4,13 @@ from decimal import Decimal
 
 import pytest
 
+from datetime import time
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models.employee import Employee
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.organization import Block, Branch, Department
 from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.models.work_schedule import WorkSchedule
 from libs.decimals import quantize_decimal
 
 pytestmark = pytest.mark.django_db
@@ -47,6 +49,15 @@ def _create_employee():
 
 
 def test_working_days_calculated_from_official_hours():
+    # Ensure a work schedule exists for Monday (2025-03-03 is Monday)
+    WorkSchedule.objects.create(
+        weekday=WorkSchedule.Weekday.MONDAY,
+        morning_start_time=time(8, 0),
+        morning_end_time=time(12, 0),
+        afternoon_start_time=time(13, 0),
+        afternoon_end_time=time(17, 0),
+    )
+
     emp = _create_employee()
 
     d = date(2025, 3, 3)
@@ -63,6 +74,23 @@ def test_working_days_calculated_from_official_hours():
 
 
 def test_monthly_aggregates_sum_working_days():
+    # Ensure work schedules exist for the days tested
+    # 2025-03-03 is Monday, 03-04 is Tuesday
+    WorkSchedule.objects.create(
+        weekday=WorkSchedule.Weekday.MONDAY,
+        morning_start_time=time(8, 0),
+        morning_end_time=time(12, 0),
+        afternoon_start_time=time(13, 0),
+        afternoon_end_time=time(17, 0),
+    )
+    WorkSchedule.objects.create(
+        weekday=WorkSchedule.Weekday.TUESDAY,
+        morning_start_time=time(8, 0),
+        morning_end_time=time(12, 0),
+        afternoon_start_time=time(13, 0),
+        afternoon_end_time=time(17, 0),
+    )
+
     emp = _create_employee()
     year = 2025
     month = 3
