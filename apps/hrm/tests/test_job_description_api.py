@@ -457,18 +457,18 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         # Get current datetime for proper comparison
         now = timezone.now()
-        one_hour_ago = now - timedelta(hours=1)
-        one_hour_later = now + timedelta(hours=1)
+        yesterday = now.date() - timedelta(days=1)
+        tomorrow = now.date() + timedelta(days=1)
 
-        # Filter by created_at >= one_hour_ago (should return the job)
-        response = self.client.get(url, {"created_at__gte": one_hour_ago.isoformat()})
+        # Filter by created_at__date >= yesterday (should return the job)
+        response = self.client.get(url, {"created_at__date__gte": yesterday.isoformat()})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
 
-        # Filter by created_at >= one_hour_later (should return nothing)
-        response = self.client.get(url, {"created_at__gte": one_hour_later.isoformat()})
+        # Filter by created_at__date >= tomorrow (should return nothing)
+        response = self.client.get(url, {"created_at__date__gte": tomorrow.isoformat()})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
@@ -486,18 +486,18 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
 
         # Get current datetime for proper comparison
         now = timezone.now()
-        one_hour_ago = now - timedelta(hours=1)
-        one_hour_later = now + timedelta(hours=1)
+        yesterday = now.date() - timedelta(days=1)
+        tomorrow = now.date() + timedelta(days=1)
 
-        # Filter by created_at <= one_hour_later (should return the job)
-        response = self.client.get(url, {"created_at__lte": one_hour_later.isoformat()})
+        # Filter by created_at__date <= tomorrow (should return the job)
+        response = self.client.get(url, {"created_at__date__lte": tomorrow.isoformat()})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)
         self.assertEqual(len(response_data), 1)
 
-        # Filter by created_at <= one_hour_ago (should return nothing)
-        response = self.client.get(url, {"created_at__lte": one_hour_ago.isoformat()})
+        # Filter by created_at__date <= yesterday (should return nothing)
+        response = self.client.get(url, {"created_at__date__lte": yesterday.isoformat()})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = self.get_response_data(response)

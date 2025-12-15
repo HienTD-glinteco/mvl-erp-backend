@@ -14,5 +14,5 @@ class JobDescriptionFilterSet(django_filters.FilterSet):
         fields = {
             "title": ["icontains"],
             "code": ["icontains"],
-            "created_at": ["exact", "gte", "lte"],
+            "created_at": ["date__exact", "date__gte", "date__lte"],
         }
