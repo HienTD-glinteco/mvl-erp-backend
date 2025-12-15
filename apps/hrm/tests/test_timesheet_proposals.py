@@ -148,4 +148,4 @@ def test_single_punch_marks_not_on_time(settings):
     ts.end_time = None
     ts.calculate_status()
 
-    assert ts.status == TimesheetStatus.NOT_ON_TIME
+    assert ts.status == TimesheetStatus.SINGLE_PUNCH

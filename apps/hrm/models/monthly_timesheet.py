@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Count, DecimalField, F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 
-from apps.hrm.constants import STANDARD_WORKING_HOURS_PER_DAY, TimesheetReason
+from apps.hrm.constants import TimesheetReason
 from apps.hrm.models.timesheet import TimeSheetEntry
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
 from libs.models.base_model_mixin import BaseReportModel
@@ -57,7 +57,6 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         decimal_places=2,
         default=DECIMAL_ZERO,
         verbose_name="Overtime hours",
-        help_text="TODO: Check logic after SRS is updated",
     )
     total_worked_hours = models.DecimalField(
         max_digits=8,
@@ -149,17 +148,15 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             ),
             # Working days - calculate from hours divided by 8
             "_probation_working_days": Coalesce(
-                Sum(F("morning_hours") + F("afternoon_hours"), filter=Q(is_full_salary=False))
-                / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Sum(F("working_days"), filter=Q(is_full_salary=False)),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "_official_working_days": Coalesce(
-                Sum(F("morning_hours") + F("afternoon_hours"), filter=Q(is_full_salary=True))
-                / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Sum(F("working_days"), filter=Q(is_full_salary=True)),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             "_total_working_days": Coalesce(
-                Sum(F("morning_hours") + F("afternoon_hours")) / Value(STANDARD_WORKING_HOURS_PER_DAY),
+                Sum(F("working_days")),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
             # Leaves day

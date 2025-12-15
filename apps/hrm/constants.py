@@ -153,7 +153,14 @@ class ActionType:
 class TimesheetStatus(models.TextChoices):
     ON_TIME = "on_time", _("On time")
     NOT_ON_TIME = "not_on_time", _("Not on time")
+    SINGLE_PUNCH = "single_punch", _("Single punch")
     ABSENT = "absent", _("Absent")
+
+
+class TimesheetDayType(models.TextChoices):
+    HOLIDAY = "holiday", _("Holiday")
+    COMPENSATORY = "compensatory", _("Compensatory")
+    OFFICIAL = "official", _("Official")
 
 
 class TimesheetReason(models.TextChoices):
