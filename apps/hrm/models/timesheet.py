@@ -9,7 +9,9 @@ from django.utils import timezone
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (
+    STANDARD_WORKING_HOURS_PER_DAY,
     ProposalStatus,
+    TimesheetDayType,
     TimesheetReason,
     TimesheetStatus,
 )
@@ -61,7 +63,19 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name="Total worked hours"
     )
 
-    # TODO: add a new field to store working_days. Also add logic to autopopulate it using working hours, and other business rules.
+    # Working days for this entry (partial days allowed). Calculated from official_hours
+    # using STANDARD_WORKING_HOURS_PER_DAY (e.g., 8 hours = 1 working day).
+    working_days = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Working days"
+    )
+
+    day_type = models.CharField(
+        max_length=32,
+        choices=TimesheetDayType.choices,
+        null=True,
+        blank=True,
+        verbose_name="Day type",
+    )
 
     status = models.CharField(
         max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name="Status"
@@ -245,6 +259,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         self.overtime_hours = quantize_decimal(Decimal(overtime_hours.numerator) / Decimal(overtime_hours.denominator))
 
     def clean(self) -> None:
+        from apps.hrm.services.timesheets import compute_timesheet_working_days
+
         # Ensure hours are quantized to 2 decimals and calculate derived fields
         if self.morning_hours is None:
             self.morning_hours = Decimal("0.00")
@@ -271,8 +287,22 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         # Calculate total_worked_hours as official_hours + overtime_hours
         self.total_worked_hours = quantize_decimal(self.official_hours + self.overtime_hours)
 
+        # Calculate working_days from official hours (exclude overtime)
+        # Use STANDARD_WORKING_HOURS_PER_DAY (e.g., 8) to convert hours -> days
+        try:
+            # official_hours is Decimal; division by int yields Decimal
+            self.working_days = quantize_decimal(
+                Decimal(self.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+            )
+        except Exception:
+            # Fallback to zero if any unexpected issue occurs
+            self.working_days = Decimal("0.00")
+
         # Calculate status based on actual working hours
         self.calculate_status()
+
+        # Compute working_days according to business rules (may use proposals, schedule, holidays)
+        compute_timesheet_working_days(self)
 
         # Set is_full_salary based on active contract's net_percentage
         self._set_is_full_salary_from_contract()
@@ -316,10 +346,9 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         - Holidays are checked via `_is_holiday()`; compensatory workdays take
             precedence over holidays for that date.
         """
-
-        # Delegate to service implementation to keep model thin and avoid circular imports
         from apps.hrm.services.timesheets import compute_timesheet_status
 
+        # Delegate to service implementation to keep model thin and avoid circular imports
         compute_timesheet_status(self)
 
     def _set_is_full_salary_from_contract(self) -> None:

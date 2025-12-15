@@ -58,6 +58,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         """Tax calculation method choices."""
 
         PROGRESSIVE = "progressive", _("Progressive tax")
+        # Translator: xgettext:no-python-format
         FLAT_10 = "flat_10", _("10% flat tax")
         NONE = "none", _("No tax")
 

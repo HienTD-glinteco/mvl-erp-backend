@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from apps.hrm.constants import TimesheetStatus
+from apps.hrm.constants import TimesheetDayType, TimesheetStatus
 from apps.hrm.models import TimeSheetEntry
 
 from .employee import EmployeeSerializer
@@ -30,7 +30,13 @@ class TimesheetEntrySerializer(serializers.Serializer):
         required=False,
         help_text="End time",
     )
+    working_days = serializers.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), required=False, help_text="Working days"
+    )
     has_complaint = serializers.BooleanField(default=False, required=False, allow_null=True)
+    day_type = serializers.ChoiceField(
+        choices=TimesheetDayType.choices, allow_null=True, required=False, help_text="Day type"
+    )
 
 
 class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
@@ -48,6 +54,7 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
             "end_time",
             "morning_hours",
             "afternoon_hours",
+            "working_days",
             "official_hours",
             "overtime_hours",
             "total_worked_hours",
@@ -62,6 +69,8 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "employee",
+            "working_days",
+            "day_type",
             "official_hours",
             "total_worked_hours",
             "created_at",
