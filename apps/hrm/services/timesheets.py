@@ -22,7 +22,9 @@ from apps.hrm.models import AttendanceRecord, Contract, Employee, EmployeeMonthl
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.proposal import Proposal
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
+from libs.datetimes import compute_intersection_hours
 from libs.decimals import DECIMAL_ZERO, quantize_decimal
+from fractions import Fraction
 
 logger = logging.getLogger(__name__)
 
@@ -229,9 +231,11 @@ def _determine_sessions(work_schedule, compensatory, half_day_shift):
 
     # half-day proposal overrides
     if half_day_shift == ProposalWorkShift.MORNING:
+        # Taking Morning off means working Afternoon
         has_morning = False
         has_afternoon = True
     elif half_day_shift == ProposalWorkShift.AFTERNOON:
+        # Taking Afternoon off means working Morning
         has_morning = True
         has_afternoon = False
 
@@ -317,10 +321,10 @@ def compute_timesheet_status(entry) -> None:
     compensatory_day = compensatory is not None
 
     # Determine day type (compensatory takes precedence over holiday)
-    if is_holiday:
-        entry.day_type = TimesheetDayType.HOLIDAY
-    elif compensatory_day:
+    if compensatory_day:
         entry.day_type = TimesheetDayType.COMPENSATORY
+    elif is_holiday:
+        entry.day_type = TimesheetDayType.HOLIDAY
     else:
         entry.day_type = TimesheetDayType.OFFICIAL
 
@@ -601,7 +605,11 @@ def compute_timesheet_working_days(entry) -> None:
     - Approved half-day paid leave -> 0.5 + (official_hours / STANDARD_WORKING_HOURS_PER_DAY)
     - No work schedule -> 0.0
     - Working day -> official_hours / STANDARD_WORKING_HOURS_PER_DAY
-    - Single-punch augmentations: add half of max scheduled hours (in days) + shift bonus
+    - Single-punch augmentations:
+        - Treat single punch as Start Time.
+        - End Time = Schedule End.
+        - Calculate hypothetical duration.
+        - Cap based on shifts (2 shifts -> 0.5, 1 shift -> 0.25).
     - Maternity-mode -> add 1/8 day, capped by daily maximum (1.0)
 
     This function mutates `entry.working_days` and quantizes the result.
@@ -623,8 +631,13 @@ def compute_timesheet_working_days(entry) -> None:
     ) = _fetch_approved_proposals_flags_for_entry(entry)
 
     # Determine sessions for the date (compensatory affects which sessions are working)
+    # Pass None for half_day_shift here to get the FULL scheduled sessions for this day
+    # We need to know if the day *itself* has 1 or 2 sessions capable of being worked,
+    # regardless of whether the user took leave for one.
     has_morning, has_afternoon = _determine_sessions(work_schedule, compensatory, None)
     session_count = (1 if has_morning else 0) + (1 if has_afternoon else 0)
+
+    # print(f"DEBUG: session_count={session_count}, half_day_shift={half_day_shift}")
 
     # Helper: daily maximum in days (business clarified: morning+afternoon => 1.0 day)
     daily_max_days = Decimal("1.00")
@@ -657,7 +670,19 @@ def compute_timesheet_working_days(entry) -> None:
         except Exception:
             base = Decimal("0.5")
         entry.working_days = quantize_decimal(min(base, daily_max_days))
-        return
+        # Important: Don't return here if we want Single Punch logic to potentially override/fix calculations?
+        # Requirement: "Nếu được duyệt đề xuất “Nghỉ phép có lương (một buổi)”, ngày công = 0,5 + (Thời gian làm việc/8)"
+        # AND "Nếu ngày đó nhân viên chỉ chấm công 1 lần... ngày công được cộng thêm..."
+        # But Single Punch logic is complex. "apply rules as other".
+        # If I have half-day leave, I'm expected to work the other half.
+        # If I do Single Punch on the worked half...
+        # The prompt says: "Nếu ngày có 2 ca làm và nhân viên xin nghỉ phép 1 ca, ngày công được cộng thêm 0.25" (Original prompt)
+        # Clarified to: "max working days will be 0.25".
+        # So Single Punch logic DOES apply even if half_day_shift is present.
+        # So we should NOT return here if Single Punch is active.
+
+        if entry.status != TimesheetStatus.SINGLE_PUNCH:
+            return
 
     # Normal working day: official_hours / STANDARD_WORKING_HOURS_PER_DAY
     try:
@@ -665,43 +690,108 @@ def compute_timesheet_working_days(entry) -> None:
     except Exception:
         working_days = Decimal("0.00")
 
-    # Single-punch augmentations
-    if entry.status == TimesheetStatus.SINGLE_PUNCH:
-        # Compute maximum scheduled official hours for the date
-        scheduled_seconds = 0.0
-        if work_schedule:
-            if getattr(work_schedule, "morning_start_time", None) and getattr(work_schedule, "morning_end_time", None):
-                scheduled_seconds += (
-                    datetime.combine(entry.date, work_schedule.morning_end_time)
-                    - datetime.combine(entry.date, work_schedule.morning_start_time)
-                ).total_seconds()
-            if getattr(work_schedule, "afternoon_start_time", None) and getattr(
-                work_schedule, "afternoon_end_time", None
-            ):
-                scheduled_seconds += (
-                    datetime.combine(entry.date, work_schedule.afternoon_end_time)
-                    - datetime.combine(entry.date, work_schedule.afternoon_start_time)
-                ).total_seconds()
+    # If we came from half_day_shift block, working_days is currently set to min(0.5 + hours/8, 1.0).
+    # But wait, if single punch, `official_hours` is 0.
+    # So `working_days` (calculated above) would be 0.5 + 0 = 0.5.
 
-        max_official_hours = (
-            Decimal(scheduled_seconds) / Decimal(3600)
-            if scheduled_seconds
-            else Decimal(STANDARD_WORKING_HOURS_PER_DAY)
-        )
+    # Single-punch logic
+    if entry.status == TimesheetStatus.SINGLE_PUNCH and work_schedule:
+        # Calculate hypothetical hours
+        punch_time = entry.start_time
 
-        # ½ * max time in day (converted to days)
-        half_max_days = Decimal("0.5") * (max_official_hours / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
+        if punch_time:
+            # Determine hypothetical end time (latest possible end time of the day)
+            hypothetical_end = None
+            if has_afternoon and work_schedule.afternoon_end_time:
+                 hypothetical_end = timezone.make_aware(datetime.combine(entry.date, work_schedule.afternoon_end_time))
+            elif has_morning and work_schedule.morning_end_time:
+                 hypothetical_end = timezone.make_aware(datetime.combine(entry.date, work_schedule.morning_end_time))
 
-        # Shift bonus
-        shift_bonus = Decimal("0.50") if session_count == 2 else Decimal("0.25")
+            if hypothetical_end and punch_time < hypothetical_end:
+                # Calculate intersection with scheduled sessions
+                morning_start = (
+                    timezone.make_aware(datetime.combine(entry.date, work_schedule.morning_start_time))
+                    if work_schedule.morning_start_time
+                    else None
+                )
+                morning_end = (
+                    timezone.make_aware(datetime.combine(entry.date, work_schedule.morning_end_time))
+                    if work_schedule.morning_end_time
+                    else None
+                )
+                afternoon_start = (
+                    timezone.make_aware(datetime.combine(entry.date, work_schedule.afternoon_start_time))
+                    if work_schedule.afternoon_start_time
+                    else None
+                )
+                afternoon_end = (
+                    timezone.make_aware(datetime.combine(entry.date, work_schedule.afternoon_end_time))
+                    if work_schedule.afternoon_end_time
+                    else None
+                )
 
-        extra = half_max_days + shift_bonus
+                hypothetical_hours = Fraction(0)
 
-        # If 2 shifts and employee has an approved single-shift leave, add 0.25
-        if session_count == 2 and half_day_shift:
-            extra += Decimal("0.25")
+                # Morning intersection
+                if has_morning and morning_start and morning_end:
+                    hypothetical_hours += compute_intersection_hours(punch_time, hypothetical_end, morning_start, morning_end)
 
-        working_days = working_days + extra
+                # Afternoon intersection
+                if has_afternoon and afternoon_start and afternoon_end:
+                    hypothetical_hours += compute_intersection_hours(punch_time, hypothetical_end, afternoon_start, afternoon_end)
+
+                hypothetical_days = Decimal(hypothetical_hours.numerator) / Decimal(hypothetical_hours.denominator) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+
+                # Determine Max Cap
+                max_cap = Decimal("0.00")
+                if session_count == 2:
+                    if half_day_shift: # User has approved leave for one shift
+                        max_cap = Decimal("0.25")
+                    else:
+                        max_cap = Decimal("0.50")
+                elif session_count == 1:
+                    max_cap = Decimal("0.25")
+
+                # If we had a half_day_shift, the `working_days` variable currently holds `0.5` (base).
+                # But Single Punch logic is "Calculate hypothetical days and Cap it".
+                # If I have Morning Leave (0.5 credit) + Single Punch Afternoon (Credit ?).
+                # The rule "max working days will be 0.25" for this case seems to refer to the *worked* portion?
+                # OR the total for the day?
+                # "Nếu ngày có 2 ca làm và nhân viên xin nghỉ phép 1 ca, ngày công được cộng thêm 0,25" (Original)
+                # "if the day has 2 shifts, but the user is approved to leave one shift, the maximum working days will be 0.25" (Clarified)
+
+                # If "maximum working days" refers to the TOTAL day credit:
+                # That would mean 0.25 Total. But they have Paid Leave for 0.5. So 0.75?
+                # Usually "Working Days" field in `TimeSheetEntry` is the TOTAL credit for the day.
+                # If I take leave morning (0.5), and work afternoon (0.5), I get 1.0 total.
+                # If I take leave morning (0.5), and single punch afternoon.
+                # If the "maximum working days will be 0.25" refers to the *additional* credit from the single punch...
+                # Then Total = 0.5 (Leave) + 0.25 (Work) = 0.75.
+
+                # But the user said "maximum working days will be 0.25".
+                # If that means TOTAL, then 0.25 < 0.5 (Leave). That implies they LOSE credit for the leave? Unlikely.
+                # It likely refers to the *contribution* of the Single Punch work.
+
+                # Let's assume the "Single Punch Logic" calculates the *worked* portion contribution.
+                # And we ADD the leave contribution (which is fixed 0.5).
+
+                # So:
+                # hypothetical_days (from punch)
+                # Cap it at 0.25.
+                # Result = hypothetical_capped.
+
+                # If we have half_day_shift, we already have `base = 0.5 + official_hours/8`.
+                # `official_hours` is 0.
+                # So we have 0.5.
+                # We want to replace `official_hours/8` with `min(hypothetical, 0.25)`.
+
+                single_punch_contribution = min(hypothetical_days, max_cap)
+
+                if half_day_shift:
+                    working_days = Decimal("0.5") + single_punch_contribution
+                else:
+                    working_days = single_punch_contribution
+
 
     # Maternity-mode add 1/8 day, capped
     if has_maternity_leave:
