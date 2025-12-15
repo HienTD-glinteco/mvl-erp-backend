@@ -14,7 +14,7 @@ from apps.hrm.constants import (
     ProposalType, ProposalStatus, ProposalWorkShift,
     STANDARD_WORKING_HOURS_PER_DAY
 )
-from apps.hrm.services.timesheets import compute_timesheet_working_days, compute_timesheet_status
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 
 @pytest.fixture
 def mock_work_schedule():
@@ -53,10 +53,10 @@ def timesheet_entry(mock_employee):
 @pytest.mark.django_db
 class TestTimesheetBusinessLogic:
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_single_punch_2_shifts(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: 2 shifts (Morning + Afternoon), Single Punch
         # Result should be max 0.5
@@ -77,14 +77,15 @@ class TestTimesheetBusinessLogic:
         # 8:00 to 17:30 minus break (12:00-13:30) = 4 + 4 = 8 hours -> 1.0 day
         # But Cap is 0.5
 
-        compute_timesheet_working_days(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_working_days()
 
         assert timesheet_entry.working_days == Decimal("0.50")
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_single_punch_1_shift(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: 1 shift (Morning only), Single Punch
         # Result should be max 0.25
@@ -104,14 +105,15 @@ class TestTimesheetBusinessLogic:
         # Hypothetical: 8:00 - 12:00 = 4 hours = 0.5 days
         # Cap for 1 shift = 0.25
 
-        compute_timesheet_working_days(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_working_days()
 
         assert timesheet_entry.working_days == Decimal("0.25")
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_single_punch_2_shifts_with_leave(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: 2 shifts, but 1 shift leave (e.g. Morning Leave), Single Punch (in Afternoon)
         # Result should be max 0.25 for the work + 0.50 for leave = 0.75
@@ -131,14 +133,15 @@ class TestTimesheetBusinessLogic:
         # Cap for 2 shifts + 1 shift leave = 0.25 (for the work part)
         # Total = 0.5 (Leave) + 0.25 (Work) = 0.75
 
-        compute_timesheet_working_days(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_working_days()
 
         assert timesheet_entry.working_days == Decimal("0.75")
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_single_punch_late_start(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: 2 shifts, Single Punch, but VERY late.
         # Start at 16:30 (only 1 hour left).
@@ -154,15 +157,16 @@ class TestTimesheetBusinessLogic:
         timesheet_entry.status = TimesheetStatus.SINGLE_PUNCH
         timesheet_entry.start_time = timezone.make_aware(datetime.combine(timesheet_entry.date, time(16, 30)))
 
-        compute_timesheet_working_days(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_working_days()
 
         # 1/8 = 0.125. Rounded to 0.13 usually
         assert timesheet_entry.working_days == Decimal("0.13")
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_maternity_bonus(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: Normal working day + Maternity Mode
         # Official hours: 8 hours (1.0 day)
@@ -179,7 +183,8 @@ class TestTimesheetBusinessLogic:
         timesheet_entry.official_hours = Decimal("8.00")
         timesheet_entry.status = TimesheetStatus.ON_TIME
 
-        compute_timesheet_working_days(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_working_days()
 
         assert timesheet_entry.working_days == Decimal("1.00")
 
@@ -187,14 +192,14 @@ class TestTimesheetBusinessLogic:
         # Maternity bonus +0.125
         # Total = 0.875
         timesheet_entry.official_hours = Decimal("6.00")
-        compute_timesheet_working_days(timesheet_entry)
+        calculator.compute_working_days()
         # 6/8 = 0.75. 0.75 + 0.125 = 0.875 -> 0.88
         assert timesheet_entry.working_days == Decimal("0.88")
 
-    @patch("apps.hrm.services.timesheets.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheets.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheets.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheets._fetch_approved_proposals_flags_for_entry")
+    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
+    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
+    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
     def test_compensatory_day_type(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
         # Scenario: Compensatory day
         # Ensure day_type is COMPENSATORY
@@ -208,7 +213,8 @@ class TestTimesheetBusinessLogic:
         mock_comp_day.session = CompensatoryWorkday.Session.FULL_DAY
         mock_compensatory.return_value.first.return_value = mock_comp_day
 
-        compute_timesheet_status(timesheet_entry)
+        calculator = TimesheetCalculator(timesheet_entry)
+        calculator.compute_status()
 
         assert timesheet_entry.day_type == TimesheetDayType.COMPENSATORY
 
@@ -219,8 +225,9 @@ class TestTimesheetBusinessLogic:
         mock_employee.employee_type = EmployeeType.UNPAID_OFFICIAL
         timesheet_entry.employee = mock_employee
 
-        with patch("apps.hrm.services.timesheets.Employee.objects.filter") as mock_emp_qs:
+        with patch("apps.hrm.services.timesheet_calculator.Employee.objects.filter") as mock_emp_qs:
              # Just to avoid DB hit if service calls DB
-             compute_timesheet_status(timesheet_entry)
+             calculator = TimesheetCalculator(timesheet_entry)
+             calculator.compute_status()
 
         assert timesheet_entry.count_for_payroll is False
