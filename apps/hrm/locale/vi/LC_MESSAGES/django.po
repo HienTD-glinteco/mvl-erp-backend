@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 10:21+0700\n"
+"POT-Creation-Date: 2025-12-15 10:38+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1704,6 +1704,8 @@ msgstr ""
 #: apps/hrm/services/employee/work_history.py:150
 #: apps/hrm/services/employee/work_history.py:189
 #: apps/hrm/services/employee/work_history.py:190
+#: apps/hrm/services/employee/work_history.py:228
+#: apps/hrm/services/employee/work_history.py:229
 msgid "None"
 msgstr ""
 
@@ -1726,6 +1728,12 @@ msgstr ""
 #, python-brace-format
 msgid "Employee type changed from {old_type} to {new_type}"
 msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
+
+#: apps/hrm/services/employee/work_history.py:243
+#, fuzzy, python-brace-format
+#| msgid "Status changed from {old_status} to {new_status}"
+msgid "Contract changed from {old_contract} to {new_contract}"
+msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."
