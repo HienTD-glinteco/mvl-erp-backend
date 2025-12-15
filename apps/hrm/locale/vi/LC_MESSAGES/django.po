@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 11:33+0700\n"
+"POT-Creation-Date: 2025-12-15 13:47+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1192,8 +1192,6 @@ msgid "Progressive tax"
 msgstr "Biểu thuế lũy tiến"
 
 #: apps/hrm/models/contract_type.py:61
-#, fuzzy
-#| msgid "10% flat tax"
 msgid "10% flat tax"
 msgstr "10% thuế suất cố định"
 
