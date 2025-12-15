@@ -20,11 +20,12 @@ class TestKPICriterionSerializer:
         )
         self.valid_data = {
             "target": "sales",
-            "evaluation_type": "job_performance",
-            "name": "Revenue Achievement",
+            "evaluation_type": "work_performance",
+            "criterion": "Revenue Achievement",
             "description": "Monthly revenue target achievement",
             "component_total_score": "70.00",
-            "ordering": 1,
+            "group_number": 1,
+            "order": 1,
             "active": True,
         }
 
@@ -32,11 +33,12 @@ class TestKPICriterionSerializer:
         """Test serializing a KPICriterion instance"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             description="Monthly revenue target achievement",
             component_total_score=Decimal("70.00"),
-            ordering=1,
+            group_number=1,
+            order=1,
             active=True,
             created_by=self.user,
         )
@@ -44,11 +46,12 @@ class TestKPICriterionSerializer:
 
         assert serializer.data["id"] == criterion.id
         assert serializer.data["target"] == "sales"
-        assert serializer.data["evaluation_type"] == "job_performance"
-        assert serializer.data["name"] == "Revenue Achievement"
+        assert serializer.data["evaluation_type"] == "work_performance"
+        assert serializer.data["criterion"] == "Revenue Achievement"
         assert serializer.data["description"] == "Monthly revenue target achievement"
         assert serializer.data["component_total_score"] == "70.00"
-        assert serializer.data["ordering"] == 1
+        assert serializer.data["group_number"] == 1
+        assert serializer.data["order"] == 1
         assert serializer.data["active"] is True
         assert serializer.data["created_by"] == self.user.id
         assert "created_at" in serializer.data
@@ -109,7 +112,7 @@ class TestKPICriterionSerializer:
 
     def test_required_fields(self):
         """Test that required fields are validated"""
-        required_fields = ["evaluation_type", "name", "component_total_score"]
+        required_fields = ["evaluation_type", "criterion", "component_total_score", "group_number", "order"]
         for field in required_fields:
             data = self.valid_data.copy()
             del data[field]
@@ -121,16 +124,18 @@ class TestKPICriterionSerializer:
         """Test that optional fields can be omitted"""
         data = {
             "target": "sales",
-            "evaluation_type": "job_performance",
-            "name": "Revenue Achievement",
+            "evaluation_type": "work_performance",
+            "criterion": "Revenue Achievement",
             "component_total_score": "70.00",
+            "group_number": 1,
+            "order": 1,
         }
         serializer = KPICriterionSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
         criterion = serializer.save(created_by=self.user)
         assert criterion.description == ""
-        assert criterion.ordering == 0
+        assert criterion.sub_criterion is None
         assert criterion.active is True
 
     def test_unique_constraint_validation_on_create(self):
@@ -138,9 +143,11 @@ class TestKPICriterionSerializer:
         # Create first criterion
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         # Try to create duplicate
@@ -153,19 +160,23 @@ class TestKPICriterionSerializer:
         # Create two criteria
         criterion1 = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Customer Satisfaction",
+            evaluation_type="work_performance",
+            criterion="Customer Satisfaction",
             component_total_score=Decimal("30.00"),
+            group_number=1,
+            order=2,
         )
 
-        # Try to update criterion1 to have same name as criterion2
-        data = {"name": "Customer Satisfaction"}
+        # Try to update criterion1 to have same criterion name as criterion2
+        data = {"criterion": "Customer Satisfaction"}
         serializer = KPICriterionSerializer(criterion1, data=data, partial=True)
         assert not serializer.is_valid()
         assert "non_field_errors" in serializer.errors
@@ -174,9 +185,11 @@ class TestKPICriterionSerializer:
         """Test updating a criterion through serializer"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
             created_by=self.user,
         )
 
@@ -196,9 +209,11 @@ class TestKPICriterionSerializer:
         """Test partial update (PATCH)"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         data = {"active": False}
@@ -215,18 +230,21 @@ class TestKPICriterionSerializer:
         """Test full update (PUT)"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         new_data = {
             "target": "backoffice",
             "evaluation_type": "discipline",
-            "name": "Attendance",
+            "criterion": "Attendance",
             "description": "Monthly attendance",
             "component_total_score": "30.00",
-            "ordering": 2,
+            "group_number": 2,
+            "order": 2,
             "active": True,
         }
         serializer = KPICriterionSerializer(criterion, data=new_data)
@@ -235,16 +253,18 @@ class TestKPICriterionSerializer:
         updated_criterion = serializer.save()
         assert updated_criterion.target == "backoffice"
         assert updated_criterion.evaluation_type == "discipline"
-        assert updated_criterion.name == "Attendance"
+        assert updated_criterion.criterion == "Attendance"
         assert updated_criterion.component_total_score == Decimal("30.00")
 
     def test_unique_constraint_allows_same_name_different_target(self):
-        """Test that same name is allowed for different target"""
+        """Test that same criterion name is allowed for different target"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         data = self.valid_data.copy()
@@ -253,17 +273,20 @@ class TestKPICriterionSerializer:
         assert serializer.is_valid(), serializer.errors
 
     def test_unique_constraint_allows_same_name_different_evaluation_type(self):
-        """Test that same name is allowed for different evaluation_type"""
+        """Test that same criterion name is allowed for different evaluation_type"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Attendance",
+            evaluation_type="work_performance",
+            criterion="Attendance",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         data = self.valid_data.copy()
-        data["name"] = "Attendance"
+        data["criterion"] = "Attendance"
         data["evaluation_type"] = "discipline"
+        data["group_number"] = 2
         serializer = KPICriterionSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
