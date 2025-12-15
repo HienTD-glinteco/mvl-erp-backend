@@ -26,11 +26,12 @@ class KPICriterionAPITest(APITestCase):
 
         self.valid_data = {
             "target": "sales",
-            "evaluation_type": "job_performance",
-            "name": "Revenue Achievement",
+            "evaluation_type": "work_performance",
+            "criterion": "Revenue Achievement",
             "description": "Monthly revenue target achievement",
             "component_total_score": "70.00",
-            "ordering": 1,
+            "group_number": 1,
+            "order": 1,
             "active": True,
         }
 
@@ -51,15 +52,19 @@ class KPICriterionAPITest(APITestCase):
         """Test listing criteria successfully"""
         criterion1 = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         criterion2 = KPICriterion.objects.create(
             target="sales",
             evaluation_type="discipline",
-            name="Attendance",
+            criterion="Attendance",
             component_total_score=Decimal("30.00"),
+            group_number=2,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -77,11 +82,12 @@ class KPICriterionAPITest(APITestCase):
         """Test retrieving a single criterion"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             description="Monthly revenue target achievement",
             component_total_score=Decimal("70.00"),
-            ordering=1,
+            group_number=1,
+            order=1,
             active=True,
         )
 
@@ -96,8 +102,8 @@ class KPICriterionAPITest(APITestCase):
         data = response_data["data"]
         self.assertEqual(data["id"], criterion.id)
         self.assertEqual(data["target"], "sales")
-        self.assertEqual(data["evaluation_type"], "job_performance")
-        self.assertEqual(data["name"], "Revenue Achievement")
+        self.assertEqual(data["evaluation_type"], "work_performance")
+        self.assertEqual(data["criterion"], "Revenue Achievement")
         self.assertEqual(data["component_total_score"], "70.00")
 
     def test_retrieve_criterion_not_found(self):
@@ -174,9 +180,11 @@ class KPICriterionAPITest(APITestCase):
         """Test creating duplicate criterion"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -197,19 +205,22 @@ class KPICriterionAPITest(APITestCase):
         """Test updating a criterion (PUT)"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
             created_by=self.user,
         )
 
         update_data = {
             "target": "sales",
-            "evaluation_type": "job_performance",
-            "name": "Revenue Achievement",
+            "evaluation_type": "work_performance",
+            "criterion": "Revenue Achievement",
             "description": "Updated description",
             "component_total_score": "75.00",
-            "ordering": 2,
+            "group_number": 1,
+            "order": 2,
             "active": True,
         }
 
@@ -234,9 +245,11 @@ class KPICriterionAPITest(APITestCase):
         """Test partially updating a criterion (PATCH)"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
             active=True,
         )
 
@@ -260,9 +273,11 @@ class KPICriterionAPITest(APITestCase):
         """Test deleting a criterion"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-detail", kwargs={"pk": criterion.pk})
@@ -284,15 +299,19 @@ class KPICriterionAPITest(APITestCase):
         """Test filtering criteria by target"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue",
+            evaluation_type="work_performance",
+            criterion="Revenue",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="backoffice",
-            evaluation_type="job_performance",
-            name="Efficiency",
+            evaluation_type="work_performance",
+            criterion="Efficiency",
             component_total_score=Decimal("60.00"),
+            group_number=1,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -308,15 +327,19 @@ class KPICriterionAPITest(APITestCase):
         """Test filtering criteria by evaluation_type"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue",
+            evaluation_type="work_performance",
+            criterion="Revenue",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="sales",
             evaluation_type="discipline",
-            name="Attendance",
+            criterion="Attendance",
             component_total_score=Decimal("30.00"),
+            group_number=2,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -332,16 +355,20 @@ class KPICriterionAPITest(APITestCase):
         """Test filtering criteria by active status"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Active Criterion",
+            evaluation_type="work_performance",
+            criterion="Active Criterion",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
             active=True,
         )
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Inactive Criterion",
+            evaluation_type="work_performance",
+            criterion="Inactive Criterion",
             component_total_score=Decimal("30.00"),
+            group_number=1,
+            order=2,
             active=False,
         )
 
@@ -355,18 +382,22 @@ class KPICriterionAPITest(APITestCase):
         self.assertTrue(response_data["data"]["results"][0]["active"])
 
     def test_search_by_name(self):
-        """Test searching criteria by name"""
+        """Test searching criteria by criterion name"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Revenue Achievement",
+            evaluation_type="work_performance",
+            criterion="Revenue Achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Customer Satisfaction",
+            evaluation_type="work_performance",
+            criterion="Customer Satisfaction",
             component_total_score=Decimal("30.00"),
+            group_number=1,
+            order=2,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -376,23 +407,27 @@ class KPICriterionAPITest(APITestCase):
         response_data = json.loads(response.content)
 
         self.assertEqual(response_data["data"]["count"], 1)
-        self.assertIn("Revenue", response_data["data"]["results"][0]["name"])
+        self.assertIn("Revenue", response_data["data"]["results"][0]["criterion"])
 
     def test_search_by_description(self):
         """Test searching criteria by description"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Criterion 1",
+            evaluation_type="work_performance",
+            criterion="Criterion 1",
             description="Monthly target achievement",
             component_total_score=Decimal("70.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Criterion 2",
+            evaluation_type="work_performance",
+            criterion="Criterion 2",
             description="Daily attendance record",
             component_total_score=Decimal("30.00"),
+            group_number=1,
+            order=2,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -404,43 +439,51 @@ class KPICriterionAPITest(APITestCase):
         self.assertEqual(response_data["data"]["count"], 1)
 
     def test_ordering_by_name(self):
-        """Test ordering criteria by name"""
+        """Test ordering criteria by criterion name"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="B Criterion",
+            evaluation_type="work_performance",
+            criterion="B Criterion",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=1,
         )
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="A Criterion",
+            evaluation_type="work_performance",
+            criterion="A Criterion",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=2,
         )
 
         url = reverse("payroll:kpi-criteria-list")
-        response = self.client.get(url, {"ordering": "name"})
+        response = self.client.get(url, {"ordering": "criterion"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
 
         results = response_data["data"]["results"]
-        self.assertEqual(results[0]["name"], "A Criterion")
-        self.assertEqual(results[1]["name"], "B Criterion")
+        self.assertEqual(results[0]["criterion"], "A Criterion")
+        self.assertEqual(results[1]["criterion"], "B Criterion")
 
     def test_ordering_descending(self):
         """Test ordering criteria in descending order"""
         criterion1 = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="First",
+            evaluation_type="work_performance",
+            criterion="First",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=1,
         )
         criterion2 = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Second",
+            evaluation_type="work_performance",
+            criterion="Second",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=2,
         )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -458,9 +501,11 @@ class KPICriterionAPITest(APITestCase):
         for i in range(15):
             KPICriterion.objects.create(
                 target="sales",
-                evaluation_type="job_performance",
-                name=f"Criterion {i}",
+                evaluation_type="work_performance",
+                criterion=f"Criterion {i}",
                 component_total_score=Decimal("50.00"),
+                group_number=1,
+                order=i,
             )
 
         url = reverse("payroll:kpi-criteria-list")
@@ -477,9 +522,11 @@ class KPICriterionAPITest(APITestCase):
         """Test that responses follow the envelope format"""
         criterion = KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Test",
+            evaluation_type="work_performance",
+            criterion="Test",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=1,
         )
 
         url = reverse("payroll:kpi-criteria-detail", kwargs={"pk": criterion.pk})
@@ -501,9 +548,11 @@ class KPICriterionAPITest(APITestCase):
         """Test that unauthenticated requests are rejected"""
         KPICriterion.objects.create(
             target="sales",
-            evaluation_type="job_performance",
-            name="Test",
+            evaluation_type="work_performance",
+            criterion="Test",
             component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=1,
         )
 
         # Create a new client without authentication
@@ -513,3 +562,54 @@ class KPICriterionAPITest(APITestCase):
 
         # Should be 401 or 403 depending on permission configuration
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+    def test_default_ordering_by_evaluation_type_and_order(self):
+        """Test that default ordering is by evaluation_type (discipline first, then work_performance) and order"""
+        # Create criteria with different evaluation types and orders
+        criterion1 = KPICriterion.objects.create(
+            target="sales",
+            evaluation_type="work_performance",
+            criterion="Work 1",
+            component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=1,
+        )
+        criterion2 = KPICriterion.objects.create(
+            target="sales",
+            evaluation_type="discipline",
+            criterion="Discipline 1",
+            component_total_score=Decimal("25.00"),
+            group_number=2,
+            order=1,
+        )
+        criterion3 = KPICriterion.objects.create(
+            target="sales",
+            evaluation_type="work_performance",
+            criterion="Work 2",
+            component_total_score=Decimal("50.00"),
+            group_number=1,
+            order=2,
+        )
+        criterion4 = KPICriterion.objects.create(
+            target="sales",
+            evaluation_type="discipline",
+            criterion="Discipline 2",
+            component_total_score=Decimal("25.00"),
+            group_number=2,
+            order=2,
+        )
+
+        url = reverse("payroll:kpi-criteria-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+
+        results = response_data["data"]["results"]
+
+        # discipline comes before work_performance alphabetically
+        # Within each type, order should be ascending
+        self.assertEqual(results[0]["id"], criterion2.id)  # discipline, order 1
+        self.assertEqual(results[1]["id"], criterion4.id)  # discipline, order 2
+        self.assertEqual(results[2]["id"], criterion1.id)  # work_performance, order 1
+        self.assertEqual(results[3]["id"], criterion3.id)  # work_performance, order 2
