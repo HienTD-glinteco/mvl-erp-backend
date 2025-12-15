@@ -1,10 +1,11 @@
 import logging
 from calendar import monthrange
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 from typing import List, Tuple
 
 from django.db import transaction
-from django.db.models import Max, Min, Q
+from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
 
 from apps.hrm.constants import (
@@ -14,7 +15,7 @@ from apps.hrm.constants import (
     TimesheetReason,
     TimesheetStatus,
 )
-from apps.hrm.models import AttendanceRecord, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
+from apps.hrm.models import AttendanceRecord, Contract, Employee, EmployeeMonthlyTimesheet, TimeSheetEntry
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.proposal import Proposal
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -71,66 +72,120 @@ def create_entries_for_month_all(year: int | None = None, month: int | None = No
     return created
 
 
+def calculate_generated_leave(employee_id: int, year: int, month: int) -> Decimal:
+    """Calculate the leave days generated for the employee in the given month."""
+    start_of_month = date(year, month, 1)
+    _, last_day = monthrange(year, month)
+    end_of_month = date(year, month, last_day)
+
+    # Find active contract for the month
+    contract = (
+        Contract.objects.filter(
+            employee_id=employee_id,
+            status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
+            effective_date__lte=end_of_month,
+        )
+        .filter(Q(expiration_date__isnull=True) | Q(expiration_date__gte=start_of_month))
+        .first()
+    )
+
+    if not contract:
+        return DECIMAL_ZERO
+
+    # Check start date logic for partial months
+    if contract.effective_date.year == year and contract.effective_date.month == month:
+        if contract.effective_date.day > 1:
+            return DECIMAL_ZERO
+
+    # Calculate generated amount: annual_leave_days / 12
+    generated = Decimal(contract.annual_leave_days) / Decimal(12)
+    return quantize_decimal(generated)
+
+
 def create_monthly_timesheet_for_employee(
     employee_id: int, year: int | None = None, month: int | None = None
 ) -> EmployeeMonthlyTimesheet | None:
-    """Create or initialize a monthly timesheet row for an employee.
+    """Create or update a monthly timesheet row for an employee with leave balance calculations.
 
-    Behavior and business rules:
-    - Ensure an `EmployeeMonthlyTimesheet` exists for the given employee and
-        month. The row's `report_date` is the first day of the month.
-    - If the row already exists, return it unchanged.
-    - If the row is newly created, initialize certain fields with business logic,
-        but do not perform any additional persistence beyond the `get_or_create` that
-        created the row.
-
-    Initialization rules when the row is created:
-    - For January (month == 1):
-        - Attempt to find the previous year's December timesheet and read its
-            `remaining_leave_days`. If found, set `carried_over_leave` to that value,
-            otherwise set to `DECIMAL_ZERO`.
-        - Set `opening_balance_leave_days` to 1.0 day.
-    - For months other than January:
-        - If the previous month's timesheet exists, set
-            `opening_balance_leave_days` to (prev.remaining_leave_days + 1.0).
-        - If no previous monthly exists, set `opening_balance_leave_days` to 1.0.
-        - Set `carried_over_leave` to `DECIMAL_ZERO`.
+    This function updates `generated_leave_days`, `opening_balance_leave_days`, and
+    `carried_over_leave` based on business rules:
+    - Generated leave: Calculated from active contract (annual_leave_days / 12).
+    - Opening/Carried/Remaining logic:
+      - January: Carried = Dec(Prev).Remaining; Opening = 0.
+      - April: Check for expiration of Carried Over leave (FIFO rule).
+        Expired = Max(0, InitialCarried - Consumed(Jan-Mar)).
+        Opening = Mar.Remaining - Expired.
+      - Other months: Opening = Prev.Remaining; Carried = 0.
 
     Args:
-        employee_id: Identifier of the employee for whom to create the timesheet.
-        year: Optional year (defaults to today's year if None).
-        month: Optional month (defaults to today's month if None).
+        employee_id: Identifier of the employee.
+        year: Optional year.
+        month: Optional month.
 
     Returns:
-        The `EmployeeMonthlyTimesheet` instance that exists after creation logic.
+        The updated `EmployeeMonthlyTimesheet` instance.
     """
     year, month = _normalize_year_month(year, month)
     report_date = date(year, month, 1)
-    # Guard: ensure employee exists before creating monthly row to avoid FK errors
+
     if not Employee.objects.filter(pk=employee_id).exists():
         logger.warning("create_monthly_timesheet_for_employee: employee id %s not found, skipping", employee_id)
         return None
 
-    obj, created = EmployeeMonthlyTimesheet.objects.get_or_create(employee_id=employee_id, report_date=report_date)
+    month_key = f"{year:04d}{month:02d}"
+    obj, _ = EmployeeMonthlyTimesheet.objects.get_or_create(
+        employee_id=employee_id, report_date=report_date, defaults={"month_key": month_key}
+    )
 
-    # If created, initialize these fields according to the business rules
-    if not created:
-        return obj
+    # 1. Generated Leave
+    obj.generated_leave_days = calculate_generated_leave(employee_id, year, month)
 
-    # TODO: need to fetch maximum number of available leave days from current employee's contract to use it for validation.
+    # 2. Opening & Carried
     if month == 1:
-        # attempt to get previous year's December remaining
         prev = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year - 1:04d}12").first()
         carried = prev.remaining_leave_days if prev else DECIMAL_ZERO
         obj.carried_over_leave = quantize_decimal(carried)
-        obj.opening_balance_leave_days = quantize_decimal(1)
-    else:
+        obj.opening_balance_leave_days = DECIMAL_ZERO
+    elif month == 4:
+        # April: Expire unused carried over
         prev = EmployeeMonthlyTimesheet.objects.filter(
             employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
         ).first()
-        opening = (prev.remaining_leave_days + quantize_decimal(1)) if prev else quantize_decimal(1)
+        prev_remaining = prev.remaining_leave_days if prev else DECIMAL_ZERO
+
+        # Get Initial Carried Over (from Jan)
+        jan_ts = EmployeeMonthlyTimesheet.objects.filter(employee_id=employee_id, month_key=f"{year:04d}01").first()
+        initial_carried = jan_ts.carried_over_leave if jan_ts else DECIMAL_ZERO
+
+        # Get Total Consumed Jan-Mar
+        consumed_jan_mar = (
+            EmployeeMonthlyTimesheet.objects.filter(
+                employee_id=employee_id, report_date__year=year, report_date__month__lt=4
+            ).aggregate(total=Sum("consumed_leave_days"))["total"]
+            or DECIMAL_ZERO
+        )
+
+        # Unused Carried Over
+        unused_carried = max(initial_carried - consumed_jan_mar, DECIMAL_ZERO)
+
+        # Opening Balance = Prev Remaining - Unused Carried
+        obj.opening_balance_leave_days = quantize_decimal(max(prev_remaining - unused_carried, DECIMAL_ZERO))
+        obj.carried_over_leave = DECIMAL_ZERO
+    else:
+        # Other months
+        prev = EmployeeMonthlyTimesheet.objects.filter(
+            employee_id=employee_id, month_key=f"{year:04d}{month - 1:02d}"
+        ).first()
+        opening = prev.remaining_leave_days if prev else DECIMAL_ZERO
         obj.opening_balance_leave_days = quantize_decimal(opening)
-        obj.carried_over_leave = quantize_decimal(DECIMAL_ZERO)
+        obj.carried_over_leave = DECIMAL_ZERO
+
+    # Update Remaining locally
+    obj.remaining_leave_days = quantize_decimal(
+        obj.carried_over_leave + obj.opening_balance_leave_days + obj.generated_leave_days - obj.consumed_leave_days
+    )
+
+    obj.save()
 
     return obj
 

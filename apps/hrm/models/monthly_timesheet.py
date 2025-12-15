@@ -94,6 +94,9 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
     opening_balance_leave_days = models.DecimalField(
         max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Opening balance leave days"
     )
+    generated_leave_days = models.DecimalField(
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Generated leave days"
+    )
     consumed_leave_days = models.DecimalField(
         max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Consumed leave days"
     )
@@ -222,8 +225,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         aggregates = cls.compute_aggregates(employee_id, year, month, fields)
 
         report_date = aggregates["report_date"]
+        month_key = aggregates["month_key"]
 
-        obj, __ = cls.objects.get_or_create(employee_id=employee_id, report_date=report_date)
+        obj, __ = cls.objects.get_or_create(
+            employee_id=employee_id, report_date=report_date, defaults={"month_key": month_key}
+        )
 
         if fields:
             aggregates = {field: value for field, value in aggregates.items() if field in fields}
@@ -232,7 +238,12 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         if "paid_leave_days" in aggregates:
             consumed_leave_days: Decimal = quantize_decimal(cast(Decimal, aggregates["paid_leave_days"]))
             aggregates["consumed_leave_days"] = consumed_leave_days
-            delta = quantize_decimal(obj.carried_over_leave + obj.opening_balance_leave_days - consumed_leave_days)
+            delta = quantize_decimal(
+                obj.carried_over_leave
+                + obj.opening_balance_leave_days
+                + obj.generated_leave_days
+                - consumed_leave_days
+            )
             aggregates["remaining_leave_days"] = max(delta, DECIMAL_ZERO)
 
         # Apply aggregates to object fields

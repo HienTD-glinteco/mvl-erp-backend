@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 10:38+0700\n"
+"POT-Creation-Date: 2025-12-15 10:50+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1284,11 +1284,11 @@ msgstr "Số điện thoại phải đúng 10 chữ số"
 msgid "Phone number must contain only digits"
 msgstr "Số điện thoại chỉ được chứa chữ số"
 
-#: apps/hrm/models/employee.py:445
+#: apps/hrm/models/employee.py:447
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr "Không thể thay đổi trạng thái On-boarding cho nhân viên đã làm việc."
 
-#: apps/hrm/models/employee.py:460
+#: apps/hrm/models/employee.py:462
 msgid ""
 "Resignation start date is required when changing status to Resigned, "
 "Maternity Leave, or Unpaid Leave."
@@ -1296,11 +1296,11 @@ msgstr ""
 "Ngày bắt đầu nghỉ việc là bắt buộc khi thay đổi trạng thái thành Đã nghỉ "
 "việc, Nghỉ việc hưởng chế độ thai sản hoặc Nghỉ không lương."
 
-#: apps/hrm/models/employee.py:467
+#: apps/hrm/models/employee.py:469
 msgid "Resignation reason is required when status is Resigned."
 msgstr "Lý do nghỉ việc là bắt buộc khi trạng thái là Đã nghỉ việc."
 
-#: apps/hrm/models/employee.py:472
+#: apps/hrm/models/employee.py:474
 msgid "Resignation end date is required when status is Maternity Leave."
 msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
