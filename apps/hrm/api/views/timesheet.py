@@ -21,7 +21,7 @@ from apps.hrm.api.serializers.timesheet import (
     EmployeeTimesheetSerializer,
     TimeSheetEntryDetailSerializer,
 )
-from apps.hrm.constants import EmployeeSalaryType, ProposalType
+from apps.hrm.constants import EmployeeSalaryType, ProposalStatus, ProposalType
 from apps.hrm.models import Employee, ProposalTimeSheetEntry
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
@@ -87,6 +87,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             ProposalTimeSheetEntry.objects.filter(
                 timesheet_entry_id__in=all_entries_ids,
                 proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+                proposal__proposal_status=ProposalStatus.PENDING,
             )
             .values_list("timesheet_entry_id", flat=True)
             .distinct()
