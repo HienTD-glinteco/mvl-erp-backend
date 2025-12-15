@@ -27,12 +27,14 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "target": "SALES",
-                                "evaluation_type": "job_performance",
-                                "name": "Revenue Achievement",
+                                "target": "sales",
+                                "evaluation_type": "work_performance",
+                                "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly target",
                                 "description": "Monthly revenue target achievement",
                                 "component_total_score": "70.00",
-                                "ordering": 1,
+                                "group_number": 1,
+                                "order": 1,
                                 "active": True,
                                 "created_by": 1,
                                 "updated_by": 1,
@@ -41,12 +43,14 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                             },
                             {
                                 "id": 2,
-                                "target": "SALES",
+                                "target": "sales",
                                 "evaluation_type": "discipline",
-                                "name": "Attendance",
+                                "criterion": "Attendance",
+                                "sub_criterion": None,
                                 "description": "Monthly attendance record",
                                 "component_total_score": "30.00",
-                                "ordering": 2,
+                                "group_number": 2,
+                                "order": 1,
                                 "active": True,
                                 "created_by": 1,
                                 "updated_by": None,
@@ -74,11 +78,13 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "data": {
                         "id": 1,
                         "target": "sales",
-                        "evaluation_type": "job_performance",
-                        "name": "Revenue Achievement",
+                        "evaluation_type": "work_performance",
+                        "criterion": "Revenue Achievement",
+                        "sub_criterion": "Monthly target",
                         "description": "Monthly revenue target achievement",
                         "component_total_score": "70.00",
-                        "ordering": 1,
+                        "group_number": 1,
+                        "order": 1,
                         "active": True,
                         "created_by": 1,
                         "updated_by": 1,
@@ -104,18 +110,20 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     ),
     create=extend_schema(
         summary="Create a new KPI criterion",
-        description="Create a new KPI evaluation criterion. The created_by field is set automatically. Target must be either 'sales' or 'backoffice'.",
+        description="Create a new KPI evaluation criterion. The created_by field is set automatically. Target must be either 'sales' or 'backoffice'. Evaluation type must be 'work_performance' or 'discipline'.",
         tags=["10.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Request - Create criterion",
                 value={
                     "target": "sales",
-                    "evaluation_type": "job_performance",
-                    "name": "Revenue Achievement",
+                    "evaluation_type": "work_performance",
+                    "criterion": "Revenue Achievement",
+                    "sub_criterion": "Monthly target",
                     "description": "Monthly revenue target achievement",
                     "component_total_score": "70.00",
-                    "ordering": 1,
+                    "group_number": 1,
+                    "order": 1,
                     "active": True,
                 },
                 request_only=True,
@@ -127,11 +135,13 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "data": {
                         "id": 1,
                         "target": "sales",
-                        "evaluation_type": "job_performance",
-                        "name": "Revenue Achievement",
+                        "evaluation_type": "work_performance",
+                        "criterion": "Revenue Achievement",
+                        "sub_criterion": "Monthly target",
                         "description": "Monthly revenue target achievement",
                         "component_total_score": "70.00",
-                        "ordering": 1,
+                        "group_number": 1,
+                        "order": 1,
                         "active": True,
                         "created_by": 1,
                         "updated_by": None,
@@ -161,7 +171,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": False,
                     "data": None,
                     "error": {
-                        "non_field_errors": ["A criterion with this target, evaluation type, and name already exists"]
+                        "non_field_errors": ["A criterion with this target, evaluation type, and criterion already exists"]
                     },
                 },
                 response_only=True,
@@ -178,11 +188,13 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                 "Request - Update criterion",
                 value={
                     "target": "sales",
-                    "evaluation_type": "job_performance",
-                    "name": "Revenue Achievement",
+                    "evaluation_type": "work_performance",
+                    "criterion": "Revenue Achievement",
+                    "sub_criterion": "Monthly target updated",
                     "description": "Updated monthly revenue target achievement",
                     "component_total_score": "75.00",
-                    "ordering": 1,
+                    "group_number": 1,
+                    "order": 1,
                     "active": True,
                 },
                 request_only=True,
@@ -194,11 +206,13 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "data": {
                         "id": 1,
                         "target": "sales",
-                        "evaluation_type": "job_performance",
-                        "name": "Revenue Achievement",
+                        "evaluation_type": "work_performance",
+                        "criterion": "Revenue Achievement",
+                        "sub_criterion": "Monthly target updated",
                         "description": "Updated monthly revenue target achievement",
                         "component_total_score": "75.00",
-                        "ordering": 1,
+                        "group_number": 1,
+                        "order": 1,
                         "active": True,
                         "created_by": 1,
                         "updated_by": 2,
@@ -229,11 +243,13 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "data": {
                         "id": 1,
                         "target": "sales",
-                        "evaluation_type": "job_performance",
-                        "name": "Revenue Achievement",
+                        "evaluation_type": "work_performance",
+                        "criterion": "Revenue Achievement",
+                        "sub_criterion": "Monthly target",
                         "description": "Monthly revenue target achievement",
                         "component_total_score": "70.00",
-                        "ordering": 1,
+                        "group_number": 1,
+                        "order": 1,
                         "active": False,
                         "created_by": 1,
                         "updated_by": 2,
@@ -276,16 +292,17 @@ class KPICriterionViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     Provides full CRUD operations for KPI evaluation criteria.
     Supports filtering by target, evaluation_type, and active status.
-    Supports searching by name and description.
+    Supports searching by criterion and description.
+    Ordering by evaluation_type (work_performance first, then discipline) and order within each type.
     """
 
     queryset = KPICriterion.objects.all()
     serializer_class = KPICriterionSerializer
     filterset_class = KPICriterionFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["name", "description"]
-    ordering_fields = ["target", "evaluation_type", "name", "ordering", "created_at", "updated_at"]
-    ordering = ["target", "evaluation_type", "ordering"]
+    search_fields = ["criterion", "description"]
+    ordering_fields = ["target", "evaluation_type", "criterion", "order", "created_at", "updated_at"]
+    ordering = ["evaluation_type", "order"]
 
     # Permission registration attributes
     module = "Payroll"

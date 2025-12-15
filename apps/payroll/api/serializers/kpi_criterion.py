@@ -20,10 +20,12 @@ class KPICriterionSerializer(serializers.ModelSerializer):
             "id",
             "target",
             "evaluation_type",
-            "name",
+            "criterion",
+            "sub_criterion",
             "description",
             "component_total_score",
-            "ordering",
+            "group_number",
+            "order",
             "active",
             "created_by",
             "updated_by",
@@ -45,26 +47,26 @@ class KPICriterionSerializer(serializers.ModelSerializer):
             # Update case - check if the unique fields are being changed
             target = data.get("target", self.instance.target)
             evaluation_type = data.get("evaluation_type", self.instance.evaluation_type)
-            name = data.get("name", self.instance.name)
+            criterion = data.get("criterion", self.instance.criterion)
         else:
             # Create case
             target = data.get("target")
             evaluation_type = data.get("evaluation_type")
-            name = data.get("name")
+            criterion = data.get("criterion")
 
-        # Check if a criterion with the same target, evaluation_type, and name already exists
-        if target and evaluation_type and name:
+        # Check if a criterion with the same target, evaluation_type, and criterion already exists
+        if target and evaluation_type and criterion:
             queryset = KPICriterion.objects.filter(
                 target=target,
                 evaluation_type=evaluation_type,
-                name=name,
+                criterion=criterion,
             )
             if self.instance:
                 queryset = queryset.exclude(pk=self.instance.pk)
 
             if queryset.exists():
                 raise serializers.ValidationError(
-                    _("A criterion with this target, evaluation type, and name already exists")
+                    _("A criterion with this target, evaluation type, and criterion already exists")
                 )
 
         return data
