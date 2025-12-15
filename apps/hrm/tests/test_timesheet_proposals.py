@@ -11,6 +11,7 @@ from apps.hrm.models.organization import Block, Branch, Department
 from apps.hrm.models.proposal import Proposal
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 
 pytestmark = pytest.mark.django_db
 
@@ -87,7 +88,7 @@ def test_late_exemption_allows_late_arrival(settings):
     ts = TimeSheetEntry(employee=emp, date=d)
     ts.start_time = make_datetime(d, time(9, 0))
     ts.end_time = make_datetime(d, time(17, 0))
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ON_TIME
 
@@ -108,7 +109,7 @@ def test_maternity_leave_marks_on_time(settings):
 
     ts = TimeSheetEntry(employee=emp, date=d)
     # repository expectation: full-day maternity leave should mark ABSENT
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
     assert ts.status == TimesheetStatus.ABSENT
 
 
@@ -132,7 +133,7 @@ def test_half_day_paid_leave_allows_afternoon_only(settings):
     # attend only afternoon
     ts.start_time = make_datetime(d, time(13, 5))
     ts.end_time = make_datetime(d, time(17, 0))
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ON_TIME
 
@@ -146,6 +147,6 @@ def test_single_punch_marks_not_on_time(settings):
     ts = TimeSheetEntry(employee=emp, date=d)
     ts.start_time = make_datetime(d, time(8, 30))
     ts.end_time = None
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.SINGLE_PUNCH
