@@ -555,7 +555,7 @@ msgstr ""
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
-#: apps/hrm/constants.py:25
+#: apps/hrm/constants.py:25 apps/hrm/constants.py:163
 msgid "Official"
 msgstr "Nhân viên chính thức"
 
@@ -713,118 +713,134 @@ msgid "Not on time"
 msgstr "Không đúng giờ"
 
 #: apps/hrm/constants.py:156
+#, fuzzy
+#| msgid "Single"
+msgid "Single punch"
+msgstr "Độc thân"
+
+#: apps/hrm/constants.py:157
 msgid "Absent"
 msgstr "Vắng mặt"
 
-#: apps/hrm/constants.py:160 apps/hrm/constants.py:181
+#: apps/hrm/constants.py:161
+#, fuzzy
+#| msgid "Friday"
+msgid "Holiday"
+msgstr "Thứ Sáu"
+
+#: apps/hrm/constants.py:162
+msgid "Compensatory"
+msgstr ""
+
+#: apps/hrm/constants.py:167 apps/hrm/constants.py:188
 msgid "Paid leave"
 msgstr "Nghỉ phép có lương"
 
-#: apps/hrm/constants.py:161 apps/hrm/constants.py:182
+#: apps/hrm/constants.py:168 apps/hrm/constants.py:189
 msgid "Unpaid leave"
 msgstr "Nghỉ không lương"
 
-#: apps/hrm/constants.py:162 apps/hrm/constants.py:183
+#: apps/hrm/constants.py:169 apps/hrm/constants.py:190
 msgid "Maternity leave"
 msgstr "Nghỉ việc hưởng chế độ thai sản"
 
-#: apps/hrm/constants.py:163
+#: apps/hrm/constants.py:170
 msgid "Public holiday"
 msgstr "Nghỉ lễ"
 
-#: apps/hrm/constants.py:164
+#: apps/hrm/constants.py:171
 msgid "Unexcused Absence"
 msgstr "Nghỉ không lý do"
 
-#: apps/hrm/constants.py:178
+#: apps/hrm/constants.py:185
 msgid "Post-maternity benefits"
 msgstr "Chế độ làm việc hậu thai sản"
 
-#: apps/hrm/constants.py:179
+#: apps/hrm/constants.py:186
 msgid "Late exemption"
 msgstr "Miễn trừ trễ"
 
-#: apps/hrm/constants.py:180
+#: apps/hrm/constants.py:187
 msgid "Overtime work"
 msgstr "Làm việc ngoài giờ (OT)"
 
-#: apps/hrm/constants.py:184
+#: apps/hrm/constants.py:191
 msgid "Timesheet entry complaint"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/constants.py:185
+#: apps/hrm/constants.py:192
 msgid "Job Transfer"
 msgstr "Điều chuyển công tác"
 
-#: apps/hrm/constants.py:186
+#: apps/hrm/constants.py:193
 msgid "Asset Allocation"
 msgstr "Cấp tài sản"
 
-#: apps/hrm/constants.py:187
+#: apps/hrm/constants.py:194
 msgid "Device Change"
 msgstr ""
 
-#: apps/hrm/constants.py:193
+#: apps/hrm/constants.py:200
 msgid "Piece"
 msgstr "Cái"
 
-#: apps/hrm/constants.py:194
+#: apps/hrm/constants.py:201
 msgid "Box"
 msgstr "Hộp"
 
-#: apps/hrm/constants.py:195
+#: apps/hrm/constants.py:202
 msgid "Set"
 msgstr "Bộ"
 
-#: apps/hrm/constants.py:196
+#: apps/hrm/constants.py:203
 msgid "Gram"
 msgstr "Gram"
 
-#: apps/hrm/constants.py:197
+#: apps/hrm/constants.py:204
 msgid "Liter"
 msgstr "Lít"
 
-#: apps/hrm/constants.py:198
+#: apps/hrm/constants.py:205
 msgid "Meter"
 msgstr "Mét"
 
-#: apps/hrm/constants.py:199
+#: apps/hrm/constants.py:206
 msgid "Cylinder"
 msgstr "Bình"
 
-#: apps/hrm/constants.py:200
+#: apps/hrm/constants.py:207
 msgid "Bag"
 msgstr "Túi"
 
-#: apps/hrm/constants.py:206 apps/hrm/constants.py:222
+#: apps/hrm/constants.py:213 apps/hrm/constants.py:229
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:207
+#: apps/hrm/constants.py:214
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:208 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:215 apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
-#: apps/hrm/constants.py:214 apps/hrm/models/holiday.py:60
+#: apps/hrm/constants.py:221 apps/hrm/models/holiday.py:60
 msgid "Full Day"
 msgstr "Cả ngày"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/holiday.py:58
+#: apps/hrm/constants.py:222 apps/hrm/models/holiday.py:58
 msgid "Morning"
 msgstr "Buổi sáng"
 
-#: apps/hrm/constants.py:216 apps/hrm/models/holiday.py:59
+#: apps/hrm/constants.py:223 apps/hrm/models/holiday.py:59
 msgid "Afternoon"
 msgstr "Buổi chiều"
 
-#: apps/hrm/constants.py:223
+#: apps/hrm/constants.py:230
 msgid "Verified"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/constants.py:224
+#: apps/hrm/constants.py:231
 msgid "Not verified"
 msgstr "Không xác nhận"
 

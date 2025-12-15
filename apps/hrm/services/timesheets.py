@@ -9,9 +9,12 @@ from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
 
 from apps.hrm.constants import (
+    STANDARD_WORKING_HOURS_PER_DAY,
+    EmployeeType,
     ProposalStatus,
     ProposalType,
     ProposalWorkShift,
+    TimesheetDayType,
     TimesheetReason,
     TimesheetStatus,
 )
@@ -262,7 +265,7 @@ def _handle_non_working_day(entry, day_defined_as_working, times_outside_schedul
 
 def _handle_single_punch(entry) -> bool:
     if (entry.start_time and not entry.end_time) or (not entry.start_time and entry.end_time):
-        entry.status = TimesheetStatus.NOT_ON_TIME
+        entry.status = TimesheetStatus.SINGLE_PUNCH
         return True
     return False
 
@@ -313,6 +316,34 @@ def compute_timesheet_status(entry) -> None:
     compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
     compensatory_day = compensatory is not None
 
+    # Determine day type (compensatory takes precedence over holiday)
+    if is_holiday:
+        entry.day_type = TimesheetDayType.HOLIDAY
+    elif compensatory_day:
+        entry.day_type = TimesheetDayType.COMPENSATORY
+    else:
+        entry.day_type = TimesheetDayType.OFFICIAL
+
+    # Determine default `count_for_payroll` based on employee classification
+    # Business rule: employees with unpaid official/probation types should not be
+    # counted for payroll. For other employee types, default to the entry's
+    # `is_full_salary` flag (which is derived from the active contract).
+    try:
+        emp_obj = getattr(entry, "employee", None)
+        if emp_obj is not None:
+            emp_type_val = emp_obj.employee_type
+        else:
+            emp_type_val = (
+                Employee.objects.filter(pk=entry.employee_id).values_list("employee_type", flat=True).first()
+            )
+    except Exception:
+        emp_type_val = None
+
+    if emp_type_val in (EmployeeType.UNPAID_OFFICIAL, EmployeeType.UNPAID_PROBATION):
+        entry.count_for_payroll = False
+    else:
+        entry.count_for_payroll = bool(getattr(entry, "is_full_salary", True))
+
     (
         has_full_day_paid_leave,
         has_full_day_unpaid_leave,
@@ -332,6 +363,11 @@ def compute_timesheet_status(entry) -> None:
     if _handle_full_day_leaves(entry, has_full_day_paid_leave, has_full_day_unpaid_leave, has_maternity_leave):
         return
 
+    # single-punch detection (handle before non-working-day logic so single punches
+    # are reported even on days without a defined schedule)
+    if _handle_single_punch(entry):
+        return
+
     # non-working day or attendance outside scheduled sessions
     times_outside_schedule = _is_attendance_outside_schedule_for_entry(entry, work_schedule, compensatory_day)
     if _handle_non_working_day(entry, has_morning or has_afternoon, times_outside_schedule, is_holiday):
@@ -340,10 +376,6 @@ def compute_timesheet_status(entry) -> None:
     # working day: require start_time
     if not entry.start_time:
         entry.status = TimesheetStatus.ABSENT
-        return
-
-    # single-punch detection
-    if _handle_single_punch(entry):
         return
 
     base_start_time = _determine_base_start_time_for_entry(work_schedule, has_morning, has_afternoon)
@@ -558,3 +590,123 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
     timehsheet_entry.update_times(start_time, end_time)
     timehsheet_entry.calculate_hours_from_schedule()
     timehsheet_entry.save()
+
+
+def compute_timesheet_working_days(entry) -> None:
+    """Compute `entry.working_days` to match business rules.
+
+    Rules implemented (summary):
+    - Holiday -> 1.0 (or 0.5 if only one session defined for the date)
+    - Approved full-day paid leave -> 1.0
+    - Approved half-day paid leave -> 0.5 + (official_hours / STANDARD_WORKING_HOURS_PER_DAY)
+    - No work schedule -> 0.0
+    - Working day -> official_hours / STANDARD_WORKING_HOURS_PER_DAY
+    - Single-punch augmentations: add half of max scheduled hours (in days) + shift bonus
+    - Maternity-mode -> add 1/8 day, capped by daily maximum (1.0)
+
+    This function mutates `entry.working_days` and quantizes the result.
+    """
+
+    # Gather context
+    weekday = entry.date.isoweekday() + 1
+    work_schedule = get_work_schedule_by_weekday(weekday)
+    compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
+    is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
+
+    # Proposal-derived flags
+    (
+        has_full_day_paid_leave,
+        has_full_day_unpaid_leave,
+        has_maternity_leave,
+        _late_exemption_minutes,
+        half_day_shift,
+    ) = _fetch_approved_proposals_flags_for_entry(entry)
+
+    # Determine sessions for the date (compensatory affects which sessions are working)
+    has_morning, has_afternoon = _determine_sessions(work_schedule, compensatory, None)
+    session_count = (1 if has_morning else 0) + (1 if has_afternoon else 0)
+
+    # Helper: daily maximum in days (business clarified: morning+afternoon => 1.0 day)
+    daily_max_days = Decimal("1.00")
+
+    # No defined sessions -> either holiday with default 1 or zero-day
+    if session_count == 0:
+        if is_holiday:
+            entry.working_days = quantize_decimal(Decimal("1.00"))
+            return
+        entry.working_days = quantize_decimal(Decimal("0.00"))
+        return
+
+    # Holiday handling
+    if is_holiday:
+        if session_count == 1:
+            entry.working_days = quantize_decimal(Decimal("0.50"))
+        else:
+            entry.working_days = quantize_decimal(Decimal("1.00"))
+        return
+
+    # Paid leave rules
+    if has_full_day_paid_leave:
+        entry.working_days = quantize_decimal(Decimal("1.00"))
+        return
+
+    if half_day_shift:
+        # Half-day paid leave: 0.5 + (official_hours / 8)
+        try:
+            base = Decimal("0.5") + (Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
+        except Exception:
+            base = Decimal("0.5")
+        entry.working_days = quantize_decimal(min(base, daily_max_days))
+        return
+
+    # Normal working day: official_hours / STANDARD_WORKING_HOURS_PER_DAY
+    try:
+        working_days = Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+    except Exception:
+        working_days = Decimal("0.00")
+
+    # Single-punch augmentations
+    if entry.status == TimesheetStatus.SINGLE_PUNCH:
+        # Compute maximum scheduled official hours for the date
+        scheduled_seconds = 0.0
+        if work_schedule:
+            if getattr(work_schedule, "morning_start_time", None) and getattr(work_schedule, "morning_end_time", None):
+                scheduled_seconds += (
+                    datetime.combine(entry.date, work_schedule.morning_end_time)
+                    - datetime.combine(entry.date, work_schedule.morning_start_time)
+                ).total_seconds()
+            if getattr(work_schedule, "afternoon_start_time", None) and getattr(
+                work_schedule, "afternoon_end_time", None
+            ):
+                scheduled_seconds += (
+                    datetime.combine(entry.date, work_schedule.afternoon_end_time)
+                    - datetime.combine(entry.date, work_schedule.afternoon_start_time)
+                ).total_seconds()
+
+        max_official_hours = (
+            Decimal(scheduled_seconds) / Decimal(3600)
+            if scheduled_seconds
+            else Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+        )
+
+        # ½ * max time in day (converted to days)
+        half_max_days = Decimal("0.5") * (max_official_hours / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
+
+        # Shift bonus
+        shift_bonus = Decimal("0.50") if session_count == 2 else Decimal("0.25")
+
+        extra = half_max_days + shift_bonus
+
+        # If 2 shifts and employee has an approved single-shift leave, add 0.25
+        if session_count == 2 and half_day_shift:
+            extra += Decimal("0.25")
+
+        working_days = working_days + extra
+
+    # Maternity-mode add 1/8 day, capped
+    if has_maternity_leave:
+        working_days = working_days + Decimal("0.125")
+
+    # Final cap and quantize
+    working_days = min(working_days, daily_max_days)
+    entry.working_days = quantize_decimal(working_days)
