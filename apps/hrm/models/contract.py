@@ -485,6 +485,6 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
         super().save(*args, **kwargs)
 
-        # Expire previous contracts when status is not DRAFT
-        if self.status != self.ContractStatus.DRAFT:
+        # Expire previous contracts only when the contract is active or nearing expiration
+        if self.status in [self.ContractStatus.ACTIVE, self.ContractStatus.ABOUT_TO_EXPIRE]:
             self.expire_previous_contracts()
