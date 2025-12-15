@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 14:33+0700\n"
+"POT-Creation-Date: 2025-12-15 16:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -526,11 +526,11 @@ msgstr "Chỉnh sửa thành công"
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:487
+#: apps/hrm/api/views/recruitment_dashboard.py:499
 msgid "Experienced"
 msgstr "Có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:492
+#: apps/hrm/api/views/recruitment_dashboard.py:504
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
@@ -551,7 +551,7 @@ msgstr ""
 "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
 "mới có thể bị xóa."
 
-#: apps/hrm/api/views/timesheet.py:132
+#: apps/hrm/api/views/timesheet.py:133
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
