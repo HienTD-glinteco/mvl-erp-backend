@@ -66,29 +66,31 @@ class KPICriterionAdmin(admin.ModelAdmin):
     list_display = [
         "target",
         "evaluation_type",
-        "name",
+        "criterion",
+        "sub_criterion",
         "component_total_score",
-        "ordering",
+        "group_number",
+        "order",
         "active",
         "created_at",
         "updated_at",
     ]
     list_filter = ["target", "evaluation_type", "active", "created_at"]
-    search_fields = ["name", "description", "target", "evaluation_type"]
+    search_fields = ["criterion", "sub_criterion", "description", "target", "evaluation_type"]
     readonly_fields = ["created_by", "updated_by", "created_at", "updated_at"]
-    ordering = ["target", "evaluation_type", "ordering", "name"]
+    ordering = ["evaluation_type", "order"]
 
     fieldsets = [
         (
             "Basic Information",
             {
-                "fields": ["target", "evaluation_type", "name", "description"],
+                "fields": ["target", "evaluation_type", "criterion", "sub_criterion", "description"],
             },
         ),
         (
-            "Scoring",
+            "Scoring and Display",
             {
-                "fields": ["component_total_score", "ordering"],
+                "fields": ["component_total_score", "group_number", "order"],
             },
         ),
         (
