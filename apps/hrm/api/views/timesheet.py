@@ -21,8 +21,8 @@ from apps.hrm.api.serializers.timesheet import (
     EmployeeTimesheetSerializer,
     TimeSheetEntryDetailSerializer,
 )
-from apps.hrm.constants import EmployeeSalaryType
-from apps.hrm.models import Employee
+from apps.hrm.constants import EmployeeSalaryType, ProposalType
+from apps.hrm.models import Employee, ProposalTimeSheetEntry
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
 from libs import BaseReadOnlyModelViewSet
@@ -77,8 +77,20 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             all_entries = all_entries.filter(count_for_payroll=employee_salary_type == EmployeeSalaryType.SALARIED)
 
         entries_by_employee = defaultdict(list)
+        all_entries_ids = []
         for e in all_entries:
             entries_by_employee[e.employee_id].append(e)
+            all_entries_ids.append(e.id)
+
+        # Identify which timesheet entries have complaints
+        complaint_entry_ids = set(
+            ProposalTimeSheetEntry.objects.filter(
+                timesheet_entry_id__in=all_entries_ids,
+                proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            )
+            .values_list("timesheet_entry_id", flat=True)
+            .distinct()
+        )
 
         # Bulk fetch monthly timesheets for the given month_key and map to employees
         monthly_qs = EmployeeMonthlyTimesheet.objects.filter(employee_id__in=employee_ids, month_key=month_key)
@@ -87,7 +99,9 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         for emp in employees:
             entries = entries_by_employee.get(emp.id, [])
             monthly = monthly_map.get(emp.id)
-            payload = self._prepare_employee_data(emp, entries, monthly, first_day, last_day)
+            payload = self._prepare_employee_data(
+                emp, entries, monthly, first_day, last_day, complaint_entry_ids=complaint_entry_ids
+            )
             results.append(payload)
 
         # Serialize the results to ensure Decimal fields are handled and types match
@@ -132,7 +146,11 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         monthly_timesheet: EmployeeMonthlyTimesheet | None = None,
         first_day: date | None = None,
         last_day: date | None = None,
+        complaint_entry_ids: set[int] | None = None,
     ) -> dict[str, Any]:
+        if complaint_entry_ids is None:
+            complaint_entry_ids = set()
+
         payload = {
             "employee": employee,
             "dates": [],
@@ -167,7 +185,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
                             "status": entry.status,
                             "start_time": entry.start_time,
                             "end_time": entry.end_time,
-                            "has_complaint": None,  # TODO: implement complaints
+                            "has_complaint": entry.id in complaint_entry_ids,
                         }
                     )
                 else:
@@ -190,7 +208,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
                     "status": entry.status,
                     "start_time": entry.start_time,
                     "end_time": entry.end_time,
-                    "has_complaint": None,  # TODO: correct this field after implementing timesheet complaint feature
+                    "has_complaint": entry.id in complaint_entry_ids,
                 }
                 for entry in timesheet_entries
             ]
