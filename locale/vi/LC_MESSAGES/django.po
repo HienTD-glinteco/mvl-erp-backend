@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-12 14:42+0700\n"
+"POT-Creation-Date: 2025-12-15 16:58+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -288,12 +288,13 @@ msgstr "Không được phép xem job này"
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
-#: apps/payroll/api/serializers/kpi_criterion.py:38
+#: apps/payroll/api/serializers/kpi_criterion.py:40
 msgid "Component total score must be between 0 and 100"
 msgstr ""
 
-#: apps/payroll/api/serializers/kpi_criterion.py:67
-msgid "A criterion with this target, evaluation type, and name already exists"
+#: apps/payroll/api/serializers/kpi_criterion.py:69
+msgid ""
+"A criterion with this target, evaluation type, and criterion already exists"
 msgstr ""
 
 #: apps/payroll/api/views/kpi_config.py:84
@@ -312,12 +313,20 @@ msgstr ""
 msgid "Payroll View Salary Configuration"
 msgstr ""
 
-#: apps/payroll/models/kpi_criterion.py:36
+#: apps/payroll/models/kpi_criterion.py:38
 msgid "Sales"
 msgstr ""
 
-#: apps/payroll/models/kpi_criterion.py:37
+#: apps/payroll/models/kpi_criterion.py:39
 msgid "Backoffice"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:42
+msgid "Work Performance"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:43
+msgid "Discipline"
 msgstr ""
 
 #: apps/realestate/models/project.py:17

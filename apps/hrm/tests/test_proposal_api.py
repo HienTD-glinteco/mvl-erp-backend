@@ -312,6 +312,61 @@ class TestProposalAPI:
         for result in data["data"]["results"]:
             assert result["proposal_type"] == ProposalType.PAID_LEAVE
 
+    def test_list_all_proposals_excludes_timesheet_entry_complaints_when_requested(
+        self, api_client, superuser, test_employee
+    ):
+        """Timesheet entry complaint proposals should be excluded when the filter is true."""
+        Proposal.objects.create(
+            code="DX000007_EX",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Complaint reason",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX000008_EX",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Regular proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url, {"exclude_timesheet_entry_complaint": True})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal_type"] == ProposalType.PAID_LEAVE
+
+    def test_list_all_proposals_includes_timesheet_entry_complaints_by_default(
+        self, api_client, superuser, test_employee
+    ):
+        """Timesheet entry complaint proposals should appear when exclusion flag is false or missing."""
+        complaint = Proposal.objects.create(
+            code="DX000009_EX",
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            timesheet_entry_complaint_complaint_reason="Complaint reason",
+            created_by=test_employee,
+        )
+        Proposal.objects.create(
+            code="DX000010_EX",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Regular proposal",
+            created_by=test_employee,
+        )
+
+        url = reverse("hrm:proposal-list")
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 2
+        proposal_types = {result["proposal_type"] for result in data["data"]["results"]}
+        assert ProposalType.TIMESHEET_ENTRY_COMPLAINT in proposal_types
+        assert ProposalType.PAID_LEAVE in proposal_types
+        assert any(result["id"] == complaint.id for result in data["data"]["results"])
+
     def test_filter_proposals_by_invalid_created_by_returns_empty(self, api_client, superuser, test_employee):
         """Filtering proposals by a non-existent creator ID should return an empty result."""
         Proposal.objects.create(
