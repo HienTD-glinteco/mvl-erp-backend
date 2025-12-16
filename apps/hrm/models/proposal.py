@@ -637,10 +637,16 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
             return
 
         # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
-        ProposalTimeSheetEntry.objects.get_or_create(
-            proposal=self,
-            timesheet_entry=timesheet_entry,
-        )
+        try:
+            # NOTE: use try-except to catch validation errors and log them, and not break saving flow.
+            ProposalTimeSheetEntry.objects.get_or_create(
+                proposal=self,
+                timesheet_entry=timesheet_entry,
+            )
+        except ValidationError as ve:
+            logger.error(
+                f"Validation error when creating ProposalTimeSheetEntry for proposal {self.pk} and timesheet entry {timesheet_entry.pk}: {ve}"
+            )
 
 
 @audit_logging_register

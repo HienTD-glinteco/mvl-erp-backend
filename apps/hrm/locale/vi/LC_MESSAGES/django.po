@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 16:12+0700\n"
+"POT-Creation-Date: 2025-12-16 12:24+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1509,21 +1509,21 @@ msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:716
+#: apps/hrm/models/proposal.py:722
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:726
+#: apps/hrm/models/proposal.py:732
 msgid "This timesheet entry already has a complaint proposal linked to it."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:807
+#: apps/hrm/models/proposal.py:813
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr ""
 
-#: apps/hrm/models/proposal.py:925
+#: apps/hrm/models/proposal.py:931
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
