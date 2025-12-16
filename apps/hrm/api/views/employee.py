@@ -98,8 +98,7 @@ class EmployeeViewSet(
     module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee"
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "active": {
             "name_template": _("Activate employee"),
             "description_template": _("Activate employee"),

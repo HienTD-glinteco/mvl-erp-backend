@@ -567,7 +567,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = _("HRM")
     submodule = _("Organization")
     permission_prefix = "department"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("Department List"),
             "description_template": _("Retrieve a list of departments with filtering and sorting"),

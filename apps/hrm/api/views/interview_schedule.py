@@ -310,8 +310,7 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     module = "HRM"
     submodule = _("Recruitment")
     permission_prefix = "interview_schedule"
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "interview_invite_preview": {
             "name_template": _("Preview interview invite for {model_name}"),
             "description_template": _("Preview interview invite for {model_name}"),

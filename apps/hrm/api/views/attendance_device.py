@@ -369,8 +369,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = _("Attendance Device Management")
     permission_prefix = "attendance_device"
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "toggle_enabled": {
             "name_template": _("Toggle device enabled status"),
             "description_template": _("Toggle the is_enabled status of an attendance device"),

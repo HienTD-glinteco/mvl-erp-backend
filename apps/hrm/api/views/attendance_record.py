@@ -129,8 +129,7 @@ class AttendanceRecordViewSet(
     module = "HRM"
     submodule = _("Attendance Record Management")
     permission_prefix = "attendance_record"
-    STANDARD_ACTIONS = {
-        **PermissionRegistrationMixin.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "geolocation_attendance": {
             "name_template": _("Record attendance by GeoLocation"),
             "description_template": _("Record attendance using GeoLocation coordinates"),

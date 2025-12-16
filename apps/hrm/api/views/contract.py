@@ -308,8 +308,7 @@ class ContractViewSet(
     module = _("HRM")
     submodule = _("Contract Management")
     permission_prefix = "contract"
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "publish": {
             "name_template": _("Publish {model_name}"),
             "description_template": _("Publish {model_name}"),

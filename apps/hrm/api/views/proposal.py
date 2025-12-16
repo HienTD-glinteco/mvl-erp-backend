@@ -138,8 +138,7 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     module = "HRM"
     submodule = _("Proposal")
     permission_prefix = "proposal"  # Subclasses should override
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "approve": {
             "name_template": _("Approve {model_name}"),
             "description_template": _("Approve {model_name}"),

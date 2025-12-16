@@ -55,7 +55,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = _("HRM")
     submodule = _("Employee timesheet")
     permission_prefix = "timesheet"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("List employee timesheets"),
             "description_template": _("List employee timesheets"),
@@ -301,7 +301,7 @@ class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = _("HRM")
     submodule = _("Timesheet")
     permission_prefix = "timesheet"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("List employee timesheet entries"),
             "description_template": _("List employee timesheet entries"),
