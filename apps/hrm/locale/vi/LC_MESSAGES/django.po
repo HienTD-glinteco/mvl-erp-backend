@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 12:24+0700\n"
+"POT-Creation-Date: 2025-12-16 15:03+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -525,6 +525,10 @@ msgstr "Chỉnh sửa thành công"
 #: apps/hrm/api/views/holiday.py:217
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
+
+#: apps/hrm/api/views/recruitment_candidate.py:670
+msgid "Only candidates with REJECTED status can be deleted."
+msgstr "Chỉ có thể xoá các ứng viên đã bị LOẠI"
 
 #: apps/hrm/api/views/recruitment_dashboard.py:499
 msgid "Experienced"
