@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
@@ -161,8 +162,8 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee Relationship"
-        verbose_name_plural = "Employee Relationships"
+        verbose_name = _("Employee Relationship")
+        verbose_name_plural = _("Employee Relationships")
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["employee", "is_active"]),

@@ -53,8 +53,8 @@ class AdministrativeUnit(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Administrative Unit"
-        verbose_name_plural = "Administrative Units"
+        verbose_name = _("Administrative Unit")
+        verbose_name_plural = _("Administrative Units")
         db_table = "core_administrative_unit"
         ordering = ["parent_province__code", "code"]
         constraints = [

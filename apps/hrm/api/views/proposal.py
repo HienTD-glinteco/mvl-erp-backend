@@ -1,5 +1,6 @@
 from typing import List
 
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -135,7 +136,7 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     ordering = ["-proposal_date"]
 
     module = "HRM"
-    submodule = "Proposal"
+    submodule = _("Proposal")
     permission_prefix = "proposal"  # Subclasses should override
 
     # Subclasses must define this
@@ -2925,7 +2926,7 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     module = "HRM"
-    submodule = "ProposalVerifier"
+    submodule = _("Proposal")
     permission_prefix = "proposal_verifier"
 
     def get_serializer_class(self):

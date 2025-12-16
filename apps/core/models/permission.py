@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from libs.models import BaseModel
 
@@ -13,8 +14,8 @@ class Permission(BaseModel):
     submodule = models.CharField(max_length=100, blank=True, verbose_name="Submodule")
 
     class Meta:
-        verbose_name = "Permission"
-        verbose_name_plural = "Permissions"
+        verbose_name = _("Permission")
+        verbose_name_plural = _("Permissions")
         db_table = "core_permission"
 
     def __str__(self):

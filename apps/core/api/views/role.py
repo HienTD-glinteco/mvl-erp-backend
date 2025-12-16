@@ -3,7 +3,7 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
-
+from django.utils.translation import gettext as _
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
@@ -310,8 +310,8 @@ class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["code"]
 
     # Permission registration attributes
-    module = "Core"
-    submodule = "Role Management"
+    module = _("Core")
+    submodule = _("Role Management")
     permission_prefix = "role"
 
     def destroy(self, request, *args, **kwargs):

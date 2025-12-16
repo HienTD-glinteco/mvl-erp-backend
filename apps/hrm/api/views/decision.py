@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -242,7 +243,7 @@ class DecisionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Decision Management"
+    submodule = _("Decision Management")
     permission_prefix = "decision"
 
     # Export configuration

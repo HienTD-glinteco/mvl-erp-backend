@@ -96,7 +96,7 @@ class EmployeeViewSet(
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Employee Management"
+    submodule = _("Employee Management")
     permission_prefix = "employee"
 
     # Import handler path for AsyncImportProgressMixin

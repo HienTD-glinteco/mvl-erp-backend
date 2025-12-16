@@ -29,6 +29,7 @@ class Command(BaseCommand):
         # Remove duplicates (keep first occurrence)
         unique_permissions = []
         seen_codes = set()
+        # breakpoint()
         for perm in found_permissions:
             if perm["code"] not in seen_codes:
                 unique_permissions.append(perm)

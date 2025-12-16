@@ -1,5 +1,6 @@
 """ViewSet for Contract Appendix (using Contract model with category='appendix')."""
 
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -258,7 +259,7 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Contract Appendix Management"
+    submodule = _("Contract Appendix Management")
     permission_prefix = "contract_appendix"
 
     # Export configuration

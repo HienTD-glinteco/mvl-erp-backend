@@ -431,7 +431,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Recruitment"
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_candidate"
 
     # Import handler path for AsyncImportProgressMixin

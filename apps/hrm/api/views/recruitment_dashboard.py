@@ -40,7 +40,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     """
 
     module = "HRM"
-    submodule = "Recruitment"
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_dashboard"
 
     @extend_schema(

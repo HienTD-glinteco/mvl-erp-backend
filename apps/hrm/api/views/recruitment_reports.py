@@ -48,7 +48,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
     pagination_class = None
 
     module = "REPORT"
-    submodule = "Recruitment"
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_reports"
 
     @extend_schema(

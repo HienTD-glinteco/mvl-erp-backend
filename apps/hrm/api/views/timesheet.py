@@ -53,7 +53,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering = "fullname"
 
     module = "HRM"
-    submodule = "Timesheet"
+    submodule = _("Employee timesheet")
     permission_prefix = "timesheet"
 
     def list(self, request, *args, **kwargs):

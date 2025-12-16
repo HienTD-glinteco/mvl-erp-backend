@@ -131,8 +131,8 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee certificate"
-        verbose_name_plural = "Employee certificates"
+        verbose_name = _("Employee certificate")
+        verbose_name_plural = _("Employee certificates")
         db_table = "hrm_employee_certificate"
         ordering = ["certificate_type", "-created_at"]
         indexes = [

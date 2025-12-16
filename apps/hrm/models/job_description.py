@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
@@ -32,8 +33,8 @@ class JobDescription(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Job Description"
-        verbose_name_plural = "Job Descriptions"
+        verbose_name = _("Job Description")
+        verbose_name_plural = _("Job Descriptions")
         db_table = "hrm_job_description"
         ordering = ["-created_at"]
 

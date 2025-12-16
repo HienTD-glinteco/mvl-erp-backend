@@ -1,4 +1,5 @@
 from django.db.models import Count, Q
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,7 +24,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
     pagination_class = None
 
     module = "Report"
-    submodule = "Attendance"
+    submodule = _("Attendance")
     permission_prefix = "recruitment_reports"
 
     @extend_schema(

@@ -389,7 +389,7 @@ class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseMode
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Recruitment"
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_request"
 
     # Document export configuration

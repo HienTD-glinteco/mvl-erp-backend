@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -24,8 +25,8 @@ class InterviewCandidate(BaseModel):
     email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="Email sent at")
 
     class Meta:
-        verbose_name = "Interview Candidate"
-        verbose_name_plural = "Interview Candidates"
+        verbose_name = _("Interview Candidate")
+        verbose_name_plural = _("Interview Candidates")
         db_table = "hrm_interview_candidate"
         unique_together = [["recruitment_candidate", "interview_schedule"]]
         ordering = ["interview_time"]

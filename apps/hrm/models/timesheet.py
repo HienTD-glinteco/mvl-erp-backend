@@ -3,7 +3,13 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
+<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
+=======
+from django.db.models import Q
+from django.utils import timezone
+from django.utils.translation import gettext as _
+>>>>>>> 41dc4b8 (Add models, module translation)
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (
@@ -88,8 +94,8 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_timesheet"
-        verbose_name = "Timesheet"
-        verbose_name_plural = "Timesheets"
+        verbose_name = _("Timesheet")
+        verbose_name_plural = _("Timesheets")
         indexes = [models.Index(fields=["employee", "date"], name="timesheet_employee_date_idx")]
 
     def __str__(self) -> str:  # pragma: no cover - trivial
@@ -120,7 +126,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             if self.start_time > self.end_time:
                 raise ValueError("start_time cannot be after end_time")
 
-    def calculate_hours_from_schedule(self, work_schedule: Optional["WorkSchedule"] = None) -> None:
+    def calculate_hours_from_schedule(self, work_schedule: Optional["WorkSchedule"] = None) -> None:  # NOQA: C901
         """Calculate morning_hours, afternoon_hours, and overtime_hours based on WorkSchedule.
 
         Delegates to TimesheetCalculator.

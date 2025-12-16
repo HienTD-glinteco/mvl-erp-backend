@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils.translation import gettext as _
 
 from libs.drf.base_viewset import BaseGenericViewSet
 
@@ -20,8 +21,8 @@ class AuditLogViewSet(BaseGenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    module = "Core"
-    submodule = "Audit Logging"
+    module = _("Core")
+    submodule = _("Audit Logging")
     permission_prefix = "audit_logging"
 
     @extend_schema(

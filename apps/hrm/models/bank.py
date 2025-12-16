@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -17,8 +18,8 @@ class Bank(BaseModel):
     code = models.CharField(max_length=50, unique=True, verbose_name="Bank code")
 
     class Meta:
-        verbose_name = "Bank"
-        verbose_name_plural = "Banks"
+        verbose_name = _("Bank")
+        verbose_name_plural = _("Banks")
         db_table = "hrm_bank"
         ordering = ["id"]
 

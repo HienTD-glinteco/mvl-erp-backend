@@ -106,7 +106,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Employee Management"
+    submodule = _("Employee Management")
     permission_prefix = "employee_role"
 
     def get_queryset(self):

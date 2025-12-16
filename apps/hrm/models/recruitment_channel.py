@@ -34,8 +34,8 @@ class RecruitmentChannel(AutoCodeMixin, BaseModel):
     is_active = models.BooleanField(default=True, verbose_name="Active")
 
     class Meta:
-        verbose_name = "Recruitment Channel"
-        verbose_name_plural = "Recruitment Channels"
+        verbose_name = _("Recruitment Channel")
+        verbose_name_plural = _("Recruitment Channels")
         db_table = "hrm_recruitment_channel"
         ordering = ["-created_at"]
 

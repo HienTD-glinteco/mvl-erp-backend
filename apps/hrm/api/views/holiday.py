@@ -132,7 +132,7 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Holiday Management"
+    submodule = _("Holiday Management")
     permission_prefix = "holiday"
 
     xlsx_template_name = "apps/hrm/fixtures/export_templates/holiday_export_template.xlsx"
@@ -210,7 +210,7 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Holiday Management"
+    submodule = _("Holiday Management")
     permission_prefix = "holiday"  # Use same permission as holiday since it's nested
 
     def get_queryset(self):

@@ -158,8 +158,8 @@ class EmployeeWorkHistory(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee work history"
-        verbose_name_plural = "Employee work histories"
+        verbose_name = _("Employee work history")
+        verbose_name_plural = _("Employee work histories")
         db_table = "hrm_employee_work_history"
         ordering = ["-date", "-created_at"]
         indexes = [

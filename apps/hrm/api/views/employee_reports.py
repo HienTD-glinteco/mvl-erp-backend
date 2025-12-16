@@ -49,7 +49,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
     pagination_class = None
 
     module = "REPORT"
-    submodule = "Employee"
+    submodule = _("Employee Reports")
     permission_prefix = "employee_reports"
 
     def _generate_time_buckets_for_week(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
@@ -658,7 +658,7 @@ class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     """
 
     module = "REPORT"
-    submodule = "Employee"
+    submodule = _("Employee Seniority Report")
     permission_prefix = "employee_seniority_report"
 
     queryset = Employee.objects.none()

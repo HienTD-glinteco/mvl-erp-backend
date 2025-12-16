@@ -367,7 +367,7 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Attendance Device Management"
+    submodule = _("Attendance Device Management")
     permission_prefix = "attendance_device"
 
     @extend_schema(

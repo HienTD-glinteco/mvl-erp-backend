@@ -35,8 +35,8 @@ class BankAccount(BaseModel):
     is_primary = models.BooleanField(default=False, verbose_name="Is primary")
 
     class Meta:
-        verbose_name = "Bank Account"
-        verbose_name_plural = "Bank Accounts"
+        verbose_name = _("Bank Account")
+        verbose_name_plural = _("Bank Accounts")
         db_table = "hrm_bank_account"
         ordering = ["-is_primary", "-created_at"]
         constraints = [

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from libs.models import BaseReportModel
 
@@ -53,8 +54,8 @@ class EmployeeStatusBreakdownReport(BaseReportModel):
     count_resigned_reasons = models.JSONField(default=dict, verbose_name="Resignation reasons breakdown")
 
     class Meta:
-        verbose_name = "Employee Status Breakdown Report"
-        verbose_name_plural = "Employee Status Breakdown Reports"
+        verbose_name = _("Employee Status Breakdown Report")
+        verbose_name_plural = _("Employee Status Breakdown Reports")
         db_table = "hrm_employee_status_breakdown_report"
         unique_together = [["report_date", "branch", "block", "department"]]
         indexes = [
@@ -130,8 +131,8 @@ class EmployeeResignedReasonReport(BaseReportModel):
     other = models.IntegerField(default=0, verbose_name="Other")
 
     class Meta:
-        verbose_name = "Employee Resigned Reason Report"
-        verbose_name_plural = "Employee Resigned Reason Reports"
+        verbose_name = _("Employee Resigned Reason Report")
+        verbose_name_plural = _("Employee Resigned Reason Reports")
         db_table = "hrm_employee_resigned_reason_report"
         unique_together = [["report_date", "branch", "block", "department"]]
         indexes = [

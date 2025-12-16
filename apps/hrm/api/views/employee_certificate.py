@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -297,5 +298,5 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Employee Certificate Management"
+    submodule = _("Employee Certificate Management")
     permission_prefix = "employee_certificate"

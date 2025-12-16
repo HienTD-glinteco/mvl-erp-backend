@@ -115,8 +115,8 @@ class Decision(ColoredValueMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_decision"
-        verbose_name = "Decision"
-        verbose_name_plural = "Decisions"
+        verbose_name = _("Decision")
+        verbose_name_plural = _("Decisions")
         ordering = ["-signing_date", "-created_at"]
         indexes = [
             models.Index(fields=["decision_number"], name="decision_number_idx"),

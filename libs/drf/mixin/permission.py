@@ -14,8 +14,8 @@ class PermissionRegistrationMixin:
         permission_prefix (str): Prefix for permission codes (e.g., "document")
     """
 
-    module = ""
-    submodule = ""
+    module = ""  # NOQA: F821
+    submodule = ""  # NOQA: F821
     permission_prefix = ""
 
     # Standard DRF actions with their metadata (full CRUD)

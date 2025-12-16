@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-15 14:33+0700\n"
+"POT-Creation-Date: 2025-12-16 14:31+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -363,12 +363,17 @@ msgid "System roles can only update permissions, not other fields"
 msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
+#: apps/core/api/views/administrative_unit.py:102
+#: apps/core/api/views/role.py:313
+msgid "Core"
+msgstr "[Hệ thống] "
+
+#: apps/core/api/views/administrative_unit.py:103
+msgid "Geographic Data"
+msgstr "Đơn vị hành chính"
+
 # api/views/auth/login.py:52
 #: apps/core/api/views/auth/device_change.py:148
-#, fuzzy
-#| msgid ""
-#| "OTP code has been sent to your email. Please check your email and enter "
-#| "the OTP code to complete login."
 msgid ""
 "OTP code has been sent to your email. Please verify to complete the device "
 "change request."
@@ -587,6 +592,10 @@ msgstr "Trạng thái xuất dữ liệu"
 msgid "task_id parameter is required"
 msgstr "Tham số task_id là bắt buộc"
 
+#: apps/core/api/views/role.py:314
+msgid "Role Management"
+msgstr "Quản lý vai trò"
+
 #: apps/core/management/commands/import_administrative_data.py:14
 msgid ""
 "Import administrative data (provinces and units) from CSV or Excel files"
@@ -605,7 +614,6 @@ msgid "Run in dry-run mode without saving to database"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:41
-#, python-brace-format
 msgid "Starting import of {} data from {}"
 msgstr ""
 
@@ -614,7 +622,6 @@ msgid "Running in DRY-RUN mode - no data will be saved"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:57
-#, python-brace-format
 msgid "Loaded {} rows from file"
 msgstr ""
 
@@ -623,68 +630,55 @@ msgid "Import completed successfully"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:67
-#, python-brace-format
 msgid "Error during import: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:86
-#, python-brace-format
 msgid "Skipping row with missing code or name: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:128
-#, python-brace-format
 msgid "Updated province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:130
-#, python-brace-format
 msgid "Province unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:144
-#, python-brace-format
 msgid "Created province: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:147
 #: apps/core/management/commands/import_administrative_data.py:253
-#, python-brace-format
 msgid "Error processing row {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:155
-#, python-brace-format
 msgid "Province import summary: {} created, {} updated, {} disabled"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:177
-#, python-brace-format
 msgid "Skipping row with missing required fields: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:201
-#, python-brace-format
 msgid "Parent province not found for code {}: {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:234
-#, python-brace-format
 msgid "Updated unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:236
-#, python-brace-format
 msgid "Unit unchanged: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:250
-#, python-brace-format
 msgid "Created unit: {} - {}"
 msgstr ""
 
 #: apps/core/management/commands/import_administrative_data.py:261
-#, python-brace-format
 msgid "Unit import summary: {} created, {} updated, {} disabled, {} skipped"
 msgstr ""
 
@@ -703,6 +697,14 @@ msgstr "Phuờng/Xã"
 #: apps/core/models/administrative_unit.py:18
 msgid "Township"
 msgstr ""
+
+#: apps/core/models/administrative_unit.py:56
+msgid "Administrative Unit"
+msgstr "Đơn vị hành chính"
+
+#: apps/core/models/administrative_unit.py:57
+msgid "Administrative Units"
+msgstr "các Đơn vị hành chính"
 
 #: apps/core/models/device.py:10
 msgid "iOS"
@@ -726,6 +728,14 @@ msgstr "Email"
 msgid "SMS"
 msgstr "SMS"
 
+#: apps/core/models/permission.py:17
+msgid "Permission"
+msgstr "Quyền"
+
+#: apps/core/models/permission.py:18
+msgid "Permissions"
+msgstr "các Quyền"
+
 #: apps/core/models/province.py:15
 msgid "Central City"
 msgstr ""
@@ -733,6 +743,14 @@ msgstr ""
 #: apps/core/models/province.py:16
 msgid "Province"
 msgstr "Tỉnh/Thành phố"
+
+#: apps/core/models/role.py:27
+msgid "Role"
+msgstr "Vai trò"
+
+#: apps/core/models/role.py:28
+msgid "Roles"
+msgstr "các Vai trò"
 
 #: apps/core/models/role.py:39
 msgid "System"
@@ -915,7 +933,6 @@ msgstr "Mật khẩu phải chứa ít nhất một chữ số."
 
 # validators.py:34
 #: apps/core/validators.py:34
-#, python-brace-format
 msgid ""
 "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)."
 msgstr "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*(),.?\":{}|<>)."

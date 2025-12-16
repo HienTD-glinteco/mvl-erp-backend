@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -232,7 +233,7 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Organization"
+    submodule = _("Organization")
     permission_prefix = "branch"
 
 
@@ -464,7 +465,7 @@ class BranchContactInfoViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["branch__code", "name"]
 
     module = "HRM"
-    submodule = "Organization"
+    submodule = _("Organization")
     permission_prefix = "branchcontactinfo"
 
 
@@ -513,7 +514,7 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Organization"
+    submodule = _("Organization")
     permission_prefix = "block"
 
 
@@ -564,7 +565,7 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Organization"
+    submodule = _("Organization")
     permission_prefix = "department"
 
     @extend_schema(
@@ -706,5 +707,5 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Organization"
+    submodule = _("Organization")
     permission_prefix = "position"
