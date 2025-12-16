@@ -243,7 +243,9 @@ class TimesheetCalculator:
 
         if base_start_time is None:
             if compensatory_day and (has_morning or has_afternoon):
-                if self._compensatory_fallback_punctuality(late_exemption_minutes, has_maternity_leave):
+                if self._compensatory_fallback_punctuality(
+                    late_exemption_minutes, has_maternity_leave, has_morning, has_afternoon
+                ):
                     return
                 entry.status = TimesheetStatus.ON_TIME
                 return
@@ -363,7 +365,6 @@ class TimesheetCalculator:
         if (
             self.entry.absent_reason
             in (TimesheetReason.PAID_LEAVE, TimesheetReason.UNPAID_LEAVE, TimesheetReason.MATERNITY_LEAVE)
-            or self.entry.status == TimesheetStatus.ABSENT
         ):
             self.entry.count_for_payroll = False
             return True
@@ -418,7 +419,12 @@ class TimesheetCalculator:
         if (not compensatory_day) and work_schedule and entry.start_time and entry.end_time:
 
             def _make(dt_time):
-                return timezone.make_aware(datetime.combine(entry.date, dt_time)) if dt_time else None
+                if not dt_time:
+                    return None
+                dt = datetime.combine(entry.date, dt_time)
+                if timezone.is_aware(dt):
+                    return dt
+                return timezone.make_aware(dt)
 
             m_start = _make(work_schedule.morning_start_time)
             m_end = _make(work_schedule.morning_end_time)
@@ -458,30 +464,45 @@ class TimesheetCalculator:
             return work_schedule.afternoon_start_time
         return None
 
-    def _compensatory_fallback_punctuality(self, late_exemption_minutes: int, has_maternity_leave: bool) -> bool:
+    def _compensatory_fallback_punctuality(
+        self, late_exemption_minutes: int, has_maternity_leave: bool, has_morning: bool, has_afternoon: bool
+    ) -> bool:
         fallback_start = None
         fallback_allowed = 0
         for wd in range(2, 7):
             fallback = get_work_schedule_by_weekday(wd)
             if not fallback:
                 continue
-            if getattr(fallback, "morning_start_time", None):
+
+            # If compensatory day has specific session (Morning/Afternoon), look for that session in fallback
+            # If Full Day (both True), prefer Morning start time (standard logic)
+
+            found_morning = getattr(fallback, "morning_start_time", None)
+            found_afternoon = getattr(fallback, "afternoon_start_time", None)
+
+            if has_morning and found_morning:
                 fallback_start = fallback.morning_start_time
                 fallback_allowed = fallback.allowed_late_minutes or 0
                 break
-            if getattr(fallback, "afternoon_start_time", None):
+
+            if has_afternoon and not has_morning and found_afternoon:
                 fallback_start = fallback.afternoon_start_time
                 fallback_allowed = fallback.allowed_late_minutes or 0
                 break
+
+            # Fallback if specific session not found but maybe we should look harder?
+            # Current logic: breaks on first valid match.
 
         if fallback_start is not None:
             fallback_allowed_final = max(fallback_allowed or 5, late_exemption_minutes or 0)
             if has_maternity_leave:
                 fallback_allowed_final = max(fallback_allowed_final, 60)
 
-            allowed_start_time = timezone.make_aware(
-                datetime.combine(self.entry.date, fallback_start)
-            ) + timedelta(minutes=fallback_allowed_final)
+            dt = datetime.combine(self.entry.date, fallback_start)
+            if not timezone.is_aware(dt):
+                dt = timezone.make_aware(dt)
+
+            allowed_start_time = dt + timedelta(minutes=fallback_allowed_final)
             if self.entry.start_time <= allowed_start_time:
                 self.entry.status = TimesheetStatus.ON_TIME
             else:
@@ -491,8 +512,14 @@ class TimesheetCalculator:
 
     def _evaluate_work_duration(self, work_schedule, has_morning, has_afternoon, allowed_late_minutes):
         entry = self.entry
+
         def _make(dt_time):
-            return timezone.make_aware(datetime.combine(entry.date, dt_time)) if dt_time else None
+            if not dt_time:
+                return None
+            dt = datetime.combine(entry.date, dt_time)
+            if timezone.is_aware(dt):
+                return dt
+            return timezone.make_aware(dt)
 
         m_start = _make(work_schedule.morning_start_time) if work_schedule else None
         m_end = _make(work_schedule.morning_end_time) if work_schedule else None
