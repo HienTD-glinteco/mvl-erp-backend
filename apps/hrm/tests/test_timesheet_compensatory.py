@@ -6,6 +6,7 @@ from django.utils import timezone
 from apps.hrm.constants import TimesheetStatus
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 
 pytestmark = pytest.mark.django_db
 
@@ -23,7 +24,7 @@ def test_compensatory_full_day_attendance_sets_on_time():
     ts = TimeSheetEntry(employee_id=None, date=comp_date)
     ts.start_time = make_datetime(comp_date, time(8, 0))
     ts.end_time = make_datetime(comp_date, time(17, 0))
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ON_TIME
 
@@ -34,7 +35,7 @@ def test_compensatory_no_attendance_sets_absent():
     CompensatoryWorkday.objects.create(holiday=holiday, date=comp_date, session=CompensatoryWorkday.Session.FULL_DAY)
 
     ts = TimeSheetEntry(employee_id=None, date=comp_date)
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ABSENT
 
@@ -47,6 +48,6 @@ def test_compensatory_afternoon_only_attendance_sets_on_time():
     ts = TimeSheetEntry(employee_id=None, date=comp_date)
     ts.start_time = make_datetime(comp_date, time(13, 0))
     ts.end_time = make_datetime(comp_date, time(17, 0))
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ON_TIME
