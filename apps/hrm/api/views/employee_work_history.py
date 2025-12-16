@@ -120,7 +120,7 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["date", "name", "created_at"]
     ordering = ["-date", "-created_at"]
 
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_work_history"
 

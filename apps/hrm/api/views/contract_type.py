@@ -261,7 +261,7 @@ class ContractTypeViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Contract Type Management")
     permission_prefix = "contract_type"
 

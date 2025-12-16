@@ -305,9 +305,16 @@ class ContractViewSet(
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Contract Management")
     permission_prefix = "contract"
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "publish": {
+            "name_template": _("Publish {model_name}"),
+            "description_template": _("Publish {model_name}"),
+        },
+    }
 
     # Export configuration
     export_serializer_class = ContractExportSerializer

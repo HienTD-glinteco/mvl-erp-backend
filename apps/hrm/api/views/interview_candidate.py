@@ -154,6 +154,6 @@ class InterviewCandidateViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["interview_time"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "interview_candidate"

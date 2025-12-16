@@ -57,6 +57,6 @@ class BankAccountViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-is_primary", "-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Bank Account Management")
     permission_prefix = "bank_account"

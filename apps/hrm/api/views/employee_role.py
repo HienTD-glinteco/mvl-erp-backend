@@ -105,9 +105,16 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering = ["-username"]  # Default ordering: descending by employee code
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_role"
+    STANDARD_ACTIONS = {
+        **BaseReadOnlyModelViewSet.STANDARD_ACTIONS,
+        "bulk_update_roles": {
+            "name_template": _("Bulk Update Employee Roles"),
+            "description_template": _("Update roles for multiple employees at once"),
+        },
+    }
 
     def get_queryset(self):
         """

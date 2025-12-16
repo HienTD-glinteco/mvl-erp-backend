@@ -257,7 +257,7 @@ class EmployeeDependentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_dependent"
 

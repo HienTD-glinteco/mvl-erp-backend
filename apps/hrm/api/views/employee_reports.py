@@ -657,10 +657,19 @@ class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     - Reuses the existing `EmployeeSeniorityFilterSet`, `SeniorityOrderingFilter` and serializer.
     """
 
-    module = "REPORT"
+    module = _("REPORT")
     submodule = _("Employee Seniority Report")
     permission_prefix = "employee_seniority_report"
-
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("Employee Seniority Report"),
+            "description_template": _("Retrieve employee seniority report with filtering and sorting"),
+        },
+        "export": {
+            "name_template": _("Export Employee Seniority Report"),
+            "description_template": _("Export employee seniority report to XLSX format"),
+        },
+    }
     queryset = Employee.objects.none()
 
     # Provide filterset and serializer for ExportXLSXMixin to work with

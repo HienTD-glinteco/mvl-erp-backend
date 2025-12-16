@@ -310,6 +310,21 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
     module = "HRM"
     submodule = _("Recruitment")
     permission_prefix = "interview_schedule"
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "interview_invite_preview": {
+            "name_template": _("Preview interview invite for {model_name}"),
+            "description_template": _("Preview interview invite for {model_name}"),
+        },
+        "interview_invite_send": {
+            "name_template": _("Send interview invite for {model_name}"),
+            "description_template": _("Send interview invite for {model_name}"),
+        },
+        "update_interviewers": {
+            "name_template": _("Update interviewers for {model_name}"),
+            "description_template": _("Update interviewers for {model_name}"),
+        },
+    }
 
     @extend_schema(
         summary="Preview interview invitation email",

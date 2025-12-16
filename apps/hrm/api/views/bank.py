@@ -99,6 +99,6 @@ class BankViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering = ["id"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Bank Management")
     permission_prefix = "bank"

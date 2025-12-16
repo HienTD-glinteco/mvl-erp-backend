@@ -29,7 +29,7 @@ class Command(BaseCommand):
         # Remove duplicates (keep first occurrence)
         unique_permissions = []
         seen_codes = set()
-        # breakpoint()
+
         for perm in found_permissions:
             if perm["code"] not in seen_codes:
                 unique_permissions.append(perm)
@@ -41,10 +41,11 @@ class Command(BaseCommand):
 
         for perm_data in unique_permissions:
             code = perm_data["code"]
-            name = perm_data.get("name", "")
             description = perm_data.get("description", "")
             module = perm_data.get("module", "")
             submodule = perm_data.get("submodule", "")
+            name = perm_data.get("name", "")
+            name = f"[{module}] [{submodule}] {name}"
 
             permission, created = Permission.objects.update_or_create(
                 code=code,

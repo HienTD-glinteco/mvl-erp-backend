@@ -239,6 +239,6 @@ class RecruitmentCandidateContactLogViewSet(AuditLoggingMixin, BaseModelViewSet)
     ordering = ["-date", "-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_candidate_contact_log"

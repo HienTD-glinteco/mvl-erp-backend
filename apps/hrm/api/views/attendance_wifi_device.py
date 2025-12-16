@@ -285,7 +285,7 @@ class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Attendance WiFiDevice Management")
     permission_prefix = "wifi_attendance_device"
 

@@ -297,6 +297,6 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["certificate_type", "-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Certificate Management")
     permission_prefix = "employee_certificate"

@@ -369,6 +369,17 @@ class AttendanceDeviceViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = _("Attendance Device Management")
     permission_prefix = "attendance_device"
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "toggle_enabled": {
+            "name_template": _("Toggle device enabled status"),
+            "description_template": _("Toggle the is_enabled status of an attendance device"),
+        },
+        "check_connection": {
+            "name_template": _("Check device connection"),
+            "description_template": _("Test the connection to an attendance device and update its connection status"),
+        },
+    }
 
     @extend_schema(
         summary="Toggle device enabled status",

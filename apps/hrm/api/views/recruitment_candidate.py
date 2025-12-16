@@ -430,10 +430,47 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_candidate"
-
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("View Candidates"),
+            "description_template": _("View all candidates in the system"),
+        },
+        "create": {
+            "name_template": _("Create Candidate"),
+            "description_template": _("Create a new candidate"),
+        },
+        "retrieve": {
+            "name_template": _("View Candidate Detail"),
+            "description_template": _("View details of a specific candidate"),
+        },
+        "update": {
+            "name_template": _("Update Candidate"),
+            "description_template": _("Update information for a specific candidate"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Candidate"),
+            "description_template": _("Partially update information for a specific candidate"),
+        },
+        "destroy": {
+            "name_template": _("Delete Candidate"),
+            "description_template": _("Delete a specific candidate from the system"),
+        },
+        "export": {
+            "name_template": _("Export Candidates"),
+            "description_template": _("Export candidates to a file"),
+        },
+        "update_referrer": {
+            "name_template": _("Update Candidate Referrer"),
+            "description_template": _("Update the referrer for a specific candidate"),
+        },
+        "to_employee": {
+            "name_template": _("Convert Candidate to Employee"),
+            "description_template": _("Convert a candidate into an employee record"),
+        },
+    }
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"  # type: ignore[assignment]
 

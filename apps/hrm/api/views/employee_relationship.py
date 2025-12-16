@@ -218,7 +218,7 @@ class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["employee_code", "employee_name", "relative_name", "relation_type"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_relationship"
 

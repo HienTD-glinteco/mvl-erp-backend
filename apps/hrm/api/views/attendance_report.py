@@ -23,9 +23,25 @@ from ..serializers import (
 class AttendanceReportViewSet(BaseGenericViewSet):
     pagination_class = None
 
-    module = "Report"
+    module = _("Report")
     submodule = _("Attendance")
     permission_prefix = "recruitment_reports"
+    STANDARD_ACTIONS = {
+        "by_method": {
+            "name_template": _("Attendance Report By Method"),
+            "description_template": _("Get attendance statistics report by method (device, wifi, geolocation, other)"),
+        },
+        "by_project": {
+            "name_template": _("Attendance Report By Project"),
+            "description_template": _("Get attendance statistics report grouped by projects"),
+        },
+        "by_project_organization": {
+            "name_template": _("Attendance Report By Project Organization"),
+            "description_template": _(
+                "Get attendance statistics report for personnel working on projects grouped by organizational structure"
+            ),
+        },
+    }
 
     @extend_schema(
         tags=["6.9: Attendance Reports"],

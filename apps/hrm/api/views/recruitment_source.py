@@ -54,6 +54,6 @@ class RecruitmentSourceViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_source"

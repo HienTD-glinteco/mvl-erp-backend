@@ -48,7 +48,11 @@ class ImportStatusView(APIView):
         tags=["0.3: Import"],
     )
     @register_permission(
-        "import.check_status", _("Check import status"), "Imports", "Status", _("Import Check Status")
+        "import.check_status",
+        description=_("Check import status"),
+        module=_("Imports"),
+        submodule=_("Status"),
+        name=_("Import Check Status"),
     )
     def get(self, request):
         """

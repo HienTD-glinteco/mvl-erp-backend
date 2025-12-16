@@ -52,7 +52,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering_fields = ["code", "fullname"]
     ordering = "fullname"
 
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee timesheet")
     permission_prefix = "timesheet"
 
@@ -280,6 +280,6 @@ class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     queryset = TimeSheetEntry.objects.select_related("employee").all()
     serializer_class = TimeSheetEntryDetailSerializer
 
-    module = "HRM"
-    submodule = "Timesheet"
+    module = _("HRM")
+    submodule = _("Timesheet")
     permission_prefix = "timesheet"

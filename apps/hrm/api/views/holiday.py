@@ -209,7 +209,7 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
     serializer_class = CompensatoryWorkdaySerializer
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Holiday Management")
     permission_prefix = "holiday"  # Use same permission as holiday since it's nested
 

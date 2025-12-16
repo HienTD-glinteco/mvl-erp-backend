@@ -242,7 +242,7 @@ class DecisionViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-signing_date", "-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Decision Management")
     permission_prefix = "decision"
 

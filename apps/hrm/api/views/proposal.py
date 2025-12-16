@@ -138,6 +138,25 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     module = "HRM"
     submodule = _("Proposal")
     permission_prefix = "proposal"  # Subclasses should override
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "approve": {
+            "name_template": _("Approve {model_name}"),
+            "description_template": _("Approve {model_name}"),
+        },
+        "reject": {
+            "name_template": _("Reject {model_name}"),
+            "description_template": _("Reject {model_name}"),
+        },
+        "mine": {
+            "name_template": _("View the list of requests pending my approval"),
+            "description_template": _("View the list of requests pending my approval"),
+        },
+        "verify": {
+            "name_template": _("View the list of requests pending my verification"),
+            "description_template": _("View the list of requests pending my verification"),
+        },
+    }
 
     # Subclasses must define this
     proposal_type: ProposalType = None  # type: ignore

@@ -1,3 +1,6 @@
+from typing import Union
+from django.utils.functional import Promise
+
 from django.utils.translation import gettext_lazy as _
 
 
@@ -14,8 +17,8 @@ class PermissionRegistrationMixin:
         permission_prefix (str): Prefix for permission codes (e.g., "document")
     """
 
-    module = ""  # NOQA: F821
-    submodule = ""  # NOQA: F821
+    module: Union[str, Promise] = ""
+    submodule: Union[str, Promise] = ""
     permission_prefix = ""
 
     # Standard DRF actions with their metadata (full CRUD)
@@ -26,7 +29,7 @@ class PermissionRegistrationMixin:
         },
         "retrieve": {
             "name_template": _("View {model_name}"),
-            "description_template": _("View details of a {model_name}"),
+            "description_template": _("View detail of {model_name}"),
         },
         "create": {
             "name_template": _("Create {model_name}"),
@@ -34,15 +37,27 @@ class PermissionRegistrationMixin:
         },
         "update": {
             "name_template": _("Update {model_name}"),
-            "description_template": _("Update a {model_name}"),
+            "description_template": _("Update {model_name}"),
         },
         "partial_update": {
             "name_template": _("Partially update {model_name}"),
-            "description_template": _("Partially update a {model_name}"),
+            "description_template": _("Partially update {model_name}"),
         },
         "destroy": {
             "name_template": _("Delete {model_name}"),
-            "description_template": _("Delete a {model_name}"),
+            "description_template": _("Delete {model_name}"),
+        },
+        "export": {
+            "name_template": _("Export {model_name}"),
+            "description_template": _("Export {model_name} data"),
+        },
+        "histories": {
+            "name_template": _("History {model_name}"),
+            "description_template": _("View history of {model_name}"),
+        },
+        "history_detail": {
+            "name_template": _("History detail of {model_name}"),
+            "description_template": _("View history detail of {model_name}"),
         },
     }
 
@@ -55,14 +70,7 @@ class PermissionRegistrationMixin:
             str: Model name (e.g., "Role", "Permission")
         """
         if hasattr(cls, "queryset") and cls.queryset is not None:
-            # Get the model class name and convert to readable format
-            # e.g., "OrganizationChart" -> "Organization Chart"
-            model_name = cls.queryset.model.__name__
-            # Add space before capital letters (except the first one)
-            import re
-
-            spaced_name = re.sub(r"(?<!^)(?=[A-Z])", " ", model_name)
-            return spaced_name
+            return cls.queryset.model._meta.verbose_name
         return cls.__name__.replace("ViewSet", "")
 
     @classmethod
@@ -73,14 +81,9 @@ class PermissionRegistrationMixin:
         Returns:
             str: Plural model name (e.g., "Roles", "Permissions")
         """
-        model_name = cls.get_model_name()
-        # Simple pluralization: add 's' or 'es'
-        if model_name.endswith(("s", "x", "z", "ch", "sh")):
-            return model_name + "es"
-        elif model_name.endswith("y") and len(model_name) > 1 and model_name[-2] not in "aeiou":
-            return model_name[:-1] + "ies"
-        else:
-            return model_name + "s"
+        if hasattr(cls, "queryset") and cls.queryset is not None:
+            return cls.queryset.model._meta.verbose_name_plural.title()
+        return cls.__name__.replace("ViewSet", "") + "s"
 
     @classmethod
     def get_custom_actions(cls):
@@ -124,7 +127,6 @@ class PermissionRegistrationMixin:
         permissions = []
         model_name = cls.get_model_name()
         model_name_plural = cls.get_model_name_plural()
-
         # Generate permissions for standard actions
         for action_name, action_meta in cls.STANDARD_ACTIONS.items():
             # Check if the viewset supports this action

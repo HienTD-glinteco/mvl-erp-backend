@@ -95,9 +95,40 @@ class EmployeeViewSet(
     ordering_fields = ["code", "fullname", "start_date", "created_at"]
 
     # Permission registration attributes
-    module = "HRM"
+    module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee"
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "active": {
+            "name_template": _("Activate employee"),
+            "description_template": _("Activate employee"),
+        },
+        "reactive": {
+            "name_template": _("Reactivate employee"),
+            "description_template": _("Reactivate employee"),
+        },
+        "resigned": {
+            "name_template": _("Resign employee"),
+            "description_template": _("Resign employee"),
+        },
+        "maternity_leave": {
+            "name_template": _("Set employee to Maternity Leave"),
+            "description_template": _("Set employee to Maternity Leave"),
+        },
+        "transfer": {
+            "name_template": _("Transfer employee"),
+            "description_template": _("Transfer employee"),
+        },
+        "change_employee_type": {
+            "name_template": _("Change employee Type"),
+            "description_template": _("Change employee Type"),
+        },
+        "update_avatar": {
+            "name_template": _("Update employee Avatar"),
+            "description_template": _("Update employee Avatar"),
+        },
+    }
 
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.employee.import_handler"  # type: ignore[assignment]

@@ -47,9 +47,43 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
 
     pagination_class = None
 
-    module = "REPORT"
+    module = _("REPORT")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_reports"
+    STANDARD_ACTIONS = {
+        "staff_growth": {
+            "name_template": _("Staff Growth Report"),
+            "description_template": _("Aggregate staff changes by period (week/month)"),
+        },
+        "recruitment_source": {
+            "name_template": _("Recruitment Source Report"),
+            "description_template": _(
+                "Aggregate hire statistics by recruitment source in nested organizational format"
+            ),
+        },
+        "recruitment_channel": {
+            "name_template": _("Recruitment Channel Report"),
+            "description_template": _(
+                "Aggregate hire statistics by recruitment channel in nested organizational format"
+            ),
+        },
+        "recruitment_cost": {
+            "name_template": _("Recruitment Cost Report"),
+            "description_template": _("Aggregate recruitment cost data by source type and months"),
+        },
+        "hired_candidate": {
+            "name_template": _("Hired Candidate Report"),
+            "description_template": _(
+                "Aggregate hired candidate statistics by source type with period aggregation and employee details"
+            ),
+        },
+        "referral_cost": {
+            "name_template": _("Referral Cost Report"),
+            "description_template": _(
+                "Referral cost report with department summary and employee details for a single month"
+            ),
+        },
+    }
 
     @extend_schema(
         operation_id="hrm_reports_staff_growth_retrieve",
