@@ -23,8 +23,8 @@ class Holiday(BaseModel):
     notes = models.TextField(blank=True, verbose_name="Notes")
 
     class Meta:
-        verbose_name = "Holiday"
-        verbose_name_plural = "Holidays"
+        verbose_name = _("Holiday")
+        verbose_name_plural = _("Holidays")
         db_table = "hrm_holiday"
         ordering = ["-start_date"]
         indexes = [

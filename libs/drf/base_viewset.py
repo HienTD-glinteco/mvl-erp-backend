@@ -66,6 +66,14 @@ class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyMod
             "name_template": _("View {model_name}"),
             "description_template": _("View details of a {model_name}"),
         },
+        "histories": {
+            "name_template": _("History {model_name}"),
+            "description_template": _("View history of {model_name}"),
+        },
+        "history_detail": {
+            "name_template": _("History detail of {model_name}"),
+            "description_template": _("View history detail of {model_name}"),
+        },
     }
 
 

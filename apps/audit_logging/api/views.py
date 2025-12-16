@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -20,8 +21,8 @@ class AuditLogViewSet(BaseGenericViewSet):
 
     permission_classes = [IsAuthenticated]
 
-    module = "Core"
-    submodule = "Audit Logging"
+    module = _("Core")
+    submodule = _("Audit Logging")
     permission_prefix = "audit_logging"
 
     @extend_schema(

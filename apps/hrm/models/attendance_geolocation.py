@@ -97,8 +97,8 @@ class AttendanceGeolocation(AutoCodeMixin, BaseModel):
     deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="Deleted at")
 
     class Meta:
-        verbose_name = "Attendance Geolocation"
-        verbose_name_plural = "Attendance Geolocations"
+        verbose_name = _("Attendance Geolocation")
+        verbose_name_plural = _("Attendance Geolocations")
         db_table = "hrm_attendance_geolocation"
         ordering = ["-created_at"]
         indexes = [

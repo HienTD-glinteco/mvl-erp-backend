@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from libs.models import BaseReportModel
 
@@ -72,8 +73,8 @@ class StaffGrowthReport(BaseReportDepartmentModel):
     num_resignations = models.PositiveIntegerField(default=0, verbose_name="Number of resignations")
 
     class Meta:
-        verbose_name = "Staff Growth Report"
-        verbose_name_plural = "Staff Growth Reports"
+        verbose_name = _("Staff Growth Report")
+        verbose_name_plural = _("Staff Growth Reports")
 
     def __str__(self):
         return f"Staff Growth Report - {self.report_date}"

@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -98,6 +99,6 @@ class BankViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering = ["id"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Bank Management"
+    module = _("HRM")
+    submodule = _("Bank Management")
     permission_prefix = "bank"

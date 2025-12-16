@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -119,8 +120,8 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["date", "name", "created_at"]
     ordering = ["-date", "-created_at"]
 
-    module = "HRM"
-    submodule = "Employee Management"
+    module = _("HRM")
+    submodule = _("Employee Management")
     permission_prefix = "employee_work_history"
 
     def create(self, request, *args, **kwargs):

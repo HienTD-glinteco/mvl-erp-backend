@@ -134,8 +134,8 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Recruitment Candidate"
-        verbose_name_plural = "Recruitment Candidates"
+        verbose_name = _("Recruitment Candidate")
+        verbose_name_plural = _("Recruitment Candidates")
         db_table = "hrm_recruitment_candidate"
         ordering = ["-created_at"]
 

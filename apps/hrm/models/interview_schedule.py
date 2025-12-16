@@ -37,8 +37,8 @@ class InterviewSchedule(BaseModel):
     )  # type: ignore[var-annotated]
 
     class Meta:
-        verbose_name = "Interview Schedule"
-        verbose_name_plural = "Interview Schedules"
+        verbose_name = _("Interview Schedule")
+        verbose_name_plural = _("Interview Schedules")
         db_table = "hrm_interview_schedule"
         ordering = ["-time"]
 

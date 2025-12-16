@@ -1,5 +1,6 @@
 """ViewSet for Contract model."""
 
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -304,9 +305,16 @@ class ContractViewSet(
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Contract Management"
+    module = _("HRM")
+    submodule = _("Contract Management")
     permission_prefix = "contract"
+    STANDARD_ACTIONS = {
+        **BaseModelViewSet.STANDARD_ACTIONS,
+        "publish": {
+            "name_template": _("Publish {model_name}"),
+            "description_template": _("Publish {model_name}"),
+        },
+    }
 
     # Export configuration
     export_serializer_class = ContractExportSerializer

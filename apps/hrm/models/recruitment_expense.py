@@ -74,8 +74,8 @@ class RecruitmentExpense(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Recruitment Expense"
-        verbose_name_plural = "Recruitment Expenses"
+        verbose_name = _("Recruitment Expense")
+        verbose_name_plural = _("Recruitment Expenses")
         db_table = "hrm_recruitment_expense"
         ordering = ["-created_at"]
 

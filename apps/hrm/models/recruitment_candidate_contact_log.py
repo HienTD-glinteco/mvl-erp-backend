@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -25,8 +26,8 @@ class RecruitmentCandidateContactLog(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Recruitment Candidate Contact Log"
-        verbose_name_plural = "Recruitment Candidate Contact Logs"
+        verbose_name = _("Recruitment Candidate Contact Log")
+        verbose_name_plural = _("Recruitment Candidate Contact Logs")
         db_table = "hrm_recruitment_candidate_contact_log"
         ordering = ["-date", "-created_at"]
 

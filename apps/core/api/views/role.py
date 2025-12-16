@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -310,8 +311,8 @@ class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["code"]
 
     # Permission registration attributes
-    module = "Core"
-    submodule = "Role Management"
+    module = _("Core")
+    submodule = _("Role Management")
     permission_prefix = "role"
 
     def destroy(self, request, *args, **kwargs):

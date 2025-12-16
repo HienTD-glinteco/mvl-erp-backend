@@ -315,8 +315,8 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_contract"
-        verbose_name = "Contract"
-        verbose_name_plural = "Contracts"
+        verbose_name = _("Contract")
+        verbose_name_plural = _("Contracts")
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["code"], name="contract_code_idx"),

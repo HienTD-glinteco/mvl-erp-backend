@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -53,6 +54,6 @@ class RecruitmentSourceViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Recruitment"
+    module = _("HRM")
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_source"

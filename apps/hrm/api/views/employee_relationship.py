@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -217,8 +218,8 @@ class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["employee_code", "employee_name", "relative_name", "relation_type"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Employee Management"
+    module = _("HRM")
+    submodule = _("Employee Management")
     permission_prefix = "employee_relationship"
 
     def get_queryset(self):

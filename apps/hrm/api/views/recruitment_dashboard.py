@@ -39,9 +39,39 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     All data sourced from flat report models for performance.
     """
 
-    module = "HRM"
-    submodule = "Recruitment"
+    module = _("HRM")
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_dashboard"
+    STANDARD_ACTIONS = {
+        "realtime": {
+            "name_template": _("View Realtime Recruitment KPIs"),
+            "description_template": _("View realtime recruitment KPIs"),
+        },
+        "experience_breakdown_chart": {
+            "name_template": _("View Experience Breakdown Chart"),
+            "description_template": _("View experience level breakdown chart for hired candidates"),
+        },
+        "branch_breakdown_chart": {
+            "name_template": _("View Branch Breakdown Chart"),
+            "description_template": _("View branch breakdown chart for hired candidates"),
+        },
+        "cost_breakdown_chart": {
+            "name_template": _("View Cost Breakdown Chart"),
+            "description_template": _("View cost breakdown by source type categories chart"),
+        },
+        "cost_by_branches_chart": {
+            "name_template": _("View Cost by Branches Chart"),
+            "description_template": _("View average cost breakdown by branches chart"),
+        },
+        "source_type_breakdown_chart": {
+            "name_template": _("View Source Type Breakdown Chart"),
+            "description_template": _("View recruitment source type breakdown chart"),
+        },
+        "monthly_trends_chart": {
+            "name_template": _("View Monthly Trends Chart"),
+            "description_template": _("View monthly trends of candidate sources chart"),
+        },
+    }
 
     @extend_schema(
         summary="Realtime Dashboard KPIs",

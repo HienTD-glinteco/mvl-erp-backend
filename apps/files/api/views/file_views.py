@@ -93,7 +93,11 @@ class PresignURLView(APIView):
     permission_classes = [RoleBasedPermission]
 
     @register_permission(
-        "files.presign_url", _("Generate presigned URL"), "Files", "Presign", _("Generate presigned URL")
+        "files.presign_url",
+        description=_("Generate presigned URL"),
+        module=_("Files"),
+        submodule=_("Presign"),
+        name=_("Generate presigned URL"),
     )
     def post(self, request):
         """Generate presigned URL for file upload."""
@@ -257,7 +261,11 @@ class ConfirmMultipleFilesView(APIView):
     permission_classes = [RoleBasedPermission]
 
     @register_permission(
-        "files.confirm_multiple_files", _("Confirm multiple files"), "Files", "Confirm", _("Confirm multiple files")
+        "files.confirm_multiple_files",
+        description=_("Confirm multiple files"),
+        module=_("Files"),
+        submodule=_("Confirm"),
+        name=_("Confirm multiple files"),
     )
     def post(self, request):  # noqa: C901
         """Confirm multiple file uploads and create FileModel records."""

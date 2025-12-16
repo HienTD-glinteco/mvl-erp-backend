@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -126,8 +127,19 @@ class AttendanceRecordViewSet(
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Attendance Record Management"
+    submodule = _("Attendance Record Management")
     permission_prefix = "attendance_record"
+    STANDARD_ACTIONS = {
+        **PermissionRegistrationMixin.STANDARD_ACTIONS,
+        "geolocation_attendance": {
+            "name_template": _("Record attendance by GeoLocation"),
+            "description_template": _("Record attendance using GeoLocation coordinates"),
+        },
+        "wifi_attendance": {
+            "name_template": _("Record attendance by WiFi"),
+            "description_template": _("Record attendance using WiFi BSSID"),
+        },
+    }
 
     @extend_schema(
         summary="Record attendance by GeoLocation",

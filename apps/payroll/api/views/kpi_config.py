@@ -81,10 +81,10 @@ class CurrentKPIConfigView(APIView):
     )
     @register_permission(
         "payroll.view_kpi_config",
-        _("View KPI configuration"),
-        "Payroll",
-        "Configuration",
-        _("Payroll View KPI Configuration"),
+        description=_("View KPI configuration"),
+        module=_("Payroll"),
+        submodule=_("Configuration"),
+        name=_("Payroll View KPI Configuration"),
     )
     def get(self, request):
         """Get the current KPI configuration."""

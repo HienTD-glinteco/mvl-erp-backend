@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -98,6 +99,6 @@ class AdministrativeUnitViewSet(BaseReadOnlyModelViewSet):
     ordering = ["parent_province__code", "code"]
 
     # Permission registration attributes
-    module = "Core"
-    submodule = "Geographic Data"
+    module = _("Core")
+    submodule = _("Geographic Data")
     permission_prefix = "administrative_unit"

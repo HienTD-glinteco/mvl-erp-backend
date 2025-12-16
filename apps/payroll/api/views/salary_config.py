@@ -124,10 +124,10 @@ class CurrentSalaryConfigView(APIView):
     )
     @register_permission(
         "payroll.view_salary_config",
-        _("View salary configuration"),
-        "Payroll",
-        "Configuration",
-        _("Payroll View Salary Configuration"),
+        description=_("View salary configuration"),
+        module=_("Payroll"),
+        submodule=_("Configuration"),
+        name=_("Payroll View Salary Configuration"),
     )
     def get(self, request):
         """Get the current salary configuration."""

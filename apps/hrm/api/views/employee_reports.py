@@ -48,9 +48,23 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
 
     pagination_class = None
 
-    module = "REPORT"
-    submodule = "Employee"
+    module = _("REPORT")
+    submodule = _("Employee Reports")
     permission_prefix = "employee_reports"
+    STANDARD_ACTIONS = {
+        "employee_resigned_breakdown": {
+            "name_template": _("Retrieve employee resigned breakdown report"),
+            "description_template": _("Retrieve employee resigned breakdown report"),
+        },
+        "employee_status_breakdown": {
+            "name_template": _("Retrieve employee status breakdown report"),
+            "description_template": _("Retrieve employee status breakdown report"),
+        },
+        "employee_resigned_reasons_summary": {
+            "name_template": _("Retrieve employee resigned reasons summary report"),
+            "description_template": _("Retrieve employee resigned reasons summary report"),
+        },
+    }
 
     def _generate_time_buckets_for_week(self, from_date: date, to_date: date) -> list[tuple[str, date, date]]:
         buckets: list[tuple[str, date, date]] = []
@@ -657,10 +671,19 @@ class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     - Reuses the existing `EmployeeSeniorityFilterSet`, `SeniorityOrderingFilter` and serializer.
     """
 
-    module = "REPORT"
-    submodule = "Employee"
+    module = _("REPORT")
+    submodule = _("Employee Seniority Report")
     permission_prefix = "employee_seniority_report"
-
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("Employee Seniority Report"),
+            "description_template": _("Retrieve employee seniority report with filtering and sorting"),
+        },
+        "export": {
+            "name_template": _("Export Employee Seniority Report"),
+            "description_template": _("Export employee seniority report to XLSX format"),
+        },
+    }
     queryset = Employee.objects.none()
 
     # Provide filterset and serializer for ExportXLSXMixin to work with

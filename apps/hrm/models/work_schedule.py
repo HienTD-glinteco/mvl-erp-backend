@@ -84,8 +84,8 @@ class WorkSchedule(BaseModel):
     )
 
     class Meta:
-        verbose_name = "Work schedule"
-        verbose_name_plural = "Work schedules"
+        verbose_name = _("Work schedule")
+        verbose_name_plural = _("Work schedules")
         db_table = "hrm_work_schedule"
         ordering = ["weekday"]
 

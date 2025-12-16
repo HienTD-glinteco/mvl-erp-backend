@@ -261,8 +261,8 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Contract type"
-        verbose_name_plural = "Contract types"
+        verbose_name = _("Contract Type")
+        verbose_name_plural = _("Contract Types")
         db_table = "hrm_contract_type"
         ordering = ["-created_at"]
 
