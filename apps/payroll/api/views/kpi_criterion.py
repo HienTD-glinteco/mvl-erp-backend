@@ -171,7 +171,9 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": False,
                     "data": None,
                     "error": {
-                        "non_field_errors": ["A criterion with this target, evaluation type, and criterion already exists"]
+                        "non_field_errors": [
+                            "A criterion with this target, evaluation type, and criterion already exists"
+                        ]
                     },
                 },
                 response_only=True,
@@ -302,7 +304,7 @@ class KPICriterionViewSet(AuditLoggingMixin, BaseModelViewSet):
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["criterion", "description"]
     ordering_fields = ["target", "evaluation_type", "criterion", "order", "created_at", "updated_at"]
-    ordering = ["evaluation_type", "order"]
+    ordering = ["-evaluation_type", "order"]
 
     # Permission registration attributes
     module = "Payroll"

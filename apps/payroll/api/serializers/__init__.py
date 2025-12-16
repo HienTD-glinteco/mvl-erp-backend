@@ -10,6 +10,22 @@ from .config_schemas import (
     SalaryConfigSchemaSerializer,
     SocialInsuranceSerializer,
 )
+from .department_kpi_assessment import (
+    DepartmentKPIAssessmentListSerializer,
+    DepartmentKPIAssessmentSerializer,
+    DepartmentKPIAssessmentUpdateSerializer,
+)
+from .employee_kpi_assessment import (
+    EmployeeKPIAssessmentListSerializer,
+    EmployeeKPIAssessmentSerializer,
+    EmployeeKPIAssessmentUpdateSerializer,
+    EmployeeKPIItemSerializer,
+    EmployeeKPIItemUpdateSerializer,
+)
+from .kpi_assessment_period import (
+    KPIAssessmentPeriodListSerializer,
+    KPIAssessmentPeriodSerializer,
+)
 from .kpi_config import KPIConfigSerializer
 from .kpi_config_schemas import GradeThresholdSerializer, KPIConfigSchemaSerializer, UnitControlSerializer
 from .kpi_criterion import KPICriterionSerializer
@@ -32,4 +48,14 @@ __all__ = [
     "GradeThresholdSerializer",
     "UnitControlSerializer",
     "KPICriterionSerializer",
+    "KPIAssessmentPeriodSerializer",
+    "KPIAssessmentPeriodListSerializer",
+    "EmployeeKPIAssessmentSerializer",
+    "EmployeeKPIAssessmentListSerializer",
+    "EmployeeKPIAssessmentUpdateSerializer",
+    "EmployeeKPIItemSerializer",
+    "EmployeeKPIItemUpdateSerializer",
+    "DepartmentKPIAssessmentSerializer",
+    "DepartmentKPIAssessmentListSerializer",
+    "DepartmentKPIAssessmentUpdateSerializer",
 ]

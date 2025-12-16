@@ -187,56 +187,15 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
             submitted_date=self.today,
         )
 
-        # Hires today: three hired candidates on open requests
-        hires_request = RecruitmentRequest.objects.create(
-            name="Hires Request",
-            job_description=JobDescription.objects.first(),
-            department=self.department,
-            proposer=self.employee,
-            recruitment_type=RecruitmentRequest.RecruitmentType.NEW_HIRE,
-            status=RecruitmentRequest.Status.OPEN,
-            proposed_salary="2200 USD",
-            number_of_positions=3,
-        )
-
-        RecruitmentCandidate.objects.create(
-            name="Hired Candidate 1",
-            email="hire1@example.com",
-            phone="0999999991",
+        # Hires today
+        month_key = self.today.strftime("%m/%Y")
+        HiredCandidateReport.objects.create(
+            report_date=self.today,
             branch=self.branch,
-            recruitment_source=self.source_no_referral,
-            recruitment_channel=self.channel_marketing,
-            recruitment_request=hires_request,
-            submitted_date=self.today,
-            onboard_date=self.today,
-            status=RecruitmentCandidate.Status.HIRED,
-            citizen_id="0999999991",
-        )
-        RecruitmentCandidate.objects.create(
-            name="Hired Candidate 2",
-            email="hire2@example.com",
-            phone="0999999992",
-            branch=self.branch,
-            recruitment_source=self.source_no_referral,
-            recruitment_channel=self.channel_marketing,
-            recruitment_request=hires_request,
-            submitted_date=self.today,
-            onboard_date=self.today,
-            status=RecruitmentCandidate.Status.HIRED,
-            citizen_id="0999999992",
-        )
-        RecruitmentCandidate.objects.create(
-            name="Hired Candidate 3",
-            email="hire3@example.com",
-            phone="0999999993",
-            branch=self.branch,
-            recruitment_source=self.source_no_referral,
-            recruitment_channel=self.channel_marketing,
-            recruitment_request=hires_request,
-            submitted_date=self.today,
-            onboard_date=self.today,
-            status=RecruitmentCandidate.Status.HIRED,
-            citizen_id="0999999993",
+            source_type=RecruitmentSourceType.MARKETING_CHANNEL.value,
+            month_key=month_key,
+            num_candidates_hired=3,
+            num_experienced=2,
         )
 
         # Interviews today
@@ -272,8 +231,8 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
         self.assertIn("interviews_today", data)
         self.assertIn("employees_today", data)
 
-        # We created 2 job descriptions + 1 for candidate + 1 for interview + 3 for hires = 7 total open positions
-        self.assertEqual(data["open_positions"], 7)
+        # We created 2 job descriptions + 1 for candidate + 1 for interview = 4 total
+        self.assertEqual(data["open_positions"], 4)
         self.assertEqual(data["applicants_today"], 1)
         self.assertEqual(data["hires_today"], 3)
         self.assertEqual(data["interviews_today"], 1)
