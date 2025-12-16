@@ -299,6 +299,16 @@ class ZKRealtimeDeviceListener:
                     f"retrying for {time_since_first_failure / 3600:.1f} hours)"
                 )
 
+                # If consecutive failures exceed limit, disable device
+                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                    logger.critical(
+                        f"Device {device.name} has exceeded {MAX_CONSECUTIVE_FAILURES} consecutive failures. "
+                        f"Requesting disable of realtime listener for this device."
+                    )
+                    await self._safe_call(self._on_device_disabled, device.device_id)
+                    # Exit the loop for this device
+                    break
+
                 # Notify disconnection and error via callbacks (safe)
                 await self._safe_call(self._on_device_disconnected, device.device_id)
                 await self._safe_call(self._on_device_error, device.device_id, error_msg, consecutive_failures)
