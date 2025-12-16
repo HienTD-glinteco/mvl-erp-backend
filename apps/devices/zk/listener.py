@@ -11,6 +11,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone as dt_timezone
 from typing import Any
 
@@ -98,11 +99,12 @@ class ZKRealtimeDeviceListener:
     def __init__(
         self,
         get_devices_callback: Callable[[], list[ZKDeviceInfo]],
-        on_attendance_event: Callable[[ZKAttendanceEvent], None],
-        on_device_connected: Callable[[int, dict[str, Any]], None] | None = None,
-        on_device_disconnected: Callable[[int], None] | None = None,
-        on_device_error: Callable[[int, str, int], None] | None = None,
-        on_device_disabled: Callable[[int], None] | None = None,
+        on_attendance_event: Callable[[ZKAttendanceEvent], Any],
+        on_device_connected: Callable[[int, dict[str, Any]], Any] | None = None,
+        on_device_disconnected: Callable[[int], Any] | None = None,
+        on_device_error: Callable[[int, str, int], Any] | None = None,
+        on_device_disabled: Callable[[int], Any] | None = None,
+        max_workers: int = 50,
     ):
         """Initialize the realtime listener.
 
@@ -113,6 +115,7 @@ class ZKRealtimeDeviceListener:
             on_device_disconnected: Callback when device disconnects
             on_device_error: Callback for device errors (device_id, error_msg, consecutive_failures)
             on_device_disabled: Callback when device is disabled due to prolonged failures
+            max_workers: Maximum number of worker threads for device connections (default: 50)
         """
         self._get_devices = get_devices_callback
         self._on_attendance_event = on_attendance_event
@@ -120,17 +123,22 @@ class ZKRealtimeDeviceListener:
         self._on_device_disconnected = on_device_disconnected
         self._on_device_error = on_device_error
         self._on_device_disabled = on_device_disabled
+        self.max_workers = max_workers
 
         self._device_tasks: dict[int, asyncio.Task] = {}
         self._registered_device_ids: set[int] = set()  # Track currently registered devices
         self._running = False
         self._shutdown_event = asyncio.Event()
+        self._executor: ThreadPoolExecutor | None = None
 
     async def start(self):
         """Start the realtime listener for all enabled devices."""
         logger.info("Starting realtime attendance listener")
         self._running = True
         self._shutdown_event.clear()
+
+        # Initialize thread pool executor
+        self._executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="zk_listener")
 
         # Start initial devices
         await self._check_and_start_devices()
@@ -147,6 +155,11 @@ class ZKRealtimeDeviceListener:
             await device_checker_task
         except asyncio.CancelledError:
             pass
+
+    async def _run_blocking(self, func: Callable, *args):
+        """Run a blocking function in the custom thread pool executor."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(self._executor, func, *args)
 
     async def _periodic_device_checker(self):
         """Periodically check for new or re-enabled devices and start listeners for them."""
@@ -166,7 +179,7 @@ class ZKRealtimeDeviceListener:
         Also removes devices that were previously registered but are no longer enabled.
         """
         # Get all enabled devices via callback
-        devices = await asyncio.to_thread(self._get_devices)
+        devices = await self._run_blocking(self._get_devices)
 
         # Build set of currently enabled device IDs
         enabled_device_ids = {device.device_id for device in devices}
@@ -218,6 +231,12 @@ class ZKRealtimeDeviceListener:
             await asyncio.gather(*self._device_tasks.values(), return_exceptions=True)
 
         self._device_tasks.clear()
+
+        # Shutdown executor
+        if self._executor:
+            self._executor.shutdown(wait=False)
+            self._executor = None
+
         logger.info("Realtime attendance listener stopped")
 
     async def _device_listener_loop(self, device: ZKDeviceInfo):
@@ -335,7 +354,7 @@ class ZKRealtimeDeviceListener:
                 raise ConnectionError("Failed to establish connection")
             return conn
 
-        return await asyncio.to_thread(_do_connect)
+        return await self._run_blocking(_do_connect)
 
     async def _disconnect_device(self, device: ZKDeviceInfo, zk_conn: ZK):
         """Disconnect from an attendance device.
@@ -354,7 +373,7 @@ class ZKRealtimeDeviceListener:
             except Exception as e:
                 logger.warning(f"Error during disconnect from device {device.name}: {str(e)}")
 
-        await asyncio.to_thread(_do_disconnect)
+        await self._run_blocking(_do_disconnect)
 
     async def _get_device_info(self, zk_conn: ZK) -> dict[str, Any]:
         """Get device information from connected device.
@@ -377,18 +396,20 @@ class ZKRealtimeDeviceListener:
                 logger.warning(f"Error getting device info: {str(e)}")
                 return {}
 
-        return await asyncio.to_thread(_do_get_info)
+        return await self._run_blocking(_do_get_info)
 
     async def _safe_call(self, callback, *args, **kwargs):
-        """Safely call a synchronous callback in a thread if it exists.
+        """Safely call a callback (sync or async).
 
-        Swallows exceptions from the callback and logs them so the listener loop
-        doesn't get interrupted by a failing handler.
+        Swallows exceptions from the callback and logs them.
         """
         if not callback:
             return
         try:
-            await asyncio.to_thread(callback, *args, **kwargs)
+            if asyncio.iscoroutinefunction(callback):
+                await callback(*args, **kwargs)
+            else:
+                await self._run_blocking(callback, *args, **kwargs)
         except Exception as e:
             try:
                 name = getattr(callback, "__name__", str(callback))
@@ -433,7 +454,7 @@ class ZKRealtimeDeviceListener:
                 if current_time - last_info_update >= DEVICE_INFO_UPDATE_INTERVAL:
                     device_info = await self._get_device_info(zk_conn)
                     if self._on_device_connected:
-                        await asyncio.to_thread(self._on_device_connected, device.device_id, device_info)
+                        await self._run_blocking(self._on_device_connected, device.device_id, device_info)
                     last_info_update = current_time
 
         except Exception as e:
@@ -460,7 +481,7 @@ class ZKRealtimeDeviceListener:
         gen = sync_gen_func()
 
         while True:
-            item, done = await loop.run_in_executor(None, _get_next_item, gen)
+            item, done = await loop.run_in_executor(self._executor, _get_next_item, gen)
             if done:
                 break
             yield item
@@ -490,7 +511,10 @@ class ZKRealtimeDeviceListener:
             )
 
             # Call the event handler callback
-            await asyncio.to_thread(self._on_attendance_event, event)
+            if asyncio.iscoroutinefunction(self._on_attendance_event):
+                await self._on_attendance_event(event)
+            else:
+                await self._run_blocking(self._on_attendance_event, event)
 
             logger.info(
                 f"Processed attendance event - Device: {device.name}, User: {attendance.user_id}, Time: {timestamp}"
