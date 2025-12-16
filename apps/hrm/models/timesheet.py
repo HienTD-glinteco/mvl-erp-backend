@@ -3,13 +3,7 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
-<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
-=======
-from django.db.models import Q
-from django.utils import timezone
-from django.utils.translation import gettext as _
->>>>>>> 41dc4b8 (Add models, module translation)
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (

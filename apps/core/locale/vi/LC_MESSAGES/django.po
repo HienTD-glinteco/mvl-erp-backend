@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 14:31+0700\n"
+"POT-Creation-Date: 2025-12-16 19:20+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -364,9 +364,9 @@ msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
 #: apps/core/api/views/administrative_unit.py:102
-#: apps/core/api/views/role.py:313
+#: apps/core/api/views/export_status.py:46 apps/core/api/views/role.py:314
 msgid "Core"
-msgstr "[Hệ thống] "
+msgstr "Hệ thống "
 
 #: apps/core/api/views/administrative_unit.py:103
 msgid "Geographic Data"
@@ -580,19 +580,23 @@ msgstr "Reset token hoặc mã OTP không hợp lệ"
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
-#: apps/core/api/views/export_status.py:43
+#: apps/core/api/views/export_status.py:45
 msgid "Check export status"
 msgstr "Quyền xem trạng thái xuất dữ liệu"
 
-#: apps/core/api/views/export_status.py:43
+#: apps/core/api/views/export_status.py:47
+msgid "Export Status"
+msgstr "Trạng thái xuất dữ liệu"
+
+#: apps/core/api/views/export_status.py:48
 msgid "Export status"
 msgstr "Trạng thái xuất dữ liệu"
 
-#: apps/core/api/views/export_status.py:66
+#: apps/core/api/views/export_status.py:72
 msgid "task_id parameter is required"
 msgstr "Tham số task_id là bắt buộc"
 
-#: apps/core/api/views/role.py:314
+#: apps/core/api/views/role.py:315
 msgid "Role Management"
 msgstr "Quản lý vai trò"
 
@@ -718,12 +722,10 @@ msgstr "Android"
 msgid "Web"
 msgstr "Web"
 
-# models/user.py:14
 #: apps/core/models/password_reset.py:20
 msgid "Email"
 msgstr "Email"
 
-# models/password_reset.py:19
 #: apps/core/models/password_reset.py:21
 msgid "SMS"
 msgstr "SMS"
@@ -756,7 +758,6 @@ msgstr "các Vai trò"
 msgid "System"
 msgstr "Hệ thống"
 
-# models/user.py:41
 #: apps/core/models/role.py:39
 msgid "User"
 msgstr "Người dùng"

@@ -55,6 +55,24 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = _("HRM")
     submodule = _("Employee timesheet")
     permission_prefix = "timesheet"
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("List employee timesheets"),
+            "description_template": _("List employee timesheets"),
+        },
+        "retrieve": {
+            "name_template": _("Get employee timesheet details"),
+            "description_template": _("Get employee timesheet details"),
+        },
+        "histories": {
+            "name_template": _("History timesheets"),
+            "description_template": _("View history of timesheets"),
+        },
+        "history_detail": {
+            "name_template": _("History detail of timesheets"),
+            "description_template": _("View history detail of timesheets"),
+        },
+    }
 
     def list(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
@@ -283,3 +301,13 @@ class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = _("HRM")
     submodule = _("Timesheet")
     permission_prefix = "timesheet"
+    STANDARD_ACTIONS = {
+        "list": {
+            "name_template": _("List employee timesheet entries"),
+            "description_template": _("List employee timesheet entries"),
+        },
+        "retrieve": {
+            "name_template": _("Get employee timesheet details"),
+            "description_template": _("Get employee timesheet details"),
+        },
+    }
