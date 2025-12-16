@@ -7,7 +7,12 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import HolidayFilterSet
-from apps.hrm.api.serializers import CompensatoryWorkdaySerializer, HolidayDetailSerializer, HolidaySerializer
+from apps.hrm.api.serializers import (
+    CompensatoryWorkdaySerializer,
+    HolidayDetailSerializer,
+    HolidayExportXLSXSerializer,
+    HolidaySerializer,
+)
 from apps.hrm.models import CompensatoryWorkday, Holiday
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -130,11 +135,40 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     submodule = "Holiday Management"
     permission_prefix = "holiday"
 
+    xlsx_template_name = "apps/hrm/fixtures/export_templates/holiday_export_template.xlsx"
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
         if self.action == "retrieve":
             return HolidayDetailSerializer
+        if self.action == "export":
+            return HolidayExportXLSXSerializer
         return HolidaySerializer
+
+    def get_export_data(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+        if self.xlsx_template_name:
+            headers = [_(self.xlsx_template_index_column_key), *headers]
+            field_names = [self.xlsx_template_index_column_key, *field_names]
+            for index, row in enumerate(data, start=1):
+                row.update({self.xlsx_template_index_column_key: index})
+
+        data = {
+            "sheets": [
+                {
+                    "name": str(Holiday._meta.verbose_name),
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
+        return data
 
 
 @extend_schema_view(

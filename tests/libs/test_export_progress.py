@@ -619,3 +619,316 @@ class GenerateXLSXFromViewsetTaskTests(TestCase):
 
         # Verify set_completed was called
         mock_tracker.set_completed.assert_called_once()
+
+
+@override_settings(
+    EXPORTER_CELERY_ENABLED=True,
+    EXPORTER_STORAGE_BACKEND="local",
+    EXPORTER_PROGRESS_CHUNK_SIZE=100,
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
+)
+class GenerateXLSXTaskTemplateTests(SimpleTestCase):
+    """Test cases for Celery tasks with template_name and template_context parameters."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after tests."""
+        cache.clear()
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_generate_xlsx_task_with_template_name(
+        self, mock_generator_class, mock_tracker_class, mock_storage_backend
+    ):
+        """Test generate_xlsx_task passes template_name to generator."""
+        # Mock XLSXGenerator
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
+        # Mock storage
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        # Mock progress tracker
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from libs.export_xlsx import tasks
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "User 1"}],
+                }
+            ]
+        }
+
+        # Call the task with template_name
+        result = tasks.generate_xlsx_task.run(
+            schema,
+            filename="test.xlsx",
+            storage_backend="local",
+            template_name="my_template.xlsx",
+            template_context=None,
+        )
+
+        # Verify result
+        self.assertEqual(result["status"], "success")
+
+        # Verify generator.generate was called with template_name and template_context
+        mock_generator.generate.assert_called_once()
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "my_template.xlsx")
+        self.assertIsNone(call_kwargs["template_context"])
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_generate_xlsx_task_with_template_context(
+        self, mock_generator_class, mock_tracker_class, mock_storage_backend
+    ):
+        """Test generate_xlsx_task passes template_context to generator."""
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from libs.export_xlsx import tasks
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "User 1"}],
+                }
+            ]
+        }
+
+        template_context = {"{{ title }}": "Report Title", "{{ date }}": "2025-01-01"}
+
+        # Call the task with template_name and template_context
+        result = tasks.generate_xlsx_task.run(
+            schema,
+            filename="test.xlsx",
+            storage_backend="local",
+            template_name="my_template.xlsx",
+            template_context=template_context,
+        )
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify generator.generate was called with template_context
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "my_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], template_context)
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_generate_xlsx_task_without_template(self, mock_generator_class, mock_tracker_class, mock_storage_backend):
+        """Test generate_xlsx_task works without template parameters."""
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from libs.export_xlsx import tasks
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "User 1"}],
+                }
+            ]
+        }
+
+        # Call the task without template parameters (default)
+        result = tasks.generate_xlsx_task.run(
+            schema,
+            filename="test.xlsx",
+            storage_backend="local",
+        )
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify generator.generate was called with None for template params
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertIsNone(call_kwargs["template_name"])
+        self.assertIsNone(call_kwargs["template_context"])
+
+
+@override_settings(
+    EXPORTER_CELERY_ENABLED=True,
+    EXPORTER_STORAGE_BACKEND="local",
+    EXPORTER_PROGRESS_CHUNK_SIZE=100,
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
+)
+class GenerateXLSXFromQuerysetTaskTemplateTests(TestCase):
+    """Test cases for generate_xlsx_from_queryset_task with template parameters."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after tests."""
+        cache.clear()
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_queryset_task_with_template_parameters(
+        self, mock_generator_class, mock_tracker_class, mock_storage_backend
+    ):
+        """Test generate_xlsx_from_queryset_task passes template params to generator."""
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from apps.core.models import Role
+        from libs.export_xlsx import tasks
+
+        # Create test data
+        Role.objects.create(code="admin", name="Administrator")
+
+        template_context = {"{{ company }}": "Test Company"}
+
+        # Call the task with template parameters
+        result = tasks.generate_xlsx_from_queryset_task.run(
+            app_label="core",
+            model_name="Role",
+            queryset_filters=None,
+            filename="roles_export.xlsx",
+            storage_backend="local",
+            template_name="queryset_template.xlsx",
+            template_context=template_context,
+        )
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify generator.generate was called with template params
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "queryset_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], template_context)
+
+
+@override_settings(
+    EXPORTER_CELERY_ENABLED=True,
+    EXPORTER_STORAGE_BACKEND="local",
+    EXPORTER_PROGRESS_CHUNK_SIZE=100,
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-progress-cache",
+        }
+    },
+)
+class GenerateXLSXFromViewsetTaskTemplateTests(TestCase):
+    """Test cases for generate_xlsx_from_viewset_task with template parameters."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        cache.clear()
+
+    def tearDown(self):
+        """Clean up after tests."""
+        cache.clear()
+
+    @patch("libs.export_xlsx.tasks.get_storage_backend")
+    @patch("libs.export_xlsx.tasks.ExportProgressTracker")
+    @patch("libs.export_xlsx.tasks.XLSXGenerator")
+    def test_viewset_task_with_template_parameters(
+        self, mock_generator_class, mock_tracker_class, mock_storage_backend
+    ):
+        """Test generate_xlsx_from_viewset_task passes template params to generator."""
+        mock_generator = Mock()
+        mock_file_content = Mock()
+        mock_generator.generate.return_value = mock_file_content
+        mock_generator_class.return_value = mock_generator
+
+        mock_storage = Mock()
+        mock_storage.save.return_value = "exports/test.xlsx"
+        mock_storage.get_url.return_value = "https://example.com/test.xlsx"
+        mock_storage_backend.return_value = mock_storage
+
+        mock_tracker = Mock()
+        mock_tracker_class.return_value = mock_tracker
+
+        from apps.core.models import Role
+        from libs.export_xlsx import tasks
+
+        Role.objects.create(code="admin", name="Administrator")
+
+        viewset_class_path = "tests.libs.test_export_xlsx_mixin.TestExportViewSet"
+        request_data = {
+            "query_params": {},
+            "user_id": None,
+        }
+        template_context = {"{{ report_name }}": "ViewSet Export Report"}
+
+        result = tasks.generate_xlsx_from_viewset_task.run(
+            viewset_class_path=viewset_class_path,
+            request_data=request_data,
+            filename="roles_export.xlsx",
+            storage_backend="local",
+            template_name="viewset_template.xlsx",
+            template_context=template_context,
+        )
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify generator.generate was called with template params
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "viewset_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], template_context)

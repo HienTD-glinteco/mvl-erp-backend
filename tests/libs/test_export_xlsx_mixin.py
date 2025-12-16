@@ -446,3 +446,173 @@ class ExportXLSXMixinTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["expires_in"], 7200)
+
+
+@override_settings(EXPORTER_CELERY_ENABLED=False)
+class ExportXLSXMixinTemplateTests(TestCase):
+    """Test cases for ExportXLSXMixin template functionality."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.factory = APIRequestFactory()
+        self.user = User.objects.create_superuser(
+            username="templatetestuser", email="templatetest@example.com", password="testpass123"
+        )
+        Role.objects.create(code="template_admin", name="Template Administrator")
+
+    def test_xlsx_template_name_default_is_none(self):
+        """Test that xlsx_template_name defaults to None."""
+        viewset = TestExportViewSet()
+        self.assertIsNone(viewset.xlsx_template_name)
+
+    def test_xlsx_template_index_column_key_default(self):
+        """Test that xlsx_template_index_column_key defaults to 'No.'"""
+        viewset = TestExportViewSet()
+        self.assertEqual(viewset.xlsx_template_index_column_key, "No.")
+
+    def test_get_xlsx_template_context_default(self):
+        """Test that get_xlsx_template_context returns empty dict by default."""
+        viewset = TestExportViewSet()
+        context = viewset.get_xlsx_template_context()
+        self.assertEqual(context, {})
+
+    def test_custom_xlsx_template_name(self):
+        """Test ViewSet with custom xlsx_template_name."""
+
+        class TemplateExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+            xlsx_template_name = "path/to/template.xlsx"
+
+        viewset = TemplateExportViewSet()
+        self.assertEqual(viewset.xlsx_template_name, "path/to/template.xlsx")
+
+    def test_custom_get_xlsx_template_context(self):
+        """Test ViewSet with custom get_xlsx_template_context."""
+
+        class ContextExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+
+            def get_xlsx_template_context(self):
+                return {
+                    "{{ title }}": "Custom Report",
+                    "{{ date }}": "2025-01-01",
+                }
+
+        viewset = ContextExportViewSet()
+        context = viewset.get_xlsx_template_context()
+        self.assertEqual(context["{{ title }}"], "Custom Report")
+        self.assertEqual(context["{{ date }}"], "2025-01-01")
+
+    @patch("libs.export_xlsx.mixins.XLSXGenerator")
+    def test_sync_export_passes_template_to_generator(self, mock_generator_class):
+        """Test that synchronous export passes template_name and template_context to generator."""
+
+        class TemplateExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+            xlsx_template_name = "my_template.xlsx"
+
+            def get_xlsx_template_context(self):
+                return {"{{ key }}": "value"}
+
+        mock_generator = MagicMock()
+        mock_generator.generate.return_value = MagicMock()
+        mock_generator.generate.return_value.read.return_value = b"file content"
+        mock_generator_class.return_value = mock_generator
+
+        request = self.factory.get("/api/test/export/?delivery=direct")
+        request.user = self.user
+        drf_request = Request(request)
+
+        viewset = TemplateExportViewSet()
+        viewset.request = drf_request
+        viewset.format_kwarg = None
+        viewset.filter_queryset = lambda qs: qs
+        viewset.get_queryset = lambda: Role.objects.all()
+
+        viewset.export(drf_request)
+
+        # Verify generator.generate was called with template_name and template_context
+        mock_generator.generate.assert_called_once()
+        call_kwargs = mock_generator.generate.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "my_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], {"{{ key }}": "value"})
+
+    @override_settings(EXPORTER_CELERY_ENABLED=True)
+    @patch("libs.export_xlsx.mixins.generate_xlsx_from_queryset_task.delay")
+    def test_async_export_passes_template_to_task(self, mock_task):
+        """Test that async export passes template_name and template_context to Celery task."""
+
+        class TemplateAsyncExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+            xlsx_template_name = "async_template.xlsx"
+
+            def get_xlsx_template_context(self):
+                return {"{{ report_date }}": "2025-12-16"}
+
+        mock_task.return_value.id = "test-task-template-123"
+
+        request = self.factory.get("/api/test/export/?async=true")
+        request.user = self.user
+        drf_request = Request(request)
+
+        viewset = TemplateAsyncExportViewSet()
+        viewset.request = drf_request
+        viewset.format_kwarg = None
+        viewset.filter_queryset = lambda qs: qs
+        viewset.get_queryset = lambda: Role.objects.all()
+
+        response = viewset.export(drf_request)
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        # Verify template_name and template_context were passed to task
+        call_kwargs = mock_task.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "async_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], {"{{ report_date }}": "2025-12-16"})
+
+    @override_settings(EXPORTER_CELERY_ENABLED=True)
+    @patch("libs.export_xlsx.mixins.generate_xlsx_from_viewset_task.delay")
+    def test_async_custom_export_passes_template_to_task(self, mock_task):
+        """Test that async export with custom get_export_data passes template to ViewSet task."""
+
+        class CustomTemplateExportViewSet(ExportXLSXMixin, BaseModelViewSet):
+            queryset = Role.objects.all()
+            serializer_class = None
+            xlsx_template_name = "custom_template.xlsx"
+
+            def get_export_data(self, request):
+                return {
+                    "sheets": [
+                        {
+                            "name": "Custom Sheet",
+                            "headers": ["Code", "Name"],
+                            "data": [{"code": "admin", "name": "Administrator"}],
+                        }
+                    ]
+                }
+
+            def get_xlsx_template_context(self):
+                return {"{{ custom_key }}": "custom_value"}
+
+        mock_task.return_value.id = "test-task-custom-template-456"
+
+        request = self.factory.get("/api/test/export/?async=true")
+        request.user = self.user
+        drf_request = Request(request)
+
+        viewset = CustomTemplateExportViewSet()
+        viewset.request = drf_request
+        viewset.format_kwarg = None
+        viewset.filter_queryset = lambda qs: qs
+        viewset.get_queryset = lambda: Role.objects.all()
+
+        response = viewset.export(drf_request)
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        # Verify template_name and template_context were passed to ViewSet task
+        call_kwargs = mock_task.call_args[1]
+        self.assertEqual(call_kwargs["template_name"], "custom_template.xlsx")
+        self.assertEqual(call_kwargs["template_context"], {"{{ custom_key }}": "custom_value"})

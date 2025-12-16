@@ -7,9 +7,10 @@ import time
 from io import BytesIO
 
 from django.conf import settings
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
 
 from .constants import (
     DEFAULT_HEADER_ALIGNMENT,
@@ -40,7 +41,7 @@ class XLSXGenerator:
         self.chunk_size = chunk_size
         self.total_rows_processed = 0
 
-    def generate(self, schema):
+    def generate(self, schema, template_name=None, template_context=None):
         """
         Generate XLSX file from schema.
 
@@ -63,23 +64,84 @@ class XLSXGenerator:
         if not schema or "sheets" not in schema:
             raise ValueError(ERROR_INVALID_SCHEMA)
 
-        self.workbook = Workbook()
-        # Remove default sheet
-        if "Sheet" in self.workbook.sheetnames:
-            del self.workbook["Sheet"]
+        # NOTE: Only use the template_name if it's a valid xlsx or xls file, else just normal generation.
+        if not template_name or (not template_name.endswith(".xlsx") and not template_name.endswith(".xls")):
+            self.workbook = Workbook()
+            # Remove default sheet
+            if "Sheet" in self.workbook.sheetnames:
+                del self.workbook["Sheet"]
 
-        # Calculate total rows for progress tracking
-        total_rows = self._calculate_total_rows(schema)
+            # Calculate total rows for progress tracking
+            total_rows = self._calculate_total_rows(schema)
 
-        # Create each sheet
-        for sheet_def in schema["sheets"]:
-            self._create_sheet(sheet_def)
+            # Create each sheet
+            for sheet_def in schema["sheets"]:
+                self._create_sheet(sheet_def)
+        else:
+            self.workbook = self._generate_workbook_from_template(schema, template_name, template_context)
 
         # Save to BytesIO
         output = BytesIO()
         self.workbook.save(output)
         output.seek(0)
         return output
+
+    def _generate_workbook_from_template(self, schema, template_name, template_context=None):
+        """
+        Generate workbook from template file.
+
+        Args:
+            schema: Export schema
+            template_name: Template file name
+            context: Context for template rendering, could be None if not needed for rendering template
+        Returns:
+            Workbook: Generated workbook
+        """
+        workbook = load_workbook(filename=template_name, data_only=True)
+        sheet: Worksheet = self._render_sheet_with_context(workbook.active, template_context)
+
+        # NOTE: use template means only one sheet supported for now
+        sheet_def = schema["sheets"][0]
+        start_row = sheet.max_row + 1
+        current_row = start_row if start_row > 9 else 9  # NOTE: this usually the line right under the logo image
+        self._finalize_sheet(sheet, sheet_def, current_row)
+        return workbook
+
+    def _render_sheet_with_context(self, sheet: Worksheet, template_context: dict = None) -> Worksheet:  # type: ignore
+        """
+        Render sheet by replacing placeholders with context values.
+
+        Args:
+            sheet: Worksheet object
+            context: Context dictionary for rendering
+        """
+        if not template_context:
+            return sheet
+
+        # NOTE: support only simple placeholders like {{ key }} or {{key}} - just like Django templates
+        supported_placeholder_pre_post_fixes = [
+            ("{{ ", " }}"),
+            ("{{", "}}"),
+        ]
+        for row in sheet.iter_rows(min_row=1):
+            for cell in row:
+                try:
+                    # NOTE: replace cell with correct formatted placeholder with context value.
+                    valid = False
+                    for pre, post in supported_placeholder_pre_post_fixes:
+                        if isinstance(cell.value, str) and cell.value.startswith(pre) and cell.value.endswith(post):
+                            valid = True
+                            break
+
+                    if not valid or cell.value not in template_context:
+                        # NOTE: invalid placeholder will be skipped, avoid breaking flow.
+                        continue
+
+                    cell.value = template_context[cell.value]
+                except Exception as e:
+                    # NOTE: Any error during rendering a cell will be skipped.
+                    logger.debug(f"Skipping cell due to error: {e}")
+        return sheet
 
     def _calculate_total_rows(self, schema):
         """
@@ -104,17 +166,31 @@ class XLSXGenerator:
         Args:
             sheet_def: Sheet definition dictionary
         """
-        sheet_name = sheet_def.get("name", "Sheet1")
+        # Create worksheet
+        ws = self.workbook.create_sheet()
+
+        self._finalize_sheet(ws, sheet_def)
+
+    def _finalize_sheet(
+        self,
+        ws: Worksheet,
+        sheet_def: dict,
+        current_row: int = 1,
+    ):
+        """
+        Finalize worksheet by adding headers, data, and applying styles.
+
+        This is mutual function for both template-based and schema-based sheet creation.
+        """
+
+        title = sheet_def.get("name", "Sheet1")
         headers = sheet_def.get("headers", [])
         field_names = sheet_def.get("field_names", headers)
         data = sheet_def.get("data", [])
         groups = sheet_def.get("groups", [])
         merge_rules = sheet_def.get("merge_rules", [])
 
-        # Create worksheet
-        ws = self.workbook.create_sheet(title=sheet_name)
-
-        current_row = 1
+        ws.title = title
 
         # Add group headers if defined
         if groups:

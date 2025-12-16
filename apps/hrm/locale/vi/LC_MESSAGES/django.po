@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 15:03+0700\n"
+"POT-Creation-Date: 2025-12-16 18:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -215,23 +215,23 @@ msgid ""
 "Your location is outside the allowed radius ({radius}m) of the geolocation"
 msgstr "Vị trí của bạn nằm ngoài bán kính cho phép ({radius}m) "
 
-#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:111
+#: apps/hrm/api/serializers/holiday.py:55 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 
-#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:116
+#: apps/hrm/api/serializers/holiday.py:59 apps/hrm/models/holiday.py:116
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
-#: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
+#: apps/hrm/api/serializers/holiday.py:82 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
-#: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
+#: apps/hrm/api/serializers/holiday.py:195 apps/hrm/models/holiday.py:43
 msgid "End date must be greater than or equal to start date"
 msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/api/serializers/holiday.py:208
+#: apps/hrm/api/serializers/holiday.py:209
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
 
@@ -522,7 +522,7 @@ msgstr "Khác"
 msgid "Update successful"
 msgstr "Chỉnh sửa thành công"
 
-#: apps/hrm/api/views/holiday.py:217
+#: apps/hrm/api/views/holiday.py:251
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
 

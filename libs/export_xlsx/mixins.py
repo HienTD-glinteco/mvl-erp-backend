@@ -53,6 +53,9 @@ class ExportXLSXMixin:
                 ]
     """
 
+    xlsx_template_name: str | None = None  # Optional: path to XLSX template file
+    xlsx_template_index_column_key = "No."
+
     def get_export_schema_parameters(self):
         """
         Get additional schema parameters for the export endpoint.
@@ -62,6 +65,16 @@ class ExportXLSXMixin:
             List of OpenApiParameter objects
         """
         return []
+
+    def get_xlsx_template_context(self) -> dict:
+        """
+        Get context dictionary for XLSX template rendering.
+        ViewSets can override this to add specific context variables.
+
+        Returns:
+            dict: Context for template
+        """
+        return {}
 
     @extend_schema(
         summary="Export to XLSX",
@@ -176,6 +189,8 @@ class ExportXLSXMixin:
                 queryset_filters=task_params.get("queryset_filters"),
                 filename=task_params.get("filename"),
                 storage_backend=storage_backend,
+                template_name=self.xlsx_template_name,
+                template_context=self.get_xlsx_template_context(),
             )
         else:
             # Custom export - use ViewSet-based task to defer get_export_data to worker
@@ -191,6 +206,8 @@ class ExportXLSXMixin:
                 request_data=request_data,
                 filename=filename,
                 storage_backend=storage_backend,
+                template_name=self.xlsx_template_name,
+                template_context=self.get_xlsx_template_context(),
             )
 
         return Response(
@@ -219,7 +236,9 @@ class ExportXLSXMixin:
 
         # Generate file synchronously
         generator = XLSXGenerator()
-        file_content = generator.generate(schema)
+        file_content = generator.generate(
+            schema, template_name=self.xlsx_template_name, template_context=self.get_xlsx_template_context()
+        )
 
         # Handle delivery mode
         if delivery == DELIVERY_DIRECT:

@@ -1,12 +1,14 @@
 import json
 from datetime import date
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.hrm.api.serializers import HolidayExportXLSXSerializer
 from apps.hrm.models import CompensatoryWorkday, Holiday
 
 User = get_user_model()
@@ -839,3 +841,208 @@ class CompensatoryWorkdayAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data["morning_time"], "08:00-12:00")
         self.assertEqual(data["afternoon_time"], "13:30-17:30")
+
+
+class HolidayExportXLSXSerializerTest(TransactionTestCase):
+    """Test cases for HolidayExportXLSXSerializer."""
+
+    def setUp(self):
+        """Set up test data."""
+        Holiday.objects.all().delete()
+        CompensatoryWorkday.objects.all().delete()
+
+        # Create a holiday with compensatory days
+        self.holiday = Holiday.objects.create(
+            name="Test Holiday",
+            start_date=date(2026, 2, 5),
+            end_date=date(2026, 2, 6),
+            notes="Test holiday notes",
+        )
+
+        # Create compensatory days
+        CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 2, 7),  # Saturday
+            session=CompensatoryWorkday.Session.AFTERNOON,
+            notes="Saturday makeup",
+        )
+
+        CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 2, 8),  # Sunday
+            session=CompensatoryWorkday.Session.FULL_DAY,
+            notes="Sunday makeup",
+        )
+
+    def test_serializer_fields(self):
+        """Test that serializer has correct default fields."""
+        serializer = HolidayExportXLSXSerializer(instance=self.holiday)
+        data = serializer.data
+
+        self.assertIn("name", data)
+        self.assertIn("start_date", data)
+        self.assertIn("end_date", data)
+        self.assertIn("notes", data)
+        self.assertIn("compensatory_days", data)
+
+    def test_compensatory_days_serialization(self):
+        """Test that compensatory days are serialized correctly."""
+        serializer = HolidayExportXLSXSerializer(instance=self.holiday)
+        data = serializer.data
+
+        comp_days = data["compensatory_days"]
+        self.assertIsInstance(comp_days, str)
+        self.assertIn("2026-02-07", comp_days)
+        self.assertIn("2026-02-08", comp_days)
+        self.assertIn("Afternoon", comp_days)
+        self.assertIn("Full Day", comp_days)
+
+    def test_compensatory_days_with_notes(self):
+        """Test that compensatory days include notes in serialization."""
+        serializer = HolidayExportXLSXSerializer(instance=self.holiday)
+        data = serializer.data
+
+        comp_days = data["compensatory_days"]
+        self.assertIn("Saturday makeup", comp_days)
+        self.assertIn("Sunday makeup", comp_days)
+
+    def test_compensatory_days_empty(self):
+        """Test serialization of holiday without compensatory days."""
+        holiday_no_comp = Holiday.objects.create(
+            name="No Comp Holiday",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 2),
+            notes="No compensatory days",
+        )
+
+        serializer = HolidayExportXLSXSerializer(instance=holiday_no_comp)
+        data = serializer.data
+
+        self.assertEqual(data["compensatory_days"], "")
+
+    def test_many_serialization(self):
+        """Test serialization of multiple holidays."""
+        Holiday.objects.create(
+            name="Another Holiday",
+            start_date=date(2026, 4, 1),
+            end_date=date(2026, 4, 2),
+            notes="Another holiday",
+        )
+
+        holidays = Holiday.objects.all()
+        serializer = HolidayExportXLSXSerializer(instance=holidays, many=True)
+        data = serializer.data
+
+        self.assertEqual(len(data), 2)
+
+
+@override_settings(EXPORTER_CELERY_ENABLED=False)
+class HolidayExportAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for Holiday export API endpoint."""
+
+    def setUp(self):
+        """Set up test data."""
+        Holiday.objects.all().delete()
+        CompensatoryWorkday.objects.all().delete()
+        User.objects.all().delete()
+
+        self.user = User.objects.create_superuser(
+            username="exporttestuser", email="exporttest@example.com", password="testpass123"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        # Create a holiday with compensatory days
+        self.holiday = Holiday.objects.create(
+            name="Export Test Holiday",
+            start_date=date(2026, 2, 5),
+            end_date=date(2026, 2, 6),
+            notes="Export test notes",
+        )
+
+        CompensatoryWorkday.objects.create(
+            holiday=self.holiday,
+            date=date(2026, 2, 7),  # Saturday
+            session=CompensatoryWorkday.Session.AFTERNOON,
+            notes="Saturday",
+        )
+
+    def test_export_endpoint_exists(self):
+        """Test that export endpoint exists."""
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        # Should not return 404
+        self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_export_direct_delivery(self):
+        """Test export with direct file delivery."""
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertIn(".xlsx", response["Content-Disposition"])
+
+    def test_export_uses_template(self):
+        """Test that export uses the xlsx_template_name."""
+        # The HolidayViewSet has xlsx_template_name set
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        # Should return a valid XLSX file
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # The content should be valid XLSX data
+        self.assertTrue(len(response.content) > 0)
+
+    def test_export_includes_holiday_data(self):
+        """Test that exported file contains holiday data."""
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # File should have content
+        self.assertTrue(len(response.content) > 100)
+
+    @patch("libs.export_xlsx.mixins.get_storage_backend")
+    def test_export_link_delivery(self, mock_get_storage):
+        """Test export with link delivery."""
+        mock_storage = MagicMock()
+        mock_storage.save.return_value = "exports/holiday_export.xlsx"
+        mock_storage.get_url.return_value = "https://s3.example.com/holiday_export.xlsx"
+        mock_storage.get_file_size.return_value = 12345
+        mock_get_storage.return_value = mock_storage
+
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "link"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertIn("url", data)
+        self.assertIn("filename", data)
+
+    def test_export_with_search_filter(self):
+        """Test export with search filter applied."""
+        # Create another holiday
+        Holiday.objects.create(
+            name="Different Holiday",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 2),
+        )
+
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct", "search": "Export Test"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # Should only export filtered results
+
+    def test_export_with_ordering(self):
+        """Test export with ordering applied."""
+        url = reverse("hrm:holiday-export")
+        response = self.client.get(url, {"delivery": "direct", "ordering": "start_date"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)

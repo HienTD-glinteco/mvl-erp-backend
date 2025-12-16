@@ -240,6 +240,202 @@ class XLSXGeneratorTests(TestCase):
         self.assertIn("Sheet 2", wb.sheetnames)
 
 
+class XLSXGeneratorTemplateTests(TestCase):
+    """Test cases for XLSXGenerator template-based generation."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.generator = XLSXGenerator()
+
+    def test_generate_without_template(self):
+        """Test generating XLSX without template (template_name=None)."""
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name", "Email"],
+                    "field_names": ["name", "email"],
+                    "data": [{"name": "John Doe", "email": "john@example.com"}],
+                }
+            ]
+        }
+
+        file_content = self.generator.generate(schema, template_name=None, template_context=None)
+
+        # Verify it's a valid BytesIO object
+        self.assertIsInstance(file_content, BytesIO)
+
+        # Load and verify the workbook
+        wb = load_workbook(file_content)
+        self.assertIn("Test Sheet", wb.sheetnames)
+
+    def test_generate_with_invalid_template_extension(self):
+        """Test that non-xlsx/xls templates fall back to normal generation."""
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        # Using a template with an invalid extension should fall back to normal generation
+        file_content = self.generator.generate(schema, template_name="test.txt", template_context=None)
+
+        self.assertIsInstance(file_content, BytesIO)
+        wb = load_workbook(file_content)
+        self.assertIn("Test Sheet", wb.sheetnames)
+
+    @patch("libs.export_xlsx.generator.load_workbook")
+    def test_generate_with_xlsx_template(self, mock_load_workbook):
+        """Test generating XLSX from xlsx template."""
+        # Create a mock workbook
+        mock_wb = MagicMock()
+        mock_ws = MagicMock()
+        mock_ws.max_row = 8
+        mock_ws.iter_rows.return_value = []
+        mock_wb.active = mock_ws
+        mock_load_workbook.return_value = mock_wb
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        # Using an xlsx template should use template-based generation
+        self.generator.generate(schema, template_name="template.xlsx", template_context=None)
+
+        mock_load_workbook.assert_called_once_with(filename="template.xlsx", data_only=True)
+
+    @patch("libs.export_xlsx.generator.load_workbook")
+    def test_generate_with_xls_template(self, mock_load_workbook):
+        """Test generating XLSX from xls template."""
+        mock_wb = MagicMock()
+        mock_ws = MagicMock()
+        mock_ws.max_row = 8
+        mock_ws.iter_rows.return_value = []
+        mock_wb.active = mock_ws
+        mock_load_workbook.return_value = mock_wb
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        self.generator.generate(schema, template_name="template.xls", template_context=None)
+
+        mock_load_workbook.assert_called_once_with(filename="template.xls", data_only=True)
+
+    @patch("libs.export_xlsx.generator.load_workbook")
+    def test_generate_with_template_context(self, mock_load_workbook):
+        """Test generating XLSX with template context placeholder replacement."""
+        # Create a mock workbook with cells containing placeholders
+        mock_wb = MagicMock()
+        mock_ws = MagicMock()
+        mock_cell1 = MagicMock()
+        mock_cell1.value = "{{ title }}"
+        mock_cell2 = MagicMock()
+        mock_cell2.value = "{{date}}"
+        mock_cell3 = MagicMock()
+        mock_cell3.value = "Normal text"
+
+        mock_ws.max_row = 8
+        mock_ws.iter_rows.return_value = [[mock_cell1, mock_cell2, mock_cell3]]
+        mock_wb.active = mock_ws
+        mock_load_workbook.return_value = mock_wb
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        template_context = {
+            "{{ title }}": "Report Title",
+            "{{date}}": "2025-01-01",
+        }
+
+        self.generator.generate(schema, template_name="template.xlsx", template_context=template_context)
+
+        # Verify placeholders were replaced
+        self.assertEqual(mock_cell1.value, "Report Title")
+        self.assertEqual(mock_cell2.value, "2025-01-01")
+        # Non-placeholder should remain unchanged
+        self.assertEqual(mock_cell3.value, "Normal text")
+
+    @patch("libs.export_xlsx.generator.load_workbook")
+    def test_generate_with_empty_template_context(self, mock_load_workbook):
+        """Test generating XLSX with empty template context."""
+        mock_wb = MagicMock()
+        mock_ws = MagicMock()
+        mock_ws.max_row = 8
+        mock_ws.iter_rows.return_value = []
+        mock_wb.active = mock_ws
+        mock_load_workbook.return_value = mock_wb
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        # Should not raise an error with empty context
+        self.generator.generate(schema, template_name="template.xlsx", template_context={})
+
+        mock_load_workbook.assert_called_once()
+
+    @patch("libs.export_xlsx.generator.load_workbook")
+    def test_generate_with_none_template_context(self, mock_load_workbook):
+        """Test generating XLSX with None template context."""
+        mock_wb = MagicMock()
+        mock_ws = MagicMock()
+        mock_ws.max_row = 8
+        mock_ws.iter_rows.return_value = []
+        mock_wb.active = mock_ws
+        mock_load_workbook.return_value = mock_wb
+
+        schema = {
+            "sheets": [
+                {
+                    "name": "Test Sheet",
+                    "headers": ["Name"],
+                    "field_names": ["name"],
+                    "data": [{"name": "Test"}],
+                }
+            ]
+        }
+
+        # Should not raise an error with None context
+        self.generator.generate(schema, template_name="template.xlsx", template_context=None)
+
+        mock_load_workbook.assert_called_once()
+
+
 @override_settings(
     EXPORTER_STORAGE_BACKEND=STORAGE_LOCAL,
     EXPORTER_LOCAL_STORAGE_PATH="test_exports",
