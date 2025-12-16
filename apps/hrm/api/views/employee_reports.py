@@ -51,7 +51,7 @@ class EmployeeReportsViewSet(BaseGenericViewSet):
     module = _("REPORT")
     submodule = _("Employee Reports")
     permission_prefix = "employee_reports"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "employee_resigned_breakdown": {
             "name_template": _("Retrieve employee resigned breakdown report"),
             "description_template": _("Retrieve employee resigned breakdown report"),
@@ -674,7 +674,7 @@ class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
     module = _("REPORT")
     submodule = _("Employee Seniority Report")
     permission_prefix = "employee_seniority_report"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("Employee Seniority Report"),
             "description_template": _("Retrieve employee seniority report with filtering and sorting"),

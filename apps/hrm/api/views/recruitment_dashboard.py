@@ -42,7 +42,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_dashboard"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "realtime": {
             "name_template": _("View Realtime Recruitment KPIs"),
             "description_template": _("View realtime recruitment KPIs"),

@@ -433,7 +433,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_candidate"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "list": {
             "name_template": _("View Candidates"),
             "description_template": _("View all candidates in the system"),

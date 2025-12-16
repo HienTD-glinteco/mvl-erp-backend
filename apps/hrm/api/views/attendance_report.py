@@ -26,7 +26,7 @@ class AttendanceReportViewSet(BaseGenericViewSet):
     module = _("Report")
     submodule = _("Attendance")
     permission_prefix = "recruitment_reports"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "by_method": {
             "name_template": _("Attendance Report By Method"),
             "description_template": _("Get attendance statistics report by method (device, wifi, geolocation, other)"),

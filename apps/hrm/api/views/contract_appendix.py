@@ -261,8 +261,7 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
     module = _("HRM")
     submodule = _("Contract Appendix Management")
     permission_prefix = "contract_appendix"
-    STANDARD_ACTIONS = {
-        **BaseModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "publish": {
             "name_template": _("Publish {model_name}"),
             "description_template": _("Publish {model_name}"),

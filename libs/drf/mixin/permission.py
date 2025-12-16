@@ -1,6 +1,6 @@
 from typing import Union
-from django.utils.functional import Promise
 
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 
@@ -101,6 +101,30 @@ class PermissionRegistrationMixin:
             if callable(attr) and hasattr(attr, "mapping"):
                 # This is a DRF action
                 if attr_name not in cls.STANDARD_ACTIONS:
+                    if (
+                        hasattr(cls, "PERMISSION_REGISTERED_ACTIONS")
+                        and attr_name in cls.PERMISSION_REGISTERED_ACTIONS
+                    ):
+                        continue
+                    custom_actions.append(attr_name)
+        return custom_actions
+
+    @classmethod
+    def get_permission_registered_actions(cls):
+        """
+        Get all custom actions defined in the viewset.
+
+        Returns:
+            list: List of custom action names (decorated with @action)
+        """
+        custom_actions = []
+        for attr_name in dir(cls):
+            if attr_name.startswith("_"):
+                continue
+            attr = getattr(cls, attr_name)
+            if callable(attr) and hasattr(attr, "mapping") and hasattr(cls, "PERMISSION_REGISTERED_ACTIONS"):
+                # This is a DRF action
+                if attr_name in cls.PERMISSION_REGISTERED_ACTIONS:
                     custom_actions.append(attr_name)
         return custom_actions
 
@@ -143,18 +167,30 @@ class PermissionRegistrationMixin:
                         "submodule": cls.submodule,
                     }
                 )
+        # Genetrate permissions for registered actions
+        for action_name in cls.get_permission_registered_actions():
+            action_meta = cls.PERMISSION_REGISTERED_ACTIONS[action_name]
+            permissions.append(
+                {
+                    "code": f"{cls.permission_prefix}.{action_name}",
+                    "name": str(action_meta["name_template"]).format(model_name=model_name),
+                    "description": str(action_meta["description_template"]).format(model_name=model_name),
+                    "module": cls.module,
+                    "submodule": cls.submodule,
+                }
+            )
 
         # Generate permissions for custom actions
         for action_name in cls.get_custom_actions():
-            attr = getattr(cls, action_name)
+            # attr = getattr(cls, action_name)
             # Convert action name to readable format (e.g., "approve" -> "Approve")
             action_title = action_name.replace("_", " ").title()
 
             permissions.append(
                 {
                     "code": f"{cls.permission_prefix}.{action_name}",
-                    "name": f"{action_title} {model_name}",
-                    "description": f"{action_title} a {model_name}",
+                    "name": f"UNREGISTERED {action_title} {model_name}",
+                    "description": f"You need to add this action to PERMISSION_REGISTERED_ACTIONS to it's View {action_title} a {model_name}",
                     "module": cls.module,
                     "submodule": cls.submodule,
                 }

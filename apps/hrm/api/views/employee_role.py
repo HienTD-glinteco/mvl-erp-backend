@@ -108,8 +108,7 @@ class EmployeeRoleViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_role"
-    STANDARD_ACTIONS = {
-        **BaseReadOnlyModelViewSet.STANDARD_ACTIONS,
+    PERMISSION_REGISTERED_ACTIONS = {
         "bulk_update_roles": {
             "name_template": _("Bulk Update Employee Roles"),
             "description_template": _("Update roles for multiple employees at once"),

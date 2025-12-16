@@ -50,7 +50,7 @@ class RecruitmentReportsViewSet(BaseGenericViewSet):
     module = _("REPORT")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_reports"
-    STANDARD_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS = {
         "staff_growth": {
             "name_template": _("Staff Growth Report"),
             "description_template": _("Aggregate staff changes by period (week/month)"),
