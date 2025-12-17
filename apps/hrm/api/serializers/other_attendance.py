@@ -4,6 +4,8 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 
+from apps.files.models import FileModel
+from apps.hrm.constants import AttendanceType
 from apps.hrm.models import AttendanceGeolocation, AttendanceRecord
 
 
@@ -44,9 +46,6 @@ class OtherAttendanceSerializer(serializers.Serializer):
 
         # Extract optional image_id if present
         image_id = validated_data.pop("image_id", None)
-
-        from apps.hrm.constants import AttendanceType
-        from apps.files.models import FileModel
 
         # Create record
         record = AttendanceRecord(
