@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import CertificateType
-from apps.hrm.models import Block, Branch, Department, Employee, EmployeeCertificate
+from apps.hrm.models import Block, Branch, Department, Employee, EmployeeCertificate, Position
 
 User = get_user_model()
 
@@ -1368,3 +1368,243 @@ class EmployeeCertificateAPITest(TestCase):
         result_data = self.get_response_data(response)
         self.assertIn("effective_date", result_data)
         self.assertEqual(result_data["effective_date"], (date.today() + timedelta(days=15)).strftime("%Y-%m-%d"))
+
+    def test_filter_by_multiple_statuses(self):
+        """Test filtering certificates by multiple status values"""
+        # Create certificates with different statuses
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Valid Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=60),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Near Expiry Certificate",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=15),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Expired Certificate",
+            issue_date=date.today() - timedelta(days=100),
+            expiry_date=date.today() - timedelta(days=1),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Test filtering by multiple statuses (Valid and Near Expiry)
+        response = self.client.get(url, {"status": ["Valid", "Near Expiry"]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 2)
+        statuses = [cert["status"] for cert in result_data]
+        self.assertIn("Valid", statuses)
+        self.assertIn("Near Expiry", statuses)
+        self.assertNotIn("Expired", statuses)
+
+    def test_filter_by_branch(self):
+        """Test filtering certificates by employee branch"""
+        # Create another branch and employee
+        branch2 = Branch.objects.create(
+            code="CN002",
+            name="Test Branch 2",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        block2 = Block.objects.create(
+            code="KH002",
+            name="Test Block 2",
+            branch=branch2,
+            block_type=Block.BlockType.BUSINESS,
+        )
+        department2 = Department.objects.create(
+            code="PB002",
+            name="Test Department 2",
+            branch=branch2,
+            block=block2,
+        )
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee 2",
+            username="testemployee2_branch",
+            email="test2_branch@example.com",
+            phone="0900200010",
+            branch=branch2,
+            block=block2,
+            department=department2,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020010",
+        )
+
+        # Create certificates for both employees
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate Branch 1",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate Branch 2",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"branch": self.branch.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Certificate Branch 1")
+
+    def test_filter_by_block(self):
+        """Test filtering certificates by employee block"""
+        # Create another block
+        block2 = Block.objects.create(
+            code="KH003",
+            name="Test Block 3",
+            branch=self.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        department2 = Department.objects.create(
+            code="PB003",
+            name="Test Department 3",
+            branch=self.branch,
+            block=block2,
+        )
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee 3",
+            username="testemployee3_block",
+            email="test3_block@example.com",
+            phone="0900200011",
+            branch=self.branch,
+            block=block2,
+            department=department2,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020011",
+        )
+
+        # Create certificates for both employees
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate Block 1",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate Block 2",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"block": self.block.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Certificate Block 1")
+
+    def test_filter_by_department(self):
+        """Test filtering certificates by employee department"""
+        # Create another department
+        department2 = Department.objects.create(
+            code="PB004",
+            name="Test Department 4",
+            branch=self.branch,
+            block=self.block,
+        )
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee 4",
+            username="testemployee4_dept",
+            email="test4_dept@example.com",
+            phone="0900200012",
+            branch=self.branch,
+            block=self.block,
+            department=department2,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020012",
+        )
+
+        # Create certificates for both employees
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate Dept 1",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate Dept 2",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"department": self.department.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Certificate Dept 1")
+
+    def test_filter_by_position(self):
+        """Test filtering certificates by employee position"""
+        # Create positions
+        position1 = Position.objects.create(
+            code="VT001",
+            name="Test Position 1",
+        )
+        position2 = Position.objects.create(
+            code="VT002",
+            name="Test Position 2",
+        )
+
+        # Update employee with position
+        self.employee.position = position1
+        self.employee.save()
+
+        # Create another employee with different position
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="Test Employee 5",
+            username="testemployee5_pos",
+            email="test5_pos@example.com",
+            phone="0900200013",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            position=position2,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020013",
+        )
+
+        # Create certificates for both employees
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate Position 1",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate Position 2",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"position": position1.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["certificate_name"], "Certificate Position 1")
