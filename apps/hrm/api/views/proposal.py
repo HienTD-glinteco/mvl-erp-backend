@@ -705,6 +705,56 @@ class ProposalTimesheetEntryComplaintViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalTimesheetEntryComplaintSerializer
     permission_prefix = "proposal_timesheet_entry_complaint"
     export_serializer_class = ProposalTimesheetEntryComplaintExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Timesheet Entry Complaint Proposals"),
+            "description_template": _("Allows the user to list timesheet entry complaint proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to retrieve a specific timesheet entry complaint proposal"),
+        },
+        "create": {
+            "name_template": _("Create Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to create a new timesheet entry complaint proposal"),
+        },
+        "update": {
+            "name_template": _("Update Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to update an existing timesheet entry complaint proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Timesheet Entry Complaint Proposal"),
+            "description_template": _(
+                "Allows the user to partially update an existing timesheet entry complaint proposal"
+            ),
+        },
+        "destroy": {
+            "name_template": _("Delete Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to delete a timesheet entry complaint proposal"),
+        },
+        "export": {
+            "name_template": _("Export Timesheet Entry Complaint Proposals"),
+            "description_template": _("Allows the user to export timesheet entry complaint proposals"),
+        },
+        "histories": {
+            "name_template": _("View Timesheet Entry Complaint Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for timesheet entry complaint proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Timesheet Entry Complaint Proposal History Detail"),
+            "description_template": _(
+                "Allows the user to view detailed audit log for a timesheet entry complaint proposal"
+            ),
+        },
+        "approve": {
+            "name_template": _("Approve Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to approve a timesheet entry complaint proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Timesheet Entry Complaint Proposal"),
+            "description_template": _("Allows the user to reject a timesheet entry complaint proposal"),
+        },
+    }
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]
@@ -947,6 +997,56 @@ class ProposalPostMaternityBenefitsViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalPostMaternityBenefitsSerializer
     permission_prefix = "proposal_post_maternity_benefits"
     export_serializer_class = ProposalPostMaternityBenefitsExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Post-Maternity Benefits Proposals"),
+            "description_template": _("Allows the user to list post-maternity benefits proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to retrieve a specific post-maternity benefits proposal"),
+        },
+        "create": {
+            "name_template": _("Create Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to create a new post-maternity benefits proposal"),
+        },
+        "update": {
+            "name_template": _("Update Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to update an existing post-maternity benefits proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Post-Maternity Benefits Proposal"),
+            "description_template": _(
+                "Allows the user to partially update an existing post-maternity benefits proposal"
+            ),
+        },
+        "destroy": {
+            "name_template": _("Delete Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to delete a post-maternity benefits proposal"),
+        },
+        "export": {
+            "name_template": _("Export Post-Maternity Benefits Proposals"),
+            "description_template": _("Allows the user to export post-maternity benefits proposals"),
+        },
+        "histories": {
+            "name_template": _("View Post-Maternity Benefits Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for post-maternity benefits proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Post-Maternity Benefits Proposal History Detail"),
+            "description_template": _(
+                "Allows the user to view detailed audit log for a post-maternity benefits proposal"
+            ),
+        },
+        "approve": {
+            "name_template": _("Approve Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to approve a post-maternity benefits proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Post-Maternity Benefits Proposal"),
+            "description_template": _("Allows the user to reject a post-maternity benefits proposal"),
+        },
+    }
 
     @extend_schema(
         summary="Approve post-maternity benefits proposal",
@@ -1177,6 +1277,52 @@ class ProposalLateExemptionViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalLateExemptionSerializer
     permission_prefix = "proposal_late_exemption"
     export_serializer_class = ProposalLateExemptionExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Late Exemption Proposals"),
+            "description_template": _("Allows the user to list late exemption proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Late Exemption Proposal"),
+            "description_template": _("Allows the user to retrieve a specific late exemption proposal"),
+        },
+        "create": {
+            "name_template": _("Create Late Exemption Proposal"),
+            "description_template": _("Allows the user to create a new late exemption proposal"),
+        },
+        "update": {
+            "name_template": _("Update Late Exemption Proposal"),
+            "description_template": _("Allows the user to update an existing late exemption proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Late Exemption Proposal"),
+            "description_template": _("Allows the user to partially update an existing late exemption proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Late Exemption Proposal"),
+            "description_template": _("Allows the user to delete a late exemption proposal"),
+        },
+        "export": {
+            "name_template": _("Export Late Exemption Proposals"),
+            "description_template": _("Allows the user to export late exemption proposals"),
+        },
+        "histories": {
+            "name_template": _("View Late Exemption Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for late exemption proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Late Exemption Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for a late exemption proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Late Exemption Proposal"),
+            "description_template": _("Allows the user to approve a late exemption proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Late Exemption Proposal"),
+            "description_template": _("Allows the user to reject a late exemption proposal"),
+        },
+    }
 
     @extend_schema(
         summary="Approve late exemption proposal",
@@ -1459,6 +1605,52 @@ class ProposalOvertimeWorkViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalOvertimeWorkSerializer
     permission_prefix = "proposal_overtime_work"
     export_serializer_class = ProposalOvertimeWorkExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Overtime Work Proposals"),
+            "description_template": _("Allows the user to list overtime work proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Overtime Work Proposal"),
+            "description_template": _("Allows the user to retrieve a specific overtime work proposal"),
+        },
+        "create": {
+            "name_template": _("Create Overtime Work Proposal"),
+            "description_template": _("Allows the user to create a new overtime work proposal"),
+        },
+        "update": {
+            "name_template": _("Update Overtime Work Proposal"),
+            "description_template": _("Allows the user to update an existing overtime work proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Overtime Work Proposal"),
+            "description_template": _("Allows the user to partially update an existing overtime work proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Overtime Work Proposal"),
+            "description_template": _("Allows the user to delete an overtime work proposal"),
+        },
+        "export": {
+            "name_template": _("Export Overtime Work Proposals"),
+            "description_template": _("Allows the user to export overtime work proposals"),
+        },
+        "histories": {
+            "name_template": _("View Overtime Work Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for overtime work proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Overtime Work Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for an overtime work proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Overtime Work Proposal"),
+            "description_template": _("Allows the user to approve an overtime work proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Overtime Work Proposal"),
+            "description_template": _("Allows the user to reject an overtime work proposal"),
+        },
+    }
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["overtime_entries"]
@@ -1710,6 +1902,52 @@ class ProposalPaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalPaidLeaveSerializer
     permission_prefix = "proposal_paid_leave"
     export_serializer_class = ProposalPaidLeaveExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Paid Leave Proposals"),
+            "description_template": _("Allows the user to list paid leave proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Paid Leave Proposal"),
+            "description_template": _("Allows the user to retrieve a specific paid leave proposal"),
+        },
+        "create": {
+            "name_template": _("Create Paid Leave Proposal"),
+            "description_template": _("Allows the user to create a new paid leave proposal"),
+        },
+        "update": {
+            "name_template": _("Update Paid Leave Proposal"),
+            "description_template": _("Allows the user to update an existing paid leave proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Paid Leave Proposal"),
+            "description_template": _("Allows the user to partially update an existing paid leave proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Paid Leave Proposal"),
+            "description_template": _("Allows the user to delete a paid leave proposal"),
+        },
+        "export": {
+            "name_template": _("Export Paid Leave Proposals"),
+            "description_template": _("Allows the user to export paid leave proposals"),
+        },
+        "histories": {
+            "name_template": _("View Paid Leave Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for paid leave proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Paid Leave Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for a paid leave proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Paid Leave Proposal"),
+            "description_template": _("Allows the user to approve a paid leave proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Paid Leave Proposal"),
+            "description_template": _("Allows the user to reject a paid leave proposal"),
+        },
+    }
 
     @extend_schema(
         summary="Approve paid leave proposal",
@@ -1946,6 +2184,52 @@ class ProposalUnpaidLeaveViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalUnpaidLeaveSerializer
     permission_prefix = "proposal_unpaid_leave"
     export_serializer_class = ProposalUnpaidLeaveExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Unpaid Leave Proposals"),
+            "description_template": _("Allows the user to list unpaid leave proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to retrieve a specific unpaid leave proposal"),
+        },
+        "create": {
+            "name_template": _("Create Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to create a new unpaid leave proposal"),
+        },
+        "update": {
+            "name_template": _("Update Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to update an existing unpaid leave proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to partially update an existing unpaid leave proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to delete an unpaid leave proposal"),
+        },
+        "export": {
+            "name_template": _("Export Unpaid Leave Proposals"),
+            "description_template": _("Allows the user to export unpaid leave proposals"),
+        },
+        "histories": {
+            "name_template": _("View Unpaid Leave Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for unpaid leave proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Unpaid Leave Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for an unpaid leave proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to approve an unpaid leave proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Unpaid Leave Proposal"),
+            "description_template": _("Allows the user to reject an unpaid leave proposal"),
+        },
+    }
 
     @extend_schema(
         summary="Approve unpaid leave proposal",
@@ -2179,6 +2463,52 @@ class ProposalMaternityLeaveViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalMaternityLeaveSerializer
     permission_prefix = "proposal_maternity_leave"
     export_serializer_class = ProposalMaternityLeaveExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Maternity Leave Proposals"),
+            "description_template": _("Allows the user to list maternity leave proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Maternity Leave Proposal"),
+            "description_template": _("Allows the user to retrieve a specific maternity leave proposal"),
+        },
+        "create": {
+            "name_template": _("Create Maternity Leave Proposal"),
+            "description_template": _("Allows the user to create a new maternity leave proposal"),
+        },
+        "update": {
+            "name_template": _("Update Maternity Leave Proposal"),
+            "description_template": _("Allows the user to update an existing maternity leave proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Maternity Leave Proposal"),
+            "description_template": _("Allows the user to partially update an existing maternity leave proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Maternity Leave Proposal"),
+            "description_template": _("Allows the user to delete a maternity leave proposal"),
+        },
+        "export": {
+            "name_template": _("Export Maternity Leave Proposals"),
+            "description_template": _("Allows the user to export maternity leave proposals"),
+        },
+        "histories": {
+            "name_template": _("View Maternity Leave Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for maternity leave proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Maternity Leave Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for a maternity leave proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Maternity Leave Proposal"),
+            "description_template": _("Allows the user to approve a maternity leave proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Maternity Leave Proposal"),
+            "description_template": _("Allows the user to reject a maternity leave proposal"),
+        },
+    }
 
     def get_select_related_fields(self) -> List[str]:
         fields = super().get_select_related_fields()
@@ -2438,6 +2768,52 @@ class ProposalJobTransferViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalJobTransferSerializer
     permission_prefix = "proposal_job_transfer"
     export_serializer_class = ProposalJobTransferExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Job Transfer Proposals"),
+            "description_template": _("Allows the user to list job transfer proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Job Transfer Proposal"),
+            "description_template": _("Allows the user to retrieve a specific job transfer proposal"),
+        },
+        "create": {
+            "name_template": _("Create Job Transfer Proposal"),
+            "description_template": _("Allows the user to create a new job transfer proposal"),
+        },
+        "update": {
+            "name_template": _("Update Job Transfer Proposal"),
+            "description_template": _("Allows the user to update an existing job transfer proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Job Transfer Proposal"),
+            "description_template": _("Allows the user to partially update an existing job transfer proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Job Transfer Proposal"),
+            "description_template": _("Allows the user to delete a job transfer proposal"),
+        },
+        "export": {
+            "name_template": _("Export Job Transfer Proposals"),
+            "description_template": _("Allows the user to export job transfer proposals"),
+        },
+        "histories": {
+            "name_template": _("View Job Transfer Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for job transfer proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Job Transfer Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for a job transfer proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Job Transfer Proposal"),
+            "description_template": _("Allows the user to approve a job transfer proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Job Transfer Proposal"),
+            "description_template": _("Allows the user to reject a job transfer proposal"),
+        },
+    }
 
     def get_select_related_fields(self) -> List[str]:
         fields = super().get_select_related_fields()
@@ -2717,6 +3093,52 @@ class ProposalAssetAllocationViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalAssetAllocationSerializer
     permission_prefix = "proposal_asset_allocation"
     export_serializer_class = ProposalAssetAllocationExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Asset Allocation Proposals"),
+            "description_template": _("Allows the user to list asset allocation proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Asset Allocation Proposal"),
+            "description_template": _("Allows the user to retrieve a specific asset allocation proposal"),
+        },
+        "create": {
+            "name_template": _("Create Asset Allocation Proposal"),
+            "description_template": _("Allows the user to create a new asset allocation proposal"),
+        },
+        "update": {
+            "name_template": _("Update Asset Allocation Proposal"),
+            "description_template": _("Allows the user to update an existing asset allocation proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Asset Allocation Proposal"),
+            "description_template": _("Allows the user to partially update an existing asset allocation proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Asset Allocation Proposal"),
+            "description_template": _("Allows the user to delete an asset allocation proposal"),
+        },
+        "export": {
+            "name_template": _("Export Asset Allocation Proposals"),
+            "description_template": _("Allows the user to export asset allocation proposals"),
+        },
+        "histories": {
+            "name_template": _("View Asset Allocation Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for asset allocation proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Asset Allocation Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for an asset allocation proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Asset Allocation Proposal"),
+            "description_template": _("Allows the user to approve an asset allocation proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Asset Allocation Proposal"),
+            "description_template": _("Allows the user to reject an asset allocation proposal"),
+        },
+    }
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["assets"]
@@ -3262,6 +3684,52 @@ class ProposalDeviceChangeViewSet(ProposalMixin, BaseModelViewSet):
     serializer_class = ProposalDeviceChangeSerializer
     permission_prefix = "proposal_device_change"
     export_serializer_class = ProposalDeviceChangeExportXLSXSerializer
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List Device Change Proposals"),
+            "description_template": _("Allows the user to list device change proposals"),
+        },
+        "retrieve": {
+            "name_template": _("Retrieve Device Change Proposal"),
+            "description_template": _("Allows the user to retrieve a specific device change proposal"),
+        },
+        "create": {
+            "name_template": _("Create Device Change Proposal"),
+            "description_template": _("Allows the user to create a new device change proposal"),
+        },
+        "update": {
+            "name_template": _("Update Device Change Proposal"),
+            "description_template": _("Allows the user to update an existing device change proposal"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Device Change Proposal"),
+            "description_template": _("Allows the user to partially update an existing device change proposal"),
+        },
+        "destroy": {
+            "name_template": _("Delete Device Change Proposal"),
+            "description_template": _("Allows the user to delete a device change proposal"),
+        },
+        "export": {
+            "name_template": _("Export Device Change Proposals"),
+            "description_template": _("Allows the user to export device change proposals"),
+        },
+        "histories": {
+            "name_template": _("View Device Change Proposal Histories"),
+            "description_template": _("Allows the user to view audit logs for device change proposals"),
+        },
+        "history_detail": {
+            "name_template": _("View Device Change Proposal History Detail"),
+            "description_template": _("Allows the user to view detailed audit log for a device change proposal"),
+        },
+        "approve": {
+            "name_template": _("Approve Device Change Proposal"),
+            "description_template": _("Allows the user to approve a device change proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Device Change Proposal"),
+            "description_template": _("Allows the user to reject a device change proposal"),
+        },
+    }
 
     @extend_schema(
         summary="Approve device change proposal",

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 23:30+0700\n"
+"POT-Creation-Date: 2025-12-18 01:23+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -903,7 +903,7 @@ msgstr "Quản lý Phòng Ban"
 msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
-#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:2944
+#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3358
 #: apps/hrm/models/proposal.py:306
 msgid "Proposal"
 msgstr "Đề xuất"
@@ -925,6 +925,934 @@ msgstr "Xem danh sách các yêu cầu đang chờ tôi phê duyệt"
 #: apps/hrm/api/views/proposal.py:154 apps/hrm/api/views/proposal.py:155
 msgid "View the list of requests pending my verification"
 msgstr "Xem danh sách các yêu cầu đang chờ tôi xác nhận"
+
+#: apps/hrm/api/views/proposal.py:710
+msgid "List Timesheet Entry Complaint Proposals"
+msgstr "Xem danh sách Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:711
+msgid "Allows the user to list timesheet entry complaint proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:714
+msgid "Retrieve Timesheet Entry Complaint Proposal"
+msgstr "Xem chi tiết Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:715
+msgid ""
+"Allows the user to retrieve a specific timesheet entry complaint proposal"
+msgstr ""
+
+#: apps/hrm/api/views/proposal.py:718
+msgid "Create Timesheet Entry Complaint Proposal"
+msgstr "Tạo Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:719
+msgid "Allows the user to create a new timesheet entry complaint proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:722
+msgid "Update Timesheet Entry Complaint Proposal"
+msgstr "Cập nhật Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:723
+msgid ""
+"Allows the user to update an existing timesheet entry complaint proposal"
+msgstr ""
+
+#: apps/hrm/api/views/proposal.py:726
+msgid "Partially Update Timesheet Entry Complaint Proposal"
+msgstr "Cập nhật một phần Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:727
+msgid ""
+"Allows the user to partially update an existing timesheet entry complaint "
+"proposal"
+msgstr ""
+"Cho phép người dùng cập nhật một phần đề xuất khiếu nại chấm công hiện có"
+
+#: apps/hrm/api/views/proposal.py:730
+msgid "Delete Timesheet Entry Complaint Proposal"
+msgstr "Xóa Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:731
+msgid "Allows the user to delete a timesheet entry complaint proposal"
+msgstr "Cho phép người dùng xóa đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:734
+msgid "Export Timesheet Entry Complaint Proposals"
+msgstr "Xuất Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:735
+msgid "Allows the user to export timesheet entry complaint proposals"
+msgstr "Cho phép người dùng xuất đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:738
+msgid "View Timesheet Entry Complaint Proposal Histories"
+msgstr "Xem lịch sử thay đổi Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:739
+msgid ""
+"Allows the user to view audit logs for timesheet entry complaint proposals"
+msgstr "Cho phép người dùng xem nhật ký thay đổi đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:742
+msgid "View Timesheet Entry Complaint Proposal History Detail"
+msgstr "Xem chi tiết lịch sử thay đổi Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:743
+msgid ""
+"Allows the user to view detailed audit log for a timesheet entry complaint "
+"proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất khiếu nại "
+"chấm công"
+
+#: apps/hrm/api/views/proposal.py:746
+msgid "Approve Timesheet Entry Complaint Proposal"
+msgstr "Phê duyệt Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:747
+msgid "Allows the user to approve a timesheet entry complaint proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:750
+msgid "Reject Timesheet Entry Complaint Proposal"
+msgstr "Từ chối Đề xuất Khiếu nại Chấm công"
+
+#: apps/hrm/api/views/proposal.py:751
+msgid "Allows the user to reject a timesheet entry complaint proposal"
+msgstr "Cho phép người dùng từ chối đề xuất khiếu nại chấm công"
+
+#: apps/hrm/api/views/proposal.py:998
+msgid "List Post-Maternity Benefits Proposals"
+msgstr "Xem danh sách Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:999
+msgid "Allows the user to list post-maternity benefits proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1002
+msgid "Retrieve Post-Maternity Benefits Proposal"
+msgstr "Xem chi tiết Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1003
+msgid "Allows the user to retrieve a specific post-maternity benefits proposal"
+msgstr ""
+"Cho phép người dùng xem chi tiết một đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1006
+msgid "Create Post-Maternity Benefits Proposal"
+msgstr "Tạo Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1007
+msgid "Allows the user to create a new post-maternity benefits proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1010
+msgid "Update Post-Maternity Benefits Proposal"
+msgstr "Cập nhật Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1011
+msgid "Allows the user to update an existing post-maternity benefits proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1014
+msgid "Partially Update Post-Maternity Benefits Proposal"
+msgstr "Cập nhật một phần Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1015
+msgid ""
+"Allows the user to partially update an existing post-maternity benefits "
+"proposal"
+msgstr ""
+"Cho phép người dùng cập nhật một phần đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1018
+msgid "Delete Post-Maternity Benefits Proposal"
+msgstr "Xóa Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1019
+msgid "Allows the user to delete a post-maternity benefits proposal"
+msgstr "Cho phép người dùng xóa đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1022
+msgid "Export Post-Maternity Benefits Proposals"
+msgstr "Xuất Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1023
+msgid "Allows the user to export post-maternity benefits proposals"
+msgstr "Cho phép người dùng xuất đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1026
+msgid "View Post-Maternity Benefits Proposal Histories"
+msgstr "Xem nhật ký thay đổi Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1027
+msgid ""
+"Allows the user to view audit logs for post-maternity benefits proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1030
+msgid "View Post-Maternity Benefits Proposal History Detail"
+msgstr "Xem chi tiết nhật ký thay đổi Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1031
+msgid ""
+"Allows the user to view detailed audit log for a post-maternity benefits "
+"proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất chế độ làm "
+"việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1034
+msgid "Approve Post-Maternity Benefits Proposal"
+msgstr "Phê duyệt Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1035
+msgid "Allows the user to approve a post-maternity benefits proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1038
+msgid "Reject Post-Maternity Benefits Proposal"
+msgstr "Từ chối Đề xuất Chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1039
+msgid "Allows the user to reject a post-maternity benefits proposal"
+msgstr "Cho phép người dùng từ chối đề xuất chế độ làm việc hậu thai sản"
+
+#: apps/hrm/api/views/proposal.py:1274
+msgid "List Late Exemption Proposals"
+msgstr "Xem danh sách Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1275
+msgid "Allows the user to list late exemption proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1278
+msgid "Retrieve Late Exemption Proposal"
+msgstr "Xem chi tiết Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1279
+msgid "Allows the user to retrieve a specific late exemption proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1282
+msgid "Create Late Exemption Proposal"
+msgstr "Tạo Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1283
+msgid "Allows the user to create a new late exemption proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1286
+msgid "Update Late Exemption Proposal"
+msgstr "Cập nhật Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1287
+msgid "Allows the user to update an existing late exemption proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1290
+msgid "Partially Update Late Exemption Proposal"
+msgstr "Cập nhật một phần Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1291
+msgid "Allows the user to partially update an existing late exemption proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1294
+msgid "Delete Late Exemption Proposal"
+msgstr "Xóa Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1295
+msgid "Allows the user to delete a late exemption proposal"
+msgstr "Cho phép người dùng xóa đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1298
+msgid "Export Late Exemption Proposals"
+msgstr "Xuất Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1299
+msgid "Allows the user to export late exemption proposals"
+msgstr "Cho phép người dùng xuất đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1302
+msgid "View Late Exemption Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1303
+msgid "Allows the user to view audit logs for late exemption proposals"
+msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1306
+msgid "View Late Exemption Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1307
+msgid ""
+"Allows the user to view detailed audit log for a late exemption proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất miễn trừ "
+"trễ"
+
+#: apps/hrm/api/views/proposal.py:1310
+msgid "Approve Late Exemption Proposal"
+msgstr "Phê duyệt Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1311
+msgid "Allows the user to approve a late exemption proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1314
+msgid "Reject Late Exemption Proposal"
+msgstr "Từ chối Đề xuất Miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1315
+msgid "Allows the user to reject a late exemption proposal"
+msgstr "Cho phép người dùng từ chối đề xuất miễn trừ trễ"
+
+#: apps/hrm/api/views/proposal.py:1602
+msgid "List Overtime Work Proposals"
+msgstr "Danh sách Đề xuất Làm việc ngoài giờ (OT)"
+
+#: apps/hrm/api/views/proposal.py:1603
+msgid "Allows the user to list overtime work proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1606
+msgid "Retrieve Overtime Work Proposal"
+msgstr "Xem chi tiết Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1607
+msgid "Allows the user to retrieve a specific overtime work proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1610
+msgid "Create Overtime Work Proposal"
+msgstr "Tạo Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1611
+msgid "Allows the user to create a new overtime work proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1614
+msgid "Update Overtime Work Proposal"
+msgstr "Cập nhật Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1615
+msgid "Allows the user to update an existing overtime work proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1618
+msgid "Partially Update Overtime Work Proposal"
+msgstr "Cập nhật một phần Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1619
+msgid "Allows the user to partially update an existing overtime work proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1622
+msgid "Delete Overtime Work Proposal"
+msgstr "Xóa Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1623
+msgid "Allows the user to delete an overtime work proposal"
+msgstr "Cho phép người dùng xóa đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1626
+msgid "Export Overtime Work Proposals"
+msgstr "Xuất Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1627
+msgid "Allows the user to export overtime work proposals"
+msgstr "Cho phép người dùng xuất đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1630
+msgid "View Overtime Work Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1631
+msgid "Allows the user to view audit logs for overtime work proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi cho đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1634
+msgid "View Overtime Work Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1635
+msgid ""
+"Allows the user to view detailed audit log for an overtime work proposal"
+msgstr ""
+
+#: apps/hrm/api/views/proposal.py:1638
+msgid "Approve Overtime Work Proposal"
+msgstr "Phê duyệt Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1639
+msgid "Allows the user to approve an overtime work proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1642
+msgid "Reject Overtime Work Proposal"
+msgstr "Từ chối Đề xuất Làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1643
+msgid "Allows the user to reject an overtime work proposal"
+msgstr "Cho phép người dùng từ chối đề xuất làm việc ngoài giờ"
+
+#: apps/hrm/api/views/proposal.py:1899
+msgid "List Paid Leave Proposals"
+msgstr "Danh sách Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1900
+msgid "Allows the user to list paid leave proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1903
+msgid "Retrieve Paid Leave Proposal"
+msgstr "Xem chi tiết Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1904
+msgid "Allows the user to retrieve a specific paid leave proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1907
+msgid "Create Paid Leave Proposal"
+msgstr "Tạo Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1908
+msgid "Allows the user to create a new paid leave proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1911
+msgid "Update Paid Leave Proposal"
+msgstr "Cập nhật Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1912
+msgid "Allows the user to update an existing paid leave proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1915
+msgid "Partially Update Paid Leave Proposal"
+msgstr "Cập nhật một phần Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1916
+msgid "Allows the user to partially update an existing paid leave proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1919
+msgid "Delete Paid Leave Proposal"
+msgstr "Xóa Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1920
+msgid "Allows the user to delete a paid leave proposal"
+msgstr "Cho phép người dùng xóa đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1923
+msgid "Export Paid Leave Proposals"
+msgstr "Xuất Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1924
+msgid "Allows the user to export paid leave proposals"
+msgstr "Cho phép người dùng xuất đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1927
+msgid "View Paid Leave Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1928
+msgid "Allows the user to view audit logs for paid leave proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1931
+msgid "View Paid Leave Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1932
+msgid "Allows the user to view detailed audit log for a paid leave proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất nghỉ phép có "
+"lương"
+
+#: apps/hrm/api/views/proposal.py:1935
+msgid "Approve Paid Leave Proposal"
+msgstr "Phê duyệt Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1936
+msgid "Allows the user to approve a paid leave proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1939
+msgid "Reject Paid Leave Proposal"
+msgstr "Từ chối Đề xuất Nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:1940
+msgid "Allows the user to reject a paid leave proposal"
+msgstr "Cho phép người dùng từ chối đề xuất nghỉ phép có lương"
+
+#: apps/hrm/api/views/proposal.py:2181
+msgid "List Unpaid Leave Proposals"
+msgstr "Xem danh sách Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2182
+msgid "Allows the user to list unpaid leave proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2185
+msgid "Retrieve Unpaid Leave Proposal"
+msgstr "Xem chi tiết Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2186
+msgid "Allows the user to retrieve a specific unpaid leave proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2189
+msgid "Create Unpaid Leave Proposal"
+msgstr "Tạo Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2190
+msgid "Allows the user to create a new unpaid leave proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2193
+msgid "Update Unpaid Leave Proposal"
+msgstr "Cập nhật Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2194
+msgid "Allows the user to update an existing unpaid leave proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2197
+msgid "Partially Update Unpaid Leave Proposal"
+msgstr "Cập nhật một phần Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2198
+msgid "Allows the user to partially update an existing unpaid leave proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2201
+msgid "Delete Unpaid Leave Proposal"
+msgstr "Xóa Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2202
+msgid "Allows the user to delete an unpaid leave proposal"
+msgstr "Cho phép người dùng xóa đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2205
+msgid "Export Unpaid Leave Proposals"
+msgstr "Xuất Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2206
+msgid "Allows the user to export unpaid leave proposals"
+msgstr "Cho phép người dùng xuất đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2209
+msgid "View Unpaid Leave Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2210
+msgid "Allows the user to view audit logs for unpaid leave proposals"
+msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2213
+msgid "View Unpaid Leave Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2214
+msgid "Allows the user to view detailed audit log for an unpaid leave proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất nghỉ không "
+"lương"
+
+#: apps/hrm/api/views/proposal.py:2217
+msgid "Approve Unpaid Leave Proposal"
+msgstr "Phê duyệt Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2218
+msgid "Allows the user to approve an unpaid leave proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2221
+msgid "Reject Unpaid Leave Proposal"
+msgstr "Từ chối Đề xuất Nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2222
+msgid "Allows the user to reject an unpaid leave proposal"
+msgstr "Cho phép người dùng từ chối đề xuất nghỉ không lương"
+
+#: apps/hrm/api/views/proposal.py:2460
+msgid "List Maternity Leave Proposals"
+msgstr "Xem danh sách Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2461
+msgid "Allows the user to list maternity leave proposals"
+msgstr ""
+"Cho phép người dùng xem danh sách đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2464
+msgid "Retrieve Maternity Leave Proposal"
+msgstr "Xem chi tiết Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2465
+msgid "Allows the user to retrieve a specific maternity leave proposal"
+msgstr ""
+"Cho phép người dùng xem chi tiết một đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2468
+msgid "Create Maternity Leave Proposal"
+msgstr "Tạo Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2469
+msgid "Allows the user to create a new maternity leave proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2472
+msgid "Update Maternity Leave Proposal"
+msgstr "Cập nhật Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2473
+msgid "Allows the user to update an existing maternity leave proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2476
+msgid "Partially Update Maternity Leave Proposal"
+msgstr "Cập nhật một phần Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2477
+msgid ""
+"Allows the user to partially update an existing maternity leave proposal"
+msgstr ""
+
+#: apps/hrm/api/views/proposal.py:2480
+msgid "Delete Maternity Leave Proposal"
+msgstr "Xóa Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2481
+msgid "Allows the user to delete a maternity leave proposal"
+msgstr "Cho phép người dùng xóa đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2484
+msgid "Export Maternity Leave Proposals"
+msgstr "Xuất Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2485
+msgid "Allows the user to export maternity leave proposals"
+msgstr "Cho phép người dùng xuất đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2488
+msgid "View Maternity Leave Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2489
+msgid "Allows the user to view audit logs for maternity leave proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi cho đề xuất nghỉ việc hưởng chế độ "
+"thai sản"
+
+#: apps/hrm/api/views/proposal.py:2492
+msgid "View Maternity Leave Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2493
+msgid ""
+"Allows the user to view detailed audit log for a maternity leave proposal"
+msgstr ""
+
+#: apps/hrm/api/views/proposal.py:2496
+msgid "Approve Maternity Leave Proposal"
+msgstr "Phê duyệt Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2497
+msgid "Allows the user to approve a maternity leave proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2500
+msgid "Reject Maternity Leave Proposal"
+msgstr "Từ chối Đề xuất Nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2501
+msgid "Allows the user to reject a maternity leave proposal"
+msgstr "Cho phép người dùng từ chối đề xuất nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/proposal.py:2765
+msgid "List Job Transfer Proposals"
+msgstr "Danh sách Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2766
+msgid "Allows the user to list job transfer proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2769
+msgid "Retrieve Job Transfer Proposal"
+msgstr "Xem chi tiết Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2770
+msgid "Allows the user to retrieve a specific job transfer proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2773
+msgid "Create Job Transfer Proposal"
+msgstr "Tạo Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2774
+msgid "Allows the user to create a new job transfer proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2777
+msgid "Update Job Transfer Proposal"
+msgstr "Cập nhật Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2778
+msgid "Allows the user to update an existing job transfer proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2781
+msgid "Partially Update Job Transfer Proposal"
+msgstr "Cập nhật một phần Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2782
+msgid "Allows the user to partially update an existing job transfer proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2785
+msgid "Delete Job Transfer Proposal"
+msgstr "Xóa Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2786
+msgid "Allows the user to delete a job transfer proposal"
+msgstr "Cho phép người dùng xóa đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2789
+msgid "Export Job Transfer Proposals"
+msgstr "Xuất Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2790
+msgid "Allows the user to export job transfer proposals"
+msgstr "Cho phép người dùng xuất đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2793
+msgid "View Job Transfer Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2794
+msgid "Allows the user to view audit logs for job transfer proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi cho đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2797
+msgid "View Job Transfer Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2798
+msgid "Allows the user to view detailed audit log for a job transfer proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất điều chuyển "
+"công tác"
+
+#: apps/hrm/api/views/proposal.py:2801
+msgid "Approve Job Transfer Proposal"
+msgstr "Phê duyệt Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2802
+msgid "Allows the user to approve a job transfer proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2805
+msgid "Reject Job Transfer Proposal"
+msgstr "Từ chối Đề xuất Điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:2806
+msgid "Allows the user to reject a job transfer proposal"
+msgstr "Cho phép người dùng từ chối đề xuất điều chuyển công tác"
+
+#: apps/hrm/api/views/proposal.py:3090
+msgid "List Asset Allocation Proposals"
+msgstr "Danh sách Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3091
+msgid "Allows the user to list asset allocation proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3094
+msgid "Retrieve Asset Allocation Proposal"
+msgstr "Xem chi tiết Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3095
+msgid "Allows the user to retrieve a specific asset allocation proposal"
+msgstr "Cho phép người dùng xem chi tiết một đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3098
+msgid "Create Asset Allocation Proposal"
+msgstr "Tạo Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3099
+msgid "Allows the user to create a new asset allocation proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3102
+msgid "Update Asset Allocation Proposal"
+msgstr "Cập nhật Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3103
+msgid "Allows the user to update an existing asset allocation proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3106
+msgid "Partially Update Asset Allocation Proposal"
+msgstr "Cập nhật một phần Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3107
+msgid ""
+"Allows the user to partially update an existing asset allocation proposal"
+msgstr "Cho phép người dùng cập nhật một phần đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3110
+msgid "Delete Asset Allocation Proposal"
+msgstr "Xóa Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3111
+msgid "Allows the user to delete an asset allocation proposal"
+msgstr "Cho phép người dùng xóa đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3114
+msgid "Export Asset Allocation Proposals"
+msgstr "Xuất Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3115
+msgid "Allows the user to export asset allocation proposals"
+msgstr "Cho phép người dùng xuất đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3118
+msgid "View Asset Allocation Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3119
+msgid "Allows the user to view audit logs for asset allocation proposals"
+msgstr "Cho phép người dùng xem nhật ký thay đổi cho đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3122
+msgid "View Asset Allocation Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3123
+msgid ""
+"Allows the user to view detailed audit log for an asset allocation proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3126
+msgid "Approve Asset Allocation Proposal"
+msgstr "Phê duyệt Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3127
+msgid "Allows the user to approve an asset allocation proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3130
+msgid "Reject Asset Allocation Proposal"
+msgstr "Từ chối Đề xuất Cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3131
+msgid "Allows the user to reject an asset allocation proposal"
+msgstr "Cho phép người dùng từ chối đề xuất cấp tài sản"
+
+#: apps/hrm/api/views/proposal.py:3681
+msgid "List Device Change Proposals"
+msgstr "Danh sách Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3682
+msgid "Allows the user to list device change proposals"
+msgstr "Cho phép người dùng xem danh sách đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3685
+msgid "Retrieve Device Change Proposal"
+msgstr "Xem chi tiết Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3686
+msgid "Allows the user to retrieve a specific device change proposal"
+msgstr ""
+"Cho phép người dùng xem chi tiết một đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3689
+msgid "Create Device Change Proposal"
+msgstr "Tạo Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3690
+msgid "Allows the user to create a new device change proposal"
+msgstr "Cho phép người dùng tạo mới đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3693
+msgid "Update Device Change Proposal"
+msgstr "Cập nhật Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3694
+msgid "Allows the user to update an existing device change proposal"
+msgstr "Cho phép người dùng cập nhật đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3697
+msgid "Partially Update Device Change Proposal"
+msgstr "Cập nhật một phần Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3698
+msgid "Allows the user to partially update an existing device change proposal"
+msgstr ""
+"Cho phép người dùng cập nhật một phần đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3701
+msgid "Delete Device Change Proposal"
+msgstr "Xóa Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3702
+msgid "Allows the user to delete a device change proposal"
+msgstr "Cho phép người dùng xóa đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3705
+msgid "Export Device Change Proposals"
+msgstr "Xuất Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3706
+msgid "Allows the user to export device change proposals"
+msgstr "Cho phép người dùng xuất đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3709
+msgid "View Device Change Proposal Histories"
+msgstr "Xem lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3710
+msgid "Allows the user to view audit logs for device change proposals"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi cho đề xuất thay đổi thiết bị đăng "
+"nhập"
+
+#: apps/hrm/api/views/proposal.py:3713
+msgid "View Device Change Proposal History Detail"
+msgstr "Xem chi tiết lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3714
+msgid "Allows the user to view detailed audit log for a device change proposal"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất thay đổi thiết "
+"bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3717
+msgid "Approve Device Change Proposal"
+msgstr "Phê duyệt Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3718
+msgid "Allows the user to approve a device change proposal"
+msgstr "Cho phép người dùng phê duyệt đề xuất thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3721
+msgid "Reject Device Change Proposal"
+msgstr "Từ chối Đề xuất Thay đổi thiết bị đăng nhập"
+
+#: apps/hrm/api/views/proposal.py:3722
+msgid "Allows the user to reject a device change proposal"
+msgstr "Cho phép người dùng từ chối đề xuất thay đổi thiết bị đăng nhập"
 
 #: apps/hrm/api/views/recruitment_candidate.py:438
 msgid "View Candidates"
