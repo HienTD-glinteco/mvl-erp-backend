@@ -1,7 +1,9 @@
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
@@ -170,6 +172,14 @@ class HolidayViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
         }
         return data
 
+    def perform_destroy(self, instance):
+        """Soft delete holiday with validation."""
+        if instance.start_date <= timezone.localdate():
+            raise ValidationError(
+                {"detail": _("Cannot delete holidays that are in the past or present")}
+            )
+        super().perform_destroy(instance)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -262,3 +272,11 @@ class CompensatoryWorkdayViewSet(AuditLoggingMixin, BaseModelViewSet):
         )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_destroy(self, instance):
+        """Soft delete compensatory workday with validation."""
+        if instance.date <= timezone.localdate():
+            raise ValidationError(
+                {"detail": _("Cannot delete compensatory workdays that are in the past or present")}
+            )
+        super().perform_destroy(instance)

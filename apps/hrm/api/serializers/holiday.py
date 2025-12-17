@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -112,13 +113,28 @@ class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
                     }
                 )
 
+    def _validate_future_date(self, date_value):
+        """Validate date is strictly in the future."""
+        today = timezone.localdate()
+        if date_value <= today:
+            raise serializers.ValidationError(
+                {"date": _("Cannot create/edit compensatory workdays in the past or present")}
+            )
+
     def validate(self, attrs):
         """Validate compensatory workday data."""
         holiday = self._get_holiday(attrs)
         date = attrs.get("date")
         session = attrs.get("session", CompensatoryWorkday.Session.FULL_DAY)
 
+        # New logic: Check if existing record is past/present
+        if self.instance and self.instance.date <= timezone.localdate():
+             raise serializers.ValidationError(
+                {"date": _("Cannot modify compensatory workdays that are in the past or present")}
+            )
+
         if date:
+            self._validate_future_date(date)
             self._validate_weekend_and_session(date, session)
             self._validate_no_holiday_overlap(date)
 
@@ -143,6 +159,13 @@ class CompensatoryDateInputSerializer(serializers.Serializer):
         allow_blank=True,
         help_text="Additional notes about the compensatory workday",
     )
+
+    def validate_date(self, value):
+        """Validate date is strictly in the future."""
+        today = timezone.localdate()
+        if value <= today:
+            raise serializers.ValidationError(_("Cannot create compensatory workdays in the past or present"))
+        return value
 
 
 class HolidaySerializer(serializers.ModelSerializer):
@@ -307,6 +330,20 @@ class HolidaySerializer(serializers.ModelSerializer):
         """Validate holiday data."""
         start_date = attrs.get("start_date")
         end_date = attrs.get("end_date")
+
+        today = timezone.localdate()
+
+        # Check if existing record is past/present (Create doesn't have instance yet, so this only runs on Update)
+        if self.instance and self.instance.start_date <= today:
+             raise serializers.ValidationError(
+                {"start_date": _("Cannot modify holidays that are in the past or present")}
+            )
+
+        # Check if new start_date is past/present
+        if start_date and start_date <= today:
+             raise serializers.ValidationError(
+                {"start_date": _("Cannot create/edit holidays in the past or present")}
+            )
 
         self._validate_date_range(start_date, end_date)
         self._validate_no_overlapping_holidays(start_date, end_date)
