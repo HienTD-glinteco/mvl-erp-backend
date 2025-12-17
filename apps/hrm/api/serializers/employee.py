@@ -14,6 +14,7 @@ from apps.hrm.models import (
     BankAccount,
     Block,
     Branch,
+    Decision,
     Department,
     Employee,
     EmployeeWorkHistory,
@@ -375,7 +376,20 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
             )
 
 
-class EmployeeBaseStatusActionSerializer(serializers.Serializer):
+class EmployeeDecisionMixin:
+    decision_id = serializers.PrimaryKeyRelatedField(
+        queryset=Decision.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    def validate_decision_id(self, value):
+        if value and value.signing_status != Decision.SigningStatus.ISSUED:
+            raise serializers.ValidationError(_("The selected decision must be in 'Issued' status."))
+        return value
+
+
+class EmployeeBaseStatusActionSerializer(EmployeeDecisionMixin, serializers.Serializer):
     """Base serializer for employee actions."""
 
     start_date = serializers.DateField(required=True)
@@ -464,6 +478,7 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
             effective_date=self.validated_data["start_date"],
             note=self.validated_data.get("description", ""),
             extra_detail=extra_detail,
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -532,6 +547,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
                 note=self.validated_data.get("description", ""),
                 detail=detail,
                 previous_data=previous_data,
+                decision=self.validated_data.get("decision_id"),
             )
         else:
             # For other statuses (MATERNITY_LEAVE, UNPAID_LEAVE), use CHANGE_STATUS event
@@ -552,6 +568,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
                 note=self.validated_data.get("description", ""),
                 detail=detail,
                 previous_data=previous_data,
+                decision=self.validated_data.get("decision_id"),
             )
 
 
@@ -611,6 +628,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
             note=self.validated_data.get("description", ""),
             detail=detail,
             previous_data=previous_data,
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -642,10 +660,11 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
             start_date=self.employee.resignation_start_date,
             end_date=self.employee.resignation_end_date,
             note=self.validated_data.get("description", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
-class EmployeeTransferActionSerializer(serializers.Serializer):
+class EmployeeTransferActionSerializer(EmployeeDecisionMixin, serializers.Serializer):
     """Serializer for the 'transfer' action."""
 
     date = serializers.DateField(required=True)
@@ -701,10 +720,11 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
             new_position=self.employee.position,
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
-class EmployeeChangeTypeActionSerializer(serializers.Serializer):
+class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Serializer):
     """Serializer for the 'change_employee_type' action.
 
     Fields:
@@ -715,6 +735,7 @@ class EmployeeChangeTypeActionSerializer(serializers.Serializer):
 
     date = serializers.DateField(required=True)
     employee_type = serializers.ChoiceField(choices=EmployeeType.choices, required=True)
+
     note = serializers.CharField(required=False, allow_blank=True)
 
     def __init__(self, **kwargs):
@@ -776,6 +797,7 @@ class EmployeeChangeTypeActionSerializer(serializers.Serializer):
             new_employee_type=self.employee.employee_type,
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 

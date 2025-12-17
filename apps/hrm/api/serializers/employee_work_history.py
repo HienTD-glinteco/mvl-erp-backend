@@ -5,6 +5,7 @@ from apps.hrm.models import EmployeeWorkHistory
 from .common_nested import (
     BlockNestedSerializer,
     BranchNestedSerializer,
+    DecisionNestedSerializer,
     DepartmentNestedSerializer,
     EmployeeNestedSerializer,
     PositionNestedSerializer,
@@ -20,6 +21,7 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
     block = BlockNestedSerializer(read_only=True)
     department = DepartmentNestedSerializer(read_only=True)
     position = PositionNestedSerializer(read_only=True)
+    decision = DecisionNestedSerializer(read_only=True)
 
     # _id fields for update operations (write-only)
     branch_id = serializers.IntegerField(write_only=True)
@@ -51,6 +53,7 @@ class EmployeeWorkHistorySerializer(serializers.ModelSerializer):
             "department_id",
             "position",
             "position_id",
+            "decision",
             "from_date",
             "to_date",
             "retain_seniority",

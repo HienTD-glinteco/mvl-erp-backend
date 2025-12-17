@@ -12,6 +12,7 @@ from apps.hrm.models import (
     Branch,
     Contract,
     ContractType,
+    Decision,
     Department,
     Employee,
     JobDescription,
@@ -86,4 +87,9 @@ RecruitmentRequestNestedSerializer = SimpleNestedSerializerFactory(
 RecruitmentCandidateNestedSerializer = SimpleNestedSerializerFactory(
     RecruitmentCandidate,
     ["id", "code", "name"],
+)
+
+DecisionNestedSerializer = SimpleNestedSerializerFactory(
+    Decision,
+    ["id", "decision_number", "name", "signing_date"],
 )
