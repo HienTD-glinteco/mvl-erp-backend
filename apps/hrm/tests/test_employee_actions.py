@@ -103,18 +103,125 @@ class EmployeeActionAPITest(TestCase):
         self._patcher_aggregate_recruit.stop()
 
     def test_active_action(self):
+        """Test activating an employee with department and position assignment"""
+        # Create a new position for assignment
+        new_position = Position.objects.create(
+            code="CV_NEW",
+            name="New Position",
+        )
+
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
-        payload = {"start_date": "2024-02-01"}
+        payload = {
+            "start_date": "2024-02-01",
+            "organization_id": self.department.id,
+            "position_id": new_position.id,
+        }
         response = self.client.post(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.onboarding_employee.refresh_from_db()
         self.assertEqual(self.onboarding_employee.status, Employee.Status.ACTIVE)
         self.assertEqual(str(self.onboarding_employee.start_date), "2024-02-01")
+        # Verify department and position update
+        self.assertEqual(self.onboarding_employee.department, self.department)
+        self.assertEqual(self.onboarding_employee.position, new_position)
+
+        # Verify work history
+        history = EmployeeWorkHistory.objects.filter(
+            employee=self.onboarding_employee,
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+        ).first()
+        self.assertIsNotNone(history)
+        self.assertIn("Assigned to", history.detail)
+        self.assertIn(self.department.name, history.detail)
+        self.assertIn(new_position.name, history.detail)
+
+    def test_active_action_with_note(self):
+        """Test activating an employee with a note"""
+        url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
+        payload = {
+            "start_date": "2024-02-01",
+            "organization_id": self.department.id,
+            "position_id": self.active_employee.position.id if self.active_employee.position else 1,
+            "note": "Promoted from internship",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        history = EmployeeWorkHistory.objects.filter(
+            employee=self.onboarding_employee,
+            name=EmployeeWorkHistory.EventType.CHANGE_STATUS,
+        ).first()
+        self.assertEqual(history.note, "Promoted from internship")
+
+    def test_active_action_missing_fields_fails(self):
+        """Test activation fails if organization_id or position_id is missing"""
+        url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
+
+        # Missing organization_id and position_id
+        payload = {"start_date": "2024-02-01"}
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Handle both DRF Response (with .data) and Django JsonResponse (without .data)
+        if hasattr(response, "data"):
+            data = response.data
+        else:
+            import json
+
+            data = json.loads(response.content)
+
+        # Handle standardized errors response structure
+        if "error" in data and "errors" in data["error"]:
+            errors = data["error"]["errors"]
+            error_attrs = [err.get("attr") for err in errors]
+            self.assertIn("organization_id", error_attrs)
+            self.assertIn("position_id", error_attrs)
+        else:
+            self.assertIn("organization_id", data)
+            self.assertIn("position_id", data)
+
+    def test_active_action_inactive_organization_fails(self):
+        """Test activation fails if organization is inactive"""
+        inactive_dept = Department.objects.create(
+            code="PB_INACTIVE",
+            name="Inactive Dept",
+            branch=self.branch,
+            block=self.block,
+            is_active=False,
+        )
+        url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
+        payload = {
+            "start_date": "2024-02-01",
+            "organization_id": inactive_dept.id,
+            "position_id": self.active_employee.position.id if self.active_employee.position else 1,
+        }
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_active_action_inactive_position_fails(self):
+        """Test activation fails if position is inactive"""
+        inactive_position = Position.objects.create(
+            code="CV_INACTIVE",
+            name="Inactive Position",
+            is_active=False,
+        )
+        url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
+        payload = {
+            "start_date": "2024-02-01",
+            "organization_id": self.department.id,
+            "position_id": inactive_position.id,
+        }
+        response = self.client.post(url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_active_action_on_active_employee_fails(self):
         url = reverse("hrm:employee-active", kwargs={"pk": self.active_employee.id})
-        payload = {"start_date": "2024-02-01"}
+        payload = {
+            "start_date": "2024-02-01",
+            "organization_id": self.department.id,
+            "position_id": self.active_employee.position.id if self.active_employee.position else 1
+        }
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

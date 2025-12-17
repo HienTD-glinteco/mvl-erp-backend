@@ -420,6 +420,17 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
 class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
     """Serializer for the 'active' action."""
 
+    organization_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.filter(is_active=True),
+        source="department",
+        required=True,
+    )
+    position_id = serializers.PrimaryKeyRelatedField(
+        queryset=Position.objects.filter(is_active=True),
+        required=True,
+    )
+    note = serializers.CharField(required=False, allow_blank=True, source="description")
+
     def validate(self, attrs):
         if self.employee.status != Employee.Status.ONBOARDING:
             raise serializers.ValidationError(
@@ -428,17 +439,37 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
 
         self.employee.start_date = attrs["start_date"]
         self.employee.status = Employee.Status.ACTIVE
-        self.employee_update_fields.extend(["start_date", "status"])
+        self.employee.department = attrs["department"]
+        self.employee.position = attrs["position_id"]
+
+        # Explicitly update block and branch from department to ensure data consistency
+        if self.employee.department:
+            self.employee.block = self.employee.department.block
+            self.employee.branch = self.employee.department.branch
+
+        self.employee_update_fields.extend(
+            ["start_date", "status", "department", "position", "block", "branch"]
+        )
         return super().validate(attrs)
 
     def _create_work_history(self):
         """Create work history record for activation."""
+        department = self.validated_data["department"]
+        position = self.validated_data["position_id"]
+        extra_detail = _(
+            "Assigned to {department} - {position}"
+        ).format(
+            department=department.name,
+            position=position.name,
+        )
+
         create_state_change_event(
             employee=self.employee,
             old_status=self.old_status,
             new_status=Employee.Status.ACTIVE,
             effective_date=self.validated_data["start_date"],
             note=self.validated_data.get("description", ""),
+            extra_detail=extra_detail,
         )
 
 
