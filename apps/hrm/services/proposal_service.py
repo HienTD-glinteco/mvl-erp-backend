@@ -4,7 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
-from apps.hrm.models import AttendanceRecord, Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
+from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 from apps.notifications.utils import create_notification
 
 
@@ -145,8 +145,7 @@ class ProposalService:
             # Case: Correction - Update timesheet entry with approved times
             ProposalService._apply_complaint_correction(entry, approved_check_in, approved_check_out)
         else:
-            # Case: Cannot Attend - Create attendance record
-            ProposalService._create_attendance_for_complaint(proposal, entry)
+            raise ProposalExecutionError(f"Complaint proposal {proposal.id} missing approved check-in/out times")
 
     @staticmethod
     def _apply_complaint_correction(entry: TimeSheetEntry, approved_check_in: time, approved_check_out: time) -> None:
@@ -172,65 +171,6 @@ class ProposalService:
         entry.calculate_hours_from_schedule()
 
         entry.save()
-
-    @staticmethod
-    def _create_attendance_for_complaint(proposal: Proposal, entry: TimeSheetEntry) -> None:
-        """Update attendance records for cannot-attend complaint case.
-
-        When a complaint is created for "cannot attend", attendance records with type=OTHER
-        are already created at that time. This method updates those existing records with
-        the approved times from the proposal.
-
-        Args:
-            proposal: The complaint Proposal instance
-            entry: The TimesheetEntry to update
-        """
-        # Get proposed times (which should be the same as approved in this case)
-        proposed_check_in = proposal.timesheet_entry_complaint_proposed_check_in_time
-        proposed_check_out = proposal.timesheet_entry_complaint_proposed_check_out_time
-
-        if not proposed_check_in or not proposed_check_out:
-            raise ProposalExecutionError(f"Complaint proposal {proposal.id} missing proposed check-in/out times")
-
-        employee = proposal.created_by
-
-        # Find and update existing attendance records for this employee and date
-        # These records should have been created when the complaint was submitted
-        check_in_datetime = timezone.make_aware(datetime.combine(entry.date, proposed_check_in))
-        check_out_datetime = timezone.make_aware(datetime.combine(entry.date, proposed_check_out))
-
-        # Get attendance records for this date with type OTHER
-        attendance_records = AttendanceRecord.objects.filter(
-            employee=employee, timestamp__date=entry.date, attendance_type="other"
-        ).order_by("timestamp")
-
-        if attendance_records:
-            # Update existing records - first record is check-in, last is check-out
-            if len(attendance_records) >= 1:
-                first_record = attendance_records[0]
-                first_record.timestamp = check_in_datetime
-                first_record.save()
-
-            if len(attendance_records) >= 2:
-                last_record = attendance_records[len(attendance_records) - 1]
-                last_record.timestamp = check_out_datetime
-                last_record.save()
-        else:
-            # Fallback: If no attendance records exist, create them
-            # This handles cases where the complaint was created without attendance records
-            AttendanceRecord.objects.create(
-                attendance_type="other",
-                employee=employee,
-                attendance_code=employee.attendance_code or "",
-                timestamp=check_in_datetime,
-            )
-
-            AttendanceRecord.objects.create(
-                attendance_type="other",
-                employee=employee,
-                attendance_code=employee.attendance_code or "",
-                timestamp=check_out_datetime,
-            )
 
     @staticmethod
     def _execute_overtime_proposal(proposal: Proposal) -> None:

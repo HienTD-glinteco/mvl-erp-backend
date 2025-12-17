@@ -242,103 +242,22 @@ class TestComplaintProposalCorrection:
         assert entry.is_manually_corrected is True
 
 
-class TestComplaintProposalCannotAttend:
-    """Tests for TIMESHEET_ENTRY_COMPLAINT proposal execution (cannot attend case)."""
+class TestComplaintProposalError:
+    """Tests for TIMESHEET_ENTRY_COMPLAINT proposal execution errors."""
 
-    def test_execute_complaint_cannot_attend_with_existing_records(self, test_employee):
-        """Test executing a complaint proposal for cannot attend (updates existing attendance records)."""
-        # Create an empty timesheet entry
-        existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 13))
-
-        # Create attendance records that were created when the complaint was submitted
-        existing_check_in = AttendanceRecord.objects.create(
-            attendance_type="other",
-            employee=test_employee,
-            attendance_code=test_employee.attendance_code,
-            timestamp=timezone.make_aware(timezone.datetime(2025, 1, 13, 9, 0)),  # Original proposed time
-        )
-        existing_check_out = AttendanceRecord.objects.create(
-            attendance_type="other",
-            employee=test_employee,
-            attendance_code=test_employee.attendance_code,
-            timestamp=timezone.make_aware(timezone.datetime(2025, 1, 13, 18, 0)),  # Original proposed time
-        )
-
-        # Create a complaint proposal without approved times (cannot attend case)
-        proposal = Proposal.objects.create(
-            code="DX_COMPLAINT_002",
-            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            proposal_status=ProposalStatus.APPROVED,
-            timesheet_entry_complaint_complaint_reason="Device malfunction, could not check in",
-            timesheet_entry_complaint_proposed_check_in_time=time(8, 15),
-            timesheet_entry_complaint_proposed_check_out_time=time(17, 30),
-            created_by=test_employee,
-        )
-
-        # Link proposal to timesheet entry
-        ProposalTimeSheetEntry.objects.create(proposal=proposal, timesheet_entry=existing_entry)
-
-        # Execute the proposal
-        ProposalService.execute_approved_proposal(proposal)
-
-        # Verify attendance records were updated (not created new ones)
-        attendance_records = AttendanceRecord.objects.filter(employee=test_employee, timestamp__date=date(2025, 1, 13))
-        assert attendance_records.count() == 2
-
-        # Verify times were updated to match proposed times
-        existing_check_in.refresh_from_db()
-        existing_check_out.refresh_from_db()
-        # Convert to local timezone before comparing times to avoid UTC offset issues
-        local_check_in_time = timezone.localtime(existing_check_in.timestamp).time()
-        local_check_out_time = timezone.localtime(existing_check_out.timestamp).time()
-        assert local_check_in_time == time(8, 15)
-        assert local_check_out_time == time(17, 30)
-
-    def test_execute_complaint_cannot_attend_without_existing_records(self, test_employee):
-        """Test executing a complaint proposal when no attendance records exist (fallback case)."""
-        # Create an empty timesheet entry
-        existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 14))
-
-        # Create a complaint proposal without approved times (cannot attend case)
-        # No attendance records exist yet (fallback scenario)
-        proposal = Proposal.objects.create(
-            code="DX_COMPLAINT_003",
-            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            proposal_status=ProposalStatus.APPROVED,
-            timesheet_entry_complaint_complaint_reason="Device malfunction, could not check in",
-            timesheet_entry_complaint_proposed_check_in_time=time(8, 15),
-            timesheet_entry_complaint_proposed_check_out_time=time(17, 30),
-            created_by=test_employee,
-        )
-
-        # Link proposal to timesheet entry
-        ProposalTimeSheetEntry.objects.create(proposal=proposal, timesheet_entry=existing_entry)
-
-        # Execute the proposal
-        ProposalService.execute_approved_proposal(proposal)
-
-        # Verify attendance records were created as fallback
-        attendance_records = AttendanceRecord.objects.filter(employee=test_employee, timestamp__date=date(2025, 1, 14))
-        assert attendance_records.count() == 2
-
-        # Verify times match proposed times
-        check_in = attendance_records.filter(timestamp__time=time(8, 15)).first()
-        check_out = attendance_records.filter(timestamp__time=time(17, 30)).first()
-        assert check_in is not None
-        assert check_out is not None
-        assert check_in.attendance_type == "other"
-        assert check_out.attendance_type == "other"
-
-    def test_complaint_without_proposed_times_raises_error(self, test_employee):
-        """Test that complaint without proposed times raises an error."""
+    def test_complaint_without_approved_times_raises_error(self, test_employee):
+        """Test that complaint without approved times raises an error."""
         existing_entry = TimeSheetEntry.objects.create(employee=test_employee, date=date(2025, 1, 15))
 
-        # Create a complaint proposal without any times
+        # Create a complaint proposal without approved times
+        # Even if proposed times are present, it should fail if approved times are missing
         proposal = Proposal.objects.create(
             code="DX_COMPLAINT_004",
             proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
             proposal_status=ProposalStatus.APPROVED,
-            timesheet_entry_complaint_complaint_reason="Missing times",
+            timesheet_entry_complaint_complaint_reason="Missing approved times",
+            timesheet_entry_complaint_proposed_check_in_time=time(8, 0),
+            timesheet_entry_complaint_proposed_check_out_time=time(17, 0),
             created_by=test_employee,
         )
 
