@@ -1,10 +1,10 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from apps.payroll.api.serializers import KPIConfigSerializer
-from apps.payroll.api.serializers.kpi_config_schemas import (
+from apps.payroll.api.serializers import (
     GradeThresholdSerializer,
     KPIConfigSchemaSerializer,
+    KPIConfigSerializer,
     UnitControlSerializer,
 )
 from apps.payroll.models import KPIConfig

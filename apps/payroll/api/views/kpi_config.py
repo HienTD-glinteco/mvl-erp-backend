@@ -21,7 +21,7 @@ class CurrentKPIConfigView(APIView):
     @extend_schema(
         summary="Get current KPI configuration",
         description="Retrieve the current active KPI configuration including grade thresholds, unit control rules, and ambiguous assignment policy",
-        tags=["10.1: Payroll Configuration"],
+        tags=["8.1: KPI Configuration"],
         responses={200: KPIConfigSerializer},
         examples=[
             OpenApiExample(
@@ -95,11 +95,11 @@ class CurrentKPIConfigView(APIView):
         ],
     )
     @register_permission(
-        "payroll.view_kpi_config",
+        "kpi.view_kpi_config",
         _("View KPI configuration"),
-        "Payroll",
+        "KPI",
         "Configuration",
-        _("Payroll View KPI Configuration"),
+        _("KPI View KPI Configuration"),
     )
     def get(self, request):
         """Get the current KPI configuration."""

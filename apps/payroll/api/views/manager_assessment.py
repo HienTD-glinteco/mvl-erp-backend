@@ -15,7 +15,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List manager's employee assessments",
         description="Retrieve a paginated list of employee KPI assessments for employees under the manager",
-        tags=["10.6: Manager Assessment"],
+        tags=["8.7: Manager Assessment"],
         examples=[
             OpenApiExample(
                 "Success - List of assessments",
@@ -52,7 +52,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get specific employee assessment for manager",
         description="Retrieve detailed assessment information for an employee that the manager is responsible for",
-        tags=["10.6: Manager Assessment"],
+        tags=["8.7: Manager Assessment"],
         examples=[
             OpenApiExample(
                 "Success - Assessment with items",
@@ -91,7 +91,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Update manager assessment",
         description="Batch update manager scores for items and manager_assessment field",
-        tags=["10.6: Manager Assessment"],
+        tags=["8.7: Manager Assessment"],
         examples=[
             OpenApiExample(
                 "Update Request - Batch update",

@@ -6,11 +6,11 @@ from apps.payroll.api.views import (
     CurrentSalaryConfigView,
     DepartmentKPIAssessmentViewSet,
     EmployeeKPIAssessmentViewSet,
+    EmployeeSelfAssessmentViewSet,
     KPIAssessmentPeriodViewSet,
     KPICriterionViewSet,
+    ManagerAssessmentViewSet,
 )
-from apps.payroll.api.views.employee_self_assessment import EmployeeSelfAssessmentViewSet
-from apps.payroll.api.views.manager_assessment import ManagerAssessmentViewSet
 
 app_name = "payroll"
 

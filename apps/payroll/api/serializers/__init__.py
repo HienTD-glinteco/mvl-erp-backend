@@ -1,15 +1,3 @@
-from .config_schemas import (
-    BusinessCommissionCriteriaSerializer,
-    BusinessCommissionTierSerializer,
-    BusinessProgressiveSalarySerializer,
-    InsuranceContributionsSerializer,
-    KpiSalarySerializer,
-    KpiTierSerializer,
-    PersonalIncomeTaxSerializer,
-    ProgressiveTaxLevelSerializer,
-    SalaryConfigSchemaSerializer,
-    SocialInsuranceSerializer,
-)
 from .department_kpi_assessment import (
     DepartmentKPIAssessmentListSerializer,
     DepartmentKPIAssessmentSerializer,
@@ -31,10 +19,21 @@ from .kpi_assessment_period import (
     KPIAssessmentPeriodListSerializer,
     KPIAssessmentPeriodSerializer,
 )
-from .kpi_config import KPIConfigSerializer
-from .kpi_config_schemas import GradeThresholdSerializer, KPIConfigSchemaSerializer, UnitControlSerializer
+from .kpi_config import GradeThresholdSerializer, KPIConfigSchemaSerializer, KPIConfigSerializer, UnitControlSerializer
 from .kpi_criterion import KPICriterionSerializer
-from .salary_config import SalaryConfigSerializer
+from .salary_config import (
+    BusinessCommissionCriteriaSerializer,
+    BusinessCommissionTierSerializer,
+    BusinessProgressiveSalarySerializer,
+    InsuranceContributionsSerializer,
+    KpiSalarySerializer,
+    KpiTierSerializer,
+    PersonalIncomeTaxSerializer,
+    ProgressiveTaxLevelSerializer,
+    SalaryConfigSchemaSerializer,
+    SalaryConfigSerializer,
+    SocialInsuranceSerializer,
+)
 
 __all__ = [
     "SocialInsuranceSerializer",

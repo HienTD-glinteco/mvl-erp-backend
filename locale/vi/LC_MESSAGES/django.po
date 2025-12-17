@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 13:55+0700\n"
+"POT-Creation-Date: 2025-12-17 14:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -335,6 +335,8 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr ""
 
+#: apps/payroll/api/views/employee_kpi_assessment.py:324
+#: apps/payroll/api/views/employee_kpi_assessment.py:556
 #: apps/payroll/api/views/employee_self_assessment.py:163
 #: apps/payroll/api/views/manager_assessment.py:186
 msgid "Cannot update finalized assessment"
@@ -371,7 +373,7 @@ msgid "View KPI configuration"
 msgstr ""
 
 #: apps/payroll/api/views/kpi_config.py:102
-msgid "Payroll View KPI Configuration"
+msgid "KPI View KPI Configuration"
 msgstr ""
 
 #: apps/payroll/api/views/salary_config.py:127

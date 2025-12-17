@@ -18,7 +18,7 @@ from libs import BaseModelViewSet
     list=extend_schema(
         summary="Get employee's current assessment",
         description="Retrieve the authenticated employee's current KPI assessment for the latest period",
-        tags=["10.5: Employee Self-Assessment"],
+        tags=["8.5: Employee Self-Assessment"],
         examples=[
             OpenApiExample(
                 "Success - Current Assessment",
@@ -55,12 +55,12 @@ from libs import BaseModelViewSet
     retrieve=extend_schema(
         summary="Get specific assessment",
         description="Retrieve a specific assessment that belongs to the authenticated employee",
-        tags=["10.5: Employee Self-Assessment"],
+        tags=["8.5: Employee Self-Assessment"],
     ),
     partial_update=extend_schema(
         summary="Update self-assessment",
         description="Batch update employee scores for items, plan_tasks, extra_tasks, and proposal",
-        tags=["10.5: Employee Self-Assessment"],
+        tags=["8.5: Employee Self-Assessment"],
         examples=[
             OpenApiExample(
                 "Update Request - Batch update items",
@@ -184,7 +184,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
     @extend_schema(
         summary="Update employee score for an item",
         description="Update employee's self-score for a specific KPI item",
-        tags=["10.5: Employee Self-Assessment"],
+        tags=["8.5: Employee Self-Assessment"],
         request=EmployeeKPIItemSerializer,
         responses={200: EmployeeKPIItemSerializer},
     )

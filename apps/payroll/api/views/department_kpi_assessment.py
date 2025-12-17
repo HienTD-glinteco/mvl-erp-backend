@@ -19,7 +19,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List department KPI assessments",
         description="Retrieve a paginated list of department KPI assessments",
-        tags=["10.4: Department KPI Assessments"],
+        tags=["8.4: Department KPI Assessments"],
         examples=[
             OpenApiExample(
                 "Success - List of department assessments",
@@ -55,12 +55,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get department KPI assessment details",
         description="Retrieve detailed information about a specific department KPI assessment",
-        tags=["10.4: Department KPI Assessments"],
+        tags=["8.4: Department KPI Assessments"],
     ),
     partial_update=extend_schema(
         summary="Update department KPI assessment",
         description="Update grade or note for a department KPI assessment",
-        tags=["10.4: Department KPI Assessments"],
+        tags=["8.4: Department KPI Assessments"],
         examples=[
             OpenApiExample(
                 "Request - Update grade",

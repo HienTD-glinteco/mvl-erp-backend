@@ -33,7 +33,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List KPI assessment periods",
         description="Retrieve a list of all KPI assessment periods with counts",
-        tags=["10.6: KPI Assessment Periods"],
+        tags=["8.6: KPI Assessment Periods"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -65,7 +65,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get KPI assessment period details",
         description="Retrieve details of a specific KPI assessment period",
-        tags=["10.6: KPI Assessment Periods"],
+        tags=["8.6: KPI Assessment Periods"],
         examples=[
             OpenApiExample(
                 "Success",
@@ -95,12 +95,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete KPI assessment period",
         description="Delete a KPI assessment period (use with caution)",
-        tags=["10.6: KPI Assessment Periods"],
+        tags=["8.6: KPI Assessment Periods"],
     ),
     generate=extend_schema(
         summary="Generate KPI assessments for a month",
         description="Generate employee and department KPI assessments for the specified month. Creates a new period if it doesn't exist.",
-        tags=["10.6: KPI Assessment Periods"],
+        tags=["8.6: KPI Assessment Periods"],
         request=KPIAssessmentPeriodGenerateSerializer,
         responses={
             201: KPIAssessmentPeriodGenerateResponseSerializer,
@@ -153,7 +153,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     finalize=extend_schema(
         summary="Finalize KPI assessment period",
         description="Finalize all assessments in this period. Sets grade_hrm='C' for unassessed employees and validates unit control for departments.",
-        tags=["10.6: KPI Assessment Periods"],
+        tags=["8.6: KPI Assessment Periods"],
         request=None,
         responses={
             200: KPIAssessmentPeriodFinalizeResponseSerializer,
