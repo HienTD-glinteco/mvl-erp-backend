@@ -374,7 +374,7 @@ class TestContractTypeAPI:
     def test_filter_by_name(self, api_client, contract_type, fixed_term_contract_type):
         """Test filtering contract types by name."""
         url = reverse("hrm:contract-type-list")
-        response = api_client.get(url, {"name": "Test"})
+        response = api_client.get(url, {"name__icontains": "Test"})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()["data"]
