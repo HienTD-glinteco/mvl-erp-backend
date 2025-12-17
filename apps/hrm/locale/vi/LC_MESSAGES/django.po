@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 20:00+0700\n"
+"POT-Creation-Date: 2025-12-17 20:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1170,7 +1170,7 @@ msgstr "Bảng chấm công"
 msgid "List employee timesheet entries"
 msgstr "Danh sách ngày công nhân viên"
 
-#: apps/hrm/constants.py:25 apps/hrm/constants.py:163
+#: apps/hrm/constants.py:25
 msgid "Official"
 msgstr "Nhân viên chính thức"
 
@@ -1335,13 +1335,17 @@ msgstr "Chấm công một lần"
 msgid "Absent"
 msgstr "Vắng mặt"
 
-#: apps/hrm/constants.py:161 apps/hrm/models/holiday.py:26
-msgid "Holiday"
-msgstr "Kỳ nghỉ lễ"
+#: apps/hrm/constants.py:161
+msgid "Holiday day"
+msgstr "Ngày lễ"
 
 #: apps/hrm/constants.py:162
-msgid "Compensatory"
-msgstr ""
+msgid "Compensatory day"
+msgstr "Làm bù"
+
+#: apps/hrm/constants.py:163
+msgid "Official day"
+msgstr "Chính thức"
 
 #: apps/hrm/constants.py:167 apps/hrm/constants.py:188
 msgid "Paid leave"
@@ -2109,6 +2113,10 @@ msgstr "Lịch sử công tác"
 #: apps/hrm/models/employee_work_history.py:171
 msgid "Employee work histories"
 msgstr "Lich sử công tác"
+
+#: apps/hrm/models/holiday.py:26
+msgid "Holiday"
+msgstr "Ngày lễ"
 
 #: apps/hrm/models/holiday.py:27
 msgid "Holidays"

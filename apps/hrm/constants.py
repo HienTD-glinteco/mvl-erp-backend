@@ -158,9 +158,9 @@ class TimesheetStatus(models.TextChoices):
 
 
 class TimesheetDayType(models.TextChoices):
-    HOLIDAY = "holiday", _("Holiday")
-    COMPENSATORY = "compensatory", _("Compensatory")
-    OFFICIAL = "official", _("Official")
+    HOLIDAY = "holiday", _("Holiday day")
+    COMPENSATORY = "compensatory", _("Compensatory day")
+    OFFICIAL = "official", _("Official day")
 
 
 class TimesheetReason(models.TextChoices):
