@@ -76,7 +76,7 @@ def validate_unit_control(
     department_unit_type: str,
     grade_counts: Dict[str, int],
     total_employees: int,
-    unit_control: Dict[str, Dict[str, Optional[float]]],
+    unit_control: Dict[str, Dict[str, Dict[str, Optional[float]]]],
 ) -> Tuple[bool, List[str]]:
     """Validate grade distribution against unit control rules.
 
@@ -84,7 +84,7 @@ def validate_unit_control(
         department_unit_type: Type of unit (A/B/C/D) for the department
         grade_counts: Dict mapping grade (A/B/C/D) to count
         total_employees: Total number of employees considered
-        unit_control: Unit control rules dict
+        unit_control: Unit control rules dict with structure: {unit_type: {grade: {max/min: value}}}
 
     Returns:
         Tuple of (is_valid, list of violation messages)
@@ -94,7 +94,7 @@ def validate_unit_control(
         ...     "A",
         ...     {"A": 3, "B": 5, "C": 2, "D": 0},
         ...     10,
-        ...     {"A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None}}
+        ...     {"A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"target": 0.50}, "D": {"min": 0}}}
         ... )
         (False, ["Grade A exceeds maximum: 30.00% > 20.00%"])
     """
@@ -107,23 +107,24 @@ def validate_unit_control(
 
     violations = []
 
-    # Check max percentages
-    for grade in ["A", "B", "C"]:
-        max_key = f"max_pct_{grade}"
-        max_pct = rules.get(max_key)
-        if max_pct is not None:
-            count = grade_counts.get(grade, 0)
-            actual_pct = count / total_employees
-            if actual_pct > max_pct:
-                violations.append(f"Grade {grade} exceeds maximum: {actual_pct * 100:.2f}% > {max_pct * 100:.2f}%")
+    # Check each grade's constraints
+    for grade in ["A", "B", "C", "D"]:
+        grade_rules = rules.get(grade)
+        if not grade_rules:
+            continue
 
-    # Check min percentage for D
-    min_pct_d = rules.get("min_pct_D")
-    if min_pct_d is not None:
-        count_d = grade_counts.get("D", 0)
-        actual_pct_d = count_d / total_employees
-        if actual_pct_d < min_pct_d:
-            violations.append(f"Grade D below minimum: {actual_pct_d * 100:.2f}% < {min_pct_d * 100:.2f}%")
+        count = grade_counts.get(grade, 0)
+        actual_pct = count / total_employees
+
+        # Check max constraint
+        max_pct = grade_rules.get("max")
+        if max_pct is not None and actual_pct > max_pct:
+            violations.append(f"Grade {grade} exceeds maximum: {actual_pct * 100:.2f}% > {max_pct * 100:.2f}%")
+
+        # Check min constraint
+        min_pct = grade_rules.get("min")
+        if min_pct is not None and actual_pct < min_pct:
+            violations.append(f"Grade {grade} below minimum: {actual_pct * 100:.2f}% < {min_pct * 100:.2f}%")
 
     return (len(violations) == 0, violations)
 
@@ -131,7 +132,7 @@ def validate_unit_control(
 def allocate_grades_by_quota(  # noqa: C901
     employees_data: List[Dict[str, Any]],
     department_unit_type: str,
-    unit_control: Dict[str, Dict[str, Optional[float]]],
+    unit_control: Dict[str, Dict[str, Dict[str, Optional[float]]]],
 ) -> Tuple[Dict[int, str], List[str]]:
     """Allocate grades to employees based on quota and ranking.
 
@@ -144,7 +145,7 @@ def allocate_grades_by_quota(  # noqa: C901
     Args:
         employees_data: List of dicts with keys: employee_id, total_manager_percent, grade_manager_overridden
         department_unit_type: Unit type (A/B/C/D)
-        unit_control: Unit control rules
+        unit_control: Unit control rules with structure: {unit_type: {grade: {max/min: value}}}
 
     Returns:
         Tuple of (assignment_dict {employee_id: grade}, list of warnings/violations)
@@ -156,7 +157,7 @@ def allocate_grades_by_quota(  # noqa: C901
         ...         {"employee_id": 2, "total_manager_percent": Decimal("85"), "grade_manager_overridden": None},
         ...     ],
         ...     "A",
-        ...     {"A": {"max_pct_A": 0.50, "max_pct_B": 0.50, "max_pct_C": 0.0, "min_pct_D": None}}
+        ...     {"A": {"A": {"max": 0.50}, "B": {"max": 0.50}, "C": {"target": 0.0}, "D": {"min": 0}}}
         ... )
         ({1: 'A', 2: 'B'}, [])
     """
@@ -182,14 +183,13 @@ def allocate_grades_by_quota(  # noqa: C901
         # All are overridden, nothing to assign
         return ({}, [])
 
-    # Calculate quotas
+    # Calculate quotas from new structure
     import math
 
-    max_a = math.floor((rules.get("max_pct_A") or 0) * N)
-    max_b = math.floor((rules.get("max_pct_B") or 0) * N)
-    max_c = math.floor((rules.get("max_pct_C") or 0) * N)
-    min_d_pct = rules.get("min_pct_D")
-    min_d = math.ceil(min_d_pct * N) if min_d_pct is not None else 0
+    max_a = math.floor((rules.get("A", {}).get("max") or 0) * N)
+    max_b = math.floor((rules.get("B", {}).get("max") or 0) * N)
+    max_c = math.floor((rules.get("C", {}).get("max") or 0) * N)
+    min_d = math.ceil((rules.get("D", {}).get("min") or 0) * N)
 
     # Assign grades
     assignments = {}
@@ -240,6 +240,6 @@ def allocate_grades_by_quota(  # noqa: C901
                 converted += 1
 
         if converted < needed:
-            warnings.append(f"Could not satisfy min_pct_D requirement: needed {min_d}, got {count_d + converted}")
+            warnings.append(f"Could not satisfy min D requirement: needed {min_d}, got {count_d + converted}")
 
     return (assignments, warnings)

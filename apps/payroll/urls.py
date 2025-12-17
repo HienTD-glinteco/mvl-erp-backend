@@ -14,15 +14,15 @@ from apps.payroll.api.views.employee_self_assessment import EmployeeSelfAssessme
 app_name = "payroll"
 
 router = DefaultRouter()
-router.register(r"kpi/criteria", KPICriterionViewSet, basename="kpi-criteria")
-router.register(r"kpi/periods", KPIAssessmentPeriodViewSet, basename="kpi-periods")
-router.register(r"kpi/assessments", EmployeeKPIAssessmentViewSet, basename="kpi-assessments")
-router.register(r"kpi/departments/assessments", DepartmentKPIAssessmentViewSet, basename="kpi-department-assessments")
-router.register(r"kpi/employees/assessments", EmployeeSelfAssessmentViewSet, basename="kpi-employee-self-assessments")
+router.register(r"kpi-criteria", KPICriterionViewSet, basename="kpi-criteria")
+router.register(r"kpi-periods", KPIAssessmentPeriodViewSet, basename="kpi-periods")
+router.register(r"kpi-assessments/employees", EmployeeKPIAssessmentViewSet, basename="kpi-assessments")
+router.register(r"kpi-assessments/departments", DepartmentKPIAssessmentViewSet, basename="kpi-department-assessments")
+router.register(r"kpi-assessments/mine", EmployeeSelfAssessmentViewSet, basename="kpi-employee-self-assessments")
 
 urlpatterns = [
-    path("salary-config/current/", CurrentSalaryConfigView.as_view(), name="salary-config-current"),
-    path("kpi-config/current/", CurrentKPIConfigView.as_view(), name="kpi-config-current"),
+    path("salary-config/", CurrentSalaryConfigView.as_view(), name="salary-config-current"),
+    path("kpi-config/", CurrentKPIConfigView.as_view(), name="kpi-config-current"),
 ]
 
 urlpatterns += router.urls

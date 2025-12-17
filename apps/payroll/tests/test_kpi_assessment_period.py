@@ -90,6 +90,7 @@ class KPIAssessmentPeriodAPITest(TestCase):
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
         import json
+
         content = json.loads(response.content.decode())
         return content
 
@@ -149,7 +150,7 @@ class KPIAssessmentPeriodAPITest(TestCase):
 
     def test_finalize_period(self):
         """Test finalizing a period."""
-        response = self.client.post(f"/api/payroll/kpi/periods/{self.period.id}/finalize/")
+        response = self.client.patch(f"/api/payroll/kpi/periods/{self.period.id}/", {"finalized": True}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -14,7 +14,7 @@ User = get_user_model()
 
 def random_code(prefix="", length=6):
     """Generate a random code."""
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
     return f"{prefix}{suffix}"
 
 
@@ -75,11 +75,13 @@ def department(db, branch, block):
 def employee(db, branch, block, department):
     """Create a test employee."""
     from datetime import date
+
     code = random_code()
     return Employee.objects.create(
         username=f"emp{code}",
         email=f"emp{code}@example.com",
         phone=f"09{random_code(length=8)}",
+        citizen_id=f"{random_code(length=12)}",
         status="active",
         branch=branch,
         block=block,

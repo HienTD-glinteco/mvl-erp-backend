@@ -1,5 +1,7 @@
 from .kpi_assessment import (
     create_assessment_items_from_criteria,
+    generate_department_assessments_for_period,
+    generate_employee_assessments_for_period,
     recalculate_assessment_scores,
     resync_assessment_add_missing,
     resync_assessment_apply_current,
@@ -18,4 +20,6 @@ __all__ = [
     "recalculate_assessment_scores",
     "resync_assessment_add_missing",
     "resync_assessment_apply_current",
+    "generate_employee_assessments_for_period",
+    "generate_department_assessments_for_period",
 ]

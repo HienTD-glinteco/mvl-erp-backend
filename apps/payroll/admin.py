@@ -149,7 +149,14 @@ class EmployeeKPIAssessmentAdmin(admin.ModelAdmin):
     list_filter = ["period__month", "grade_manager", "grade_hrm", "finalized"]
     search_fields = ["employee__username", "employee__first_name", "employee__last_name"]
     ordering = ["-period__month", "employee__username"]
-    readonly_fields = ["total_possible_score", "total_manager_score", "grade_manager", "created_at", "updated_at"]
+    readonly_fields = [
+        "total_possible_score",
+        "total_employee_score",
+        "total_manager_score",
+        "grade_manager",
+        "created_at",
+        "updated_at",
+    ]
     inlines = [EmployeeKPIItemInline]
     fieldsets = [
         (
@@ -163,6 +170,7 @@ class EmployeeKPIAssessmentAdmin(admin.ModelAdmin):
             {
                 "fields": [
                     "total_possible_score",
+                    "total_employee_score",
                     "total_manager_score",
                     "grade_manager",
                     "grade_manager_overridden",

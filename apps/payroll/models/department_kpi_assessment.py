@@ -78,6 +78,10 @@ class DepartmentKPIAssessment(BaseModel):
         help_text="Whether assessment is locked",
     )
 
+    is_valid_unit_control = models.BooleanField(
+        default=True, verbose_name="Is valid unit control", help_text="This department valid unit control or not"
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 14:43+0700\n"
+"POT-Creation-Date: 2025-12-17 11:50+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -303,7 +303,6 @@ msgstr ""
 
 #: apps/payroll/api/serializers/employee_kpi_assessment.py:51
 #: apps/payroll/api/serializers/employee_kpi_assessment.py:81
-#: apps/payroll/api/views/employee_kpi_assessment.py:310
 msgid "Cannot update items of a finalized assessment"
 msgstr ""
 
@@ -317,11 +316,11 @@ msgstr ""
 msgid "Manager score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:179
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:176
 msgid "An assessment for this employee and month already exists"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:188
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:185
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
@@ -336,75 +335,37 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr ""
 
-#: apps/payroll/api/views/department_kpi_assessment.py:150
-#: apps/payroll/api/views/employee_kpi_assessment.py:209
-msgid "Month parameter is required (format: YYYY-MM)"
-msgstr ""
-
-#: apps/payroll/api/views/department_kpi_assessment.py:159
-#: apps/payroll/api/views/employee_kpi_assessment.py:218
-msgid "Invalid month format. Use YYYY-MM"
-msgstr ""
-
-#: apps/payroll/api/views/department_kpi_assessment.py:167
-#: apps/payroll/api/views/employee_kpi_assessment.py:226
-msgid "No KPI configuration found"
-msgstr ""
-
-#: apps/payroll/api/views/department_kpi_assessment.py:181
-msgid "Invalid department_ids format"
-msgstr ""
-
-#: apps/payroll/api/views/department_kpi_assessment.py:246
-#: apps/payroll/api/views/employee_kpi_assessment.py:407
-msgid "Assessment is already finalized"
-msgstr ""
-
-#: apps/payroll/api/views/department_kpi_assessment.py:258
-msgid "Department assessment finalized successfully"
-msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:240
-msgid "Invalid employee_ids format"
-msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:318
+#: apps/payroll/api/views/kpi_assessment_period.py:209
 #, fuzzy
-#| msgid "File not found"
-msgid "Item not found"
-msgstr "Tệp tin không tồn tại"
+#| msgid "This field is required"
+msgid "Month parameter is required"
+msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:358
-msgid "Cannot resync a finalized assessment"
+#: apps/payroll/api/views/kpi_assessment_period.py:219
+msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgstr ""
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:367
-#, python-brace-format
-msgid "Added {count} new criteria"
+#: apps/payroll/api/views/kpi_assessment_period.py:234
+msgid "No KPI configuration found. Please create one first."
 msgstr ""
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:370
-#, python-brace-format
-msgid "Replaced all items with {count} current criteria"
+#: apps/payroll/api/views/kpi_assessment_period.py:255
+msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:373
-msgid "Invalid mode. Use 'add_missing' or 'apply_current'"
+#: apps/payroll/api/views/kpi_assessment_period.py:271
+msgid "Period is already finalized"
 msgstr ""
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:449
-msgid "Unit control violations"
+#: apps/payroll/api/views/kpi_assessment_period.py:337
+msgid "Period finalized successfully"
 msgstr ""
 
-#: apps/payroll/api/views/employee_kpi_assessment.py:463
-msgid "Assessment finalized successfully"
-msgstr ""
-
-#: apps/payroll/api/views/kpi_config.py:84
+#: apps/payroll/api/views/kpi_config.py:99
 msgid "View KPI configuration"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_config.py:87
+#: apps/payroll/api/views/kpi_config.py:102
 msgid "Payroll View KPI Configuration"
 msgstr ""
 

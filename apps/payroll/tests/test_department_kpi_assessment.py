@@ -8,7 +8,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Branch, Department
+from apps.hrm.models import Department
 from apps.payroll.models import (
     DepartmentKPIAssessment,
     KPIAssessmentPeriod,
@@ -105,6 +105,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
     def get_response_data(self, response):
         """Extract data from wrapped API response."""
         import json
+
         content = json.loads(response.content.decode())
         return content
 
@@ -188,13 +189,13 @@ class DepartmentKPIAssessmentAPITest(TestCase):
         )
 
         response = self.client.post(
-            "/api/payroll/kpi/departments/assessments/generate/",
-            {"month": "2026-01"},
+            "/api/payroll/kpi/departments/assessments/generate/?month=2026-01",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("created", response.data)
-        self.assertGreater(self.get_response_data(response)["data"]["created"], 0)
+        response_data = self.get_response_data(response)
+        self.assertIn("created", response_data["data"])
+        self.assertGreater(response_data["data"]["created"], 0)
 
     def test_finalize_assessment(self):
         """Test finalizing a department assessment."""

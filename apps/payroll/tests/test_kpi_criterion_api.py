@@ -607,9 +607,9 @@ class KPICriterionAPITest(APITestCase):
 
         results = response_data["data"]["results"]
 
-        # discipline comes before work_performance alphabetically
+        # ViewSet ordering is ["-evaluation_type", "order"], so work_performance comes before discipline
         # Within each type, order should be ascending
-        self.assertEqual(results[0]["id"], criterion2.id)  # discipline, order 1
-        self.assertEqual(results[1]["id"], criterion4.id)  # discipline, order 2
-        self.assertEqual(results[2]["id"], criterion1.id)  # work_performance, order 1
-        self.assertEqual(results[3]["id"], criterion3.id)  # work_performance, order 2
+        self.assertEqual(results[0]["id"], criterion1.id)  # work_performance, order 1
+        self.assertEqual(results[1]["id"], criterion3.id)  # work_performance, order 2
+        self.assertEqual(results[2]["id"], criterion2.id)  # discipline, order 1
+        self.assertEqual(results[3]["id"], criterion4.id)  # discipline, order 2

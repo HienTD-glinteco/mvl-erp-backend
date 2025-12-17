@@ -4,8 +4,11 @@ This module provides functions for:
 - Creating assessment snapshots from KPICriterion
 - Resyncing assessments
 - Recalculating scores and grades
+- Generating assessments for periods
 """
 
+import logging
+from decimal import Decimal
 from typing import List
 
 from django.db import transaction
@@ -16,6 +19,8 @@ from apps.payroll.models import (
     KPICriterion,
 )
 from apps.payroll.utils.kpi_calculation import calculate_grade_from_percent
+
+logger = logging.getLogger(__name__)
 
 
 def create_assessment_items_from_criteria(
@@ -81,6 +86,7 @@ def recalculate_assessment_scores(assessment: EmployeeKPIAssessment) -> Employee
         else None
     )
 
+    assessment.total_employee_score = total_employee
     assessment.total_manager_score = total_manager
 
     # Calculate grade if we have manager score
@@ -88,7 +94,7 @@ def recalculate_assessment_scores(assessment: EmployeeKPIAssessment) -> Employee
         config = assessment.period.kpi_config_snapshot
 
         grade, possible_codes = calculate_grade_from_percent(
-            total_manager,
+            Decimal(str(total_manager)),
             config.get("grade_thresholds", []),
             config.get("ambiguous_assignment", "manual"),
         )
@@ -196,3 +202,145 @@ def resync_assessment_apply_current(assessment: EmployeeKPIAssessment) -> int:
     assessment.save()
 
     return len(new_items)
+
+
+def generate_employee_assessments_for_period(
+    period,
+    targets=None,
+    employee_ids=None,
+    skip_existing=False,
+) -> int:
+    """Generate employee KPI assessments for all targets in a period.
+
+    This function creates employee assessments for both sales and backoffice targets,
+    creates assessment items from active criteria, and calculates initial scores.
+
+    Args:
+        period: KPIAssessmentPeriod instance
+        targets: List of targets to generate for (e.g., ["sales", "backoffice"]). If None, generates for all.
+        employee_ids: Optional list of employee IDs to filter. If None, generates for all eligible employees.
+        skip_existing: If True, skip employees that already have assessments for this period.
+
+    Returns:
+        Number of employee assessments created
+    """
+    from apps.hrm.models import Department, Employee
+    from apps.payroll.models import KPICriterion
+
+    if targets is None:
+        targets = ["sales", "backoffice"]
+
+    created_count = 0
+
+    for target in targets:
+        # Get active criteria for target
+        criteria = KPICriterion.objects.filter(target=target, active=True).order_by("evaluation_type", "order")
+
+        if not criteria.exists():
+            continue
+
+        # Get employees based on target
+        employees_qs = Employee.objects.exclude(status=Employee.Status.RESIGNED)
+
+        if target == "sales":
+            employees_qs = employees_qs.filter(department__function=Department.DepartmentFunction.BUSINESS)
+        elif target == "backoffice":
+            employees_qs = employees_qs.exclude(department__function=Department.DepartmentFunction.BUSINESS)
+
+        # Filter by employee IDs if provided
+        if employee_ids:
+            employees_qs = employees_qs.filter(id__in=employee_ids)
+
+        # Process each employee
+        for employee in employees_qs:
+            try:
+                # Check if assessment exists
+                if (
+                    skip_existing
+                    and EmployeeKPIAssessment.objects.filter(
+                        employee=employee,
+                        period=period,
+                    ).exists()
+                ):
+                    continue
+
+                # Create assessment
+                assessment = EmployeeKPIAssessment.objects.create(
+                    employee=employee,
+                    period=period,
+                )
+
+                # Create items from criteria
+                create_assessment_items_from_criteria(assessment, list(criteria))
+
+                # Calculate totals
+                recalculate_assessment_scores(assessment)
+
+                created_count += 1
+
+            except Exception as e:  # noqa: B110
+                # Skip errors for individual employees but log them
+                logger.warning(
+                    "Failed to create assessment for employee %s: %s",
+                    employee.id,
+                    str(e),
+                )
+
+    return created_count
+
+
+def generate_department_assessments_for_period(
+    period,
+    department_ids=None,
+    skip_existing=False,
+) -> int:
+    """Generate department KPI assessments for a period.
+
+    Creates department assessments for all active departments with default grade 'C'.
+
+    Args:
+        period: KPIAssessmentPeriod instance
+        department_ids: Optional list of department IDs to filter. If None, generates for all active departments.
+        skip_existing: If True, skip departments that already have assessments for this period.
+
+    Returns:
+        Number of department assessments created
+    """
+    from apps.hrm.models import Department
+    from apps.payroll.models import DepartmentKPIAssessment
+
+    created_count = 0
+    departments_qs = Department.objects.filter(is_active=True)
+
+    # Filter by department IDs if provided
+    if department_ids:
+        departments_qs = departments_qs.filter(id__in=department_ids)
+
+    for department in departments_qs:
+        try:
+            # Check if assessment exists
+            if (
+                skip_existing
+                and DepartmentKPIAssessment.objects.filter(
+                    department=department,
+                    period=period,
+                ).exists()
+            ):
+                continue
+
+            DepartmentKPIAssessment.objects.create(
+                department=department,
+                period=period,
+                grade="C",
+                default_grade="C",
+            )
+            created_count += 1
+        except Exception as e:  # noqa: B110
+            # Skip errors for individual departments but log them
+            logger.warning(
+                "Failed to create assessment for department %s: %s",
+                department.id,
+                str(e),
+            )
+
+    return created_count

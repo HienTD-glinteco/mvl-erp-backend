@@ -59,6 +59,16 @@ class EmployeeKPIAssessment(BaseModel):
         help_text="Sum of all component_total_score from items",
     )
 
+    total_employee_score = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        verbose_name="Total employee score",
+        help_text="Sum of all employee scores from items",
+    )
+
     total_manager_score = models.DecimalField(
         max_digits=6,
         decimal_places=2,

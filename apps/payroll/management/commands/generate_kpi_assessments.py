@@ -11,19 +11,14 @@ Example usage:
 from datetime import date
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
 
-from apps.hrm.models import Department, Employee
 from apps.payroll.models import (
-    DepartmentKPIAssessment,
-    EmployeeKPIAssessment,
     KPIAssessmentPeriod,
     KPIConfig,
-    KPICriterion,
 )
 from apps.payroll.utils import (
-    create_assessment_items_from_criteria,
-    recalculate_assessment_scores,
+    generate_department_assessments_for_period,
+    generate_employee_assessments_for_period,
 )
 
 
@@ -113,158 +108,39 @@ class Command(BaseCommand):
         else:
             raise CommandError("Please specify --target or --all")
 
-        # Generate employee assessments
-        self.generate_employee_assessments(
-            period=period,
-            targets=targets,
-            employee_ids_str=employee_ids_str,
-            skip_existing=skip_existing,
-        )
+        # Parse employee IDs if provided
+        employee_ids = None
+        if employee_ids_str:
+            try:
+                employee_ids = [int(x.strip()) for x in employee_ids_str.split(",")]
+            except ValueError:
+                raise CommandError("Invalid employee_ids format")
 
-        # Generate department assessments
-        self.generate_department_assessments(
-            period=period,
-            department_ids_str=department_ids_str,
-            skip_existing=skip_existing,
-        )
-
-        self.stdout.write(self.style.SUCCESS("Assessment generation completed successfully"))
-
-    def generate_employee_assessments(
-        self,
-        period,
-        targets,
-        employee_ids_str=None,
-        skip_existing=True,
-    ):
-        """Generate employee KPI assessments."""
-        self.stdout.write("\n--- Generating Employee Assessments ---")
-
-        created_count = 0
-        skipped_count = 0
-        error_count = 0
-
-        for target in targets:
-            self.stdout.write(f"\nProcessing target: {target}")
-
-            # Get active criteria for target
-            criteria = KPICriterion.objects.filter(target=target, active=True).order_by("evaluation_type", "order")
-
-            if not criteria.exists():
-                self.stdout.write(self.style.WARNING(f"No active criteria found for target: {target}"))
-                continue
-
-            self.stdout.write(f"Found {criteria.count()} active criteria")
-
-            # Get employees based on target
-            # Target 'sales' = employees where department.function == BUSINESS
-            # Target 'backoffice' = employees where department.function != BUSINESS
-            employees_qs = Employee.objects.exclude(status=Employee.Status.RESIGNED)
-
-            if target == "sales":
-                employees_qs = employees_qs.filter(department__function=Department.DepartmentFunction.BUSINESS)
-            elif target == "backoffice":
-                employees_qs = employees_qs.exclude(department__function=Department.DepartmentFunction.BUSINESS)
-
-            if employee_ids_str:
-                try:
-                    employee_ids = [int(x.strip()) for x in employee_ids_str.split(",")]
-                    employees_qs = employees_qs.filter(id__in=employee_ids)
-                except ValueError:
-                    raise CommandError("Invalid employee_ids format")
-
-            self.stdout.write(f"Found {employees_qs.count()} employees for target {target}")
-
-            # Process each employee
-            for employee in employees_qs:
-                try:
-                    # Check if assessment exists
-                    if (
-                        skip_existing
-                        and EmployeeKPIAssessment.objects.filter(
-                            employee=employee,
-                            period=period,
-                        ).exists()
-                    ):
-                        skipped_count += 1
-                        continue
-
-                    with transaction.atomic():
-                        # Create assessment
-                        assessment = EmployeeKPIAssessment.objects.create(
-                            employee=employee,
-                            period=period,
-                        )
-
-                        # Create items from criteria
-                        create_assessment_items_from_criteria(assessment, list(criteria))
-
-                        # Calculate totals
-                        recalculate_assessment_scores(assessment)
-
-                        created_count += 1
-                        self.stdout.write(f"  ✓ Created assessment for {employee.code} - {employee.user.username}")
-
-                except Exception as e:
-                    error_count += 1
-                    self.stdout.write(self.style.ERROR(f"  ✗ Error creating assessment for {employee.code}: {str(e)}"))
-
-        self.stdout.write("\nEmployee Assessments Summary:")
-        self.stdout.write(f"  Created: {created_count}")
-        self.stdout.write(f"  Skipped: {skipped_count}")
-        self.stdout.write(f"  Errors: {error_count}")
-
-    def generate_department_assessments(
-        self,
-        period,
-        department_ids_str=None,
-        skip_existing=True,
-    ):
-        """Generate department KPI assessments."""
-        self.stdout.write("\n--- Generating Department Assessments ---")
-
-        # Get departments
-        departments_qs = Department.objects.filter(is_active=True)
+        # Parse department IDs if provided
+        department_ids = None
         if department_ids_str:
             try:
                 department_ids = [int(x.strip()) for x in department_ids_str.split(",")]
-                departments_qs = departments_qs.filter(id__in=department_ids)
             except ValueError:
                 raise CommandError("Invalid department_ids format")
 
-        created_count = 0
-        skipped_count = 0
-        error_count = 0
+        # Generate employee assessments
+        self.stdout.write("\n--- Generating Employee Assessments ---")
+        employee_count = generate_employee_assessments_for_period(
+            period=period,
+            targets=targets,
+            employee_ids=employee_ids,
+            skip_existing=skip_existing,
+        )
+        self.stdout.write(f"Created {employee_count} employee assessments")
 
-        for department in departments_qs:
-            try:
-                # Check if assessment exists
-                if (
-                    skip_existing
-                    and DepartmentKPIAssessment.objects.filter(
-                        department=department,
-                        period=period,
-                    ).exists()
-                ):
-                    skipped_count += 1
-                    continue
+        # Generate department assessments
+        self.stdout.write("\n--- Generating Department Assessments ---")
+        department_count = generate_department_assessments_for_period(
+            period=period,
+            department_ids=department_ids,
+            skip_existing=skip_existing,
+        )
+        self.stdout.write(f"Created {department_count} department assessments")
 
-                # Create department assessment with default grade 'C'
-                DepartmentKPIAssessment.objects.create(
-                    department=department,
-                    period=period,
-                    grade="C",
-                    default_grade="C",
-                )
-
-                created_count += 1
-                self.stdout.write(f"  ✓ Created assessment for {department.name}")
-
-            except Exception as e:
-                error_count += 1
-                self.stdout.write(self.style.ERROR(f"  ✗ Error creating assessment for {department.name}: {str(e)}"))
-
-        self.stdout.write("\nDepartment Assessments Summary:")
-        self.stdout.write(f"  Created: {created_count}")
-        self.stdout.write(f"  Skipped: {skipped_count}")
-        self.stdout.write(f"  Errors: {error_count}")
+        self.stdout.write(self.style.SUCCESS("\nAssessment generation completed successfully"))

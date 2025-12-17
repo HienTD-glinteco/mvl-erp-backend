@@ -19,20 +19,26 @@ class GradeThresholdSerializer(serializers.Serializer):
         # Validate default_code is in possible_codes if provided
         if "default_code" in data and data["default_code"]:
             if data["default_code"] not in data["possible_codes"]:
-                raise serializers.ValidationError(
-                    {"default_code": "default_code must be one of the possible_codes"}
-                )
+                raise serializers.ValidationError({"default_code": "default_code must be one of the possible_codes"})
 
         return data
+
+
+class UnitControlPercentageSerializr(serializers.Serializer):
+    """Serializer for unit control percentage rules."""
+
+    min = serializers.FloatField(min_value=0.0, max_value=1.0, allow_null=True, required=False)
+    max = serializers.FloatField(min_value=0.0, max_value=1.0, allow_null=True, required=False)
+    target = serializers.FloatField(min_value=0.0, max_value=1.0, allow_null=True, required=False)
 
 
 class UnitControlSerializer(serializers.Serializer):
     """Serializer for unit control rules."""
 
-    max_pct_A = serializers.FloatField(min_value=0.0, max_value=1.0)
-    max_pct_B = serializers.FloatField(min_value=0.0, max_value=1.0)
-    max_pct_C = serializers.FloatField(min_value=0.0, max_value=1.0)
-    min_pct_D = serializers.FloatField(min_value=0.0, max_value=1.0, allow_null=True, required=False)
+    A = UnitControlPercentageSerializr()
+    B = UnitControlPercentageSerializr()
+    C = UnitControlPercentageSerializr()
+    D = UnitControlPercentageSerializr()
 
 
 class KPIConfigSchemaSerializer(serializers.Serializer):

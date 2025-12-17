@@ -17,7 +17,6 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.hrm.models import Branch, Employee
 from apps.payroll.models import (
     EmployeeKPIAssessment,
     EmployeeKPIItem,
@@ -25,9 +24,7 @@ from apps.payroll.models import (
     KPICriterion,
 )
 from apps.payroll.utils import (
-    calculate_grade_from_percent,
     create_assessment_items_from_criteria,
-    resync_assessment_add_missing,
 )
 
 User = get_user_model()
@@ -35,11 +32,11 @@ User = get_user_model()
 
 class EmployeeKPIAssessmentModelTest(TestCase):
     """Test cases for EmployeeKPIAssessment model."""
-    
+
     @pytest.fixture(autouse=True)
     def setup_fixtures(self, employee):
         self.employee = employee
-    
+
     def setUp(self):
         """Set up test data."""
         # Create test user
@@ -48,7 +45,7 @@ class EmployeeKPIAssessmentModelTest(TestCase):
             email="test@example.com",
             password="testpass123",
         )
-        
+
         # Create KPI config
         self.kpi_config = KPIConfig.objects.create(
             config={
@@ -78,6 +75,7 @@ class EmployeeKPIAssessmentModelTest(TestCase):
         )
         # Create assessment period
         from apps.payroll.models import KPIAssessmentPeriod
+
         self.period = KPIAssessmentPeriod.objects.create(
             month=date(2025, 12, 1),
             kpi_config_snapshot=self.kpi_config.config,
@@ -101,6 +99,7 @@ class EmployeeKPIAssessmentModelTest(TestCase):
             order=1,
             active=True,
         )
+
     def test_create_assessment(self):
         """Test creating an employee KPI assessment."""
         assessment = EmployeeKPIAssessment.objects.create(
@@ -111,60 +110,77 @@ class EmployeeKPIAssessmentModelTest(TestCase):
         self.assertEqual(assessment.employee, self.employee)
         self.assertEqual(assessment.period, self.period)
         self.assertFalse(assessment.finalized)
+
     def test_unique_constraint(self):
         """Test that employee+period combination is unique."""
+        from django.db import IntegrityError, transaction
+
         EmployeeKPIAssessment.objects.create(
             employee=self.employee,
             period=self.period,
         )
         # Attempting to create duplicate should raise error
-        with self.assertRaises(Exception):
-            EmployeeKPIAssessment.objects.create(
-                employee=self.employee,
-                period=self.period,
-            )
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                EmployeeKPIAssessment.objects.create(
+                    employee=self.employee,
+                    period=self.period,
+                )
+
     def test_create_items_from_criteria(self):
         """Test creating assessment items from criteria snapshots."""
         assessment = EmployeeKPIAssessment.objects.create(
             employee=self.employee,
             period=self.period,
         )
-        criteria = KPICriterion.objects.filter(active=True)
+        criteria = KPICriterion.objects.filter(active=True).order_by("evaluation_type", "order")
         items = create_assessment_items_from_criteria(assessment, list(criteria))
         self.assertEqual(len(items), 2)
-        self.assertEqual(items[0].criterion, "Revenue Achievement")
-        self.assertEqual(items[0].component_total_score, Decimal("70.00"))
-        self.assertEqual(items[1].criterion, "Attendance")
-        self.assertEqual(items[1].component_total_score, Decimal("30.00"))
+        # Items are ordered by evaluation_type, order. discipline comes before work_performance
+        self.assertEqual(items[0].criterion, "Attendance")
+        self.assertEqual(items[0].component_total_score, Decimal("30.00"))
+        self.assertEqual(items[1].criterion, "Revenue Achievement")
+        self.assertEqual(items[1].component_total_score, Decimal("70.00"))
+
     def test_snapshot_preserved_after_criterion_change(self):
         """Test that assessment item snapshots are preserved when criteria change."""
         assessment = EmployeeKPIAssessment.objects.create(
             employee=self.employee,
             period=self.period,
         )
-        criteria = KPICriterion.objects.filter(active=True)
+        criteria = KPICriterion.objects.filter(active=True).order_by("evaluation_type", "order")
         items = create_assessment_items_from_criteria(assessment, list(criteria))
         # Modify the original criterion
         self.criterion1.component_total_score = Decimal("80.00")
         self.criterion1.criterion = "Updated Revenue Achievement"
         self.criterion1.save()
-        # Reload item and check snapshot is unchanged
-        item = EmployeeKPIItem.objects.get(id=items[0].id)
+        # Reload items and find the one for criterion1
+        # Items are ordered by evaluation_type and order. criterion2 (discipline) comes first
+        item = EmployeeKPIItem.objects.filter(assessment=assessment, criterion_id=self.criterion1).first()
+        self.assertIsNotNone(item)
         self.assertEqual(item.criterion, "Revenue Achievement")  # Original name
         self.assertEqual(item.component_total_score, Decimal("70.00"))  # Original score
+
     def test_snapshot_preserved_after_criterion_deletion(self):
         """Test that assessment item snapshots are preserved when criteria are deleted."""
         assessment = EmployeeKPIAssessment.objects.create(
             employee=self.employee,
             period=self.period,
         )
-        criteria = KPICriterion.objects.filter(active=True)
+        criteria = KPICriterion.objects.filter(active=True).order_by("evaluation_type", "order")
         items = create_assessment_items_from_criteria(assessment, list(criteria))
+        # Find the item created from criterion1
+        item_criterion1 = None
+        for item in items:
+            if item.criterion == "Revenue Achievement":
+                item_criterion1 = item
+                break
+        self.assertIsNotNone(item_criterion1)
         # Delete the original criterion
         criterion_id = self.criterion1.id
         self.criterion1.delete()
         # Reload item and check snapshot is preserved, criterion_id is NULL
-        item = EmployeeKPIItem.objects.get(id=items[0].id)
+        item = EmployeeKPIItem.objects.get(id=item_criterion1.id)
         self.assertIsNone(item.criterion_id)
         self.assertEqual(item.criterion, "Revenue Achievement")
         self.assertEqual(item.component_total_score, Decimal("70.00"))
