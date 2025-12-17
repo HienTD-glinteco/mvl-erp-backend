@@ -113,7 +113,7 @@ class EmployeeActionAPITest(TestCase):
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
         payload = {
             "start_date": "2024-02-01",
-            "organization_id": self.department.id,
+            "department_id": self.department.id,
             "position_id": new_position.id,
         }
         response = self.client.post(url, payload, format="json")
@@ -138,11 +138,17 @@ class EmployeeActionAPITest(TestCase):
 
     def test_active_action_with_note(self):
         """Test activating an employee with a note"""
+        # Create a position for assignment
+        position = Position.objects.create(
+            code="CV_NOTE",
+            name="Position with Note",
+        )
+
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
         payload = {
             "start_date": "2024-02-01",
-            "organization_id": self.department.id,
-            "position_id": self.active_employee.position.id if self.active_employee.position else 1,
+            "department_id": self.department.id,
+            "position_id": position.id,
             "note": "Promoted from internship",
         }
         response = self.client.post(url, payload, format="json")
@@ -155,10 +161,10 @@ class EmployeeActionAPITest(TestCase):
         self.assertEqual(history.note, "Promoted from internship")
 
     def test_active_action_missing_fields_fails(self):
-        """Test activation fails if organization_id or position_id is missing"""
+        """Test activation fails if department_id or position_id is missing"""
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
 
-        # Missing organization_id and position_id
+        # Missing department_id and position_id
         payload = {"start_date": "2024-02-01"}
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -175,14 +181,14 @@ class EmployeeActionAPITest(TestCase):
         if "error" in data and "errors" in data["error"]:
             errors = data["error"]["errors"]
             error_attrs = [err.get("attr") for err in errors]
-            self.assertIn("organization_id", error_attrs)
+            self.assertIn("department_id", error_attrs)
             self.assertIn("position_id", error_attrs)
         else:
-            self.assertIn("organization_id", data)
+            self.assertIn("department_id", data)
             self.assertIn("position_id", data)
 
-    def test_active_action_inactive_organization_fails(self):
-        """Test activation fails if organization is inactive"""
+    def test_active_action_inactive_department_fails(self):
+        """Test activation fails if department is inactive"""
         inactive_dept = Department.objects.create(
             code="PB_INACTIVE",
             name="Inactive Dept",
@@ -193,7 +199,7 @@ class EmployeeActionAPITest(TestCase):
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
         payload = {
             "start_date": "2024-02-01",
-            "organization_id": inactive_dept.id,
+            "department_id": inactive_dept.id,
             "position_id": self.active_employee.position.id if self.active_employee.position else 1,
         }
         response = self.client.post(url, payload, format="json")
@@ -209,7 +215,7 @@ class EmployeeActionAPITest(TestCase):
         url = reverse("hrm:employee-active", kwargs={"pk": self.onboarding_employee.id})
         payload = {
             "start_date": "2024-02-01",
-            "organization_id": self.department.id,
+            "department_id": self.department.id,
             "position_id": inactive_position.id,
         }
         response = self.client.post(url, payload, format="json")
@@ -219,7 +225,7 @@ class EmployeeActionAPITest(TestCase):
         url = reverse("hrm:employee-active", kwargs={"pk": self.active_employee.id})
         payload = {
             "start_date": "2024-02-01",
-            "organization_id": self.department.id,
+            "department_id": self.department.id,
             "position_id": self.active_employee.position.id if self.active_employee.position else 1
         }
         response = self.client.post(url, payload, format="json")

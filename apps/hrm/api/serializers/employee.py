@@ -420,7 +420,7 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
 class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
     """Serializer for the 'active' action."""
 
-    organization_id = serializers.PrimaryKeyRelatedField(
+    department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.filter(is_active=True),
         source="department",
         required=True,
