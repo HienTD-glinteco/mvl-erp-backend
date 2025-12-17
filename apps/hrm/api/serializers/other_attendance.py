@@ -1,7 +1,10 @@
 from rest_framework import serializers
+from django.db import transaction
+from django.db.models import Value
+from django.db.models.functions import Concat
+from django.utils import timezone
 
-from apps.hrm.models import AttendanceGeolocation
-from libs.drf.fields import CurrentEmployeeDefault
+from apps.hrm.models import AttendanceGeolocation, AttendanceRecord
 
 
 class OtherAttendanceSerializer(serializers.Serializer):
@@ -37,19 +40,18 @@ class OtherAttendanceSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         request = self.context.get("request")
-        employee = CurrentEmployeeDefault()(self)
+        employee = request.user.employee
 
-        # Extract optional image_id if present (handle manually since it's an ID, not a model instance yet in validation if just IntegerField)
+        # Extract optional image_id if present
         image_id = validated_data.pop("image_id", None)
 
         from apps.hrm.constants import AttendanceType
-        from apps.hrm.models import AttendanceRecord
         from apps.files.models import FileModel
 
         # Create record
         record = AttendanceRecord(
             employee=employee,
-            attendance_code=employee.attendance_code if employee else "",
+            attendance_code=employee.attendance_code,
             attendance_type=AttendanceType.OTHER,
             is_pending=True,
             is_valid=None,  # Explicitly None as per requirement
@@ -60,7 +62,7 @@ class OtherAttendanceSerializer(serializers.Serializer):
              try:
                  record.image = FileModel.objects.get(id=image_id)
              except FileModel.DoesNotExist:
-                 pass # Or raise error, but requirement said optional
+                 pass
 
         record.save()
         return record
@@ -75,3 +77,38 @@ class AttendanceBulkApproveSerializer(serializers.Serializer):
     )
     is_approve = serializers.BooleanField(required=True)
     note = serializers.CharField(required=False, allow_blank=True)
+
+    def save(self):
+        ids = self.validated_data["ids"]
+        is_approve = self.validated_data["is_approve"]
+        note = self.validated_data.get("note", "")
+        request = self.context.get("request")
+
+        # Get employee from user
+        try:
+            approver = request.user.employee
+        except AttributeError:
+            # Handle case where user is not linked to an employee (e.g., admin)
+            approver = None
+
+        with transaction.atomic():
+            records = AttendanceRecord.objects.filter(id__in=ids)
+            count = records.count()
+
+            update_fields = {
+                "is_valid": is_approve,
+                "is_pending": False,
+                "approved_at": timezone.now(),
+                "approved_by": approver
+            }
+
+            if note:
+                # Use bulk update with Concat to append note
+                records.update(
+                    notes=Concat("notes", Value(f"\nApproval Note: {note}")),
+                    **update_fields
+                )
+            else:
+                records.update(**update_fields)
+
+        return count

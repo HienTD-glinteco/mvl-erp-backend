@@ -10,8 +10,6 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
-from django.db import transaction
-from django.utils import timezone
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.api.serializers.geolocation_attendance import GeoLocationAttendanceSerializer
 from apps.hrm.api.serializers.wifi_attendance import WiFiAttendanceSerializer
@@ -243,49 +241,11 @@ class AttendanceRecordViewSet(
     @action(detail=False, methods=["post"], url_path="bulk-approve")
     def bulk_approve(self, request):
         """Bulk approve or reject attendance records."""
-        serializer = AttendanceBulkApproveSerializer(data=request.data)
+        serializer = AttendanceBulkApproveSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
+        updated_count = serializer.save()
 
-        ids = serializer.validated_data["ids"]
-        is_approve = serializer.validated_data["is_approve"]
-        note = serializer.validated_data.get("note", "")
-
-        # Get employee from user
-        try:
-            approver = request.user.employee
-        except AttributeError:
-            # Handle case where user is not linked to an employee (e.g., admin)
-            approver = None
-
-        with transaction.atomic():
-            records = AttendanceRecord.objects.filter(id__in=ids)
-            count = records.count()
-
-            update_fields = {
-                "is_valid": is_approve,
-                "is_pending": False,
-                "approved_at": timezone.now(),
-                "approved_by": approver
-            }
-
-            # If note is provided, append it to existing notes
-            # This is tricky with update() if we want to append.
-            # For simplicity and performance in bulk, we might just set it or iterate.
-            # Iterating is safer for appending strings.
-            if note:
-                for record in records:
-                    if record.notes:
-                        record.notes += f"\nApproval Note: {note}"
-                    else:
-                        record.notes = f"Approval Note: {note}"
-
-                    for field, value in update_fields.items():
-                        setattr(record, field, value)
-                    record.save()
-            else:
-                records.update(**update_fields)
-
-        return Response({"success": True, "updated_count": count}, status=status.HTTP_200_OK)
+        return Response({"success": True, "updated_count": updated_count}, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Record attendance by WiFi",
