@@ -287,6 +287,7 @@ class AttendanceRecordViewSet(
     @action(detail=False, methods=["post"], url_path="other-attendance")
     def other_attendance(self, request):
         """Record attendance manually or by other means."""
+        validate_attendance_device(request)
         serializer = OtherAttendanceSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         attendance_record = serializer.save()

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 11:54+0700\n"
+"POT-Creation-Date: 2025-12-18 12:04+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -376,39 +376,39 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/attendance_record.py:131
+#: apps/hrm/api/views/attendance_record.py:132
 msgid "Attendance Record Management"
 msgstr "Log chấm công"
 
-#: apps/hrm/api/views/attendance_record.py:135
+#: apps/hrm/api/views/attendance_record.py:136
 msgid "Record attendance by GeoLocation"
 msgstr "Log chấm Công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:136
+#: apps/hrm/api/views/attendance_record.py:137
 msgid "Record attendance using GeoLocation coordinates"
 msgstr "Chấm công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:139
+#: apps/hrm/api/views/attendance_record.py:140
 msgid "Record attendance by WiFi"
 msgstr "Chấm Công WiFi"
 
-#: apps/hrm/api/views/attendance_record.py:140
+#: apps/hrm/api/views/attendance_record.py:141
 msgid "Record attendance using WiFi BSSID"
 msgstr "Chấm công bằng WiFi BSSID"
 
-#: apps/hrm/api/views/attendance_record.py:143
+#: apps/hrm/api/views/attendance_record.py:144
 msgid "Record attendance by Other"
 msgstr "Chấm Công Khác"
 
-#: apps/hrm/api/views/attendance_record.py:144
+#: apps/hrm/api/views/attendance_record.py:145
 msgid "Record attendance manually or by other means"
 msgstr "Log chấm Công thủ công hoặc lý do khác"
 
-#: apps/hrm/api/views/attendance_record.py:147
+#: apps/hrm/api/views/attendance_record.py:148
 msgid "Bulk approve for Other attendance records"
 msgstr "Duyệt hàng loạt cho log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_record.py:148
+#: apps/hrm/api/views/attendance_record.py:149
 msgid "Approve or reject multiple Other attendance records"
 msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
@@ -2678,12 +2678,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2692,27 +2690,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -3680,6 +3673,24 @@ msgstr ""
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."
+msgstr ""
+
+#: apps/hrm/utils/attendance_validation.py:22
+msgid "Authentication token with device_id is required."
+msgstr ""
+
+#: apps/hrm/utils/attendance_validation.py:27
+msgid "Token does not contain device_id."
+msgstr ""
+
+#: apps/hrm/utils/attendance_validation.py:33
+#, fuzzy
+#| msgid "WiFi device not found"
+msgid "User device not found."
+msgstr "Không tìm thấy thiết bị WiFi"
+
+#: apps/hrm/utils/attendance_validation.py:37
+msgid "Attendance is only allowed from mobile devices."
 msgstr ""
 
 #: apps/hrm/utils/functions.py:18

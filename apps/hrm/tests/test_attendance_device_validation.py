@@ -115,6 +115,29 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("User device not found", str(response.content))
 
+    def test_validation_inactive_user_device(self):
+        """Test validation fails when UserDevice is inactive."""
+        # Create inactive user device
+        UserDevice.objects.create(
+            user=self.user,
+            device_id="device123",
+            platform=UserDevice.Platform.ANDROID,
+            active=False
+        )
+
+        # Mock token with valid device_id
+        token_mock = MagicMock()
+        token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
+        self.client.force_authenticate(user=self.user, token=token_mock)
+
+        url = reverse("hrm:attendance-record-wifi-attendance")
+        data = {"bssid": "00:11:22:33:44:55"}
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("User device not found", str(response.content))
+
     def test_validation_invalid_platform(self):
         """Test validation fails when platform is not mobile."""
         # Create user device with WEB platform
