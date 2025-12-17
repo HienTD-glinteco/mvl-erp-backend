@@ -129,7 +129,7 @@ class KPICriterion(BaseModel):
         verbose_name_plural = "KPI Criteria"
         db_table = "payroll_kpi_criterion"
         ordering = ["evaluation_type", "order"]
-        unique_together = [["target", "evaluation_type", "criterion"]]
+        unique_together = [["target", "evaluation_type", "criterion", "sub_criterion"]]
         indexes = [
             models.Index(fields=["target", "evaluation_type"]),
             models.Index(fields=["active"]),

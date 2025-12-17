@@ -32,28 +32,28 @@
   ],
   "unit_control": {
     "A": {
-      "max_pct_A": 0.20,
-      "max_pct_B": 0.30,
-      "max_pct_C": 0.50,
-      "min_pct_D": null
+      "A": {"max": 0.20},
+      "B": {"max": 0.30},
+      "C": {"target": 0.50},
+      "D": {"min": 0}
     },
     "B": {
-      "max_pct_A": 0.10,
-      "max_pct_B": 0.30,
-      "max_pct_C": 0.50,
-      "min_pct_D": 0.10
+      "A": {"max": 0.10},
+      "B": {"max": 0.30},
+      "C": {"target": 0.50},
+      "D": {"min": 0.10}
     },
     "C": {
-      "max_pct_A": 0.05,
-      "max_pct_B": 0.20,
-      "max_pct_C": 0.60,
-      "min_pct_D": 0.15
+      "A": {"max": 0.05},
+      "B": {"max": 0.20},
+      "C": {"target": 0.60},
+      "D": {"min": 0.15}
     },
     "D": {
-      "max_pct_A": 0.05,
-      "max_pct_B": 0.10,
-      "max_pct_C": 0.65,
-      "min_pct_D": 0.20
+      "A": {"max": 0.05},
+      "B": {"max": 0.10},
+      "C": {"target" : 0.65},
+      "D": {"min": 0.20}
     }
   },
   "meta": {}

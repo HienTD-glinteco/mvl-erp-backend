@@ -21,7 +21,7 @@ class CurrentKPIConfigView(APIView):
     @extend_schema(
         summary="Get current KPI configuration",
         description="Retrieve the current active KPI configuration including grade thresholds, unit control rules, and ambiguous assignment policy",
-        tags=["10.1: Payroll Configuration"],
+        tags=["8.1: KPI Configuration"],
         responses={200: KPIConfigSerializer},
         examples=[
             OpenApiExample(
@@ -57,10 +57,25 @@ class CurrentKPIConfigView(APIView):
                                 {"min": 90, "max": 110, "possible_codes": ["A"], "label": "Excellent"},
                             ],
                             "unit_control": {
-                                "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None},
-                                "B": {"max_pct_A": 0.10, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": 0.10},
-                                "C": {"max_pct_A": 0.05, "max_pct_B": 0.20, "max_pct_C": 0.60, "min_pct_D": 0.15},
-                                "D": {"max_pct_A": 0.05, "max_pct_B": 0.10, "max_pct_C": 0.65, "min_pct_D": 0.20},
+                                "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"target": 0.50}, "D": {"min": 0}},
+                                "B": {
+                                    "A": {"max": 0.10},
+                                    "B": {"max": 0.30},
+                                    "C": {"target": 0.50},
+                                    "D": {"min": 0.10},
+                                },
+                                "C": {
+                                    "A": {"max": 0.05},
+                                    "B": {"max": 0.20},
+                                    "C": {"target": 0.60},
+                                    "D": {"min": 0.15},
+                                },
+                                "D": {
+                                    "A": {"max": 0.05},
+                                    "B": {"max": 0.10},
+                                    "C": {"target": 0.65},
+                                    "D": {"min": 0.20},
+                                },
                             },
                             "meta": {},
                         },
@@ -80,11 +95,11 @@ class CurrentKPIConfigView(APIView):
         ],
     )
     @register_permission(
-        "payroll.view_kpi_config",
-        description=_("View KPI configuration"),
-        module=_("Payroll"),
-        submodule=_("Configuration"),
-        name=_("Payroll View KPI Configuration"),
+        "kpi.view_kpi_config",
+        _("View KPI configuration"),
+        "KPI",
+        "Configuration",
+        _("KPI View KPI Configuration"),
     )
     def get(self, request):
         """Get the current KPI configuration."""

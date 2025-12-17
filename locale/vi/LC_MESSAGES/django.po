@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 19:19+0700\n"
+"POT-Creation-Date: 2025-12-17 14:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,6 +309,44 @@ msgstr "Không được phép xem job này"
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
+#: apps/payroll/api/serializers/department_kpi_assessment.py:64
+msgid "An assessment for this department and period already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:69
+#: apps/payroll/api/serializers/department_kpi_assessment.py:116
+msgid "Grade must be one of: A, B, C, D"
+msgstr ""
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:76
+msgid "Only grade and note can be updated for finalized assessments"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:51
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:81
+msgid "Cannot update items of a finalized assessment"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:59
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:89
+msgid "Employee score cannot exceed component total score"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:65
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:95
+msgid "Manager score cannot exceed component total score"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:176
+msgid "An assessment for this employee and month already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:185
+msgid ""
+"Only grade_manager_overridden and note can be updated for finalized "
+"assessments"
+msgstr ""
+
 #: apps/payroll/api/serializers/kpi_criterion.py:40
 msgid "Component total score must be between 0 and 100"
 msgstr ""
@@ -318,27 +356,60 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_config.py:84
+#: apps/payroll/api/views/employee_kpi_assessment.py:324
+#: apps/payroll/api/views/employee_kpi_assessment.py:556
+#: apps/payroll/api/views/employee_self_assessment.py:163
+#: apps/payroll/api/views/manager_assessment.py:186
+msgid "Cannot update finalized assessment"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:209
+#, fuzzy
+#| msgid "This field is required"
+msgid "Month parameter is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:219
+msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:234
+msgid "No KPI configuration found. Please create one first."
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:255
+msgid "Assessment generation completed successfully"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:271
+msgid "Period is already finalized"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:337
+msgid "Period finalized successfully"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_config.py:99
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/kpi_config.py:85
-#: apps/payroll/api/views/salary_config.py:128
-msgid "Payroll"
-msgstr ""
-
-#: apps/payroll/api/views/kpi_config.py:86
-#: apps/payroll/api/views/salary_config.py:129
-msgid "Configuration"
-msgstr "Cấu hình"
-
-#: apps/payroll/api/views/kpi_config.py:87
-msgid "Payroll View KPI Configuration"
-msgstr ""
+#: apps/payroll/api/views/kpi_config.py:102
+#, fuzzy
+#| msgid "View KPI configuration"
+msgid "KPI View KPI Configuration"
+msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/salary_config.py:127
 msgid "View salary configuration"
 msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:128
+msgid "Payroll"
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:129
+msgid "Configuration"
+msgstr "Cấu hình"
 
 #: apps/payroll/api/views/salary_config.py:130
 msgid "Payroll View Salary Configuration"

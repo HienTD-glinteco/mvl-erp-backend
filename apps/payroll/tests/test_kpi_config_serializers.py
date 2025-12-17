@@ -1,10 +1,10 @@
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from apps.payroll.api.serializers import KPIConfigSerializer
-from apps.payroll.api.serializers.kpi_config_schemas import (
+from apps.payroll.api.serializers import (
     GradeThresholdSerializer,
     KPIConfigSchemaSerializer,
+    KPIConfigSerializer,
     UnitControlSerializer,
 )
 from apps.payroll.models import KPIConfig
@@ -53,29 +53,29 @@ class TestUnitControlSerializer:
 
     def test_valid_unit_control(self):
         """Test valid unit control data"""
-        data = {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": 0.10}
+        data = {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}}
         serializer = UnitControlSerializer(data=data)
-        assert serializer.is_valid()
+        assert serializer.is_valid(), serializer.errors
 
-    def test_unit_control_with_null_min_pct_d(self):
-        """Test unit control with null min_pct_D"""
-        data = {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None}
+    def test_unit_control_with_null_min(self):
+        """Test unit control with null min values"""
+        data = {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"target": 0.50}, "D": {"min": None}}
         serializer = UnitControlSerializer(data=data)
-        assert serializer.is_valid()
+        assert serializer.is_valid(), serializer.errors
 
     def test_invalid_percentage_too_high(self):
         """Test percentage value > 1.0"""
-        data = {"max_pct_A": 1.5, "max_pct_B": 0.30, "max_pct_C": 0.50}
+        data = {"A": {"max": 1.5}, "B": {"max": 0.30}, "C": {"target": 0.50}, "D": {}}
         serializer = UnitControlSerializer(data=data)
         assert not serializer.is_valid()
-        assert "max_pct_A" in serializer.errors
+        assert "A" in serializer.errors
 
     def test_invalid_percentage_negative(self):
         """Test negative percentage value"""
-        data = {"max_pct_A": -0.1, "max_pct_B": 0.30, "max_pct_C": 0.50}
+        data = {"A": {"max": -0.1}, "B": {"max": 0.30}, "C": {"target": 0.50}, "D": {}}
         serializer = UnitControlSerializer(data=data)
         assert not serializer.is_valid()
-        assert "max_pct_A" in serializer.errors
+        assert "A" in serializer.errors
 
 
 @pytest.mark.django_db
@@ -99,7 +99,10 @@ class TestKPIConfigSchemaSerializer:
                 },
             ],
             "unit_control": {
-                "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None}
+                "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": None}},
+                "B": {"A": {"max": 0.10}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}},
+                "C": {"A": {"max": 0.05}, "B": {"max": 0.20}, "C": {"max": 0.60}, "D": {"min": 0.15}},
+                "D": {"A": {"max": 0.05}, "B": {"max": 0.10}, "C": {"max": 0.65}, "D": {"min": 0.20}},
             },
             "meta": {},
         }
@@ -170,7 +173,10 @@ class TestKPIConfigSerializer:
                 },
             ],
             "unit_control": {
-                "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None}
+                "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": None}},
+                "B": {"A": {"max": 0.10}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}},
+                "C": {"A": {"max": 0.05}, "B": {"max": 0.20}, "C": {"max": 0.60}, "D": {"min": 0.15}},
+                "D": {"A": {"max": 0.05}, "B": {"max": 0.10}, "C": {"max": 0.65}, "D": {"min": 0.20}},
             },
             "meta": {},
         }

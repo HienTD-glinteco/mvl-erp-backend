@@ -4,8 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.hrm.constants import EmployeeType
-from apps.hrm.models import Contract, Employee
+from apps.hrm.models import Employee
 from apps.hrm.tasks.timesheets import prepare_monthly_timesheets
 
 User = get_user_model()
@@ -51,12 +50,3 @@ def prepare_timesheet_on_hire_post_save(sender, instance: Employee, created, **k
     old_status = getattr(instance, "old_status", None)
     if old_status in leave_statuses and instance.status in working_statuses:
         prepare_monthly_timesheets.apply_async(employee_id=instance.id, increment_leave=False, countdown=5)
-
-
-@receiver(post_save, sender=Employee)
-def expire_contracts_on_employee_exit(sender, instance: Employee, created, **kwargs):
-    """Expire all contracts when an employee leaves or becomes unpaid official."""
-    if instance.status != Employee.Status.RESIGNED and instance.employee_type != EmployeeType.UNPAID_OFFICIAL:
-        return
-
-    Contract.objects.filter(employee=instance).update(status=Contract.ContractStatus.EXPIRED)

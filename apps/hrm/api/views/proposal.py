@@ -18,7 +18,6 @@ from apps.hrm.api.filtersets.proposal import (
     MeProposalFilterSet,
     MeProposalVerifierFilterSet,
     ProposalFilterSet,
-    ProposalListFilterSet,
     ProposalVerifierFilterSet,
 )
 from apps.hrm.api.serializers.proposal import (
@@ -338,8 +337,6 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
 )
 class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
     """Base ViewSet for specific Proposal types with common configuration."""
-
-    filterset_class = ProposalListFilterSet
 
     def get_prefetch_related_fields(self) -> List[str]:
         return ["timesheet_entries", "timesheet_entries__timesheet_entry"]

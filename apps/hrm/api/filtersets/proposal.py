@@ -1,7 +1,6 @@
 from django.db.models import Exists, OuterRef
 from django_filters import rest_framework as filters
 
-from apps.hrm.constants import ProposalType
 from apps.hrm.models import Proposal, ProposalTimeSheetEntry, ProposalVerifier
 
 
@@ -55,23 +54,6 @@ class ProposalFilterSet(filters.FilterSet):
             "created_by": ["exact"],
             "approved_by": ["exact"],
         }
-
-
-class ProposalListFilterSet(ProposalFilterSet):
-    exclude_timesheet_entry_complaint = filters.BooleanFilter(
-        method="filter_exclude_timesheet_entry_complaint",
-        help_text="Exclude proposals linked to timesheet entries with complaints",
-    )
-
-    class Meta:
-        model = Proposal
-        fields = ProposalFilterSet.Meta.fields
-
-    def filter_exclude_timesheet_entry_complaint(self, queryset, name, value):
-        """Exclude proposals linked to timesheet entries with complaints."""
-        if value:
-            return queryset.exclude(proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT)
-        return queryset
 
 
 class MeProposalFilterSet(ProposalFilterSet):

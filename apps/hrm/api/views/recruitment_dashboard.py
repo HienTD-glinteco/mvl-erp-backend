@@ -477,33 +477,21 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
         return Response(response_data)
 
     def _get_hires_today(self, today):
-        """
-        Get the number of hires today, should meet 2 requirements:\n
-        1. Recruitment request is still OPEN
-        2. Candidate status is HIRED
-        """
+        """Get number of hires today from HiredCandidateReport."""
         return (
-            RecruitmentCandidate.objects.select_related("recruitment_request")
-            .filter(
-                recruitment_request__status=RecruitmentRequest.Status.OPEN, status=RecruitmentCandidate.Status.HIRED
-            )
-            .count()
+            HiredCandidateReport.objects.filter(report_date=today).aggregate(total=Sum("num_candidates_hired"))[
+                "total"
+            ]
+            or 0
         )
 
     def _get_open_positions(self):
         """Get number of open positions."""
-        return RecruitmentRequest.objects.filter(status=RecruitmentRequest.Status.OPEN).aggregate(
-            Sum("number_of_positions")
-        )["number_of_positions__sum"]
+        return RecruitmentRequest.objects.filter(status=RecruitmentRequest.Status.OPEN).count()
 
     def _get_applicants_today(self, today):
         """Get number of applicants today."""
-        return (
-            RecruitmentCandidate.objects.select_related("recruitment_request")
-            .filter(recruitment_request__status=RecruitmentRequest.Status.OPEN)
-            .exclude(status__in=[RecruitmentCandidate.Status.REJECTED, RecruitmentCandidate.Status.HIRED])
-            .count()
-        )
+        return RecruitmentCandidate.objects.filter(created_at__date=today).count()
 
     def _get_interviews_today(self, today):
         """Get number of interviews today."""

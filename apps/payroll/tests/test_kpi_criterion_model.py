@@ -75,26 +75,35 @@ class KPICriterionModelTest(TestCase):
         self.assertIsNone(criterion.sub_criterion)
 
     def test_unique_together_constraint(self):
-        """Test that (target, evaluation_type, criterion) must be unique"""
+        """Test that (target, evaluation_type, criterion, sub_criterion) must be unique
+
+        Note: In SQLite, NULL values are not considered equal in unique constraints,
+        so we test with non-NULL sub_criterion values.
+        """
         KPICriterion.objects.create(
             target="sales",
             evaluation_type="work_performance",
             criterion="Revenue Achievement",
+            sub_criterion="Monthly target",
             component_total_score=Decimal("70.00"),
             group_number=1,
             order=1,
         )
 
-        # Try to create duplicate
-        with self.assertRaises(IntegrityError):
-            KPICriterion.objects.create(
-                target="sales",
-                evaluation_type="work_performance",
-                criterion="Revenue Achievement",
-                component_total_score=Decimal("80.00"),
-                group_number=1,
-                order=2,
-            )
+        # Try to create duplicate (same target, evaluation_type, criterion, and sub_criterion)
+        from django.db import transaction
+
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                KPICriterion.objects.create(
+                    target="sales",
+                    evaluation_type="work_performance",
+                    criterion="Revenue Achievement",
+                    sub_criterion="Monthly target",
+                    component_total_score=Decimal("80.00"),
+                    group_number=1,
+                    order=2,
+                )
 
     def test_unique_constraint_allows_different_target(self):
         """Test that same criterion name is allowed for different target"""

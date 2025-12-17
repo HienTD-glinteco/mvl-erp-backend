@@ -14,7 +14,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all KPI criteria",
         description="Retrieve a paginated list of all KPI evaluation criteria with support for filtering and search. Target field accepts: 'sales' or 'backoffice'.",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Success - List of criteria",
@@ -69,7 +69,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get KPI criterion details",
         description="Retrieve detailed information about a specific KPI criterion",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Success - Single criterion",
@@ -111,7 +111,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new KPI criterion",
         description="Create a new KPI evaluation criterion. The created_by field is set automatically. Target must be either 'sales' or 'backoffice'. Evaluation type must be 'work_performance' or 'discipline'.",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Request - Create criterion",
@@ -171,7 +171,9 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": False,
                     "data": None,
                     "error": {
-                        "non_field_errors": ["A criterion with this target, evaluation type, and criterion already exists"]
+                        "non_field_errors": [
+                            "A criterion with this target, evaluation type, and criterion already exists"
+                        ]
                     },
                 },
                 response_only=True,
@@ -182,7 +184,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     update=extend_schema(
         summary="Update KPI criterion",
         description="Update all fields of a KPI criterion. The updated_by field is set automatically.",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Request - Update criterion",
@@ -229,7 +231,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     partial_update=extend_schema(
         summary="Partially update KPI criterion",
         description="Update specific fields of a KPI criterion. The updated_by field is set automatically.",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Request - Deactivate criterion",
@@ -266,7 +268,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     destroy=extend_schema(
         summary="Delete KPI criterion",
         description="Soft-delete a KPI criterion by setting active=False. Physical deletion is not recommended to preserve audit history.",
-        tags=["10.2: KPI Criteria"],
+        tags=["8.2: KPI Criteria"],
         examples=[
             OpenApiExample(
                 "Success - Deleted",
@@ -302,7 +304,7 @@ class KPICriterionViewSet(AuditLoggingMixin, BaseModelViewSet):
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["criterion", "description"]
     ordering_fields = ["target", "evaluation_type", "criterion", "order", "created_at", "updated_at"]
-    ordering = ["evaluation_type", "order"]
+    ordering = ["-evaluation_type", "order"]
 
     # Permission registration attributes
     module = "Payroll"

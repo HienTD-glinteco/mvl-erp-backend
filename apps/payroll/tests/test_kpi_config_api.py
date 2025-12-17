@@ -46,10 +46,10 @@ class KPIConfigAPITest(APITestCase):
                 {"min": 90, "max": 110, "possible_codes": ["A"], "label": "Excellent"},
             ],
             "unit_control": {
-                "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": None},
-                "B": {"max_pct_A": 0.10, "max_pct_B": 0.30, "max_pct_C": 0.50, "min_pct_D": 0.10},
-                "C": {"max_pct_A": 0.05, "max_pct_B": 0.20, "max_pct_C": 0.60, "min_pct_D": 0.15},
-                "D": {"max_pct_A": 0.05, "max_pct_B": 0.10, "max_pct_C": 0.65, "min_pct_D": 0.20},
+                "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": None}},
+                "B": {"A": {"max": 0.10}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}},
+                "C": {"A": {"max": 0.05}, "B": {"max": 0.20}, "C": {"max": 0.60}, "D": {"min": 0.15}},
+                "D": {"A": {"max": 0.05}, "B": {"max": 0.10}, "C": {"max": 0.65}, "D": {"min": 0.20}},
             },
             "meta": {},
         }
@@ -156,9 +156,10 @@ class KPIConfigAPITest(APITestCase):
         # Validate unit_control structure
         self.assertIsInstance(config["unit_control"], dict)
         for unit_type, control in config["unit_control"].items():
-            self.assertIn("max_pct_A", control)
-            self.assertIn("max_pct_B", control)
-            self.assertIn("max_pct_C", control)
+            self.assertIsInstance(control, dict)
+            # Each unit_type has nested grade controls
+            for grade in ["A", "B", "C", "D"]:
+                self.assertIn(grade, control)
 
     def test_readonly_endpoint(self):
         """Test that only GET method is allowed (endpoint is read-only)"""
