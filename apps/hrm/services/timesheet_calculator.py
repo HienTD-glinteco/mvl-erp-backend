@@ -119,7 +119,7 @@ class TimesheetCalculator:
             )
 
         approved_overtime_entries = ProposalOvertimeEntry.objects.filter(
-            proposal__created_by=self.entry.employee,
+            proposal__created_by=self.entry.employee_id,
             proposal__proposal_status=ProposalStatus.APPROVED,
             date=self.entry.date,
         )
@@ -158,6 +158,8 @@ class TimesheetCalculator:
         self.entry.morning_hours = quantize_decimal(Decimal(m.numerator) / Decimal(m.denominator))
         self.entry.afternoon_hours = quantize_decimal(Decimal(a.numerator) / Decimal(a.denominator))
         self.entry.overtime_hours = quantize_decimal(Decimal(o.numerator) / Decimal(o.denominator))
+        # Ensure ot_hours_calculated reflects strict intersection (same as overtime_hours)
+        self.entry.ot_hours_calculated = self.entry.overtime_hours
 
     def _get_schedule_times(self, work_schedule, work_date):
         morning_start = (
