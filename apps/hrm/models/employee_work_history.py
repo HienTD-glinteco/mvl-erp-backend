@@ -150,6 +150,15 @@ class EmployeeWorkHistory(BaseModel):
         verbose_name="Contract",
         help_text="New contract for contract-change event",
     )
+    decision = models.ForeignKey(
+        "hrm.Decision",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employee_work_histories",
+        verbose_name="Decision",
+        help_text="Decision associated with this work history event",
+    )
     previous_data = models.JSONField(
         null=True,
         blank=True,

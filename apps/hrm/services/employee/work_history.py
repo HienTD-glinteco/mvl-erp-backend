@@ -19,6 +19,7 @@ def create_state_change_event(
     end_date=None,
     note=None,
     extra_detail=None,
+    decision=None,
 ):
     """Create a state change event in employee work history.
 
@@ -31,6 +32,7 @@ def create_state_change_event(
         end_date: Optional end date for the event period (e.g., leave end date)
         note: Optional additional notes
         extra_detail: Optional string to append to the detail description
+        decision: Optional Decision instance associated with this event
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -60,6 +62,7 @@ def create_state_change_event(
         note=note or "",
         detail=detail,
         previous_data=previous_data,
+        decision=decision,
     )
 
 
@@ -69,6 +72,7 @@ def create_position_change_event(
     new_position,
     effective_date,
     note=None,
+    decision=None,
 ):
     """Create a position change event in employee work history.
 
@@ -78,6 +82,7 @@ def create_position_change_event(
         new_position: New position (Position instance)
         effective_date: Date when the position change takes effect
         note: Optional additional notes
+        decision: Optional Decision instance associated with this event
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -96,6 +101,7 @@ def create_position_change_event(
             old_position=old_position_name, new_position=new_position_name
         ),
         previous_data=previous_data,
+        decision=decision,
     )
 
 
@@ -107,6 +113,7 @@ def create_transfer_event(
     new_position=None,
     effective_date=None,
     note=None,
+    decision=None,
 ):
     """Create a transfer event in employee work history.
 
@@ -118,6 +125,7 @@ def create_transfer_event(
         new_position: New position (Position instance or None)
         effective_date: Date when the transfer takes effect
         note: Optional additional notes
+        decision: Optional Decision instance associated with this event
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -169,6 +177,7 @@ def create_transfer_event(
         note=note or "",
         detail=detail,
         previous_data=previous_data,
+        decision=decision,
     )
 
 
@@ -178,6 +187,7 @@ def create_employee_type_change_event(
     new_employee_type,
     effective_date,
     note=None,
+    decision=None,
 ):
     """Create an employee type change event in work history.
 
@@ -187,6 +197,7 @@ def create_employee_type_change_event(
         new_employee_type: New EmployeeType value
         effective_date: Date when the type change takes effect
         note: Optional note
+        decision: Optional Decision instance associated with this event
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -208,6 +219,7 @@ def create_employee_type_change_event(
         note=note or "",
         detail=detail,
         previous_data=previous_data,
+        decision=decision,
     )
 
 
@@ -217,6 +229,7 @@ def create_contract_change_event(
     new_contract,
     effective_date,
     note=None,
+    decision=None,
 ):
     """Create a contract change event in employee work history.
 
@@ -226,6 +239,7 @@ def create_contract_change_event(
         new_contract: New contract (Contract instance)
         effective_date: Date when the contract change takes effect
         note: Optional additional notes
+        decision: Optional Decision instance associated with this event
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -249,4 +263,5 @@ def create_contract_change_event(
             old_contract=old_contract_display, new_contract=new_contract_display
         ),
         previous_data=previous_data,
+        decision=decision,
     )
