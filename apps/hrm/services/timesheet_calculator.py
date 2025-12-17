@@ -158,8 +158,6 @@ class TimesheetCalculator:
         self.entry.morning_hours = quantize_decimal(Decimal(m.numerator) / Decimal(m.denominator))
         self.entry.afternoon_hours = quantize_decimal(Decimal(a.numerator) / Decimal(a.denominator))
         self.entry.overtime_hours = quantize_decimal(Decimal(o.numerator) / Decimal(o.denominator))
-        # Ensure ot_hours_calculated reflects strict intersection (same as overtime_hours)
-        self.entry.ot_hours_calculated = self.entry.overtime_hours
 
     def _get_schedule_times(self, work_schedule, work_date):
         morning_start = (
@@ -237,9 +235,7 @@ class TimesheetCalculator:
             work_schedule, late_exemption_minutes, has_maternity_leave
         )
 
-        self._determine_punctuality(
-            base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon
-        )
+        self._determine_punctuality(base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon)
 
     def _determine_day_type(self, compensatory_day, is_holiday) -> None:
         if compensatory_day:
@@ -279,9 +275,7 @@ class TimesheetCalculator:
         if not self.entry.status:
             self.entry.status = TimesheetStatus.ABSENT
 
-    def _calculate_allowed_late_minutes(
-        self, work_schedule, late_exemption_minutes, has_maternity_leave
-    ) -> int:
+    def _calculate_allowed_late_minutes(self, work_schedule, late_exemption_minutes, has_maternity_leave) -> int:
         schedule_allowed = (
             work_schedule.allowed_late_minutes
             if work_schedule and work_schedule.allowed_late_minutes is not None
@@ -295,7 +289,9 @@ class TimesheetCalculator:
     def _determine_punctuality(
         self, base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon
     ) -> None:
-        allowed_start_time = combine_datetime(self.entry.date, base_start_time) + timedelta(minutes=allowed_late_minutes)
+        allowed_start_time = combine_datetime(self.entry.date, base_start_time) + timedelta(
+            minutes=allowed_late_minutes
+        )
 
         if self.entry.start_time <= allowed_start_time:
             self.entry.status = TimesheetStatus.ON_TIME
@@ -483,6 +479,7 @@ class TimesheetCalculator:
 
             within_morning = False
             within_afternoon = False
+
             if m_start and m_end:
                 within_morning = not (entry.end_time <= m_start or entry.start_time >= m_end)
             if a_start and a_end:

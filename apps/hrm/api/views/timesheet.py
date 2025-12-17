@@ -124,7 +124,9 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             results.append(payload)
 
         # Serialize the results to ensure Decimal fields are handled and types match
-        serialized = EmployeeTimesheetSerializer(results, many=True).data
+        context = self.get_serializer_context()
+        context["complaint_entry_ids"] = complaint_entry_ids
+        serialized = EmployeeTimesheetSerializer(results, many=True, context=context).data
         if page is not None:
             return self.get_paginated_response(serialized)
 
@@ -192,45 +194,24 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             # Map existing entries by date for quick lookup
             entries_by_date = {e.date: e for e in timesheet_entries}
 
-            dates_list: list[dict[str, Any]] = []
+            dates_list = []
             for i in range(total_days):
                 current_date = first_day + timedelta(days=i)
                 entry = entries_by_date.get(current_date)
                 if entry:
-                    dates_list.append(
-                        {
-                            "id": entry.id,
-                            "date": entry.date,
-                            "status": entry.status,
-                            "start_time": entry.start_time,
-                            "end_time": entry.end_time,
-                            "has_complaint": entry.id in complaint_entry_ids,
-                        }
-                    )
+                    dates_list.append(entry)
                 else:
-                    dates_list.append(
-                        {
-                            "date": current_date,
-                            "status": None,
-                            "start_time": None,
-                            "end_time": None,
-                            "has_complaint": None,
-                        }
-                    )
+                    # Create dummy instance for missing date
+                    dummy = TimeSheetEntry(date=current_date, employee=employee)
+                    dates_list.append(dummy)
 
             payload["dates"] = dates_list
         else:
             # Fallback: keep current behaviour when no month range provided
-            payload["dates"] = [
-                {
-                    "date": entry.date,
-                    "status": entry.status,
-                    "start_time": entry.start_time,
-                    "end_time": entry.end_time,
-                    "has_complaint": entry.id in complaint_entry_ids,
-                }
-                for entry in timesheet_entries
-            ]
+            dates_list = []
+            for entry in timesheet_entries:
+                dates_list.append(entry)
+            payload["dates"] = dates_list
 
         if monthly_timesheet:
             payload["probation_days"] = monthly_timesheet.probation_working_days

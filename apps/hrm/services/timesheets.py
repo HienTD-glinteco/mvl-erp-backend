@@ -212,13 +212,13 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
     else:
         check_out = last_ts
 
-    timehsheet_entry.check_in_record = check_in
-    timehsheet_entry.check_out_record = check_out
+    timehsheet_entry.check_in_time = check_in
+    timehsheet_entry.check_out_time = check_out
 
     if not timehsheet_entry.is_manually_corrected:
         timehsheet_entry.update_times(check_in, check_out)
-        timehsheet_entry.calculate_hours_from_schedule()
 
+    timehsheet_entry.calculate_hours_from_schedule()
     timehsheet_entry.save()
 
 

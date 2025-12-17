@@ -14,10 +14,17 @@ def compute_intersection_hours(start_a, end_a, start_b, end_b):
     return Fraction(0)
 
 
+def make_aware(dt):
+    if not dt:
+        return
+
+    if timezone.is_aware(dt):
+        return dt
+    return timezone.make_aware(dt)
+
+
 def combine_datetime(date, time):
     if not time:
         return
     dt = datetime.combine(date, time)
-    if timezone.is_aware(dt):
-        return dt
-    return timezone.make_aware(dt)
+    return make_aware(dt)
