@@ -1,12 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.core.api.serializers.administrative_unit import AdministrativeUnitSerializer
 from apps.core.api.serializers.province import ProvinceSerializer
 from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.api.serializers.common_nested import EmployeeNestedSerializer
 from apps.hrm.models import Block, Branch, BranchContactInfo, Department, Position
+from apps.hrm.models.employee import Employee
 
 User = get_user_model()
 
@@ -144,6 +147,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
     branch_id = serializers.PrimaryKeyRelatedField(
         queryset=Branch.objects.all(), source="branch", write_only=True, required=True
     )
+    leader = EmployeeNestedSerializer(read_only=True)
+    leader_id = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(), source="leader", write_only=True, required=False, allow_null=True
+    )
     block = BlockSerializer(read_only=True)
     block_id = serializers.PrimaryKeyRelatedField(
         queryset=Block.objects.all(), source="block", write_only=True, required=True
@@ -171,6 +178,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "code",
+            "leader",
+            "leader_id",
             "branch",
             "branch_id",
             "block",
@@ -197,6 +206,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "updated_at",
             "branch",
             "block",
+            "leader",
             "parent_department",
             "management_department",
             "function_display",
@@ -234,6 +244,22 @@ class DepartmentSerializer(serializers.ModelSerializer):
             ]
         return []
 
+    def validate_leader_id(self, value):
+        """Validate leader before general validation"""
+        if not value:
+            return value
+
+        # Leader must be in a working status (ACTIVE or ONBOARDING)
+        try:
+            working_statuses = set(Employee.Status.get_working_statuses())
+            if getattr(value, "status", None) not in working_statuses:
+                raise serializers.ValidationError(_("Leader must be currently working."))
+        except Exception:
+            # In case model/API changes, fail open to avoid hard dependency
+            pass
+
+        return value
+
     def validate(self, attrs):  # noqa: C901
         """
         Delegate validation to model's clean() method to avoid duplication.
@@ -264,6 +290,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
                 if instance.function == Department.DepartmentFunction.BUSINESS:
                     instance.function = Department.DepartmentFunction.HR_ADMIN
 
+        # Validate leader
+        if instance.leader:
+            self._validate_leader(instance)
+
         # Run model validation (calls our custom clean() method)
         # We use clean() directly instead of full_clean() because:
         # - DRF already validates required fields
@@ -285,6 +315,24 @@ class DepartmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error_dict)
 
         return attrs
+
+    def _validate_leader(self, instance):
+        """Validate leader employee constraints"""
+        leader = instance.leader
+
+        # Leader must be in the same department
+        if leader.department != instance:
+            raise serializers.ValidationError({"leader_id": _("Leader must be an employee within the department.")})
+
+        # Leader must not already be leading another department
+        if leader.led_departments.exclude(id=instance.id).exists():
+            raise serializers.ValidationError({"leader_id": _("Employee is already leading another department.")})
+
+        # Leader cannot be both a leader and a subordinate in the same department
+        if leader.department.parent_department == instance:
+            raise serializers.ValidationError(
+                {"leader_id": _("Employee cannot be both leader and subordinate in hierarchy.")}
+            )
 
 
 class PositionSerializer(serializers.ModelSerializer):
