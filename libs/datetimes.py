@@ -1,4 +1,7 @@
+from datetime import datetime
 from fractions import Fraction
+
+from django.utils import timezone
 
 
 # Helper to compute intersection duration in hours (as Fraction)
@@ -9,3 +12,12 @@ def compute_intersection_hours(start_a, end_a, start_b, end_b):
         duration_seconds = (earliest_end - latest_start).total_seconds()
         return Fraction(int(duration_seconds), 3600)
     return Fraction(0)
+
+
+def combine_datetime(date, time):
+    if not time:
+        return
+    dt = datetime.combine(date, time)
+    if timezone.is_aware(dt):
+        return dt
+    return timezone.make_aware(dt)
