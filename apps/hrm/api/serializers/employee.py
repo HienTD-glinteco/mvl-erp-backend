@@ -14,6 +14,7 @@ from apps.hrm.models import (
     BankAccount,
     Block,
     Branch,
+    Decision,
     Department,
     Employee,
     EmployeeWorkHistory,
@@ -380,12 +381,22 @@ class EmployeeBaseStatusActionSerializer(serializers.Serializer):
 
     start_date = serializers.DateField(required=True)
     description = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    decision_id = serializers.PrimaryKeyRelatedField(
+        queryset=Decision.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, **kwargs)
         self.employee: Employee = self.context.get("employee", None)
         self.employee_update_fields = []
         self.old_status = self.employee.status if self.employee else None
+
+    def validate_decision_id(self, value):
+        if value and value.signing_status != Decision.SigningStatus.ISSUED:
+            raise serializers.ValidationError(_("The selected decision must be in 'Issued' status."))
+        return value
 
     def validate_start_date(self, value):
         if value > date.today():
@@ -439,6 +450,7 @@ class EmployeeActiveActionSerializer(EmployeeBaseStatusActionSerializer):
             new_status=Employee.Status.ACTIVE,
             effective_date=self.validated_data["start_date"],
             note=self.validated_data.get("description", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -507,6 +519,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
                 note=self.validated_data.get("description", ""),
                 detail=detail,
                 previous_data=previous_data,
+                decision=self.validated_data.get("decision_id"),
             )
         else:
             # For other statuses (MATERNITY_LEAVE, UNPAID_LEAVE), use CHANGE_STATUS event
@@ -527,6 +540,7 @@ class EmployeeReactiveActionSerializer(EmployeeBaseStatusActionSerializer):
                 note=self.validated_data.get("description", ""),
                 detail=detail,
                 previous_data=previous_data,
+                decision=self.validated_data.get("decision_id"),
             )
 
 
@@ -586,6 +600,7 @@ class EmployeeResignedActionSerializer(EmployeeBaseStatusActionSerializer):
             note=self.validated_data.get("description", ""),
             detail=detail,
             previous_data=previous_data,
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -617,6 +632,7 @@ class EmployeeMaternityLeaveActionSerializer(EmployeeBaseStatusActionSerializer)
             start_date=self.employee.resignation_start_date,
             end_date=self.employee.resignation_end_date,
             note=self.validated_data.get("description", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -632,6 +648,11 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
         queryset=Position.objects.all(),
         required=True,
     )
+    decision_id = serializers.PrimaryKeyRelatedField(
+        queryset=Decision.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     note = serializers.CharField(required=False, allow_blank=True)
 
     def __init__(self, instance=None, data=..., **kwargs):
@@ -640,6 +661,11 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
         self.employee_update_fields = []
         self.old_department = self.employee.department if self.employee else None
         self.old_position = self.employee.position if self.employee else None
+
+    def validate_decision_id(self, value):
+        if value and value.signing_status != Decision.SigningStatus.ISSUED:
+            raise serializers.ValidationError(_("The selected decision must be in 'Issued' status."))
+        return value
 
     def validate(self, attrs):
         """Validate transfer data."""
@@ -676,6 +702,7 @@ class EmployeeTransferActionSerializer(serializers.Serializer):
             new_position=self.employee.position,
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
@@ -690,12 +717,22 @@ class EmployeeChangeTypeActionSerializer(serializers.Serializer):
 
     date = serializers.DateField(required=True)
     employee_type = serializers.ChoiceField(choices=EmployeeType.choices, required=True)
+    decision_id = serializers.PrimaryKeyRelatedField(
+        queryset=Decision.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     note = serializers.CharField(required=False, allow_blank=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.employee: Employee = self.context.get("employee", None)
         self.old_employee_type = self.employee.employee_type if self.employee else None
+
+    def validate_decision_id(self, value):
+        if value and value.signing_status != Decision.SigningStatus.ISSUED:
+            raise serializers.ValidationError(_("The selected decision must be in 'Issued' status."))
+        return value
 
     def validate_date(self, effective_date):
         """Validate that effective_date is not in the future."""
@@ -751,6 +788,7 @@ class EmployeeChangeTypeActionSerializer(serializers.Serializer):
             new_employee_type=self.employee.employee_type,
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
+            decision=self.validated_data.get("decision_id"),
         )
 
 
