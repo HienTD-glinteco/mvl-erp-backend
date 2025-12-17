@@ -1,6 +1,5 @@
-from typing import Union
+from typing import Any
 
-from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 
@@ -17,8 +16,9 @@ class PermissionRegistrationMixin:
         permission_prefix (str): Prefix for permission codes (e.g., "document")
     """
 
-    module: Union[str, Promise] = ""
-    submodule: Union[str, Promise] = ""
+    # Allow module/submodule to be plain strings or lazy translation objects
+    module: Any = ""
+    submodule: Any = ""
     permission_prefix = ""
 
     # Standard DRF actions with their metadata (full CRUD)

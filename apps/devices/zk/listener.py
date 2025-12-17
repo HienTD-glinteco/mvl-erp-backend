@@ -17,7 +17,7 @@ from typing import Any
 
 from zk import ZK
 from zk.attendance import Attendance
-from zk.exception import ZKErrorConnection, ZKErrorResponse
+from zk.exception import ZKErrorConnection, ZKErrorResponse, ZKNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +275,7 @@ class ZKRealtimeDeviceListener:
                 # Start live capture loop
                 await self._live_capture_loop(device, zk_conn, last_device_info_update)
 
-            except (ZKErrorConnection, ZKErrorResponse, ConnectionError) as e:
+            except (ZKErrorConnection, ZKErrorResponse, ConnectionError, ZKNetworkError) as e:
                 consecutive_failures += 1
                 error_msg = f"Connection error for device {device.name}: {str(e)}"
 
