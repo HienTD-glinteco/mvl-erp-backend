@@ -205,15 +205,20 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
     first_ts = agg.get("first_ts")
     last_ts = agg.get("last_ts")
 
-    start_time = first_ts if first_ts is not None else None
+    check_in = first_ts if first_ts is not None else None
 
     if last_ts is None or last_ts == first_ts:
-        end_time = None
+        check_out = None
     else:
-        end_time = last_ts
+        check_out = last_ts
 
-    timehsheet_entry.update_times(start_time, end_time)
-    timehsheet_entry.calculate_hours_from_schedule()
+    timehsheet_entry.check_in_record = check_in
+    timehsheet_entry.check_out_record = check_out
+
+    if not timehsheet_entry.is_manually_corrected:
+        timehsheet_entry.update_times(check_in, check_out)
+        timehsheet_entry.calculate_hours_from_schedule()
+
     timehsheet_entry.save()
 
 
@@ -247,8 +252,7 @@ def trigger_timesheet_updates_from_records(records: List[AttendanceRecord]) -> N
     for (emp_id, rec_date), auth_code in updates_needed.items():
         try:
             entry, _ = TimeSheetEntry.objects.get_or_create(employee_id=emp_id, date=rec_date)
-            if not entry.is_manually_corrected:
-                update_start_end_times(auth_code, entry)
+            update_start_end_times(auth_code, entry)
         except Exception as e:
             logger.error(f"Failed to update timesheet for employee {emp_id} on {rec_date}: {e}")
 
