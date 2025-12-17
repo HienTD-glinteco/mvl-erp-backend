@@ -19,7 +19,12 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from apps.devices.zk import ZKAttendanceEvent, ZKDeviceInfo, ZKRealtimeDeviceListener
-from apps.hrm.models import AttendanceDevice, AttendanceRecord, Employee
+from apps.hrm.models import (
+    AttendanceDevice,
+    AttendanceRecord,
+    Employee,
+)
+from apps.hrm.services.timesheets import trigger_timesheet_updates_from_records
 
 logger = logging.getLogger(__name__)
 
@@ -344,6 +349,9 @@ class Command(BaseCommand):
             records_to_create.append(record)
 
         if records_to_create:
-            AttendanceRecord.objects.bulk_create(records_to_create)
-            self.processed_count += len(records_to_create)
-            logger.info(f"Saved batch of {len(records_to_create)} attendance records")
+            created_records = AttendanceRecord.objects.bulk_create(records_to_create)
+            self.processed_count += len(created_records)
+            logger.info(f"Saved batch of {len(created_records)} attendance records")
+
+            # Post-processing: Trigger timesheet updates
+            trigger_timesheet_updates_from_records(created_records)

@@ -11,7 +11,12 @@ from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
 from apps.devices.zk import ZKDeviceService
-from apps.hrm.models import AttendanceDevice, AttendanceRecord, Employee
+from apps.hrm.models import (
+    AttendanceDevice,
+    AttendanceRecord,
+    Employee,
+)
+from apps.hrm.services.timesheets import trigger_timesheet_updates_from_records
 
 logger = logging.getLogger(__name__)
 
@@ -302,9 +307,13 @@ def _save_attendance_logs_to_database(device: AttendanceDevice, today_logs: list
 
     # Bulk create all missing records in batches
     if records_to_create:
-        AttendanceRecord.objects.bulk_create(records_to_create, batch_size=BULK_CREATE_BATCH_SIZE)
-        logs_synced = len(records_to_create)
+        created_records = AttendanceRecord.objects.bulk_create(records_to_create, batch_size=BULK_CREATE_BATCH_SIZE)
+        logs_synced = len(created_records)
         logger.info(f"Created {logs_synced} new attendance records for device {device.name}")
+
+        # Post-processing: Trigger timesheet updates (since bulk_create doesn't fire signals)
+        trigger_timesheet_updates_from_records(created_records)
+
         return logs_synced
     else:
         logger.info(f"All logs already exist for device {device.name}, no new records created")

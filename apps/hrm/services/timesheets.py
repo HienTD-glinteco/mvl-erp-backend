@@ -215,3 +215,48 @@ def update_start_end_times(attendance_code: str, timehsheet_entry: TimeSheetEntr
     timehsheet_entry.update_times(start_time, end_time)
     timehsheet_entry.calculate_hours_from_schedule()
     timehsheet_entry.save()
+
+
+def trigger_timesheet_updates_from_records(records: List[AttendanceRecord]) -> None:
+    """Trigger timesheet updates for newly created attendance records.
+
+    This mimics the logic in apps.hrm.signals.attendance.handle_attendance_record_save
+    which is skipped during bulk_create.
+    """
+    # Identify unique (employee, date) pairs to update
+    updates_needed = {}
+    monthly_refreshes = set()
+
+    for record in records:
+        if not record.employee_id:
+            continue
+
+        # timestamp is a datetime object
+        record_date = record.timestamp.date()
+        key = (record.employee_id, record_date)
+
+        # Store attendance_code to pass to update function
+        # All records for same employee should have same attendance_code
+        updates_needed[key] = record.attendance_code
+
+        # Collect monthly refresh keys
+        month_key = f"{record_date.year:04d}{record_date.month:02d}"
+        monthly_refreshes.add((record.employee_id, month_key, record_date.replace(day=1)))
+
+    # Process timesheet updates
+    for (emp_id, rec_date), auth_code in updates_needed.items():
+        try:
+            entry, _ = TimeSheetEntry.objects.get_or_create(employee_id=emp_id, date=rec_date)
+            if not entry.is_manually_corrected:
+                update_start_end_times(auth_code, entry)
+        except Exception as e:
+            logger.error(f"Failed to update timesheet for employee {emp_id} on {rec_date}: {e}")
+
+    # Process monthly refreshes
+    for emp_id, month_key, report_date in monthly_refreshes:
+        try:
+            EmployeeMonthlyTimesheet.objects.get_or_create(
+                employee_id=emp_id, month_key=month_key, report_date=report_date
+            )[0].mark_refresh()
+        except Exception as e:
+            logger.error(f"Failed to mark monthly refresh for employee {emp_id} month {month_key}: {e}")
