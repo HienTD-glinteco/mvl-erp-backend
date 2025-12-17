@@ -110,25 +110,6 @@ class PermissionRegistrationMixin:
         return custom_actions
 
     @classmethod
-    def get_permission_registered_actions(cls):
-        """
-        Get all custom actions defined in the viewset.
-
-        Returns:
-            list: List of custom action names (decorated with @action)
-        """
-        custom_actions = []
-        for attr_name in dir(cls):
-            if attr_name.startswith("_"):
-                continue
-            attr = getattr(cls, attr_name)
-            if callable(attr) and hasattr(attr, "mapping") and hasattr(cls, "PERMISSION_REGISTERED_ACTIONS"):
-                # This is a DRF action
-                if attr_name in cls.PERMISSION_REGISTERED_ACTIONS:
-                    custom_actions.append(attr_name)
-        return custom_actions
-
-    @classmethod
     def get_registered_permissions(cls):
         """
         Get all permission metadata for this viewset.
@@ -147,8 +128,10 @@ class PermissionRegistrationMixin:
         if not cls.permission_prefix:
             # Skip viewsets without permission_prefix
             return []
-
         permissions = []
+        standard_permissions = []
+        registered_permissions = []
+        unregistered_permissions = []
         model_name = cls.get_model_name()
         model_name_plural = cls.get_model_name_plural()
         # Generate permissions for standard actions
@@ -158,7 +141,7 @@ class PermissionRegistrationMixin:
                 # Use plural for list action, singular for others
                 display_name = model_name_plural if action_name == "list" else model_name
 
-                permissions.append(
+                standard_permissions.append(
                     {
                         "code": f"{cls.permission_prefix}.{action_name}",
                         "name": str(action_meta["name_template"]).format(model_name=display_name),
@@ -168,17 +151,21 @@ class PermissionRegistrationMixin:
                     }
                 )
         # Genetrate permissions for registered actions
-        for action_name in cls.get_permission_registered_actions():
-            action_meta = cls.PERMISSION_REGISTERED_ACTIONS[action_name]
-            permissions.append(
-                {
-                    "code": f"{cls.permission_prefix}.{action_name}",
-                    "name": str(action_meta["name_template"]).format(model_name=model_name),
-                    "description": str(action_meta["description_template"]).format(model_name=model_name),
-                    "module": cls.module,
-                    "submodule": cls.submodule,
-                }
-            )
+        # for action_name in cls.get_permission_registered_actions():
+        if hasattr(cls, "PERMISSION_REGISTERED_ACTIONS"):
+            for action_name, action_meta in cls.PERMISSION_REGISTERED_ACTIONS.items():
+                if not hasattr(cls, action_name):
+                    continue
+                action_meta = cls.PERMISSION_REGISTERED_ACTIONS[action_name]
+                registered_permissions.append(
+                    {
+                        "code": f"{cls.permission_prefix}.{action_name}",
+                        "name": str(action_meta["name_template"]).format(model_name=model_name),
+                        "description": str(action_meta["description_template"]).format(model_name=model_name),
+                        "module": cls.module,
+                        "submodule": cls.submodule,
+                    }
+                )
 
         # Generate permissions for custom actions
         for action_name in cls.get_custom_actions():
@@ -186,7 +173,7 @@ class PermissionRegistrationMixin:
             # Convert action name to readable format (e.g., "approve" -> "Approve")
             action_title = action_name.replace("_", " ").title()
 
-            permissions.append(
+            unregistered_permissions.append(
                 {
                     "code": f"{cls.permission_prefix}.{action_name}",
                     "name": f"UNREGISTERED {action_title} {model_name}",
@@ -195,5 +182,15 @@ class PermissionRegistrationMixin:
                     "submodule": cls.submodule,
                 }
             )
-
+        # Combine all permissions, avoiding duplicates by code, prioritizing registered ones
+        added_permissions_codes = set()
+        permissions.extend(registered_permissions)
+        for perm in standard_permissions:
+            if perm["code"] not in added_permissions_codes:
+                permissions.append(perm)
+                added_permissions_codes.add(perm["code"])
+        for perm in unregistered_permissions:
+            if perm["code"] not in added_permissions_codes:
+                permissions.append(perm)
+                added_permissions_codes.add(perm["code"])
         return permissions
