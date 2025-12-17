@@ -10,9 +10,12 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
+from django.db import transaction
+from django.utils import timezone
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.api.serializers.geolocation_attendance import GeoLocationAttendanceSerializer
 from apps.hrm.api.serializers.wifi_attendance import WiFiAttendanceSerializer
+from apps.hrm.api.serializers.other_attendance import OtherAttendanceSerializer, AttendanceBulkApproveSerializer
 from apps.hrm.models import AttendanceRecord
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.mixin.permission import PermissionRegistrationMixin
@@ -138,6 +141,14 @@ class AttendanceRecordViewSet(
             "name_template": _("Record attendance by WiFi"),
             "description_template": _("Record attendance using WiFi BSSID"),
         },
+        "other_attendance": {
+            "name_template": _("Record attendance by Other"),
+            "description_template": _("Record attendance manually or by other means"),
+        },
+        "bulk_approve": {
+             "name_template": _("Bulk approve attendance records"),
+             "description_template": _("Approve or reject multiple attendance records"),
+        },
     }
 
     @extend_schema(
@@ -204,6 +215,77 @@ class AttendanceRecordViewSet(
         # Return the created attendance record
         record_serializer = AttendanceRecordSerializer(attendance_record)
         return Response(record_serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary="Record attendance by Other",
+        description="Record attendance manually or by other means. Pending approval.",
+        tags=["6.11: Attendance Record - For Mobile"],
+        request=OtherAttendanceSerializer,
+        responses={201: AttendanceRecordSerializer},
+    )
+    @action(detail=False, methods=["post"], url_path="other-attendance")
+    def other_attendance(self, request):
+        """Record attendance manually or by other means."""
+        serializer = OtherAttendanceSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        attendance_record = serializer.save()
+
+        record_serializer = AttendanceRecordSerializer(attendance_record)
+        return Response(record_serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary="Bulk approve attendance records",
+        description="Approve or reject multiple attendance records.",
+        tags=["6.11: Attendance Record"],
+        request=AttendanceBulkApproveSerializer,
+        responses={200: {"type": "object", "properties": {"success": {"type": "boolean"}}}},
+    )
+    @action(detail=False, methods=["post"], url_path="bulk-approve")
+    def bulk_approve(self, request):
+        """Bulk approve or reject attendance records."""
+        serializer = AttendanceBulkApproveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        ids = serializer.validated_data["ids"]
+        is_approve = serializer.validated_data["is_approve"]
+        note = serializer.validated_data.get("note", "")
+
+        # Get employee from user
+        try:
+            approver = request.user.employee
+        except AttributeError:
+            # Handle case where user is not linked to an employee (e.g., admin)
+            approver = None
+
+        with transaction.atomic():
+            records = AttendanceRecord.objects.filter(id__in=ids)
+            count = records.count()
+
+            update_fields = {
+                "is_valid": is_approve,
+                "is_pending": False,
+                "approved_at": timezone.now(),
+                "approved_by": approver
+            }
+
+            # If note is provided, append it to existing notes
+            # This is tricky with update() if we want to append.
+            # For simplicity and performance in bulk, we might just set it or iterate.
+            # Iterating is safer for appending strings.
+            if note:
+                for record in records:
+                    if record.notes:
+                        record.notes += f"\nApproval Note: {note}"
+                    else:
+                        record.notes = f"Approval Note: {note}"
+
+                    for field, value in update_fields.items():
+                        setattr(record, field, value)
+                    record.save()
+            else:
+                records.update(**update_fields)
+
+        return Response({"success": True, "updated_count": count}, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Record attendance by WiFi",

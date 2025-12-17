@@ -29,6 +29,7 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
     attendance_geolocation = AttendanceGeolocationSerializer(read_only=True)
     image = FileSerializer(read_only=True)
     attendance_wifi_device = AttendanceWifiDeviceSerializer(read_only=True)
+    approved_by = EmployeeSerializer(read_only=True)
 
     class Meta:
         model = AttendanceRecord
@@ -46,6 +47,9 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "image",
             "attendance_wifi_device",
             "is_valid",
+            "is_pending",
+            "approved_at",
+            "approved_by",
             "notes",
             "raw_data",
             "created_at",
@@ -63,6 +67,9 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "attendance_geolocation",
             "image",
             "attendance_wifi_device",
+            "is_pending",
+            "approved_at",
+            "approved_by",
             "raw_data",
             "created_at",
             "updated_at",
