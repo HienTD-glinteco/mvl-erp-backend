@@ -2,6 +2,7 @@ from datetime import datetime, time, timedelta
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
@@ -145,7 +146,9 @@ class ProposalService:
             # Case: Correction - Update timesheet entry with approved times
             ProposalService._apply_complaint_correction(entry, approved_check_in, approved_check_out)
         else:
-            raise ProposalExecutionError(f"Complaint proposal {proposal.id} missing approved check-in/out times")
+            raise ProposalExecutionError(
+                _("Complaint proposal %(id)s missing approved check-in/out times") % {"id": proposal.id}
+            )
 
     @staticmethod
     def _apply_complaint_correction(entry: TimeSheetEntry, approved_check_in: time, approved_check_out: time) -> None:
