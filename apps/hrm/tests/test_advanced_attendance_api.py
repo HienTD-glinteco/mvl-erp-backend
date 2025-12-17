@@ -7,10 +7,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from django.urls import reverse
+from unittest.mock import patch, MagicMock
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.core.models import AdministrativeUnit, Province
+from apps.core.models.device import UserDevice
 from apps.files.models import FileModel
 from apps.hrm.models import AttendanceGeolocation, AttendanceRecord, AttendanceWifiDevice, Employee
 from apps.realestate.models import Project as RealEstateProject
@@ -40,6 +42,41 @@ class GeoLocationAttendanceAPITest(TransactionTestCase, APITestMixin):
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+        # Create user device for validation
+        self.user_device = UserDevice.objects.create(
+            user=self.user,
+            device_id="device123",
+            platform=UserDevice.Platform.ANDROID,
+            active=True
+        )
+
+        # Mock request.auth to include device_id
+        # We need to patch the view or the authentication process, but since we are integration testing via client,
+        # we can patch `validate_attendance_device` OR we can assume we need to pass the check.
+        # However, to test the check itself, we should probably mock the `validate_attendance_device` for existing tests
+        # and create specific tests for the validation logic.
+
+        # But wait, we want to ensure existing tests pass WITH the validation.
+        # So we should make the request appear to have the correct token.
+        # Since APIClient.force_authenticate doesn't set token claims easily,
+        # let's patch the validation function for the standard success tests,
+        # or mock `request.auth` inside the view?
+        # A clean way is to patch `validate_attendance_device` to return True for existing tests,
+        # but that skips testing the wiring.
+
+        # Ideally we want to simulate the token.
+        # Let's use `patch` on `apps.hrm.utils.attendance_validation.validate_attendance_device`
+        # but that would be global.
+
+        # Let's try to mock the validation in the view for these tests,
+        # and add specific tests that DO NOT mock it but set up the request properly (if possible).
+        # Actually, since `force_authenticate` sets `request.auth` to None or the user/token provided,
+        # if we pass a Mock object as token to force_authenticate, it might work?
+
+        token_mock = MagicMock()
+        token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
+        self.client.force_authenticate(user=self.user, token=token_mock)
 
         # Create employee for the user
         # Create minimal org structure and employee
@@ -293,6 +330,19 @@ class WiFiAttendanceAPITest(TransactionTestCase, APITestMixin):
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+
+        # Create user device for validation
+        self.user_device = UserDevice.objects.create(
+            user=self.user,
+            device_id="device123",
+            platform=UserDevice.Platform.ANDROID,
+            active=True
+        )
+
+        # Mock token with device_id
+        token_mock = MagicMock()
+        token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
+        self.client.force_authenticate(user=self.user, token=token_mock)
 
         # Create employee for the user
 

@@ -15,6 +15,7 @@ from apps.hrm.api.serializers.geolocation_attendance import GeoLocationAttendanc
 from apps.hrm.api.serializers.other_attendance import OtherAttendanceBulkApproveSerializer, OtherAttendanceSerializer
 from apps.hrm.api.serializers.wifi_attendance import WiFiAttendanceSerializer
 from apps.hrm.models import AttendanceRecord
+from apps.hrm.utils.attendance_validation import validate_attendance_device
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.mixin.permission import PermissionRegistrationMixin
 from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
@@ -206,6 +207,7 @@ class AttendanceRecordViewSet(
     @action(detail=False, methods=["post"], url_path="geolocation-attendance")
     def geolocation_attendance(self, request):
         """Record attendance using GeoLocation coordinates."""
+        validate_attendance_device(request)
         serializer = GeoLocationAttendanceSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         attendance_record = serializer.save()
@@ -266,6 +268,7 @@ class AttendanceRecordViewSet(
     @action(detail=False, methods=["post"], url_path="wifi-attendance")
     def wifi_attendance(self, request):
         """Record attendance using WiFi BSSID."""
+        validate_attendance_device(request)
         serializer = WiFiAttendanceSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         attendance_record = serializer.save()
