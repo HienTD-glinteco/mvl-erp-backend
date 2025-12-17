@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
@@ -23,8 +24,8 @@ class RecruitmentSource(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Recruitment Source"
-        verbose_name_plural = "Recruitment Sources"
+        verbose_name = _("Recruitment Source")
+        verbose_name_plural = _("Recruitment Sources")
         db_table = "hrm_recruitment_source"
         ordering = ["-created_at"]
 

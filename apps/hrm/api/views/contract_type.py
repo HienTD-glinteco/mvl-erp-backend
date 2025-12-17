@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -260,8 +261,8 @@ class ContractTypeViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Contract Type Management"
+    module = _("HRM")
+    submodule = _("Contract Type Management")
     permission_prefix = "contract_type"
 
     # Export configuration

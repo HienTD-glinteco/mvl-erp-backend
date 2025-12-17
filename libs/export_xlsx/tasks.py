@@ -18,7 +18,7 @@ from .storage import get_storage_backend
 
 
 @shared_task(bind=True, name="export_xlsx.generate_file")
-def generate_xlsx_task(self, schema, filename=None, storage_backend=None):
+def generate_xlsx_task(self, schema, filename=None, storage_backend=None, template_name=None, template_context=None):
     """
     Background task to generate XLSX file with progress tracking.
 
@@ -50,7 +50,7 @@ def generate_xlsx_task(self, schema, filename=None, storage_backend=None):
             progress_tracker.update(rows_processed)
 
         generator = XLSXGenerator(progress_callback=progress_callback, chunk_size=chunk_size)
-        file_content = generator.generate(schema)
+        file_content = generator.generate(schema, template_name=template_name, template_context=template_context)
 
         # Save to storage
         storage = get_storage_backend(storage_backend)
@@ -80,7 +80,14 @@ def generate_xlsx_task(self, schema, filename=None, storage_backend=None):
 
 @shared_task(bind=True, name="export_xlsx.generate_file_from_queryset")
 def generate_xlsx_from_queryset_task(
-    self, app_label, model_name, queryset_filters=None, filename=None, storage_backend=None
+    self,
+    app_label,
+    model_name,
+    queryset_filters=None,
+    filename=None,
+    storage_backend=None,
+    template_name=None,
+    template_context=None,
 ):
     """
     Background task to generate XLSX file from Django model queryset with progress tracking.
@@ -129,7 +136,7 @@ def generate_xlsx_from_queryset_task(
             progress_tracker.update(rows_processed)
 
         generator = XLSXGenerator(progress_callback=progress_callback, chunk_size=chunk_size)
-        file_content = generator.generate(schema)
+        file_content = generator.generate(schema, template_name=template_name, template_context=template_context)
 
         # Save to storage
         storage = get_storage_backend(storage_backend)
@@ -159,7 +166,15 @@ def generate_xlsx_from_queryset_task(
 
 
 @shared_task(bind=True, name="export_xlsx.generate_file_from_viewset")
-def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, filename=None, storage_backend=None):
+def generate_xlsx_from_viewset_task(
+    self,
+    viewset_class_path,
+    request_data,
+    filename=None,
+    storage_backend=None,
+    template_name=None,
+    template_context=None,
+):
     """
     Background task to generate XLSX file by calling ViewSet's get_export_data method.
 
@@ -225,7 +240,7 @@ def generate_xlsx_from_viewset_task(self, viewset_class_path, request_data, file
             progress_tracker.update(rows_processed)
 
         generator = XLSXGenerator(progress_callback=progress_callback, chunk_size=chunk_size)
-        file_content = generator.generate(schema)
+        file_content = generator.generate(schema, template_name=template_name, template_context=template_context)
 
         # Save to storage
         storage = get_storage_backend(storage_backend)

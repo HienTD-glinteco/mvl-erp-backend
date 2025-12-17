@@ -373,7 +373,30 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         self.assertEqual(response_data["colored_status"]["value"], "HIRED")
         self.assertEqual(response_data["onboard_date"], "2025-11-01")
 
-    def test_delete_candidate(self):
+    def test_delete_candidate_success(self):
+        """Test deleting a candidate"""
+        candidate = RecruitmentCandidate.objects.create(
+            name="Nguyen Van B",
+            citizen_id="123456789012",
+            email="nguyenvanb@example.com",
+            phone="0123456789",
+            recruitment_request=self.recruitment_request,
+            recruitment_source=self.recruitment_source,
+            recruitment_channel=self.recruitment_channel,
+            years_of_experience=RecruitmentCandidate.YearsOfExperience.MORE_THAN_FIVE_YEARS,
+            submitted_date=date(2025, 10, 15),
+            status=RecruitmentCandidate.Status.REJECTED,
+        )
+
+        url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.id})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify candidate was deleted
+        self.assertFalse(RecruitmentCandidate.objects.filter(id=candidate.id).exists())
+
+    def test_delete_candidate_failed(self):
         """Test deleting a candidate"""
         candidate = RecruitmentCandidate.objects.create(
             name="Nguyen Van B",
@@ -390,10 +413,10 @@ class RecruitmentCandidateAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:recruitment-candidate-detail", kwargs={"pk": candidate.id})
         response = self.client.delete(url)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Verify candidate was deleted
-        self.assertFalse(RecruitmentCandidate.objects.filter(id=candidate.id).exists())
+        self.assertTrue(RecruitmentCandidate.objects.filter(id=candidate.id).exists())
 
     def test_update_referrer_action(self):
         """Test updating referrer using custom action"""

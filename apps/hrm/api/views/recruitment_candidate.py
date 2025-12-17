@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -429,10 +430,47 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Recruitment"
+    module = _("HRM")
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_candidate"
-
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("View Candidates"),
+            "description_template": _("View all candidates in the system"),
+        },
+        "create": {
+            "name_template": _("Create Candidate"),
+            "description_template": _("Create a new candidate"),
+        },
+        "retrieve": {
+            "name_template": _("View Candidate Detail"),
+            "description_template": _("View details of a specific candidate"),
+        },
+        "update": {
+            "name_template": _("Update Candidate"),
+            "description_template": _("Update information for a specific candidate"),
+        },
+        "partial_update": {
+            "name_template": _("Partially Update Candidate"),
+            "description_template": _("Partially update information for a specific candidate"),
+        },
+        "destroy": {
+            "name_template": _("Delete Candidate"),
+            "description_template": _("Delete a specific candidate from the system"),
+        },
+        "export": {
+            "name_template": _("Export Candidates"),
+            "description_template": _("Export candidates to a file"),
+        },
+        "update_referrer": {
+            "name_template": _("Update Candidate Referrer"),
+            "description_template": _("Update the referrer for a specific candidate"),
+        },
+        "to_employee": {
+            "name_template": _("Convert Candidate to Employee"),
+            "description_template": _("Convert a candidate into an employee record"),
+        },
+    }
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"  # type: ignore[assignment]
 
@@ -659,3 +697,15 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
             return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.status != RecruitmentCandidate.Status.REJECTED:
+            return Response(
+                {
+                    "success": False,
+                    "error": {"non_field_errors": [_("Only candidates with REJECTED status can be deleted.")]},
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)

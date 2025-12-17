@@ -1,8 +1,8 @@
-# The backend Project
+# The MVL backend Project
 
 This project powers the MaiVietLand backend.
 
-## Prepare environment
+## 1. Prepare environment
 
 ### Create a virtual environment
 
@@ -49,7 +49,7 @@ ALTER DATABASE backend OWNER TO backend;
 
 ### Create environment file
 
-``` bash
+```bash
 cp .env.tpl .env
 
 # Update the environment varables as needed
@@ -61,7 +61,7 @@ cp .env.tpl .env
 python manage.py migrate
 ```
 
-## Create superuser
+### Create superuser
 
 ```bash
 python manage.py createsuperuser
@@ -96,15 +96,14 @@ brew install redis
 brew services start redis
 ```
 
-
-## Run celery
+### Run celery
 
 ```bash
 ENVIRONMENT=local celery -A celery_tasks worker -l info -Q default
 ENVIRONMENT=local celery -A celery_tasks beat -l info
 ```
 
-## Run flower to easily manage celery in browsers
+### Run flower to easily manage celery in browsers
 
 ```bash
 # Run flower to manage celery
@@ -113,16 +112,18 @@ ENVIRONMENT=local celery -A celery_tasks flower
 
 Then navigate to http://localhost:5555/
 
-## CI/CD Pipeline
+## 2. CI/CD Pipeline
 
 This project includes an **optimized CI/CD pipeline** using GitHub Actions with parallel job execution and intelligent caching.
 
 ### Environments
+
 - **Test**: Automatically deployed when code is merged to `master`
 - **Staging**: Deployed when PR from `master` to `staging` is merged
 - **Production**: Deployed when PR from `master` to `release` is merged
 
 ### CI Performance
+
 - ⚡ **Fast feedback**: ~3-4 minutes (with cache)
 - 🔄 **Parallel execution**: Linting, Django checks, and tests run simultaneously
 - 💾 **Smart caching**: Dependencies cached for faster subsequent runs
@@ -151,7 +152,7 @@ This project includes an **optimized CI/CD pipeline** using GitHub Actions with 
 4. Create PR from `master` to `staging` for staging deployment
 5. Create PR from `master` to `release` for production deployment
 
-## GitHub Copilot Agent
+## 3. GitHub Copilot Agent
 
 This repository is optimized for **fast GitHub Copilot Agent performance**:
 
@@ -175,12 +176,14 @@ The agent follows an **incremental validation strategy**:
 3. **Phase 3 (Slow)**: Full validation only before final commit
 
 **Important documentation**:
+
 - 📋 [Copilot Instructions](.github/copilot-instructions.md) - **MUST READ** before any task
 - ⚡ [Copilot Agent Optimization](docs/COPILOT_AGENT_OPTIMIZATION.md) - Performance guidelines
 
 ### Code Quality Standards
 
 **⚠️ Critical Requirements ⚠️**
+
 - **NO Vietnamese text** in code, comments, or docstrings
 - **English ONLY** for all code and API documentation
 - **Use constants** for string values (API docs, help text, log messages)
@@ -188,7 +191,29 @@ The agent follows an **incremental validation strategy**:
 - **Validation**: Run `pre-commit run --all-files` before committing
 
 **Automated Checks:**
+
 - ✅ `check-no-vietnamese`: Blocks commits with Vietnamese text in code
 - ⚠️ `check-string-constants`: Warns about hardcoded strings (encourages using constants)
 
 See the [Pre-Flight Checklist](.github/copilot-instructions.md#️-pre-flight-checklist---read-before-every-task-️) for complete requirements and [Code Style Checks](docs/CODE_STYLE_CHECKS.md) for detailed documentation.
+
+## 4. Deployment
+
+- Do following step [1. Prepare environment](#1-prepare-environment)
+- Migrate & collects data
+
+```
+    poetry run python manage.py migrate --noinput
+    poetry run python manage.py collectstatic --noinput
+    poetry run python manage.py compilemessages -l vi
+    poetry run python manage.py collect_permissions
+    poetry run python manage.py upload_import_templates
+```
+
+- Run this command to create adminstrator units
+
+```
+python manage.py import_administrative_data --file apps/core/fixtures/Danh\ sách\ cấp\ tỉnh\ __08_10_2025.xls --type province
+
+poetry run python manage.py import_administrative_data --file apps/core/fixtures/Danh\ sách\ tất\ cả\ các\ cấp\ ___08_10_2025.xls --type unit
+```

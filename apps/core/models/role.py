@@ -24,8 +24,8 @@ class Role(AutoCodeMixin, BaseModel):
     )  # type: ignore
 
     class Meta:
-        verbose_name = "Role"
-        verbose_name_plural = "Roles"
+        verbose_name = _("Role")
+        verbose_name_plural = _("Roles")
         db_table = "core_role"
 
         ordering = ["code"]

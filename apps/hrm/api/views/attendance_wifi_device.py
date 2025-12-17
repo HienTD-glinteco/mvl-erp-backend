@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter
@@ -284,8 +285,8 @@ class AttendanceWifiDeviceViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelV
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Attendance WiFiDevice Management"
+    module = _("HRM")
+    submodule = _("Attendance WiFiDevice Management")
     permission_prefix = "wifi_attendance_device"
 
     def get_export_data(self, request):

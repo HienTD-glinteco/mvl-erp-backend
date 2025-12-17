@@ -61,8 +61,8 @@ class AttendanceWifiDevice(ColoredValueMixin, AutoCodeMixin, BaseModel):
     notes = SafeTextField(blank=True, verbose_name="Notes")
 
     class Meta:
-        verbose_name = "Attendance WiFiDevice"
-        verbose_name_plural = "Attendance WiFiDevices"
+        verbose_name = _("Attendance WiFiDevice")
+        verbose_name_plural = _("Attendance WiFiDevices")
         db_table = "hrm_attendance_wifi"
         ordering = ["-created_at"]
 

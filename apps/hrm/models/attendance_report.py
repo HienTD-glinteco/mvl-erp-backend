@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.hrm.constants import AttendanceType
 from apps.hrm.models.attendance_record import AttendanceRecord
@@ -78,8 +79,8 @@ class AttendanceDailyReport(BaseReportModel):
     )
 
     class Meta:
-        verbose_name = "Attendance Daily Report"
-        verbose_name_plural = "Attendance Daily Reports"
+        verbose_name = _("Attendance Daily Report")
+        verbose_name_plural = _("Attendance Daily Reports")
         db_table = "hrm_attendance_daily_report"
         unique_together = [["report_date", "employee"]]
         indexes = [

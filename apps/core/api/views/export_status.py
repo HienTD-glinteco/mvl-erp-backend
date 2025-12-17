@@ -40,7 +40,13 @@ class ExportStatusView(APIView):
         },
         tags=["0.2: Export"],
     )
-    @register_permission("export.check_status", _("Check export status"), "Core", "Export Status", _("Export status"))
+    @register_permission(
+        "export.check_status",
+        description=_("Check export status"),
+        module=_("Core"),
+        submodule=_("Export Status"),
+        name=_("Export status"),
+    )
     def get(self, request):
         """
         Check export task status with progress information.

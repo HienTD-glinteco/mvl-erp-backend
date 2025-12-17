@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -56,6 +57,6 @@ class BankAccountViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["-is_primary", "-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Bank Account Management"
+    module = _("HRM")
+    submodule = _("Bank Account Management")
     permission_prefix = "bank_account"

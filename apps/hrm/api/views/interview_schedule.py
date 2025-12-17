@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -307,8 +308,22 @@ class InterviewScheduleViewSet(ExportXLSXMixin, EmailTemplateActionMixin, AuditL
 
     # Permission registration attributes
     module = "HRM"
-    submodule = "Recruitment"
+    submodule = _("Recruitment")
     permission_prefix = "interview_schedule"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "interview_invite_preview": {
+            "name_template": _("Preview interview invite for {model_name}"),
+            "description_template": _("Preview interview invite for {model_name}"),
+        },
+        "interview_invite_send": {
+            "name_template": _("Send interview invite for {model_name}"),
+            "description_template": _("Send interview invite for {model_name}"),
+        },
+        "update_interviewers": {
+            "name_template": _("Update interviewers for {model_name}"),
+            "description_template": _("Update interviewers for {model_name}"),
+        },
+    }
 
     @extend_schema(
         summary="Preview interview invitation email",

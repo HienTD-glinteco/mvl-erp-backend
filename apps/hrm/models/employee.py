@@ -391,8 +391,8 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee"
-        verbose_name_plural = "Employees"
+        verbose_name = _("Employee")
+        verbose_name_plural = _("Employees")
         db_table = "hrm_employee"
         ordering = ["-id"]
         constraints = [

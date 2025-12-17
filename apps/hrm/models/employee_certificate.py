@@ -92,6 +92,8 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=100,
         verbose_name="Issuing organization",
         help_text="Organization that issued the certificate",
+        blank=True,
+        null=True,
     )
     attachment = models.ForeignKey(
         FileModel,
@@ -131,8 +133,8 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee certificate"
-        verbose_name_plural = "Employee certificates"
+        verbose_name = _("Employee certificate")
+        verbose_name_plural = _("Employee certificates")
         db_table = "hrm_employee_certificate"
         ordering = ["certificate_type", "-created_at"]
         indexes = [
@@ -194,6 +196,8 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         if self.effective_date and self.expiry_date:
             if self.effective_date >= self.expiry_date:
                 raise ValidationError({"effective_date": _("Effective date must be less than expiry date.")})
+        if self.certificate_type == CertificateType.REAL_ESTATE_PRACTICE_LICENSE and not self.expiry_date:
+            raise ValidationError({"expiry_date": _("Expiry date is required for real estate practice licenses.")})
 
     def save(self, *args, **kwargs):
         """Override save to automatically update status and validate data."""

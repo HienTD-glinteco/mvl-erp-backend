@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 14:27+0700\n"
+"POT-Creation-Date: 2025-12-17 14:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,13 +90,26 @@ msgstr "Cần phải là chuỗi hoặc danh sách chuỗi."
 msgid "All items must be strings."
 msgstr "Tất cả mục phải là chuỗi."
 
-#: apps/files/api/views/file_views.py:96
+#: apps/files/api/views/file_views.py:97 apps/files/api/views/file_views.py:100
 msgid "Generate presigned URL"
 msgstr "Tạo URL ký trước"
 
-#: apps/files/api/views/file_views.py:260
+#: apps/files/api/views/file_views.py:98 apps/files/api/views/file_views.py:266
+msgid "Files"
+msgstr "Tệp tin"
+
+#: apps/files/api/views/file_views.py:99
+msgid "Presign"
+msgstr "Ký trước"
+
+#: apps/files/api/views/file_views.py:265
+#: apps/files/api/views/file_views.py:268
 msgid "Confirm multiple files"
 msgstr "Xác nhận nhiều tệp tin"
+
+#: apps/files/api/views/file_views.py:267
+msgid "Confirm"
+msgstr "Xác nhận"
 
 #: apps/files/utils/s3_utils.py:93
 #, python-brace-format
@@ -122,7 +135,7 @@ msgstr "Lỗi khi tạo URL GET ký trước: {error}"
 msgid "File not found"
 msgstr "Tệp tin không tồn tại"
 
-#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:96
+#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:100
 msgid "Import job not found"
 msgstr "Job nhập dữ liệu không tồn tại"
 
@@ -167,11 +180,19 @@ msgstr "output_format phải là một trong các giá trị: %(formats)s"
 msgid "Unknown field"
 msgstr "Trường thông tin không xác định"
 
-#: apps/imports/api/views.py:51
+#: apps/imports/api/views.py:52
 msgid "Check import status"
 msgstr "Kiểm tra trạng thái nhập dữ liệu"
 
-#: apps/imports/api/views.py:51
+#: apps/imports/api/views.py:53
+msgid "Imports"
+msgstr ""
+
+#: apps/imports/api/views.py:54
+msgid "Status"
+msgstr "Trạng thái"
+
+#: apps/imports/api/views.py:55
 msgid "Import Check Status"
 msgstr "Quyền kiểm tra trạng thái nhập dữ liệu"
 
@@ -370,15 +391,25 @@ msgstr ""
 
 #: apps/payroll/api/views/kpi_config.py:99
 msgid "View KPI configuration"
-msgstr ""
+msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/kpi_config.py:102
+#, fuzzy
+#| msgid "View KPI configuration"
 msgid "KPI View KPI Configuration"
-msgstr ""
+msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/salary_config.py:127
 msgid "View salary configuration"
 msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:128
+msgid "Payroll"
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:129
+msgid "Configuration"
+msgstr "Cấu hình"
 
 #: apps/payroll/api/views/salary_config.py:130
 msgid "Payroll View Salary Configuration"
@@ -408,65 +439,85 @@ msgstr "Đang hoạt động"
 msgid "Inactive"
 msgstr "Không hoạt động"
 
-#: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:24
+#: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:27
 #, python-brace-format
 msgid "List {model_name}"
 msgstr "Danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:63 libs/drf/mixin/permission.py:25
+#: libs/drf/base_viewset.py:63 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr "Xem danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
+#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:31
 #, python-brace-format
 msgid "View {model_name}"
 msgstr "Xem {model_name}"
 
-#: libs/drf/base_viewset.py:67 libs/drf/mixin/permission.py:29
+#: libs/drf/base_viewset.py:67
 #, python-brace-format
 msgid "View details of a {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
+#: libs/drf/base_viewset.py:70 libs/drf/mixin/permission.py:55
+#, python-brace-format
+msgid "History {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_viewset.py:71 libs/drf/mixin/permission.py:56
+#, python-brace-format
+msgid "View history of {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:59
+#, python-brace-format
+msgid "History detail of {model_name}"
+msgstr "Xem chi tiết lịch sử của {model_name}"
+
+#: libs/drf/base_viewset.py:75 libs/drf/mixin/permission.py:60
+#, python-brace-format
+msgid "View history detail of {model_name}"
+msgstr "Xem chi tiết lịch sử của {model_name}"
+
 #: libs/drf/mixin/permission.py:32
+#, python-brace-format
+msgid "View detail of {model_name}"
+msgstr "Xem chi tiết của {model_name}"
+
+#: libs/drf/mixin/permission.py:35
 #, python-brace-format
 msgid "Create {model_name}"
 msgstr "Quyền tạo {model_name}"
 
-#: libs/drf/mixin/permission.py:33
+#: libs/drf/mixin/permission.py:36
 #, python-brace-format
 msgid "Create a new {model_name}"
 msgstr "Quyền tạo mới một {model_name}"
 
-#: libs/drf/mixin/permission.py:36
+#: libs/drf/mixin/permission.py:39 libs/drf/mixin/permission.py:40
 #, python-brace-format
 msgid "Update {model_name}"
 msgstr "Quyền cập nhật {model_name}"
 
-#: libs/drf/mixin/permission.py:37
-#, python-brace-format
-msgid "Update a {model_name}"
-msgstr "Quyền cập nhật một {model_name}"
-
-#: libs/drf/mixin/permission.py:40
+#: libs/drf/mixin/permission.py:43 libs/drf/mixin/permission.py:44
 #, python-brace-format
 msgid "Partially update {model_name}"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: libs/drf/mixin/permission.py:41
-#, python-brace-format
-msgid "Partially update a {model_name}"
-msgstr "Quyền cập nhật một phần một {model_name}"
-
-#: libs/drf/mixin/permission.py:44
+#: libs/drf/mixin/permission.py:47 libs/drf/mixin/permission.py:48
 #, python-brace-format
 msgid "Delete {model_name}"
 msgstr "Quyền xóa {model_name}"
 
-#: libs/drf/mixin/permission.py:45
+#: libs/drf/mixin/permission.py:51
 #, python-brace-format
-msgid "Delete a {model_name}"
-msgstr "Quyền xóa một {model_name}"
+msgid "Export {model_name}"
+msgstr "Quyền xuất {model_name}"
+
+#: libs/drf/mixin/permission.py:52
+#, python-brace-format
+msgid "Export {model_name} data"
+msgstr "Quyền xuất {model_name}"
 
 #: libs/drf/mixin/protected_delete.py:117
 #, python-brace-format
@@ -479,22 +530,22 @@ msgstr "Không thể xóa {model_name} vì đang được sử dụng bởi: {re
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} vì đang có quan hệ được bảo vệ."
 
-#: libs/export_xlsx/mixins.py:130
+#: libs/export_xlsx/mixins.py:143
 msgid "Async export is not enabled"
 msgstr "Xuất XLSX không đồng bộ không được bật"
 
-#: libs/export_xlsx/mixins.py:140
+#: libs/export_xlsx/mixins.py:153
 msgid "Invalid delivery parameter; allowed: link, direct"
 msgstr "Lỗi tham số delivery; cho phép: link, direct"
 
-#: libs/export_xlsx/mixins.py:200
+#: libs/export_xlsx/mixins.py:217
 #, python-brace-format
 msgid "Export started. Check status at /api/export/status/?task_id={task_id}"
 msgstr ""
 "Xuất dữ liệu đã bắt đầu. Kiểm tra trạng thái tại /api/export/status/?"
 "task_id={task_id}"
 
-#: libs/export_xlsx/mixins.py:298
+#: libs/export_xlsx/mixins.py:317
 #, python-brace-format
 msgid "Failed to upload file to S3: {error}"
 msgstr "Lỗi khi tải tệp tin lên S3: {error}"

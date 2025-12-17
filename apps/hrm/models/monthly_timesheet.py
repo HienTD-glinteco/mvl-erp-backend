@@ -6,6 +6,7 @@ from typing import Any, Dict, cast
 from django.db import models
 from django.db.models import Count, DecimalField, F, Q, Sum, Value
 from django.db.models.functions import Coalesce
+from django.utils.translation import gettext as _
 
 from apps.hrm.constants import TimesheetReason
 from apps.hrm.models.timesheet import TimeSheetEntry
@@ -107,8 +108,8 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
 
     class Meta:
         db_table = "hrm_employee_monthly_timesheet"
-        verbose_name = "Employee monthly timesheet"
-        verbose_name_plural = "Employee monthly timesheets"
+        verbose_name = _("Employee monthly timesheet")
+        verbose_name_plural = _("Employee monthly timesheets")
         constraints = [
             models.UniqueConstraint(fields=["employee", "month_key"], name="uniq_employee_month_key"),
         ]

@@ -303,8 +303,8 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_proposal"
-        verbose_name = "Proposal"
-        verbose_name_plural = "Proposals"
+        verbose_name = _("Proposal")
+        verbose_name_plural = _("Proposals")
         indexes = [
             models.Index(fields=["proposal_status"], name="proposal_status_idx"),
             models.Index(fields=["proposal_date"], name="proposal_date_idx"),
@@ -637,10 +637,16 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
             return
 
         # Create the junction record - validation will be enforced in ProposalTimeSheetEntry.clean()
-        ProposalTimeSheetEntry.objects.get_or_create(
-            proposal=self,
-            timesheet_entry=timesheet_entry,
-        )
+        try:
+            # NOTE: use try-except to catch validation errors and log them, and not break saving flow.
+            ProposalTimeSheetEntry.objects.get_or_create(
+                proposal=self,
+                timesheet_entry=timesheet_entry,
+            )
+        except ValidationError as ve:
+            logger.error(
+                f"Validation error when creating ProposalTimeSheetEntry for proposal {self.pk} and timesheet entry {timesheet_entry.pk}: {ve}"
+            )
 
 
 @audit_logging_register
@@ -673,8 +679,8 @@ class ProposalTimeSheetEntry(BaseModel):
 
     class Meta:
         db_table = "hrm_proposal_timesheet_entry"
-        verbose_name = "Proposal Timesheet Entry"
-        verbose_name_plural = "Proposal Timesheet Entries"
+        verbose_name = _("Proposal Timesheet Entry")
+        verbose_name_plural = _("Proposal Timesheet Entries")
         unique_together = [["proposal", "timesheet_entry"]]
         indexes = [
             models.Index(fields=["proposal"], name="pt_proposal_idx"),
@@ -778,8 +784,8 @@ class ProposalVerifier(ColoredValueMixin, BaseModel):
 
     class Meta:
         db_table = "hrm_proposal_verifier"
-        verbose_name = "Proposal Verifier"
-        verbose_name_plural = "Proposal Verifiers"
+        verbose_name = _("Proposal Verifier")
+        verbose_name_plural = _("Proposal Verifiers")
         unique_together = [["proposal", "employee"]]
         indexes = [
             models.Index(fields=["proposal"], name="pv_proposal_idx"),
@@ -850,8 +856,8 @@ class ProposalAsset(BaseModel):
 
     class Meta:
         db_table = "hrm_proposal_asset"
-        verbose_name = "Proposal Asset"
-        verbose_name_plural = "Proposal Assets"
+        verbose_name = _("Proposal Asset")
+        verbose_name_plural = _("Proposal Assets")
         indexes = [
             models.Index(fields=["proposal"], name="pa_proposal_idx"),
         ]
@@ -895,8 +901,8 @@ class ProposalOvertimeEntry(BaseModel):
 
     class Meta:
         db_table = "hrm_proposal_overtime_entry"
-        verbose_name = "Proposal Overtime Entry"
-        verbose_name_plural = "Proposal Overtime Entries"
+        verbose_name = _("Proposal Overtime Entry")
+        verbose_name_plural = _("Proposal Overtime Entries")
         indexes = [
             models.Index(fields=["proposal"], name="poe_proposal_idx"),
             models.Index(fields=["date"], name="poe_date_idx"),

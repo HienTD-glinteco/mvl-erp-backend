@@ -13,6 +13,7 @@ from apps.hrm.models.organization import Block, Branch, Department
 from apps.hrm.models.proposal import Proposal
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 
 pytestmark = pytest.mark.django_db
 
@@ -99,7 +100,7 @@ def test_full_day_paid_leave_takes_precedence_over_compensatory(settings):
     # Employee did punch in (but leave should still take precedence)
     ts.start_time = make_datetime(d, time(8, 0))
     ts.end_time = make_datetime(d, time(17, 0))
-    ts.calculate_status()
+    TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.ABSENT
     assert ts.absent_reason == TimesheetReason.PAID_LEAVE
@@ -125,7 +126,7 @@ def test_timezone_aware_start_times_respect_schedule(settings):
     ts_on = TimeSheetEntry(employee=emp, date=d)
     ts_on.start_time = start_on_hcm
     ts_on.end_time = start_on_hcm.astimezone(timezone.get_default_timezone()).replace(hour=17, minute=0)
-    ts_on.calculate_status()
+    TimesheetCalculator(ts_on).compute_status()
     assert ts_on.status == TimesheetStatus.ON_TIME
     # 1 minute after allowed => NOT_ON_TIME
     target_late = allowed_base + timedelta(minutes=1)
@@ -134,5 +135,5 @@ def test_timezone_aware_start_times_respect_schedule(settings):
     ts_late = TimeSheetEntry(employee=emp, date=d)
     ts_late.start_time = start_late_hcm
     ts_late.end_time = start_late_hcm.astimezone(timezone.get_default_timezone()).replace(hour=17, minute=0)
-    ts_late.calculate_status()
+    TimesheetCalculator(ts_late).compute_status()
     assert ts_late.status == TimesheetStatus.NOT_ON_TIME

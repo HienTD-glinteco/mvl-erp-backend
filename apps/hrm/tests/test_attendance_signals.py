@@ -47,10 +47,10 @@ def test_attendance_record_create_updates_timesheet_and_monthly(db):
     d1 = timezone.datetime(2024, 6, 15, 8, 0, 0, tzinfo=timezone.get_current_timezone())
     d2 = timezone.datetime(2024, 6, 15, 17, 0, 0, tzinfo=timezone.get_current_timezone())
     _ = AttendanceRecord.objects.create(
-        code="TEST001", biometric_device=device, attendance_code=emp.attendance_code, timestamp=d1
+        code="TEST001", biometric_device=device, attendance_code=emp.attendance_code, employee=emp, timestamp=d1
     )
     _ = AttendanceRecord.objects.create(
-        code="TEST002", biometric_device=device, attendance_code=emp.attendance_code, timestamp=d2
+        code="TEST002", biometric_device=device, attendance_code=emp.attendance_code, employee=emp, timestamp=d2
     )
 
     # Entry should be created for today's date

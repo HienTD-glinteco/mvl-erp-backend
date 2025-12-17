@@ -10,7 +10,8 @@ migrations:
 migrate:
 	python manage.py migrate
 
-messages:
+compilemessages:
+	python manage.py compilemessages -l vi
 
 # generate translation messages (ignore environment, coverage, tests and non-Python dirs)
 messages:

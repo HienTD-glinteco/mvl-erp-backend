@@ -31,8 +31,7 @@ def send_otp_email_task(self, user_id, user_email, user_full_name, username, otp
             logger.error(f"Failed to render OTP email template for user {username}: {str(e)}")
             raise
 
-        plain_message = _("""
-Hello %(name)s,
+        plain_message = _("""Hello %(name)s,
 
 Your OTP code to complete login is: %(otp_code)s
 
@@ -41,8 +40,7 @@ This code is valid for 5 minutes.
 If you did not initiate this login, please ignore this email.
 
 Best regards,
-MaiVietLand Team
-        """) % {"name": user_full_name or username, "otp_code": otp_code}
+MaiVietLand Team""") % {"name": user_full_name or username, "otp_code": otp_code}
 
         send_mail(
             subject=_("Login OTP Code - MaiVietLand"),
@@ -82,8 +80,7 @@ def send_password_reset_email_task(self, user_id, user_email, user_full_name, us
             logger.error(f"Failed to render password reset OTP email template for user {username}: {str(e)}")
             raise
 
-        plain_message = _("""
-Hello %(name)s,
+        plain_message = _("""Hello %(name)s,
 
 We have received a password reset request for your MaiVietLand account.
 
@@ -94,8 +91,7 @@ This code is valid for 3 minutes and can only be used once.
 If you did not initiate this password reset request, please ignore this email.
 
 Best regards,
-MaiVietLand Team
-        """) % {"name": user_full_name or username, "otp_code": otp_code}
+MaiVietLand Team""") % {"name": user_full_name or username, "otp_code": otp_code}
 
         send_mail(
             subject=_("Password Reset OTP Code - MaiVietLand"),

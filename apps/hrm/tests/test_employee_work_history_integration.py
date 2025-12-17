@@ -129,6 +129,8 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             {
                 "start_date": "2024-02-01",
                 "description": "Status changed to active",
+                "department_id": self.department.id,
+                "position_id": self.position.id,
             },
             format="json",
         )
@@ -266,6 +268,8 @@ class EmployeeWorkHistoryIntegrationTest(TransactionTestCase):
             {
                 "start_date": "2024-02-01",
                 "description": "Completed onboarding",
+                "department_id": self.department.id,
+                "position_id": self.position.id,
             },
             format="json",
         )

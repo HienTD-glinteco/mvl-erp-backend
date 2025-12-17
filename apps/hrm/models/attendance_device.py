@@ -36,8 +36,8 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
     class Meta:
-        verbose_name = "Attendance Device"
-        verbose_name_plural = "Attendance Devices"
+        verbose_name = _("Attendance Device")
+        verbose_name_plural = _("Attendance Devices")
         db_table = "hrm_attendance_device"
         ordering = ["name"]
 

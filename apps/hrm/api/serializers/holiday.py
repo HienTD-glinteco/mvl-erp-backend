@@ -3,6 +3,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import CompensatoryWorkday, Holiday
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
 
 
 class CompensatoryWorkdaySerializer(serializers.ModelSerializer):
@@ -362,3 +363,29 @@ class HolidayDetailSerializer(HolidaySerializer):
 
     class Meta(HolidaySerializer.Meta):
         fields = HolidaySerializer.Meta.fields + ["compensatory_days"]
+
+
+class HolidayExportXLSXSerializer(FieldFilteringSerializerMixin, HolidaySerializer):
+    """Detailed serializer for Holiday with compensatory days."""
+
+    compensatory_days = serializers.SerializerMethodField()
+
+    default_fields = [
+        "name",
+        "start_date",
+        "end_date",
+        "notes",
+        "compensatory_days",
+    ]
+
+    class Meta(HolidaySerializer.Meta):
+        fields = HolidaySerializer.Meta.fields + ["compensatory_days"]
+
+    def get_compensatory_days(self, obj: Holiday) -> str:
+        """Get serialized compensatory days for export."""
+        compensatory_days_qs = obj.compensatory_days.all().order_by("date")
+        compensatory_days_list = [
+            f"{comp.date} ({comp.get_session_display()})" + (f": {comp.notes}" if comp.notes else "")
+            for comp in compensatory_days_qs
+        ]
+        return ", ".join(compensatory_days_list)

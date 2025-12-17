@@ -44,8 +44,8 @@ class Branch(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Branch"
-        verbose_name_plural = "Branches"
+        verbose_name = _("Branch")
+        verbose_name_plural = _("Branches")
         db_table = "hrm_branch"
 
     def __str__(self):
@@ -68,8 +68,8 @@ class BranchContactInfo(BaseModel):
     email = models.EmailField(verbose_name="Email")
 
     class Meta:
-        verbose_name = "Branch contact info"
-        verbose_name_plural = "Branch contact info"
+        verbose_name = _("Branch contact info")
+        verbose_name_plural = _("Branch contact info")
         db_table = "hrm_branch_contact_info"
         ordering = ["name"]
 
@@ -109,8 +109,8 @@ class Block(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Block"
-        verbose_name_plural = "Blocks"
+        verbose_name = _("Block")
+        verbose_name_plural = _("Blocks")
         db_table = "hrm_block"
         unique_together = [["code", "branch"]]
 
@@ -179,8 +179,8 @@ class Department(AutoCodeMixin, BaseModel):
     is_active = models.BooleanField(default=True, verbose_name="Active")
 
     class Meta:
-        verbose_name = "Department"
-        verbose_name_plural = "Departments"
+        verbose_name = _("Department")
+        verbose_name_plural = _("Departments")
         db_table = "hrm_department"
         unique_together = [["code", "block"]]
 
@@ -311,8 +311,8 @@ class Position(AutoCodeMixin, BaseModel):
     is_active = models.BooleanField(default=True, verbose_name="Active")
 
     class Meta:
-        verbose_name = "Position"
-        verbose_name_plural = "Positions"
+        verbose_name = _("Position")
+        verbose_name_plural = _("Positions")
         db_table = "hrm_position"
         ordering = ["name"]
 

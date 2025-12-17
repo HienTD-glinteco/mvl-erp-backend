@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -231,8 +232,8 @@ class BranchViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["code"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Organization"
+    module = _("HRM")
+    submodule = _("Organization")
     permission_prefix = "branch"
 
 
@@ -463,8 +464,8 @@ class BranchContactInfoViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["name", "business_line", "created_at"]
     ordering = ["branch__code", "name"]
 
-    module = "HRM"
-    submodule = "Organization"
+    module = _("HRM")
+    submodule = _("Organization")
     permission_prefix = "branchcontactinfo"
 
 
@@ -512,8 +513,8 @@ class BlockViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["branch__code", "code"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Organization"
+    module = _("HRM")
+    submodule = _("Organization")
     permission_prefix = "block"
 
 
@@ -563,9 +564,47 @@ class DepartmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["block__code", "code"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Organization"
+    module = _("HRM")
+    submodule = _("Organization")
     permission_prefix = "department"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("Department List"),
+            "description_template": _("Retrieve a list of departments with filtering and sorting"),
+        },
+        "retrieve": {
+            "name_template": _("Department Detail"),
+            "description_template": _("Retrieve detailed information about a specific department"),
+        },
+        "create": {
+            "name_template": _("Create Department"),
+            "description_template": _("Create a new department in the system"),
+        },
+        "update": {
+            "name_template": _("Update Department"),
+            "description_template": _("Update department information"),
+        },
+        "partial_update": {
+            "name_template": _("Partial Update Department"),
+            "description_template": _("Partially update department information"),
+        },
+        "destroy": {
+            "name_template": _("Delete Department"),
+            "description_template": _("Remove a department from the system"),
+        },
+        "tree": {
+            "name_template": _("Department Tree Structure"),
+            "description_template": _("Retrieve department tree structure by block"),
+        },
+        "function_choices": {
+            "name_template": _("Department Function Choices"),
+            "description_template": _("Retrieve available department functions based on block type"),
+        },
+        "management_choices": {
+            "name_template": _("Management Department Choices"),
+            "description_template": _("Retrieve departments that can serve as management departments"),
+        },
+    }
 
     @extend_schema(
         summary="Department tree structure",
@@ -705,6 +744,6 @@ class PositionViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering = ["name", "code"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Organization"
+    module = _("HRM")
+    submodule = _("Organization")
     permission_prefix = "position"

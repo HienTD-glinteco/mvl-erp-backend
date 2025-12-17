@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
@@ -124,8 +125,8 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Employee Dependent"
-        verbose_name_plural = "Employee Dependents"
+        verbose_name = _("Employee Dependent")
+        verbose_name_plural = _("Employee Dependents")
         db_table = "hrm_employee_dependent"
         ordering = ["-created_at"]
         indexes = [

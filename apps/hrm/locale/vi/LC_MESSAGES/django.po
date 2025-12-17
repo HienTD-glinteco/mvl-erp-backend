@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 12:12+0700\n"
+"POT-Creation-Date: 2025-12-17 14:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -99,32 +99,31 @@ msgid "Employee created"
 msgstr "Tạo nhân viên thành công"
 
 #: apps/hrm/api/serializers/employee.py:392
-#, fuzzy
-#| msgid "Effective date cannot be in the future."
 msgid "Start date cannot be in the future."
-msgstr "Ngày hiệu lực không thể ở tương lai."
+msgstr "Ngày bắt đầu không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:426
-#, fuzzy
-#| msgid "Only appendices with DRAFT status can be edited."
+#: apps/hrm/api/serializers/employee.py:435
 msgid "Only employees with 'Onboarding' status can be activated."
-msgstr "Chỉnh sửa chỉ áp dụng cho phụ lục hợp đồng có trạng thái BẢN NHÁP."
-
-#: apps/hrm/api/serializers/employee.py:454
-#, fuzzy, python-brace-format
-#| msgid "Effective date cannot be earlier than the latest work history date."
-msgid "Start date cannot be earlier than the resignation start date of {date}."
 msgstr ""
-"Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
-"nhân viên gần nhất."
+"Chỉ những nhân viên có trạng thái 'Đang thử việc' mới có thể được kích hoạt."
 
-#: apps/hrm/api/serializers/employee.py:463
-#, fuzzy
-#| msgid "Only appendices with DRAFT status can be edited."
+#: apps/hrm/api/serializers/employee.py:455
+#, python-brace-format
+msgid "Assigned to {department} - {position}"
+msgstr "Được phân công vào {department} - {position}"
+
+#: apps/hrm/api/serializers/employee.py:479
+#, python-brace-format
+msgid "Start date cannot be earlier than the resignation start date of {date}."
+msgstr "Ngày bắt đầu không thể trước ngày bắt đầu nghỉ việc là {date}."
+
+#: apps/hrm/api/serializers/employee.py:488
 msgid "Only employees with 'Resigned' status can be reactivated."
-msgstr "Chỉnh sửa chỉ áp dụng cho phụ lục hợp đồng có trạng thái BẢN NHÁP."
+msgstr ""
+"Chỉ những nhân viên có trạng thái 'Đã nghỉ việc' mới có thể được kích hoạt "
+"lại."
 
-#: apps/hrm/api/serializers/employee.py:495
+#: apps/hrm/api/serializers/employee.py:520
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
@@ -133,53 +132,48 @@ msgstr ""
 "Nhân viên trở lại làm việc từ trạng thái đã nghỉ việc. Trạng thái thay đổi "
 "từ {old_status} sang {new_status}."
 
-#: apps/hrm/api/serializers/employee.py:499
+#: apps/hrm/api/serializers/employee.py:524
 msgid "Seniority retained from previous employment period."
 msgstr "Thâm niên được giữ lại từ giai đoạn làm việc trước đó."
 
-#: apps/hrm/api/serializers/employee.py:517
+#: apps/hrm/api/serializers/employee.py:542
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
-msgstr "Đổii trạng thái từ {old_status} sang {new_status} (Kích hoạt lại)"
+msgstr "Đổi trạng thái từ {old_status} sang {new_status} (Kích hoạt lại)"
 
-#: apps/hrm/api/serializers/employee.py:543
-#, fuzzy
-#| msgid "Effective date cannot be earlier than the latest work history date."
+#: apps/hrm/api/serializers/employee.py:568
 msgid ""
 "Resignation start date cannot be earlier than the employee's start date or "
 "latest comeback start date."
 msgstr ""
-"Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
-"nhân viên gần nhất."
+"Ngày bắt đầu không thể trước ngày bắt đầu nghỉ việc của nhân viên hoặc ngày "
+"trở lại làm việc gần nhất."
 
-#: apps/hrm/api/serializers/employee.py:555
+#: apps/hrm/api/serializers/employee.py:580
 msgid "Employee must be in an active or leave status to resign."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:575
-#: apps/hrm/services/employee/work_history.py:44
+#: apps/hrm/api/serializers/employee.py:600
+#: apps/hrm/services/employee/work_history.py:46
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
 msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
 
-#: apps/hrm/api/serializers/employee.py:600
-#, fuzzy
-#| msgid ""
-#| "Only active or onboarding employees can be exempt from attendance tracking"
+#: apps/hrm/api/serializers/employee.py:625
 msgid "Only active or unpaid leave employees can go on maternity leave."
 msgstr ""
-"Chỉ những nhân viên đang hoạt động hoặc trong giai đoạn thử việc mới có thể "
-"được miễn theo dõi chấm công"
+"Chỉ những nhân viên đang hoạt động hoặc nghỉ không lương mới có thể nghỉ "
+"thai sản."
 
-#: apps/hrm/api/serializers/employee.py:703
+#: apps/hrm/api/serializers/employee.py:728
 msgid "Effective date cannot be in the future."
 msgstr "Ngày hiệu lực không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:709
+#: apps/hrm/api/serializers/employee.py:734
 msgid "The new employee type must be different from the current type."
 msgstr "Loại nhân viên mới phải khác loại hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:726
+#: apps/hrm/api/serializers/employee.py:751
 msgid "Effective date cannot be earlier than the latest work history date."
 msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
@@ -215,23 +209,23 @@ msgid ""
 "Your location is outside the allowed radius ({radius}m) of the geolocation"
 msgstr "Vị trí của bạn nằm ngoài bán kính cho phép ({radius}m) "
 
-#: apps/hrm/api/serializers/holiday.py:54 apps/hrm/models/holiday.py:111
+#: apps/hrm/api/serializers/holiday.py:55 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 
-#: apps/hrm/api/serializers/holiday.py:58 apps/hrm/models/holiday.py:116
+#: apps/hrm/api/serializers/holiday.py:59 apps/hrm/models/holiday.py:116
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
-#: apps/hrm/api/serializers/holiday.py:81 apps/hrm/models/holiday.py:86
+#: apps/hrm/api/serializers/holiday.py:82 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
-#: apps/hrm/api/serializers/holiday.py:194 apps/hrm/models/holiday.py:43
+#: apps/hrm/api/serializers/holiday.py:195 apps/hrm/models/holiday.py:43
 msgid "End date must be greater than or equal to start date"
 msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/api/serializers/holiday.py:208
+#: apps/hrm/api/serializers/holiday.py:209
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
 
@@ -287,259 +281,835 @@ msgstr "Không tìm thấy thiết bị WiFi"
 msgid "WiFi device is not in use"
 msgstr "Thiết bị WiFi không được sử dụng"
 
-#: apps/hrm/api/views/attendance_device.py:472
+#: apps/hrm/api/views/attendance_device.py:370
+msgid "Attendance Device Management"
+msgstr "Máy chấm công"
+
+#: apps/hrm/api/views/attendance_device.py:374
+msgid "Toggle device enabled status"
+msgstr "Bật/tắt trạng thái thiết bị"
+
+#: apps/hrm/api/views/attendance_device.py:375
+msgid "Toggle the is_enabled status of an attendance device"
+msgstr "Enable hoặc disable thiết bị chấm công"
+
+#: apps/hrm/api/views/attendance_device.py:378
+msgid "Check device connection"
+msgstr "Kiểm tra kết nối thiết bị"
+
+#: apps/hrm/api/views/attendance_device.py:379
+msgid ""
+"Test the connection to an attendance device and update its connection status"
+msgstr ""
+"Thử kết nối đến thiết bị chấm công và cập nhật trạng thái kết nối của nó"
+
+#: apps/hrm/api/views/attendance_device.py:482
 #, python-format
 msgid "Failed to connect to device: %(message)s"
 msgstr "Lỗi kết nối đến thiết bị: %(message)s"
 
-#: apps/hrm/api/views/attendance_geolocation.py:440
-#: apps/hrm/api/views/attendance_wifi_device.py:398
+#: apps/hrm/api/views/attendance_exemption.py:171
+msgid "Attendance Management"
+msgstr "Quản lý Chấm Công"
+
+#: apps/hrm/api/views/attendance_geolocation.py:325
+msgid "Project Geolocation Management"
+msgstr "Định vị dự án"
+
+#: apps/hrm/api/views/attendance_geolocation.py:441
+#: apps/hrm/api/views/attendance_wifi_device.py:399
 #, python-brace-format
 msgid ""
 "Cannot delete this {model_name} because it is referenced by: {relationships}"
 msgstr ""
 "Không thể xóa {model_name} này vì nó được tham chiếu bởi: {relationships}"
 
-#: apps/hrm/api/views/attendance_geolocation.py:444
-#: apps/hrm/api/views/attendance_wifi_device.py:402
+#: apps/hrm/api/views/attendance_geolocation.py:445
+#: apps/hrm/api/views/attendance_wifi_device.py:403
 #, python-brace-format
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/employee.py:542
+#: apps/hrm/api/views/attendance_record.py:130
+msgid "Attendance Record Management"
+msgstr "Log chấm công"
+
+#: apps/hrm/api/views/attendance_record.py:134
+msgid "Record attendance by GeoLocation"
+msgstr "Log chấm Công GPS"
+
+#: apps/hrm/api/views/attendance_record.py:135
+msgid "Record attendance using GeoLocation coordinates"
+msgstr "Chấm công GPS"
+
+#: apps/hrm/api/views/attendance_record.py:138
+msgid "Record attendance by WiFi"
+msgstr "Chấm Công WiFi"
+
+#: apps/hrm/api/views/attendance_record.py:139
+msgid "Record attendance using WiFi BSSID"
+msgstr "Chấm công bằng WiFi BSSID"
+
+#: apps/hrm/api/views/attendance_report.py:26
+msgid "Report"
+msgstr "Báo Cáo"
+
+#: apps/hrm/api/views/attendance_report.py:27
+msgid "Attendance"
+msgstr "Quản lý Chấm Công"
+
+#: apps/hrm/api/views/attendance_report.py:31
+msgid "Attendance Report By Method"
+msgstr "Báo cáo tỷ lệ chấm công theo các phương thức"
+
+#: apps/hrm/api/views/attendance_report.py:32
+msgid ""
+"Get attendance statistics report by method (device, wifi, geolocation, other)"
+msgstr ""
+"Báo cáo thống kê chấm công theo phương thức (thiết bị, wifi, GPS, khác)"
+
+#: apps/hrm/api/views/attendance_report.py:35
+msgid "Attendance Report By Project"
+msgstr "Báo Cáo Chấm Công Hàng Ngày"
+
+#: apps/hrm/api/views/attendance_report.py:36
+msgid "Get attendance statistics report grouped by projects"
+msgstr "Báo cáo chấm công GPS theo dự án"
+
+#: apps/hrm/api/views/attendance_report.py:39
+msgid "Attendance Report By Project Organization"
+msgstr "Báo cáo chấm công GPS theo phòng ban"
+
+#: apps/hrm/api/views/attendance_report.py:41
+msgid ""
+"Get attendance statistics report for personnel working on projects grouped "
+"by organizational structure"
+msgstr "Báo cáo chấm công GPS theo phòng ban"
+
+#: apps/hrm/api/views/attendance_wifi_device.py:288
+#: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:60
+#: apps/hrm/api/views/contract.py:308
+#: apps/hrm/api/views/contract_appendix.py:261
+#: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:245
+#: apps/hrm/api/views/employee.py:98
+#: apps/hrm/api/views/employee_certificate.py:300
+#: apps/hrm/api/views/employee_dependent.py:260
+#: apps/hrm/api/views/employee_relationship.py:221
+#: apps/hrm/api/views/employee_role.py:108
+#: apps/hrm/api/views/employee_work_history.py:123
+#: apps/hrm/api/views/holiday.py:212
+#: apps/hrm/api/views/interview_candidate.py:157
+#: apps/hrm/api/views/job_description.py:233
+#: apps/hrm/api/views/organization.py:235
+#: apps/hrm/api/views/organization.py:467
+#: apps/hrm/api/views/organization.py:516
+#: apps/hrm/api/views/organization.py:567
+#: apps/hrm/api/views/organization.py:747
+#: apps/hrm/api/views/recruitment_candidate.py:433
+#: apps/hrm/api/views/recruitment_candidate_contact_log.py:242
+#: apps/hrm/api/views/recruitment_channel.py:58
+#: apps/hrm/api/views/recruitment_dashboard.py:42
+#: apps/hrm/api/views/recruitment_expense.py:342
+#: apps/hrm/api/views/recruitment_request.py:391
+#: apps/hrm/api/views/recruitment_source.py:57
+#: apps/hrm/api/views/timesheet.py:55 apps/hrm/api/views/timesheet.py:301
+msgid "HRM"
+msgstr "HCNS"
+
+#: apps/hrm/api/views/attendance_wifi_device.py:289
+msgid "Attendance WiFiDevice Management"
+msgstr "Thiết bị chấm công WiFi"
+
+#: apps/hrm/api/views/bank.py:103
+msgid "Bank Management"
+msgstr "Quản lý Ngân Hàng"
+
+#: apps/hrm/api/views/bank_account.py:61
+msgid "Bank Account Management"
+msgstr "Quản lý Tài Khoản Ngân Hàng"
+
+#: apps/hrm/api/views/contract.py:309
+msgid "Contract Management"
+msgstr "Quản lý Hợp Đồng"
+
+#: apps/hrm/api/views/contract.py:313 apps/hrm/api/views/contract.py:314
+#: apps/hrm/api/views/contract_appendix.py:266
+#: apps/hrm/api/views/contract_appendix.py:267
+#, python-brace-format
+msgid "Publish {model_name}"
+msgstr "Ban hành {model_name}"
+
+#: apps/hrm/api/views/contract_appendix.py:262
+msgid "Contract Appendix Management"
+msgstr "Quản lý Phụ lục Hợp Đồng"
+
+#: apps/hrm/api/views/contract_type.py:265
+msgid "Contract Type Management"
+msgstr "Quản lý Loại Hợp Đồng"
+
+#: apps/hrm/api/views/decision.py:246
+msgid "Decision Management"
+msgstr "Quản lý Quyết Định"
+
+#: apps/hrm/api/views/employee.py:99
+#: apps/hrm/api/views/employee_dependent.py:261
+#: apps/hrm/api/views/employee_relationship.py:222
+#: apps/hrm/api/views/employee_role.py:109
+#: apps/hrm/api/views/employee_work_history.py:124
+msgid "Employee Management"
+msgstr "Quản lý Nhân Viên"
+
+#: apps/hrm/api/views/employee.py:103 apps/hrm/api/views/employee.py:104
+msgid "Activate employee"
+msgstr "Chuyển nhân viên sang trạng thái bắt đầu làm việc"
+
+#: apps/hrm/api/views/employee.py:107 apps/hrm/api/views/employee.py:108
+msgid "Reactivate employee"
+msgstr "Chuyển nhân viên quay lại làm việc"
+
+#: apps/hrm/api/views/employee.py:111 apps/hrm/api/views/employee.py:112
+msgid "Resign employee"
+msgstr "Chuyển nhân viên sang trạng thái nghỉ việc"
+
+#: apps/hrm/api/views/employee.py:115 apps/hrm/api/views/employee.py:116
+msgid "Set employee to Maternity Leave"
+msgstr "Chuyển nhân viên nghỉ việc hưởng chế độ thai sản"
+
+#: apps/hrm/api/views/employee.py:119 apps/hrm/api/views/employee.py:120
+msgid "Transfer employee"
+msgstr "Điều chuyển nhân viên"
+
+#: apps/hrm/api/views/employee.py:123 apps/hrm/api/views/employee.py:124
+msgid "Change employee Type"
+msgstr "Thay đổi loại Nhân Viên"
+
+#: apps/hrm/api/views/employee.py:127 apps/hrm/api/views/employee.py:128
+msgid "Update employee Avatar"
+msgstr "Cập nhật Ảnh Đại Diện Nhân Viên"
+
+#: apps/hrm/api/views/employee.py:572
 msgid "No."
 msgstr "STT"
 
-#: apps/hrm/api/views/employee.py:543
+#: apps/hrm/api/views/employee.py:573
 msgid "Employee Code"
 msgstr "Mã Nhân Viên"
 
-#: apps/hrm/api/views/employee.py:544
+#: apps/hrm/api/views/employee.py:574
 msgid "Full Name"
 msgstr "Tên đầy đủ"
 
-#: apps/hrm/api/views/employee.py:545
+#: apps/hrm/api/views/employee.py:575
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:546
+#: apps/hrm/api/views/employee.py:576
 msgid "Status"
 msgstr "Trạng Thái"
 
-#: apps/hrm/api/views/employee.py:547
+#: apps/hrm/api/views/employee.py:577
 msgid "Start Date"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/api/views/employee.py:548
+#: apps/hrm/api/views/employee.py:578
 msgid "Resignation Reason"
 msgstr "Lý Do Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:549
+#: apps/hrm/api/views/employee.py:579
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:550
+#: apps/hrm/api/views/employee.py:580 apps/hrm/models/contract_type.py:264
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:551
+#: apps/hrm/api/views/employee.py:581 apps/hrm/models/organization.py:314
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:552
+#: apps/hrm/api/views/employee.py:582 apps/hrm/models/organization.py:47
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:553
+#: apps/hrm/api/views/employee.py:583 apps/hrm/models/organization.py:112
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:554
+#: apps/hrm/api/views/employee.py:584 apps/hrm/models/organization.py:182
 msgid "Department"
 msgstr "Phòng Ban"
 
-#: apps/hrm/api/views/employee.py:555
+#: apps/hrm/api/views/employee.py:585
 msgid "Phone"
 msgstr "Số điện thoại"
 
-#: apps/hrm/api/views/employee.py:556
+#: apps/hrm/api/views/employee.py:586
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:557
+#: apps/hrm/api/views/employee.py:587
 msgid "Email"
 msgstr "Email"
 
-#: apps/hrm/api/views/employee.py:558
+#: apps/hrm/api/views/employee.py:588
 msgid "Bank Name"
 msgstr "Tên Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:559
+#: apps/hrm/api/views/employee.py:589
 msgid "Bank Account Number"
 msgstr "Số Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/employee.py:560
+#: apps/hrm/api/views/employee.py:590
 msgid "Tax Code"
 msgstr "Mã Số Thuế"
 
-#: apps/hrm/api/views/employee.py:561
+#: apps/hrm/api/views/employee.py:591
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:562
+#: apps/hrm/api/views/employee.py:592
 msgid "Gender"
 msgstr "Giới Tính"
 
-#: apps/hrm/api/views/employee.py:563
+#: apps/hrm/api/views/employee.py:593
 msgid "Date of Birth"
 msgstr "Ngày Sinh"
 
-#: apps/hrm/api/views/employee.py:564
+#: apps/hrm/api/views/employee.py:594
 msgid "Place of Birth"
 msgstr "Nơi Sinh"
 
-#: apps/hrm/api/views/employee.py:565
+#: apps/hrm/api/views/employee.py:595
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:566
+#: apps/hrm/api/views/employee.py:596
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:567
+#: apps/hrm/api/views/employee.py:597
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:568
+#: apps/hrm/api/views/employee.py:598
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:569
+#: apps/hrm/api/views/employee.py:599
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:570
+#: apps/hrm/api/views/employee.py:600
 msgid "ID Issued Date"
 msgstr "Ngày Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:571
+#: apps/hrm/api/views/employee.py:601
 msgid "ID Issued Place"
 msgstr "Nơi Cấp CMND/CCCD"
 
-#: apps/hrm/api/views/employee.py:572
+#: apps/hrm/api/views/employee.py:602
 msgid "Residential Address"
 msgstr "Địa Chỉ Cư Trú"
 
-#: apps/hrm/api/views/employee.py:573
+#: apps/hrm/api/views/employee.py:603
 msgid "Permanent Address"
 msgstr "Địa Chỉ Thường Trú"
 
-#: apps/hrm/api/views/employee.py:574
+#: apps/hrm/api/views/employee.py:604
 msgid "Login Username"
 msgstr "Tên Đăng Nhập"
 
-#: apps/hrm/api/views/employee.py:575
+#: apps/hrm/api/views/employee.py:605
 msgid "Notes"
 msgstr "Ghi Chú"
 
-#: apps/hrm/api/views/employee_reports.py:63
-#: apps/hrm/api/views/recruitment_reports.py:680 apps/hrm/constants.py:68
+#: apps/hrm/api/views/employee_certificate.py:301
+msgid "Employee Certificate Management"
+msgstr "Quản lý bằng cấp chứng chỉ"
+
+#: apps/hrm/api/views/employee_reports.py:51
+#: apps/hrm/api/views/employee_reports.py:674
+#: apps/hrm/api/views/recruitment_reports.py:50
+msgid "REPORT"
+msgstr "Báo cáo"
+
+#: apps/hrm/api/views/employee_reports.py:52
+msgid "Employee Reports"
+msgstr "Báo cáo Nhân sự"
+
+#: apps/hrm/api/views/employee_reports.py:56
+#: apps/hrm/api/views/employee_reports.py:57
+msgid "Retrieve employee resigned breakdown report"
+msgstr "Xem Báo cáo số lượng nghỉ việc"
+
+#: apps/hrm/api/views/employee_reports.py:60
+#: apps/hrm/api/views/employee_reports.py:61
+msgid "Retrieve employee status breakdown report"
+msgstr "Xem báo cáo số lượng nhân sự"
+
+#: apps/hrm/api/views/employee_reports.py:64
+#: apps/hrm/api/views/employee_reports.py:65
+msgid "Retrieve employee resigned reasons summary report"
+msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
+
+#: apps/hrm/api/views/employee_reports.py:77
+#: apps/hrm/api/views/recruitment_reports.py:714 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
-#: apps/hrm/api/views/employee_reports.py:83
-#: apps/hrm/api/views/recruitment_reports.py:131
-#: apps/hrm/api/views/recruitment_reports.py:808 apps/hrm/constants.py:69
+#: apps/hrm/api/views/employee_reports.py:97
+#: apps/hrm/api/views/recruitment_reports.py:165
+#: apps/hrm/api/views/recruitment_reports.py:842 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/hrm/api/views/employee_reports.py:109 apps/hrm/constants.py:75
+#: apps/hrm/api/views/employee_reports.py:123 apps/hrm/constants.py:75
 msgid "Quarter"
 msgstr "Quý"
 
-#: apps/hrm/api/views/employee_reports.py:130 apps/hrm/constants.py:76
+#: apps/hrm/api/views/employee_reports.py:144 apps/hrm/constants.py:76
 msgid "Year"
 msgstr "Năm"
 
-#: apps/hrm/api/views/employee_reports.py:335
+#: apps/hrm/api/views/employee_reports.py:349
 msgid "Average"
 msgstr "Trung Bình"
 
-#: apps/hrm/api/views/employee_reports.py:541 apps/hrm/models/employee.py:130
+#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/models/employee.py:130
 msgid "Agreement Termination"
 msgstr "Thỏa thuận chấm dứt Hợp đồng lao động trước thời hạn"
 
-#: apps/hrm/api/views/employee_reports.py:542 apps/hrm/models/employee.py:131
+#: apps/hrm/api/views/employee_reports.py:556 apps/hrm/models/employee.py:131
 msgid "Probation Fail"
 msgstr "Thử việc không đạt"
 
-#: apps/hrm/api/views/employee_reports.py:543 apps/hrm/models/employee.py:132
+#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:132
 msgid "Job Abandonment"
 msgstr "Bỏ việc"
 
-#: apps/hrm/api/views/employee_reports.py:547 apps/hrm/models/employee.py:133
+#: apps/hrm/api/views/employee_reports.py:561 apps/hrm/models/employee.py:133
 msgid "Disciplinary Termination"
 msgstr "Sa thải do kỷ luật"
 
-#: apps/hrm/api/views/employee_reports.py:549 apps/hrm/models/employee.py:134
+#: apps/hrm/api/views/employee_reports.py:563 apps/hrm/models/employee.py:134
 msgid "Workforce Reduction"
 msgstr "Thanh lọc"
 
-#: apps/hrm/api/views/employee_reports.py:550 apps/hrm/models/employee.py:135
+#: apps/hrm/api/views/employee_reports.py:564 apps/hrm/models/employee.py:135
 msgid "Underperforming"
 msgstr "Thành tích kém trong công việc"
 
-#: apps/hrm/api/views/employee_reports.py:551 apps/hrm/models/employee.py:136
+#: apps/hrm/api/views/employee_reports.py:565 apps/hrm/models/employee.py:136
 msgid "Contract Expired"
 msgstr "Hết hợp đồng"
 
-#: apps/hrm/api/views/employee_reports.py:552 apps/hrm/models/employee.py:137
+#: apps/hrm/api/views/employee_reports.py:566 apps/hrm/models/employee.py:137
 msgid "Voluntary - Health Reasons"
 msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
 
-#: apps/hrm/api/views/employee_reports.py:553 apps/hrm/models/employee.py:138
+#: apps/hrm/api/views/employee_reports.py:567 apps/hrm/models/employee.py:138
 msgid "Voluntary - Personal Reasons"
 msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
 
-#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:139
+#: apps/hrm/api/views/employee_reports.py:571 apps/hrm/models/employee.py:139
 msgid "Voluntary - Career Change"
 msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 
-#: apps/hrm/api/views/employee_reports.py:559 apps/hrm/models/employee.py:140
+#: apps/hrm/api/views/employee_reports.py:573 apps/hrm/models/employee.py:140
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
-#: apps/hrm/api/views/employee_reports.py:560 apps/hrm/constants.py:48
+#: apps/hrm/api/views/employee_reports.py:574 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
 #: apps/hrm/models/contract_type.py:70 apps/hrm/models/employee.py:141
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr "Khác"
 
-#: apps/hrm/api/views/employee_role.py:201
+#: apps/hrm/api/views/employee_reports.py:675
+#: apps/hrm/api/views/employee_reports.py:679
+msgid "Employee Seniority Report"
+msgstr "Báo cáo Thâm niên Nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:680
+msgid "Retrieve employee seniority report with filtering and sorting"
+msgstr "Xem báo cáo Thâm niên Nhân viên với các bộ lọc và sắp xếp"
+
+#: apps/hrm/api/views/employee_reports.py:683
+msgid "Export Employee Seniority Report"
+msgstr "Báo cáo Thâm niên Nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:684
+msgid "Export employee seniority report to XLSX format"
+msgstr "Xuất báo cáo Thâm niên Nhân viên"
+
+#: apps/hrm/api/views/employee_role.py:113
+msgid "Bulk Update Employee Roles"
+msgstr "Cập nhật Vai trò Nhân Viên Hàng Loạt"
+
+#: apps/hrm/api/views/employee_role.py:114
+msgid "Update roles for multiple employees at once"
+msgstr "Không thể cập nhật hơn 25 nhân viên cùng một lúc."
+
+#: apps/hrm/api/views/employee_role.py:207
 msgid "Update successful"
 msgstr "Chỉnh sửa thành công"
 
-#: apps/hrm/api/views/holiday.py:217
+#: apps/hrm/api/views/holiday.py:135 apps/hrm/api/views/holiday.py:213
+msgid "Holiday Management"
+msgstr "Quản lý Ngày Nghỉ Lễ"
+
+#: apps/hrm/api/views/holiday.py:251
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:487
+#: apps/hrm/api/views/interview_candidate.py:158
+#: apps/hrm/api/views/interview_schedule.py:311
+#: apps/hrm/api/views/job_description.py:234
+#: apps/hrm/api/views/recruitment_candidate.py:434
+#: apps/hrm/api/views/recruitment_candidate_contact_log.py:243
+#: apps/hrm/api/views/recruitment_channel.py:59
+#: apps/hrm/api/views/recruitment_dashboard.py:43
+#: apps/hrm/api/views/recruitment_expense.py:343
+#: apps/hrm/api/views/recruitment_reports.py:51
+#: apps/hrm/api/views/recruitment_request.py:392
+#: apps/hrm/api/views/recruitment_source.py:58
+msgid "Recruitment"
+msgstr "Tuyển dụng"
+
+#: apps/hrm/api/views/interview_schedule.py:315
+#: apps/hrm/api/views/interview_schedule.py:316
+#, python-brace-format
+msgid "Preview interview invite for {model_name}"
+msgstr "Xem trước lời mời phỏng vấn cho {model_name}"
+
+#: apps/hrm/api/views/interview_schedule.py:319
+#: apps/hrm/api/views/interview_schedule.py:320
+#, python-brace-format
+msgid "Send interview invite for {model_name}"
+msgstr "Gửi lời mời phỏng vấn cho {model_name}"
+
+#: apps/hrm/api/views/interview_schedule.py:323
+#: apps/hrm/api/views/interview_schedule.py:324
+#, python-brace-format
+msgid "Update interviewers for {model_name}"
+msgstr "Cập nhật người phỏng vấn cho {model_name}"
+
+#: apps/hrm/api/views/organization.py:236
+#: apps/hrm/api/views/organization.py:468
+#: apps/hrm/api/views/organization.py:517
+#: apps/hrm/api/views/organization.py:568
+#: apps/hrm/api/views/organization.py:748
+msgid "Organization"
+msgstr "Sơ đồ tổ chức"
+
+#: apps/hrm/api/views/organization.py:572
+msgid "Department List"
+msgstr "Danh sách Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:573
+msgid "Retrieve a list of departments with filtering and sorting"
+msgstr "Xem danh sách phòng ban với các bộ lọc và sắp xếp"
+
+#: apps/hrm/api/views/organization.py:576
+msgid "Department Detail"
+msgstr "Chi Tiết Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:577
+msgid "Retrieve detailed information about a specific department"
+msgstr "Xem thông tin chi tiết về một phòng ban cụ thể"
+
+#: apps/hrm/api/views/organization.py:580
+msgid "Create Department"
+msgstr "Tạo Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:581
+msgid "Create a new department in the system"
+msgstr "Tạo phòng ban mới"
+
+#: apps/hrm/api/views/organization.py:584
+msgid "Update Department"
+msgstr "Cập nhật Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:585
+msgid "Update department information"
+msgstr "Cập nhật thông tin phòng ban"
+
+#: apps/hrm/api/views/organization.py:588
+msgid "Partial Update Department"
+msgstr "Cập nhật một phần Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:589
+msgid "Partially update department information"
+msgstr "Cập nhật một phần thông tin phòng ban"
+
+#: apps/hrm/api/views/organization.py:592
+msgid "Delete Department"
+msgstr "Xóa Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:593
+msgid "Remove a department from the system"
+msgstr "Xóa một phòng ban khỏi hệ thống"
+
+#: apps/hrm/api/views/organization.py:596
+msgid "Department Tree Structure"
+msgstr "Sơ đồ phòng ban"
+
+#: apps/hrm/api/views/organization.py:597
+msgid "Retrieve department tree structure by block"
+msgstr "Lấy sơ đồ phòng ban theo khối"
+
+#: apps/hrm/api/views/organization.py:600
+msgid "Department Function Choices"
+msgstr "Lựa chọn chức năng phòng ban"
+
+#: apps/hrm/api/views/organization.py:601
+msgid "Retrieve available department functions based on block type"
+msgstr "Lọc các chức năng phòng ban có sẵn dựa trên loại khối"
+
+#: apps/hrm/api/views/organization.py:604
+msgid "Management Department Choices"
+msgstr "Quản lý Phòng Ban"
+
+#: apps/hrm/api/views/organization.py:605
+msgid "Retrieve departments that can serve as management departments"
+msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
+
+#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:2944
+#: apps/hrm/models/proposal.py:306
+msgid "Proposal"
+msgstr "Đề xuất"
+
+#: apps/hrm/api/views/proposal.py:142 apps/hrm/api/views/proposal.py:143
+#, python-brace-format
+msgid "Approve {model_name}"
+msgstr "Phê duyệt {model_name}"
+
+#: apps/hrm/api/views/proposal.py:146 apps/hrm/api/views/proposal.py:147
+#, python-brace-format
+msgid "Reject {model_name}"
+msgstr "Từ chối {model_name}"
+
+#: apps/hrm/api/views/proposal.py:150 apps/hrm/api/views/proposal.py:151
+msgid "View the list of requests pending my approval"
+msgstr "Xem danh sách các yêu cầu đang chờ tôi phê duyệt"
+
+#: apps/hrm/api/views/proposal.py:154 apps/hrm/api/views/proposal.py:155
+msgid "View the list of requests pending my verification"
+msgstr "Xem danh sách các yêu cầu đang chờ tôi xác nhận"
+
+#: apps/hrm/api/views/recruitment_candidate.py:438
+msgid "View Candidates"
+msgstr "Xem danh sách Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:439
+msgid "View all candidates in the system"
+msgstr "Xem tất cả ứng viên trong hệ thống"
+
+#: apps/hrm/api/views/recruitment_candidate.py:442
+msgid "Create Candidate"
+msgstr "Tạo Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:443
+msgid "Create a new candidate"
+msgstr "Tạo ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:446
+msgid "View Candidate Detail"
+msgstr "Xem chi tiết Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:447
+msgid "View details of a specific candidate"
+msgstr "Xem chi tiết của một ứng viên cụ thể"
+
+#: apps/hrm/api/views/recruitment_candidate.py:450
+msgid "Update Candidate"
+msgstr "Cập nhật Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:451
+msgid "Update information for a specific candidate"
+msgstr "Cập nhật thông tin cho một ứng viên cụ thể"
+
+#: apps/hrm/api/views/recruitment_candidate.py:454
+msgid "Partially Update Candidate"
+msgstr "Cập nhật một phần Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:455
+msgid "Partially update information for a specific candidate"
+msgstr "Cập nhật một phần thông tin cho một ứng viên cụ thể"
+
+#: apps/hrm/api/views/recruitment_candidate.py:458
+msgid "Delete Candidate"
+msgstr "Xóa Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:459
+msgid "Delete a specific candidate from the system"
+msgstr "Xóa một ứng viên cụ thể khỏi hệ thống"
+
+#: apps/hrm/api/views/recruitment_candidate.py:462
+msgid "Export Candidates"
+msgstr "Xuất Ứng viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:463
+msgid "Export candidates to a file"
+msgstr "Xuất ứng viên ra file"
+
+#: apps/hrm/api/views/recruitment_candidate.py:466
+msgid "Update Candidate Referrer"
+msgstr "Cập nhật Người Giới Thiệu Ứng Viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:467
+msgid "Update the referrer for a specific candidate"
+msgstr "Cập nhật người giới thiệu cho một ứng viên cụ thể"
+
+#: apps/hrm/api/views/recruitment_candidate.py:470
+msgid "Convert Candidate to Employee"
+msgstr "Chuyển Ứng viên thành Nhân viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:471
+msgid "Convert a candidate into an employee record"
+msgstr "Chuyển một ứng viên thành nhân viên"
+
+#: apps/hrm/api/views/recruitment_candidate.py:707
+msgid "Only candidates with REJECTED status can be deleted."
+msgstr "Chỉ có thể xoá các ứng viên đã bị LOẠI"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:47
+msgid "View Realtime Recruitment KPIs"
+msgstr "Xem KPI tuyển dụng thời gian thực"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:48
+msgid "View realtime recruitment KPIs"
+msgstr "Xem các chỉ số hiệu suất tuyển dụng thời gian thực"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:51
+msgid "View Experience Breakdown Chart"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo kinh nghiệm"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:52
+msgid "View experience level breakdown chart for hired candidates"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo kinh nghiệm"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:55
+msgid "View Branch Breakdown Chart"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo chi nhánh"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:56
+msgid "View branch breakdown chart for hired candidates"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo chi nhánh"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:59
+msgid "View Cost Breakdown Chart"
+msgstr "Xem báo cáo chi phí tuyển dụng theo nguồn"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:60
+msgid "View cost breakdown by source type categories chart"
+msgstr "Xem báo cáo chi phí tuyển dụng theo nguồn"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:63
+msgid "View Cost by Branches Chart"
+msgstr "Xem báo cáo chi phí tuyển dụng theo chi nhánh"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:64
+msgid "View average cost breakdown by branches chart"
+msgstr "Xem báo cáo chi phí tuyển dụng trung bình hàng tháng của các chi nhánh"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:67
+msgid "View Source Type Breakdown Chart"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo nguồn"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:68
+msgid "View recruitment source type breakdown chart"
+msgstr "Xem báo cáo tỷ lệ tuyển mới theo nguồn"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:71
+msgid "View Monthly Trends Chart"
+msgstr "Xem biểu đồ xu hướng hàng tháng"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:72
+msgid "View monthly trends of candidate sources chart"
+msgstr "Xem biểu đồ xu hướng hàng tháng của các nguồn ứng viên"
+
+#: apps/hrm/api/views/recruitment_dashboard.py:517
 msgid "Experienced"
 msgstr "Có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:492
+#: apps/hrm/api/views/recruitment_dashboard.py:522
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_reports.py:630
+#: apps/hrm/api/views/recruitment_reports.py:55
+#: apps/hrm/models/recruitment_reports.py:76
+msgid "Staff Growth Report"
+msgstr "Báo cáo tăng trưởng nhân sự"
+
+#: apps/hrm/api/views/recruitment_reports.py:56
+msgid "Aggregate staff changes by period (week/month)"
+msgstr "Báo cáo tổng hợp thay đổi nhân sự theo kỳ (tuần/tháng)"
+
+#: apps/hrm/api/views/recruitment_reports.py:59
+msgid "Recruitment Source Report"
+msgstr "Báo cáo nguồn tuyển dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:61
+msgid ""
+"Aggregate hire statistics by recruitment source in nested organizational "
+"format"
+msgstr ""
+"Tổng hợp thống kê tuyển dụng theo nguồn tuyển dụng dưới dạng tổ chức lồng "
+"nhau"
+
+#: apps/hrm/api/views/recruitment_reports.py:65
+msgid "Recruitment Channel Report"
+msgstr "Báo cáo kênh tuyển dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:67
+msgid ""
+"Aggregate hire statistics by recruitment channel in nested organizational "
+"format"
+msgstr ""
+"Tổng hợp thống kê tuyển dụng theo kênh tuyển dụng dưới dạng tổ chức lồng nhau"
+
+#: apps/hrm/api/views/recruitment_reports.py:71
+msgid "Recruitment Cost Report"
+msgstr "Báo cáo chi phí tuyển dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:72
+msgid "Aggregate recruitment cost data by source type and months"
+msgstr "Tổng hợp dữ liệu chi phí tuyển dụng theo loại nguồn và tháng"
+
+#: apps/hrm/api/views/recruitment_reports.py:75
+msgid "Hired Candidate Report"
+msgstr "Báo cáo Ứng viên Đã Tuyển Dụng"
+
+#: apps/hrm/api/views/recruitment_reports.py:77
+msgid ""
+"Aggregate hired candidate statistics by source type with period aggregation "
+"and employee details"
+msgstr ""
+"Thống kê tổng hợp ứng viên đã tuyển dụng theo loại nguồn với tổng hợp theo "
+"kỳ và chi tiết nhân viên"
+
+#: apps/hrm/api/views/recruitment_reports.py:81
+msgid "Referral Cost Report"
+msgstr "Báo cáo chi phí giới thiệu"
+
+#: apps/hrm/api/views/recruitment_reports.py:83
+msgid ""
+"Referral cost report with department summary and employee details for a "
+"single month"
+msgstr ""
+"Thống kê chi phí giới thiệu với tóm tắt phòng ban và chi tiết nhân viên cho "
+"một tháng"
+
+#: apps/hrm/api/views/recruitment_reports.py:664
 msgid "No Department"
 msgstr "Không có phòng ban"
 
-#: apps/hrm/api/views/recruitment_reports.py:656
-#: apps/hrm/api/views/recruitment_reports.py:685
+#: apps/hrm/api/views/recruitment_reports.py:690
+#: apps/hrm/api/views/recruitment_reports.py:719
 msgid "Total"
 msgstr "Tổng"
 
@@ -551,9 +1121,46 @@ msgstr ""
 "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
 "mới có thể bị xóa."
 
-#: apps/hrm/api/views/timesheet.py:133
+#: apps/hrm/api/views/timesheet.py:56
+msgid "Employee timesheet"
+msgstr "Bảng công"
+
+#: apps/hrm/api/views/timesheet.py:60 apps/hrm/api/views/timesheet.py:61
+msgid "List employee timesheets"
+msgstr "Bảng công"
+
+#: apps/hrm/api/views/timesheet.py:64 apps/hrm/api/views/timesheet.py:65
+#: apps/hrm/api/views/timesheet.py:310 apps/hrm/api/views/timesheet.py:311
+msgid "Get employee timesheet details"
+msgstr "Chi tiết bảng công nhân viên"
+
+#: apps/hrm/api/views/timesheet.py:68
+msgid "History timesheets"
+msgstr "Lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:69
+msgid "View history of timesheets"
+msgstr "Xem lịch sử thay đổi bảng công"
+
+#: apps/hrm/api/views/timesheet.py:72
+msgid "History detail of timesheets"
+msgstr "Xem chi tiết lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:73
+msgid "View history detail of timesheets"
+msgstr "Xem chi tiết lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:151
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
+
+#: apps/hrm/api/views/timesheet.py:302 apps/hrm/models/timesheet.py:91
+msgid "Timesheet"
+msgstr "Bảng chấm công"
+
+#: apps/hrm/api/views/timesheet.py:306 apps/hrm/api/views/timesheet.py:307
+msgid "List employee timesheet entries"
+msgstr "Danh sách ngày công nhân viên"
 
 #: apps/hrm/constants.py:25 apps/hrm/constants.py:163
 msgid "Official"
@@ -713,20 +1320,16 @@ msgid "Not on time"
 msgstr "Không đúng giờ"
 
 #: apps/hrm/constants.py:156
-#, fuzzy
-#| msgid "Single"
 msgid "Single punch"
-msgstr "Độc thân"
+msgstr "Chấm công một lần"
 
 #: apps/hrm/constants.py:157
 msgid "Absent"
 msgstr "Vắng mặt"
 
-#: apps/hrm/constants.py:161
-#, fuzzy
-#| msgid "Friday"
+#: apps/hrm/constants.py:161 apps/hrm/models/holiday.py:26
 msgid "Holiday"
-msgstr "Thứ Sáu"
+msgstr "Kỳ nghỉ lễ"
 
 #: apps/hrm/constants.py:162
 msgid "Compensatory"
@@ -1116,10 +1719,26 @@ msgid ""
 "Certificate statuses updated successfully!"
 msgstr ""
 
+#: apps/hrm/models/attendance_device.py:39
+msgid "Attendance Device"
+msgstr "Thiết Bị Chấm Công"
+
+#: apps/hrm/models/attendance_device.py:40
+msgid "Attendance Devices"
+msgstr "các Thiết Bị Chấm Công"
+
 #: apps/hrm/models/attendance_device.py:196
 #, python-format
 msgid "Connection successful. Firmware: %(firmware)s"
 msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
+
+#: apps/hrm/models/attendance_exemption.py:44
+msgid "Attendance Exemption"
+msgstr "Miễn chấm công"
+
+#: apps/hrm/models/attendance_exemption.py:45
+msgid "Attendance Exemptions"
+msgstr "các nhân sự Miễn chấm công"
 
 #: apps/hrm/models/attendance_geolocation.py:16
 msgid "Latitude must be between -90 and 90 degrees"
@@ -1139,6 +1758,30 @@ msgctxt "geolocation status"
 msgid "Inactive"
 msgstr "Không hoạt động"
 
+#: apps/hrm/models/attendance_geolocation.py:100
+msgid "Attendance Geolocation"
+msgstr "Log chấm Công GPS"
+
+#: apps/hrm/models/attendance_geolocation.py:101
+msgid "Attendance Geolocations"
+msgstr "các log Chấm Công GPS"
+
+#: apps/hrm/models/attendance_record.py:47
+msgid "Attendance Record"
+msgstr "Log Chấm Công"
+
+#: apps/hrm/models/attendance_record.py:48
+msgid "Attendance Records"
+msgstr "các Log Chấm Công"
+
+#: apps/hrm/models/attendance_report.py:82
+msgid "Attendance Daily Report"
+msgstr "Báo Cáo Chấm Công Hàng Ngày"
+
+#: apps/hrm/models/attendance_report.py:83
+msgid "Attendance Daily Reports"
+msgstr "Báo Cáo Chấm Công Hàng Ngày"
+
 #: apps/hrm/models/attendance_wifi_device.py:18
 msgid "In use"
 msgstr "Đang sử dụng"
@@ -1146,6 +1789,30 @@ msgstr "Đang sử dụng"
 #: apps/hrm/models/attendance_wifi_device.py:19
 msgid "Not in use"
 msgstr "Chưa sử dụng"
+
+#: apps/hrm/models/attendance_wifi_device.py:64
+msgid "Attendance WiFiDevice"
+msgstr "Thiết Bị Chấm Công WiFi"
+
+#: apps/hrm/models/attendance_wifi_device.py:65
+msgid "Attendance WiFiDevices"
+msgstr "Thiết Bị Chấm Công WiFi"
+
+#: apps/hrm/models/bank.py:21
+msgid "Bank"
+msgstr "Ngân Hàng"
+
+#: apps/hrm/models/bank.py:22
+msgid "Banks"
+msgstr "Ngân hàng"
+
+#: apps/hrm/models/bank_account.py:38
+msgid "Bank Account"
+msgstr "Tài Khoản Ngân Hàng"
+
+#: apps/hrm/models/bank_account.py:39
+msgid "Bank Accounts"
+msgstr "Tài Khoản Ngân Hàng"
 
 #: apps/hrm/models/bank_account.py:62
 msgid "Employee already has a primary bank account. Please unset it first."
@@ -1173,6 +1840,14 @@ msgstr "Sắp hết hạn"
 #: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:31
 msgid "Expired"
 msgstr "Hết hạn"
+
+#: apps/hrm/models/contract.py:318 apps/hrm/models/contract_type.py:75
+msgid "Contract"
+msgstr "Hợp đồng"
+
+#: apps/hrm/models/contract.py:319
+msgid "Contracts"
+msgstr "Hợp đồng"
 
 #: apps/hrm/models/contract.py:350 apps/hrm/models/contract_type.py:48
 #: apps/hrm/models/contract_type.py:281
@@ -1217,13 +1892,13 @@ msgstr "Toàn thời gian - Giờ hành chính"
 msgid "Part-time"
 msgstr "Bán thời gian"
 
-#: apps/hrm/models/contract_type.py:75
-msgid "Contract"
-msgstr "Hợp đồng"
-
 #: apps/hrm/models/contract_type.py:76
 msgid "Appendix"
 msgstr "Phụ lục"
+
+#: apps/hrm/models/contract_type.py:265
+msgid "Contract Types"
+msgstr "Loại Hợp Đồng"
 
 #: apps/hrm/models/contract_type.py:351
 msgid ""
@@ -1233,6 +1908,14 @@ msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."
 #: apps/hrm/models/decision.py:35
 msgid "Issued"
 msgstr "Ngày ban hành"
+
+#: apps/hrm/models/decision.py:118
+msgid "Decision"
+msgstr ""
+
+#: apps/hrm/models/decision.py:119
+msgid "Decisions"
+msgstr ""
 
 #: apps/hrm/models/employee.py:101
 msgid "MV"
@@ -1299,6 +1982,14 @@ msgstr "Số điện thoại phải đúng 10 chữ số"
 msgid "Phone number must contain only digits"
 msgstr "Số điện thoại chỉ được chứa chữ số"
 
+#: apps/hrm/models/employee.py:394
+msgid "Employee"
+msgstr "Nhân sự"
+
+#: apps/hrm/models/employee.py:395
+msgid "Employees"
+msgstr "Nhân sự"
+
 #: apps/hrm/models/employee.py:447
 msgid "Cannot change status back to On-boarding for an existing employee."
 msgstr "Không thể thay đổi trạng thái On-boarding cho nhân viên đã làm việc."
@@ -1329,9 +2020,55 @@ msgstr "Còn hiệu lực"
 msgid "Near Expiry"
 msgstr "Sắp hết hạn"
 
-#: apps/hrm/models/employee_certificate.py:196
+#: apps/hrm/models/employee_certificate.py:136
+msgid "Employee certificate"
+msgstr "Bằng cấp chứng chỉ"
+
+#: apps/hrm/models/employee_certificate.py:137
+msgid "Employee certificates"
+msgstr "Bằng cấp chứng chỉ"
+
+#: apps/hrm/models/employee_certificate.py:198
 msgid "Effective date must be less than expiry date."
 msgstr "Ngày hiệu lực phải trước ngày hết hạn."
+
+#: apps/hrm/models/employee_certificate.py:200
+msgid "Expiry date is required for real estate practice licenses."
+msgstr ""
+"Ngày hết hiệu lực là bắt buộc khi loại chứng chỉ là Chứng chỉ hành nghề môi "
+"giới Bất động sản."
+
+#: apps/hrm/models/employee_dependent.py:128
+msgid "Employee Dependent"
+msgstr "Người phụ thuộc"
+
+#: apps/hrm/models/employee_dependent.py:129
+msgid "Employee Dependents"
+msgstr "Người phụ thuộc"
+
+#: apps/hrm/models/employee_relationship.py:165
+msgid "Employee Relationship"
+msgstr "Quan hệ nhân thân"
+
+#: apps/hrm/models/employee_relationship.py:166
+msgid "Employee Relationships"
+msgstr "Quan hệ nhân thân"
+
+#: apps/hrm/models/employee_report.py:57
+msgid "Employee Status Breakdown Report"
+msgstr ""
+
+#: apps/hrm/models/employee_report.py:58
+msgid "Employee Status Breakdown Reports"
+msgstr ""
+
+#: apps/hrm/models/employee_report.py:134
+msgid "Employee Resigned Reason Report"
+msgstr ""
+
+#: apps/hrm/models/employee_report.py:135
+msgid "Employee Resigned Reason Reports"
+msgstr ""
 
 #: apps/hrm/models/employee_work_history.py:40
 msgid "Change Position"
@@ -1357,9 +2094,29 @@ msgstr "Ký lại hợp đồng"
 msgid "Return to Work"
 msgstr "Quay lại làm việc"
 
+#: apps/hrm/models/employee_work_history.py:161
+msgid "Employee work history"
+msgstr "Lịch sử công tác"
+
+#: apps/hrm/models/employee_work_history.py:162
+msgid "Employee work histories"
+msgstr "Lich sử công tác"
+
+#: apps/hrm/models/holiday.py:27
+msgid "Holidays"
+msgstr "Kỳ nghỉ lễ"
+
 #: apps/hrm/models/holiday.py:104
 msgid "Compensatory workday date cannot fall within the holiday date range"
 msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/models/interview_candidate.py:28
+msgid "Interview Candidate"
+msgstr "Ứng viên"
+
+#: apps/hrm/models/interview_candidate.py:29
+msgid "Interview Candidates"
+msgstr "Ứng viên"
 
 #: apps/hrm/models/interview_schedule.py:13
 msgid "In Person"
@@ -1368,6 +2125,42 @@ msgstr "Phỏng vấn trực tiếp"
 #: apps/hrm/models/interview_schedule.py:14
 msgid "Online"
 msgstr "Phỏng vấn online"
+
+#: apps/hrm/models/interview_schedule.py:40
+msgid "Interview Schedule"
+msgstr "Lịch phỏng vấn"
+
+#: apps/hrm/models/interview_schedule.py:41
+msgid "Interview Schedules"
+msgstr "Lịch phỏng vấn"
+
+#: apps/hrm/models/job_description.py:36
+msgid "Job Description"
+msgstr "Mô tả công việc"
+
+#: apps/hrm/models/job_description.py:37
+msgid "Job Descriptions"
+msgstr "Mô tả công việc"
+
+#: apps/hrm/models/monthly_timesheet.py:111
+msgid "Employee monthly timesheet"
+msgstr ""
+
+#: apps/hrm/models/monthly_timesheet.py:112
+msgid "Employee monthly timesheets"
+msgstr ""
+
+#: apps/hrm/models/organization.py:48
+msgid "Branches"
+msgstr "Chi Nhánh"
+
+#: apps/hrm/models/organization.py:71 apps/hrm/models/organization.py:72
+msgid "Branch contact info"
+msgstr "Thông tin liên hệ chi nhánh"
+
+#: apps/hrm/models/organization.py:113
+msgid "Blocks"
+msgstr "Khối"
 
 #: apps/hrm/models/organization.py:130 apps/hrm/models/organization.py:278
 msgid "Business"
@@ -1406,6 +2199,10 @@ msgstr "Xúc tiến Dự án"
 msgid "Project Development"
 msgstr "Phát triển Dự án"
 
+#: apps/hrm/models/organization.py:183
+msgid "Departments"
+msgstr "Phòng Ban"
+
 #: apps/hrm/models/organization.py:213
 msgid "Parent department must be in the same block as the child department."
 msgstr "Phòng ban cha phải cùng khối với phòng ban con."
@@ -1439,6 +2236,14 @@ msgstr "Khối hỗ trợ không thể có chức năng kinh doanh."
 #, python-format
 msgid "A main department already exists for function %(function)s."
 msgstr "Phòng ban đầu mối đã tồn tại cho chức năng %(function)s."
+
+#: apps/hrm/models/organization.py:315
+msgid "Positions"
+msgstr "Chức Vụ"
+
+#: apps/hrm/models/proposal.py:307
+msgid "Proposals"
+msgstr "Đề xuất"
 
 #: apps/hrm/models/proposal.py:365
 msgid "day"
@@ -1502,21 +2307,53 @@ msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:716
+#: apps/hrm/models/proposal.py:682
+msgid "Proposal Timesheet Entry"
+msgstr "Khiếu nại chấm công"
+
+#: apps/hrm/models/proposal.py:683
+msgid "Proposal Timesheet Entries"
+msgstr "Khiếu nại chấm công"
+
+#: apps/hrm/models/proposal.py:722
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
-msgstr ""
+msgstr "Một ngày công chỉ có thể tạo 1 khiếu nại chấm công."
 
-#: apps/hrm/models/proposal.py:726
+#: apps/hrm/models/proposal.py:732
 msgid "This timesheet entry already has a complaint proposal linked to it."
-msgstr ""
+msgstr "Ngày công này đã có khiếu nại chấm công liên kết."
 
-#: apps/hrm/models/proposal.py:807
+#: apps/hrm/models/proposal.py:787
+msgid "Proposal Verifier"
+msgstr "Người xác minh"
+
+#: apps/hrm/models/proposal.py:788
+msgid "Proposal Verifiers"
+msgstr "Người xác minh"
+
+#: apps/hrm/models/proposal.py:813
 msgid "Only one verifier is allowed per proposal in the current system design."
-msgstr ""
+msgstr "Loại đề xuất hiện tại chỉ cho phép một người xác minh."
 
-#: apps/hrm/models/proposal.py:925
+#: apps/hrm/models/proposal.py:859
+msgid "Proposal Asset"
+msgstr "Đề xuất cấp thiết bị"
+
+#: apps/hrm/models/proposal.py:860
+msgid "Proposal Assets"
+msgstr "Đề xuất cấp thiết bị"
+
+#: apps/hrm/models/proposal.py:904
+msgid "Proposal Overtime Entry"
+msgstr "Đề xuất làm thêm giờ"
+
+#: apps/hrm/models/proposal.py:905
+msgid "Proposal Overtime Entries"
+msgstr "Đề xuất làm thêm giờ"
+
+#: apps/hrm/models/proposal.py:931
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
@@ -1564,9 +2401,25 @@ msgstr "3-5 năm"
 msgid "More Than 5 Years"
 msgstr "Nhiều hơn 5 năm"
 
+#: apps/hrm/models/recruitment_candidate.py:137
+msgid "Recruitment Candidate"
+msgstr "Ứng viên"
+
+#: apps/hrm/models/recruitment_candidate.py:138
+msgid "Recruitment Candidates"
+msgstr "Ứng viên"
+
 #: apps/hrm/models/recruitment_candidate.py:157
 msgid "Onboard date is required when status is HIRED."
 msgstr "Ngày nhận việc là bắt buộc khi trạng thái là Đã nhận việc."
+
+#: apps/hrm/models/recruitment_candidate_contact_log.py:29
+msgid "Recruitment Candidate Contact Log"
+msgstr "Lịch sử liên hệ ứng viên"
+
+#: apps/hrm/models/recruitment_candidate_contact_log.py:30
+msgid "Recruitment Candidate Contact Logs"
+msgstr "Lịch sử liên hệ ứng viên"
 
 #: apps/hrm/models/recruitment_channel.py:18
 msgid "Job Website"
@@ -1579,6 +2432,22 @@ msgstr "Hunt"
 #: apps/hrm/models/recruitment_channel.py:21
 msgid "School"
 msgstr "Trường học"
+
+#: apps/hrm/models/recruitment_channel.py:37
+msgid "Recruitment Channel"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/recruitment_channel.py:38
+msgid "Recruitment Channels"
+msgstr "Kênh tuyển dụng"
+
+#: apps/hrm/models/recruitment_expense.py:77
+msgid "Recruitment Expense"
+msgstr "Chi phí tuyển dụng"
+
+#: apps/hrm/models/recruitment_expense.py:78
+msgid "Recruitment Expenses"
+msgstr "Chi phí tuyển dụng"
 
 #: apps/hrm/models/recruitment_expense.py:107
 msgid "Recruitment request must be in status: Open, Closed, or Paused."
@@ -1610,6 +2479,10 @@ msgstr ""
 msgid "Referrer and referee cannot be the same person."
 msgstr "Người giới thiệu và người được giới thiệu không thể là cùng một người."
 
+#: apps/hrm/models/recruitment_reports.py:77
+msgid "Staff Growth Reports"
+msgstr "Báo cáo tăng trưởng nhân sự"
+
 #: apps/hrm/models/recruitment_request.py:20
 msgid "New Hire"
 msgstr "Tuyển mới"
@@ -1629,6 +2502,26 @@ msgstr "Tạm dừng"
 #: apps/hrm/models/recruitment_request.py:27
 msgid "Closed"
 msgstr "Đóng"
+
+#: apps/hrm/models/recruitment_request.py:95
+msgid "Recruitment Request"
+msgstr "Phiếu yêu cầu tuyển dụng"
+
+#: apps/hrm/models/recruitment_request.py:96
+msgid "Recruitment Requests"
+msgstr "Phiếu yêu cầu tuyển dụng"
+
+#: apps/hrm/models/recruitment_source.py:27
+msgid "Recruitment Source"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/models/recruitment_source.py:28
+msgid "Recruitment Sources"
+msgstr "Nguồn tuyển dụng"
+
+#: apps/hrm/models/timesheet.py:92
+msgid "Timesheets"
+msgstr "Bảng chấm công"
 
 #: apps/hrm/models/work_schedule.py:14
 msgid "Monday"
@@ -1657,6 +2550,14 @@ msgstr "Thứ Bảy"
 #: apps/hrm/models/work_schedule.py:20
 msgid "Sunday"
 msgstr "Chủ Nhật"
+
+#: apps/hrm/models/work_schedule.py:87
+msgid "Work schedule"
+msgstr "Lịch làm việc"
+
+#: apps/hrm/models/work_schedule.py:88
+msgid "Work schedules"
+msgstr "Lịch làm việc"
 
 #: apps/hrm/models/work_schedule.py:122
 msgid "Invalid weekday value. Must be one of the predefined weekdays."
@@ -1706,31 +2607,31 @@ msgstr ""
 "%(next_field)s (%(next_time)s) phải lớn hơn hoặc bằng %(current_field)s "
 "(%(current_time)s)"
 
-#: apps/hrm/services/employee/work_history.py:39
-#: apps/hrm/services/employee/work_history.py:80
-#: apps/hrm/services/employee/work_history.py:81
-#: apps/hrm/services/employee/work_history.py:124
-#: apps/hrm/services/employee/work_history.py:125
-#: apps/hrm/services/employee/work_history.py:126
-#: apps/hrm/services/employee/work_history.py:127
-#: apps/hrm/services/employee/work_history.py:128
+#: apps/hrm/services/employee/work_history.py:41
+#: apps/hrm/services/employee/work_history.py:85
+#: apps/hrm/services/employee/work_history.py:86
 #: apps/hrm/services/employee/work_history.py:129
-#: apps/hrm/services/employee/work_history.py:149
-#: apps/hrm/services/employee/work_history.py:150
-#: apps/hrm/services/employee/work_history.py:189
-#: apps/hrm/services/employee/work_history.py:190
-#: apps/hrm/services/employee/work_history.py:228
-#: apps/hrm/services/employee/work_history.py:229
+#: apps/hrm/services/employee/work_history.py:130
+#: apps/hrm/services/employee/work_history.py:131
+#: apps/hrm/services/employee/work_history.py:132
+#: apps/hrm/services/employee/work_history.py:133
+#: apps/hrm/services/employee/work_history.py:134
+#: apps/hrm/services/employee/work_history.py:154
+#: apps/hrm/services/employee/work_history.py:155
+#: apps/hrm/services/employee/work_history.py:194
+#: apps/hrm/services/employee/work_history.py:195
+#: apps/hrm/services/employee/work_history.py:233
+#: apps/hrm/services/employee/work_history.py:234
 msgid "None"
 msgstr ""
 
-#: apps/hrm/services/employee/work_history.py:90
-#: apps/hrm/services/employee/work_history.py:152
+#: apps/hrm/services/employee/work_history.py:95
+#: apps/hrm/services/employee/work_history.py:157
 #, python-brace-format
 msgid "Position changed from {old_position} to {new_position}"
 msgstr "Vị trí thay đổi từ {old_position} sang {new_position}"
 
-#: apps/hrm/services/employee/work_history.py:132
+#: apps/hrm/services/employee/work_history.py:137
 #, python-brace-format
 msgid ""
 "Transferred from {old_branch}/{old_block}/{old_dept} to {new_branch}/"
@@ -1739,16 +2640,15 @@ msgstr ""
 "Chuyển từ {old_branch}/{old_block}/{old_dept} sang {new_branch}/{new_block}/"
 "{new_dept}"
 
-#: apps/hrm/services/employee/work_history.py:194
+#: apps/hrm/services/employee/work_history.py:199
 #, python-brace-format
 msgid "Employee type changed from {old_type} to {new_type}"
 msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 
-#: apps/hrm/services/employee/work_history.py:243
-#, fuzzy, python-brace-format
-#| msgid "Status changed from {old_status} to {new_status}"
+#: apps/hrm/services/employee/work_history.py:248
+#, python-brace-format
 msgid "Contract changed from {old_contract} to {new_contract}"
-msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
+msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."

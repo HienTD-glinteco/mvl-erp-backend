@@ -92,8 +92,8 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
     number_of_positions = models.IntegerField(default=1, verbose_name="Number of positions")
 
     class Meta:
-        verbose_name = "Recruitment Request"
-        verbose_name_plural = "Recruitment Requests"
+        verbose_name = _("Recruitment Request")
+        verbose_name_plural = _("Recruitment Requests")
         db_table = "hrm_recruitment_request"
         ordering = ["-created_at"]
 

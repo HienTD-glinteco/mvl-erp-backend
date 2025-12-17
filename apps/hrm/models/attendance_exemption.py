@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import BaseModel
@@ -40,8 +41,8 @@ class AttendanceExemption(BaseModel):
 
     class Meta:
         db_table = "hrm_attendance_exemption"
-        verbose_name = "Attendance Exemption"
-        verbose_name_plural = "Attendance Exemptions"
+        verbose_name = _("Attendance Exemption")
+        verbose_name_plural = _("Attendance Exemptions")
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["employee"]),

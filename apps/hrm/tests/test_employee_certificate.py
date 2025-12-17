@@ -89,12 +89,19 @@ class EmployeeCertificateModelTest(TestCase):
         """Test all certificate type choices are valid"""
         for cert_type, display_name in CertificateType.choices:
             with self.subTest(cert_type=cert_type):
+                # REAL_ESTATE_PRACTICE_LICENSE requires expiry_date
+                expiry_date = (
+                    date.today() + timedelta(days=365)
+                    if cert_type == CertificateType.REAL_ESTATE_PRACTICE_LICENSE
+                    else None
+                )
                 certificate = EmployeeCertificate.objects.create(
                     employee=self.employee,
                     certificate_type=cert_type,
                     certificate_code=f"TEST-{cert_type}",
                     certificate_name=f"Test {display_name}",
                     issue_date=date.today(),
+                    expiry_date=expiry_date,
                 )
                 self.assertEqual(certificate.certificate_type, cert_type)
                 self.assertEqual(certificate.certificate_code, f"TEST-{cert_type}")
@@ -298,6 +305,52 @@ class EmployeeCertificateModelTest(TestCase):
         # Should not raise ValidationError
         certificate.clean()
 
+    def test_real_estate_license_requires_expiry_date(self):
+        """Test that REAL_ESTATE_PRACTICE_LICENSE requires expiry_date"""
+        certificate = EmployeeCertificate(
+            employee=self.employee,
+            certificate_type=CertificateType.REAL_ESTATE_PRACTICE_LICENSE,
+            certificate_name="Real Estate Broker License",
+            issue_date=date.today(),
+        )
+        with self.assertRaises(ValidationError) as context:
+            certificate.clean()
+        self.assertIn("expiry_date", context.exception.message_dict)
+
+    def test_real_estate_license_with_expiry_date(self):
+        """Test that REAL_ESTATE_PRACTICE_LICENSE can be created with expiry_date"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.REAL_ESTATE_PRACTICE_LICENSE,
+            certificate_name="Real Estate Broker License",
+            issue_date=date.today(),
+            expiry_date=date.today() + timedelta(days=365),
+        )
+        self.assertEqual(certificate.certificate_type, CertificateType.REAL_ESTATE_PRACTICE_LICENSE)
+        self.assertIsNotNone(certificate.expiry_date)
+
+    def test_issuing_organization_optional(self):
+        """Test that issuing_organization is optional (can be null)"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="IELTS 7.0",
+            issue_date=date.today(),
+            issuing_organization=None,
+        )
+        self.assertIsNone(certificate.issuing_organization)
+
+    def test_issuing_organization_can_be_blank(self):
+        """Test that issuing_organization can be blank"""
+        certificate = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="ICDL",
+            issue_date=date.today(),
+            issuing_organization="",
+        )
+        self.assertEqual(certificate.issuing_organization, "")
+
 
 class EmployeeCertificateAPITest(TestCase):
     """Test cases for EmployeeCertificate API"""
@@ -430,7 +483,7 @@ class EmployeeCertificateAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_certificate_missing_issuing_organization(self):
-        """Test creating a certificate without required issuing_organization"""
+        """Test creating a certificate without issuing_organization is allowed (optional field)"""
         url = reverse("hrm:employee-certificate-list")
         data = {
             "employee_id": self.employee.id,
@@ -439,12 +492,45 @@ class EmployeeCertificateAPITest(TestCase):
             "issue_date": "2024-06-01",
         }
         response = self.client.post(url, data, format="json")
+        # issuing_organization is optional, so creation should succeed
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["certificate_type"], "foreign_language")
+        self.assertEqual(result_data["certificate_name"], "IELTS 7.0")
+        # issuing_organization should be None or empty
+        self.assertIn(result_data.get("issuing_organization"), [None, ""])
+
+    def test_create_real_estate_license_without_expiry_date_fails(self):
+        """Test that creating REAL_ESTATE_PRACTICE_LICENSE without expiry_date fails"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "real_estate_practice_license",
+            "certificate_name": "Real Estate Broker License",
+            "issue_date": "2024-06-01",
+            "issuing_organization": "Real Estate Authority",
+        }
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = json.loads(response.content.decode())
         self.assertFalse(response_data["success"])
-        self.assertEqual(response_data["error"]["type"], "validation_error")
-        error_attrs = [err["attr"] for err in response_data["error"]["errors"]]
-        self.assertIn("issuing_organization", error_attrs)
+
+    def test_create_real_estate_license_with_expiry_date_succeeds(self):
+        """Test that creating REAL_ESTATE_PRACTICE_LICENSE with expiry_date succeeds"""
+        url = reverse("hrm:employee-certificate-list")
+        data = {
+            "employee_id": self.employee.id,
+            "certificate_type": "real_estate_practice_license",
+            "certificate_name": "Real Estate Broker License",
+            "issue_date": "2024-06-01",
+            "expiry_date": "2026-06-01",
+            "issuing_organization": "Real Estate Authority",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data["certificate_type"], "real_estate_practice_license")
+        self.assertEqual(result_data["expiry_date"], "2026-06-01")
 
     def test_list_certificates(self):
         """Test listing certificates"""
@@ -460,6 +546,7 @@ class EmployeeCertificateAPITest(TestCase):
             certificate_type=CertificateType.REAL_ESTATE_PRACTICE_LICENSE,
             certificate_name="Real Estate Broker License",
             issue_date=date.today() - timedelta(days=30),
+            expiry_date=date.today() + timedelta(days=365),  # Required for this type
         )
 
         url = reverse("hrm:employee-certificate-list")
@@ -642,6 +729,9 @@ class EmployeeCertificateAPITest(TestCase):
                     "issue_date": "2024-06-01",
                     "issuing_organization": "Test Org",
                 }
+                # REAL_ESTATE_PRACTICE_LICENSE requires expiry_date
+                if cert_type == CertificateType.REAL_ESTATE_PRACTICE_LICENSE:
+                    data["expiry_date"] = "2026-06-01"
                 response = self.client.post(url, data, format="json")
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 result_data = self.get_response_data(response)

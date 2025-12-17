@@ -52,9 +52,27 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering_fields = ["code", "fullname"]
     ordering = "fullname"
 
-    module = "HRM"
-    submodule = "Timesheet"
+    module = _("HRM")
+    submodule = _("Employee timesheet")
     permission_prefix = "timesheet"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List employee timesheets"),
+            "description_template": _("List employee timesheets"),
+        },
+        "retrieve": {
+            "name_template": _("Get employee timesheet details"),
+            "description_template": _("Get employee timesheet details"),
+        },
+        "histories": {
+            "name_template": _("History timesheets"),
+            "description_template": _("View history of timesheets"),
+        },
+        "history_detail": {
+            "name_template": _("History detail of timesheets"),
+            "description_template": _("View history detail of timesheets"),
+        },
+    }
 
     def list(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
@@ -280,6 +298,16 @@ class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     queryset = TimeSheetEntry.objects.select_related("employee").all()
     serializer_class = TimeSheetEntryDetailSerializer
 
-    module = "HRM"
-    submodule = "Timesheet"
+    module = _("HRM")
+    submodule = _("Timesheet")
     permission_prefix = "timesheet"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("List employee timesheet entries"),
+            "description_template": _("List employee timesheet entries"),
+        },
+        "retrieve": {
+            "name_template": _("Get employee timesheet details"),
+            "description_template": _("Get employee timesheet details"),
+        },
+    }

@@ -18,6 +18,7 @@ def create_state_change_event(
     start_date=None,
     end_date=None,
     note=None,
+    extra_detail=None,
 ):
     """Create a state change event in employee work history.
 
@@ -29,6 +30,7 @@ def create_state_change_event(
         start_date: Optional start date for the event period (e.g., leave start date)
         end_date: Optional end date for the event period (e.g., leave end date)
         note: Optional additional notes
+        extra_detail: Optional string to append to the detail description
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -44,6 +46,9 @@ def create_state_change_event(
     detail = _("Status changed from {old_status} to {new_status}").format(
         old_status=old_status_display, new_status=new_status_display
     )
+
+    if extra_detail:
+        detail = f"{detail}. {extra_detail}"
 
     return EmployeeWorkHistory.objects.create(
         employee=employee,

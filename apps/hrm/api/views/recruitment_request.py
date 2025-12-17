@@ -388,8 +388,8 @@ class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseMode
     ordering = ["-created_at"]
 
     # Permission registration attributes
-    module = "HRM"
-    submodule = "Recruitment"
+    module = _("HRM")
+    submodule = _("Recruitment")
     permission_prefix = "recruitment_request"
 
     # Document export configuration

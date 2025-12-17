@@ -7,65 +7,23 @@ class ContractTypeFilterSet(django_filters.FilterSet):
     """FilterSet for ContractType model.
 
     Supports filtering by:
-    - name: case-insensitive partial match
-    - code: case-insensitive partial match
+    - name: case-insensitive partial match (name__icontains)
+    - code: case-insensitive partial match (code__icontains)
     - category: exact match (contract or appendix)
     - duration_type: exact match
     - has_social_insurance: exact match
     - working_time_type: exact match
-    - created_at: date range filtering
+    - created_at: exact match, date__gte, date__lte
     """
-
-    name = django_filters.CharFilter(
-        lookup_expr="icontains",
-        help_text="Filter by contract type name (case-insensitive partial match)",
-    )
-
-    code = django_filters.CharFilter(
-        lookup_expr="icontains",
-        help_text="Filter by contract type code (case-insensitive partial match)",
-    )
-
-    category = django_filters.ChoiceFilter(
-        choices=ContractType.Category.choices,
-        help_text="Filter by category (contract or appendix)",
-    )
-
-    duration_type = django_filters.ChoiceFilter(
-        choices=ContractType.DurationType.choices,
-        help_text="Filter by duration type (indefinite or fixed)",
-    )
-
-    has_social_insurance = django_filters.BooleanFilter(
-        help_text="Filter by social insurance status",
-    )
-
-    working_time_type = django_filters.ChoiceFilter(
-        choices=ContractType.WorkingTimeType.choices,
-        help_text="Filter by working time type",
-    )
-
-    created_at_from = django_filters.DateTimeFilter(
-        field_name="created_at",
-        lookup_expr="gte",
-        help_text="Filter contract types created on or after this date (format: YYYY-MM-DD)",
-    )
-
-    created_at_to = django_filters.DateTimeFilter(
-        field_name="created_at",
-        lookup_expr="lte",
-        help_text="Filter contract types created on or before this date (format: YYYY-MM-DD)",
-    )
 
     class Meta:
         model = ContractType
-        fields = [
-            "name",
-            "code",
-            "category",
-            "duration_type",
-            "has_social_insurance",
-            "working_time_type",
-            "created_at_from",
-            "created_at_to",
-        ]
+        fields = {
+            "name": ["icontains"],
+            "code": ["icontains"],
+            "category": ["exact"],
+            "duration_type": ["exact"],
+            "has_social_insurance": ["exact"],
+            "working_time_type": ["exact"],
+            "created_at": ["exact", "date__gte", "date__lte"],
+        }
