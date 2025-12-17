@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 20:27+0700\n"
+"POT-Creation-Date: 2025-12-17 23:30+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -232,6 +232,24 @@ msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 #: apps/hrm/api/serializers/holiday.py:209
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
+
+#: apps/hrm/api/serializers/organization.py:256
+msgid "Leader must be currently working."
+msgstr "Trưởng phòng phải là nhân viên đang làm việc."
+
+#: apps/hrm/api/serializers/organization.py:325
+msgid "Leader must be an employee within the department."
+msgstr "Trưởng phòng phải là nhân viên trong phòng ban."
+
+#: apps/hrm/api/serializers/organization.py:329
+msgid "Employee is already leading another department."
+msgstr "Nhân viên đã là trưởng phòng của một phòng ban khác."
+
+#: apps/hrm/api/serializers/organization.py:334
+msgid "Employee cannot be both leader and subordinate in hierarchy."
+msgstr ""
+"Nhân viên không thể vừa là trưởng phòng vừa là cấp dưới trong cùng một hệ "
+"thống phân cấp."
 
 #: apps/hrm/api/serializers/proposal.py:305
 msgid "This serializer requires an existing verifier instance"

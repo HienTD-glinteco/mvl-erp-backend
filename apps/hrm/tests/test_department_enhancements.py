@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department
+from apps.hrm.models import Block, Branch, Department, Employee
 
 User = get_user_model()
 
@@ -450,3 +450,85 @@ class DepartmentEnhancementsAPITest(APITestCase):
         if isinstance(error, dict) and isinstance(error.get("errors"), list):
             fields = {e.get("attr") for e in error["errors"] if e.get("attr")}
         self.assertIn("management_department_id", fields)
+
+    def test_update_department_with_valid_leader(self):
+        """Can assign leader from same department via API"""
+        # Create department and employee in same department
+        hr_dept = Department.objects.create(
+            name="Phòng Nhân sự",
+            branch=self.branch,
+            block=self.support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+        emp_in_hr = Employee.objects.create(
+            fullname="John Leader",
+            username="john.leader",
+            email="john.leader@example.com",
+            phone="0912345678",
+            attendance_code="100001",
+            start_date="2024-01-01",
+            branch=self.branch,
+            block=self.support_block,
+            department=hr_dept,
+            citizen_id="123456789000",
+            date_of_birth="1990-01-01",
+        )
+
+        url = reverse("hrm:department-detail", kwargs={"pk": hr_dept.id})
+        payload = {
+            "name": hr_dept.name,
+            "branch_id": str(hr_dept.branch.id),
+            "block_id": str(hr_dept.block.id),
+            "function": hr_dept.function,
+            "leader_id": str(emp_in_hr.id),
+        }
+        res = self.client.put(url, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(res)
+        self.assertIsNotNone(data.get("leader"))
+        self.assertEqual(str(data["leader"]["id"]), str(emp_in_hr.id))
+
+    def test_update_department_with_invalid_leader(self):
+        """Reject assigning leader from another department via API"""
+        # Create target department
+        hr_dept = Department.objects.create(
+            name="Phòng Nhân sự",
+            branch=self.branch,
+            block=self.support_block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+        # Create employee in a different department
+        other_dept = Department.objects.create(
+            name="Phòng Kế toán",
+            branch=self.branch,
+            block=self.support_block,
+            function=Department.DepartmentFunction.ACCOUNTING,
+        )
+        emp_other_dept = Employee.objects.create(
+            fullname="Jane Other",
+            username="jane.other",
+            email="jane.other@example.com",
+            phone="0912345679",
+            attendance_code="100002",
+            start_date="2024-02-01",
+            branch=self.branch,
+            block=self.support_block,
+            department=other_dept,
+            citizen_id="987654321000",
+            date_of_birth="1991-02-02",
+        )
+
+        url = reverse("hrm:department-detail", kwargs={"pk": hr_dept.id})
+        payload = {
+            "name": hr_dept.name,
+            "branch_id": str(hr_dept.branch.id),
+            "block_id": str(hr_dept.block.id),
+            "function": hr_dept.function,
+            "leader_id": str(emp_other_dept.id),
+        }
+        res = self.client.put(url, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        err = self.get_response_error(res)
+        if isinstance(err, dict) and isinstance(err.get("errors"), list):
+            fields = {e.get("attr") for e in err["errors"] if e.get("attr")}
+            self.assertIn("leader_id", fields)
