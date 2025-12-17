@@ -233,16 +233,16 @@ class EmployeeKPIAssessmentListSerializer(serializers.ModelSerializer):
 
 
 class EmployeeKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating specific fields of EmployeeKPIAssessment."""
+    """Serializer for updating specific fields of EmployeeKPIAssessment (HRM only)."""
 
     class Meta:
         model = EmployeeKPIAssessment
-        fields = ["grade_manager_overridden", "note"]
+        fields = ["grade_hrm", "note"]
 
     def validate(self, data):
         """Check permissions and finalization status."""
-        if self.instance.finalized and "grade_manager_overridden" in data:
-            # Allow updating override even if finalized, but log it
+        if self.instance.finalized and "grade_hrm" in data:
+            # Allow updating hrm grade even if finalized, but log it
             pass
         return data
 
@@ -287,6 +287,77 @@ class EmployeeSelfAssessmentSerializer(serializers.ModelSerializer):
             "month",
             "total_possible_score",
             "grade_manager",
+            "finalized",
+            "items",
+        ]
+
+    def get_employee_fullname(self, obj):
+        """Get employee full name if available."""
+        try:
+            from apps.hrm.models import Employee
+
+            employee = Employee.objects.filter(username=obj.employee.username).first()
+            if employee:
+                return employee.fullname
+        except (ImportError, AttributeError):
+            pass
+        return obj.employee.get_full_name()
+
+    def validate(self, data):
+        """Validate that assessment is not finalized."""
+        if self.instance and self.instance.finalized:
+            raise serializers.ValidationError("Cannot update finalized assessment")
+        return data
+
+
+class ManagerAssessmentSerializer(serializers.ModelSerializer):
+    """Serializer for manager assessment of employees.
+
+    Allows managers to:
+    - View employee assessments
+    - Update manager scores for items (via batch update in view)
+    - Update manager_assessment field
+    """
+
+    employee_username = serializers.CharField(source="employee.username", read_only=True)
+    employee_fullname = serializers.SerializerMethodField()
+    month = serializers.DateField(source="period.month", read_only=True)
+    items = EmployeeKPIItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = EmployeeKPIAssessment
+        fields = [
+            "id",
+            "period",
+            "employee",
+            "employee_username",
+            "employee_fullname",
+            "month",
+            "total_possible_score",
+            "total_employee_score",
+            "total_manager_score",
+            "grade_manager",
+            "plan_tasks",
+            "extra_tasks",
+            "proposal",
+            "manager_assessment",
+            "finalized",
+            "items",
+        ]
+        read_only_fields = [
+            "id",
+            "period",
+            "employee",
+            "employee_username",
+            "employee_fullname",
+            "month",
+            "total_possible_score",
+            "total_employee_score",
+            "total_manager_score",
+            "grade_manager",
+            "plan_tasks",
+            "extra_tasks",
+            "proposal",
             "finalized",
             "items",
         ]

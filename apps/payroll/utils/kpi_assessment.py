@@ -268,6 +268,7 @@ def generate_employee_assessments_for_period(
                 assessment = EmployeeKPIAssessment.objects.create(
                     employee=employee,
                     period=period,
+                    manager=employee.department.leader if hasattr(employee.department, "leader") else None,
                 )
 
                 # Create items from criteria

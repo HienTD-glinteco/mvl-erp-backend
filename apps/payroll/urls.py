@@ -10,6 +10,7 @@ from apps.payroll.api.views import (
     KPICriterionViewSet,
 )
 from apps.payroll.api.views.employee_self_assessment import EmployeeSelfAssessmentViewSet
+from apps.payroll.api.views.manager_assessment import ManagerAssessmentViewSet
 
 app_name = "payroll"
 
@@ -19,6 +20,7 @@ router.register(r"kpi-periods", KPIAssessmentPeriodViewSet, basename="kpi-period
 router.register(r"kpi-assessments/employees", EmployeeKPIAssessmentViewSet, basename="kpi-assessments")
 router.register(r"kpi-assessments/departments", DepartmentKPIAssessmentViewSet, basename="kpi-department-assessments")
 router.register(r"kpi-assessments/mine", EmployeeSelfAssessmentViewSet, basename="kpi-employee-self-assessments")
+router.register(r"kpi-assessments/manager", ManagerAssessmentViewSet, basename="kpi-manager-assessments")
 
 urlpatterns = [
     path("salary-config/", CurrentSalaryConfigView.as_view(), name="salary-config-current"),

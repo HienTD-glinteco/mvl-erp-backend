@@ -121,7 +121,7 @@ class KPIAssessmentPeriodAPITest(TestCase):
 
     def test_list_periods(self):
         """Test listing KPI assessment periods."""
-        response = self.client.get("/api/payroll/kpi/periods/")
+        response = self.client.get("/api/payroll/kpi-periods/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.get_response_data(response)["success"], True)
@@ -129,28 +129,25 @@ class KPIAssessmentPeriodAPITest(TestCase):
 
     def test_retrieve_period(self):
         """Test retrieving a specific period."""
-        response = self.client.get(f"/api/payroll/kpi/periods/{self.period.id}/")
+        response = self.client.get(f"/api/payroll/kpi-periods/{self.period.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.get_response_data(response)["success"], True)
         self.assertEqual(self.get_response_data(response)["data"]["id"], self.period.id)
 
-    def test_create_period(self):
-        """Test creating a new period."""
-        data = {
-            "month": "2026-01-01",
-            "kpi_config_snapshot": self.kpi_config.config,
-        }
+    def test_generate_period(self):
+        """Test generating assessments for a new period."""
+        data = {"month": "2026-01"}
 
-        response = self.client.post("/api/payroll/kpi/periods/", data, format="json")
+        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.get_response_data(response)["success"], True)
-        self.assertEqual(self.get_response_data(response)["data"]["month"], "2026-01-01")
+        self.assertIn("period_id", self.get_response_data(response)["data"])
 
     def test_finalize_period(self):
         """Test finalizing a period."""
-        response = self.client.patch(f"/api/payroll/kpi/periods/{self.period.id}/", {"finalized": True}, format="json")
+        response = self.client.post(f"/api/payroll/kpi-periods/{self.period.id}/finalize/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -79,7 +79,10 @@ class InitKPIConfigCommandTest(TestCase):
         self.assertEqual(config["name"], "Default KPI Config")
 
         # Validate ambiguous_assignment
-        self.assertIn(config["ambiguous_assignment"], ["manual", "auto_prefer_default", "auto_prefer_highest", "auto_prefer_first"])
+        self.assertIn(
+            config["ambiguous_assignment"],
+            ["manual", "auto_prefer_default", "auto_prefer_highest", "auto_prefer_first"],
+        )
 
         # Validate grade_thresholds
         self.assertIn("grade_thresholds", config)
@@ -96,13 +99,13 @@ class InitKPIConfigCommandTest(TestCase):
         self.assertIn("unit_control", config)
         self.assertEqual(len(config["unit_control"]), 4)
 
-        # Each unit control should have required fields
+        # Each unit control should have nested structure for each grade
         for unit_type, control in config["unit_control"].items():
-            self.assertIn("max_pct_A", control)
-            self.assertIn("max_pct_B", control)
-            self.assertIn("max_pct_C", control)
-            # min_pct_D can be null
-            self.assertIn("min_pct_D", control)
+            self.assertIsInstance(control, dict)
+            # Check that it has grade-level controls
+            for grade in ["A", "B", "C", "D"]:
+                self.assertIn(grade, control)
+                self.assertIsInstance(control[grade], dict)
 
     def test_config_validates_correctly(self):
         """Test that the created config passes validation"""

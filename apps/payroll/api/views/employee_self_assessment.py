@@ -59,18 +59,41 @@ from libs import BaseModelViewSet
     ),
     partial_update=extend_schema(
         summary="Update self-assessment",
-        description="Update employee scores, plan_tasks, extra_tasks, and proposal",
+        description="Batch update employee scores for items, plan_tasks, extra_tasks, and proposal",
         tags=["10.5: Employee Self-Assessment"],
         examples=[
             OpenApiExample(
-                "Update Request",
+                "Update Request - Batch update items",
                 value={
                     "plan_tasks": "Updated plan tasks",
                     "extra_tasks": "Handled additional tasks",
                     "proposal": "My improvement suggestions",
+                    "items": {"1": "65.00", "2": "28.50"},
                 },
                 request_only=True,
-            )
+            ),
+            OpenApiExample(
+                "Success Response",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "employee": 1,
+                        "employee_username": "john.doe",
+                        "employee_fullname": "John Doe",
+                        "month": "2025-12-01",
+                        "total_possible_score": "100.00",
+                        "grade_manager": "B",
+                        "plan_tasks": "Updated plan tasks",
+                        "extra_tasks": "Handled additional tasks",
+                        "proposal": "My improvement suggestions",
+                        "finalized": False,
+                        "items": [],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
         ],
     ),
 )
@@ -127,16 +150,36 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
         serializer = self.get_serializer(latest)
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
-        """Prevent full update, only allow partial update."""
-        return Response(
-            {"detail": "Only partial updates are allowed. Use PATCH method."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
     def perform_update(self, serializer):
-        """Save the updated assessment."""
-        serializer.save()
+        """Save the updated assessment and handle batch item updates."""
+        items_data = self.request.data.get("items", {})
+
+        # Check finalized status before any updates
+        assessment = self.get_object()
+        if assessment.finalized:
+            from django.utils.translation import gettext as _
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(_("Cannot update finalized assessment"))
+
+        # Update assessment fields (plan_tasks, extra_tasks, proposal)
+        assessment = serializer.save()
+
+        # Batch update items if provided
+        if items_data:
+            for item_id, score in items_data.items():
+                try:
+                    item = assessment.items.get(id=int(item_id))
+                    item.employee_score = score
+                    item.save()
+                except (EmployeeKPIItem.DoesNotExist, ValueError):
+                    continue
+
+            # Refresh assessment to get updated items, then recalculate
+            assessment.refresh_from_db()
+
+        # Always recalculate totals after any update
+        recalculate_assessment_scores(assessment)
 
     @extend_schema(
         summary="Update employee score for an item",

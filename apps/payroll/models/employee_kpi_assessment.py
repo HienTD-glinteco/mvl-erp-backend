@@ -19,6 +19,7 @@ class EmployeeKPIAssessment(BaseModel):
     Attributes:
         period: Foreign key to KPIAssessmentPeriod
         employee: Foreign key to hrm.Employee (employee being assessed)
+        manager: Foreign key to hrm.Employee (manager from department leader)
         total_possible_score: Sum of all component_total_score from items
         total_manager_score: Sum of all manager scores from items
         grade_manager: Final grade used for payroll (A/B/C/D)
@@ -26,6 +27,7 @@ class EmployeeKPIAssessment(BaseModel):
         plan_tasks: Planned tasks for the assessment period
         extra_tasks: Extra tasks handled during the period
         proposal: Employee's proposals or suggestions
+        manager_assessment: Manager's assessment comments and feedback
         grade_hrm: HRM department's final grade assessment
         finalized: Whether assessment is locked (no further edits)
         department_assignment_source: Reference to DepartmentKPIAssessment if grade assigned by dept
@@ -48,6 +50,16 @@ class EmployeeKPIAssessment(BaseModel):
         related_name="kpi_assessments",
         verbose_name="Employee",
         help_text="Employee being assessed",
+    )
+
+    manager = models.ForeignKey(
+        "hrm.Employee",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="managed_kpi_assessments",
+        verbose_name="Manager",
+        help_text="Manager responsible for assessing this employee (from department leader)",
     )
 
     total_possible_score = models.DecimalField(
@@ -111,6 +123,12 @@ class EmployeeKPIAssessment(BaseModel):
         blank=True,
         verbose_name="Proposal",
         help_text="Employee's proposals or suggestions",
+    )
+
+    manager_assessment = SafeTextField(
+        blank=True,
+        verbose_name="Manager assessment",
+        help_text="Manager's assessment comments and feedback",
     )
 
     grade_hrm = models.CharField(

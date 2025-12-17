@@ -21,6 +21,8 @@ from .employee_kpi_assessment import (
     EmployeeKPIAssessmentUpdateSerializer,
     EmployeeKPIItemSerializer,
     EmployeeKPIItemUpdateSerializer,
+    EmployeeSelfAssessmentSerializer,
+    ManagerAssessmentSerializer,
 )
 from .kpi_assessment_period import (
     KPIAssessmentPeriodFinalizeResponseSerializer,
@@ -61,6 +63,8 @@ __all__ = [
     "EmployeeKPIAssessmentUpdateSerializer",
     "EmployeeKPIItemSerializer",
     "EmployeeKPIItemUpdateSerializer",
+    "EmployeeSelfAssessmentSerializer",
+    "ManagerAssessmentSerializer",
     "DepartmentKPIAssessmentSerializer",
     "DepartmentKPIAssessmentListSerializer",
     "DepartmentKPIAssessmentUpdateSerializer",

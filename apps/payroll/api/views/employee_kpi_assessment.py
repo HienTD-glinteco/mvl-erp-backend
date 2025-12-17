@@ -115,12 +115,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     ),
     partial_update=extend_schema(
         summary="Update employee KPI assessment",
-        description="Update specific fields of an employee KPI assessment (grade override, note)",
+        description="Update specific fields of an employee KPI assessment (HRM grade and note only)",
         tags=["10.3: Employee KPI Assessments"],
         examples=[
             OpenApiExample(
-                "Request - Override grade",
-                value={"grade_manager_overridden": "A", "note": "Exceptional performance this month"},
+                "Request - Update HRM grade",
+                value={"grade_hrm": "A", "note": "Exceptional performance this month"},
                 request_only=True,
             )
         ],

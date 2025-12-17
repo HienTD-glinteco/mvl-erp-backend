@@ -40,7 +40,10 @@ class DepartmentKPIAssessmentModelTest(TestCase):
                     {"min": 0, "max": 60, "possible_codes": ["D"]},
                 ],
                 "unit_control": {
-                    "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50},
+                    "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {}},
+                    "B": {"A": {"max": 0.10}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}},
+                    "C": {"A": {"max": 0.05}, "B": {"max": 0.20}, "C": {"max": 0.60}, "D": {"min": 0.15}},
+                    "D": {"A": {"max": 0.05}, "B": {"max": 0.10}, "C": {"max": 0.65}, "D": {"min": 0.20}},
                 },
             }
         )
@@ -127,7 +130,10 @@ class DepartmentKPIAssessmentAPITest(TestCase):
                     {"min": 0, "max": 60, "possible_codes": ["D"]},
                 ],
                 "unit_control": {
-                    "A": {"max_pct_A": 0.20, "max_pct_B": 0.30, "max_pct_C": 0.50},
+                    "A": {"A": {"max": 0.20}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {}},
+                    "B": {"A": {"max": 0.10}, "B": {"max": 0.30}, "C": {"max": 0.50}, "D": {"min": 0.10}},
+                    "C": {"A": {"max": 0.05}, "B": {"max": 0.20}, "C": {"max": 0.60}, "D": {"min": 0.15}},
+                    "D": {"A": {"max": 0.05}, "B": {"max": 0.10}, "C": {"max": 0.65}, "D": {"min": 0.20}},
                 },
             }
         )
@@ -145,7 +151,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
 
     def test_list_assessments(self):
         """Test listing department KPI assessments."""
-        response = self.client.get("/api/payroll/kpi/departments/assessments/")
+        response = self.client.get("/api/payroll/kpi-assessments/departments/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.get_response_data(response)["success"], True)
@@ -153,7 +159,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
 
     def test_retrieve_assessment(self):
         """Test retrieving a specific assessment."""
-        response = self.client.get(f"/api/payroll/kpi/departments/assessments/{self.assessment.id}/")
+        response = self.client.get(f"/api/payroll/kpi-assessments/departments/{self.assessment.id}/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(self.get_response_data(response)["success"], True)
@@ -167,7 +173,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
         }
 
         response = self.client.patch(
-            f"/api/payroll/kpi/departments/assessments/{self.assessment.id}/", data, format="json"
+            f"/api/payroll/kpi-assessments/departments/{self.assessment.id}/", data, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -178,7 +184,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
         self.assertEqual(self.assessment.note, "Excellent performance")
 
     def test_generate_assessments(self):
-        """Test generating department assessments."""
+        """Test generating department assessments through period generation."""
         # Create another department using same branch and block
         dept2 = Department.objects.create(
             name="HR Department",
@@ -188,20 +194,27 @@ class DepartmentKPIAssessmentAPITest(TestCase):
             is_active=True,
         )
 
+        # Department assessments are generated when generating a period
         response = self.client.post(
-            "/api/payroll/kpi/departments/assessments/generate/?month=2026-01",
+            "/api/payroll/kpi-periods/generate/",
+            {"month": "2026-01"},
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response_data = self.get_response_data(response)
-        self.assertIn("created", response_data["data"])
-        self.assertGreater(response_data["data"]["created"], 0)
+        self.assertIn("department_assessments_created", response_data["data"])
+        self.assertGreater(response_data["data"]["department_assessments_created"], 0)
 
     def test_finalize_assessment(self):
-        """Test finalizing a department assessment."""
-        response = self.client.post(f"/api/payroll/kpi/departments/assessments/{self.assessment.id}/finalize/")
+        """Test that department assessments are finalized through period finalization."""
+        # Department assessments don't have individual finalize action
+        # They are finalized when the period is finalized
+        response = self.client.post(f"/api/payroll/kpi-periods/{self.period.id}/finalize/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # Verify the period and its assessments are finalized
         self.assessment.refresh_from_db()
-        self.assertTrue(self.assessment.finalized)
+        self.period.refresh_from_db()
+        self.assertTrue(self.period.finalized)
