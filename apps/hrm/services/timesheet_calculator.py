@@ -185,11 +185,20 @@ class TimesheetCalculator:
         entry = self.entry
         weekday = entry.date.isoweekday() + 1
         work_schedule = get_work_schedule_by_weekday(weekday)
-        is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
-        compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
-        compensatory_day = compensatory is not None
 
-        self._determine_day_type(compensatory_day, is_holiday)
+        # Rely on entry.day_type being set by TimeSheetEntry.clean() or update_day_types_for_range
+        compensatory_day = entry.day_type == TimesheetDayType.COMPENSATORY
+        is_holiday = entry.day_type == TimesheetDayType.HOLIDAY
+
+        # Retrieve compensatory info if needed for session logic (rare, but let's check if we used it)
+        # Looking at _determine_sessions, it uses 'compensatory' object for session info.
+        # If day_type is COMPENSATORY, we might still need the actual object to know if it's Morning/Afternoon.
+        # However, for pure day_type check, we use the field.
+        # Let's see if we can optimize this.
+        compensatory = None
+        if compensatory_day:
+            compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
+
         self._set_payroll_count_flag()
 
         (
@@ -239,13 +248,6 @@ class TimesheetCalculator:
             base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon
         )
 
-    def _determine_day_type(self, compensatory_day, is_holiday) -> None:
-        if compensatory_day:
-            self.entry.day_type = TimesheetDayType.COMPENSATORY
-        elif is_holiday:
-            self.entry.day_type = TimesheetDayType.HOLIDAY
-        else:
-            self.entry.day_type = TimesheetDayType.OFFICIAL
 
     def _handle_absent_no_start_time(self) -> bool:
         if not self.entry.start_time:
@@ -594,8 +596,13 @@ class TimesheetCalculator:
         entry = self.entry
         weekday = entry.date.isoweekday() + 1
         work_schedule = get_work_schedule_by_weekday(weekday)
-        compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
-        is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
+
+        compensatory_day = entry.day_type == TimesheetDayType.COMPENSATORY
+        is_holiday = entry.day_type == TimesheetDayType.HOLIDAY
+
+        compensatory = None
+        if compensatory_day:
+            compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
 
         (
             has_full_day_paid_leave,

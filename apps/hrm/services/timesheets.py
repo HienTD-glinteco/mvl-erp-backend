@@ -38,12 +38,22 @@ def create_entries_for_employee_month(
         TimeSheetEntry.objects.filter(employee_id=employee_id, date__in=all_dates).values_list("date", flat=True)
     )
 
+    if not all_dates:
+        return []
+
+    # Get Day Type Map for the month
+    from apps.hrm.services.day_type_service import get_day_type_map
+
+    day_type_map = get_day_type_map(all_dates[0], all_dates[-1])
+
     # Create entries for dates that don't exist yet
-    entries_to_create = [
-        TimeSheetEntry(employee_id=employee_id, date=entry_date)
-        for entry_date in all_dates
-        if entry_date not in existing_dates
-    ]
+    entries_to_create = []
+    for entry_date in all_dates:
+        if entry_date not in existing_dates:
+            day_type = day_type_map.get(entry_date)
+            entries_to_create.append(
+                TimeSheetEntry(employee_id=employee_id, date=entry_date, day_type=day_type)
+            )
 
     if entries_to_create:
         created = TimeSheetEntry.objects.bulk_create(entries_to_create, ignore_conflicts=True)
@@ -260,3 +270,27 @@ def trigger_timesheet_updates_from_records(records: List[AttendanceRecord]) -> N
             )[0].mark_refresh()
         except Exception as e:
             logger.error(f"Failed to mark monthly refresh for employee {emp_id} month {month_key}: {e}")
+
+def update_day_types_for_range(start_date: date, end_date: date) -> None:
+    """Batch update day_type for all TimeSheetEntries in the given date range.
+
+    Logic:
+    1. Get the map of day types for the range using DayTypeService.
+    2. Group dates by their day_type.
+    3. Perform bulk updates on TimeSheetEntry objects.
+    """
+    from apps.hrm.services.day_type_service import get_day_type_map
+
+    day_type_map_result = get_day_type_map(start_date, end_date)
+
+    # Group dates by type
+    grouped_map = {}
+    for d_date, d_type in day_type_map_result.items():
+        if d_type not in grouped_map:
+            grouped_map[d_type] = []
+        grouped_map[d_type].append(d_date)
+
+    # Perform updates
+    for d_type, dates in grouped_map.items():
+        # d_type can be OFFICIAL, HOLIDAY, COMPENSATORY, or None
+        TimeSheetEntry.objects.filter(date__in=dates).update(day_type=d_type)

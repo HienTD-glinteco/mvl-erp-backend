@@ -171,6 +171,12 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         # Run all calculations via calculator
         calculator = TimesheetCalculator(self)
 
+        if not self.day_type and self.date:
+            from apps.hrm.services.day_type_service import get_day_type_map
+
+            day_type_map = get_day_type_map(self.date, self.date)
+            self.day_type = day_type_map.get(self.date)
+
         # Calculate status
         calculator.compute_status()
 

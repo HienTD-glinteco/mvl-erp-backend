@@ -196,28 +196,6 @@ class TestTimesheetBusinessLogic:
         # 6/8 = 0.75. 0.75 + 0.125 = 0.875 -> 0.88
         assert timesheet_entry.working_days == Decimal("0.88")
 
-    @patch("apps.hrm.services.timesheet_calculator.get_work_schedule_by_weekday")
-    @patch("apps.hrm.services.timesheet_calculator.CompensatoryWorkday.objects.filter")
-    @patch("apps.hrm.services.timesheet_calculator.Holiday.objects.filter")
-    @patch("apps.hrm.services.timesheet_calculator.TimesheetCalculator._fetch_approved_proposals_flags")
-    def test_compensatory_day_type(self, mock_proposals, mock_holiday, mock_compensatory, mock_get_schedule, timesheet_entry, mock_work_schedule):
-        # Scenario: Compensatory day
-        # Ensure day_type is COMPENSATORY
-
-        mock_get_schedule.return_value = mock_work_schedule
-        mock_holiday.return_value.exists.return_value = False
-        mock_proposals.return_value = (False, False, False, 0, None)
-
-        # Compensatory exists
-        mock_comp_day = MagicMock(spec=CompensatoryWorkday)
-        mock_comp_day.session = CompensatoryWorkday.Session.FULL_DAY
-        mock_compensatory.return_value.first.return_value = mock_comp_day
-
-        calculator = TimesheetCalculator(timesheet_entry)
-        calculator.compute_status()
-
-        assert timesheet_entry.day_type == TimesheetDayType.COMPENSATORY
-
     def test_payroll_count_unpaid(self, timesheet_entry, mock_employee):
         # Scenario: Employee is UNPAID_OFFICIAL
         # count_for_payroll should be False

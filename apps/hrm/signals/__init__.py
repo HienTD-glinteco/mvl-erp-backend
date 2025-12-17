@@ -86,3 +86,5 @@ register_auto_code_signal(
     temp_code_prefix=TEMP_CODE_PREFIX,
     custom_generate_code=generate_contract_code,
 )
+
+from .day_type_triggers import *  # noqa: E402, F401, F403
