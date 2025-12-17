@@ -3,11 +3,13 @@ from decimal import Decimal
 from typing import Optional
 
 from django.db import models
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import (
     STANDARD_WORKING_HOURS_PER_DAY,
+    EmployeeType,
     TimesheetDayType,
     TimesheetReason,
     TimesheetStatus,
@@ -37,6 +39,10 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     start_time = models.DateTimeField(null=True, blank=True, verbose_name="Start time")
     end_time = models.DateTimeField(null=True, blank=True, verbose_name="End time")
+
+    # Original Logs & Manual Correction
+    check_in_time = models.DateTimeField(null=True, blank=True, verbose_name="Original Check-in")
+    check_out_time = models.DateTimeField(null=True, blank=True, verbose_name="Original Check-out")
 
     morning_hours = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Morning hours"
@@ -83,6 +89,15 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
 
     # Flag to prevent automatic updates from overwriting manual corrections (e.g., from approved proposals)
     is_manually_corrected = models.BooleanField(default=False, verbose_name="Is manually corrected")
+    manually_corrected_by = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="corrected_timesheets",
+        verbose_name="Manually corrected by",
+    )
+    manually_corrected_at = models.DateTimeField(null=True, blank=True, verbose_name="Manually corrected at")
 
     note = SafeTextField(blank=True, verbose_name="Note")
 
@@ -134,6 +149,11 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         # Import local to avoid circular import (model <-> calculator)
         from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 
+        # Auto-Sync Logic
+        if not self.is_manually_corrected:
+            self.start_time = self.check_in_time
+            self.end_time = self.check_out_time
+
         # Ensure hours are quantized to 2 decimals and calculate derived fields
         if self.morning_hours is None:
             self.morning_hours = Decimal("0.00")
@@ -181,3 +201,15 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         calculator.set_is_full_salary_from_contract()
 
         super().clean()
+
+    @property
+    def is_holiday(self) -> bool:
+        return self.day_type == TimesheetDayType.HOLIDAY
+
+    @property
+    def payroll_status(self) -> Promise:
+        status = _("Paid")
+        if self.employee.employee_type in [EmployeeType.UNPAID_OFFICIAL, EmployeeType.UNPAID_PROBATION]:
+            status = _("Unpaid")
+
+        return status

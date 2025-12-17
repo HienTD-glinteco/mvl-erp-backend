@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 14:36+0700\n"
+"POT-Creation-Date: 2025-12-17 16:00+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -277,6 +277,10 @@ msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 msgid "Number of positions must be at least 1."
 msgstr "Số lượng vị trí tuyển dụng phải lớn hơn hoặc bằng 1."
 
+#: apps/hrm/api/serializers/timesheet.py:101
+msgid "Note is required when manually correcting timesheet."
+msgstr "Ghi chú là bắt buộc khi chỉnh sửa chấm công thủ công."
+
 #: apps/hrm/api/serializers/wifi_attendance.py:33
 msgid "WiFi device not found"
 msgstr "Không tìm thấy thiết bị WiFi"
@@ -416,7 +420,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/recruitment_expense.py:342
 #: apps/hrm/api/views/recruitment_request.py:391
 #: apps/hrm/api/views/recruitment_source.py:57
-#: apps/hrm/api/views/timesheet.py:55 apps/hrm/api/views/timesheet.py:301
+#: apps/hrm/api/views/timesheet.py:55 apps/hrm/api/views/timesheet.py:282
 msgid "HRM"
 msgstr "HCNS"
 
@@ -1134,7 +1138,7 @@ msgid "List employee timesheets"
 msgstr "Bảng công"
 
 #: apps/hrm/api/views/timesheet.py:64 apps/hrm/api/views/timesheet.py:65
-#: apps/hrm/api/views/timesheet.py:310 apps/hrm/api/views/timesheet.py:311
+#: apps/hrm/api/views/timesheet.py:291 apps/hrm/api/views/timesheet.py:292
 msgid "Get employee timesheet details"
 msgstr "Chi tiết bảng công nhân viên"
 
@@ -1154,15 +1158,15 @@ msgstr "Xem chi tiết lịch sử bảng công"
 msgid "View history detail of timesheets"
 msgstr "Xem chi tiết lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:151
+#: apps/hrm/api/views/timesheet.py:153
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
-#: apps/hrm/api/views/timesheet.py:302 apps/hrm/models/timesheet.py:91
+#: apps/hrm/api/views/timesheet.py:283 apps/hrm/models/timesheet.py:106
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/api/views/timesheet.py:306 apps/hrm/api/views/timesheet.py:307
+#: apps/hrm/api/views/timesheet.py:287 apps/hrm/api/views/timesheet.py:288
 msgid "List employee timesheet entries"
 msgstr "Danh sách ngày công nhân viên"
 
@@ -2523,9 +2527,17 @@ msgstr "Nguồn tuyển dụng"
 msgid "Recruitment Sources"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/models/timesheet.py:92
+#: apps/hrm/models/timesheet.py:107
 msgid "Timesheets"
 msgstr "Bảng chấm công"
+
+#: apps/hrm/models/timesheet.py:211
+msgid "Paid"
+msgstr "Có lương"
+
+#: apps/hrm/models/timesheet.py:213
+msgid "Unpaid"
+msgstr "Không lương"
 
 #: apps/hrm/models/work_schedule.py:14
 msgid "Monday"

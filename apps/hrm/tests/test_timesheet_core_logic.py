@@ -13,7 +13,7 @@ import pytest
 from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.constants import TimesheetStatus
+from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetStatus
 from apps.hrm.models import (
     Block,
     Branch,
@@ -23,6 +23,8 @@ from apps.hrm.models import (
     TimeSheetEntry,
     WorkSchedule,
 )
+from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+from libs.datetimes import make_aware
 
 
 @pytest.fixture
@@ -110,8 +112,6 @@ class TestCalculateStatus:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=None,
-            end_time=None,
         )
         assert entry.status == TimesheetStatus.ABSENT
 
@@ -120,8 +120,8 @@ class TestCalculateStatus:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            check_in_time=make_aware(timezone.datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(timezone.datetime(2025, 12, 1, 17, 0, 0)),
         )
         assert entry.status == TimesheetStatus.ON_TIME
 
@@ -131,8 +131,8 @@ class TestCalculateStatus:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 15, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 15, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 17, 0, 0)),
         )
         assert entry.status == TimesheetStatus.ON_TIME
 
@@ -142,8 +142,8 @@ class TestCalculateStatus:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 16, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 16, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 17, 0, 0)),
         )
         assert entry.status == TimesheetStatus.NOT_ON_TIME
 
@@ -153,8 +153,8 @@ class TestCalculateStatus:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 7, 30, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            check_in_time=make_aware(datetime(2025, 12, 1, 7, 30, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 17, 0, 0)),
         )
         assert entry.status == TimesheetStatus.ON_TIME
 
@@ -182,8 +182,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -197,9 +197,6 @@ class TestOvertimeCalculation:
 
     def test_overtime_with_approved_proposal(self, test_employee):
         """Test that overtime is calculated when there's an approved overtime proposal."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -219,8 +216,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # 2 hours overtime
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # 2 hours overtime
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -234,9 +231,6 @@ class TestOvertimeCalculation:
 
     def test_overtime_capped_by_approved_duration(self, test_employee):
         """Test that overtime is capped by the approved duration in the proposal."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -256,8 +250,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # Working 2 hours extra
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -271,9 +265,6 @@ class TestOvertimeCalculation:
 
     def test_no_overtime_when_working_less_than_schedule(self, test_employee):
         """Test that overtime is 0 when working less than scheduled hours."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -293,8 +284,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 16, 0, 0)),  # 1 hour less than schedule
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 16, 0, 0)),  # 1 hour less than schedule
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -308,9 +299,6 @@ class TestOvertimeCalculation:
 
     def test_total_worked_hours_includes_overtime(self, test_employee):
         """Test that total_worked_hours correctly includes overtime."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -330,8 +318,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # 2 hours overtime
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 19, 0, 0)),  # 2 hours overtime
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -343,9 +331,6 @@ class TestOvertimeCalculation:
 
     def test_overtime_during_lunch(self, test_employee):
         """Test that overtime is calculated for work during lunch break."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal for lunch
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -364,8 +349,8 @@ class TestOvertimeCalculation:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 0, 0)),
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 17, 0, 0)),
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 0, 0)),
+            check_out_time=make_aware(datetime(2025, 12, 1, 17, 0, 0)),
         )
         entry.calculate_hours_from_schedule(self.work_schedule)
         entry.save()
@@ -399,9 +384,6 @@ class TestTimesheetIntegration:
 
     def test_complete_timesheet_entry_with_all_calculations(self, test_employee):
         """Test a complete timesheet entry with all calculations."""
-        from apps.hrm.constants import ProposalStatus, ProposalType
-        from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
-
         # Create an approved overtime proposal (1.5 hours)
         proposal = Proposal.objects.create(
             created_by=test_employee,
@@ -420,8 +402,8 @@ class TestTimesheetIntegration:
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
-            start_time=timezone.make_aware(datetime(2025, 12, 1, 8, 10, 0)),  # 10 minutes late
-            end_time=timezone.make_aware(datetime(2025, 12, 1, 18, 30, 0)),  # 1.5 hours overtime
+            check_in_time=make_aware(datetime(2025, 12, 1, 8, 10, 0)),  # 10 minutes late
+            check_out_time=make_aware(datetime(2025, 12, 1, 18, 30, 0)),  # 1.5 hours overtime
         )
 
         # Calculate hours from schedule

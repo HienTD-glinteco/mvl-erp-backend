@@ -118,6 +118,7 @@ class TestTimeSheetEntryNewFields:
             date=date(2025, 3, 1),
             morning_hours=Decimal("4.00"),
             afternoon_hours=Decimal("4.00"),
+            is_manually_corrected=True,
         )
 
         start = timezone.make_aware(datetime(2025, 3, 1, 8, 0, 0))

@@ -1,15 +1,12 @@
 import uuid
-from datetime import date, datetime, time
+from datetime import date, time
 
 import pytest
-from django.utils import timezone
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import TimesheetDayType, TimesheetStatus
-from apps.hrm.models.employee import Employee
-from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
-from apps.hrm.models.organization import Block, Branch, Department
-from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.models import Block, Branch, CompensatoryWorkday, Department, Employee, Holiday, TimeSheetEntry
+from libs.datetimes import combine_datetime
 
 pytestmark = pytest.mark.django_db
 
@@ -46,10 +43,6 @@ def _create_employee():
     return emp
 
 
-def make_datetime(d: date, t: time):
-    return timezone.make_aware(datetime.combine(d, t))
-
-
 def test_day_type_holiday_and_compensatory_and_official():
     emp = _create_employee()
 
@@ -81,15 +74,9 @@ def test_single_attendance_status_for_single_punch():
     d = date(2025, 3, 3)
 
     # Single punch: only start_time
-    ts = TimeSheetEntry(employee=emp, date=d)
-    ts.start_time = make_datetime(d, time(8, 0))
-    ts.end_time = None
-    ts.save()
+    ts = TimeSheetEntry.objects.create(employee=emp, date=d, check_in_time=combine_datetime(d, time(8, 0)))
     assert ts.status == TimesheetStatus.SINGLE_PUNCH
 
     # Single punch: only end_time
-    ts2 = TimeSheetEntry(employee=emp, date=d)
-    ts2.start_time = None
-    ts2.end_time = make_datetime(d, time(17, 0))
-    ts2.save()
+    ts2 = TimeSheetEntry.objects.create(employee=emp, date=d, check_out_time=combine_datetime(d, time(17, 0)))
     assert ts2.status == TimesheetStatus.SINGLE_PUNCH

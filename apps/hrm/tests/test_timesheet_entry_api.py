@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, time
 
 import pytest
 from django.urls import reverse
@@ -6,6 +6,7 @@ from rest_framework import status
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Employee, TimeSheetEntry
+from libs.datetimes import combine_datetime
 
 pytestmark = pytest.mark.django_db
 
@@ -55,10 +56,12 @@ class TestTimeSheetEntryAPI:
 
     def test_retrieve_timesheet_entry(self, api_client, superuser, employee):
         entry_date = date(2025, 1, 15)
-        start_dt = datetime.combine(entry_date, time(8, 0))
-        end_dt = datetime.combine(entry_date, time(17, 0))
+        start_dt = combine_datetime(entry_date, time(8, 0))
+        end_dt = combine_datetime(entry_date, time(17, 0))
 
-        entry = TimeSheetEntry.objects.create(employee=employee, date=entry_date, start_time=start_dt, end_time=end_dt)
+        entry = TimeSheetEntry.objects.create(
+            employee=employee, date=entry_date, check_in_time=start_dt, check_out_time=end_dt
+        )
 
         url = reverse("hrm:timesheet-entry-detail", args=[entry.id])
         response = api_client.get(url)
