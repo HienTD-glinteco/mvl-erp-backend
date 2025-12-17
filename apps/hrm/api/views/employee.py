@@ -2,7 +2,6 @@ from typing import Any, Dict
 
 from django.conf import settings
 from django.db import transaction
-from django.utils.crypto import get_random_string
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -31,6 +30,7 @@ from apps.mailtemplates.view_mixins import EmailTemplateActionMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.export_xlsx import ExportXLSXMixin
+from libs.strings import generate_valid_password
 
 
 @extend_schema_view(
@@ -153,9 +153,7 @@ class EmployeeViewSet(
         """Get context data for employee email templates."""
         new_password_condition = self.action == "welcome_email_send"
         new_password = (
-            get_random_string(length=8)
-            if new_password_condition
-            else "new password will be set when the email is sent"
+            generate_valid_password() if new_password_condition else "new password will be set when the email is sent"
         )
         if new_password_condition and instance.user:
             instance.user.set_password(new_password)

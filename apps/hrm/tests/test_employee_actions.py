@@ -535,9 +535,9 @@ class EmployeeEmailTemplateContextTest(TestCase):
         defaults.update(overrides)
         return Employee.objects.create(**defaults)
 
-    @patch("apps.hrm.api.views.employee.get_random_string")
-    def test_welcome_email_send_populates_context_and_updates_password(self, mock_random_string):
-        mock_random_string.return_value = "TempPass99"
+    @patch("apps.hrm.api.views.employee.generate_valid_password")
+    def test_welcome_email_send_populates_context_and_updates_password(self, mock_generate_valid_password):
+        mock_generate_valid_password.return_value = "Demo123!@#"
         BranchContactInfo.objects.create(
             branch=self.branch,
             business_line="Sales",
@@ -554,8 +554,8 @@ class EmployeeEmailTemplateContextTest(TestCase):
 
         context = viewset.get_template_action_data(employee, "welcome")
 
-        self.assertEqual(context["new_password"], "TempPass99")
-        employee.user.set_password.assert_called_once_with("TempPass99")
+        self.assertEqual(context["new_password"], "Demo123!@#")
+        employee.user.set_password.assert_called_once_with("Demo123!@#")
         employee.user.save.assert_called_once()
         self.assertEqual(context["employee_department_name"], self.department.name)
         self.assertEqual(context["leader_fullname"], self.department_leader.fullname)
