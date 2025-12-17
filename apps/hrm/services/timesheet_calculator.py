@@ -189,14 +189,7 @@ class TimesheetCalculator:
         compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
         compensatory_day = compensatory is not None
 
-        # Determine day type
-        if compensatory_day:
-            entry.day_type = TimesheetDayType.COMPENSATORY
-        elif is_holiday:
-            entry.day_type = TimesheetDayType.HOLIDAY
-        else:
-            entry.day_type = TimesheetDayType.OFFICIAL
-
+        self._determine_day_type(compensatory_day, is_holiday)
         self._set_payroll_count_flag()
 
         (
@@ -222,30 +215,71 @@ class TimesheetCalculator:
         if self._handle_non_working_day(has_morning or has_afternoon, times_outside_schedule, is_holiday):
             return
 
-        if not entry.start_time:
-            entry.status = TimesheetStatus.ABSENT
+        if self._handle_absent_no_start_time():
             return
 
         base_start_time = self._determine_base_start_time(work_schedule, has_morning, has_afternoon)
 
         if base_start_time is None:
-            if compensatory_day and (has_morning or has_afternoon):
-                if self._compensatory_fallback_punctuality(
-                    late_exemption_minutes, has_maternity_leave, has_morning, has_afternoon
-                ):
-                    return
-                entry.status = TimesheetStatus.ON_TIME
-                return
-
-            if not work_schedule:
-                entry.status = None if not entry.start_time else TimesheetStatus.ON_TIME
-                return
-
-            if not entry.status:
-                entry.status = TimesheetStatus.ABSENT
+            self._handle_no_base_start_time(
+                compensatory_day,
+                has_morning,
+                has_afternoon,
+                late_exemption_minutes,
+                has_maternity_leave,
+                work_schedule,
+            )
             return
 
-        # Determine allowed lateness
+        allowed_late_minutes = self._calculate_allowed_late_minutes(
+            work_schedule, late_exemption_minutes, has_maternity_leave
+        )
+
+        self._determine_punctuality(
+            base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon
+        )
+
+    def _determine_day_type(self, compensatory_day, is_holiday) -> None:
+        if compensatory_day:
+            self.entry.day_type = TimesheetDayType.COMPENSATORY
+        elif is_holiday:
+            self.entry.day_type = TimesheetDayType.HOLIDAY
+        else:
+            self.entry.day_type = TimesheetDayType.OFFICIAL
+
+    def _handle_absent_no_start_time(self) -> bool:
+        if not self.entry.start_time:
+            self.entry.status = TimesheetStatus.ABSENT
+            return True
+        return False
+
+    def _handle_no_base_start_time(
+        self,
+        compensatory_day,
+        has_morning,
+        has_afternoon,
+        late_exemption_minutes,
+        has_maternity_leave,
+        work_schedule,
+    ) -> None:
+        if compensatory_day and (has_morning or has_afternoon):
+            if self._compensatory_fallback_punctuality(
+                late_exemption_minutes, has_maternity_leave, has_morning, has_afternoon
+            ):
+                return
+            self.entry.status = TimesheetStatus.ON_TIME
+            return
+
+        if not work_schedule:
+            self.entry.status = None if not self.entry.start_time else TimesheetStatus.ON_TIME
+            return
+
+        if not self.entry.status:
+            self.entry.status = TimesheetStatus.ABSENT
+
+    def _calculate_allowed_late_minutes(
+        self, work_schedule, late_exemption_minutes, has_maternity_leave
+    ) -> int:
         schedule_allowed = (
             work_schedule.allowed_late_minutes
             if work_schedule and work_schedule.allowed_late_minutes is not None
@@ -254,11 +288,15 @@ class TimesheetCalculator:
         allowed_late_minutes = max(schedule_allowed, late_exemption_minutes or 0)
         if has_maternity_leave:
             allowed_late_minutes = max(allowed_late_minutes, 60)
+        return allowed_late_minutes
 
-        allowed_start_time = combine_datetime(entry.date, base_start_time) + timedelta(minutes=allowed_late_minutes)
+    def _determine_punctuality(
+        self, base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon
+    ) -> None:
+        allowed_start_time = combine_datetime(self.entry.date, base_start_time) + timedelta(minutes=allowed_late_minutes)
 
-        if entry.start_time <= allowed_start_time:
-            entry.status = TimesheetStatus.ON_TIME
+        if self.entry.start_time <= allowed_start_time:
+            self.entry.status = TimesheetStatus.ON_TIME
             return
 
         self._evaluate_work_duration(work_schedule, has_morning, has_afternoon, allowed_late_minutes)
@@ -307,35 +345,24 @@ class TimesheetCalculator:
         date_chk = self.entry.date
 
         for p in approved_proposals:
-            if p.proposal_type == ProposalType.PAID_LEAVE and p.paid_leave_start_date and p.paid_leave_end_date:
-                if p.paid_leave_start_date <= date_chk <= p.paid_leave_end_date:
-                    if not p.paid_leave_shift or p.paid_leave_shift == ProposalWorkShift.FULL_DAY:
-                        has_full_day_paid_leave = True
-                    else:
-                        half_day_shift = p.paid_leave_shift
+            is_full, shift = self._check_paid_leave(p, date_chk)
+            if is_full:
+                has_full_day_paid_leave = True
+            if shift:
+                half_day_shift = shift
 
-            if p.proposal_type == ProposalType.UNPAID_LEAVE and p.unpaid_leave_start_date and p.unpaid_leave_end_date:
-                if p.unpaid_leave_start_date <= date_chk <= p.unpaid_leave_end_date:
-                    if not p.unpaid_leave_shift or p.unpaid_leave_shift == ProposalWorkShift.FULL_DAY:
-                        has_full_day_unpaid_leave = True
-                    else:
-                        half_day_shift = p.unpaid_leave_shift
+            is_full_unpaid, shift_unpaid = self._check_unpaid_leave(p, date_chk)
+            if is_full_unpaid:
+                has_full_day_unpaid_leave = True
+            if shift_unpaid:
+                half_day_shift = shift_unpaid
 
-            if (
-                p.proposal_type == ProposalType.MATERNITY_LEAVE
-                and p.maternity_leave_start_date
-                and p.maternity_leave_end_date
-            ):
-                if p.maternity_leave_start_date <= date_chk <= p.maternity_leave_end_date:
-                    has_maternity_leave = True
+            if self._check_maternity_leave(p, date_chk):
+                has_maternity_leave = True
 
-            if (
-                p.proposal_type == ProposalType.LATE_EXEMPTION
-                and p.late_exemption_start_date
-                and p.late_exemption_end_date
-            ):
-                if p.late_exemption_start_date <= date_chk <= p.late_exemption_end_date and p.late_exemption_minutes:
-                    late_exemption_minutes = max(late_exemption_minutes, p.late_exemption_minutes)
+            minutes = self._check_late_exemption(p, date_chk)
+            if minutes > 0:
+                late_exemption_minutes = max(late_exemption_minutes, minutes)
 
         return (
             has_full_day_paid_leave,
@@ -344,6 +371,51 @@ class TimesheetCalculator:
             late_exemption_minutes,
             half_day_shift,
         )
+
+    def _check_paid_leave(self, proposal, date_chk) -> Tuple[bool, Optional[str]]:
+        if (
+            proposal.proposal_type == ProposalType.PAID_LEAVE
+            and proposal.paid_leave_start_date
+            and proposal.paid_leave_end_date
+            and proposal.paid_leave_start_date <= date_chk <= proposal.paid_leave_end_date
+        ):
+            if not proposal.paid_leave_shift or proposal.paid_leave_shift == ProposalWorkShift.FULL_DAY:
+                return True, None
+            return False, proposal.paid_leave_shift
+        return False, None
+
+    def _check_unpaid_leave(self, proposal, date_chk) -> Tuple[bool, Optional[str]]:
+        if (
+            proposal.proposal_type == ProposalType.UNPAID_LEAVE
+            and proposal.unpaid_leave_start_date
+            and proposal.unpaid_leave_end_date
+            and proposal.unpaid_leave_start_date <= date_chk <= proposal.unpaid_leave_end_date
+        ):
+            if not proposal.unpaid_leave_shift or proposal.unpaid_leave_shift == ProposalWorkShift.FULL_DAY:
+                return True, None
+            return False, proposal.unpaid_leave_shift
+        return False, None
+
+    def _check_maternity_leave(self, proposal, date_chk) -> bool:
+        if (
+            proposal.proposal_type == ProposalType.MATERNITY_LEAVE
+            and proposal.maternity_leave_start_date
+            and proposal.maternity_leave_end_date
+            and proposal.maternity_leave_start_date <= date_chk <= proposal.maternity_leave_end_date
+        ):
+            return True
+        return False
+
+    def _check_late_exemption(self, proposal, date_chk) -> int:
+        if (
+            proposal.proposal_type == ProposalType.LATE_EXEMPTION
+            and proposal.late_exemption_start_date
+            and proposal.late_exemption_end_date
+            and proposal.late_exemption_start_date <= date_chk <= proposal.late_exemption_end_date
+            and proposal.late_exemption_minutes
+        ):
+            return proposal.late_exemption_minutes
+        return 0
 
     def _preserve_explicit_absent(self) -> bool:
         if self.entry.absent_reason in (
@@ -534,29 +606,15 @@ class TimesheetCalculator:
         ) = self._fetch_approved_proposals_flags()
 
         has_morning, has_afternoon = self._determine_sessions(work_schedule, compensatory, None)
-        session_count = (1 if has_morning else 0) + (1 if has_afternoon else 0)
-
+        session_count = self._count_sessions(has_morning, has_afternoon)
         daily_max_days = Decimal("1.00")
 
         if session_count == 0:
-            if is_holiday:
-                entry.working_days = quantize_decimal(Decimal("1.00"))
-                return
-
-            if entry.official_hours > 0:
-                entry.working_days = quantize_decimal(
-                    Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
-                )
-                return
-
-            entry.working_days = quantize_decimal(Decimal("0.00"))
+            self._handle_zero_sessions(is_holiday)
             return
 
         if is_holiday:
-            if session_count == 1:
-                entry.working_days = quantize_decimal(Decimal("0.50"))
-            else:
-                entry.working_days = quantize_decimal(Decimal("1.00"))
+            self._handle_holiday_working_days(session_count)
             return
 
         if has_full_day_paid_leave:
@@ -564,34 +622,72 @@ class TimesheetCalculator:
             return
 
         if half_day_shift:
-            try:
-                base = Decimal("0.5") + (Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
-            except Exception:
-                base = Decimal("0.5")
-            entry.working_days = quantize_decimal(min(base, daily_max_days))
-
-            if entry.status != TimesheetStatus.SINGLE_PUNCH:
+            if self._handle_half_day_shift_working_days(half_day_shift, daily_max_days):
                 return
 
-        try:
-            working_days = Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
-        except Exception:
-            working_days = Decimal("0.00")
+        working_days = self._calculate_standard_working_days()
 
         if entry.status == TimesheetStatus.SINGLE_PUNCH and work_schedule:
-            single_punch_contribution = self._calculate_single_punch_contribution(
-                work_schedule, has_morning, has_afternoon, session_count, half_day_shift
+            working_days = self._apply_single_punch_adjustment(
+                working_days, work_schedule, has_morning, has_afternoon, session_count, half_day_shift
             )
-            if half_day_shift:
-                working_days = Decimal("0.5") + single_punch_contribution
-            else:
-                working_days = single_punch_contribution
 
-        if has_maternity_leave:
-            working_days = working_days + Decimal("0.125")
-
+        working_days = self._apply_maternity_leave_adjustment(working_days, has_maternity_leave)
         working_days = min(working_days, daily_max_days)
         entry.working_days = quantize_decimal(working_days)
+
+    def _count_sessions(self, has_morning, has_afternoon) -> int:
+        return (1 if has_morning else 0) + (1 if has_afternoon else 0)
+
+    def _handle_zero_sessions(self, is_holiday) -> None:
+        if is_holiday:
+            self.entry.working_days = quantize_decimal(Decimal("1.00"))
+            return
+
+        if self.entry.official_hours > 0:
+            self.entry.working_days = quantize_decimal(
+                Decimal(self.entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+            )
+            return
+
+        self.entry.working_days = quantize_decimal(Decimal("0.00"))
+
+    def _handle_holiday_working_days(self, session_count) -> None:
+        if session_count == 1:
+            self.entry.working_days = quantize_decimal(Decimal("0.50"))
+        else:
+            self.entry.working_days = quantize_decimal(Decimal("1.00"))
+
+    def _handle_half_day_shift_working_days(self, half_day_shift, daily_max_days) -> bool:
+        try:
+            base = Decimal("0.5") + (Decimal(self.entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
+        except Exception:
+            base = Decimal("0.5")
+        self.entry.working_days = quantize_decimal(min(base, daily_max_days))
+
+        return self.entry.status != TimesheetStatus.SINGLE_PUNCH
+
+    def _calculate_standard_working_days(self) -> Decimal:
+        try:
+            return Decimal(self.entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+        except Exception:
+            return Decimal("0.00")
+
+    def _apply_single_punch_adjustment(
+        self, working_days, work_schedule, has_morning, has_afternoon, session_count, half_day_shift
+    ) -> Decimal:
+        single_punch_contribution = self._calculate_single_punch_contribution(
+            work_schedule, has_morning, has_afternoon, session_count, half_day_shift
+        )
+        if half_day_shift:
+            return Decimal("0.5") + single_punch_contribution
+        else:
+            return single_punch_contribution
+
+    def _apply_maternity_leave_adjustment(self, working_days, has_maternity_leave) -> Decimal:
+        if has_maternity_leave:
+            return working_days + Decimal("0.125")
+        return working_days
 
     def _calculate_single_punch_contribution(
         self, work_schedule, has_morning, has_afternoon, session_count, half_day_shift
