@@ -12,7 +12,7 @@ from apps.hrm.constants import RecruitmentSourceType
 from apps.hrm.models import (
     Employee,
     HiredCandidateReport,
-    InterviewSchedule,
+    InterviewCandidate,
     RecruitmentCandidate,
     RecruitmentCostReport,
     RecruitmentRequest,
@@ -495,7 +495,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
 
     def _get_interviews_today(self, today):
         """Get number of interviews today."""
-        return InterviewSchedule.objects.filter(time__date=today).count()
+        return InterviewCandidate.objects.filter(interview_schedule__time__date=today).count()
 
     def _get_total_employees(self):
         """Get total of employees except Resigned."""

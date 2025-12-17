@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 16:00+0700\n"
+"POT-Creation-Date: 2025-12-17 16:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -885,26 +885,26 @@ msgstr "Quản lý Phòng Ban"
 msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
-#: apps/hrm/api/views/proposal.py:139 apps/hrm/api/views/proposal.py:2947
+#: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:2944
 #: apps/hrm/models/proposal.py:306
 msgid "Proposal"
 msgstr "Đề xuất"
 
-#: apps/hrm/api/views/proposal.py:143 apps/hrm/api/views/proposal.py:144
+#: apps/hrm/api/views/proposal.py:142 apps/hrm/api/views/proposal.py:143
 #, python-brace-format
 msgid "Approve {model_name}"
 msgstr "Phê duyệt {model_name}"
 
-#: apps/hrm/api/views/proposal.py:147 apps/hrm/api/views/proposal.py:148
+#: apps/hrm/api/views/proposal.py:146 apps/hrm/api/views/proposal.py:147
 #, python-brace-format
 msgid "Reject {model_name}"
 msgstr "Từ chối {model_name}"
 
-#: apps/hrm/api/views/proposal.py:151 apps/hrm/api/views/proposal.py:152
+#: apps/hrm/api/views/proposal.py:150 apps/hrm/api/views/proposal.py:151
 msgid "View the list of requests pending my approval"
 msgstr "Xem danh sách các yêu cầu đang chờ tôi phê duyệt"
 
-#: apps/hrm/api/views/proposal.py:155 apps/hrm/api/views/proposal.py:156
+#: apps/hrm/api/views/proposal.py:154 apps/hrm/api/views/proposal.py:155
 msgid "View the list of requests pending my verification"
 msgstr "Xem danh sách các yêu cầu đang chờ tôi xác nhận"
 
@@ -1040,11 +1040,11 @@ msgstr "Xem biểu đồ xu hướng hàng tháng"
 msgid "View monthly trends of candidate sources chart"
 msgstr "Xem biểu đồ xu hướng hàng tháng của các nguồn ứng viên"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:529
+#: apps/hrm/api/views/recruitment_dashboard.py:517
 msgid "Experienced"
 msgstr "Có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:534
+#: apps/hrm/api/views/recruitment_dashboard.py:522
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 
@@ -1684,10 +1684,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -1696,22 +1698,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 

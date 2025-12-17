@@ -16,6 +16,7 @@ from apps.hrm.models import (
     Department,
     Employee,
     HiredCandidateReport,
+    InterviewCandidate,
     InterviewSchedule,
     JobDescription,
     RecruitmentCandidate,
@@ -176,7 +177,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
             number_of_positions=1,
         )
 
-        RecruitmentCandidate.objects.create(
+        recruitment_candidate = RecruitmentCandidate.objects.create(
             name="Test Candidate 1",
             email="candidate1@example.com",
             phone="0987654321",
@@ -200,7 +201,7 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
 
         # Interviews today
         interview_time = datetime.combine(self.today, time(10, 0))
-        InterviewSchedule.objects.create(
+        interview_schedule = InterviewSchedule.objects.create(
             recruitment_request=RecruitmentRequest.objects.create(
                 name="Test Request",
                 job_description=JobDescription.objects.first(),
@@ -215,6 +216,11 @@ class RecruitmentDashboardAPITest(TransactionTestCase, APITestMixin):
             time=interview_time,
             location="Office",
             title="Test Interview",
+        )
+        InterviewCandidate.objects.create(
+            recruitment_candidate=recruitment_candidate,
+            interview_schedule=interview_schedule,
+            interview_time=interview_time,
         )
 
         # Act: Call the realtime dashboard API
