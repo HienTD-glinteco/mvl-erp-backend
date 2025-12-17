@@ -207,6 +207,10 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
         return self.day_type == TimesheetDayType.HOLIDAY
 
     @property
+    def is_compensatory(self) -> bool:
+        return self.day_type == TimesheetDayType.COMPENSATORY
+
+    @property
     def payroll_status(self) -> Promise:
         status = _("Paid")
         if self.employee.employee_type in [EmployeeType.UNPAID_OFFICIAL, EmployeeType.UNPAID_PROBATION]:

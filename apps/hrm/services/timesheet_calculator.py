@@ -12,14 +12,13 @@ from apps.hrm.constants import (
     ProposalStatus,
     ProposalType,
     ProposalWorkShift,
-    TimesheetDayType,
     TimesheetReason,
     TimesheetStatus,
 )
 from apps.hrm.models.contract import Contract
 from apps.hrm.models.contract_type import ContractType
 from apps.hrm.models.employee import Employee
-from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
+from apps.hrm.models.holiday import CompensatoryWorkday
 from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
@@ -185,11 +184,14 @@ class TimesheetCalculator:
         entry = self.entry
         weekday = entry.date.isoweekday() + 1
         work_schedule = get_work_schedule_by_weekday(weekday)
-        is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
-        compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
-        compensatory_day = compensatory is not None
 
-        self._determine_day_type(compensatory_day, is_holiday)
+        is_compensatory = entry.is_compensatory
+        is_holiday = entry.is_holiday
+
+        compensatory = None
+        if is_compensatory:
+            compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
+
         self._set_payroll_count_flag()
 
         (
@@ -211,7 +213,7 @@ class TimesheetCalculator:
         if self._handle_single_punch():
             return
 
-        times_outside_schedule = self._is_attendance_outside_schedule(work_schedule, compensatory_day)
+        times_outside_schedule = self._is_attendance_outside_schedule(work_schedule, is_compensatory)
         if self._handle_non_working_day(has_morning or has_afternoon, times_outside_schedule, is_holiday):
             return
 
@@ -222,7 +224,7 @@ class TimesheetCalculator:
 
         if base_start_time is None:
             self._handle_no_base_start_time(
-                compensatory_day,
+                is_compensatory,
                 has_morning,
                 has_afternoon,
                 late_exemption_minutes,
@@ -236,14 +238,6 @@ class TimesheetCalculator:
         )
 
         self._determine_punctuality(base_start_time, allowed_late_minutes, work_schedule, has_morning, has_afternoon)
-
-    def _determine_day_type(self, compensatory_day, is_holiday) -> None:
-        if compensatory_day:
-            self.entry.day_type = TimesheetDayType.COMPENSATORY
-        elif is_holiday:
-            self.entry.day_type = TimesheetDayType.HOLIDAY
-        else:
-            self.entry.day_type = TimesheetDayType.OFFICIAL
 
     def _handle_absent_no_start_time(self) -> bool:
         if not self.entry.start_time:
@@ -593,8 +587,13 @@ class TimesheetCalculator:
         entry = self.entry
         weekday = entry.date.isoweekday() + 1
         work_schedule = get_work_schedule_by_weekday(weekday)
-        compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
-        is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
+
+        is_compensatory = entry.is_compensatory
+        is_holiday = entry.is_holiday
+
+        compensatory = None
+        if is_compensatory:
+            compensatory = CompensatoryWorkday.objects.filter(date=entry.date).first()
 
         (
             has_full_day_paid_leave,

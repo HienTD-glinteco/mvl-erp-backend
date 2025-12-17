@@ -44,6 +44,7 @@ from libs.code_generation import register_auto_code_signal  # noqa: E402
 
 from .attendance import *  # noqa: E402, F401, F403
 from .attendance_report import *  # noqa: E402, F401, F403
+from .day_type_triggers import *  # noqa: E402, F401, F403
 from .employee import *  # noqa: E402, F401, F403
 from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403

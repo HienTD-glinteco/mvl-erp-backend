@@ -6,6 +6,7 @@ import pytest
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import TimesheetDayType, TimesheetStatus
 from apps.hrm.models import Block, Branch, CompensatoryWorkday, Department, Employee, Holiday, TimeSheetEntry
+from apps.hrm.models.work_schedule import WorkSchedule
 from libs.datetimes import combine_datetime
 
 pytestmark = pytest.mark.django_db
@@ -63,8 +64,23 @@ def test_day_type_holiday_and_compensatory_and_official():
     ts_c.save()
     assert ts_c.day_type == TimesheetDayType.COMPENSATORY
 
-    # A normal date should be OFFICIAL
-    ts_o = TimeSheetEntry(employee=emp, date=date(2025, 3, 11))
+    # A normal date WITHOUT WorkSchedule should be None
+    ts_none = TimeSheetEntry(employee=emp, date=date(2025, 3, 11))
+    ts_none.save()
+    assert ts_none.day_type is None
+
+    # Create WorkSchedule for Tuesday (2025-03-11 is Tuesday -> Weekday 3)
+    WorkSchedule.objects.create(
+        weekday=WorkSchedule.Weekday.TUESDAY,
+        morning_start_time=time(8, 0),
+        morning_end_time=time(12, 0),
+        afternoon_start_time=time(13, 0),
+        afternoon_end_time=time(17, 0),
+    )
+
+    # Now create another entry for a Tuesday, should be OFFICIAL
+    # Using 2025-03-18 (Tuesday)
+    ts_o = TimeSheetEntry(employee=emp, date=date(2025, 3, 18))
     ts_o.save()
     assert ts_o.day_type == TimesheetDayType.OFFICIAL
 
