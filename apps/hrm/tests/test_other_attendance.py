@@ -1,12 +1,13 @@
 from datetime import date
 from decimal import Decimal
+from unittest.mock import MagicMock
 
 import pytest
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from apps.core.models import AdministrativeUnit, Permission, Province, Role, User
+from apps.core.models import AdministrativeUnit, Permission, Province, Role, User, UserDevice
 from apps.files.models import FileModel
 from apps.hrm.constants import AttendanceType
 from apps.hrm.models import AttendanceRecord, Block, Branch, Department, Employee
@@ -134,7 +135,13 @@ class TestOtherAttendanceAndBulkApprove:
             uploaded_by=employee.user,
         )
 
-        api_client.force_authenticate(user=employee.user)
+        UserDevice.objects.create(
+            user=employee.user, device_id="device123", platform=UserDevice.Platform.ANDROID, active=True
+        )
+        token_mock = MagicMock()
+        token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
+        api_client.force_authenticate(user=employee.user, token=token_mock)
+
         url = reverse("hrm:attendance-record-other-attendance")
         data = {
             "timestamp": "2023-10-27T10:00:00Z",
