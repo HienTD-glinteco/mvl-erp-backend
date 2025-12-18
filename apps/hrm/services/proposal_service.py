@@ -4,6 +4,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from apps.core.models import UserDevice
+from apps.core.utils.jwt import revoke_user_outstanding_tokens
 from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 from apps.notifications.utils import create_notification
@@ -224,9 +226,6 @@ class ProposalService:
         Raises:
             ProposalExecutionError: If proposal execution fails
         """
-        from apps.core.models import UserDevice
-        from apps.core.utils.jwt import revoke_user_outstanding_tokens
-
         new_device_id = proposal.device_change_new_device_id
         new_platform = proposal.device_change_new_platform or ""
 
