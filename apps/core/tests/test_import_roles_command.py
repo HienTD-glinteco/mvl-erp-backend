@@ -223,7 +223,7 @@ class ImportRolesCommandTest(TestCase):
         self.assertTrue(admin_role.is_system_role)
 
         employee_role = Role.objects.get(code="VT000000002")
-        self.assertEqual(employee_role.name, "Employee")
+        self.assertEqual(employee_role.name, "Nhân viên")
         self.assertTrue(employee_role.is_system_role)
 
     def test_import_roles_has_correct_permissions(self):
@@ -568,7 +568,7 @@ class ImportRolesCommandTest(TestCase):
 
         # Role should be updated
         role = Role.objects.get(code="VT000000002")
-        self.assertEqual(role.name, "Employee")
+        self.assertEqual(role.name, "Nhân viên")
         self.assertTrue(role.is_system_role)
 
     def test_verbose_flag_shows_debug_messages(self):
