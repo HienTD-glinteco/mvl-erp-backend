@@ -1344,7 +1344,9 @@ msgstr "Xem chi tiết lịch sử Đề xuất Làm việc ngoài giờ"
 #: apps/hrm/api/views/proposal.py:1643
 msgid ""
 "Allows the user to view detailed audit log for an overtime work proposal"
-msgstr "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất làm việc ngoài giờ"
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất làm việc "
+"ngoài giờ"
 
 #: apps/hrm/api/views/proposal.py:1646
 msgid "Approve Overtime Work Proposal"
@@ -1584,7 +1586,9 @@ msgstr "Cập nhật một phần Đề xuất Nghỉ việc hưởng chế đ�
 #: apps/hrm/api/views/proposal.py:2485
 msgid ""
 "Allows the user to partially update an existing maternity leave proposal"
-msgstr "Cho phép người dùng cập nhật một phần đề xuất nghỉ việc hưởng chế độ thai sản hiện có"
+msgstr ""
+"Cho phép người dùng cập nhật một phần đề xuất nghỉ việc hưởng chế độ thai "
+"sản hiện có"
 
 #: apps/hrm/api/views/proposal.py:2488
 msgid "Delete Maternity Leave Proposal"
@@ -1619,7 +1623,9 @@ msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ việc hưởng chế đ�
 #: apps/hrm/api/views/proposal.py:2501
 msgid ""
 "Allows the user to view detailed audit log for a maternity leave proposal"
-msgstr "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất nghỉ việc hưởng chế độ thai sản."
+msgstr ""
+"Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất nghỉ việc "
+"hưởng chế độ thai sản."
 
 #: apps/hrm/api/views/proposal.py:2504
 msgid "Approve Maternity Leave Proposal"
@@ -2433,14 +2439,16 @@ msgid "Bag"
 msgstr "Túi"
 
 #: apps/hrm/constants.py:213 apps/hrm/constants.py:229
+#: apps/hrm/models/attendance_record.py:50
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:214
+#: apps/hrm/constants.py:214 apps/hrm/models/attendance_record.py:48
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/recruitment_candidate.py:27
+#: apps/hrm/constants.py:215 apps/hrm/models/attendance_record.py:49
+#: apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
 
@@ -2790,11 +2798,11 @@ msgstr "Log chấm Công GPS"
 msgid "Attendance Geolocations"
 msgstr "các log Chấm Công GPS"
 
-#: apps/hrm/models/attendance_record.py:47
+#: apps/hrm/models/attendance_record.py:61
 msgid "Attendance Record"
 msgstr "Log Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:48
+#: apps/hrm/models/attendance_record.py:62
 msgid "Attendance Records"
 msgstr "các Log Chấm Công"
 

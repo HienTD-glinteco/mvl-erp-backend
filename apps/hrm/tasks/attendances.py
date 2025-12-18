@@ -1,7 +1,7 @@
 """Celery tasks for HRM attendance synchronization."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from celery import shared_task
@@ -194,21 +194,6 @@ def _get_device_or_return_error(device_id: int) -> tuple[AttendanceDevice | None
             "error": error_msg,
         }
         return None, error_response
-
-
-def _determine_sync_start_time(device: AttendanceDevice) -> Any:
-    """Determine start time for log fetching based on device sync history."""
-    start_datetime = device.polling_synced_at
-    if not start_datetime:
-        start_datetime = timezone.now() - timedelta(days=SYNC_DEFAULT_LOOKBACK_DAYS)
-        logger.info(
-            f"No previous sync time for device {device.name}. "
-            f"Fetching logs from {SYNC_DEFAULT_LOOKBACK_DAYS} day(s) ago"
-        )
-    else:
-        logger.info(f"Fetching logs for device {device.name} since last sync at {start_datetime}")
-
-    return start_datetime
 
 
 def _filter_today_logs(logs: list[dict]) -> tuple[list[dict], datetime]:

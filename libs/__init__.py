@@ -1,5 +1,3 @@
-from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
-
 from .code_generation import (
     create_auto_code_signal_handler,
     generate_model_code,
@@ -39,7 +37,6 @@ __all__ = [
     "convert_html_to_pdf",
     "convert_html_to_docx",
     "FieldFilteringSerializerMixin",
-    "FileConfirmSerializerMixin",
     "XLSXGenerator",
     "SchemaBuilder",
     "get_storage_backend",

@@ -1253,30 +1253,6 @@ class TestTimesheetEntryComplaintProposalAPI:
         assert result["data"]["note"] == "Please review and approve"
         assert result["data"]["colored_proposal_status"]["value"] == ProposalStatus.PENDING
 
-    @pytest.mark.skipif(
-        True,
-        reason="Temporarily skip this test until validation logic is finalized",
-    )
-    def test_create_timesheet_entry_complaint_proposal_missing_required_fields(
-        self, api_client, superuser, test_employee
-    ):
-        """Test creating a timesheet entry complaint proposal without required fields."""
-        superuser.employee = test_employee
-        superuser.save()
-
-        url = reverse("hrm:proposal-timesheet-entry-complaint-list")
-        data = {
-            "timesheet_entry_complaint_proposed_check_in_time": "08:00:00",
-            "note": "Missing complaint reason",
-        }
-
-        response = api_client.post(url, data, format="json")
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        result = response.json()
-        assert result["success"] is False
-        assert has_error_for_field(result["error"], "timesheet_entry_complaint_complaint_reason")
-
     def test_create_timesheet_entry_complaint_proposal_invalid_latitude(self, api_client, superuser, test_employee):
         """Test creating a timesheet entry complaint proposal with invalid latitude (out of range)."""
         superuser.employee = test_employee

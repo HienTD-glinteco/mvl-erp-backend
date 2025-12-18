@@ -5,10 +5,10 @@ any business logic or database operations.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
-from django.utils.timezone import get_current_timezone
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from zk import ZK
 from zk.exception import ZKErrorConnection, ZKErrorResponse
@@ -185,12 +185,8 @@ class ZKDeviceService:
             for att in attendances:
                 # Ensure timestamp is timezone-aware
                 att_timestamp = att.timestamp
-                if att_timestamp.tzinfo is None:
-                    # Assume device time is in UTC if no timezone info
-                    att_timestamp = att_timestamp.replace(tzinfo=timezone.utc)
-                else:
-                    # Force replace tzinfo with current timezone without converting the instant
-                    att_timestamp = att_timestamp.replace(tzinfo=get_current_timezone())
+                if not timezone.is_aware(att_timestamp):
+                    att_timestamp = timezone.make_aware(att_timestamp)
 
                 # Filter by start_datetime if provided
                 if start_datetime and att_timestamp < start_datetime:
