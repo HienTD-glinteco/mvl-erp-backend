@@ -615,16 +615,58 @@ class TimesheetCalculator:
             self._handle_holiday_working_days(session_count)
             return
 
-        if has_full_day_paid_leave:
-            entry.working_days = quantize_decimal(Decimal("1.00"))
-            return
+        # Calculate standard ("gross") working days
+        gross_days = self._calculate_gross_working_days(
+            work_schedule,
+            session_count,
+            has_full_day_paid_leave,
+            has_full_day_unpaid_leave,
+            has_maternity_leave,
+            half_day_shift,
+            has_morning,
+            has_afternoon,
+            daily_max_days,
+        )
 
-        if half_day_shift:
-            if self._handle_half_day_shift_working_days(half_day_shift, daily_max_days):
-                return
+        # Apply compensatory day adjustment (subtract target days)
+        if is_compensatory:
+            target_days = Decimal("1.00") if session_count >= 2 else Decimal("0.50")
+            entry.working_days = quantize_decimal(gross_days - target_days)
+        else:
+            entry.working_days = quantize_decimal(gross_days)
+
+    def _calculate_gross_working_days(
+        self,
+        work_schedule,
+        session_count,
+        has_full_day_paid_leave,
+        has_full_day_unpaid_leave,
+        has_maternity_leave,
+        half_day_shift,
+        has_morning,
+        has_afternoon,
+        daily_max_days,
+    ) -> Decimal:
+        """Calculate working days as if it were a normal day."""
+        entry = self.entry
+
+        if has_full_day_paid_leave:
+            return Decimal("1.00")
 
         working_days = self._calculate_standard_working_days()
 
+        if half_day_shift:
+            try:
+                base = Decimal("0.5") + (Decimal(entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
+            except Exception:
+                base = Decimal("0.5")
+
+            # For half day shift, we cap and return early unless single punch
+            working_days = min(base, daily_max_days)
+            if entry.status != TimesheetStatus.SINGLE_PUNCH:
+                return working_days
+
+        # Fall through for single punch adjustment
         if entry.status == TimesheetStatus.SINGLE_PUNCH and work_schedule:
             working_days = self._apply_single_punch_adjustment(
                 working_days, work_schedule, has_morning, has_afternoon, session_count, half_day_shift
@@ -632,14 +674,15 @@ class TimesheetCalculator:
 
         working_days = self._apply_maternity_leave_adjustment(working_days, has_maternity_leave)
         working_days = min(working_days, daily_max_days)
-        entry.working_days = quantize_decimal(working_days)
+
+        return working_days
 
     def _count_sessions(self, has_morning, has_afternoon) -> int:
         return (1 if has_morning else 0) + (1 if has_afternoon else 0)
 
     def _handle_zero_sessions(self, is_holiday) -> None:
         if is_holiday:
-            self.entry.working_days = quantize_decimal(Decimal("1.00"))
+            self.entry.working_days = quantize_decimal(Decimal("0.00"))
             return
 
         if self.entry.official_hours > 0:
@@ -655,15 +698,6 @@ class TimesheetCalculator:
             self.entry.working_days = quantize_decimal(Decimal("0.50"))
         else:
             self.entry.working_days = quantize_decimal(Decimal("1.00"))
-
-    def _handle_half_day_shift_working_days(self, half_day_shift, daily_max_days) -> bool:
-        try:
-            base = Decimal("0.5") + (Decimal(self.entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY))
-        except Exception:
-            base = Decimal("0.5")
-        self.entry.working_days = quantize_decimal(min(base, daily_max_days))
-
-        return self.entry.status != TimesheetStatus.SINGLE_PUNCH
 
     def _calculate_standard_working_days(self) -> Decimal:
         try:

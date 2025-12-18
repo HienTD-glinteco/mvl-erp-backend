@@ -1000,7 +1000,7 @@ msgstr "Xem chi tiết Đề xuất Khiếu nại Chấm công"
 #: apps/hrm/api/views/proposal.py:715
 msgid ""
 "Allows the user to retrieve a specific timesheet entry complaint proposal"
-msgstr ""
+msgstr "Cho phép người dùng xem chi tiết một đề xuất khiếu nại chấm công"
 
 #: apps/hrm/api/views/proposal.py:718
 msgid "Create Timesheet Entry Complaint Proposal"
@@ -1017,7 +1017,7 @@ msgstr "Cập nhật Đề xuất Khiếu nại Chấm công"
 #: apps/hrm/api/views/proposal.py:723
 msgid ""
 "Allows the user to update an existing timesheet entry complaint proposal"
-msgstr ""
+msgstr "Cho phép người dùng cập nhật một đề xuất khiếu nại chấm công hiện có"
 
 #: apps/hrm/api/views/proposal.py:726
 msgid "Partially Update Timesheet Entry Complaint Proposal"
@@ -1344,7 +1344,7 @@ msgstr "Xem chi tiết lịch sử Đề xuất Làm việc ngoài giờ"
 #: apps/hrm/api/views/proposal.py:1643
 msgid ""
 "Allows the user to view detailed audit log for an overtime work proposal"
-msgstr ""
+msgstr "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất làm việc ngoài giờ"
 
 #: apps/hrm/api/views/proposal.py:1646
 msgid "Approve Overtime Work Proposal"
@@ -1584,7 +1584,7 @@ msgstr "Cập nhật một phần Đề xuất Nghỉ việc hưởng chế đ�
 #: apps/hrm/api/views/proposal.py:2485
 msgid ""
 "Allows the user to partially update an existing maternity leave proposal"
-msgstr ""
+msgstr "Cho phép người dùng cập nhật một phần đề xuất nghỉ việc hưởng chế độ thai sản hiện có"
 
 #: apps/hrm/api/views/proposal.py:2488
 msgid "Delete Maternity Leave Proposal"
@@ -1619,7 +1619,7 @@ msgstr "Xem chi tiết lịch sử Đề xuất Nghỉ việc hưởng chế đ�
 #: apps/hrm/api/views/proposal.py:2501
 msgid ""
 "Allows the user to view detailed audit log for a maternity leave proposal"
-msgstr ""
+msgstr "Cho phép người dùng xem nhật ký thay đổi chi tiết cho một đề xuất nghỉ việc hưởng chế độ thai sản."
 
 #: apps/hrm/api/views/proposal.py:2504
 msgid "Approve Maternity Leave Proposal"
@@ -2398,7 +2398,7 @@ msgstr "Cấp tài sản"
 
 #: apps/hrm/constants.py:194
 msgid "Device Change"
-msgstr ""
+msgstr "Thay đổi thiết bị"
 
 #: apps/hrm/constants.py:200
 msgid "Piece"
