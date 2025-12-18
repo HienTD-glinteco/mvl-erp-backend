@@ -61,7 +61,7 @@ def _get_reports_needing_refresh() -> tuple[date | None, list[tuple[int, int, in
     earliest_date = min(dates)
 
     # Get all org units that need refresh from earliest date onwards
-    today = timezone.now().date()
+    today = timezone.localdate()
     org_units_set = set()
 
     # Collect org units from StaffGrowthReport
@@ -107,7 +107,7 @@ def aggregate_hr_reports_batch() -> int:
     Returns:
         Number of dates successfully processed for need_refresh reports (does not count today's department snapshot).
     """
-    today = timezone.now().date()
+    today = timezone.localdate()
 
     earliest_date, org_units = _get_reports_needing_refresh()
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 20:00+0700\n"
+"POT-Creation-Date: 2025-12-18 11:48+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -337,7 +337,7 @@ msgid ""
 "Device change request verified. Your request is pending approval from admin."
 msgstr ""
 
-#: apps/core/api/views/auth/login.py:90
+#: apps/core/api/views/auth/login.py:91
 msgid ""
 "OTP code has been sent to your email. Please check your email and enter the "
 "OTP code to complete login."
@@ -345,9 +345,18 @@ msgstr ""
 "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP "
 "để hoàn tất đăng nhập."
 
-#: apps/core/api/views/auth/login.py:99
+#: apps/core/api/views/auth/login.py:100
 msgid "Unable to send OTP code. Please try again later."
 msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
+
+#: apps/core/api/views/auth/login.py:116
+#, python-format
+msgid "Request was throttled. Expected available in %(wait)s seconds."
+msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau %(wait)s giây."
+
+#: apps/core/api/views/auth/login.py:118
+msgid "Request was throttled. Please try again later."
+msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau."
 
 #: apps/core/api/views/auth/otp_verification.py:39
 msgid "Verify OTP code"

@@ -3,6 +3,7 @@ import logging
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
+from rest_framework.exceptions import Throttled
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
@@ -102,3 +103,17 @@ class LoginView(APIView):
 
         logger.warning(f"Invalid login attempt: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def check_throttles(self, request):
+        """
+        Override to provide custom error message on throttle exceed.
+        """
+        try:
+            return super().check_throttles(request)
+        except Throttled as exc:
+            wait = getattr(exc, "wait", None)
+            if wait:
+                detail = _("Request was throttled. Expected available in %(wait)s seconds.") % {"wait": int(wait)}
+            else:
+                detail = _("Request was throttled. Please try again later.")
+            raise Throttled(detail=detail, wait=wait)

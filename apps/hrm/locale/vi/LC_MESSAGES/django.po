@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 11:39+0700\n"
+"POT-Creation-Date: 2025-12-18 11:48+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -470,7 +470,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/recruitment_candidate.py:433
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:242
 #: apps/hrm/api/views/recruitment_channel.py:58
-#: apps/hrm/api/views/recruitment_dashboard.py:42
+#: apps/hrm/api/views/recruitment_dashboard.py:41
 #: apps/hrm/api/views/recruitment_expense.py:342
 #: apps/hrm/api/views/recruitment_request.py:391
 #: apps/hrm/api/views/recruitment_source.py:57
@@ -841,7 +841,7 @@ msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
 #: apps/hrm/api/views/recruitment_candidate.py:434
 #: apps/hrm/api/views/recruitment_candidate_contact_log.py:243
 #: apps/hrm/api/views/recruitment_channel.py:59
-#: apps/hrm/api/views/recruitment_dashboard.py:43
+#: apps/hrm/api/views/recruitment_dashboard.py:42
 #: apps/hrm/api/views/recruitment_expense.py:343
 #: apps/hrm/api/views/recruitment_reports.py:51
 #: apps/hrm/api/views/recruitment_request.py:392
@@ -1974,67 +1974,67 @@ msgstr "Chuyển một ứng viên thành nhân viên"
 msgid "Only candidates with REJECTED status can be deleted."
 msgstr "Chỉ có thể xoá các ứng viên đã bị LOẠI"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:47
+#: apps/hrm/api/views/recruitment_dashboard.py:46
 msgid "View Realtime Recruitment KPIs"
 msgstr "Xem KPI tuyển dụng thời gian thực"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:48
+#: apps/hrm/api/views/recruitment_dashboard.py:47
 msgid "View realtime recruitment KPIs"
 msgstr "Xem các chỉ số hiệu suất tuyển dụng thời gian thực"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:51
+#: apps/hrm/api/views/recruitment_dashboard.py:50
 msgid "View Experience Breakdown Chart"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:52
+#: apps/hrm/api/views/recruitment_dashboard.py:51
 msgid "View experience level breakdown chart for hired candidates"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:55
+#: apps/hrm/api/views/recruitment_dashboard.py:54
 msgid "View Branch Breakdown Chart"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo chi nhánh"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:56
+#: apps/hrm/api/views/recruitment_dashboard.py:55
 msgid "View branch breakdown chart for hired candidates"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo chi nhánh"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:59
+#: apps/hrm/api/views/recruitment_dashboard.py:58
 msgid "View Cost Breakdown Chart"
 msgstr "Xem báo cáo chi phí tuyển dụng theo nguồn"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:60
+#: apps/hrm/api/views/recruitment_dashboard.py:59
 msgid "View cost breakdown by source type categories chart"
 msgstr "Xem báo cáo chi phí tuyển dụng theo nguồn"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:63
+#: apps/hrm/api/views/recruitment_dashboard.py:62
 msgid "View Cost by Branches Chart"
 msgstr "Xem báo cáo chi phí tuyển dụng theo chi nhánh"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:64
+#: apps/hrm/api/views/recruitment_dashboard.py:63
 msgid "View average cost breakdown by branches chart"
 msgstr "Xem báo cáo chi phí tuyển dụng trung bình hàng tháng của các chi nhánh"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:67
+#: apps/hrm/api/views/recruitment_dashboard.py:66
 msgid "View Source Type Breakdown Chart"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo nguồn"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:68
+#: apps/hrm/api/views/recruitment_dashboard.py:67
 msgid "View recruitment source type breakdown chart"
 msgstr "Xem báo cáo tỷ lệ tuyển mới theo nguồn"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:71
+#: apps/hrm/api/views/recruitment_dashboard.py:70
 msgid "View Monthly Trends Chart"
 msgstr "Xem biểu đồ xu hướng hàng tháng"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:72
+#: apps/hrm/api/views/recruitment_dashboard.py:71
 msgid "View monthly trends of candidate sources chart"
 msgstr "Xem biểu đồ xu hướng hàng tháng của các nguồn ứng viên"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:517
+#: apps/hrm/api/views/recruitment_dashboard.py:516
 msgid "Experienced"
 msgstr "Có kinh nghiệm"
 
-#: apps/hrm/api/views/recruitment_dashboard.py:522
+#: apps/hrm/api/views/recruitment_dashboard.py:521
 msgid "Inexperienced"
 msgstr "Không có kinh nghiệm"
 

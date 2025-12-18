@@ -69,7 +69,7 @@ def _get_recruitment_reports_needing_refresh() -> tuple[date | None, list[tuple[
     earliest_date = min(dates)
 
     # Get all org units that need refresh from earliest date onwards
-    today = timezone.now().date()
+    today = timezone.localdate()
     org_units_set = set()
 
     # Collect org units from all recruitment report models
@@ -127,7 +127,7 @@ def aggregate_recruitment_reports_batch() -> int:
         logger.info("No recruitment reports need refresh")
         return 0
 
-    today = timezone.now().date()
+    today = timezone.localdate()
     logger.info(
         f"Batch aggregating recruitment reports from {earliest_date} to {today} for {len(org_units)} org units"
     )

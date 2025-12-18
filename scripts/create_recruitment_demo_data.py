@@ -578,7 +578,7 @@ def create_dashboard_realtime_data(org_structure):
     """Create data for dashboard real-time metrics."""
     print("Creating dashboard real-time data...")
 
-    today = datetime.now().date()
+    today = datetime.localdate()
 
     # Create job descriptions (open positions)
     job = None

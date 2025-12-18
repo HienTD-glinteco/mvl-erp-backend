@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from django.db.models import Case, DecimalField, F, Sum, When
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import viewsets
@@ -100,7 +99,7 @@ class RecruitmentDashboardViewSet(PermissionRegistrationMixin, viewsets.ViewSet)
     @action(detail=False, methods=["get"])
     def realtime(self, request):
         """Get real-time recruitment KPIs (no filters supported)."""
-        today = datetime.now().date()
+        today = timezone.localdate()
 
         hires_today = self._get_hires_today(today)
         open_positions = self._get_open_positions()
