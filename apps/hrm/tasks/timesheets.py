@@ -12,6 +12,7 @@ from celery import shared_task
 from django.db.models import F
 
 from apps.hrm.models import Employee, EmployeeMonthlyTimesheet
+from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.services.timesheets import (
     create_entries_for_employee_month,
     create_entries_for_month_all,
@@ -86,3 +87,40 @@ def update_monthly_timesheet_async(
         except Exception as e:
             logger.exception("Failed to refresh monthly timesheet for %s: %s", row, e)
     return {"success": True, "processed": count}
+
+
+@shared_task
+def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
+    """Recalculate timesheet entries for an employee from a start date until today.
+
+    This ensures that changes in employee status/type are reflected in
+    dependent fields like `count_for_payroll`.
+
+    Args:
+        employee_id: The ID of the employee.
+        start_date_str: ISO format string of the start date (inclusive).
+
+    Returns:
+        Dict with success status and count of updated entries.
+    """
+    try:
+        start_date = date.fromisoformat(start_date_str)
+        today = date.today()
+
+        entries = TimeSheetEntry.objects.filter(employee_id=employee_id, date__gte=start_date, date__lte=today)
+        count = 0
+
+        for entry in entries:
+            entry.clean()  # Recalculates all fields via TimesheetCalculator
+            entry.save()
+            count += 1
+
+        logger.info(
+            "Recalculated %d timesheet entries for employee %s from %s", count, employee_id, start_date_str
+        )
+        return {"success": True, "updated_count": count}
+    except Exception as e:
+        logger.exception(
+            "Failed to recalculate timesheets for employee %s from %s: %s", employee_id, start_date_str, e
+        )
+        return {"success": False, "error": str(e)}

@@ -27,6 +27,7 @@ from apps.hrm.services.employee import (
     create_state_change_event,
     create_transfer_event,
 )
+from apps.hrm.tasks.timesheets import recalculate_timesheets
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 from .common_nested import BankNestedSerializer
@@ -744,8 +745,14 @@ class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Seri
         self.old_employee_type = self.employee.employee_type if self.employee else None
 
     def validate_date(self, effective_date):
-        """Validate that effective_date is not in the future."""
-        if effective_date > date.today():
+        """Validate effective date."""
+        today = date.today()
+        start_of_month = today.replace(day=1)
+
+        if effective_date < start_of_month:
+            raise serializers.ValidationError(_("Effective date must be greater than or equal to the first day of the current month."))
+
+        if effective_date > today:
             raise serializers.ValidationError(_("Effective date cannot be in the future."))
         return effective_date
 
@@ -798,6 +805,11 @@ class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Seri
             effective_date=self.validated_data["date"],
             note=self.validated_data.get("note", ""),
             decision=self.validated_data.get("decision_id"),
+        )
+
+        # Trigger timesheet recalculation
+        recalculate_timesheets.delay(
+            employee_id=self.employee.id, start_date_str=str(self.validated_data["date"])
         )
 
 

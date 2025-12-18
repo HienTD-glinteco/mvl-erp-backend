@@ -23,10 +23,12 @@ from apps.hrm.models import (
     Position,
 )
 from apps.hrm.services.employee import (
+    create_employee_type_change_event,
     create_position_change_event,
     create_state_change_event,
     create_transfer_event,
 )
+from apps.hrm.tasks.timesheets import recalculate_timesheets
 from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
@@ -702,8 +704,29 @@ def _handle_work_history(employee: Employee, created: bool, old_state: dict, eff
         old_status = old_state.get("status")
         old_position = old_state.get("position")
         old_department = old_state.get("department")
+        old_employee_type = old_state.get("employee_type")
 
-        # 1. Department Transfer (takes precedence over simple position change)
+        # 1. Employee Type Change (Check Constraints)
+        if old_employee_type != employee.employee_type:
+            # Validate effective date
+            start_of_month = today.replace(day=1)
+            if effective_date < start_of_month:
+                raise ValueError(_("Effective date must be greater than or equal to the first day of the current month."))
+
+            create_employee_type_change_event(
+                employee=employee,
+                old_employee_type=old_employee_type,
+                new_employee_type=employee.employee_type,
+                effective_date=effective_date,
+                note=import_note,
+            )
+
+            # Trigger timesheet recalculation
+            recalculate_timesheets.delay(
+                employee_id=employee.id, start_date_str=str(effective_date)
+            )
+
+        # 2. Department Transfer (takes precedence over simple position change)
         if old_department != employee.department:
             create_transfer_event(
                 employee=employee,
@@ -714,7 +737,7 @@ def _handle_work_history(employee: Employee, created: bool, old_state: dict, eff
                 effective_date=effective_date,
                 note=import_note,
             )
-        # 2. Position Change (only if department didn't change)
+        # 3. Position Change (only if department didn't change)
         elif old_position != employee.position:
             create_position_change_event(
                 employee=employee,
@@ -723,7 +746,7 @@ def _handle_work_history(employee: Employee, created: bool, old_state: dict, eff
                 effective_date=effective_date,
                 note=import_note,
             )
-        # 3. Status Change
+        # 4. Status Change
         elif old_status != employee.status:
             create_state_change_event(
                 employee=employee,
@@ -1173,6 +1196,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     "status": employee.status,
                     "position": employee.position,
                     "department": employee.department,
+                    "employee_type": employee.employee_type,
                 }
 
             # Update or create employee
