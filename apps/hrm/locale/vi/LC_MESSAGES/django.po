@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 12:04+0700\n"
+"POT-Creation-Date: 2025-12-18 13:29+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2839,7 +2839,7 @@ msgstr "Đang hiệu lực"
 msgid "About to expire"
 msgstr "Sắp hết hạn"
 
-#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:31
+#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:30
 msgid "Expired"
 msgstr "Hết hạn"
 
@@ -3014,45 +3014,45 @@ msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
 "thai sản."
 
-#: apps/hrm/models/employee_certificate.py:29
+#: apps/hrm/models/employee_certificate.py:28
 msgid "Valid"
 msgstr "Còn hiệu lực"
 
-#: apps/hrm/models/employee_certificate.py:30
+#: apps/hrm/models/employee_certificate.py:29
 msgid "Near Expiry"
 msgstr "Sắp hết hạn"
 
-#: apps/hrm/models/employee_certificate.py:136
+#: apps/hrm/models/employee_certificate.py:135
 msgid "Employee certificate"
 msgstr "Bằng cấp chứng chỉ"
 
-#: apps/hrm/models/employee_certificate.py:137
+#: apps/hrm/models/employee_certificate.py:136
 msgid "Employee certificates"
 msgstr "Bằng cấp chứng chỉ"
 
-#: apps/hrm/models/employee_certificate.py:198
+#: apps/hrm/models/employee_certificate.py:197
 msgid "Effective date must be less than expiry date."
 msgstr "Ngày hiệu lực phải trước ngày hết hạn."
 
-#: apps/hrm/models/employee_certificate.py:200
+#: apps/hrm/models/employee_certificate.py:199
 msgid "Expiry date is required for real estate practice licenses."
 msgstr ""
 "Ngày hết hiệu lực là bắt buộc khi loại chứng chỉ là Chứng chỉ hành nghề môi "
 "giới Bất động sản."
 
-#: apps/hrm/models/employee_dependent.py:128
+#: apps/hrm/models/employee_dependent.py:127
 msgid "Employee Dependent"
 msgstr "Người phụ thuộc"
 
-#: apps/hrm/models/employee_dependent.py:129
+#: apps/hrm/models/employee_dependent.py:128
 msgid "Employee Dependents"
 msgstr "Người phụ thuộc"
 
-#: apps/hrm/models/employee_relationship.py:165
+#: apps/hrm/models/employee_relationship.py:164
 msgid "Employee Relationship"
 msgstr "Quan hệ nhân thân"
 
-#: apps/hrm/models/employee_relationship.py:166
+#: apps/hrm/models/employee_relationship.py:165
 msgid "Employee Relationships"
 msgstr "Quan hệ nhân thân"
 
