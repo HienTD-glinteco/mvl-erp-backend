@@ -738,29 +738,6 @@ class EmployeeCertificateAPITest(TestCase):
                 self.assertEqual(result_data["certificate_type"], cert_type)
                 self.assertEqual(result_data["certificate_code"], f"TEST-{cert_type}")
 
-    def test_search_by_certificate_name(self):
-        """Test searching certificates by name"""
-        EmployeeCertificate.objects.create(
-            employee=self.employee,
-            certificate_type=CertificateType.FOREIGN_LANGUAGE,
-            certificate_name="IELTS 7.0",
-            issue_date=date.today(),
-        )
-        EmployeeCertificate.objects.create(
-            employee=self.employee,
-            certificate_type=CertificateType.FOREIGN_LANGUAGE,
-            certificate_name="TOEIC 850",
-            issue_date=date.today(),
-        )
-
-        url = reverse("hrm:employee-certificate-list")
-        response = self.client.get(url, {"search": "IELTS"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        result_data = self.get_response_data(response)
-        self.assertEqual(len(result_data), 1)
-        self.assertIn("IELTS", result_data[0]["certificate_name"])
-
     def test_filter_by_issue_date_range(self):
         """Test filtering by issue_date range"""
         today = date.today()
@@ -1608,3 +1585,404 @@ class EmployeeCertificateAPITest(TestCase):
         result_data = self.get_response_data(response)
         self.assertEqual(len(result_data), 1)
         self.assertEqual(result_data[0]["certificate_name"], "Certificate Position 1")
+
+    def test_search_by_employee_code(self):
+        """Test searching certificates by employee code"""
+        # Create another employee
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="Another Employee",
+            username="anotheremployee",
+            email="another@example.com",
+            phone="0900200020",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020020",
+        )
+
+        # Create certificates for both employees
+        cert1 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate 1",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate 2",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Search by employee code
+        response = self.client.get(url, {"search": self.employee.code})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["id"], cert1.id)
+
+    def test_search_by_employee_fullname(self):
+        """Test searching certificates by employee fullname"""
+        # Create another employee with different name
+        employee2 = Employee.objects.create(
+            code_type="MV",
+            fullname="John Smith",
+            username="johnsmith",
+            email="johnsmith@example.com",
+            phone="0900200021",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date=date(2020, 1, 1),
+            citizen_id="000000020021",
+        )
+
+        # Create certificates for both employees
+        cert1 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate for Test Employee",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=employee2,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate for John",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Search by employee fullname (partial match)
+        response = self.client.get(url, {"search": "Test Employee"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["id"], cert1.id)
+
+    def test_search_by_certificate_code(self):
+        """Test searching certificates by certificate code"""
+        # Create certificates with different codes
+        cert1 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="IELTS-UNIQUE-123",
+            certificate_name="IELTS Certificate",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_code="MOS-456",
+            certificate_name="MOS Certificate",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Get the auto-generated code and search
+        response = self.client.get(url, {"search": cert1.code})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 1)
+        self.assertEqual(result_data[0]["id"], cert1.id)
+
+    def test_ordering_by_certificate_type(self):
+        """Test ordering certificates by certificate_type"""
+        # Create certificates of different types (they will be ordered alphabetically)
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Foreign Language Certificate",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Computer Certificate",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Diploma Certificate",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"ordering": "certificate_type"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        # Verify order is correct (alphabetical by certificate_type value)
+        types = [cert["certificate_type"] for cert in result_data]
+        self.assertEqual(types, sorted(types))
+
+    def test_ordering_by_issue_date(self):
+        """Test ordering certificates by issue_date"""
+        today = date.today()
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Old Certificate",
+            issue_date=today - timedelta(days=100),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Recent Certificate",
+            issue_date=today - timedelta(days=10),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Latest Certificate",
+            issue_date=today,
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Order by issue_date ascending
+        response = self.client.get(url, {"ordering": "issue_date"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        self.assertEqual(result_data[0]["certificate_name"], "Old Certificate")
+        self.assertEqual(result_data[2]["certificate_name"], "Latest Certificate")
+
+        # Order by issue_date descending
+        response = self.client.get(url, {"ordering": "-issue_date"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(result_data[0]["certificate_name"], "Latest Certificate")
+        self.assertEqual(result_data[2]["certificate_name"], "Old Certificate")
+
+    def test_ordering_by_effective_date(self):
+        """Test ordering certificates by effective_date"""
+        today = date.today()
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Certificate A",
+            issue_date=today - timedelta(days=100),
+            effective_date=today - timedelta(days=90),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Certificate B",
+            issue_date=today - timedelta(days=50),
+            effective_date=today - timedelta(days=45),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Certificate C",
+            issue_date=today - timedelta(days=10),
+            effective_date=today - timedelta(days=5),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Order by effective_date ascending
+        response = self.client.get(url, {"ordering": "effective_date"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        self.assertEqual(result_data[0]["certificate_name"], "Certificate A")
+        self.assertEqual(result_data[2]["certificate_name"], "Certificate C")
+
+    def test_ordering_by_expiry_date(self):
+        """Test ordering certificates by expiry_date"""
+        today = date.today()
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Expires Soon",
+            issue_date=today - timedelta(days=100),
+            expiry_date=today + timedelta(days=10),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Expires Later",
+            issue_date=today - timedelta(days=50),
+            expiry_date=today + timedelta(days=100),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Expires Last",
+            issue_date=today - timedelta(days=10),
+            expiry_date=today + timedelta(days=365),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Order by expiry_date ascending
+        response = self.client.get(url, {"ordering": "expiry_date"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        self.assertEqual(result_data[0]["certificate_name"], "Expires Soon")
+        self.assertEqual(result_data[2]["certificate_name"], "Expires Last")
+
+    def test_ordering_by_status(self):
+        """Test ordering certificates by status"""
+        today = date.today()
+        # Create certificates with different statuses
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Expired Certificate",
+            issue_date=today - timedelta(days=100),
+            expiry_date=today - timedelta(days=1),  # Expired
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Near Expiry Certificate",
+            issue_date=today - timedelta(days=50),
+            expiry_date=today + timedelta(days=15),  # Near Expiry
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Valid Certificate",
+            issue_date=today - timedelta(days=10),
+            expiry_date=today + timedelta(days=365),  # Valid
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        response = self.client.get(url, {"ordering": "status"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+
+    def test_ordering_by_created_at(self):
+        """Test ordering certificates by created_at"""
+        # Create certificates
+        cert1 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="First Certificate",
+            issue_date=date.today(),
+        )
+        cert2 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Second Certificate",
+            issue_date=date.today(),
+        )
+        cert3 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_name="Third Certificate",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Order by created_at ascending
+        response = self.client.get(url, {"ordering": "created_at"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        ids = [cert["id"] for cert in result_data]
+        self.assertEqual(ids, [cert1.id, cert2.id, cert3.id])
+
+        # Order by created_at descending
+        response = self.client.get(url, {"ordering": "-created_at"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        ids = [cert["id"] for cert in result_data]
+        self.assertEqual(ids, [cert3.id, cert2.id, cert1.id])
+
+    def test_ordering_by_certificate_code(self):
+        """Test ordering certificates by certificate_code"""
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_code="AAA-123",
+            certificate_name="Certificate AAA",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_code="ZZZ-789",
+            certificate_name="Certificate ZZZ",
+            issue_date=date.today(),
+        )
+        EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.DIPLOMA,
+            certificate_code="MMM-456",
+            certificate_name="Certificate MMM",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Order by certificate_code ascending
+        response = self.client.get(url, {"ordering": "certificate_code"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        codes = [cert["certificate_code"] for cert in result_data]
+        self.assertEqual(codes, ["AAA-123", "MMM-456", "ZZZ-789"])
+
+        # Order by certificate_code descending
+        response = self.client.get(url, {"ordering": "-certificate_code"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        codes = [cert["certificate_code"] for cert in result_data]
+        self.assertEqual(codes, ["ZZZ-789", "MMM-456", "AAA-123"])
+
+    def test_default_ordering(self):
+        """Test default ordering is by certificate_type and -created_at"""
+        # Create certificates of same type to test secondary ordering
+        cert1 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="First Foreign Language",
+            issue_date=date.today(),
+        )
+        cert2 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.FOREIGN_LANGUAGE,
+            certificate_name="Second Foreign Language",
+            issue_date=date.today(),
+        )
+        cert3 = EmployeeCertificate.objects.create(
+            employee=self.employee,
+            certificate_type=CertificateType.COMPUTER,
+            certificate_name="Computer Certificate",
+            issue_date=date.today(),
+        )
+
+        url = reverse("hrm:employee-certificate-list")
+        # Get list without explicit ordering (should use default)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        result_data = self.get_response_data(response)
+        self.assertEqual(len(result_data), 3)
+        # Default ordering: certificate_type, -created_at
+        # Computer comes before Foreign Language alphabetically
+        types = [cert["certificate_type"] for cert in result_data]
+        self.assertEqual(types[0], "computer")
+        # For same type (foreign_language), newer one comes first (-created_at)
+        foreign_lang_certs = [c for c in result_data if c["certificate_type"] == "foreign_language"]
+        self.assertEqual(len(foreign_lang_certs), 2)
+        self.assertEqual(foreign_lang_certs[0]["id"], cert2.id)  # Newer
+        self.assertEqual(foreign_lang_certs[1]["id"], cert1.id)  # Older

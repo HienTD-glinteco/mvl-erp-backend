@@ -284,7 +284,7 @@ class EmployeeCertificateViewSet(AuditLoggingMixin, BaseModelViewSet):
     serializer_class = EmployeeCertificateSerializer
     filterset_class = EmployeeCertificateFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["certificate_name", "issuing_organization", "notes", "certificate_code"]
+    search_fields = ["employee__code", "employee__fullname", "code"]
     ordering_fields = [
         "certificate_type",
         "certificate_code",
