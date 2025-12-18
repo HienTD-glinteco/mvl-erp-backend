@@ -41,7 +41,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "employee": 1,
                                 "employee_username": "john.doe",
                                 "employee_fullname": "John Doe",
-                                "month": "2025-12-01",
+                                "month": "2025-12",
                                 "kpi_config_snapshot": {},
                                 "total_possible_score": "100.00",
                                 "total_manager_score": "80.00",
@@ -78,7 +78,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "employee": 1,
                         "employee_username": "john.doe",
                         "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "kpi_config_snapshot": {},
                         "total_possible_score": "100.00",
                         "total_manager_score": "80.00",
@@ -100,11 +100,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "id": 1,
                                 "assessment": 1,
                                 "criterion_id": 1,
+                                "target": "sales",
                                 "criterion": "Revenue Achievement",
                                 "evaluation_type": "work_performance",
                                 "description": "Monthly revenue target",
                                 "component_total_score": "70.00",
-                                "ordering": 1,
+                                "order": 1,
                                 "employee_score": "90.00",
                                 "manager_score": "85.00",
                                 "note": "",
@@ -190,7 +191,7 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "employee": 1,
                         "employee_username": "john.doe",
                         "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Complete Q4 targets",
@@ -242,7 +243,7 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "employee": 1,
                         "employee_username": "john.doe",
                         "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Updated plan tasks",
@@ -311,17 +312,49 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
         serializer = self.get_serializer(latest)
         return Response(serializer.data)
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer):  # noqa: C901
         """Save the updated assessment and handle batch item updates."""
+        from decimal import Decimal
+
         items_data = self.request.data.get("items", {})
 
-        # Check finalized status before any updates
+        # Check finalized status and manager grade before any updates
         assessment = self.get_object()
+
+        # Validation: Cannot update if finalized
         if assessment.finalized:
             from django.utils.translation import gettext as _
             from rest_framework.exceptions import ValidationError
 
             raise ValidationError(_("Cannot update finalized assessment"))
+
+        # Validation: Cannot update if manager has already graded
+        if assessment.grade_manager is not None:
+            from django.utils.translation import gettext as _
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(_("Cannot update assessment that has been assessed by manager"))
+
+        # Validate item scores before updating
+        if items_data:
+            errors = {}
+            for item_id, score in items_data.items():
+                try:
+                    item = assessment.items.get(id=int(item_id))
+                    score_decimal = Decimal(str(score))
+
+                    # Validation: Score must not exceed component_total_score
+                    if score_decimal > item.component_total_score:
+                        errors[f"items.{item_id}"] = _(
+                            "Score %(score)s cannot exceed component total score %(total)s"
+                        ) % {"score": score_decimal, "total": item.component_total_score}
+                except (EmployeeKPIItem.DoesNotExist, ValueError, TypeError) as e:
+                    errors[f"items.{item_id}"] = _("Invalid item or score value")
+
+            if errors:
+                from rest_framework.exceptions import ValidationError
+
+                raise ValidationError(errors)
 
         # Update assessment fields (plan_tasks, extra_tasks, proposal)
         assessment = serializer.save()
@@ -341,6 +374,46 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
 
         # Always recalculate totals after any update
         recalculate_assessment_scores(assessment)
+
+    @extend_schema(
+        summary="Get current unfinalized assessment",
+        description="Get the latest unfinalized assessment for the authenticated employee",
+        tags=["8.5: Employee Self-Assessment"],
+        responses={200: EmployeeSelfAssessmentSerializer, 404: None},
+    )
+    @action(detail=False, methods=["get"], url_path="current")
+    def current_assessment(self, request):
+        """Get current unfinalized assessment for the employee."""
+        user = request.user
+
+        # Get employee record
+        try:
+            from apps.hrm.models import Employee
+
+            employee = Employee.objects.get(username=user.username)
+        except Employee.DoesNotExist:
+            return Response(
+                {"detail": "Employee record not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Get latest unfinalized assessment
+        assessment = (
+            EmployeeKPIAssessment.objects.filter(employee=employee, finalized=False)
+            .select_related("period", "employee")
+            .prefetch_related("items")
+            .order_by("-period__month")
+            .first()
+        )
+
+        if not assessment:
+            return Response(
+                {"detail": "No current unfinalized assessment found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = self.get_serializer(assessment)
+        return Response(serializer.data)
 
     @extend_schema(
         summary="Update employee score for an item",
@@ -401,7 +474,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                                 "employee": 1,
                                 "employee_username": "john.doe",
                                 "employee_fullname": "John Doe",
-                                "month": "2025-12-01",
+                                "month": "2025-12",
                                 "total_possible_score": "100.00",
                                 "total_manager_score": "80.00",
                                 "grade_manager": "B",
@@ -433,7 +506,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "employee": 1,
                         "employee_username": "john.doe",
                         "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "total_possible_score": "100.00",
                         "total_manager_score": "80.00",
                         "grade_manager": "B",
@@ -480,7 +553,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "employee": 1,
                         "employee_username": "john.doe",
                         "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "total_possible_score": "100.00",
                         "total_manager_score": "93.50",
                         "grade_manager": "A",
@@ -545,6 +618,8 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
     def perform_update(self, serializer):
         """Save the updated assessment and handle batch item updates."""
+        from decimal import Decimal
+
         items_data = self.request.data.get("items", {})
 
         # Check finalized status before any updates
@@ -554,6 +629,27 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
             from rest_framework.exceptions import ValidationError
 
             raise ValidationError(_("Cannot update finalized assessment"))
+
+        # Validate item scores before updating
+        if items_data:
+            errors = {}
+            for item_id, score in items_data.items():
+                try:
+                    item = assessment.items.get(id=int(item_id))
+                    score_decimal = Decimal(str(score))
+
+                    # Validation: Score must not exceed component_total_score
+                    if score_decimal > item.component_total_score:
+                        errors[f"items.{item_id}"] = _(
+                            "Score %(score)s cannot exceed component total score %(total)s"
+                        ) % {"score": score_decimal, "total": item.component_total_score}
+                except (EmployeeKPIItem.DoesNotExist, ValueError, TypeError) as e:
+                    errors[f"items.{item_id}"] = _("Invalid item or score value")
+
+            if errors:
+                from rest_framework.exceptions import ValidationError
+
+                raise ValidationError(errors)
 
         # Update assessment fields (manager_assessment)
         assessment = serializer.save()
@@ -573,3 +669,45 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Always recalculate totals after any update
         recalculate_assessment_scores(assessment)
+
+    @extend_schema(
+        summary="Get current unfinalized assessments for department employees",
+        description="Get the latest unfinalized assessments for all employees in manager's department",
+        tags=["8.7: Manager Assessment"],
+        responses={200: ManagerAssessmentSerializer(many=True)},
+    )
+    @action(detail=False, methods=["get"], url_path="current")
+    def current_assessments(self, request):
+        """Get current unfinalized assessments for department employees."""
+        user = request.user
+
+        # Get employee record for current user
+        try:
+            from apps.hrm.models import Employee
+
+            employee = Employee.objects.get(username=user.username)
+        except Employee.DoesNotExist:
+            return Response(
+                {"detail": "Employee record not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Get latest unfinalized assessments for all department employees
+        assessments = (
+            EmployeeKPIAssessment.objects.filter(manager=employee, finalized=False)
+            .select_related("period", "employee", "manager")
+            .prefetch_related("items")
+            .order_by("-period__month")
+        )
+
+        # Group by employee and get only the latest for each
+        from collections import OrderedDict
+
+        latest_assessments = OrderedDict()
+        for assessment in assessments:
+            employee_id = assessment.employee.id
+            if employee_id not in latest_assessments:
+                latest_assessments[employee_id] = assessment
+
+        serializer = self.get_serializer(list(latest_assessments.values()), many=True)
+        return Response(serializer.data)

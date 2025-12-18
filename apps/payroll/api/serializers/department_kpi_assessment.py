@@ -12,7 +12,7 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
 
     department_name = serializers.CharField(source="department.name", read_only=True)
     department_code = serializers.CharField(source="department.code", read_only=True)
-    month = serializers.DateField(source="period.month", read_only=True)
+    month = serializers.SerializerMethodField()
     kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
 
     class Meta:
@@ -49,6 +49,10 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    def get_month(self, obj):
+        """Return month in YYYY-MM format."""
+        return obj.period.month.strftime("%Y-%m")
+
     def validate(self, data):
         """Validate department assessment data."""
         # Check if assessment already exists for department and period
@@ -83,7 +87,7 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
 
     department_name = serializers.CharField(source="department.name", read_only=True)
     department_code = serializers.CharField(source="department.code", read_only=True)
-    month = serializers.DateField(source="period.month", read_only=True)
+    month = serializers.SerializerMethodField()
     # kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
 
     class Meta:
@@ -101,6 +105,10 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def get_month(self, obj):
+        """Return month in YYYY-MM format."""
+        return obj.period.month.strftime("%Y-%m")
 
 
 class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):

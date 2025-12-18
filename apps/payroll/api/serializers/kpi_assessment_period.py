@@ -17,7 +17,7 @@ class KPIAssessmentPeriodGenerateResponseSerializer(serializers.Serializer):
 
     message = serializers.CharField(help_text="Success message")
     period_id = serializers.IntegerField(help_text="ID of the created/existing period")
-    month = serializers.DateField(help_text="Month of the period")
+    month = serializers.CharField(help_text="Month of the period in YYYY-MM format")
     employee_assessments_created = serializers.IntegerField(help_text="Number of employee assessments created")
     department_assessments_created = serializers.IntegerField(help_text="Number of department assessments created")
 
@@ -34,6 +34,8 @@ class KPIAssessmentPeriodFinalizeResponseSerializer(serializers.Serializer):
 class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
     """Serializer for KPIAssessmentPeriod model."""
 
+    month = serializers.SerializerMethodField()
+
     class Meta:
         model = KPIAssessmentPeriod
         fields = [
@@ -49,16 +51,22 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "month",
             "created_by",
             "updated_by",
             "created_at",
             "updated_at",
         ]
 
+    def get_month(self, obj):
+        """Return month in YYYY-MM format."""
+        return obj.month.strftime("%Y-%m")
+
 
 class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
     """List serializer for KPIAssessmentPeriod model."""
 
+    month = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     department_count = serializers.SerializerMethodField()
 
@@ -76,9 +84,14 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "month",
             "created_at",
             "updated_at",
         ]
+
+    def get_month(self, obj):
+        """Return month in YYYY-MM format."""
+        return obj.month.strftime("%Y-%m")
 
     def get_employee_count(self, obj):
         """Get count of employee assessments in this period."""

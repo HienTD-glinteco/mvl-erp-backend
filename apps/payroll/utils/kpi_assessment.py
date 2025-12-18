@@ -41,13 +41,14 @@ def create_assessment_items_from_criteria(
         item = EmployeeKPIItem(
             assessment=assessment,
             criterion_id=criterion,
+            target=criterion.target,
             criterion=criterion.criterion,
             sub_criterion=criterion.sub_criterion,
             evaluation_type=criterion.evaluation_type,
             description=criterion.description,
             component_total_score=criterion.component_total_score,
             group_number=criterion.group_number,
-            ordering=criterion.order,
+            order=criterion.order,
         )
         items.append(item)
 

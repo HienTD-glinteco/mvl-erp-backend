@@ -4,6 +4,34 @@ from rest_framework import serializers
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 
 
+class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
+    """Base serializer for EmployeeKPIAssessment with common fields and methods."""
+
+    employee_username = serializers.CharField(source="employee.username", read_only=True)
+    employee_fullname = serializers.SerializerMethodField()
+    month = serializers.SerializerMethodField()
+
+    def get_month(self, obj):
+        """Return month in YYYY-MM format."""
+        return obj.period.month.strftime("%Y-%m")
+
+    def get_employee_fullname(self, obj):
+        """Get employee full name if available."""
+        try:
+            from apps.hrm.models import Employee
+
+            employee = Employee.objects.filter(username=obj.employee.username).first()
+            if employee:
+                return employee.fullname
+        except (ImportError, AttributeError):
+            pass
+        return obj.employee.get_full_name()
+
+    class Meta:
+        model = EmployeeKPIAssessment
+        abstract = True
+
+
 class EmployeeKPIItemSerializer(serializers.ModelSerializer):
     """Serializer for EmployeeKPIItem model.
 
@@ -17,13 +45,14 @@ class EmployeeKPIItemSerializer(serializers.ModelSerializer):
             "id",
             "assessment",
             "criterion_id",
+            "target",
             "criterion",
             "sub_criterion",
             "evaluation_type",
             "description",
             "component_total_score",
             "group_number",
-            "ordering",
+            "order",
             "employee_score",
             "manager_score",
             "note",
@@ -34,13 +63,14 @@ class EmployeeKPIItemSerializer(serializers.ModelSerializer):
             "id",
             "assessment",
             "criterion_id",
+            "target",
             "criterion",
             "sub_criterion",
             "evaluation_type",
             "description",
             "component_total_score",
             "group_number",
-            "ordering",
+            "order",
             "created_at",
             "updated_at",
         ]
@@ -98,7 +128,7 @@ class EmployeeKPIItemUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
-class EmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
+class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Serializer for EmployeeKPIAssessment model.
 
     Provides full CRUD operations for employee KPI assessments.
@@ -106,9 +136,6 @@ class EmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
     """
 
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    employee_fullname = serializers.SerializerMethodField()
-    month = serializers.DateField(source="period.month", read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -148,19 +175,6 @@ class EmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_employee_fullname(self, obj):
-        """Get employee full name if available."""
-        # Try to get from Employee model if available
-        try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.filter(username=obj.employee.username).first()
-            if employee:
-                return employee.fullname
-        except (ImportError, AttributeError):
-            pass
-        return obj.employee.get_full_name()
-
     def validate(self, data):
         """Validate assessment data."""
         # Check if assessment already exists for employee and month
@@ -188,12 +202,9 @@ class EmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
         return data
 
 
-class EmployeeKPIAssessmentListSerializer(serializers.ModelSerializer):
+class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Lightweight serializer for listing employee KPI assessments without nested items."""
 
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    employee_fullname = serializers.SerializerMethodField()
-    month = serializers.DateField(source="period.month", read_only=True)
     kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
 
     class Meta:
@@ -219,18 +230,6 @@ class EmployeeKPIAssessmentListSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_employee_fullname(self, obj):
-        """Get employee full name if available."""
-        try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.filter(username=obj.employee.username).first()
-            if employee:
-                return employee.fullname
-        except (ImportError, AttributeError):
-            pass
-        return obj.employee.get_full_name()
-
 
 class EmployeeKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating specific fields of EmployeeKPIAssessment (HRM only)."""
@@ -247,7 +246,7 @@ class EmployeeKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
-class EmployeeSelfAssessmentSerializer(serializers.ModelSerializer):
+class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Serializer for employee self-assessment.
 
     Allows employees to:
@@ -256,9 +255,6 @@ class EmployeeSelfAssessmentSerializer(serializers.ModelSerializer):
     - Update plan_tasks, extra_tasks, and proposal
     """
 
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    employee_fullname = serializers.SerializerMethodField()
-    month = serializers.DateField(source="period.month", read_only=True)
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -291,18 +287,6 @@ class EmployeeSelfAssessmentSerializer(serializers.ModelSerializer):
             "items",
         ]
 
-    def get_employee_fullname(self, obj):
-        """Get employee full name if available."""
-        try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.filter(username=obj.employee.username).first()
-            if employee:
-                return employee.fullname
-        except (ImportError, AttributeError):
-            pass
-        return obj.employee.get_full_name()
-
     def validate(self, data):
         """Validate that assessment is not finalized."""
         if self.instance and self.instance.finalized:
@@ -310,7 +294,7 @@ class EmployeeSelfAssessmentSerializer(serializers.ModelSerializer):
         return data
 
 
-class ManagerAssessmentSerializer(serializers.ModelSerializer):
+class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Serializer for manager assessment of employees.
 
     Allows managers to:
@@ -319,9 +303,6 @@ class ManagerAssessmentSerializer(serializers.ModelSerializer):
     - Update manager_assessment field
     """
 
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    employee_fullname = serializers.SerializerMethodField()
-    month = serializers.DateField(source="period.month", read_only=True)
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -361,18 +342,6 @@ class ManagerAssessmentSerializer(serializers.ModelSerializer):
             "finalized",
             "items",
         ]
-
-    def get_employee_fullname(self, obj):
-        """Get employee full name if available."""
-        try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.filter(username=obj.employee.username).first()
-            if employee:
-                return employee.fullname
-        except (ImportError, AttributeError):
-            pass
-        return obj.employee.get_full_name()
 
     def validate(self, data):
         """Validate that assessment is not finalized."""
