@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 14:44+0700\n"
+"POT-Creation-Date: 2025-12-18 15:22+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2693,10 +2693,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2705,22 +2707,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -2854,7 +2861,7 @@ msgstr "Đang hiệu lực"
 msgid "About to expire"
 msgstr "Sắp hết hạn"
 
-#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:30
+#: apps/hrm/models/contract.py:59 apps/hrm/models/employee_certificate.py:71
 msgid "Expired"
 msgstr "Hết hạn"
 
@@ -3029,27 +3036,27 @@ msgstr ""
 "Ngày kết thúc nghỉ việc là bắt buộc khi trạng thái là Nghỉ việc hưởng chế độ "
 "thai sản."
 
-#: apps/hrm/models/employee_certificate.py:28
+#: apps/hrm/models/employee_certificate.py:69
 msgid "Valid"
 msgstr "Còn hiệu lực"
 
-#: apps/hrm/models/employee_certificate.py:29
+#: apps/hrm/models/employee_certificate.py:70
 msgid "Near Expiry"
 msgstr "Sắp hết hạn"
 
-#: apps/hrm/models/employee_certificate.py:135
+#: apps/hrm/models/employee_certificate.py:176
 msgid "Employee certificate"
 msgstr "Bằng cấp chứng chỉ"
 
-#: apps/hrm/models/employee_certificate.py:136
+#: apps/hrm/models/employee_certificate.py:177
 msgid "Employee certificates"
 msgstr "Bằng cấp chứng chỉ"
 
-#: apps/hrm/models/employee_certificate.py:197
+#: apps/hrm/models/employee_certificate.py:260
 msgid "Effective date must be less than expiry date."
 msgstr "Ngày hiệu lực phải trước ngày hết hạn."
 
-#: apps/hrm/models/employee_certificate.py:199
+#: apps/hrm/models/employee_certificate.py:262
 msgid "Expiry date is required for real estate practice licenses."
 msgstr ""
 "Ngày hết hiệu lực là bắt buộc khi loại chứng chỉ là Chứng chỉ hành nghề môi "

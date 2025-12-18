@@ -13,6 +13,49 @@ from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 from ..constants import CertificateType
 
 
+def generate_certificate_code(certificate: "EmployeeCertificate", force_save: bool = True) -> None:
+    """Generate and assign a code for an EmployeeCertificate instance.
+
+    This function composes a certificate code using the certificate's prefix
+    (based on certificate_type) and the certificate's numeric id zero-padded
+    to 9 digits, producing a value like "CCNN000000123".
+
+    The prefix is determined by the certificate_type:
+    - FOREIGN_LANGUAGE: CCNN
+    - COMPUTER: CCTH
+    - DIPLOMA: BTN
+    - OTHER: CCK
+    - BROKER_TRAINING_COMPLETION: CCHMG
+    - REAL_ESTATE_PRACTICE_LICENSE: CCBDS
+
+    Side effects:
+    - sets `certificate.code` to the generated value
+    - if `force_save` is True, persists only the `code` field with
+      `certificate.save(update_fields=["code"])` (to avoid saving unrelated fields)
+
+    Args:
+        certificate: EmployeeCertificate instance which MUST have a non-None `id`
+            and a valid `certificate_type` attribute.
+        force_save: If True (default), call `certificate.save(update_fields=["code"])`
+            after assigning the generated code. If False, the caller is
+            responsible for saving the instance.
+
+    Raises:
+        ValueError: If the provided `certificate` has no `id` set.
+    """
+    if not hasattr(certificate, "id") or certificate.id is None:
+        raise ValueError("EmployeeCertificate must have an id to generate code")
+
+    prefix = certificate.get_code_prefix()
+    instance_id = certificate.id
+    subcode = str(instance_id).zfill(9)
+
+    certificate.code = f"{prefix}{subcode}"
+
+    if force_save:
+        certificate.save(update_fields=["code"])
+
+
 @audit_logging_register
 class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Employee certificate model for tracking qualifications and certifications.
@@ -21,8 +64,6 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
     computer certificates, diplomas, broker training completion, and real estate practice licenses.
     The certificate_code is the actual certificate number issued by the certifying organization.
     """
-
-    CODE_PREFIX = "EC"
 
     class Status(models.TextChoices):
         VALID = "Valid", _("Valid")
@@ -153,6 +194,28 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         if self.certificate_code:
             return f"{self.certificate_code} - {self.get_certificate_type_display()}"
         return self.get_certificate_type_display()
+
+    def get_code_prefix(self) -> str:
+        """Get the code prefix based on certificate type.
+
+        Returns:
+            str: The code prefix for auto-generated certificate code.
+                - FOREIGN_LANGUAGE: CCNN
+                - COMPUTER: CCTH
+                - DIPLOMA: BTN
+                - OTHER: CCK
+                - BROKER_TRAINING_COMPLETION: CCHMG
+                - REAL_ESTATE_PRACTICE_LICENSE: CCBDS
+        """
+        prefix_mapping: dict[str, str] = {
+            CertificateType.FOREIGN_LANGUAGE: "CCNN",
+            CertificateType.COMPUTER: "CCTH",
+            CertificateType.DIPLOMA: "BTN",
+            CertificateType.OTHER: "CCK",
+            CertificateType.BROKER_TRAINING_COMPLETION: "CCHMG",
+            CertificateType.REAL_ESTATE_PRACTICE_LICENSE: "CCBDS",
+        }
+        return prefix_mapping.get(self.certificate_type, prefix_mapping[CertificateType.OTHER])
 
     @property
     def colored_status(self):

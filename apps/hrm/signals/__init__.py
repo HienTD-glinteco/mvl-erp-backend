@@ -32,6 +32,9 @@ from apps.hrm.models import (
     RecruitmentSource,
 )
 from apps.hrm.models.employee import generate_code as employee_generate_code
+from apps.hrm.models.employee_certificate import (
+    generate_certificate_code as certificate_generate_code,
+)
 from apps.hrm.utils import generate_contract_code
 
 from ..constants import TEMP_CODE_PREFIX
@@ -50,7 +53,7 @@ from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403
 from .work_schedule import *  # noqa: E402, F401, F403
 
-# Register auto-code generation for models (excluding Employee)
+# Register auto-code generation for models (excluding Employee and EmployeeCertificate)
 register_auto_code_signal(
     AttendanceGeolocation,
     AttendanceDevice,
@@ -60,7 +63,6 @@ register_auto_code_signal(
     Block,
     ContractType,
     Department,
-    EmployeeCertificate,
     EmployeeDependent,
     EmployeeRelationship,
     Position,
@@ -79,6 +81,13 @@ register_auto_code_signal(
     Employee,
     temp_code_prefix=TEMP_CODE_PREFIX,
     custom_generate_code=employee_generate_code,
+)
+
+# Register auto-code generation for EmployeeCertificate with custom generate_code
+register_auto_code_signal(
+    EmployeeCertificate,
+    temp_code_prefix=TEMP_CODE_PREFIX,
+    custom_generate_code=certificate_generate_code,
 )
 
 # Register auto-code generation for Contract with custom generate_code
