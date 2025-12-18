@@ -4,11 +4,12 @@ from django.utils.translation import gettext as _
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import TEMP_CODE_PREFIX, AttendanceType
-from libs.models import AutoCodeMixin, BaseModel, SafeTextField
+from libs.constants import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
 
 @audit_logging_register
-class AttendanceRecord(AutoCodeMixin, BaseModel):
+class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Attendance record model for storing employee clock-in/out logs.
 
     This model stores individual attendance records captured by various methods:
@@ -42,6 +43,19 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "DD"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
+
+    class ApproveStatus(models.TextChoices):
+        APPROVED = "APPROVED", _("Approved")
+        REJECTED = "REJECTED", _("Rejected")
+        PENDING = "PENDING", _("Pending")
+
+    VARIANT_MAPPING = {
+        "approve_status": {
+            ApproveStatus.APPROVED: ColorVariant.GREEN,
+            ApproveStatus.REJECTED: ColorVariant.RED,
+            ApproveStatus.PENDING: ColorVariant.YELLOW,
+        }
+    }
 
     class Meta:
         verbose_name = _("Attendance Record")
@@ -201,3 +215,24 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         if self.employee:
             return f"{self.employee.fullname} - {self.timestamp}"
         return f"{self.attendance_code} - {self.timestamp}"
+
+    @property
+    def approve_status(self):
+        """Get approval status based on is_pending and is_valid flags.
+
+        Logic:
+        - If is_pending is True -> PENDING
+        - If is_valid is True -> APPROVED
+        - Else (is_valid is False/None) -> REJECTED
+        """
+        if self.is_pending:
+            return self.ApproveStatus.PENDING
+        elif self.is_valid:
+            return self.ApproveStatus.APPROVED
+        else:
+            return self.ApproveStatus.REJECTED
+
+    @property
+    def colored_approve_status(self):
+        """Get colored value representation for approve_status."""
+        return self.get_colored_value("approve_status")

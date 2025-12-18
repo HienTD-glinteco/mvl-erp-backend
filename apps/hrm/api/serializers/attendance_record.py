@@ -5,7 +5,7 @@ from apps.hrm.api.serializers.attendance_geolocation import AttendanceGeolocatio
 from apps.hrm.api.serializers.attendance_wifi_device import AttendanceWifiDeviceSerializer
 from apps.hrm.api.serializers.employee import EmployeeSerializer
 from apps.hrm.models import AttendanceDevice, AttendanceRecord
-from libs import FieldFilteringSerializerMixin
+from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 
 class AttendanceDeviceNestedSerializer(serializers.ModelSerializer):
@@ -31,6 +31,10 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
     attendance_wifi_device = AttendanceWifiDeviceSerializer(read_only=True)
     approved_by = EmployeeSerializer(read_only=True)
 
+    # Status fields
+    approve_status = serializers.CharField(read_only=True)
+    colored_approve_status = ColoredValueSerializer(read_only=True)
+
     class Meta:
         model = AttendanceRecord
         fields = [
@@ -51,6 +55,8 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "is_pending",
             "approved_at",
             "approved_by",
+            "approve_status",
+            "colored_approve_status",
             "notes",
             "raw_data",
             "created_at",
@@ -71,6 +77,8 @@ class AttendanceRecordSerializer(FieldFilteringSerializerMixin, serializers.Mode
             "is_pending",
             "approved_at",
             "approved_by",
+            "approve_status",
+            "colored_approve_status",
             "raw_data",
             "created_at",
             "updated_at",
