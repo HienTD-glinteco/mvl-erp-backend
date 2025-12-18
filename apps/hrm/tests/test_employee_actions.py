@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -346,8 +347,10 @@ class EmployeeActionAPITest(TestCase):
 
     def test_change_employee_type_action(self):
         """Test changing employee type successfully creates work history and updates employee."""
+        effective_date = timezone.localdate()
+
         url = reverse("hrm:employee-change-employee-type", kwargs={"pk": self.active_employee.id})
-        payload = {"date": "2024-03-01", "employee_type": "INTERN", "note": "Role change"}
+        payload = {"date": effective_date.isoformat(), "employee_type": "INTERN", "note": "Role change"}
         response = self.client.post(url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -363,8 +366,8 @@ class EmployeeActionAPITest(TestCase):
             .first()
         )
         self.assertIsNotNone(wh)
-        self.assertEqual(str(wh.date), "2024-03-01")
-        self.assertEqual(wh.from_date.isoformat(), "2024-03-01")
+        self.assertEqual(str(wh.date), effective_date.isoformat())
+        self.assertEqual(wh.from_date.isoformat(), effective_date.isoformat())
         self.assertEqual(wh.note, "Role change")
 
     def test_change_employee_type_action_future_date_fails(self):

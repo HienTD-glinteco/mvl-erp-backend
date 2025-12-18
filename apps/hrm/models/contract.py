@@ -154,14 +154,6 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text="Base salary amount at the time of contract",
     )
 
-    base_salary = models.DecimalField(
-        max_digits=20,
-        decimal_places=0,
-        default=0,
-        verbose_name="Base salary",
-        help_text="Base salary amount at the time of contract",
-    )
-
     kpi_salary = models.DecimalField(
         max_digits=20,
         decimal_places=0,

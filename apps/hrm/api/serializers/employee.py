@@ -1,7 +1,6 @@
-from datetime import date
-
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -27,6 +26,7 @@ from apps.hrm.services.employee import (
     create_state_change_event,
     create_transfer_event,
 )
+from apps.hrm.tasks.timesheets import recalculate_timesheets
 from libs import ColoredValueSerializer, FieldFilteringSerializerMixin
 
 from .common_nested import BankNestedSerializer
@@ -337,13 +337,13 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
         if old_status != employee.status:
             # Determine the effective date based on status
             if employee.status in Employee.Status.get_leave_statuses():
-                effective_date = employee.resignation_start_date or date.today()
+                effective_date = employee.resignation_start_date or timezone.localdate()
                 start_date = employee.resignation_start_date
                 end_date = (
                     employee.resignation_end_date if employee.status == Employee.Status.MATERNITY_LEAVE else None
                 )
             else:
-                effective_date = employee.start_date or date.today()
+                effective_date = employee.start_date or timezone.localdate()
                 start_date = None
                 end_date = None
 
@@ -364,7 +364,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
                 new_department=employee.department,
                 old_position=old_position,
                 new_position=employee.position,
-                effective_date=date.today(),
+                effective_date=timezone.localdate(),
             )
         # Check for position change (if department didn't change)
         elif old_position and employee.position and old_position.id != employee.position.id:
@@ -372,7 +372,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
                 employee=employee,
                 old_position=old_position,
                 new_position=employee.position,
-                effective_date=date.today(),
+                effective_date=timezone.localdate(),
             )
 
 
@@ -402,7 +402,7 @@ class EmployeeBaseStatusActionSerializer(EmployeeDecisionMixin, serializers.Seri
         self.old_status = self.employee.status if self.employee else None
 
     def validate_start_date(self, value):
-        if value > date.today():
+        if value > timezone.localdate():
             raise serializers.ValidationError(_("Start date cannot be in the future."))
         return value
 
@@ -744,8 +744,16 @@ class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Seri
         self.old_employee_type = self.employee.employee_type if self.employee else None
 
     def validate_date(self, effective_date):
-        """Validate that effective_date is not in the future."""
-        if effective_date > date.today():
+        """Validate effective date."""
+        today = timezone.localdate()
+        start_of_month = today.replace(day=1)
+
+        if effective_date < start_of_month:
+            raise serializers.ValidationError(
+                _("Effective date must be greater than or equal to the first day of the current month.")
+            )
+
+        if effective_date > today:
             raise serializers.ValidationError(_("Effective date cannot be in the future."))
         return effective_date
 
@@ -799,6 +807,9 @@ class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Seri
             note=self.validated_data.get("note", ""),
             decision=self.validated_data.get("decision_id"),
         )
+
+        # Trigger timesheet recalculation
+        recalculate_timesheets.delay(employee_id=self.employee.id, start_date_str=str(self.validated_data["date"]))
 
 
 class EmployeeAvatarSerializer(FileConfirmSerializerMixin, serializers.Serializer):

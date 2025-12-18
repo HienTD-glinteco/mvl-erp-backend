@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 13:29+0700\n"
+"POT-Creation-Date: 2025-12-18 14:44+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -169,15 +169,22 @@ msgstr ""
 "Chỉ những nhân viên đang hoạt động hoặc nghỉ không lương mới có thể nghỉ "
 "thai sản."
 
-#: apps/hrm/api/serializers/employee.py:749
+#: apps/hrm/api/serializers/employee.py:753
+#: apps/hrm/import_handlers/employee.py:716
+msgid ""
+"Effective date must be greater than or equal to the first day of the current "
+"month."
+msgstr "Ngày hiệu lực phải lớn hơn hoặc bằng ngày đầu tiên của tháng hiện tại."
+
+#: apps/hrm/api/serializers/employee.py:757
 msgid "Effective date cannot be in the future."
 msgstr "Ngày hiệu lực không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:755
+#: apps/hrm/api/serializers/employee.py:763
 msgid "The new employee type must be different from the current type."
 msgstr "Loại nhân viên mới phải khác loại hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:772
+#: apps/hrm/api/serializers/employee.py:780
 msgid "Effective date cannot be earlier than the latest work history date."
 msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
@@ -458,7 +465,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee_dependent.py:260
 #: apps/hrm/api/views/employee_relationship.py:221
 #: apps/hrm/api/views/employee_role.py:108
-#: apps/hrm/api/views/employee_work_history.py:123
+#: apps/hrm/api/views/employee_work_history.py:124
 #: apps/hrm/api/views/holiday.py:222
 #: apps/hrm/api/views/interview_candidate.py:157
 #: apps/hrm/api/views/job_description.py:233
@@ -517,7 +524,7 @@ msgstr "Quản lý Quyết Định"
 #: apps/hrm/api/views/employee_dependent.py:261
 #: apps/hrm/api/views/employee_relationship.py:222
 #: apps/hrm/api/views/employee_role.py:109
-#: apps/hrm/api/views/employee_work_history.py:124
+#: apps/hrm/api/views/employee_work_history.py:125
 msgid "Employee Management"
 msgstr "Quản lý Nhân Viên"
 
@@ -818,6 +825,14 @@ msgstr "Không thể cập nhật hơn 25 nhân viên cùng một lúc."
 #: apps/hrm/api/views/employee_role.py:207
 msgid "Update successful"
 msgstr "Chỉnh sửa thành công"
+
+#: apps/hrm/api/views/employee_work_history.py:145
+msgid ""
+"Cannot delete employee type change record with effective date in previous "
+"months."
+msgstr ""
+"Không thể xóa bản ghi thay đổi loại nhân viên nếu ngày hiệu lực thuộc tháng "
+"trước hoặc các tháng trước đó."
 
 #: apps/hrm/api/views/holiday.py:137 apps/hrm/api/views/holiday.py:223
 msgid "Holiday Management"
@@ -2458,7 +2473,7 @@ msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực"
 msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
-#: apps/hrm/import_handlers/employee.py:675
+#: apps/hrm/import_handlers/employee.py:678
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
 
@@ -2843,20 +2858,20 @@ msgstr "Sắp hết hạn"
 msgid "Expired"
 msgstr "Hết hạn"
 
-#: apps/hrm/models/contract.py:318 apps/hrm/models/contract_type.py:75
+#: apps/hrm/models/contract.py:310 apps/hrm/models/contract_type.py:75
 msgid "Contract"
 msgstr "Hợp đồng"
 
-#: apps/hrm/models/contract.py:319
+#: apps/hrm/models/contract.py:311
 msgid "Contracts"
 msgstr "Hợp đồng"
 
-#: apps/hrm/models/contract.py:350 apps/hrm/models/contract_type.py:48
+#: apps/hrm/models/contract.py:342 apps/hrm/models/contract_type.py:48
 #: apps/hrm/models/contract_type.py:281
 msgid "Indefinite term"
 msgstr "Không xác định thời hạn"
 
-#: apps/hrm/models/contract.py:351 apps/hrm/models/contract_type.py:282
+#: apps/hrm/models/contract.py:343 apps/hrm/models/contract_type.py:282
 #, python-brace-format
 msgid "{months} months"
 msgstr "{months} tháng"
@@ -3673,25 +3688,23 @@ msgstr ""
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."
-msgstr ""
+msgstr "Hệ thống tự động kích hoạt lại sau khi nghỉ thai sản."
 
 #: apps/hrm/utils/attendance_validation.py:22
 msgid "Authentication token with device_id is required."
-msgstr ""
+msgstr "Token xác thực không hợp lệ do thiếu device_id"
 
 #: apps/hrm/utils/attendance_validation.py:27
 msgid "Token does not contain device_id."
-msgstr ""
+msgstr "Token không chứa device_id"
 
 #: apps/hrm/utils/attendance_validation.py:33
-#, fuzzy
-#| msgid "WiFi device not found"
 msgid "User device not found."
-msgstr "Không tìm thấy thiết bị WiFi"
+msgstr "Không tìm thấy thiết bị."
 
 #: apps/hrm/utils/attendance_validation.py:37
 msgid "Attendance is only allowed from mobile devices."
-msgstr ""
+msgstr "Chức năng điểm danh chỉ được cho phép thực hiện trên thiết bị di động"
 
 #: apps/hrm/utils/functions.py:18
 msgid "Unknown"

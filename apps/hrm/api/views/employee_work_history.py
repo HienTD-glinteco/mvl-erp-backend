@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -134,4 +135,15 @@ class EmployeeWorkHistoryViewSet(AuditLoggingMixin, BaseModelViewSet):
             return Response(
                 "Only the latest employee work history record can be deleted.", status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Check deletion restriction for Employee Type change records
+        if instance.name == EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE:
+            today = timezone.localdate()
+            start_of_month = today.replace(day=1)
+            if instance.date < start_of_month:
+                return Response(
+                    _("Cannot delete employee type change record with effective date in previous months."),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         return super().destroy(request, *args, **kwargs)
