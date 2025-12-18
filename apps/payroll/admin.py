@@ -129,8 +129,16 @@ class EmployeeKPIItemInline(admin.TabularInline):
 
     model = EmployeeKPIItem
     extra = 0
-    readonly_fields = ["criterion_id", "criterion", "evaluation_type", "component_total_score", "ordering"]
-    fields = ["criterion", "evaluation_type", "component_total_score", "employee_score", "manager_score", "ordering"]
+    readonly_fields = ["criterion_id", "target", "criterion", "evaluation_type", "component_total_score", "order"]
+    fields = [
+        "criterion",
+        "target",
+        "evaluation_type",
+        "component_total_score",
+        "employee_score",
+        "manager_score",
+        "order",
+    ]
 
 
 @admin.register(EmployeeKPIAssessment)
@@ -219,11 +227,11 @@ class EmployeeKPIItemAdmin(admin.ModelAdmin):
         "component_total_score",
         "employee_score",
         "manager_score",
-        "ordering",
+        "order",
     ]
     list_filter = ["evaluation_type"]
     search_fields = ["criterion", "assessment__employee__username"]
-    ordering = ["assessment", "ordering"]
+    ordering = ["assessment", "order"]
     readonly_fields = ["created_at", "updated_at"]
 
 

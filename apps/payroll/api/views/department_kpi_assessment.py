@@ -36,7 +36,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "department": 1,
                                 "department_name": "Sales Department",
                                 "department_code": "PB001",
-                                "month": "2025-12-01",
+                                "month": "2025-12",
                                 "kpi_config_snapshot": {},
                                 "grade": "B",
                                 "finalized": False,

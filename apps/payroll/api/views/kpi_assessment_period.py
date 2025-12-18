@@ -46,7 +46,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "month": "2025-12-01",
+                                "month": "2025-12",
                                 "finalized": False,
                                 "employee_count": 50,
                                 "department_count": 10,
@@ -73,7 +73,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": True,
                     "data": {
                         "id": 1,
-                        "month": "2025-12-01",
+                        "month": "2025-12",
                         "kpi_config_snapshot": {
                             "name": "2025 KPI Config",
                             "grade_thresholds": [],
@@ -117,7 +117,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                 value={
                     "message": "Assessment generation completed successfully",
                     "period_id": 1,
-                    "month": "2025-12-01",
+                    "month": "2025-12",
                     "employee_assessments_created": 50,
                     "department_assessments_created": 10,
                 },
@@ -254,7 +254,7 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
             {
                 "message": _("Assessment generation completed successfully"),
                 "period_id": period.id,
-                "month": period.month.isoformat(),
+                "month": period.month.strftime("%Y-%m"),
                 "employee_assessments_created": employee_count,
                 "department_assessments_created": department_count,
             },

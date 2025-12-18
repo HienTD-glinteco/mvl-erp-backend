@@ -184,3 +184,33 @@ class EmployeeKPIAssessmentModelTest(TestCase):
         self.assertIsNone(item.criterion_id)
         self.assertEqual(item.criterion, "Revenue Achievement")
         self.assertEqual(item.component_total_score, Decimal("70.00"))
+
+    def test_snapshot_includes_target_and_order_fields(self):
+        """Test that snapshot includes target and order fields matching KPICriterion."""
+        # Create assessment
+        assessment = EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.employee,
+        )
+        # Create items from criteria
+        criteria = KPICriterion.objects.filter(active=True).order_by("evaluation_type", "order")
+        items = create_assessment_items_from_criteria(assessment, list(criteria))
+
+        # Verify all items have target and order fields
+        for item in items:
+            self.assertIsNotNone(item.target, "Item should have target field")
+            self.assertIsNotNone(item.order, "Item should have order field")
+
+        # Verify specific item has correct target and order from criterion1
+        item_criterion1 = EmployeeKPIItem.objects.filter(
+            assessment=assessment, criterion="Revenue Achievement"
+        ).first()
+        self.assertIsNotNone(item_criterion1)
+        self.assertEqual(item_criterion1.target, self.criterion1.target)
+        self.assertEqual(item_criterion1.order, self.criterion1.order)
+
+        # Verify ordering by -evaluation_type and order
+        all_items = list(assessment.items.all())
+        # With -evaluation_type (descending), work_performance comes before discipline
+        self.assertEqual(all_items[0].evaluation_type, "work_performance")
+        self.assertEqual(all_items[1].evaluation_type, "discipline")

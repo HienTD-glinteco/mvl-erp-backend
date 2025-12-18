@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.audit_logging.decorators import audit_logging_register
+from apps.payroll.models.kpi_criterion import KPICriterion
 from libs.models import BaseModel, SafeTextField
 
 
@@ -208,13 +209,14 @@ class EmployeeKPIItem(BaseModel):
     Attributes:
         assessment: Foreign key to EmployeeKPIAssessment
         criterion_id: Original criterion (can be NULL if deleted)
+        target: Snapshot of target group or role
         criterion: Snapshot of criterion name
         sub_criterion: Snapshot of sub-criterion
         evaluation_type: Snapshot of evaluation type
         description: Snapshot of criterion description
         component_total_score: Snapshot of maximum score
         group_number: Snapshot of group number for UI display
-        ordering: Display order
+        order: Display order
         employee_score: Employee self-evaluation score
         manager_score: Manager evaluation score
         note: Additional notes
@@ -237,6 +239,13 @@ class EmployeeKPIItem(BaseModel):
         help_text="Original criterion (can be NULL if deleted)",
     )
 
+    target = models.CharField(
+        max_length=200,
+        choices=KPICriterion.TargetChoices.choices,
+        verbose_name="Target",
+        help_text="Snapshot of target group or role",
+    )
+
     criterion = models.CharField(
         max_length=255,
         verbose_name="Criterion",
@@ -253,6 +262,7 @@ class EmployeeKPIItem(BaseModel):
 
     evaluation_type = models.CharField(
         max_length=50,
+        choices=KPICriterion.EvaluationTypeChoices.choices,
         verbose_name="Evaluation type",
         help_text="Snapshot of evaluation type",
     )
@@ -281,7 +291,7 @@ class EmployeeKPIItem(BaseModel):
         help_text="Snapshot of group number for UI display",
     )
 
-    ordering = models.IntegerField(
+    order = models.IntegerField(
         verbose_name="Order",
         help_text="Display order",
     )
@@ -316,9 +326,9 @@ class EmployeeKPIItem(BaseModel):
         verbose_name = "Employee KPI Item"
         verbose_name_plural = "Employee KPI Items"
         db_table = "payroll_employee_kpi_item"
-        ordering = ["ordering"]
+        ordering = ["-evaluation_type", "order"]
         indexes = [
-            models.Index(fields=["assessment", "ordering"]),
+            models.Index(fields=["assessment", "order"]),
         ]
 
     def clean(self):
