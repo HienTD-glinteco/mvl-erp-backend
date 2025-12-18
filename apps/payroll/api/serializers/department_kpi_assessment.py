@@ -115,3 +115,21 @@ class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
         if value and value not in ["A", "B", "C", "D"]:
             raise serializers.ValidationError(_("Grade must be one of: A, B, C, D"))
         return value
+
+    def update(self, instance, validated_data):
+        """Update department assessment and sync leader's grade_hrm."""
+        from apps.payroll.models import EmployeeKPIAssessment
+
+        grade = validated_data.get("grade")
+
+        # Update department assessment
+        instance = super().update(instance, validated_data)
+
+        # If grade changed and department has a leader, update leader's employee assessment
+        if grade and instance.department.leader:
+            EmployeeKPIAssessment.objects.filter(
+                employee=instance.department.leader,
+                period=instance.period,
+            ).update(grade_hrm=grade)
+
+        return instance

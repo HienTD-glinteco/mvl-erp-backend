@@ -298,6 +298,7 @@ def generate_department_assessments_for_period(
     """Generate department KPI assessments for a period.
 
     Creates department assessments for all active departments with default grade 'C'.
+    Also creates or updates leader's EmployeeKPIAssessment with grade_hrm='C' and finalized=True.
 
     Args:
         period: KPIAssessmentPeriod instance
@@ -311,7 +312,7 @@ def generate_department_assessments_for_period(
     from apps.payroll.models import DepartmentKPIAssessment
 
     created_count = 0
-    departments_qs = Department.objects.filter(is_active=True)
+    departments_qs = Department.objects.filter(is_active=True).select_related("leader")
 
     # Filter by department IDs if provided
     if department_ids:
@@ -336,6 +337,18 @@ def generate_department_assessments_for_period(
                 default_grade="C",
             )
             created_count += 1
+
+            # Update or create leader's employee assessment
+            if department.leader:
+                EmployeeKPIAssessment.objects.update_or_create(
+                    employee=department.leader,
+                    period=period,
+                    defaults={
+                        "grade_hrm": "C",
+                        "finalized": True,
+                    },
+                )
+
         except Exception as e:  # noqa: B110
             # Skip errors for individual departments but log them
             logger.warning(

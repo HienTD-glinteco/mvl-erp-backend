@@ -3623,7 +3623,9 @@ msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
 #: apps/hrm/services/proposal_service.py:152
 #, python-format
 msgid "Complaint proposal %(id)s missing approved check-in/out times"
-msgstr "Đề xuất khiếu nại %(id)s thiếu thời gian check-in/check-out đã được phê duyệt."
+msgstr ""
+"Đề xuất khiếu nại %(id)s thiếu thời gian check-in/check-out đã được phê "
+"duyệt."
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."
