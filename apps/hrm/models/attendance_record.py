@@ -150,10 +150,39 @@ class AttendanceRecord(AutoCodeMixin, BaseModel):
         help_text="WiFi device reference (for WiFi attendance)",
     )
 
+    description = models.CharField(
+        max_length=1000,
+        blank=True,
+        null=True,
+        help_text="Description or additional info about the attendance record",
+    )
+
     is_valid = models.BooleanField(
         default=True,
+        null=True,
+        blank=True,
         verbose_name="Is valid",
         help_text="Whether this attendance record is valid",
+    )
+    is_pending = models.BooleanField(
+        default=False,
+        verbose_name="Is pending",
+        help_text="Whether this attendance record is pending approval",
+    )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Approved at",
+        help_text="Date and time when this record was approved",
+    )
+    approved_by = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_attendance_records",
+        verbose_name="Approved by",
+        help_text="Employee who approved this record",
     )
     notes = SafeTextField(
         blank=True,

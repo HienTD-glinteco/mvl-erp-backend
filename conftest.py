@@ -24,6 +24,34 @@ import pytest
 from django.core.management import call_command
 
 
+@pytest.fixture(autouse=True)
+def mock_s3_service(monkeypatch):
+    """
+    Fixture to mock S3FileUploadService used by `apps.files.models.FileModel`.
+
+    Replaces the real `S3FileUploadService` with a lightweight mock that returns
+    deterministic URLs for `generate_view_url` and `generate_download_url`.
+
+    Usage in tests:
+        def test_something(mock_s3_service):
+            # when FileModel.view_url or download_url is accessed,
+            # the returned URL will be predictable
+            ...
+    """
+
+    class _MockS3Service:
+        def generate_view_url(self, file_path: str) -> str:
+            return f"https://test-s3.local/view/{file_path}"
+
+        def generate_download_url(self, file_path: str, file_name: str) -> str:
+            return f"https://test-s3.local/download/{file_path}?name={file_name}"
+
+    # Patch the class used in apps.files.models so instantiating it returns our mock
+    monkeypatch.setattr("apps.files.models.S3FileUploadService", _MockS3Service)
+
+    return _MockS3Service()
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--db-mode",

@@ -522,7 +522,7 @@ class FileModelTest(TestCase, APITestMixin):
         self.assertEqual(files[0].id, file2.id)
         self.assertEqual(files[1].id, file1.id)
 
-    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    @patch("apps.files.models.S3FileUploadService")
     def test_view_url_property(self, mock_s3_service):
         """Test view_url property generates presigned URL."""
         # Arrange
@@ -542,7 +542,7 @@ class FileModelTest(TestCase, APITestMixin):
         self.assertEqual(url, "https://s3.amazonaws.com/view-url")
         mock_instance.generate_view_url.assert_called_once_with("uploads/test/1/test.pdf")
 
-    @patch("apps.files.utils.s3_utils.S3FileUploadService")
+    @patch("apps.files.models.S3FileUploadService")
     def test_download_url_property(self, mock_s3_service):
         """Test download_url property generates presigned download URL."""
         # Arrange

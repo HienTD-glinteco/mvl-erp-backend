@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from apps.files.utils.s3_utils import S3FileUploadService
 from libs.models import BaseModel
 
 
@@ -92,8 +93,6 @@ class FileModel(BaseModel):
         Returns:
             Presigned URL that allows viewing the file in browser
         """
-        from apps.files.utils.s3_utils import S3FileUploadService
-
         service = S3FileUploadService()
         return service.generate_view_url(self.file_path)
 
@@ -105,7 +104,5 @@ class FileModel(BaseModel):
         Returns:
             Presigned URL that forces file download with original filename
         """
-        from apps.files.utils.s3_utils import S3FileUploadService
-
         service = S3FileUploadService()
         return service.generate_download_url(self.file_path, self.file_name)

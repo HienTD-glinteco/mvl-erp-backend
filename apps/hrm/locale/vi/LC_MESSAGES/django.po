@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 09:55+0700\n"
+"POT-Creation-Date: 2025-12-18 10:53+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -251,6 +251,10 @@ msgstr ""
 "Nhân viên không thể vừa là trưởng phòng vừa là cấp dưới trong cùng một hệ "
 "thống phân cấp."
 
+#: apps/hrm/api/serializers/other_attendance.py:58
+msgid "No valid 'Other' attendance records found for the provided IDs."
+msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
+
 #: apps/hrm/api/serializers/proposal.py:305
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
@@ -356,25 +360,41 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/attendance_record.py:130
+#: apps/hrm/api/views/attendance_record.py:131
 msgid "Attendance Record Management"
 msgstr "Log chấm công"
 
-#: apps/hrm/api/views/attendance_record.py:134
+#: apps/hrm/api/views/attendance_record.py:135
 msgid "Record attendance by GeoLocation"
 msgstr "Log chấm Công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:135
+#: apps/hrm/api/views/attendance_record.py:136
 msgid "Record attendance using GeoLocation coordinates"
 msgstr "Chấm công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:138
+#: apps/hrm/api/views/attendance_record.py:139
 msgid "Record attendance by WiFi"
 msgstr "Chấm Công WiFi"
 
-#: apps/hrm/api/views/attendance_record.py:139
+#: apps/hrm/api/views/attendance_record.py:140
 msgid "Record attendance using WiFi BSSID"
 msgstr "Chấm công bằng WiFi BSSID"
+
+#: apps/hrm/api/views/attendance_record.py:143
+msgid "Record attendance by Other"
+msgstr "Chấm Công Khác"
+
+#: apps/hrm/api/views/attendance_record.py:144
+msgid "Record attendance manually or by other means"
+msgstr "Log chấm Công thủ công hoặc lý do khác"
+
+#: apps/hrm/api/views/attendance_record.py:147
+msgid "Bulk approve for Other attendance records"
+msgstr "Duyệt hàng loạt cho log chấm công Khác"
+
+#: apps/hrm/api/views/attendance_record.py:148
+msgid "Approve or reject multiple Other attendance records"
+msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
 #: apps/hrm/api/views/attendance_report.py:26
 msgid "Report"

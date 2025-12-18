@@ -12,6 +12,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.api.serializers.geolocation_attendance import GeoLocationAttendanceSerializer
+from apps.hrm.api.serializers.other_attendance import OtherAttendanceBulkApproveSerializer, OtherAttendanceSerializer
 from apps.hrm.api.serializers.wifi_attendance import WiFiAttendanceSerializer
 from apps.hrm.models import AttendanceRecord
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -137,6 +138,14 @@ class AttendanceRecordViewSet(
         "wifi_attendance": {
             "name_template": _("Record attendance by WiFi"),
             "description_template": _("Record attendance using WiFi BSSID"),
+        },
+        "other_attendance": {
+            "name_template": _("Record attendance by Other"),
+            "description_template": _("Record attendance manually or by other means"),
+        },
+        "other_bulk_approve": {
+            "name_template": _("Bulk approve for Other attendance records"),
+            "description_template": _("Approve or reject multiple Other attendance records"),
         },
     }
 
@@ -264,3 +273,36 @@ class AttendanceRecordViewSet(
         # Return the created attendance record
         record_serializer = AttendanceRecordSerializer(attendance_record)
         return Response(record_serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary="Record attendance by Other",
+        description="Record attendance manually or by other means. Pending approval.",
+        tags=["6.11: Attendance Record - For Mobile"],
+        request=OtherAttendanceSerializer,
+        responses={201: AttendanceRecordSerializer},
+    )
+    @action(detail=False, methods=["post"], url_path="other-attendance")
+    def other_attendance(self, request):
+        """Record attendance manually or by other means."""
+        serializer = OtherAttendanceSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        attendance_record = serializer.save()
+
+        record_serializer = AttendanceRecordSerializer(attendance_record)
+        return Response(record_serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary="Bulk approve Other attendance records",
+        description="Approve or reject multiple Other attendance records.",
+        tags=["6.11: Attendance Record"],
+        request=OtherAttendanceBulkApproveSerializer,
+        responses={200: {"type": "object", "properties": {"success": {"type": "boolean"}}}},
+    )
+    @action(detail=False, methods=["post"], url_path="otherbulk-approve")
+    def other_bulk_approve(self, request):
+        """Bulk approve or reject for other attendance records."""
+        serializer = OtherAttendanceBulkApproveSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        updated_count = serializer.save()
+
+        return Response({"success": True, "updated_count": updated_count}, status=status.HTTP_200_OK)
