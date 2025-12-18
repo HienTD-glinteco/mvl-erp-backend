@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 10:53+0700\n"
+"POT-Creation-Date: 2025-12-18 11:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -213,25 +213,41 @@ msgid ""
 "Your location is outside the allowed radius ({radius}m) of the geolocation"
 msgstr "Vị trí của bạn nằm ngoài bán kính cho phép ({radius}m) "
 
-#: apps/hrm/api/serializers/holiday.py:55 apps/hrm/models/holiday.py:111
+#: apps/hrm/api/serializers/holiday.py:56 apps/hrm/models/holiday.py:111
 msgid "Compensatory workday must be on Saturday or Sunday"
 msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 
-#: apps/hrm/api/serializers/holiday.py:59 apps/hrm/models/holiday.py:116
+#: apps/hrm/api/serializers/holiday.py:60 apps/hrm/models/holiday.py:116
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
-#: apps/hrm/api/serializers/holiday.py:82 apps/hrm/models/holiday.py:86
+#: apps/hrm/api/serializers/holiday.py:83 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
-#: apps/hrm/api/serializers/holiday.py:195 apps/hrm/models/holiday.py:43
+#: apps/hrm/api/serializers/holiday.py:121
+msgid "Cannot create/edit compensatory workdays in the past or present"
+msgstr "Không thể tạo/chỉnh sửa ngày làm bù trong quá khứ hoặc hiện tại."
+
+#: apps/hrm/api/serializers/holiday.py:165
+msgid "Cannot create compensatory workdays in the past or present"
+msgstr "Không thể tạo ngày làm bù trong quá khứ hoặc hiện tại."
+
+#: apps/hrm/api/serializers/holiday.py:216 apps/hrm/models/holiday.py:43
 msgid "End date must be greater than or equal to start date"
 msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/api/serializers/holiday.py:209
+#: apps/hrm/api/serializers/holiday.py:230
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
+
+#: apps/hrm/api/serializers/holiday.py:337
+msgid "Cannot modify holidays that are in the past or present"
+msgstr "Không thể sửa ngày lễ trong quá khứ hoặc hiện tại"
+
+#: apps/hrm/api/serializers/holiday.py:342
+msgid "Cannot create/edit holidays in the past or present"
+msgstr "Không thể tạo/sửa ngày lễ trong quá khứ hoặc hiện tại"
 
 #: apps/hrm/api/serializers/organization.py:256
 msgid "Leader must be currently working."
@@ -443,7 +459,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee_relationship.py:221
 #: apps/hrm/api/views/employee_role.py:108
 #: apps/hrm/api/views/employee_work_history.py:123
-#: apps/hrm/api/views/holiday.py:212
+#: apps/hrm/api/views/holiday.py:222
 #: apps/hrm/api/views/interview_candidate.py:157
 #: apps/hrm/api/views/job_description.py:233
 #: apps/hrm/api/views/organization.py:235
@@ -803,13 +819,21 @@ msgstr "Không thể cập nhật hơn 25 nhân viên cùng một lúc."
 msgid "Update successful"
 msgstr "Chỉnh sửa thành công"
 
-#: apps/hrm/api/views/holiday.py:135 apps/hrm/api/views/holiday.py:213
+#: apps/hrm/api/views/holiday.py:137 apps/hrm/api/views/holiday.py:223
 msgid "Holiday Management"
 msgstr "Quản lý Ngày Nghỉ Lễ"
 
-#: apps/hrm/api/views/holiday.py:251
+#: apps/hrm/api/views/holiday.py:179
+msgid "Cannot delete holidays that are in the past or present"
+msgstr "Không thể xóa ngày lễ trong quá khứ hoặc hiện tại"
+
+#: apps/hrm/api/views/holiday.py:261
 msgid "Holiday not found"
 msgstr "Không tìm thấy ngày nghỉ lễ"
+
+#: apps/hrm/api/views/holiday.py:280
+msgid "Cannot delete compensatory workdays that are in the past or present"
+msgstr "Không thể xóa ngày làm bù trong quá khứ hoặc hiện tại"
 
 #: apps/hrm/api/views/interview_candidate.py:158
 #: apps/hrm/api/views/interview_schedule.py:311
