@@ -122,7 +122,7 @@ class AttendanceRecordViewSet(
     serializer_class = AttendanceRecordSerializer
     filterset_class = AttendanceRecordFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["attendance_code"]
+    search_fields = ["attendance_code", "employee__code", "employee__fullname"]
     ordering_fields = ["timestamp", "created_at"]
     ordering = ["-timestamp"]
     http_method_names = ["get", "put", "patch", "head", "options", "post"]
