@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 15:22+0700\n"
+"POT-Creation-Date: 2025-12-18 17:30+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -588,7 +588,7 @@ msgstr "Lý Do Nghỉ Việc"
 msgid "Resignation Date"
 msgstr "Ngày Nghỉ Việc"
 
-#: apps/hrm/api/views/employee.py:578 apps/hrm/models/contract_type.py:264
+#: apps/hrm/api/views/employee.py:578 apps/hrm/models/contract_type.py:263
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
@@ -2701,12 +2701,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2715,27 +2713,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -2873,20 +2866,20 @@ msgstr "Sắp hết hạn"
 msgid "Expired"
 msgstr "Hết hạn"
 
-#: apps/hrm/models/contract.py:310 apps/hrm/models/contract_type.py:75
+#: apps/hrm/models/contract.py:309 apps/hrm/models/contract_type.py:75
 msgid "Contract"
 msgstr "Hợp đồng"
 
-#: apps/hrm/models/contract.py:311
+#: apps/hrm/models/contract.py:310
 msgid "Contracts"
 msgstr "Hợp đồng"
 
-#: apps/hrm/models/contract.py:342 apps/hrm/models/contract_type.py:48
-#: apps/hrm/models/contract_type.py:281
+#: apps/hrm/models/contract.py:341 apps/hrm/models/contract_type.py:48
+#: apps/hrm/models/contract_type.py:280
 msgid "Indefinite term"
 msgstr "Không xác định thời hạn"
 
-#: apps/hrm/models/contract.py:343 apps/hrm/models/contract_type.py:282
+#: apps/hrm/models/contract.py:342 apps/hrm/models/contract_type.py:281
 #, python-brace-format
 msgid "{months} months"
 msgstr "{months} tháng"
@@ -2928,11 +2921,11 @@ msgstr "Bán thời gian"
 msgid "Appendix"
 msgstr "Phụ lục"
 
-#: apps/hrm/models/contract_type.py:265
+#: apps/hrm/models/contract_type.py:264
 msgid "Contract Types"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/models/contract_type.py:351
+#: apps/hrm/models/contract_type.py:350
 msgid ""
 "No contract type with category 'appendix' found. Please create one first."
 msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."

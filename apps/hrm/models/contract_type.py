@@ -48,11 +48,11 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         INDEFINITE = "indefinite", _("Indefinite term")
         FIXED = "fixed", _("Fixed term")
 
-    class NetPercentage(models.TextChoices):
+    class NetPercentage(models.IntegerChoices):
         """Net salary percentage choices."""
 
-        FULL = "100", _("100%")
-        REDUCED = "85", _("85%")
+        FULL = 100, _("100%")
+        REDUCED = 85, _("85%")
 
     class TaxCalculationMethod(models.TextChoices):
         """Tax calculation method choices."""
@@ -184,12 +184,11 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text="Other allowance amount",
     )
 
-    net_percentage = models.CharField(
-        max_length=5,
+    net_percentage = models.IntegerField(
         choices=NetPercentage.choices,
         default=NetPercentage.FULL,
         verbose_name="Net percentage",
-        help_text="Net salary percentage (100% or 85%)",
+        help_text="Net salary percentage at the time of contract",
     )
 
     tax_calculation_method = models.CharField(

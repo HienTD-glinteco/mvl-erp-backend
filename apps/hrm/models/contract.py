@@ -189,8 +189,7 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text="Other allowance amount at the time of contract",
     )
 
-    net_percentage = models.CharField(
-        max_length=5,
+    net_percentage = models.IntegerField(
         choices=ContractType.NetPercentage.choices,
         default=ContractType.NetPercentage.FULL,
         verbose_name="Net percentage",
