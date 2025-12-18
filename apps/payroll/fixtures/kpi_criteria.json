@@ -1,0 +1,268 @@
+[
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 1,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "work_performance",
+      "criterion": "Kết quả thực hiện công việc Kinh doanh",
+      "sub_criterion": "Chỉ tiêu về doanh thu",
+      "description": "Đạt dưới 100% chỉ tiêu doanh thu : Chấm ≤ 15%\nĐạt từ đủ 100% đến dưới 150% chỉ tiêu doanh thu: Chấm ≤ 25%\nĐạt từ đủ 150% đến dưới 200% chỉ tiêu doanh thu: Chấm ≤ 35%\nĐạt từ 200% trở lên: Chấm 40%",
+      "component_total_score": "40.00",
+      "group_number": 1,
+      "order": 1,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 2,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "work_performance",
+      "criterion": "Kết quả thực hiện công việc Kinh doanh",
+      "sub_criterion": "Chỉ tiêu về số lượng giao dịch",
+      "description": "Đạt dưới 2 giao dịch: Chấm ≤ 10%\nTừ 2 đến 3 giao dịch: Chấm ≤ 20%\nTrên 3 giao dịch: Chấm 30%",
+      "component_total_score": "30.00",
+      "group_number": 1,
+      "order": 2,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 3,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "work_performance",
+      "criterion": "Ý tưởng, sáng kiến",
+      "sub_criterion": "",
+      "description": "Nếu trong quá trình làm việc CBNV có các ýtưởng, sáng kiến, cách làm mới để tăng năng suất lao động, Đạt doanh thu vượt xa mức mong đợi thì cộng 10% điểm thưởng (không bắt buộc)",
+      "component_total_score": "10.00",
+      "group_number": 2,
+      "order": 3,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 4,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "work_performance",
+      "criterion": "Phát triển hình ảnh Công ty và tuyển dụng",
+      "sub_criterion": "",
+      "description": "Phát huy hình ảnh của công ty khi làm việc với khách hàng, đối tác; hoàn thành chỉ tiêu đươc giao về tuyển dụng/khách mời sự kiện (nếu có)",
+      "component_total_score": "10.00",
+      "group_number": 3,
+      "order": 4,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 5,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "discipline",
+      "criterion": "Giờ giấc làm việc, (đi làm đúng giờ; ra ngoài phải xin phép...)",
+      "sub_criterion": "",
+      "description": "- Không đi muộn/về sớm; ra ngoài khi được cấp trên đồng ý; không làm việc riêng trong giờ làm việc: 05%.\n- Vi phạm: 0%",
+      "component_total_score": "5.00",
+      "group_number": 1,
+      "order": 1,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 6,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "discipline",
+      "criterion": "Trang phục làm việc (tuân thủ đúng chuẩn đồng phục, thẻ NV...)",
+      "sub_criterion": "",
+      "description": "- Tuân thủ đúng quy định về đồng phục, đeo thẻ nhân viên khi làm việc và khi đi gặp khách hàng, đối tác..: Chấm 05%.\n- Vi phạm: 0%",
+      "component_total_score": "5.00",
+      "group_number": 2,
+      "order": 2,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 7,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "discipline",
+      "criterion": "Tuân thủ nội quy, Giữ gìn trật tự, vệ sinh nơi làm việc",
+      "sub_criterion": "",
+      "description": "- Không vi phạm bội quy, vị trí làm việc sạch sẽ, tài liệu sắp xếp gọn gàng: 5%.\n- Vi phạm: 0%",
+      "component_total_score": "5.00",
+      "group_number": 3,
+      "order": 3,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 8,
+    "fields": {
+      "target": "sales",
+      "evaluation_type": "discipline",
+      "criterion": "Ý thức làm việc (phối hợp công việc với các đồng nghiệp, phòng ban khác...)",
+      "sub_criterion": "",
+      "description": "- Phối hợp công việc với các đồng nghiệp, phòng ban, khách hàng, chủ đầu tư...và hoàn thành công được giao: 5%.\n- Vi phạm: 0%.",
+      "component_total_score": "5.00",
+      "group_number": 4,
+      "order": 4,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 9,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "work_performance",
+      "criterion": "Kết quả thực hiện công việc",
+      "sub_criterion": "",
+      "description": "Đánh giá hoàn thành theo hạng mục hoặc theo các tiêu chí cụ thể từng của công việc được giao hoặc theo mô tả công việc đã được ban hành",
+      "component_total_score": "50.00",
+      "group_number": 1,
+      "order": 1,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 10,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "work_performance",
+      "criterion": "Ý tưởng, sáng kiến",
+      "sub_criterion": "",
+      "description": "Nếu trong quá trình làm việc CBNV có các ý tưởng, sáng kiến, cách làm mới để tăng năng suất lao động, Đạt kết quả vượt xa mức mong đợi thì cộng 10% điểm thưởng (không bắt buộc)",
+      "component_total_score": "10.00",
+      "group_number": 2,
+      "order": 2,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 11,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "work_performance",
+      "criterion": "Thời hạn hoàn thành công việc",
+      "sub_criterion": "",
+      "description": "Đánh giá dựa trên Deadline đã giao hoặc theo tính chất công việc",
+      "component_total_score": "20.00",
+      "group_number": 3,
+      "order": 3,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 12,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "discipline",
+      "criterion": "Giờ giấc làm việc, (đi làm đúng giờ; ra ngoài phải xin phép...)",
+      "sub_criterion": "",
+      "description": "- Không đi muộn/về sớm; ra ngoài khi được cấp trên đồng ý; không làm việc riêng trong giờ làm việc: 10%.\n- Vi phạm: 0%",
+      "component_total_score": "10.00",
+      "group_number": 1,
+      "order": 1,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 13,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "discipline",
+      "criterion": "Tuân thủ nội quy, Giữ gìn trật tự, vệ sinh nơi làm việc",
+      "sub_criterion": "",
+      "description": "- Không vi phạm bội quy, vị trí làm việc sạch sẽ, tài liệu sắp xếp gọn gàng: 5%.\n- Vi phạm: 0%",
+      "component_total_score": "10.00",
+      "group_number": 2,
+      "order": 2,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "payroll.kpicriterion",
+    "pk": 14,
+    "fields": {
+      "target": "backoffice",
+      "evaluation_type": "discipline",
+      "criterion": "Ý thức làm việc (phối hợp công việc với các đồng nghiệp, phòng ban khác...)",
+      "sub_criterion": "",
+      "description": "- Phối hợp công việc với các đồng nghiệp, phòng ban, khối kinh doanh, đối tác…và hoàn thành công được giao:\nCó các ý tưởng",
+      "component_total_score": "10.00",
+      "group_number": 3,
+      "order": 3,
+      "active": true,
+      "created_by": null,
+      "updated_by": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  }
+]
