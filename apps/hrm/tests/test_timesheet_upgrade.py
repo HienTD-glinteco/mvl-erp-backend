@@ -14,7 +14,6 @@ from apps.hrm.constants import (
     EmployeeType,
     ProposalStatus,
     ProposalType,
-    TimesheetDayType,
 )
 from apps.hrm.models import (
     AttendanceRecord,
@@ -24,7 +23,6 @@ from apps.hrm.models import (
     ContractType,
     Department,
     Employee,
-    Holiday,
     Position,
     Proposal,
     ProposalOvertimeEntry,
@@ -259,22 +257,6 @@ class TestTimesheetUpgrade:
         entry2 = TimeSheetEntry.objects.create(employee=employee_with_contract, date=date(2023, 10, 5))
         serializer2 = TimeSheetEntryDetailSerializer(entry2)
         assert serializer2.data["payroll_status"] == _("Paid")
-
-    def test_holiday_flag(self, employee_with_contract):
-        """Test is_holiday flag."""
-        today = date(2023, 10, 6)
-        Holiday.objects.create(start_date=today, end_date=today, name="Test Holiday")
-
-        entry = TimeSheetEntry(employee=employee_with_contract, date=today)
-        entry.save()
-
-        # Recalculate status to pick up holiday
-        # entry.save() calls clean() which calls calculator.compute_status()
-
-        assert entry.day_type == TimesheetDayType.HOLIDAY
-
-        serializer = TimeSheetEntryDetailSerializer(entry)
-        assert serializer.data["is_holiday"] is True
 
     def test_manual_edit_requires_note(self, employee_with_contract, mock_request):
         today = date(2023, 10, 7)

@@ -254,7 +254,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
             working_statuses = set(Employee.Status.get_working_statuses())
             if getattr(value, "status", None) not in working_statuses:
                 raise serializers.ValidationError(_("Leader must be currently working."))
-        except Exception:
+        except Exception:  # nosec: B110
             # In case model/API changes, fail open to avoid hard dependency
             pass
 

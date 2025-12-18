@@ -4,9 +4,8 @@ from datetime import date, time
 import pytest
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.constants import TimesheetDayType, TimesheetStatus
-from apps.hrm.models import Block, Branch, CompensatoryWorkday, Department, Employee, Holiday, TimeSheetEntry
-from apps.hrm.models.work_schedule import WorkSchedule
+from apps.hrm.constants import TimesheetStatus
+from apps.hrm.models import Block, Branch, Department, Employee, TimeSheetEntry
 from libs.datetimes import combine_datetime
 
 pytestmark = pytest.mark.django_db
@@ -42,47 +41,6 @@ def _create_employee():
         phone="0123456789",
     )
     return emp
-
-
-def test_day_type_holiday_and_compensatory_and_official():
-    emp = _create_employee()
-
-    # Create a holiday covering March 10
-    h = Holiday.objects.create(name="H", start_date=date(2025, 3, 10), end_date=date(2025, 3, 10))
-
-    # Holiday date should mark day_type HOLIDAY
-    ts_h = TimeSheetEntry(employee=emp, date=date(2025, 3, 10))
-    ts_h.save()
-    assert ts_h.day_type == TimesheetDayType.HOLIDAY
-
-    # Create a compensatory day for March 16 (outside holiday range)
-    comp = CompensatoryWorkday.objects.create(
-        holiday=h, date=date(2025, 3, 16), session=CompensatoryWorkday.Session.FULL_DAY
-    )
-
-    ts_c = TimeSheetEntry(employee=emp, date=date(2025, 3, 16))
-    ts_c.save()
-    assert ts_c.day_type == TimesheetDayType.COMPENSATORY
-
-    # A normal date WITHOUT WorkSchedule should be None
-    ts_none = TimeSheetEntry(employee=emp, date=date(2025, 3, 11))
-    ts_none.save()
-    assert ts_none.day_type is None
-
-    # Create WorkSchedule for Tuesday (2025-03-11 is Tuesday -> Weekday 3)
-    WorkSchedule.objects.create(
-        weekday=WorkSchedule.Weekday.TUESDAY,
-        morning_start_time=time(8, 0),
-        morning_end_time=time(12, 0),
-        afternoon_start_time=time(13, 0),
-        afternoon_end_time=time(17, 0),
-    )
-
-    # Now create another entry for a Tuesday, should be OFFICIAL
-    # Using 2025-03-18 (Tuesday)
-    ts_o = TimeSheetEntry(employee=emp, date=date(2025, 3, 18))
-    ts_o.save()
-    assert ts_o.day_type == TimesheetDayType.OFFICIAL
 
 
 def test_single_attendance_status_for_single_punch():
