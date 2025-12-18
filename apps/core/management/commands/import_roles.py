@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any, Dict, List
 
 import yaml
 from django.core.management.base import BaseCommand, CommandError
@@ -115,11 +116,11 @@ class Command(BaseCommand):
         except Exception as e:
             raise CommandError(f"Failed to load {file_path.name}: {e}") from e
 
-    def _resolve_permission_sets(self, raw_sets: dict) -> dict:
+    def _resolve_permission_sets(self, raw_sets: dict) -> dict:  # NOQA: C901
         """Resolve permission set inheritance with multi-parent support."""
-        resolved_sets = {}
+        resolved_sets: Dict[str, Any] = {}
 
-        def resolve_set(name, stack=None):
+        def resolve_set(name, stack=None):  # NOQA: C901
             if name in resolved_sets:
                 return resolved_sets[name]
             if name not in raw_sets:
@@ -177,12 +178,12 @@ class Command(BaseCommand):
 
         return resolved_sets
 
-    def _import_roles(self, raw_roles: list, resolved_sets: dict) -> dict:
+    def _import_roles(self, raw_roles: list, resolved_sets: dict) -> Dict[str, Any]:  # NOQA: C901
         """Import roles and assign permissions."""
-        stats = {"created": 0, "updated": 0, "processed": 0, "roles": []}
+        stats: Dict[str, Any] = {"created": 0, "updated": 0, "processed": 0, "roles": []}
 
         for role_item in raw_roles:
-            stats["processed"] += 1
+            stats["processed"] = int(stats["processed"]) + 1
 
             if not isinstance(role_item, dict):
                 raise CommandError(f"Role #{stats['processed']} is not an object")
@@ -202,10 +203,10 @@ class Command(BaseCommand):
             )
 
             if was_created:
-                stats["created"] += 1
+                stats["created"] = int(stats["created"]) + 1
                 self._log("debug", f"Created role: {code} ({name})")
             else:
-                updates = []
+                updates: List[str] = []
                 if role.name != name:
                     role.name = name
                     updates.append("name")
@@ -214,7 +215,7 @@ class Command(BaseCommand):
                     updates.append("is_system_role")
                 if updates:
                     role.save(update_fields=updates)
-                    stats["updated"] += 1
+                    stats["updated"] = int(stats["updated"]) + 1
                     self._log("debug", f"Updated role: {code} (fields: {', '.join(updates)})")
 
             # Resolve and assign permissions
@@ -223,20 +224,19 @@ class Command(BaseCommand):
             role.permissions.set(perms)
             new_perms_count = role.permissions.count()
 
-            stats["roles"].append(
-                {
-                    "code": code,
-                    "name": name,
-                    "permissions_count": new_perms_count,
-                    "permissions_changed": old_perms_count != new_perms_count,
-                }
-            )
+            role_stats: Dict[str, Any] = {
+                "code": code,
+                "name": name,
+                "permissions_count": new_perms_count,
+                "permissions_changed": old_perms_count != new_perms_count,
+            }
+            stats["roles"].append(role_stats)
 
             self._log("debug", f"Assigned {new_perms_count} permissions to {code}")
 
         return stats
 
-    def _resolve_permissions(self, role_item: dict, resolved_sets: dict) -> list:
+    def _resolve_permissions(self, role_item: dict, resolved_sets: dict) -> list:  # NOQA: C901
         """Resolve permissions from role definition."""
         perm_codes_raw = role_item.get("permissions") or role_item.get("permission_codes")
         final_codes = []
