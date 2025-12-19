@@ -252,56 +252,52 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         copy_snapshot_from_contract_type(contract_type, contract_data)
 
         # Create Contract and Side Effects
-        try:
-            with transaction.atomic():
-                # Create instance first to call methods on it, but save last
-                contract = Contract(**contract_data)
+        with transaction.atomic():
+            # Create instance first to call methods on it, but save last
+            contract = Contract(**contract_data)
 
-                # Auto-calculate status
-                contract.status = contract.get_status_from_dates()
-                try:
-                    contract.save()
-                except Exception as e:
-                    logger.error("Error saving contract: %s. Data: %s", e, contract_data)
-                    raise e
+            # Auto-calculate status
+            contract.status = contract.get_status_from_dates()
+            try:
+                contract.save()
+            except Exception as e:
+                logger.error("Error saving contract: %s. Data: %s", e, contract_data)
+                raise e
 
-                # Side effect 1: Update Employee Type
-                new_employee_type = validated_data.get("employee_type")
-                if new_employee_type and employee.employee_type != new_employee_type:
-                    employee.employee_type = new_employee_type
-                    employee.save(update_fields=["employee_type"])
+            # Side effect 1: Update Employee Type
+            new_employee_type = validated_data.get("employee_type")
+            if new_employee_type and employee.employee_type != new_employee_type:
+                employee.employee_type = new_employee_type
+                employee.save(update_fields=["employee_type"])
 
-                # Side effect 2: Create Work History
-                EmployeeWorkHistory.objects.create(
-                    employee=employee,
-                    date=contract.effective_date,
-                    name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
-                    contract=contract,
-                    # Copy Org fields from current employee state
-                    branch=employee.branch,
-                    block=employee.block,
-                    department=employee.department,
-                    position=employee.position,
-                    note=f"Imported contract {contract.code}",
-                )
+            # Side effect 2: Create Work History
+            EmployeeWorkHistory.objects.create(
+                employee=employee,
+                date=contract.effective_date,
+                name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+                contract=contract,
+                # Copy Org fields from current employee state
+                branch=employee.branch,
+                block=employee.block,
+                department=employee.department,
+                position=employee.position,
+                note=f"Imported contract {contract.code}",
+            )
 
-                logger.info("Created contract %s for employee %s", contract.code, employee.code)
+            logger.info("Created contract %s for employee %s", contract.code, employee.code)
 
-                return {
-                    "ok": True,
-                    "row_index": row_index,
-                    "action": "created",
+            return {
+                "ok": True,
+                "row_index": row_index,
+                "action": "created",
+                "contract_code": contract.code,
+                "warnings": [],
+                "result": {
+                    "contract_id": str(contract.id),
                     "contract_code": contract.code,
-                    "warnings": [],
-                    "result": {
-                        "contract_id": str(contract.id),
-                        "contract_code": contract.code,
-                        "employee_code": employee.code,
-                    },
-                }
-        except Exception as e:
-            # Re-raise to catch block below
-             raise e
+                    "employee_code": employee.code,
+                },
+            }
 
     except Exception as e:
         logger.exception("Import handler error at row %d: %s", row_index, e)
