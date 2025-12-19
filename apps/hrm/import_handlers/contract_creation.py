@@ -1,6 +1,7 @@
 """Import handler for Contract creation."""
 
 import logging
+from datetime import date
 
 from django.db import transaction
 from django.utils import timezone
@@ -10,7 +11,6 @@ from rest_framework import serializers
 from apps.hrm.constants import EmployeeType
 from apps.hrm.models import Contract, ContractType, Employee, EmployeeWorkHistory
 from libs.drf.serializers import (
-    FlexibleBooleanField,
     FlexibleChoiceField,
     FlexibleDateField,
     FlexibleDecimalField,
@@ -20,47 +20,17 @@ from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
-# Column mapping for import template
+# Column mapping for import template (creation_contract_template.xlsx)
 COLUMN_MAPPING = {
-    "số thứ tự": "row_number",
     "mã nhân viên": "employee_code",
-    "mã loại hợp đồng": "contract_type_code",
-    "số hợp đồng": "contract_number",
-    "ngày ký": "sign_date",
+    "loại nhân viên": "employee_type",
     "ngày hiệu lực": "effective_date",
-    "ngày hết hạn": "expiration_date",
-    "lương cơ bản": "base_salary",
-    "lương kpi": "kpi_salary",
+    "loại hợp đồng": "contract_type_code",
+    "mức lương cơ bản": "base_salary",
+    "mức lương kpi": "kpi_salary",
     "phụ cấp ăn trưa": "lunch_allowance",
     "phụ cấp điện thoại": "phone_allowance",
     "phụ cấp khác": "other_allowance",
-    "tỷ lệ lương net": "net_percentage",
-    "phương pháp tính thuế": "tax_calculation_method",
-    "có bảo hiểm xã hội": "has_social_insurance",
-    "điều kiện làm việc": "working_conditions",
-    "quyền và nghĩa vụ": "rights_and_obligations",
-    "điều khoản": "terms",
-    "nội dung": "content",
-    "ghi chú": "note",
-    "loại nhân viên": "employee_type",
-}
-
-# Tax calculation method mapping
-TAX_CALCULATION_MAPPING = {
-    "lũy tiến": ContractType.TaxCalculationMethod.PROGRESSIVE,
-    "progressive": ContractType.TaxCalculationMethod.PROGRESSIVE,
-    "10%": ContractType.TaxCalculationMethod.FLAT_10,
-    "flat_10": ContractType.TaxCalculationMethod.FLAT_10,
-    "không": ContractType.TaxCalculationMethod.NONE,
-    "none": ContractType.TaxCalculationMethod.NONE,
-}
-
-# Net percentage mapping
-NET_PERCENTAGE_MAPPING = {
-    "100": ContractType.NetPercentage.FULL,
-    "100%": ContractType.NetPercentage.FULL,
-    "85": ContractType.NetPercentage.REDUCED,
-    "85%": ContractType.NetPercentage.REDUCED,
 }
 
 # Employee Type Mapping
@@ -68,19 +38,7 @@ EMPLOYEE_TYPE_MAPPING = {
     "thử việc": EmployeeType.PROBATION,
     "chính thức": EmployeeType.OFFICIAL,
     "thực tập": EmployeeType.INTERN,
-    "cộng tác viên": EmployeeType.APPRENTICE, # Mapping 'cộng tác viên' to APPRENTICE as best fit, or need verification
-    "part-time": EmployeeType.PROBATION_TYPE_1, # Placeholder, checking constants for best fit
-}
-# Re-checking constants from file:
-# OFFICIAL, APPRENTICE, UNPAID_OFFICIAL, UNPAID_PROBATION, PROBATION, INTERN, PROBATION_TYPE_1
-# Correction:
-EMPLOYEE_TYPE_MAPPING = {
-    "thử việc": EmployeeType.PROBATION,
-    "chính thức": EmployeeType.OFFICIAL,
-    "thực tập": EmployeeType.INTERN,
     "học việc": EmployeeType.APPRENTICE,
-    # "cộng tác viên": ... no direct map, maybe APPRENTICE?
-    # Keeping safe mapping based on available constants
 }
 
 
@@ -88,57 +46,20 @@ class ContractCreationImportSerializer(serializers.Serializer):
     """Serializer for contract creation import row data."""
 
     # Required fields
-    sign_date = FlexibleDateField()
     effective_date = FlexibleDateField()
+    employee_type = FlexibleChoiceField(
+        choices=EmployeeType.choices,
+        value_mapping=EMPLOYEE_TYPE_MAPPING,
+        required=True,
+        allow_null=False,
+    )
 
     # Optional fields
-    contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    expiration_date = FlexibleDateField(required=False, allow_null=True)
     base_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     kpi_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     lunch_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     phone_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     other_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
-    net_percentage = FlexibleChoiceField(
-        choices=ContractType.NetPercentage.choices,
-        value_mapping=NET_PERCENTAGE_MAPPING,
-        required=False,
-        allow_null=True,
-    )
-    tax_calculation_method = FlexibleChoiceField(
-        choices=ContractType.TaxCalculationMethod.choices,
-        value_mapping=TAX_CALCULATION_MAPPING,
-        required=False,
-        allow_null=True,
-    )
-    has_social_insurance = FlexibleBooleanField(required=False, allow_null=True)
-    working_conditions = serializers.CharField(required=False, allow_blank=True, default="")
-    rights_and_obligations = serializers.CharField(required=False, allow_blank=True, default="")
-    terms = serializers.CharField(required=False, allow_blank=True, default="")
-    content = serializers.CharField(required=False, allow_blank=True, default="")
-    note = serializers.CharField(required=False, allow_blank=True, default="")
-    employee_type = FlexibleChoiceField(
-        choices=EmployeeType.choices,
-        value_mapping=EMPLOYEE_TYPE_MAPPING,
-        required=False,
-        allow_null=True,
-    )
-
-    def validate(self, attrs):
-        """Validate date logic."""
-        sign_date = attrs.get("sign_date")
-        effective_date = attrs.get("effective_date")
-        expiration_date = attrs.get("expiration_date")
-
-        if sign_date and effective_date and sign_date > effective_date:
-            raise serializers.ValidationError({"sign_date": _("Sign date must be on or before effective date")})
-
-        if effective_date and expiration_date and effective_date > expiration_date:
-            raise serializers.ValidationError(
-                {"expiration_date": _("Expiration date must be on or after effective date")}
-            )
-
-        return attrs
 
 
 def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data: dict) -> None:
@@ -261,23 +182,12 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Parse data
         serializer_data = {
-            "contract_number": normalize_value(row_dict.get("contract_number", "")),
-            "sign_date": row_dict.get("sign_date"),
             "effective_date": row_dict.get("effective_date"),
-            "expiration_date": row_dict.get("expiration_date"),
             "base_salary": row_dict.get("base_salary"),
             "kpi_salary": row_dict.get("kpi_salary"),
             "lunch_allowance": row_dict.get("lunch_allowance"),
             "phone_allowance": row_dict.get("phone_allowance"),
             "other_allowance": row_dict.get("other_allowance"),
-            "net_percentage": row_dict.get("net_percentage"),
-            "tax_calculation_method": row_dict.get("tax_calculation_method"),
-            "has_social_insurance": row_dict.get("has_social_insurance"),
-            "working_conditions": normalize_value(row_dict.get("working_conditions", "")),
-            "rights_and_obligations": normalize_value(row_dict.get("rights_and_obligations", "")),
-            "terms": normalize_value(row_dict.get("terms", "")),
-            "content": normalize_value(row_dict.get("content", "")),
-            "note": normalize_value(row_dict.get("note", "")),
             "employee_type": row_dict.get("employee_type"),
         }
 
@@ -298,8 +208,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         validated_data = serializer.validated_data
 
-        # DUPLICATE CHECK: Employee + ContractType + EffectiveDate
-        # We check for any contract (Draft or Active) to prevent creating duplicates in this run.
         # DUPLICATE CHECK: Employee + ContractType + EffectiveDate
         # We check for any contract (Draft or Active) to prevent creating duplicates in this run.
         duplicate = Contract.objects.filter(
@@ -323,27 +231,17 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         contract_data = {
             "employee": employee,
             "contract_type": contract_type,
-            "sign_date": validated_data["sign_date"],
+            "sign_date": date.today(), # Default to today as per requirements
             "effective_date": validated_data["effective_date"],
-            "expiration_date": validated_data.get("expiration_date"),
             # Status will be calculated below
         }
 
         optional_fields = [
-            "contract_number",
             "base_salary",
             "kpi_salary",
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
-            "net_percentage",
-            "tax_calculation_method",
-            "has_social_insurance",
-            "working_conditions",
-            "rights_and_obligations",
-            "terms",
-            "content",
-            "note",
         ]
 
         for field in optional_fields:

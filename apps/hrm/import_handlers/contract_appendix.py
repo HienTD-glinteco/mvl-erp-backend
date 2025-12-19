@@ -17,51 +17,25 @@ from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
-# Column mapping for import template (Vietnamese headers to field names)
+# Column mapping for import template (based on contract_appendix_template.xlsx)
 COLUMN_MAPPING = {
     "số thứ tự": "row_number",
     "mã nhân viên": "employee_code",
-    "mã loại hợp đồng": "contract_type_code",
-    "số hợp đồng": "contract_number",
+    "số hợp đồng": "parent_contract_number",
+    "số phụ lục": "contract_number",
     "ngày ký": "sign_date",
     "ngày hiệu lực": "effective_date",
-    "ngày hết hạn": "expiration_date",
     "lương cơ bản": "base_salary",
     "lương kpi": "kpi_salary",
     "phụ cấp ăn trưa": "lunch_allowance",
     "phụ cấp điện thoại": "phone_allowance",
     "phụ cấp khác": "other_allowance",
-    "tỷ lệ lương net": "net_percentage",
-    "phương pháp tính thuế": "tax_calculation_method",
-    "có bảo hiểm xã hội": "has_social_insurance",
-    "điều kiện làm việc": "working_conditions",
-    "quyền và nghĩa vụ": "rights_and_obligations",
-    "điều khoản": "terms",
-    "nội dung": "content",
+    "nội dung thay đổi": "content",
     "ghi chú": "note",
-    "số hợp đồng tham chiếu": "parent_contract_number",
 }
 
 # Status is always DRAFT for imported contracts/appendices
 DEFAULT_STATUS = Contract.ContractStatus.DRAFT
-
-# Tax calculation method mapping for FlexibleChoiceField
-TAX_CALCULATION_MAPPING = {
-    "lũy tiến": ContractType.TaxCalculationMethod.PROGRESSIVE,
-    "progressive": ContractType.TaxCalculationMethod.PROGRESSIVE,
-    "10%": ContractType.TaxCalculationMethod.FLAT_10,
-    "flat_10": ContractType.TaxCalculationMethod.FLAT_10,
-    "không": ContractType.TaxCalculationMethod.NONE,
-    "none": ContractType.TaxCalculationMethod.NONE,
-}
-
-# Net percentage mapping for FlexibleChoiceField
-NET_PERCENTAGE_MAPPING = {
-    "100": ContractType.NetPercentage.FULL,
-    "100%": ContractType.NetPercentage.FULL,
-    "85": ContractType.NetPercentage.REDUCED,
-    "85%": ContractType.NetPercentage.REDUCED,
-}
 
 
 class ContractAppendixImportSerializer(serializers.Serializer):
@@ -74,28 +48,11 @@ class ContractAppendixImportSerializer(serializers.Serializer):
 
     # Optional fields
     contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    expiration_date = FlexibleDateField(required=False, allow_null=True)
     base_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     kpi_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     lunch_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     phone_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     other_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
-    net_percentage = FlexibleChoiceField(
-        choices=ContractType.NetPercentage.choices,
-        value_mapping=NET_PERCENTAGE_MAPPING,
-        required=False,
-        allow_null=True,
-    )
-    tax_calculation_method = FlexibleChoiceField(
-        choices=ContractType.TaxCalculationMethod.choices,
-        value_mapping=TAX_CALCULATION_MAPPING,
-        required=False,
-        allow_null=True,
-    )
-    has_social_insurance = FlexibleBooleanField(required=False, allow_null=True)
-    working_conditions = serializers.CharField(required=False, allow_blank=True, default="")
-    rights_and_obligations = serializers.CharField(required=False, allow_blank=True, default="")
-    terms = serializers.CharField(required=False, allow_blank=True, default="")
     content = serializers.CharField(required=False, allow_blank=True, default="")
     note = serializers.CharField(required=False, allow_blank=True, default="")
 
@@ -103,15 +60,9 @@ class ContractAppendixImportSerializer(serializers.Serializer):
         """Validate date logic."""
         sign_date = attrs.get("sign_date")
         effective_date = attrs.get("effective_date")
-        expiration_date = attrs.get("expiration_date")
 
         if sign_date and effective_date and sign_date > effective_date:
             raise serializers.ValidationError({"sign_date": "Sign date must be on or before effective date"})
-
-        if effective_date and expiration_date and effective_date > expiration_date:
-            raise serializers.ValidationError(
-                {"expiration_date": "Expiration date must be on or after effective date"}
-            )
 
         return attrs
 
@@ -123,6 +74,7 @@ def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data:
         "lunch_allowance",
         "phone_allowance",
         "other_allowance",
+        # Default others that are not in template
         "net_percentage",
         "tax_calculation_method",
         "has_social_insurance",
@@ -151,12 +103,15 @@ def pre_import_initialize(import_job_id: str, options: dict) -> None:
         contract_types_by_code[contract_code.lower()] = ct
     options["_contract_types_by_code"] = contract_types_by_code
 
-    logger.info(
-        "Import job %s: Prefetched %d employees and %d contract types",
-        import_job_id,
-        len(employees_by_code),
-        len(contract_types_by_code),
-    )
+    # Get Appendix Contract Type (Assuming one generic type for appendices based on logic or need to fetch default)
+    # The requirement says: "Lookup contract type". But the template DOES NOT have contract_type column.
+    # We must infer or use a default Appendix Contract Type.
+    # Generally, there should be a system default or we pick the first one with category='appendix'.
+    appendix_type = ContractType.objects.filter(category=ContractType.Category.APPENDIX).first()
+    if appendix_type:
+        options["_appendix_contract_type"] = appendix_type
+    else:
+        logger.warning("No ContractType with category='appendix' found.")
 
 
 def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
@@ -182,7 +137,9 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         # Check for missing required fields early
         employee_code = normalize_value(row_dict.get("employee_code", ""))
-        contract_type_code = normalize_value(row_dict.get("contract_type_code", ""))
+
+        # NOTE: Template doesn't have contract_type. We use default appendix type.
+        contract_type = options.get("_appendix_contract_type")
 
         if not employee_code:
             return {
@@ -192,12 +149,20 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "warnings": ["Missing required field: employee code"],
             }
 
-        if not contract_type_code:
-            return {
-                "ok": True,
+        if not contract_type:
+             return {
+                "ok": False,
                 "row_index": row_index,
+                "error": "System configuration error: No default 'Appendix' Contract Type found.",
                 "action": "skipped",
-                "warnings": ["Missing required field: contract type code"],
+            }
+
+        if contract_type.category != ContractType.Category.APPENDIX:
+             return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "Invalid contract type category. Expected 'appendix', got '%s'" % contract_type.category,
+                "action": "skipped",
             }
 
         # Lookup employee
@@ -212,28 +177,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                     "error": "Employee with code '%s' not found" % employee_code,
                     "action": "skipped",
                 }
-
-        # Lookup contract type
-        contract_types_by_code = options.get("_contract_types_by_code", {})
-        contract_type = contract_types_by_code.get(str(contract_type_code).lower())
-        if not contract_type:
-            contract_type = ContractType.objects.filter(code=contract_type_code).first()
-            if not contract_type:
-                return {
-                    "ok": False,
-                    "row_index": row_index,
-                    "error": "Contract type with code '%s' not found" % contract_type_code,
-                    "action": "skipped",
-                }
-
-        # Strict validation: Must be an Appendix
-        if contract_type.category != ContractType.Category.APPENDIX:
-            return {
-                "ok": False,
-                "row_index": row_index,
-                "error": "Invalid contract type category. Expected 'appendix', got '%s'" % contract_type.category,
-                "action": "skipped",
-            }
 
         # Handle parent contract for appendices
         parent_contract_number = normalize_value(row_dict.get("parent_contract_number", ""))
@@ -268,18 +211,11 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "contract_number": normalize_value(row_dict.get("contract_number", "")),
             "sign_date": row_dict.get("sign_date"),
             "effective_date": row_dict.get("effective_date"),
-            "expiration_date": row_dict.get("expiration_date"),
             "base_salary": row_dict.get("base_salary"),
             "kpi_salary": row_dict.get("kpi_salary"),
             "lunch_allowance": row_dict.get("lunch_allowance"),
             "phone_allowance": row_dict.get("phone_allowance"),
             "other_allowance": row_dict.get("other_allowance"),
-            "net_percentage": row_dict.get("net_percentage"),
-            "tax_calculation_method": row_dict.get("tax_calculation_method"),
-            "has_social_insurance": row_dict.get("has_social_insurance"),
-            "working_conditions": normalize_value(row_dict.get("working_conditions", "")),
-            "rights_and_obligations": normalize_value(row_dict.get("rights_and_obligations", "")),
-            "terms": normalize_value(row_dict.get("terms", "")),
             "content": normalize_value(row_dict.get("content", "")),
             "note": normalize_value(row_dict.get("note", "")),
             "parent_contract_number": parent_contract_number,
@@ -310,7 +246,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "contract_type": contract_type,
             "sign_date": validated_data["sign_date"],
             "effective_date": validated_data["effective_date"],
-            "expiration_date": validated_data.get("expiration_date"),
             "status": DEFAULT_STATUS,
             "parent_contract": parent_contract,
         }
@@ -323,12 +258,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "lunch_allowance",
             "phone_allowance",
             "other_allowance",
-            "net_percentage",
-            "tax_calculation_method",
-            "has_social_insurance",
-            "working_conditions",
-            "rights_and_obligations",
-            "terms",
             "content",
             "note",
         ]
@@ -341,8 +270,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         # Copy snapshot data from contract type
         copy_snapshot_from_contract_type(contract_type, contract_data)
 
-        # Check for existing appendix (by number or effective date) to avoid duplicates if needed
-        # Assuming we just create new appendix unless contract_number matches
+        # Check for existing appendix (by number)
         contract_number = validated_data.get("contract_number")
         existing_contract = None
         if contract_number:
