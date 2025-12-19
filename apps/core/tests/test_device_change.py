@@ -79,7 +79,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.request_url = reverse("core:device_change_request")
         self.verify_otp_url = reverse("core:device_change_verify_otp")
 
-    @patch("apps.core.api.views.auth.device_change.send_otp_email_task.delay")
+    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
     def test_device_change_request_success(self, mock_email_task):
         """Test successful device change request creates DeviceChangeRequest and sends OTP."""
         mock_email_task.return_value = MagicMock()
@@ -142,7 +142,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertFalse(response_data["success"])
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_email_task.delay")
+    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
     def test_verify_otp_creates_proposal(self, mock_email_task, mock_generate_otp):
         """Test that verifying OTP creates a device change proposal."""
         mock_email_task.return_value = MagicMock()
@@ -209,7 +209,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertEqual(device_request.status, DeviceChangeRequest.Status.VERIFIED)
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_email_task.delay")
+    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
     def test_verify_otp_wrong_otp(self, mock_email_task, mock_generate_otp):
         """Test that wrong OTP is rejected and attempts are tracked."""
         mock_email_task.return_value = MagicMock()
@@ -246,7 +246,7 @@ class DeviceChangeRequestTestCase(TestCase):
         self.assertEqual(device_request.otp_attempts, 1)
 
     @patch("apps.core.models.User.generate_otp")
-    @patch("apps.core.api.views.auth.device_change.send_otp_email_task.delay")
+    @patch("apps.core.api.views.auth.device_change.send_otp_device_change_task.delay")
     def test_verify_otp_expired(self, mock_email_task, mock_generate_otp):
         """Test that expired OTP is rejected."""
         mock_email_task.return_value = MagicMock()

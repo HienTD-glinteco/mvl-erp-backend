@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from apps.audit_logging import LogAction, log_audit_event
 from apps.core.api.serializers.auth import DeviceChangeRequestSerializer, DeviceChangeVerifyOTPSerializer
 from apps.core.models import DeviceChangeRequest
-from apps.core.tasks import send_otp_email_task
+from apps.core.tasks import send_otp_device_change_task
 from apps.hrm.constants import ProposalStatus, ProposalType
 from apps.hrm.models import Proposal
 
@@ -140,7 +140,13 @@ class DeviceChangeRequestView(APIView):
 
         # Send OTP email asynchronously
         try:
-            send_otp_email_task.delay(user.id, otp_code)
+            send_otp_device_change_task.delay(
+                user_id=str(user.id),
+                user_email=user.email,
+                user_full_name=user.get_full_name(),
+                username=user.username,
+                otp_code=otp_code,
+            )
             logger.info(f"OTP sent for device change request {device_request.id} for user {user.username}")
         except Exception as e:
             logger.error(f"Failed to queue OTP email for device change request: {e}")
