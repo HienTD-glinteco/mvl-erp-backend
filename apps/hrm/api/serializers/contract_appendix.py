@@ -150,6 +150,27 @@ class ContractAppendixSerializer(serializers.ModelSerializer):
                 {"expiration_date": _("Expiration date must be on or after effective date.")}
             )
 
+        # Validate effective date against parent contract
+        if effective_date and parent_contract and parent_contract.effective_date:
+            if effective_date < parent_contract.effective_date:
+                raise serializers.ValidationError(
+                    {
+                        "effective_date": _(
+                            "Appendix effective date must be on or after parent contract effective date."
+                        )
+                    }
+                )
+
+        if expiration_date and parent_contract and parent_contract.expiration_date:
+            if expiration_date > parent_contract.expiration_date:
+                raise serializers.ValidationError(
+                    {
+                        "expiration_date": _(
+                            "Appendix expiration date must be on or before parent contract expiration date."
+                        )
+                    }
+                )
+
         return attrs
 
     def create(self, validated_data):
