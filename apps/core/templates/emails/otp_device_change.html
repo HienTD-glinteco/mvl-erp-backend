@@ -16,15 +16,15 @@
 <body>
     <div class="header">
         <h1>MaiVietLand</h1>
-        <p>{% trans "Login OTP Code" %}</p>
+        <p>{% trans "Change Device OTP Code" %}</p>
     </div>
 
     <div class="content">
         <p>{% blocktrans with name=user.get_full_name|default:user.username %}Hello <strong>{{ name }}</strong>,{% endblocktrans %}</p>
 
-        <p>{% trans "We have received a login request for your MaiVietLand account." %}</p>
+        <p>{% trans "We have received a change device request for your MaiVietLand account." %}</p>
 
-        <p>{% trans "Your OTP code to complete the login is:" %}</p>
+        <p>{% trans "Your OTP code to complete the request is:" %}</p>
 
         <div class="otp-code">{{ otp_code }}</div>
 

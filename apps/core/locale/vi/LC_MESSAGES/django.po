@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 11:26+0700\n"
+"POT-Creation-Date: 2025-12-19 13:00+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -318,7 +318,7 @@ msgstr "Hệ thống "
 msgid "Geographic Data"
 msgstr "Đơn vị hành chính"
 
-#: apps/core/api/views/auth/device_change.py:149
+#: apps/core/api/views/auth/device_change.py:155
 msgid ""
 "OTP code has been sent to your email. Please verify to complete the device "
 "change request."
@@ -326,13 +326,13 @@ msgstr ""
 "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP "
 "để hoàn tất đăng nhập."
 
-#: apps/core/api/views/auth/device_change.py:219
+#: apps/core/api/views/auth/device_change.py:225
 msgid ""
 "Your account is not linked to an employee record. Please contact HR to set "
 "up your employee profile before requesting device change."
 msgstr ""
 
-#: apps/core/api/views/auth/device_change.py:266
+#: apps/core/api/views/auth/device_change.py:272
 msgid ""
 "Device change request verified. Your request is pending approval from admin."
 msgstr ""
@@ -723,6 +723,58 @@ msgid "Login OTP Code - MaiVietLand"
 msgstr "Mã OTP đăng nhập - MaiVietLand"
 
 #: apps/core/tasks/email.py:83
+#, fuzzy, python-format
+#| msgid ""
+#| "Hello %(name)s,\n"
+#| "\n"
+#| "We have received a password reset request for your MaiVietLand account.\n"
+#| "\n"
+#| "Your OTP code to reset your password is: %(otp_code)s\n"
+#| "\n"
+#| "This code is valid for 3 minutes and can only be used once.\n"
+#| "\n"
+#| "If you did not initiate this password reset request, please ignore this "
+#| "email.\n"
+#| "\n"
+#| "Best regards,\n"
+#| "MaiVietLand Team"
+msgid ""
+"Hello %(name)s,\n"
+"\n"
+"We have received a change device request for your MaiVietLand account.\n"
+"\n"
+"Your OTP code to complete the request is: %(otp_code)s\n"
+"\n"
+"This code is valid for 5 minutes and can only be used once.\n"
+"\n"
+"If you did not initiate this login, please ignore this email and contact the "
+"administrator if necessary.\n"
+"\n"
+"Best regards,\n"
+"MaiVietLand Team"
+msgstr ""
+"Xin chào %(name)s,\n"
+"\n"
+"Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản MaiVietLand "
+"của bạn.\n"
+"\n"
+"Mã OTP để đặt lại mật khẩu của bạn là: %(otp_code)s\n"
+"\n"
+"Mã này có hiệu lực trong 3 phút và chỉ sử dụng một lần.\n"
+"\n"
+"Nếu bạn không thực hiện yêu cầu đặt lại mật khẩu này, vui lòng bỏ qua "
+"email.\n"
+"\n"
+"Trân trọng,\n"
+"Đội ngũ MaiVietLand"
+
+#: apps/core/tasks/email.py:97
+#, fuzzy
+#| msgid "Login OTP Code - MaiVietLand"
+msgid "Device Change OTP Code - MaiVietLand"
+msgstr "Mã OTP đăng nhập - MaiVietLand"
+
+#: apps/core/tasks/email.py:134
 #, python-format
 msgid ""
 "Hello %(name)s,\n"
@@ -754,20 +806,85 @@ msgstr ""
 "Trân trọng,\n"
 "Đội ngũ MaiVietLand"
 
-#: apps/core/tasks/email.py:97
+#: apps/core/tasks/email.py:148
 msgid "Password Reset OTP Code - MaiVietLand"
 msgstr "Mã OTP đặt lại mật khẩu - MaiVietLand"
 
+#: apps/core/templates/emails/otp_device_change.html:6
 #: apps/core/templates/emails/otp_email.html:6
 #: apps/core/templates/emails/otp_email.html:19
 msgid "Login OTP Code"
 msgstr "Mã OTP đăng nhập"
 
+#: apps/core/templates/emails/otp_device_change.html:19
+#, fuzzy
+#| msgid "Login OTP Code"
+msgid "Change Device OTP Code"
+msgstr "Mã OTP đăng nhập"
+
+#: apps/core/templates/emails/otp_device_change.html:23
 #: apps/core/templates/emails/otp_email.html:23
 #: apps/core/templates/emails/password_reset_otp_email.html:23
 #, python-format
 msgid "Hello <strong>%(name)s</strong>,"
 msgstr "Xin chào <strong>%(name)s</strong>,"
+
+#: apps/core/templates/emails/otp_device_change.html:25
+#, fuzzy
+#| msgid "We have received a login request for your MaiVietLand account."
+msgid "We have received a change device request for your MaiVietLand account."
+msgstr ""
+"Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản MaiVietLand của bạn."
+
+#: apps/core/templates/emails/otp_device_change.html:27
+#, fuzzy
+#| msgid "Your OTP code to complete the login is:"
+msgid "Your OTP code to complete the request is:"
+msgstr "Mã OTP để hoàn tất đăng nhập của bạn là:"
+
+#: apps/core/templates/emails/otp_device_change.html:32
+#: apps/core/templates/emails/otp_email.html:32
+#: apps/core/templates/emails/password_reset_otp_email.html:32
+msgid "Note:"
+msgstr "Lưu ý:"
+
+#: apps/core/templates/emails/otp_device_change.html:32
+#: apps/core/templates/emails/otp_email.html:32
+msgid "This code is valid for 5 minutes and can only be used once."
+msgstr "Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần."
+
+#: apps/core/templates/emails/otp_device_change.html:35
+#: apps/core/templates/emails/otp_email.html:35
+msgid ""
+"If you did not initiate this login, please ignore this email and contact the "
+"administrator if necessary."
+msgstr ""
+"Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này và liên hệ "
+"với quản trị viên nếu cần thiết."
+
+#: apps/core/templates/emails/otp_device_change.html:37
+#: apps/core/templates/emails/otp_email.html:37
+#: apps/core/templates/emails/password_reset_otp_email.html:37
+msgid "Best regards,"
+msgstr "Trân trọng,"
+
+#: apps/core/templates/emails/otp_device_change.html:38
+#: apps/core/templates/emails/otp_email.html:38
+#: apps/core/templates/emails/password_reset_otp_email.html:38
+msgid "MaiVietLand Team"
+msgstr "Đội ngũ MaiVietLand"
+
+#: apps/core/templates/emails/otp_device_change.html:42
+#: apps/core/templates/emails/otp_email.html:42
+#: apps/core/templates/emails/password_reset_otp_email.html:42
+msgid "This email is sent automatically, please do not reply."
+msgstr "Email này được gửi tự động, vui lòng không trả lời."
+
+#: apps/core/templates/emails/otp_device_change.html:43
+#: apps/core/templates/emails/otp_email.html:43
+#: apps/core/templates/emails/password_reset_otp_email.html:43
+msgid "All rights reserved."
+msgstr "Tất cả quyền được bảo lưu."
 
 #: apps/core/templates/emails/otp_email.html:25
 msgid "We have received a login request for your MaiVietLand account."
@@ -777,43 +894,6 @@ msgstr ""
 #: apps/core/templates/emails/otp_email.html:27
 msgid "Your OTP code to complete the login is:"
 msgstr "Mã OTP để hoàn tất đăng nhập của bạn là:"
-
-#: apps/core/templates/emails/otp_email.html:32
-#: apps/core/templates/emails/password_reset_otp_email.html:32
-msgid "Note:"
-msgstr "Lưu ý:"
-
-#: apps/core/templates/emails/otp_email.html:32
-msgid "This code is valid for 5 minutes and can only be used once."
-msgstr "Mã này có hiệu lực trong 5 phút và chỉ sử dụng một lần."
-
-#: apps/core/templates/emails/otp_email.html:35
-msgid ""
-"If you did not initiate this login, please ignore this email and contact the "
-"administrator if necessary."
-msgstr ""
-"Nếu bạn không thực hiện đăng nhập này, vui lòng bỏ qua email này và liên hệ "
-"với quản trị viên nếu cần thiết."
-
-#: apps/core/templates/emails/otp_email.html:37
-#: apps/core/templates/emails/password_reset_otp_email.html:37
-msgid "Best regards,"
-msgstr "Trân trọng,"
-
-#: apps/core/templates/emails/otp_email.html:38
-#: apps/core/templates/emails/password_reset_otp_email.html:38
-msgid "MaiVietLand Team"
-msgstr "Đội ngũ MaiVietLand"
-
-#: apps/core/templates/emails/otp_email.html:42
-#: apps/core/templates/emails/password_reset_otp_email.html:42
-msgid "This email is sent automatically, please do not reply."
-msgstr "Email này được gửi tự động, vui lòng không trả lời."
-
-#: apps/core/templates/emails/otp_email.html:43
-#: apps/core/templates/emails/password_reset_otp_email.html:43
-msgid "All rights reserved."
-msgstr "Tất cả quyền được bảo lưu."
 
 #: apps/core/templates/emails/password_reset_otp_email.html:6
 #: apps/core/templates/emails/password_reset_otp_email.html:19
