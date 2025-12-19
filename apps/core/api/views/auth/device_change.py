@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 class DeviceChangeRateThrottle(AnonRateThrottle):
     scope = "device_change"
-    rate = "3/hour"  # Allow 3 device change requests per hour
+    # rate = "3/hour"  # Allow 3 device change requests per hour
+    rate = "3/minute"  # TODO: Adjust rate limit for testing purposes
 
 
 class DeviceChangeRequestView(APIView):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 11:13+0700\n"
+"POT-Creation-Date: 2025-12-19 11:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -63,6 +63,20 @@ msgstr "Hợp đồng gốc là bắt buộc đối với phụ lục."
 #: apps/hrm/api/serializers/contract_appendix.py:136
 msgid "Parent contract must be in ACTIVE or ABOUT_TO_EXPIRE status."
 msgstr "Hợp đồng gốc phải có trạng thái ĐANG HOẠT ĐỘNG hoặc SẮP HẾT HẠN."
+
+#: apps/hrm/api/serializers/contract_appendix.py:159
+msgid ""
+"Appendix effective date must be on or after parent contract effective date."
+msgstr ""
+"Ngày hiệu lực của phụ lục phải bằng hoặc sau ngày hiệu lực của hợp đồng gốc."
+
+#: apps/hrm/api/serializers/contract_appendix.py:169
+msgid ""
+"Appendix expiration date must be on or before parent contract expiration "
+"date."
+msgstr ""
+"Ngày hết hiệu lực của phụ lục phải bằng hoặc trước ngày hết hiệu lực của hợp "
+"đồng gốc."
 
 #: apps/hrm/api/serializers/contract_type.py:97
 msgid "Duration in months is required for fixed-term contracts."

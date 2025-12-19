@@ -386,6 +386,37 @@ class TestContractAppendixAPI:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "sign_date" in str(response.json()["error"])
 
+    def test_create_contract_appendix_validates_effective_date_against_parent(
+        self, api_client, appendix_data, contract
+    ):
+        """Test that appendix effective_date must be >= parent_contract.effective_date."""
+        # parent effective_date is today - 7 days (from fixture)
+        # Try to create appendix with effective_date = today - 8 days
+        appendix_data["effective_date"] = (contract.effective_date - timedelta(days=1)).isoformat()
+        # Ensure sign_date is valid relative to effective_date
+        appendix_data["sign_date"] = (contract.effective_date - timedelta(days=2)).isoformat()
+
+        url = reverse("hrm:contract-appendix-list")
+        response = api_client.post(url, appendix_data, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # Parse response. Based on other tests, it seems "error" key might wrap the standardized errors.
+        # Structure likely: {"error": {"type": "validation_error", "errors": [...]}}
+        response_data = response.json()
+
+        if "error" in response_data:
+             error_data = response_data["error"]
+        else:
+             error_data = response_data
+
+        assert error_data["type"] == "validation_error"
+
+        # Check if any error is for effective_date with correct message
+        errors = error_data["errors"]
+        effective_date_errors = [e for e in errors if e["attr"] == "effective_date"]
+        assert len(effective_date_errors) > 0
+        assert "Appendix effective date must be on or after parent contract effective date" in effective_date_errors[0]["detail"]
+
     def test_create_contract_appendix_requires_parent_contract(self, api_client, appendix_data):
         """Test that parent_contract is required."""
         del appendix_data["parent_contract_id"]
