@@ -67,6 +67,23 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+### Create ContractType for appendix
+
+To create the `ContractType` entry for the appendix (`symbol=PLHD`) run the management command added in `apps/hrm/management/commands/create_contract_type_appendix.py`.
+
+Run with Poetry:
+
+```bash
+poetry run python manage.py create_contract_type_appendix
+```
+
+Or with system/venv Python:
+
+```bash
+python3 manage.py create_contract_type_appendix
+```
+
+
 ### Install pre-commit
 
 ```bash
