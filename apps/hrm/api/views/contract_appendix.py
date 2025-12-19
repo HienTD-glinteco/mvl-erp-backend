@@ -273,6 +273,7 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
     export_filename = "contract_appendices"
 
     # Import configuration
+    import_row_handler = "apps.hrm.import_handlers.contract_appendix.import_handler"
     import_template_name = "hrm_contract_appendix_template"
 
     def get_serializer_class(self):

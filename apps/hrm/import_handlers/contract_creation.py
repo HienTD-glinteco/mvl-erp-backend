@@ -1,12 +1,14 @@
-"""Import handler for Contract model."""
+"""Import handler for Contract creation."""
 
 import logging
 
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from apps.hrm.models import Contract, ContractType, Employee
+from apps.hrm.constants import EmployeeType
+from apps.hrm.models import Contract, ContractType, Employee, EmployeeWorkHistory
 from libs.drf.serializers import (
     FlexibleBooleanField,
     FlexibleChoiceField,
@@ -18,7 +20,7 @@ from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
-# Column mapping for import template (Vietnamese headers to field names)
+# Column mapping for import template
 COLUMN_MAPPING = {
     "số thứ tự": "row_number",
     "mã nhân viên": "employee_code",
@@ -40,13 +42,10 @@ COLUMN_MAPPING = {
     "điều khoản": "terms",
     "nội dung": "content",
     "ghi chú": "note",
-    "số hợp đồng tham chiếu": "parent_contract_number",
+    "loại nhân viên": "employee_type",
 }
 
-# Status is always DRAFT for imported contracts
-DEFAULT_STATUS = Contract.ContractStatus.DRAFT
-
-# Tax calculation method mapping for FlexibleChoiceField
+# Tax calculation method mapping
 TAX_CALCULATION_MAPPING = {
     "lũy tiến": ContractType.TaxCalculationMethod.PROGRESSIVE,
     "progressive": ContractType.TaxCalculationMethod.PROGRESSIVE,
@@ -56,7 +55,7 @@ TAX_CALCULATION_MAPPING = {
     "none": ContractType.TaxCalculationMethod.NONE,
 }
 
-# Net percentage mapping for FlexibleChoiceField
+# Net percentage mapping
 NET_PERCENTAGE_MAPPING = {
     "100": ContractType.NetPercentage.FULL,
     "100%": ContractType.NetPercentage.FULL,
@@ -64,12 +63,29 @@ NET_PERCENTAGE_MAPPING = {
     "85%": ContractType.NetPercentage.REDUCED,
 }
 
+# Employee Type Mapping
+EMPLOYEE_TYPE_MAPPING = {
+    "thử việc": EmployeeType.PROBATION,
+    "chính thức": EmployeeType.OFFICIAL,
+    "thực tập": EmployeeType.INTERN,
+    "cộng tác viên": EmployeeType.APPRENTICE, # Mapping 'cộng tác viên' to APPRENTICE as best fit, or need verification
+    "part-time": EmployeeType.PROBATION_TYPE_1, # Placeholder, checking constants for best fit
+}
+# Re-checking constants from file:
+# OFFICIAL, APPRENTICE, UNPAID_OFFICIAL, UNPAID_PROBATION, PROBATION, INTERN, PROBATION_TYPE_1
+# Correction:
+EMPLOYEE_TYPE_MAPPING = {
+    "thử việc": EmployeeType.PROBATION,
+    "chính thức": EmployeeType.OFFICIAL,
+    "thực tập": EmployeeType.INTERN,
+    "học việc": EmployeeType.APPRENTICE,
+    # "cộng tác viên": ... no direct map, maybe APPRENTICE?
+    # Keeping safe mapping based on available constants
+}
 
-class ContractImportSerializer(serializers.Serializer):
-    """Serializer for contract import row data.
 
-    Uses FlexibleFields from libs.drf.serializers for flexible input parsing.
-    """
+class ContractCreationImportSerializer(serializers.Serializer):
+    """Serializer for contract creation import row data."""
 
     # Required fields
     sign_date = FlexibleDateField()
@@ -101,7 +117,12 @@ class ContractImportSerializer(serializers.Serializer):
     terms = serializers.CharField(required=False, allow_blank=True, default="")
     content = serializers.CharField(required=False, allow_blank=True, default="")
     note = serializers.CharField(required=False, allow_blank=True, default="")
-    parent_contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    employee_type = FlexibleChoiceField(
+        choices=EmployeeType.choices,
+        value_mapping=EMPLOYEE_TYPE_MAPPING,
+        required=False,
+        allow_null=True,
+    )
 
     def validate(self, attrs):
         """Validate date logic."""
@@ -121,14 +142,7 @@ class ContractImportSerializer(serializers.Serializer):
 
 
 def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data: dict) -> None:
-    """Copy snapshot data from ContractType to contract data.
-
-    Only copies fields that are not already provided in contract_data.
-
-    Args:
-        contract_type: ContractType instance
-        contract_data: Contract data dict to update
-    """
+    """Copy snapshot data from ContractType to contract data."""
     snapshot_fields = [
         "base_salary",
         "lunch_allowance",
@@ -148,22 +162,14 @@ def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data:
 
 
 def pre_import_initialize(import_job_id: str, options: dict) -> None:
-    """Pre-import initialization callback.
-
-    Called once at the start of the import process before processing any rows.
-    Prefetches all employees and contract types to avoid N+1 queries.
-
-    Args:
-        import_job_id: UUID of the import job
-        options: Import options dictionary
-    """
-    # Prefetch all employees by code (case-insensitive)
+    """Pre-import initialization callback."""
+    # Prefetch all employees
     employees_by_code = {}
     for emp in Employee.objects.all():
         employees_by_code[emp.code.lower()] = emp
     options["_employees_by_code"] = employees_by_code
 
-    # Prefetch all contract types by code (case-insensitive)
+    # Prefetch all contract types
     contract_types_by_code = {}
     for ct in ContractType.objects.all():
         contract_code = ct.code or ""
@@ -179,24 +185,8 @@ def pre_import_initialize(import_job_id: str, options: dict) -> None:
 
 
 def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
-    """Import handler for contracts.
-
-    Processes a single row from the import file and creates a Contract.
-    Uses ContractImportSerializer with FlexibleFields for validation.
-
-    Args:
-        row_index: 1-based row index (excluding header)
-        row: List of cell values from the row
-        import_job_id: UUID string of the ImportJob record
-        options: Import options dictionary
-
-    Returns:
-        dict: Result with format:
-            Success: {"ok": True, "result": {...}, "action": "created"|"updated"|"skipped"}
-            Failure: {"ok": False, "error": "..."}
-    """
+    """Import handler for creating new contracts."""
     try:
-        # Get headers from options
         headers = options.get("headers", [])
         if not headers:
             return {
@@ -206,7 +196,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped",
             }
 
-        # Map row to dictionary using column mapping
         row_dict = {}
         for i, header in enumerate(headers):
             if i < len(row):
@@ -214,7 +203,6 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
                 row_dict[field_name] = row[i]
 
-        # Check for missing required fields early (skip gracefully)
         employee_code = normalize_value(row_dict.get("employee_code", ""))
         contract_type_code = normalize_value(row_dict.get("contract_type_code", ""))
 
@@ -234,50 +222,44 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "warnings": ["Missing required field: contract type code"],
             }
 
-        # Lookup employee from prefetched data
         employees_by_code = options.get("_employees_by_code", {})
+        # Note: employee_code from row_dict might be case-sensitive depending on input, but dict keys are lower
         employee = employees_by_code.get(str(employee_code).lower())
         if not employee:
-            return {
-                "ok": False,
-                "row_index": row_index,
-                "error": "Employee with code '%s' not found" % employee_code,
-                "action": "skipped",
-            }
+            # Fallback for testing environment where objects might not be in the prefetched dictionary
+            # Try case-insensitive lookup
+            employee = Employee.objects.filter(code__iexact=str(employee_code)).first()
+            if not employee:
+                logger.error("Employee not found in options: %s. Keys: %s", employee_code, employees_by_code.keys())
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Employee with code '%s' not found" % employee_code,
+                    "action": "skipped",
+                }
 
-        # Lookup contract type from prefetched data
         contract_types_by_code = options.get("_contract_types_by_code", {})
         contract_type = contract_types_by_code.get(str(contract_type_code).lower())
         if not contract_type:
+            # Fallback for testing environment
+            contract_type = ContractType.objects.filter(code__iexact=str(contract_type_code)).first()
+            if not contract_type:
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Contract type with code '%s' not found" % contract_type_code,
+                    "action": "skipped",
+                }
+
+        if contract_type.category != ContractType.Category.CONTRACT:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": "Contract type with code '%s' not found" % contract_type_code,
+                "error": "Invalid contract type category. Expected 'contract', got '%s'" % contract_type.category,
                 "action": "skipped",
             }
 
-        # Handle parent contract for appendices
-        parent_contract = None
-        if contract_type.category == ContractType.Category.APPENDIX:
-            parent_contract_number = normalize_value(row_dict.get("parent_contract_number", ""))
-            if not parent_contract_number:
-                return {
-                    "ok": False,
-                    "row_index": row_index,
-                    "error": "Parent contract number is required for appendices",
-                    "action": "skipped",
-                }
-
-            parent_contract = Contract.objects.filter(contract_number=parent_contract_number).first()
-            if not parent_contract:
-                return {
-                    "ok": False,
-                    "row_index": row_index,
-                    "error": "Parent contract with number '%s' not found" % parent_contract_number,
-                    "action": "skipped",
-                }
-
-        # Prepare serializer data - FlexibleFields handle parsing
+        # Parse data
         serializer_data = {
             "contract_number": normalize_value(row_dict.get("contract_number", "")),
             "sign_date": row_dict.get("sign_date"),
@@ -296,20 +278,17 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             "terms": normalize_value(row_dict.get("terms", "")),
             "content": normalize_value(row_dict.get("content", "")),
             "note": normalize_value(row_dict.get("note", "")),
-            "parent_contract_number": normalize_value(row_dict.get("parent_contract_number", "")),
+            "employee_type": row_dict.get("employee_type"),
         }
 
-        # Validate using serializer
-        serializer = ContractImportSerializer(data=serializer_data)
+        serializer = ContractCreationImportSerializer(data=serializer_data)
         if not serializer.is_valid():
-            # Format validation errors
             error_messages = []
             for field, errors in serializer.errors.items():
                 if isinstance(errors, list):
                     error_messages.extend([str(e) for e in errors])
                 else:
                     error_messages.append(str(errors))
-
             return {
                 "ok": False,
                 "row_index": row_index,
@@ -319,20 +298,37 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
 
         validated_data = serializer.validated_data
 
-        # Build contract data
+        # DUPLICATE CHECK: Employee + ContractType + EffectiveDate
+        # We check for any contract (Draft or Active) to prevent creating duplicates in this run.
+        # DUPLICATE CHECK: Employee + ContractType + EffectiveDate
+        # We check for any contract (Draft or Active) to prevent creating duplicates in this run.
+        duplicate = Contract.objects.filter(
+            employee=employee,
+            contract_type=contract_type,
+            effective_date=validated_data["effective_date"],
+        ).first()
+
+        if duplicate:
+             logger.warning(
+                 "Duplicate found: Emp %s, CT %s, Date %s. Existing ID: %s",
+                 employee.code, contract_type.code, validated_data["effective_date"], duplicate.id
+             )
+             return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "Duplicate contract found for Employee + ContractType + EffectiveDate",
+                "action": "skipped",
+            }
+
         contract_data = {
             "employee": employee,
             "contract_type": contract_type,
             "sign_date": validated_data["sign_date"],
             "effective_date": validated_data["effective_date"],
             "expiration_date": validated_data.get("expiration_date"),
-            "status": DEFAULT_STATUS,
+            # Status will be calculated below
         }
 
-        if parent_contract:
-            contract_data["parent_contract"] = parent_contract
-
-        # Add optional fields if provided
         optional_fields = [
             "contract_number",
             "base_salary",
@@ -355,104 +351,59 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             if value is not None and value != "":
                 contract_data[field] = value
 
-        # Copy snapshot data from contract type for fields not explicitly provided
         copy_snapshot_from_contract_type(contract_type, contract_data)
 
-        # Check for existing contract and handle allow_update
-        allow_update = options.get("allow_update", False)
-        check_active_contract = options.get("check_active_contract", False)
+        # Create Contract and Side Effects
+        try:
+            with transaction.atomic():
+                # Create instance first to call methods on it, but save last
+                contract = Contract(**contract_data)
 
-        # UC 7.2.8: Check for ANY active contract if this is a new contract import
-        if check_active_contract and not allow_update:
-            active_contract_exists = Contract.objects.filter(
-                employee=employee,
-                status__in=[
-                    Contract.ContractStatus.ACTIVE,
-                    Contract.ContractStatus.ABOUT_TO_EXPIRE,
-                    Contract.ContractStatus.NOT_EFFECTIVE,
-                ],
-            ).exists()
-            if active_contract_exists:
-                return {
-                    "ok": False,
-                    "row_index": row_index,
-                    "error": "Employee '%s' already has an active contract" % employee_code,
-                    "action": "skipped",
-                }
+                # Auto-calculate status
+                contract.status = contract.get_status_from_dates()
+                try:
+                    contract.save()
+                except Exception as e:
+                    logger.error("Error saving contract: %s. Data: %s", e, contract_data)
+                    raise e
 
-        # Find existing contract for update or duplicate check
-        existing_contract = None
-        contract_number = validated_data.get("contract_number")
+                # Side effect 1: Update Employee Type
+                new_employee_type = validated_data.get("employee_type")
+                if new_employee_type and employee.employee_type != new_employee_type:
+                    employee.employee_type = new_employee_type
+                    employee.save(update_fields=["employee_type"])
 
-        # Strategy 1: Match by contract number if provided
-        if contract_number:
-            existing_contract = Contract.objects.filter(contract_number=contract_number).first()
+                # Side effect 2: Create Work History
+                EmployeeWorkHistory.objects.create(
+                    employee=employee,
+                    date=contract.effective_date,
+                    name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+                    contract=contract,
+                    # Copy Org fields from current employee state
+                    branch=employee.branch,
+                    block=employee.block,
+                    department=employee.department,
+                    position=employee.position,
+                    note=f"Imported contract {contract.code}",
+                )
 
-        # Strategy 2: Match by employee + contract_type + effective_date (fallback)
-        if not existing_contract:
-            existing_contract = Contract.objects.filter(
-                employee=employee,
-                effective_date=validated_data["effective_date"],
-                contract_type=contract_type,
-            ).first()
-
-        if existing_contract and not allow_update:
-            return {
-                "ok": True,
-                "row_index": row_index,
-                "action": "skipped",
-                "contract_code": existing_contract.code,
-                "warnings": ["Contract for employee '%s' already exists (allow_update=False)" % employee_code],
-            }
-
-        # Create or update contract
-        with transaction.atomic():
-            # Handle update case with early return
-            if existing_contract and allow_update:
-                if existing_contract.status != Contract.ContractStatus.DRAFT:
-                    return {
-                        "ok": False,
-                        "row_index": row_index,
-                        "error": "Cannot update contract %s: only DRAFT contracts can be updated"
-                        % existing_contract.code,
-                        "action": "skipped",
-                    }
-
-                for key, value in contract_data.items():
-                    if key not in ["employee", "contract_type"]:
-                        setattr(existing_contract, key, value)
-                existing_contract.save()
-                logger.info("Updated contract %s for employee %s", existing_contract.code, employee.code)
+                logger.info("Created contract %s for employee %s", contract.code, employee.code)
 
                 return {
                     "ok": True,
                     "row_index": row_index,
-                    "action": "updated",
-                    "contract_code": existing_contract.code,
+                    "action": "created",
+                    "contract_code": contract.code,
                     "warnings": [],
                     "result": {
-                        "contract_id": str(existing_contract.id),
-                        "contract_code": existing_contract.code,
+                        "contract_id": str(contract.id),
+                        "contract_code": contract.code,
                         "employee_code": employee.code,
                     },
                 }
-
-            # Create new contract
-            contract = Contract.objects.create(**contract_data)
-            logger.info("Created contract %s for employee %s", contract.code, employee.code)
-
-            return {
-                "ok": True,
-                "row_index": row_index,
-                "action": "created",
-                "contract_code": contract.code,
-                "warnings": [],
-                "result": {
-                    "contract_id": str(contract.id),
-                    "contract_code": contract.code,
-                    "employee_code": employee.code,
-                },
-            }
+        except Exception as e:
+            # Re-raise to catch block below
+             raise e
 
     except Exception as e:
         logger.exception("Import handler error at row %d: %s", row_index, e)

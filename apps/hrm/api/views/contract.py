@@ -323,10 +323,30 @@ class ContractViewSet(
     document_template_name = "documents/contract.html"
 
     # Import handler path for AsyncImportProgressMixin
-    import_row_handler = "apps.hrm.import_handlers.contract.import_handler"  # type: ignore[assignment]
+    # import_row_handler will be determined dynamically
+    import_row_handler = "apps.hrm.import_handlers.contract_creation.import_handler"  # Default
 
     # Import configuration
     import_template_name = "hrm_contract_template"
+
+    def get_import_handler_path(self):
+        """Determine import handler path based on mode option."""
+        # Get base handler path from parent logic if needed, but we implement custom routing here
+
+        # Access options from request data
+        options = self.request.data.get("options", {}) if self.request.data else {}
+        mode = options.get("mode")
+
+        if mode == "create":
+            return "apps.hrm.import_handlers.contract_creation.import_handler"
+        elif mode == "update":
+            return "apps.hrm.import_handlers.contract_update.import_handler"
+
+        # If no valid mode provided, raise validation error
+        # Since this method is called inside start_import which catches errors,
+        # raising ValidationError here will result in 400 Bad Request
+        from rest_framework.exceptions import ValidationError
+        raise ValidationError({"options": {"mode": _("Import mode must be either 'create' or 'update'")}})
 
     def get_export_context(self, instance):
         """Prepare context for contract document export.
