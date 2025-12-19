@@ -4,7 +4,6 @@ import logging
 from datetime import date
 
 from django.db import transaction
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -217,11 +216,14 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         ).first()
 
         if duplicate:
-             logger.warning(
-                 "Duplicate found: Emp %s, CT %s, Date %s. Existing ID: %s",
-                 employee.code, contract_type.code, validated_data["effective_date"], duplicate.id
-             )
-             return {
+            logger.warning(
+                "Duplicate found: Emp %s, CT %s, Date %s. Existing ID: %s",
+                employee.code,
+                contract_type.code,
+                validated_data["effective_date"],
+                duplicate.id,
+            )
+            return {
                 "ok": False,
                 "row_index": row_index,
                 "error": "Duplicate contract found for Employee + ContractType + EffectiveDate",
@@ -231,7 +233,7 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
         contract_data = {
             "employee": employee,
             "contract_type": contract_type,
-            "sign_date": date.today(), # Default to today as per requirements
+            "sign_date": date.today(),  # Default to today as per requirements
             "effective_date": validated_data["effective_date"],
             # Status will be calculated below
         }
@@ -265,23 +267,33 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 raise e
 
             # Side effect 1: Update Employee Type
+            change_employee_type = False
             new_employee_type = validated_data.get("employee_type")
             if new_employee_type and employee.employee_type != new_employee_type:
+                change_employee_type = True
                 employee.employee_type = new_employee_type
                 employee.save(update_fields=["employee_type"])
 
             # Side effect 2: Create Work History
+
+            # Event name default to change contract, but if the new contract causes change the employee type, it will be set to change employee type
+            event_name = (
+                EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
+                if change_employee_type
+                else EmployeeWorkHistory.EventType.CHANGE_CONTRACT
+            )
+
             EmployeeWorkHistory.objects.create(
                 employee=employee,
                 date=contract.effective_date,
-                name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+                name=event_name,
                 contract=contract,
                 # Copy Org fields from current employee state
                 branch=employee.branch,
                 block=employee.block,
                 department=employee.department,
                 position=employee.position,
-                note=f"Imported contract {contract.code}",
+                note=_("Imported contract %s") % contract.code,
             )
 
             logger.info("Created contract %s for employee %s", contract.code, employee.code)

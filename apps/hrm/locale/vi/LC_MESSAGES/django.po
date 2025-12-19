@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 11:26+0700\n"
+"POT-Creation-Date: 2025-12-19 15:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -521,6 +521,10 @@ msgstr "Quản lý Hợp Đồng"
 #, python-brace-format
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
+
+#: apps/hrm/api/views/contract.py:349
+msgid "Import mode must be either 'create' or 'update'"
+msgstr "Vui lòng chọn đúng chế độ import: 'Tạo mới' hoặc 'Cập nhật'."
 
 #: apps/hrm/api/views/contract_appendix.py:262
 msgid "Contract Appendix Management"
@@ -2486,12 +2490,16 @@ msgstr "Đã xác nhận"
 msgid "Not verified"
 msgstr "Không xác nhận"
 
-#: apps/hrm/import_handlers/contract.py:113
-#: apps/hrm/import_handlers/contract_appendix.py:51
+#: apps/hrm/import_handlers/contract_creation.py:296
+#, python-format
+msgid "Imported contract %s"
+msgstr "Đã import hợp đồng %s"
+
+#: apps/hrm/import_handlers/contract_update.py:109
 msgid "Sign date must be on or before effective date"
 msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực"
 
-#: apps/hrm/import_handlers/contract.py:117
+#: apps/hrm/import_handlers/contract_update.py:113
 msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 

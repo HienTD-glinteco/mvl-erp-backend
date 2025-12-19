@@ -130,7 +130,7 @@ class EmployeeViewSet(
     }
 
     # Import handler path for AsyncImportProgressMixin
-    import_row_handler = "apps.hrm.import_handlers.employee.import_handler"  # type: ignore[assignment]
+    import_row_handler = "apps.hrm.import_handlers.employee.import_handler"
 
     def get_serializer_class(self):
         if self.action == "active":

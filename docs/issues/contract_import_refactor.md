@@ -9,7 +9,7 @@ Hệ thống cần nâng cấp tính năng Import Hợp đồng để hỗ trợ
 
 ### Các trường hợp cần xử lý:
 1.  **Logic Mới (Tạo mới/Chuyển đổi hợp đồng)**:
-    *   Sử dụng file mẫu: `addition_contract_template.xlsx`.
+    *   Sử dụng file mẫu: `creation_contract_template.xlsx`.
     *   Tự động tính toán Trạng thái hợp đồng theo Ngày hiệu lực.
     *   Cập nhật Loại nhân viên (`Employee.employee_type`) tương ứng.
     *   Tạo Lịch sử công tác (`EmployeeWorkHistory`) cho nhân viên.
@@ -49,6 +49,8 @@ Hệ thống cần nâng cấp tính năng Import Hợp đồng để hỗ trợ
     *   `status`: Tính toán tự động bằng `get_status_from_dates()`.
     *   `Employee.employee_type`: Cập nhật theo giá trị từ cột `employee_type` trong file excel.
     *   `EmployeeWorkHistory`: Tạo bản ghi mới liên kết với nhân viên và hợp đồng vừa tạo.
+        *   Nếu `Employee.employee_type` thay đổi -> Event: `CHANGE_EMPLOYEE_TYPE`.
+        *   Nếu không thay đổi -> Event: `CHANGE_CONTRACT`.
 
 ### B. Luồng Cập nhật (Update)
 *   **Handler**: `contract_update.py`
@@ -86,6 +88,7 @@ Hệ thống cần nâng cấp tính năng Import Hợp đồng để hỗ trợ
 *   **TC_CR_02**: Import trùng thông tin (NV + Loại HĐ + Ngày hiệu lực) đã có trong hệ thống -> Mong đợi: Báo lỗi trùng lặp.
 *   **TC_CR_03**: Import với loại hợp đồng là "Phụ lục" vào luồng tạo mới Hợp đồng -> Mong đợi: Báo lỗi sai loại dữ liệu.
 *   **TC_CR_04**: Kiểm tra conflict: Loại nhân viên trong file và loại hợp đồng không phù hợp (nếu có logic check).
+*   **TC_CR_05**: Import hợp đồng mới làm thay đổi loại nhân viên (ví dụ: Thử việc -> Chính thức). Kiểm tra `WorkHistory` được tạo có event là `CHANGE_EMPLOYEE_TYPE`. Ngược lại nếu loại nhân viên không đổi thì event là `CHANGE_CONTRACT`.
 
 ### Group 2: Cập nhật (Update)
 *   **TC_UP_01**: Cập nhật thành công thông tin lương cho 1 hợp đồng đang ở trạng thái `DRAFT`.

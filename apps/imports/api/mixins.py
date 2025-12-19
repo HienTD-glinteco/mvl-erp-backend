@@ -59,7 +59,7 @@ class AsyncImportProgressMixin:
     """
 
     # Class attribute to define the import handler path
-    import_row_handler = None
+    import_row_handler: str | None = None
 
     @extend_schema(
         summary="Start import job",

@@ -1,10 +1,17 @@
-import pytest
-from django.utils import timezone
-from apps.hrm.constants import EmployeeType
-from apps.hrm.models import Contract, ContractType, Employee, EmployeeWorkHistory, Block, Department, Branch
-from apps.core.models import Province, AdministrativeUnit
-from apps.hrm.import_handlers import contract_creation, contract_update, contract_appendix
 from datetime import date
+
+import pytest
+from django.db.models.signals import post_save
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
+from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.api.views.contract import ContractViewSet
+from apps.hrm.constants import EmployeeType
+from apps.hrm.import_handlers import contract_appendix, contract_creation, contract_update
+from apps.hrm.models import Block, Branch, Contract, ContractType, Department, Employee, EmployeeWorkHistory
+from apps.hrm.signals.employee import create_user_for_employee
+
 
 @pytest.mark.django_db
 class TestContractImportStrategies:
@@ -16,31 +23,22 @@ class TestContractImportStrategies:
         # Organization setup
         self.province = Province.objects.create(name="Hanoi", code="HN")
         self.administrative_unit = AdministrativeUnit.objects.create(
-            name="District 1",
-            code="D1",
-            parent_province=self.province,
-            level=AdministrativeUnit.UnitLevel.DISTRICT
+            name="District 1", code="D1", parent_province=self.province, level=AdministrativeUnit.UnitLevel.DISTRICT
         )
 
         self.branch = Branch.objects.create(
-            name="Test Branch",
-            code="BR",
-            province=self.province,
-            administrative_unit=self.administrative_unit
+            name="Test Branch", code="BR", province=self.province, administrative_unit=self.administrative_unit
         )
 
         self.block = Block.objects.create(
-            name="Test Block",
-            code="BLK",
-            branch=self.branch,
-            block_type=Block.BlockType.BUSINESS
+            name="Test Block", code="BLK", branch=self.branch, block_type=Block.BlockType.BUSINESS
         )
         self.department = Department.objects.create(
             name="Test Dept",
             code="DEPT",
             block=self.block,
             branch=self.branch,
-            function=Department.DepartmentFunction.BUSINESS
+            function=Department.DepartmentFunction.BUSINESS,
         )
 
         # Contract Types
@@ -60,9 +58,6 @@ class TestContractImportStrategies:
         # Note: Employee creation triggers a signal to create a User, which requires username.
         # We try muting signals to avoid validation errors in tests.
 
-        from django.db.models.signals import post_save
-        from apps.hrm.signals.employee import create_user_for_employee
-
         post_save.disconnect(create_user_for_employee, sender=Employee)
 
         self.employee = Employee.objects.create(
@@ -73,6 +68,10 @@ class TestContractImportStrategies:
             branch=self.branch,
             block=self.block,
             department=self.department,
+            username="emp001",
+            email="emp001@example.com",
+            citizen_id="001001001001",
+            phone="0900000001",
         )
 
         # Reconnect if necessary, but typically fine for test scope.
@@ -86,28 +85,32 @@ class TestContractImportStrategies:
         # "mã nhân viên", "loại nhân viên", "ngày hiệu lực", "loại hợp đồng", "mức lương cơ bản", "mức lương kpi", ...
 
         row = [
-            "EMP001", # employee_code
-            "chính thức", # employee_type
-            str(today), # effective_date
-            "HDLD", # contract_type_code
-            "15000000", # base_salary
-            "", "", "", "", # optional fields
+            "EMP001",  # employee_code
+            "chính thức",  # employee_type
+            str(today),  # effective_date
+            "HDLD",  # contract_type_code
+            "15000000",  # base_salary
+            "",
+            "",
+            "",
+            "",  # optional fields
         ]
 
         options = {
             "headers": [
-                "mã nhân viên", "loại nhân viên", "ngày hiệu lực", "loại hợp đồng",
-                "mức lương cơ bản", "mức lương kpi", "phụ cấp ăn trưa", "phụ cấp điện thoại", "phụ cấp khác"
+                "mã nhân viên",
+                "loại nhân viên",
+                "ngày hiệu lực",
+                "loại hợp đồng",
+                "mức lương cơ bản",
+                "mức lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
             ],
             "_employees_by_code": {"emp001": self.employee},
             "_contract_types_by_code": {"hdld": self.contract_type_labor},
         }
-
-        # Debug pre-check
-        print(f"Employee code in DB: {self.employee.code}")
-        print(f"Employee code in row: EMP001")
-        print(f"Contract type code in DB: {self.contract_type_labor.code}")
-        print(f"Contract type code in row: HDLD")
 
         result = contract_creation.import_handler(1, row, "job-id", options)
 
@@ -158,9 +161,7 @@ class TestContractImportStrategies:
 
         # Verify WorkHistory
         history = EmployeeWorkHistory.objects.filter(
-            employee=self.employee,
-            contract=contract,
-            name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT
+            employee=self.employee, contract=contract, name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
         ).first()
         assert history is not None
         assert history.date == contract.effective_date
@@ -174,14 +175,21 @@ class TestContractImportStrategies:
             contract_type=self.contract_type_labor,
             effective_date=today,
             sign_date=today,
-            status=Contract.ContractStatus.DRAFT
+            status=Contract.ContractStatus.DRAFT,
         )
 
         row = ["EMP001", "chính thức", str(today), "HDLD", "", "", "", "", ""]
         options = {
             "headers": [
-                "mã nhân viên", "loại nhân viên", "ngày hiệu lực", "loại hợp đồng",
-                "mức lương cơ bản", "mức lương kpi", "phụ cấp ăn trưa", "phụ cấp điện thoại", "phụ cấp khác"
+                "mã nhân viên",
+                "loại nhân viên",
+                "ngày hiệu lực",
+                "loại hợp đồng",
+                "mức lương cơ bản",
+                "mức lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
             ],
             "_employees_by_code": {"emp001": self.employee},
             "_contract_types_by_code": {"hdld": self.contract_type_labor},
@@ -197,8 +205,15 @@ class TestContractImportStrategies:
         row = ["EMP001", "chính thức", "2024-01-01", "PLHD", "", "", "", "", ""]
         options = {
             "headers": [
-                "mã nhân viên", "loại nhân viên", "ngày hiệu lực", "loại hợp đồng",
-                "mức lương cơ bản", "mức lương kpi", "phụ cấp ăn trưa", "phụ cấp điện thoại", "phụ cấp khác"
+                "mã nhân viên",
+                "loại nhân viên",
+                "ngày hiệu lực",
+                "loại hợp đồng",
+                "mức lương cơ bản",
+                "mức lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
             ],
             "_employees_by_code": {"emp001": self.employee},
             "_contract_types_by_code": {"plhd": self.contract_type_appendix},
@@ -208,6 +223,100 @@ class TestContractImportStrategies:
 
         assert result["ok"] is False
         assert "Invalid contract type category" in result["error"]
+
+    def test_tc_cr_05_creation_event_type_logic(self):
+        """TC_CR_05: Verify WorkHistory event name logic based on employee type change."""
+        today = date.today()
+
+        # Scenario 1: Employee Type Change (Probation -> Official)
+        # self.employee is Probation by default from setup
+        row_change = [
+            "EMP001",
+            "chính thức",  # Official
+            str(today),
+            "HDLD",
+            "15000000",
+            "",
+            "",
+            "",
+            "",  # optional fields
+        ]
+
+        options_change = {
+            "headers": [
+                "mã nhân viên",
+                "loại nhân viên",
+                "ngày hiệu lực",
+                "loại hợp đồng",
+                "mức lương cơ bản",
+                "mức lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
+            ],
+            "_employees_by_code": {"emp001": self.employee},
+            "_contract_types_by_code": {"hdld": self.contract_type_labor},
+        }
+
+        result_change = contract_creation.import_handler(1, row_change, "job-1", options_change)
+        assert result_change["ok"] is True
+
+        # Verify event
+        contract_id_1 = result_change["result"]["contract_id"]
+        history_1 = EmployeeWorkHistory.objects.get(contract_id=contract_id_1)
+        assert history_1.name == EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
+
+        # Scenario 2: Employee Type No Change (Official -> Official)
+        # Create another employee that is already Official
+        employee_official = Employee.objects.create(
+            code="EMP002",
+            fullname="Official Employee",
+            employee_type=EmployeeType.OFFICIAL,
+            start_date=today,
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            username="emp002",
+            email="emp002@example.com",
+            citizen_id="002002002002",
+            phone="0900000002",
+        )
+
+        row_no_change = [
+            "EMP002",
+            "chính thức",  # Official (Same)
+            str(today),
+            "HDLD",
+            "18000000",
+            "",
+            "",
+            "",
+            "",
+        ]
+
+        options_no_change = {
+            "headers": [
+                "mã nhân viên",
+                "loại nhân viên",
+                "ngày hiệu lực",
+                "loại hợp đồng",
+                "mức lương cơ bản",
+                "mức lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
+            ],
+            "_employees_by_code": {"emp002": employee_official},
+            "_contract_types_by_code": {"hdld": self.contract_type_labor},
+        }
+
+        result_no_change = contract_creation.import_handler(2, row_no_change, "job-2", options_no_change)
+        assert result_no_change["ok"] is True
+
+        # Verify event
+        contract_id_2 = result_no_change["result"]["contract_id"]
+        history_2 = EmployeeWorkHistory.objects.get(contract_id=contract_id_2)
+        assert history_2.name == EmployeeWorkHistory.EventType.CHANGE_CONTRACT
 
     # --- Group 2: Update ---
 
@@ -221,17 +330,29 @@ class TestContractImportStrategies:
             effective_date=today,
             sign_date=today,
             base_salary=10000000,
-            status=Contract.ContractStatus.DRAFT
+            status=Contract.ContractStatus.DRAFT,
         )
 
         row = [
-            "1", "EMP001", "HDLD", "DRAFT-01",
-            str(today), str(today), "", "20000000" # Update base salary to 20M
+            "1",
+            "EMP001",
+            "HDLD",
+            "DRAFT-01",
+            str(today),
+            str(today),
+            "",
+            "20000000",  # Update base salary to 20M
         ]
         options = {
             "headers": [
-                "stt", "mã nhân viên", "mã loại hợp đồng", "số hợp đồng",
-                "ngày ký", "ngày hiệu lực", "ngày hết hạn", "lương cơ bản"
+                "stt",
+                "mã nhân viên",
+                "mã loại hợp đồng",
+                "số hợp đồng",
+                "ngày ký",
+                "ngày hiệu lực",
+                "ngày hết hạn",
+                "lương cơ bản",
             ],
             "_employees_by_code": {"emp001": self.employee},
             "_contract_types_by_code": {"hdld": self.contract_type_labor},
@@ -254,12 +375,21 @@ class TestContractImportStrategies:
             contract_number="ACTIVE-01",
             effective_date=today,
             sign_date=today,
-            status=Contract.ContractStatus.ACTIVE
+            status=Contract.ContractStatus.ACTIVE,
         )
 
         row = ["1", "EMP001", "HDLD", "ACTIVE-01", str(today), str(today), "", "20000000"]
         options = {
-            "headers": ["stt", "mã nhân viên", "mã loại hợp đồng", "số hợp đồng", "ngày ký", "ngày hiệu lực", "ngày hết hạn", "lương cơ bản"],
+            "headers": [
+                "stt",
+                "mã nhân viên",
+                "mã loại hợp đồng",
+                "số hợp đồng",
+                "ngày ký",
+                "ngày hiệu lực",
+                "ngày hết hạn",
+                "lương cơ bản",
+            ],
             "_employees_by_code": {"emp001": self.employee},
             "_contract_types_by_code": {"hdld": self.contract_type_labor},
         }
@@ -294,7 +424,7 @@ class TestContractImportStrategies:
             contract_number="PARENT-01",
             effective_date=date(2023, 1, 1),
             sign_date=date(2023, 1, 1),
-            status=Contract.ContractStatus.ACTIVE
+            status=Contract.ContractStatus.ACTIVE,
         )
 
         # NOTE: Contract creation signals might overwrite contract_number via `generate_contract_code`.
@@ -305,27 +435,40 @@ class TestContractImportStrategies:
         actual_parent_number = parent.contract_number
 
         row = [
-            "1", # row
-            "EMP001", # employee_code
-            actual_parent_number, # parent_contract_number (dynamic)
-            "APP-01", # contract_number (appendix)
-            "2024-01-01", # sign_date
-            "2024-01-01", # effective_date
-            "", "", "", "", "", # optional fields
-            "content change", # content
-            "note" # note
+            "1",  # row
+            "EMP001",  # employee_code
+            actual_parent_number,  # parent_contract_number (dynamic)
+            "APP-01",  # contract_number (appendix)
+            "2024-01-01",  # sign_date
+            "2024-01-01",  # effective_date
+            "",
+            "",
+            "",
+            "",
+            "",  # optional fields
+            "content change",  # content
+            "note",  # note
         ]
 
         options = {
             "headers": [
-                "số thứ tự", "mã nhân viên", "số hợp đồng", "số phụ lục",
-                "ngày ký", "ngày hiệu lực", "lương cơ bản", "lương kpi",
-                "phụ cấp ăn trưa", "phụ cấp điện thoại", "phụ cấp khác",
-                "nội dung thay đổi", "ghi chú"
+                "số thứ tự",
+                "mã nhân viên",
+                "số hợp đồng",
+                "số phụ lục",
+                "ngày ký",
+                "ngày hiệu lực",
+                "lương cơ bản",
+                "lương kpi",
+                "phụ cấp ăn trưa",
+                "phụ cấp điện thoại",
+                "phụ cấp khác",
+                "nội dung thay đổi",
+                "ghi chú",
             ],
             "_employees_by_code": {"emp001": self.employee},
             # Note: Appendix imports now look for options["_appendix_contract_type"] instead of column mapping for type
-            "_appendix_contract_type": self.contract_type_appendix
+            "_appendix_contract_type": self.contract_type_appendix,
         }
 
         result = contract_appendix.import_handler(1, row, "job-id", options)
@@ -356,7 +499,7 @@ class TestContractImportStrategies:
             contract_number="PARENT-01",
             effective_date=date(2023, 1, 1),
             sign_date=date(2023, 1, 1),
-            status=Contract.ContractStatus.ACTIVE
+            status=Contract.ContractStatus.ACTIVE,
         )
         # Refresh to get potentially generated number if any (for safety)
         parent.refresh_from_db()
@@ -366,7 +509,7 @@ class TestContractImportStrategies:
         options = {
             "headers": ["stt", "mã nhân viên", "số hợp đồng", "số phụ lục", "ngày ký", "ngày hiệu lực"],
             "_employees_by_code": {"emp001": self.employee},
-            "_appendix_contract_type": self.contract_type_labor, # Wrong type (Contract category)
+            "_appendix_contract_type": self.contract_type_labor,  # Wrong type (Contract category)
         }
 
         # NOTE: contract_appendix.py import_handler logic uses options["_appendix_contract_type"] to look up type.
@@ -382,7 +525,7 @@ class TestContractImportStrategies:
         result = contract_appendix.import_handler(1, row, "job-id", options)
 
         if result["ok"]:
-             print(f"Unexpected success: {result.get('action')}, warnings: {result.get('warnings')}")
+            print(f"Unexpected success: {result.get('action')}, warnings: {result.get('warnings')}")
 
         assert result["ok"] is False
         assert "System configuration error" in result["error"] or "Invalid contract type category" in result["error"]
@@ -391,9 +534,6 @@ class TestContractImportStrategies:
 
     def test_tc_rt_routing(self):
         """TC_RT: Verify ViewSet routing logic for get_import_handler_path."""
-        from apps.hrm.api.views.contract import ContractViewSet
-        from rest_framework.exceptions import ValidationError
-
         viewset = ContractViewSet()
 
         # Mock request
