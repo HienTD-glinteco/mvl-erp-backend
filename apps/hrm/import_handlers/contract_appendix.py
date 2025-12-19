@@ -1,44 +1,58 @@
-"""Import handler for Contract Appendix (using Contract model with category='appendix')."""
+"""Import handler for Contract Appendix."""
 
 import logging
 
 from django.db import transaction
-from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import Contract, ContractType, Employee
 from libs.drf.serializers import (
+    FlexibleBooleanField,
+    FlexibleChoiceField,
     FlexibleDateField,
+    FlexibleDecimalField,
     normalize_value,
 )
 from libs.strings import normalize_header
 
 logger = logging.getLogger(__name__)
 
-# Column mapping for import template (Vietnamese headers to field names)
+# Column mapping for import template (based on contract_appendix_template.xlsx)
 COLUMN_MAPPING = {
     "số thứ tự": "row_number",
     "mã nhân viên": "employee_code",
     "số hợp đồng": "parent_contract_number",
-    "số phụ lục": "code",
+    "số phụ lục": "contract_number",
     "ngày ký": "sign_date",
     "ngày hiệu lực": "effective_date",
+    "lương cơ bản": "base_salary",
+    "lương kpi": "kpi_salary",
+    "phụ cấp ăn trưa": "lunch_allowance",
+    "phụ cấp điện thoại": "phone_allowance",
+    "phụ cấp khác": "other_allowance",
     "nội dung thay đổi": "content",
     "ghi chú": "note",
 }
 
+# Status is always DRAFT for imported contracts/appendices
+DEFAULT_STATUS = Contract.ContractStatus.DRAFT
+
 
 class ContractAppendixImportSerializer(serializers.Serializer):
-    """Serializer for contract appendix import row data.
-
-    Uses FlexibleFields from libs.drf.serializers for flexible input parsing.
-    """
+    """Serializer for contract appendix import row data."""
 
     # Required fields
     sign_date = FlexibleDateField()
     effective_date = FlexibleDateField()
+    parent_contract_number = serializers.CharField(required=True, allow_blank=False)
 
     # Optional fields
+    contract_number = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    base_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    kpi_salary = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    lunch_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    phone_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
+    other_allowance = FlexibleDecimalField(max_digits=20, decimal_places=0, required=False, allow_null=True)
     content = serializers.CharField(required=False, allow_blank=True, default="")
     note = serializers.CharField(required=False, allow_blank=True, default="")
 
@@ -48,283 +62,60 @@ class ContractAppendixImportSerializer(serializers.Serializer):
         effective_date = attrs.get("effective_date")
 
         if sign_date and effective_date and sign_date > effective_date:
-            raise serializers.ValidationError({"sign_date": _("Sign date must be on or before effective date")})
+            raise serializers.ValidationError({"sign_date": "Sign date must be on or before effective date"})
 
         return attrs
 
 
+def copy_snapshot_from_contract_type(contract_type: ContractType, contract_data: dict) -> None:
+    """Copy snapshot data from ContractType to contract data."""
+    snapshot_fields = [
+        "base_salary",
+        "lunch_allowance",
+        "phone_allowance",
+        "other_allowance",
+        # Default others that are not in template
+        "net_percentage",
+        "tax_calculation_method",
+        "has_social_insurance",
+        "working_conditions",
+        "rights_and_obligations",
+        "terms",
+    ]
+
+    for field in snapshot_fields:
+        if field not in contract_data or contract_data[field] is None:
+            contract_data[field] = getattr(contract_type, field)
+
+
 def pre_import_initialize(import_job_id: str, options: dict) -> None:
-    """Pre-import initialization callback.
-
-    Called once at the start of the import process before processing any rows.
-    Prefetches all employees, contracts, and appendix contract types to avoid N+1 queries.
-
-    Args:
-        import_job_id: UUID of the import job
-        options: Import options dictionary
-    """
+    """Pre-import initialization callback."""
     # Prefetch all employees by code (case-insensitive)
     employees_by_code = {}
     for emp in Employee.objects.all():
         employees_by_code[emp.code.lower()] = emp
     options["_employees_by_code"] = employees_by_code
 
-    # Prefetch all contracts (category='contract') by contract_number and code
-    # Key format: str for code/number lookup, or tuple (employee_code, contract_code) for precise lookup
-    contracts_by_key: dict[str | tuple[str, str], Contract] = {}
-    for contract in Contract.objects.filter(contract_type__category=ContractType.Category.CONTRACT).select_related(
-        "employee"
-    ):
-        if contract.code:
-            # Store by contract code (case-insensitive)
-            contracts_by_key[contract.code.lower()] = contract
-            # Also store by contract_number if different
-            if contract.contract_number:
-                contracts_by_key[contract.contract_number.lower()] = contract
-            # Also store by (employee_code, contract_code) for cross-validation
-            employee_code = contract.employee.code.lower() if contract.employee else ""
-            contracts_by_key[(employee_code, contract.code.lower())] = contract
-    options["_contracts_by_key"] = contracts_by_key
+    # Prefetch all contract types by code (case-insensitive)
+    contract_types_by_code = {}
+    for ct in ContractType.objects.all():
+        contract_code = ct.code or ""
+        contract_types_by_code[contract_code.lower()] = ct
+    options["_contract_types_by_code"] = contract_types_by_code
 
-    # Prefetch existing appendices by code for duplicate checking
-    appendices_by_code: dict[str, Contract] = {}
-    for appendix in Contract.objects.filter(contract_type__category=ContractType.Category.APPENDIX):
-        if appendix.code:
-            appendices_by_code[appendix.code.lower()] = appendix
-    options["_appendices_by_code"] = appendices_by_code
-
-    # Get the first appendix contract type for creating new appendices
-    appendix_contract_type = ContractType.objects.filter(category=ContractType.Category.APPENDIX).first()
-    options["_appendix_contract_type"] = appendix_contract_type
-
-    logger.info(
-        "Import job %s: Prefetched %d employees, %d contracts, %d appendices",
-        import_job_id,
-        len(employees_by_code),
-        len([k for k in contracts_by_key.keys() if isinstance(k, str)]),
-        len(appendices_by_code),
-    )
+    # Get Appendix Contract Type (Assuming one generic type for appendices based on logic or need to fetch default)
+    # The requirement says: "Lookup contract type". But the template DOES NOT have contract_type column.
+    # We must infer or use a default Appendix Contract Type.
+    # Generally, there should be a system default or we pick the first one with category='appendix'.
+    appendix_type = ContractType.objects.filter(category=ContractType.Category.APPENDIX).first()
+    if appendix_type:
+        options["_appendix_contract_type"] = appendix_type
+    else:
+        logger.warning("No ContractType with category='appendix' found.")
 
 
-def _parse_row_to_dict(row: list, headers: list) -> dict:
-    """Parse row list to dictionary using column mapping.
-
-    Args:
-        row: List of cell values from the row
-        headers: List of header names
-
-    Returns:
-        Dictionary with field names as keys and cell values
-    """
-    row_dict = {}
-    for i, header in enumerate(headers):
-        if i < len(row):
-            normalized_header = normalize_header(header)
-            field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
-            row_dict[field_name] = row[i]
-    return row_dict
-
-
-def _lookup_contract(contract_number: str, employee_code: str, options: dict) -> tuple[Contract | None, str | None]:
-    """Lookup parent contract from prefetched data.
-
-    Args:
-        contract_number: Contract number/code to find
-        employee_code: Employee code for cross-validation (optional)
-        options: Import options with prefetched data
-
-    Returns:
-        Tuple of (Contract or None, error message or None)
-    """
-    contracts_by_key = options.get("_contracts_by_key", {})
-
-    # Try to find contract by (employee_code, contract_code) if employee_code provided
-    contract = None
-    if employee_code:
-        contract = contracts_by_key.get((employee_code.lower(), contract_number.lower()))
-
-    # Fall back to lookup by contract code alone
-    if not contract:
-        contract = contracts_by_key.get(contract_number.lower())
-
-    if not contract:
-        return None, "Contract with number '%s' not found" % contract_number
-
-    return contract, None
-
-
-def _validate_employee_contract_match(
-    employee_code: str, contract: Contract, contract_number: str, options: dict
-) -> str | None:
-    """Cross-validate that employee matches the contract.
-
-    Args:
-        employee_code: Employee code to validate
-        contract: Contract to validate against
-        contract_number: Contract number for error message
-        options: Import options with prefetched data
-
-    Returns:
-        Error message if validation fails, None if valid
-    """
-    if not employee_code:
-        return None
-
-    employees_by_code = options.get("_employees_by_code", {})
-    employee = employees_by_code.get(employee_code.lower())
-
-    if not employee:
-        return "Employee with code '%s' not found" % employee_code
-
-    if contract.employee != employee:
-        return "Contract '%s' does not belong to employee '%s'" % (contract_number, employee_code)
-
-    return None
-
-
-def _validate_serializer_data(row_dict: dict) -> tuple[dict | None, str | None]:
-    """Validate import data using serializer.
-
-    Args:
-        row_dict: Dictionary of parsed row data
-
-    Returns:
-        Tuple of (validated data or None, error message or None)
-    """
-    serializer_data = {
-        "sign_date": row_dict.get("sign_date"),
-        "effective_date": row_dict.get("effective_date"),
-        "content": normalize_value(row_dict.get("content", "")),
-        "note": normalize_value(row_dict.get("note", "")),
-    }
-
-    serializer = ContractAppendixImportSerializer(data=serializer_data)
-    if not serializer.is_valid():
-        # Format validation errors
-        error_messages = []
-        for field, errors in serializer.errors.items():
-            if isinstance(errors, list):
-                error_messages.extend([str(e) for e in errors])
-            else:
-                error_messages.append(str(errors))
-        return None, "; ".join(error_messages)
-
-    return serializer.validated_data, None
-
-
-def _check_existing_appendix(
-    appendix_code: str, allow_update: bool, options: dict
-) -> tuple[Contract | None, bool, str | None]:
-    """Check for existing appendix and determine if should skip.
-
-    Args:
-        appendix_code: Appendix code to check
-        allow_update: Whether updates are allowed
-        options: Import options with prefetched data
-
-    Returns:
-        Tuple of (existing appendix or None, should_skip flag, skip message or None)
-    """
-    if not appendix_code:
-        return None, False, None
-
-    appendices_by_code = options.get("_appendices_by_code", {})
-    existing_appendix = appendices_by_code.get(appendix_code.lower())
-
-    if existing_appendix and not allow_update:
-        return (
-            existing_appendix,
-            True,
-            "Appendix with code '%s' already exists (allow_update=False)" % appendix_code,
-        )
-
-    return existing_appendix, False, None
-
-
-def _update_existing_appendix(existing_appendix: Contract, appendix_data: dict, parent_contract: Contract) -> dict:
-    """Update an existing appendix record.
-
-    Args:
-        existing_appendix: Existing appendix to update
-        appendix_data: New data to update with
-        parent_contract: Associated parent contract
-
-    Returns:
-        Success result dictionary
-    """
-    for key, value in appendix_data.items():
-        if key not in ["parent_contract", "contract_type", "employee"]:  # Don't update these
-            setattr(existing_appendix, key, value)
-    existing_appendix.save()
-    logger.info("Updated appendix %s for contract %s", existing_appendix.code, parent_contract.code)
-
-    return {
-        "appendix_id": str(existing_appendix.id),
-        "appendix_code": existing_appendix.code,
-        "contract_code": parent_contract.code,
-    }
-
-
-def _create_new_appendix(
-    appendix_data: dict, appendix_code: str, parent_contract: Contract, options: dict
-) -> tuple[dict | None, str | None]:
-    """Create a new appendix record.
-
-    Args:
-        appendix_data: Data for new appendix
-        appendix_code: Explicit code (if provided)
-        parent_contract: Associated parent contract
-        options: Import options with appendices cache
-
-    Returns:
-        Tuple of (result dictionary or None, error message or None)
-    """
-    appendix_contract_type = options.get("_appendix_contract_type")
-    if not appendix_contract_type:
-        return None, "No contract type with category 'appendix' found. Please create one first."
-
-    # If code is provided in import, set it; otherwise let signal auto-generate
-    if appendix_code:
-        appendix_data["code"] = appendix_code
-
-    # Create appendix using Contract model
-    appendix = Contract.objects.create(
-        parent_contract=parent_contract,
-        employee=parent_contract.employee,
-        contract_type=appendix_contract_type,
-        **appendix_data,
-    )
-    logger.info("Created appendix %s for contract %s", appendix.code, parent_contract.code)
-
-    # Update cache with new appendix
-    appendices_by_code = options.get("_appendices_by_code", {})
-    if appendix.code:
-        appendices_by_code[appendix.code.lower()] = appendix
-
-    return {
-        "appendix_id": str(appendix.id),
-        "appendix_code": appendix.code,
-        "contract_code": parent_contract.code,
-    }, None
-
-
-def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:
-    """Import handler for contract appendices.
-
-    Processes a single row from the import file and creates a Contract with category='appendix'.
-    Uses ContractAppendixImportSerializer with FlexibleFields for validation.
-
-    Args:
-        row_index: 1-based row index (excluding header)
-        row: List of cell values from the row
-        import_job_id: UUID string of the ImportJob record
-        options: Import options dictionary
-
-    Returns:
-        dict: Result with format:
-            Success: {"ok": True, "result": {...}, "action": "created"|"updated"|"skipped"}
-            Failure: {"ok": False, "error": "..."}
-    """
+def import_handler(row_index: int, row: list, import_job_id: str, options: dict) -> dict:  # noqa: C901
+    """Import handler for contract appendices."""
     try:
         # Get headers from options
         headers = options.get("headers", [])
@@ -336,106 +127,201 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 "action": "skipped",
             }
 
-        # Parse row to dictionary
-        row_dict = _parse_row_to_dict(row, headers)
+        # Map row to dictionary using column mapping
+        row_dict = {}
+        for i, header in enumerate(headers):
+            if i < len(row):
+                normalized_header = normalize_header(header)
+                field_name = COLUMN_MAPPING.get(normalized_header, normalized_header)
+                row_dict[field_name] = row[i]
 
-        # Check for missing required fields early (skip gracefully)
+        # Check for missing required fields early
         employee_code = normalize_value(row_dict.get("employee_code", ""))
-        parent_contract_number = normalize_value(row_dict.get("parent_contract_number", ""))
 
+        # NOTE: Template doesn't have contract_type. We use default appendix type.
+        contract_type = options.get("_appendix_contract_type")
+
+        if not employee_code:
+            return {
+                "ok": True,
+                "row_index": row_index,
+                "action": "skipped",
+                "warnings": ["Missing required field: employee code"],
+            }
+
+        if not contract_type:
+             return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "System configuration error: No default 'Appendix' Contract Type found.",
+                "action": "skipped",
+            }
+
+        if contract_type.category != ContractType.Category.APPENDIX:
+             return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "Invalid contract type category. Expected 'appendix', got '%s'" % contract_type.category,
+                "action": "skipped",
+            }
+
+        # Lookup employee
+        employees_by_code = options.get("_employees_by_code", {})
+        employee = employees_by_code.get(str(employee_code).lower())
+        if not employee:
+            employee = Employee.objects.filter(code=employee_code).first()
+            if not employee:
+                return {
+                    "ok": False,
+                    "row_index": row_index,
+                    "error": "Employee with code '%s' not found" % employee_code,
+                    "action": "skipped",
+                }
+
+        # Handle parent contract for appendices
+        parent_contract_number = normalize_value(row_dict.get("parent_contract_number", ""))
         if not parent_contract_number:
             return {
-                "ok": True,
+                "ok": False,
                 "row_index": row_index,
+                "error": "Parent contract number is required for appendices",
                 "action": "skipped",
-                "warnings": ["Missing required field: parent contract number"],
             }
 
-        # Lookup parent contract
-        parent_contract, contract_error = _lookup_contract(parent_contract_number, employee_code, options)
-        if contract_error or parent_contract is None:
+        parent_contract = Contract.objects.filter(contract_number=parent_contract_number).first()
+        if not parent_contract:
             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": contract_error or "Parent contract not found",
+                "error": "Parent contract with number '%s' not found" % parent_contract_number,
                 "action": "skipped",
             }
 
-        # Cross-validate employee code if provided
-        employee_error = _validate_employee_contract_match(
-            employee_code, parent_contract, parent_contract_number, options
-        )
-        if employee_error:
-            return {
+        # Verify parent contract belongs to the same employee
+        if parent_contract.employee_id != employee.id:
+             return {
                 "ok": False,
                 "row_index": row_index,
-                "error": employee_error,
+                "error": "Parent contract %s belongs to a different employee" % parent_contract_number,
                 "action": "skipped",
             }
 
-        # Validate using serializer
-        validated_data, validation_error = _validate_serializer_data(row_dict)
-        if validation_error or validated_data is None:
-            return {
-                "ok": False,
-                "row_index": row_index,
-                "error": validation_error or "Validation failed",
-                "action": "skipped",
-            }
-
-        # Get appendix code from import (if provided)
-        appendix_code = normalize_value(row_dict.get("code", ""))
-
-        # Check for existing appendix and handle allow_update
-        allow_update = options.get("allow_update", False)
-        existing_appendix, should_skip, skip_message = _check_existing_appendix(appendix_code, allow_update, options)
-
-        if should_skip:
-            return {
-                "ok": True,
-                "row_index": row_index,
-                "action": "skipped",
-                "appendix_code": existing_appendix.code if existing_appendix else None,
-                "warnings": [skip_message] if skip_message else [],
-            }
-
-        # Build appendix data
-        appendix_data = {
-            "sign_date": validated_data["sign_date"],
-            "effective_date": validated_data["effective_date"],
-            "content": validated_data.get("content", ""),
-            "note": validated_data.get("note", ""),
+        # Prepare serializer data
+        serializer_data = {
+            "contract_number": normalize_value(row_dict.get("contract_number", "")),
+            "sign_date": row_dict.get("sign_date"),
+            "effective_date": row_dict.get("effective_date"),
+            "base_salary": row_dict.get("base_salary"),
+            "kpi_salary": row_dict.get("kpi_salary"),
+            "lunch_allowance": row_dict.get("lunch_allowance"),
+            "phone_allowance": row_dict.get("phone_allowance"),
+            "other_allowance": row_dict.get("other_allowance"),
+            "content": normalize_value(row_dict.get("content", "")),
+            "note": normalize_value(row_dict.get("note", "")),
+            "parent_contract_number": parent_contract_number,
         }
 
-        # Create or update appendix
+        # Validate using serializer
+        serializer = ContractAppendixImportSerializer(data=serializer_data)
+        if not serializer.is_valid():
+            error_messages = []
+            for field, errors in serializer.errors.items():
+                if isinstance(errors, list):
+                    error_messages.extend([str(e) for e in errors])
+                else:
+                    error_messages.append(str(errors))
+
+            return {
+                "ok": False,
+                "row_index": row_index,
+                "error": "; ".join(error_messages),
+                "action": "skipped",
+            }
+
+        validated_data = serializer.validated_data
+
+        # Build contract data
+        contract_data = {
+            "employee": employee,
+            "contract_type": contract_type,
+            "sign_date": validated_data["sign_date"],
+            "effective_date": validated_data["effective_date"],
+            "status": DEFAULT_STATUS,
+            "parent_contract": parent_contract,
+        }
+
+        # Add optional fields if provided
+        optional_fields = [
+            "contract_number",
+            "base_salary",
+            "kpi_salary",
+            "lunch_allowance",
+            "phone_allowance",
+            "other_allowance",
+            "content",
+            "note",
+        ]
+
+        for field in optional_fields:
+            value = validated_data.get(field)
+            if value is not None and value != "":
+                contract_data[field] = value
+
+        # Copy snapshot data from contract type
+        copy_snapshot_from_contract_type(contract_type, contract_data)
+
+        # Check for existing appendix (by number)
+        contract_number = validated_data.get("contract_number")
+        existing_contract = None
+        if contract_number:
+            existing_contract = Contract.objects.filter(contract_number=contract_number).first()
+
+        # Create or update
         with transaction.atomic():
-            if existing_appendix and allow_update:
-                update_result = _update_existing_appendix(existing_appendix, appendix_data, parent_contract)
+            if existing_contract:
+                # Basic update for appendix if exists and number matches
+                if existing_contract.status != Contract.ContractStatus.DRAFT:
+                     return {
+                        "ok": False,
+                        "row_index": row_index,
+                        "error": "Cannot update appendix %s: only DRAFT appendices can be updated"
+                        % existing_contract.code,
+                        "action": "skipped",
+                    }
+
+                for key, value in contract_data.items():
+                    if key not in ["employee", "contract_type", "parent_contract"]:
+                         setattr(existing_contract, key, value)
+                existing_contract.save()
+
                 return {
                     "ok": True,
                     "row_index": row_index,
                     "action": "updated",
-                    "appendix_code": existing_appendix.code,
+                    "contract_code": existing_contract.code,
                     "warnings": [],
-                    "result": update_result,
+                    "result": {
+                        "contract_id": str(existing_contract.id),
+                        "contract_code": existing_contract.code,
+                        "employee_code": employee.code,
+                    },
                 }
 
-            create_result, create_error = _create_new_appendix(appendix_data, appendix_code, parent_contract, options)
-            if create_error or create_result is None:
-                return {
-                    "ok": False,
-                    "row_index": row_index,
-                    "error": create_error or "Failed to create appendix",
-                    "action": "skipped",
-                }
+            # Create new appendix
+            contract = Contract.objects.create(**contract_data)
+            logger.info("Created appendix %s for employee %s", contract.code, employee.code)
 
             return {
                 "ok": True,
                 "row_index": row_index,
                 "action": "created",
-                "appendix_code": create_result.get("appendix_code"),
+                "contract_code": contract.code,
                 "warnings": [],
-                "result": create_result,
+                "result": {
+                    "contract_id": str(contract.id),
+                    "contract_code": contract.code,
+                    "employee_code": employee.code,
+                },
             }
 
     except Exception as e:

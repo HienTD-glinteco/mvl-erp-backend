@@ -472,7 +472,7 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
         },
     }
     # Import handler path for AsyncImportProgressMixin
-    import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"  # type: ignore[assignment]
+    import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"
 
     def get_export_data(self, request):
         """Custom export data for RecruitmentCandidate.
