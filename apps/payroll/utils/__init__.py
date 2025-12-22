@@ -9,6 +9,7 @@ from .kpi_assessment import (
 from .kpi_calculation import (
     allocate_grades_by_quota,
     calculate_grade_from_percent,
+    update_department_assessment_status,
     validate_unit_control,
 )
 
@@ -16,6 +17,7 @@ __all__ = [
     "calculate_grade_from_percent",
     "validate_unit_control",
     "allocate_grades_by_quota",
+    "update_department_assessment_status",
     "create_assessment_items_from_criteria",
     "recalculate_assessment_scores",
     "resync_assessment_add_missing",

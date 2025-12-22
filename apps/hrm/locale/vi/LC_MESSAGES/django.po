@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 15:39+0700\n"
+"POT-Creation-Date: 2025-12-22 10:40+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -471,7 +471,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 
 #: apps/hrm/api/views/attendance_wifi_device.py:288
 #: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:60
-#: apps/hrm/api/views/contract.py:308
+#: apps/hrm/api/views/contract.py:309
 #: apps/hrm/api/views/contract_appendix.py:261
 #: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:245
 #: apps/hrm/api/views/employee.py:98
@@ -511,11 +511,11 @@ msgstr "Quản lý Ngân Hàng"
 msgid "Bank Account Management"
 msgstr "Quản lý Tài Khoản Ngân Hàng"
 
-#: apps/hrm/api/views/contract.py:309
+#: apps/hrm/api/views/contract.py:310
 msgid "Contract Management"
 msgstr "Quản lý Hợp Đồng"
 
-#: apps/hrm/api/views/contract.py:313 apps/hrm/api/views/contract.py:314
+#: apps/hrm/api/views/contract.py:314 apps/hrm/api/views/contract.py:315
 #: apps/hrm/api/views/contract_appendix.py:266
 #: apps/hrm/api/views/contract_appendix.py:267
 #, python-brace-format

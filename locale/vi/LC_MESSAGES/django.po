@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-18 16:30+0700\n"
+"POT-Creation-Date: 2025-12-22 10:42+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -379,29 +379,29 @@ msgstr ""
 msgid "Invalid item or score value"
 msgstr "Mẫu đối tượng không hợp lệ"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:209
+#: apps/payroll/api/views/kpi_assessment_period.py:236
 #, fuzzy
 #| msgid "This field is required"
 msgid "Month parameter is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:219
+#: apps/payroll/api/views/kpi_assessment_period.py:246
 msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:234
+#: apps/payroll/api/views/kpi_assessment_period.py:261
 msgid "No KPI configuration found. Please create one first."
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:255
+#: apps/payroll/api/views/kpi_assessment_period.py:282
 msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:271
+#: apps/payroll/api/views/kpi_assessment_period.py:298
 msgid "Period is already finalized"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:337
+#: apps/payroll/api/views/kpi_assessment_period.py:360
 msgid "Period finalized successfully"
 msgstr ""
 

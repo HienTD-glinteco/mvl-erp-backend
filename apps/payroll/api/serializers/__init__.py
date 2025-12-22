@@ -18,6 +18,7 @@ from .kpi_assessment_period import (
     KPIAssessmentPeriodGenerateSerializer,
     KPIAssessmentPeriodListSerializer,
     KPIAssessmentPeriodSerializer,
+    KPIAssessmentPeriodSummarySerializer,
 )
 from .kpi_config import GradeThresholdSerializer, KPIConfigSchemaSerializer, KPIConfigSerializer, UnitControlSerializer
 from .kpi_criterion import KPICriterionSerializer
@@ -56,6 +57,7 @@ __all__ = [
     "KPIAssessmentPeriodGenerateSerializer",
     "KPIAssessmentPeriodGenerateResponseSerializer",
     "KPIAssessmentPeriodFinalizeResponseSerializer",
+    "KPIAssessmentPeriodSummarySerializer",
     "KPIAssessmentPeriodListSerializer",
     "EmployeeKPIAssessmentSerializer",
     "EmployeeKPIAssessmentListSerializer",

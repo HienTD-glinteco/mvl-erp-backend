@@ -243,3 +243,59 @@ def allocate_grades_by_quota(  # noqa: C901
             warnings.append(f"Could not satisfy min D requirement: needed {min_d}, got {count_d + converted}")
 
     return (assignments, warnings)
+
+
+def update_department_assessment_status(department_assessment) -> None:
+    """Update department assessment is_finished and is_valid_unit_control status.
+
+    This function:
+    1. Checks if all employees in the department have been graded (grade_manager or grade_hrm)
+    2. If finished, validates unit control against current grade distribution
+    3. Updates is_finished and is_valid_unit_control fields
+
+    Args:
+        department_assessment: DepartmentKPIAssessment instance to update
+
+    Side effects:
+        Updates and saves department_assessment with new is_finished and is_valid_unit_control values
+    """
+    from apps.payroll.models import EmployeeKPIAssessment
+
+    # Get all employee assessments in this department for this period
+    employee_assessments = EmployeeKPIAssessment.objects.filter(
+        period=department_assessment.period, employee__department=department_assessment.department
+    )
+
+    # Check if all employees have been graded
+    all_graded = True
+    for emp_assessment in employee_assessments:
+        if not emp_assessment.grade_manager and not emp_assessment.grade_hrm:
+            all_graded = False
+            break
+
+    department_assessment.is_finished = all_graded and employee_assessments.exists()
+
+    # If department is finished, validate unit control
+    if department_assessment.is_finished:
+        # Count grades (use manager_grade if available, else hrm_grade)
+        grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
+        for emp_assessment in employee_assessments:
+            grade = emp_assessment.grade_manager or emp_assessment.grade_hrm
+            if grade in grade_counts:
+                grade_counts[grade] += 1
+
+        # Get unit control rules from period snapshot
+        unit_control = department_assessment.period.kpi_config_snapshot.get("unit_control", {})
+
+        # Validate unit control
+        total_employees = employee_assessments.count()
+        is_valid, violations = validate_unit_control(
+            department_assessment.grade, grade_counts, total_employees, unit_control
+        )
+
+        department_assessment.is_valid_unit_control = is_valid
+    else:
+        # If not finished, keep default valid status
+        department_assessment.is_valid_unit_control = True
+
+    department_assessment.save(update_fields=["is_finished", "is_valid_unit_control"])

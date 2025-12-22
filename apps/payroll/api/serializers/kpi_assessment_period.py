@@ -31,6 +31,21 @@ class KPIAssessmentPeriodFinalizeResponseSerializer(serializers.Serializer):
     departments_invalid = serializers.IntegerField(help_text="Number of departments with invalid unit control")
 
 
+class KPIAssessmentPeriodSummarySerializer(serializers.Serializer):
+    """Response serializer for summary action."""
+
+    total_departments = serializers.IntegerField(help_text="Total number of departments")
+    departments_finished = serializers.IntegerField(
+        help_text="Number of departments where all employees have been graded"
+    )
+    departments_not_finished = serializers.IntegerField(
+        help_text="Number of departments with at least one ungraded employee"
+    )
+    departments_not_valid_control = serializers.IntegerField(
+        help_text="Number of departments that do not pass unit control validation"
+    )
+
+
 class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
     """Serializer for KPIAssessmentPeriod model."""
 
