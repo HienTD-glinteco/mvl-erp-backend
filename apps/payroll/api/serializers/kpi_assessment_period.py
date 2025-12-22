@@ -83,6 +83,8 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
     month = serializers.SerializerMethodField()
     employee_count = serializers.SerializerMethodField()
     department_count = serializers.SerializerMethodField()
+    employee_self_assessed_count = serializers.SerializerMethodField()
+    manager_assessed_count = serializers.SerializerMethodField()
 
     class Meta:
         model = KPIAssessmentPeriod
@@ -92,6 +94,8 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
             "finalized",
             "employee_count",
             "department_count",
+            "employee_self_assessed_count",
+            "manager_assessed_count",
             "note",
             "created_at",
             "updated_at",
@@ -109,8 +113,27 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
 
     def get_employee_count(self, obj):
         """Get count of employee assessments in this period."""
-        return obj.employee_assessments.count()
+        return getattr(obj, "employee_assessments_count", obj.employee_assessments.count())
 
     def get_department_count(self, obj):
         """Get count of department assessments in this period."""
-        return obj.department_assessments.count()
+        return getattr(obj, "department_assessments_count", obj.department_assessments.count())
+
+    def get_employee_self_assessed_count(self, obj):
+        """Get count of employee KPI assessments with self-evaluation completed."""
+        return getattr(
+            obj,
+            "employee_self_evaluated_count",
+            obj.employee_assessments.filter(total_employee_score__isnull=False).count(),
+        )
+
+    def get_manager_assessed_count(self, obj):
+        """Get count of employee KPI assessments evaluated by manager."""
+        if hasattr(obj, "manager_evaluated_count"):
+            return obj.manager_evaluated_count
+
+        from django.db.models import Q
+
+        return obj.employee_assessments.filter(
+            Q(total_manager_score__isnull=False) | Q(grade_manager__isnull=False)
+        ).count()

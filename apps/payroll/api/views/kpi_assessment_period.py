@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -47,10 +48,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "month": "2025-12",
+                                "month": "12/2025",
                                 "finalized": False,
                                 "employee_count": 50,
                                 "department_count": 10,
+                                "employee_self_assessed_count": 35,
+                                "manager_assessed_count": 30,
                                 "note": "",
                                 "created_at": "2025-11-20T10:00:00Z",
                                 "updated_at": "2025-11-20T10:00:00Z",
@@ -220,6 +223,29 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
     filter_backends = [PhraseSearchFilter]
     search_fields = ["note"]
     http_method_names = ["get", "post", "delete"]  # GET for list/retrieve, POST for actions, DELETE for destroy
+
+    def get_queryset(self):
+        """Optimize queryset with annotations for list action."""
+        queryset = super().get_queryset()
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                employee_assessments_count=Count("employee_assessments", distinct=True),
+                department_assessments_count=Count("department_assessments", distinct=True),
+                employee_self_evaluated_count=Count(
+                    "employee_assessments",
+                    filter=Q(employee_assessments__total_employee_score__isnull=False),
+                    distinct=True,
+                ),
+                manager_evaluated_count=Count(
+                    "employee_assessments",
+                    filter=Q(employee_assessments__total_manager_score__isnull=False)
+                    | Q(employee_assessments__grade_manager__isnull=False),
+                    distinct=True,
+                ),
+            )
+
+        return queryset
 
     def get_serializer_class(self):
         """Return appropriate serializer class based on action."""
