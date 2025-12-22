@@ -9,16 +9,17 @@ from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schem
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.hrm.api.serializers.employee_report import EmployeeTypeConversionReportSerializer
 from apps.hrm.constants import ExtendedReportPeriodType
 from apps.hrm.models import (
     Block,
     Branch,
     Department,
+    Employee,
     EmployeeResignedReasonReport,
     EmployeeStatusBreakdownReport,
     EmployeeWorkHistory,
 )
-from apps.hrm.models.employee import Employee
 from apps.hrm.utils import (
     get_current_month_range,
     get_current_week_range,
@@ -26,13 +27,13 @@ from apps.hrm.utils import (
 from libs.drf.base_viewset import BaseGenericViewSet
 from libs.export_xlsx import ExportXLSXMixin
 
-from ..filtersets.employee_seniority_filter import EmployeeSeniorityFilterSet
-from ..filtersets.seniority_ordering_filter import SeniorityOrderingFilter
+from ..filtersets import EmployeeSeniorityFilterSet, EmployeeTypeConversionFilterSet, SeniorityOrderingFilter
 from ..serializers import (
     EmployeeCountBreakdownReportParamsSerializer,
     EmployeeResignedReasonSummarySerializer,
     EmployeeSenioritySerializer,
     EmployeeStatusBreakdownReportAggregatedSerializer,
+    EmployeeTypeConversionBranchItemSerializer,
 )
 
 
@@ -779,3 +780,137 @@ class EmployeeSeniorityReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
 
         serializer = EmployeeSenioritySerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+@extend_schema_view(
+    export=extend_schema(tags=["5.5: Employee Reports"]),
+    list=extend_schema(
+        tags=["5.5: Employee Reports"],
+        responses={200: EmployeeTypeConversionBranchItemSerializer(many=True)},
+    ),
+)
+class EmployeeTypeConversionReportViewSet(ExportXLSXMixin, BaseGenericViewSet):
+    """ViewSet for Employee Type Conversion Report."""
+
+    module = _("REPORT")
+    submodule = _("Employee Type Conversion Report")
+    permission_prefix = "employee_type_conversion_report"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "list": {
+            "name_template": _("Employee Type Conversion Report"),
+            "description_template": _("Retrieve employee type conversion report"),
+        },
+        "export": {
+            "name_template": _("Export Employee Type Conversion Report"),
+            "description_template": _("Export employee type conversion report"),
+        },
+    }
+
+    queryset = (
+        EmployeeWorkHistory.objects.filter(name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE)
+        .select_related(
+            "contract",
+            "employee",
+            "branch",
+            "department",
+        )
+        .order_by("from_date")
+    )
+    serializer_class = EmployeeTypeConversionBranchItemSerializer
+    filterset_class = EmployeeTypeConversionFilterSet
+    ordering_fields = ["from_date", "created_at"]
+    ordering = ["from_date"]
+    search_fields = ["employee__code", "employee__fullname"]
+
+    def _build_nested_structure(self, queryset):
+        """Build nested organizational structure for employee type conversion report.
+        Branch -> Block -> Department -> List of Records
+        """
+        # Dictionary to store hierarchy:
+        # {branch_id: {"data": branch_obj, "blocks": {block_id: {"data": block_obj, "depts": {dept_id: {"data": dept_obj, "records": []}}}}}}
+        hierarchy = {}
+
+        # Pre-fetch objects to avoid duplicate queries, although select_related is used in queryset
+        # Iterating over queryset
+        for record in queryset:
+            branch = record.branch
+            block = record.block
+            dept = record.department
+
+            # Handle None values (though they should ideally be present)
+            branch_id = branch.id if branch else 0
+            branch_name = branch.name if branch else _("Unknown Branch")
+
+            block_id = block.id if block else 0
+            block_name = block.name if block else _("Unknown Block")
+
+            dept_id = dept.id if dept else 0
+            dept_name = dept.name if dept else _("Unknown Department")
+
+            if branch_id not in hierarchy:
+                hierarchy[branch_id] = {
+                    "id": branch_id,
+                    "name": branch_name,
+                    "type": "branch",
+                    "blocks": {},
+                }
+
+            if block_id not in hierarchy[branch_id]["blocks"]:
+                hierarchy[branch_id]["blocks"][block_id] = {
+                    "id": block_id,
+                    "name": block_name,
+                    "type": "block",
+                    "depts": {},
+                }
+
+            if dept_id not in hierarchy[branch_id]["blocks"][block_id]["depts"]:
+                hierarchy[branch_id]["blocks"][block_id]["depts"][dept_id] = {
+                    "id": dept_id,
+                    "name": dept_name,
+                    "type": "department",
+                    "children": [],  # This will store the records
+                }
+
+            # Serialize record
+            serialized_record = EmployeeTypeConversionReportSerializer(record).data
+            hierarchy[branch_id]["blocks"][block_id]["depts"][dept_id]["children"].append(serialized_record)
+
+        # Convert dictionary to list structure
+        result = []
+        for branch_key in sorted(hierarchy.keys()):
+            branch_data = hierarchy[branch_key]
+            branch_node = {
+                "id": branch_data["id"],
+                "name": branch_data["name"],
+                "type": "branch",
+                "children": [],
+            }
+
+            blocks_dict = branch_data["blocks"]
+            for block_key in sorted(blocks_dict.keys()):
+                block_data = blocks_dict[block_key]
+                block_node = {
+                    "id": block_data["id"],
+                    "name": block_data["name"],
+                    "type": "block",
+                    "children": [],
+                }
+
+                depts_dict = block_data["depts"]
+                for dept_key in sorted(depts_dict.keys()):
+                    dept_data = depts_dict[dept_key]
+                    # dept_data already has "children" as list of records
+                    # We just need to make sure we don't include internal keys like 'blocks'/'depts' if any
+                    # but dept_data structure matches the serializer expectations
+                    block_node["children"].append(dept_data)
+
+                branch_node["children"].append(block_node)
+
+            result.append(branch_node)
+
+        return result
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        data = self._build_nested_structure(queryset)
+        return Response(data)

@@ -10,7 +10,9 @@ from .decision import DecisionFilterSet
 from .employee import EmployeeFilterSet
 from .employee_dependent import EmployeeDependentFilterSet
 from .employee_relationship import EmployeeRelationshipFilterSet
+from .employee_report import EmployeeTypeConversionFilterSet
 from .employee_role import EmployeeRoleFilterSet
+from .employee_seniority_filter import EmployeeSeniorityFilterSet, SeniorityOrderingFilter
 from .employee_work_history import EmployeeWorkHistoryFilterSet
 from .holiday import HolidayFilterSet
 from .interview_candidate import InterviewCandidateFilterSet
@@ -51,7 +53,10 @@ __all__ = [
     "ContractFilterSet",
     "DepartmentFilterSet",
     "PositionFilterSet",
+    "EmployeeTypeConversionFilterSet",
     "EmployeeRoleFilterSet",
+    "EmployeeSeniorityFilterSet",
+    "SeniorityOrderingFilter",
     "EmployeeFilterSet",
     "EmployeeDependentFilterSet",
     "EmployeeWorkHistoryFilterSet",

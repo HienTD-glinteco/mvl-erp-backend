@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
-from apps.hrm.constants import ExtendedReportPeriodType
-from apps.hrm.models import Block
+from apps.hrm.api.serializers.common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    ContractNestedSerializer,
+    DepartmentNestedSerializer,
+    EmployeeNestedSerializer,
+)
+from apps.hrm.constants import EmployeeType, ExtendedReportPeriodType
+from apps.hrm.models import Block, EmployeeWorkHistory
 from libs.drf.serializers import BaseStatisticsSerializer
 
 
@@ -81,3 +88,59 @@ class EmployeeResignedReasonSummarySerializer(serializers.Serializer):
     reasons = ResignedReasonItemSerializer(
         many=True, help_text="List of resignation reasons with counts and percentages"
     )
+
+
+class EmployeeTypeConversionReportSerializer(serializers.ModelSerializer):
+    """Serializer for Employee Type Conversion Report."""
+
+    contract = ContractNestedSerializer(read_only=True)
+    employee = EmployeeNestedSerializer(read_only=True)
+    branch = BranchNestedSerializer(read_only=True)
+    block = BlockNestedSerializer(read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
+    old_employee_type = serializers.ChoiceField(choices=EmployeeType.choices, read_only=True)
+    new_employee_type = serializers.ChoiceField(choices=EmployeeType.choices, read_only=True)
+
+    class Meta:
+        model = EmployeeWorkHistory
+        fields = [
+            "id",
+            "contract",
+            "employee",
+            "branch",
+            "block",
+            "department",
+            "old_employee_type",
+            "new_employee_type",
+            "date",
+            "from_date",
+            "to_date",
+            "note",
+        ]
+
+
+class EmployeeTypeConversionDepartmentItemSerializer(serializers.Serializer):
+    """Department-level item for employee type conversion report."""
+
+    id = serializers.IntegerField(allow_null=True)
+    name = serializers.CharField(allow_null=True)
+    type = serializers.CharField(default="department")
+    children = serializers.ListField(child=EmployeeTypeConversionReportSerializer())
+
+
+class EmployeeTypeConversionBlockItemSerializer(serializers.Serializer):
+    """Block-level item for employee type conversion report."""
+
+    id = serializers.IntegerField(allow_null=True)
+    name = serializers.CharField(allow_null=True)
+    type = serializers.CharField(default="block")
+    children = serializers.ListField(child=EmployeeTypeConversionDepartmentItemSerializer())
+
+
+class EmployeeTypeConversionBranchItemSerializer(serializers.Serializer):
+    """Branch-level item for employee type conversion report."""
+
+    id = serializers.IntegerField(allow_null=True)
+    name = serializers.CharField(allow_null=True)
+    type = serializers.CharField(default="branch")
+    children = serializers.ListField(child=EmployeeTypeConversionBlockItemSerializer())

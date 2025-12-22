@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
+from apps.hrm.constants import EmployeeType
 from libs.models import BaseModel, SafeTextField
 
 from .employee import Employee
@@ -158,6 +159,22 @@ class EmployeeWorkHistory(BaseModel):
         related_name="employee_work_histories",
         verbose_name="Decision",
         help_text="Decision associated with this work history event",
+    )
+    old_employee_type = models.CharField(
+        max_length=50,
+        choices=EmployeeType.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Old employee type"),
+        help_text="Previous employee type",
+    )
+    new_employee_type = models.CharField(
+        max_length=50,
+        choices=EmployeeType.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("New employee type"),
+        help_text="New employee type",
     )
     previous_data = models.JSONField(
         null=True,

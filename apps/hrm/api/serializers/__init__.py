@@ -40,6 +40,8 @@ from .employee_report import (
     EmployeeResignedReasonSummaryParamsSerializer,
     EmployeeResignedReasonSummarySerializer,
     EmployeeStatusBreakdownReportAggregatedSerializer,
+    EmployeeTypeConversionBranchItemSerializer,
+    EmployeeTypeConversionReportSerializer,
     ResignedReasonItemSerializer,
 )
 from .employee_role import BulkUpdateRoleSerializer, EmployeeRoleListSerializer
@@ -178,6 +180,8 @@ __all__ = [
     "EmployeeCountBreakdownReportParamsSerializer",
     "EmployeeResignedReasonSummaryParamsSerializer",
     "EmployeeResignedReasonSummarySerializer",
+    "EmployeeTypeConversionBranchItemSerializer",
+    "EmployeeTypeConversionReportSerializer",
     "ResignedReasonItemSerializer",
     "EmployeeTimesheetSerializer",
     "WorkScheduleSerializer",

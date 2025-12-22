@@ -1,4 +1,5 @@
 ENVIRONMENT := local
+args =
 
 # app commands
 check:
@@ -30,13 +31,13 @@ celery_worker:
 	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q default
 
 run_audit_logs_consumer:
-	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(ARGS)
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(args)
 
 run_realtime_attendance_listener:
-	ENVIRONMENT=$(ENVIRONMENT) python manage.py run_realtime_attendance_listener $(ARGS)
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py run_realtime_attendance_listener $(args)
 
 test:
-	ENVIRONMENT=test pytest $(ARGS)
+	ENVIRONMENT=test pytest $(args)
 
 test_parallel:
-	ENVIRONMENT=test pytest -n auto $(ARGS)
+	ENVIRONMENT=test pytest -n auto $(args)

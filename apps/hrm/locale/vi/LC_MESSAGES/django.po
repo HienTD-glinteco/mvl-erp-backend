@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 10:40+0700\n"
+"POT-Creation-Date: 2025-12-22 10:17+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -714,123 +714,153 @@ msgstr "Ghi Chú"
 msgid "Employee Certificate Management"
 msgstr "Quản lý bằng cấp chứng chỉ"
 
-#: apps/hrm/api/views/employee_reports.py:51
-#: apps/hrm/api/views/employee_reports.py:674
+#: apps/hrm/api/views/employee_reports.py:52
+#: apps/hrm/api/views/employee_reports.py:675
+#: apps/hrm/api/views/employee_reports.py:795
 #: apps/hrm/api/views/recruitment_reports.py:50
 msgid "REPORT"
 msgstr "Báo cáo"
 
-#: apps/hrm/api/views/employee_reports.py:52
+#: apps/hrm/api/views/employee_reports.py:53
 msgid "Employee Reports"
 msgstr "Báo cáo Nhân sự"
 
-#: apps/hrm/api/views/employee_reports.py:56
 #: apps/hrm/api/views/employee_reports.py:57
+#: apps/hrm/api/views/employee_reports.py:58
 msgid "Retrieve employee resigned breakdown report"
 msgstr "Xem Báo cáo số lượng nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:60
 #: apps/hrm/api/views/employee_reports.py:61
+#: apps/hrm/api/views/employee_reports.py:62
 msgid "Retrieve employee status breakdown report"
 msgstr "Xem báo cáo số lượng nhân sự"
 
-#: apps/hrm/api/views/employee_reports.py:64
 #: apps/hrm/api/views/employee_reports.py:65
+#: apps/hrm/api/views/employee_reports.py:66
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
 
-#: apps/hrm/api/views/employee_reports.py:77
+#: apps/hrm/api/views/employee_reports.py:78
 #: apps/hrm/api/views/recruitment_reports.py:714 apps/hrm/constants.py:68
 #: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
 msgid "Week"
 msgstr "Tuần"
 
-#: apps/hrm/api/views/employee_reports.py:97
+#: apps/hrm/api/views/employee_reports.py:98
 #: apps/hrm/api/views/recruitment_reports.py:165
 #: apps/hrm/api/views/recruitment_reports.py:842 apps/hrm/constants.py:69
 #: apps/hrm/constants.py:74
 msgid "Month"
 msgstr "Tháng"
 
-#: apps/hrm/api/views/employee_reports.py:123 apps/hrm/constants.py:75
+#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:75
 msgid "Quarter"
 msgstr "Quý"
 
-#: apps/hrm/api/views/employee_reports.py:144 apps/hrm/constants.py:76
+#: apps/hrm/api/views/employee_reports.py:145 apps/hrm/constants.py:76
 msgid "Year"
 msgstr "Năm"
 
-#: apps/hrm/api/views/employee_reports.py:349
+#: apps/hrm/api/views/employee_reports.py:350
 msgid "Average"
 msgstr "Trung Bình"
 
-#: apps/hrm/api/views/employee_reports.py:555 apps/hrm/models/employee.py:130
+#: apps/hrm/api/views/employee_reports.py:556 apps/hrm/models/employee.py:130
 msgid "Agreement Termination"
 msgstr "Thỏa thuận chấm dứt Hợp đồng lao động trước thời hạn"
 
-#: apps/hrm/api/views/employee_reports.py:556 apps/hrm/models/employee.py:131
+#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:131
 msgid "Probation Fail"
 msgstr "Thử việc không đạt"
 
-#: apps/hrm/api/views/employee_reports.py:557 apps/hrm/models/employee.py:132
+#: apps/hrm/api/views/employee_reports.py:558 apps/hrm/models/employee.py:132
 msgid "Job Abandonment"
 msgstr "Bỏ việc"
 
-#: apps/hrm/api/views/employee_reports.py:561 apps/hrm/models/employee.py:133
+#: apps/hrm/api/views/employee_reports.py:562 apps/hrm/models/employee.py:133
 msgid "Disciplinary Termination"
 msgstr "Sa thải do kỷ luật"
 
-#: apps/hrm/api/views/employee_reports.py:563 apps/hrm/models/employee.py:134
+#: apps/hrm/api/views/employee_reports.py:564 apps/hrm/models/employee.py:134
 msgid "Workforce Reduction"
 msgstr "Thanh lọc"
 
-#: apps/hrm/api/views/employee_reports.py:564 apps/hrm/models/employee.py:135
+#: apps/hrm/api/views/employee_reports.py:565 apps/hrm/models/employee.py:135
 msgid "Underperforming"
 msgstr "Thành tích kém trong công việc"
 
-#: apps/hrm/api/views/employee_reports.py:565 apps/hrm/models/employee.py:136
+#: apps/hrm/api/views/employee_reports.py:566 apps/hrm/models/employee.py:136
 msgid "Contract Expired"
 msgstr "Hết hợp đồng"
 
-#: apps/hrm/api/views/employee_reports.py:566 apps/hrm/models/employee.py:137
+#: apps/hrm/api/views/employee_reports.py:567 apps/hrm/models/employee.py:137
 msgid "Voluntary - Health Reasons"
 msgstr "Nguyện vọng theo đơn - Không đảm bảo sức khỏe"
 
-#: apps/hrm/api/views/employee_reports.py:567 apps/hrm/models/employee.py:138
+#: apps/hrm/api/views/employee_reports.py:568 apps/hrm/models/employee.py:138
 msgid "Voluntary - Personal Reasons"
 msgstr "Nguyện vọng theo đơn - Bận việc cá nhân"
 
-#: apps/hrm/api/views/employee_reports.py:571 apps/hrm/models/employee.py:139
+#: apps/hrm/api/views/employee_reports.py:572 apps/hrm/models/employee.py:139
 msgid "Voluntary - Career Change"
 msgstr "Nguyện vọng theo đơn - Thay đổi định hướng công việc"
 
-#: apps/hrm/api/views/employee_reports.py:573 apps/hrm/models/employee.py:140
+#: apps/hrm/api/views/employee_reports.py:574 apps/hrm/models/employee.py:140
 msgid "Voluntary - Other"
 msgstr "Nguyện vọng theo đơn - Khác"
 
-#: apps/hrm/api/views/employee_reports.py:574 apps/hrm/constants.py:48
+#: apps/hrm/api/views/employee_reports.py:575 apps/hrm/constants.py:48
 #: apps/hrm/constants.py:102 apps/hrm/constants.py:119
 #: apps/hrm/models/contract_type.py:70 apps/hrm/models/employee.py:141
 #: apps/hrm/models/recruitment_channel.py:22
 msgid "Other"
 msgstr "Khác"
 
-#: apps/hrm/api/views/employee_reports.py:675
-#: apps/hrm/api/views/employee_reports.py:679
+#: apps/hrm/api/views/employee_reports.py:676
+#: apps/hrm/api/views/employee_reports.py:680
 msgid "Employee Seniority Report"
 msgstr "Báo cáo Thâm niên Nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:680
+#: apps/hrm/api/views/employee_reports.py:681
 msgid "Retrieve employee seniority report with filtering and sorting"
 msgstr "Xem báo cáo Thâm niên Nhân viên với các bộ lọc và sắp xếp"
 
-#: apps/hrm/api/views/employee_reports.py:683
+#: apps/hrm/api/views/employee_reports.py:684
 msgid "Export Employee Seniority Report"
 msgstr "Báo cáo Thâm niên Nhân viên"
 
-#: apps/hrm/api/views/employee_reports.py:684
+#: apps/hrm/api/views/employee_reports.py:685
 msgid "Export employee seniority report to XLSX format"
 msgstr "Xuất báo cáo Thâm niên Nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:796
+#: apps/hrm/api/views/employee_reports.py:800
+msgid "Employee Type Conversion Report"
+msgstr "Báo cáo chuyển đổi loại nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:801
+msgid "Retrieve employee type conversion report"
+msgstr "Xem Báo cáo chuyển đổi loại nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:804
+msgid "Export Employee Type Conversion Report"
+msgstr "Xuất báo cáo chuyển đổi loại nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:805
+msgid "Export employee type conversion report"
+msgstr "Xuất báo cáo chuyển đổi loại nhân viên"
+
+#: apps/hrm/api/views/employee_reports.py:842
+msgid "Unknown Branch"
+msgstr "Không có chi nhánh"
+
+#: apps/hrm/api/views/employee_reports.py:845
+msgid "Unknown Block"
+msgstr "Không có khối"
+
+#: apps/hrm/api/views/employee_reports.py:848
+msgid "Unknown Department"
+msgstr "Không có phòng ban"
 
 #: apps/hrm/api/views/employee_role.py:113
 msgid "Bulk Update Employee Roles"
@@ -3117,35 +3147,43 @@ msgstr ""
 msgid "Employee Resigned Reason Reports"
 msgstr ""
 
-#: apps/hrm/models/employee_work_history.py:40
+#: apps/hrm/models/employee_work_history.py:41
 msgid "Change Position"
 msgstr "Đổi chức vụ"
 
-#: apps/hrm/models/employee_work_history.py:41
+#: apps/hrm/models/employee_work_history.py:42
 msgid "Change Status"
 msgstr "Đổi trạng thái"
 
-#: apps/hrm/models/employee_work_history.py:42
+#: apps/hrm/models/employee_work_history.py:43
 msgid "Transfer"
 msgstr "Đổi phòng ban"
 
-#: apps/hrm/models/employee_work_history.py:43
+#: apps/hrm/models/employee_work_history.py:44
 msgid "Change Employee Type"
 msgstr "Thay đổi loại Nhân Viên"
 
-#: apps/hrm/models/employee_work_history.py:44
+#: apps/hrm/models/employee_work_history.py:45
 msgid "Change Contract"
 msgstr "Ký lại hợp đồng"
 
-#: apps/hrm/models/employee_work_history.py:45
+#: apps/hrm/models/employee_work_history.py:46
 msgid "Return to Work"
 msgstr "Quay lại làm việc"
 
-#: apps/hrm/models/employee_work_history.py:170
+#: apps/hrm/models/employee_work_history.py:168
+msgid "Old employee type"
+msgstr "Loại nhân viên cũ"
+
+#: apps/hrm/models/employee_work_history.py:176
+msgid "New employee type"
+msgstr "Loại nhân viên mới"
+
+#: apps/hrm/models/employee_work_history.py:187
 msgid "Employee work history"
 msgstr "Lịch sử công tác"
 
-#: apps/hrm/models/employee_work_history.py:171
+#: apps/hrm/models/employee_work_history.py:188
 msgid "Employee work histories"
 msgstr "Lich sử công tác"
 
@@ -3679,8 +3717,8 @@ msgstr ""
 #: apps/hrm/services/employee/work_history.py:163
 #: apps/hrm/services/employee/work_history.py:205
 #: apps/hrm/services/employee/work_history.py:206
-#: apps/hrm/services/employee/work_history.py:247
-#: apps/hrm/services/employee/work_history.py:248
+#: apps/hrm/services/employee/work_history.py:249
+#: apps/hrm/services/employee/work_history.py:250
 msgid "None"
 msgstr ""
 
@@ -3704,7 +3742,7 @@ msgstr ""
 msgid "Employee type changed from {old_type} to {new_type}"
 msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 
-#: apps/hrm/services/employee/work_history.py:262
+#: apps/hrm/services/employee/work_history.py:264
 #, python-brace-format
 msgid "Contract changed from {old_contract} to {new_contract}"
 msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
