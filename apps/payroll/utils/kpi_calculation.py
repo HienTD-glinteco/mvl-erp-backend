@@ -251,13 +251,14 @@ def update_department_assessment_status(department_assessment) -> None:
     This function:
     1. Checks if all employees in the department have been graded (grade_manager or grade_hrm)
     2. If finished, validates unit control against current grade distribution
-    3. Updates is_finished and is_valid_unit_control fields
+    3. Updates is_finished, is_valid_unit_control, and grade_distribution fields
 
     Args:
         department_assessment: DepartmentKPIAssessment instance to update
 
     Side effects:
-        Updates and saves department_assessment with new is_finished and is_valid_unit_control values
+        Updates and saves department_assessment with new is_finished, is_valid_unit_control,
+        and grade_distribution values
     """
     from apps.payroll.models import EmployeeKPIAssessment
 
@@ -275,15 +276,19 @@ def update_department_assessment_status(department_assessment) -> None:
 
     department_assessment.is_finished = all_graded and employee_assessments.exists()
 
+    # Count grades (use hrm_grade if available, else manager_grade)
+    # Priority: grade_hrm > grade_manager
+    grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
+    for emp_assessment in employee_assessments:
+        grade = emp_assessment.grade_hrm or emp_assessment.grade_manager
+        if grade in grade_counts:
+            grade_counts[grade] += 1
+
+    # Update grade distribution
+    department_assessment.grade_distribution = grade_counts
+
     # If department is finished, validate unit control
     if department_assessment.is_finished:
-        # Count grades (use manager_grade if available, else hrm_grade)
-        grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
-        for emp_assessment in employee_assessments:
-            grade = emp_assessment.grade_manager or emp_assessment.grade_hrm
-            if grade in grade_counts:
-                grade_counts[grade] += 1
-
         # Get unit control rules from period snapshot
         unit_control = department_assessment.period.kpi_config_snapshot.get("unit_control", {})
 
@@ -298,4 +303,4 @@ def update_department_assessment_status(department_assessment) -> None:
         # If not finished, keep default valid status
         department_assessment.is_valid_unit_control = True
 
-    department_assessment.save(update_fields=["is_finished", "is_valid_unit_control"])
+    department_assessment.save(update_fields=["is_finished", "is_valid_unit_control", "grade_distribution"])
