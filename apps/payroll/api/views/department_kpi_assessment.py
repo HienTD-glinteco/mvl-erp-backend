@@ -32,13 +32,28 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "period": 1,
-                                "department": 1,
-                                "department_name": "Sales Department",
-                                "department_code": "PB001",
-                                "month": "2025-12",
-                                "kpi_config_snapshot": {},
+                                "period": {
+                                    "id": 1,
+                                    "month": "12/2025",
+                                    "finalized": False,
+                                },
+                                "department": {
+                                    "id": 1,
+                                    "name": "Sales Department",
+                                    "code": "SALES",
+                                },
+                                "leader": {
+                                    "id": 10,
+                                    "code": "EMP001",
+                                    "fullname": "John Doe",
+                                },
                                 "grade": "B",
+                                "grade_distribution": {
+                                    "A": 2,
+                                    "B": 5,
+                                    "C": 10,
+                                    "D": 1,
+                                },
                                 "finalized": False,
                                 "created_at": "2025-12-01T00:00:00Z",
                                 "updated_at": "2025-12-01T00:00:00Z",

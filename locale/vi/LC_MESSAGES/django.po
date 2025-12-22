@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 12:27+0700\n"
+"POT-Creation-Date: 2025-12-22 13:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -309,16 +309,16 @@ msgstr "Không được phép xem job này"
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:74
+#: apps/payroll/api/serializers/department_kpi_assessment.py:76
 msgid "An assessment for this department and period already exists"
 msgstr ""
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:79
-#: apps/payroll/api/serializers/department_kpi_assessment.py:122
+#: apps/payroll/api/serializers/department_kpi_assessment.py:81
+#: apps/payroll/api/serializers/department_kpi_assessment.py:125
 msgid "Grade must be one of: A, B, C, D"
 msgstr ""
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:86
+#: apps/payroll/api/serializers/department_kpi_assessment.py:88
 msgid "Only grade and note can be updated for finalized assessments"
 msgstr ""
 

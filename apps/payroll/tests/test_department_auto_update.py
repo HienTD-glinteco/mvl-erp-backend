@@ -182,20 +182,46 @@ class TestDepartmentAssessmentAutoUpdate:
         assert self.dept_assessment.is_finished is True
         assert self.dept_assessment.is_valid_unit_control is True
 
-    def test_prefers_manager_grade_over_hrm_grade(self):
-        """Test that manager grade is used for validation if both exist."""
-        # Give 3 employees manager grade A (60% - violates max 20%)
+    def test_prefers_hrm_grade_over_manager_grade(self):
+        """Test that HRM grade is used for validation if both exist (priority: hrm > manager)."""
+        # Give 3 employees grade_hrm = C, but grade_manager = A
+        # HRM grade should be used (C is valid at 60%)
         for i in range(3):
-            self.emp_assessments[i].grade_manager = "A"
-            self.emp_assessments[i].grade_hrm = "C"  # Different HRM grade
+            self.emp_assessments[i].grade_manager = "A"  # This should be IGNORED
+            self.emp_assessments[i].grade_hrm = "C"  # This should be USED
             self.emp_assessments[i].save()
 
         # Give rest grade C
         for i in range(3, 5):
             self.emp_assessments[i].grade_manager = "C"
+            self.emp_assessments[i].grade_hrm = "C"
             self.emp_assessments[i].save()
 
-        # Should be invalid based on manager_grade (60% A > 20% max)
+        # Should be VALID based on grade_hrm (all 5 employees have C grade)
+        # grade_distribution should be: {"A": 0, "B": 0, "C": 5, "D": 0}
+        self.dept_assessment.refresh_from_db()
+        assert self.dept_assessment.is_finished is True
+        assert self.dept_assessment.is_valid_unit_control is True
+        assert self.dept_assessment.grade_distribution == {"A": 0, "B": 0, "C": 5, "D": 0}
+
+    def test_uses_manager_grade_when_hrm_grade_not_set(self):
+        """Test that manager grade is used as fallback when HRM grade is not set."""
+        # Give 3 employees only manager grade A (no HRM grade)
+        # This should violate unit control (60% A > 20% max for grade B dept)
+        for i in range(3):
+            self.emp_assessments[i].grade_manager = "A"
+            self.emp_assessments[i].grade_hrm = None
+            self.emp_assessments[i].save()
+
+        # Give rest grade C (manager only)
+        for i in range(3, 5):
+            self.emp_assessments[i].grade_manager = "C"
+            self.emp_assessments[i].grade_hrm = None
+            self.emp_assessments[i].save()
+
+        # Should be INVALID based on manager_grade (60% A > 20% max)
+        # grade_distribution should be: {"A": 3, "B": 0, "C": 2, "D": 0}
         self.dept_assessment.refresh_from_db()
         assert self.dept_assessment.is_finished is True
         assert self.dept_assessment.is_valid_unit_control is False
+        assert self.dept_assessment.grade_distribution == {"A": 3, "B": 0, "C": 2, "D": 0}

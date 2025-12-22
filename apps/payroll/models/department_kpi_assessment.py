@@ -88,6 +88,12 @@ class DepartmentKPIAssessment(BaseModel):
         default=True, verbose_name="Is valid unit control", help_text="This department valid unit control or not"
     )
 
+    grade_distribution = models.JSONField(
+        default=dict,
+        verbose_name="Grade distribution",
+        help_text="Number of employees by grade: {'A': 2, 'B': 5, 'C': 10, 'D': 1}",
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -128,3 +134,23 @@ class DepartmentKPIAssessment(BaseModel):
 
     def __str__(self):
         return f"{self.department.name} - {self.period.month.strftime('%Y-%m')} - Grade: {self.grade}"
+
+    def update_grade_distribution(self):
+        """Update grade distribution based on employee assessments in this department.
+
+        Priority: grade_hrm > grade_manager
+        """
+        from apps.payroll.models import EmployeeKPIAssessment
+
+        # Count employees by grade (priority: hrm_grade > manager_grade)
+        distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
+
+        employees = EmployeeKPIAssessment.objects.filter(period=self.period, employee__department=self.department)
+
+        for emp_assessment in employees:
+            grade = emp_assessment.grade_hrm or emp_assessment.grade_manager
+            if grade in distribution:
+                distribution[grade] += 1
+
+        self.grade_distribution = distribution
+        self.save(update_fields=["grade_distribution"])
