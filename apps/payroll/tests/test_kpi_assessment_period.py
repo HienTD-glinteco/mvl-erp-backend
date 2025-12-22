@@ -1,6 +1,7 @@
 """Tests for KPIAssessmentPeriod model and API."""
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -8,7 +9,13 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.payroll.models import KPIAssessmentPeriod, KPIConfig
+from apps.hrm.models import Department, Employee
+from apps.payroll.models import (
+    DepartmentKPIAssessment,
+    EmployeeKPIAssessment,
+    KPIAssessmentPeriod,
+    KPIConfig,
+)
 
 User = get_user_model()
 
@@ -154,3 +161,358 @@ class KPIAssessmentPeriodAPITest(TestCase):
         # Verify period is finalized
         self.period.refresh_from_db()
         self.assertTrue(self.period.finalized)
+
+
+@pytest.mark.django_db
+class KPIAssessmentPeriodStatisticsTest(TestCase):
+    """Test cases for KPI assessment period statistics fields."""
+
+    def get_response_data(self, response):
+        """Extract data from wrapped API response."""
+        import json
+
+        content = json.loads(response.content.decode())
+        return content
+
+    def setUp(self):
+        """Set up test data."""
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_authenticate(user=self.user)
+
+        # Create KPI config
+        self.kpi_config = KPIConfig.objects.create(
+            config={
+                "grade_thresholds": [
+                    {"min": 0, "max": 60, "possible_codes": ["D"]},
+                    {"min": 60, "max": 80, "possible_codes": ["C"]},
+                    {"min": 80, "max": 100, "possible_codes": ["B", "A"]},
+                ],
+            }
+        )
+
+        # Create assessment period
+        self.period = KPIAssessmentPeriod.objects.create(
+            month=date(2025, 12, 1),
+            kpi_config_snapshot=self.kpi_config.config,
+        )
+
+        # Create organizational structure
+        from apps.core.models import AdministrativeUnit, Province
+
+        self.province = Province.objects.create(name="Test Province", code="TP")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            parent_province=self.province,
+            name="Test District",
+            code="TD",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        from apps.hrm.models import Block, Branch
+
+        self.branch = Branch.objects.create(
+            name="Test Branch",
+            code="TB",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            name="Test Block",
+            code="TBL",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+
+        # Create departments
+        self.dept1 = Department.objects.create(
+            name="Sales Department", code="SALES", branch=self.branch, block=self.block
+        )
+        self.dept2 = Department.objects.create(name="IT Department", code="IT", branch=self.branch, block=self.block)
+
+        # Create employees
+        self.emp1 = Employee.objects.create(
+            username="emp1",
+            email="emp1@example.com",
+            phone="0901234561",
+            citizen_id="001234567891",
+            code="EMP001",
+            branch=self.branch,
+            block=self.block,
+            department=self.dept1,
+            start_date=date(2025, 1, 1),
+        )
+        self.emp2 = Employee.objects.create(
+            username="emp2",
+            email="emp2@example.com",
+            phone="0901234562",
+            citizen_id="001234567892",
+            code="EMP002",
+            branch=self.branch,
+            block=self.block,
+            department=self.dept1,
+            start_date=date(2025, 1, 1),
+        )
+        self.emp3 = Employee.objects.create(
+            username="emp3",
+            email="emp3@example.com",
+            phone="0901234563",
+            citizen_id="001234567893",
+            code="EMP003",
+            branch=self.branch,
+            block=self.block,
+            department=self.dept2,
+            start_date=date(2025, 1, 1),
+        )
+        self.emp4 = Employee.objects.create(
+            username="emp4",
+            email="emp4@example.com",
+            phone="0901234564",
+            citizen_id="001234567894",
+            code="EMP004",
+            branch=self.branch,
+            block=self.block,
+            department=self.dept2,
+            start_date=date(2025, 1, 1),
+        )
+
+        # Create department assessments
+        DepartmentKPIAssessment.objects.create(
+            period=self.period,
+            department=self.dept1,
+            grade="B",
+        )
+        DepartmentKPIAssessment.objects.create(
+            period=self.period,
+            department=self.dept2,
+            grade="A",
+        )
+
+    def test_employee_count_statistic(self):
+        """Test employee_count field shows total employee assessments."""
+        # Create employee assessments
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp1,
+            total_possible_score=Decimal("100.00"),
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp2,
+            total_possible_score=Decimal("100.00"),
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp3,
+            total_possible_score=Decimal("100.00"),
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+        self.assertEqual(result["employee_count"], 3)
+
+    def test_department_count_statistic(self):
+        """Test department_count field shows total department assessments."""
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+        self.assertEqual(result["department_count"], 2)
+
+    def test_employee_self_assessed_count(self):
+        """Test employee_self_assessed_count shows employees who completed self-evaluation."""
+        # Create 4 employee assessments, only 2 with self-evaluation
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp1,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("85.00"),  # Self-evaluated
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp2,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("90.00"),  # Self-evaluated
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp3,
+            total_possible_score=Decimal("100.00"),
+            # No self-evaluation
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp4,
+            total_possible_score=Decimal("100.00"),
+            # No self-evaluation
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+        self.assertEqual(result["employee_count"], 4)
+        self.assertEqual(result["employee_self_assessed_count"], 2)
+
+    def test_manager_assessed_count_with_score(self):
+        """Test manager_assessed_count counts assessments with manager score."""
+        # Create assessments with different manager evaluation states
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp1,
+            total_possible_score=Decimal("100.00"),
+            total_manager_score=Decimal("80.00"),  # Manager evaluated with score
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp2,
+            total_possible_score=Decimal("100.00"),
+            # No manager evaluation
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp3,
+            total_possible_score=Decimal("100.00"),
+            grade_manager="B",  # Manager evaluated with grade
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp4,
+            total_possible_score=Decimal("100.00"),
+            # No manager evaluation
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+        self.assertEqual(result["employee_count"], 4)
+        self.assertEqual(result["manager_assessed_count"], 2)
+
+    def test_manager_assessed_count_with_grade(self):
+        """Test manager_assessed_count counts assessments with manager grade."""
+        # Create assessments with grade_manager only
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp1,
+            total_possible_score=Decimal("100.00"),
+            grade_manager="A",
+        )
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp2,
+            total_possible_score=Decimal("100.00"),
+            grade_manager="B",
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+        self.assertEqual(result["manager_assessed_count"], 2)
+
+    def test_all_statistics_together(self):
+        """Test all statistics fields together in a realistic scenario."""
+        # Create 6 employee assessments with different states
+        # Employee 1: Both self and manager evaluated
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp1,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("85.00"),
+            total_manager_score=Decimal("80.00"),
+        )
+        # Employee 2: Only self evaluated
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp2,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("90.00"),
+        )
+        # Employee 3: Only manager evaluated
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp3,
+            total_possible_score=Decimal("100.00"),
+            grade_manager="B",
+        )
+        # Employee 4: Not evaluated
+        EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.emp4,
+            total_possible_score=Decimal("100.00"),
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+
+        # Verify all statistics
+        self.assertEqual(result["employee_count"], 4)
+        self.assertEqual(result["department_count"], 2)
+        self.assertEqual(result["employee_self_assessed_count"], 2)  # emp1, emp2
+        self.assertEqual(result["manager_assessed_count"], 2)  # emp1, emp3
+
+    def test_statistics_with_empty_period(self):
+        """Test statistics return 0 for period with no assessments."""
+        # Create a new empty period
+        empty_period = KPIAssessmentPeriod.objects.create(
+            month=date(2026, 1, 1),
+            kpi_config_snapshot=self.kpi_config.config,
+        )
+
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Find the empty period in results
+        empty_result = None
+        for result in data["data"]["results"]:
+            if result["id"] == empty_period.id:
+                empty_result = result
+                break
+
+        self.assertIsNotNone(empty_result)
+        self.assertEqual(empty_result["employee_count"], 0)
+        self.assertEqual(empty_result["department_count"], 0)
+        self.assertEqual(empty_result["employee_self_assessed_count"], 0)
+        self.assertEqual(empty_result["manager_assessed_count"], 0)
+
+    def test_statistics_fields_present_in_response(self):
+        """Test that all new statistics fields are present in API response."""
+        response = self.client.get("/api/payroll/kpi-periods/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result = data["data"]["results"][0]
+
+        # Verify all expected fields are present
+        expected_fields = [
+            "id",
+            "month",
+            "finalized",
+            "employee_count",
+            "department_count",
+            "employee_self_assessed_count",
+            "manager_assessed_count",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, result, f"Field '{field}' should be in response")
