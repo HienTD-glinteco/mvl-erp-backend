@@ -455,10 +455,10 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:job-description-list")
         self.client.post(url, self.job_data, format="json")
 
-        # Get current datetime for proper comparison
-        now = timezone.now()
-        yesterday = now.date() - timedelta(days=1)
-        tomorrow = now.date() + timedelta(days=1)
+        # Use local date to match timezone-aware DB date extraction
+        base_date = timezone.localdate()
+        yesterday = base_date - timedelta(days=1)
+        tomorrow = base_date + timedelta(days=1)
 
         # Filter by created_at__date >= yesterday (should return the job)
         response = self.client.get(url, {"created_at__date__gte": yesterday.isoformat()})
@@ -484,10 +484,10 @@ class JobDescriptionAPITest(TransactionTestCase, APITestMixin):
         url = reverse("hrm:job-description-list")
         self.client.post(url, self.job_data, format="json")
 
-        # Get current datetime for proper comparison
-        now = timezone.now()
-        yesterday = now.date() - timedelta(days=1)
-        tomorrow = now.date() + timedelta(days=1)
+        # Use local date to match timezone-aware DB date extraction
+        base_date = timezone.localdate()
+        yesterday = base_date - timedelta(days=1)
+        tomorrow = base_date + timedelta(days=1)
 
         # Filter by created_at__date <= tomorrow (should return the job)
         response = self.client.get(url, {"created_at__date__lte": tomorrow.isoformat()})

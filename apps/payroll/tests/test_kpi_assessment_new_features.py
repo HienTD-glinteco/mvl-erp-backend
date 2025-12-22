@@ -97,6 +97,13 @@ def manager_employee(department):
         status=Employee.Status.ACTIVE,
         start_date=date.today(),
     )
+
+    # Ensure a corresponding User exists for authentication.
+    if not manager.user_id:
+        user, _ = User.objects.get_or_create(username=manager.username, defaults={"email": manager.email})
+        manager.user = user
+        manager.save(update_fields=["user"])
+
     return manager
 
 

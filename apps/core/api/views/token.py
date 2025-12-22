@@ -1,15 +1,17 @@
 """Token management views with proper API documentation."""
 
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework_simplejwt.views import (
     TokenRefreshView as SimpleJWTTokenRefreshView,
     TokenVerifyView as SimpleJWTTokenVerifyView,
 )
 
 from apps.core.api.serializers.auth.responses import TokenRefreshResponseSerializer
+from apps.core.api.serializers.auth.token_refresh import ClientAwareTokenRefreshSerializer
 
 
 class TokenRefreshView(SimpleJWTTokenRefreshView):
+    serializer_class = ClientAwareTokenRefreshSerializer
     """
     Refresh JWT access token using refresh token.
 
@@ -19,14 +21,39 @@ class TokenRefreshView(SimpleJWTTokenRefreshView):
 
     @extend_schema(
         summary="Refresh access token",
-        description="Use refresh token to generate new access token. "
-        "If ROTATE_REFRESH_TOKENS is enabled, the old refresh token will be revoked "
-        "and a new refresh token will be returned.",
+        description=(
+            "Use refresh token to generate a new access token. "
+            "If ROTATE_REFRESH_TOKENS is enabled, the old refresh token will be revoked "
+            "and a new refresh token will be returned. "
+            "Custom claims (client/device_id/tv) are preserved."
+        ),
         responses={
             200: TokenRefreshResponseSerializer,
             401: OpenApiResponse(description="Invalid or expired refresh token"),
         },
         tags=["1.1: Auth"],
+        examples=[
+            OpenApiExample(
+                "Refresh request",
+                value={"refresh": "<refresh.jwt>"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Refresh success",
+                value={
+                    "success": True,
+                    "data": {"access": "<access.jwt>", "refresh": "<refresh.jwt>"},
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Refresh error",
+                value={"success": False, "data": None, "error": "Invalid or expired refresh token"},
+                response_only=True,
+                status_codes=["401"],
+            ),
+        ],
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)

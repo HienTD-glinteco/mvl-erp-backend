@@ -18,11 +18,29 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularSwaggerView
+
+from libs.drf.spectacular.client_schema import MobileSpectacularAPIView, WebSpectacularAPIView
 
 urlpatterns = []
 urlpatterns += [
     path("health/", include("health_check.urls")),
+    # Mobile API routes (web routes remain unchanged)
+    path("api/mobile/", include(("apps.core.urls", "core"), namespace="mobile-core")),
+    path("api/mobile/hrm/", include(("apps.hrm.mobile_urls", "hrm"), namespace="mobile-hrm")),
+    path("api/mobile/payroll/", include(("apps.payroll.urls", "payroll"), namespace="mobile-payroll")),
+    path("api/mobile/realestate/", include(("apps.realestate.urls", "realestate"), namespace="mobile-realestate")),
+    # path("api/mobile/audit-logs/", include(("apps.audit_logging.urls", "audit_logging"), namespace="mobile-audit-logs")),
+    path(
+        "api/mobile/notifications/",
+        include(("apps.notifications.urls", "notifications"), namespace="mobile-notifications"),
+    ),
+    path("api/mobile/files/", include(("apps.files.urls", "files"), namespace="mobile-files")),
+    path(
+        "api/mobile/mailtemplates/",
+        include(("apps.mailtemplates.urls", "mailtemplates"), namespace="mobile-mailtemplates"),
+    ),
+    # Web API routes
     path("api/", include("apps.core.urls")),
     path("api/hrm/", include("apps.hrm.urls")),
     path("api/payroll/", include("apps.payroll.urls")),
@@ -37,10 +55,13 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 if settings.ENVIRONMENT in ["local", "develop"]:
     urlpatterns += [
         path("admin/", admin.site.urls),
-        path("schema/", SpectacularAPIView.as_view(), name="schema"),
-        path(
-            "docs/",
-            SpectacularSwaggerView.as_view(url_name="schema"),
-            name="swagger-ui",
-        ),
+        # Combined schema (backward-compatible)
+        # path("schema/", SpectacularAPIView.as_view(), name="schema"),
+        # path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        # Web-only schema/docs
+        path("schema/", WebSpectacularAPIView.as_view(), name="schema"),
+        path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        # Mobile-only schema/docs
+        path("schema/mobile/", MobileSpectacularAPIView.as_view(), name="schema-mobile"),
+        path("docs/mobile/", SpectacularSwaggerView.as_view(url_name="schema-mobile"), name="swagger-mobile"),
     ]

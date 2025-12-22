@@ -23,7 +23,7 @@ class TestAggregateHRReportsBatch:
             result = batch_tasks.aggregate_hr_reports_batch()
 
         # Assert _aggregate_employee_status_for_date called for each department
-        today = timezone.now().date()
+        today = timezone.localdate()
         calls = [(today, dept1.branch, dept1.block, dept1), (today, dept2.branch, dept2.block, dept2)]
         actual_calls = [call.args for call in mock_agg_status.call_args_list]
         assert actual_calls == calls

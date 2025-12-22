@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core.models import UserDevice
-from apps.core.utils.jwt import revoke_user_outstanding_tokens
+from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
 from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
 from apps.notifications.utils import create_notification
@@ -238,32 +238,39 @@ class ProposalService:
 
         requester_user = proposal.created_by.user
 
-        # Step 1: Check if new_device_id is already mapped to another user
-        existing_device = UserDevice.objects.filter(device_id=new_device_id).first()
+        # Step 1: Check if new_device_id is already active for another user
+        existing_device = UserDevice.objects.filter(
+            client=UserDevice.Client.MOBILE,
+            state=UserDevice.State.ACTIVE,
+            device_id=new_device_id,
+        ).first()
         previous_owner_user = None
-        if existing_device:
-            if existing_device.user != requester_user:
-                # Device belongs to another user, need to reassign
-                previous_owner_user = existing_device.user
-                # Delete the existing mapping
-                existing_device.delete()
-            # If it already belongs to requester, we'll update it below
+        if existing_device and existing_device.user != requester_user:
+            previous_owner_user = existing_device.user
+            existing_device.state = UserDevice.State.REVOKED
+            existing_device.save(update_fields=["state"])
 
-        # Step 2: Delete requester's old device (single device policy)
-        # This ensures user has only one device registered
-        if requester_user and hasattr(requester_user, "device") and requester_user.device is not None:
-            old_device = requester_user.device
-            if old_device.device_id != new_device_id:
-                # Delete old device mapping
-                old_device.delete()
+        # Step 2: Revoke requester's currently active device(s)
+        UserDevice.objects.filter(
+            user=requester_user,
+            client=UserDevice.Client.MOBILE,
+            state=UserDevice.State.ACTIVE,
+        ).exclude(device_id=new_device_id).update(state=UserDevice.State.REVOKED)
 
-        # Step 3: Create or update UserDevice for requester with new device
+        # Step 3: Create or update active device mapping for requester
         UserDevice.objects.update_or_create(
             user=requester_user,
-            defaults={"device_id": new_device_id, "platform": new_platform, "active": True},
+            client=UserDevice.Client.MOBILE,
+            device_id=new_device_id,
+            defaults={
+                "platform": new_platform,
+                "state": UserDevice.State.ACTIVE,
+                "last_seen_at": timezone.now(),
+            },
         )
 
-        # Step 4: Revoke outstanding tokens for requester (force re-login)
+        # Step 4: Bump token version and blacklist refresh tokens (force re-login)
+        bump_user_mobile_token_version(requester_user)
         revoked_count = revoke_user_outstanding_tokens(requester_user)
 
         # Step 5: Send notifications

@@ -24,20 +24,17 @@ class AuthAuditLoggingTestCase(TestCase):
             first_name="John",
             last_name="Doe",
         )
-        self.otp_url = reverse("core:verify_otp")
+        self.login_url = reverse("core:login")
         self.password_change_url = reverse("core:change_password")
         self.forgot_password_url = reverse("core:forgot_password")
 
     @patch("apps.notifications.utils.trigger_send_notification")
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
-    @patch("apps.core.api.views.auth.otp_verification.log_audit_event")
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
+    @patch("apps.core.api.views.auth.login.log_audit_event")
     def test_login_audit_log(self, mock_log_audit_event, mock_trigger_send_notification):
         """Test that successful login creates an audit log"""
-        # Generate OTP for the user
-        otp_code = self.user.generate_otp()
-
-        data = {"username": "testuser001", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
+        data = {"username": "testuser001", "password": "testpass123", "device_id": "web-device-1"}
+        response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -174,20 +171,17 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
             department=self.department,
             user=self.user,
         )
-        self.otp_url = reverse("core:verify_otp")
+        self.login_url = reverse("core:login")
         self.password_change_url = reverse("core:change_password")
         self.forgot_password_url = reverse("core:forgot_password")
 
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_login_audit_log_includes_employee_code_and_object(self, mock_log_event, mock_trigger_send_notification):
         """Test that successful login includes employee code and object type/id"""
-        # Generate OTP for the user
-        otp_code = self.user.generate_otp()
-
-        data = {"username": "emp001", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
+        data = {"username": "emp001", "password": "testpass123", "device_id": "web-device-1"}
+        response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -282,21 +276,19 @@ class AuthAuditLoggingWithEmployeeTestCase(TestCase):
             self.assertEqual(call_kwargs["object_type"], "employee")
             self.assertEqual(call_kwargs["object_id"], str(self.employee.pk))
 
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.audit_logging.producer._audit_producer.log_event")
     def test_login_audit_log_without_employee_record(self, mock_log_event, mock_trigger_send_notification):
         """Test that login still works for users without employee records"""
-        # Create a user without employee record
         user_no_employee = User.objects.create_superuser(
             username="noemployee",
             email="noemployee@example.com",
             password="testpass123",
         )
-        otp_code = user_no_employee.generate_otp()
 
-        data = {"username": "noemployee", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
+        data = {"username": "noemployee", "password": "testpass123", "device_id": "web-device-1"}
+        response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -1,7 +1,8 @@
 import logging
 
+from django.conf import settings
 from django.utils.translation import gettext as _
-from drf_spectacular.utils import OpenApiResponse, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -9,8 +10,10 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.audit_logging import LogAction, log_audit_event
+from apps.core.api.authentication import get_request_client
 from apps.core.api.serializers.auth import OTPVerificationSerializer
 from apps.core.api.serializers.auth.responses import OTPVerificationResponseSerializer
+from apps.core.models.device import UserDevice
 from apps.core.utils.jwt import revoke_user_outstanding_tokens
 from apps.notifications.models import Notification
 from apps.notifications.utils import create_notification
@@ -36,21 +39,81 @@ class OTPVerificationView(APIView):
     serializer_class = OTPVerificationSerializer
 
     @extend_schema(
-        summary=_("Verify OTP code"),
-        description=_("Verify OTP code and return JWT tokens to complete login"),
+        summary="Verify OTP code",
+        description="Verify OTP code and return JWT tokens to complete login.",
         tags=["1.1: Auth"],
         responses={
             200: OTPVerificationResponseSerializer,
-            400: OpenApiResponse(description=_("Invalid or expired OTP code")),
-            429: OpenApiResponse(description=_("Too many verification requests")),
+            400: OpenApiResponse(description="Invalid or expired OTP code"),
+            403: OpenApiResponse(description="Web access is not allowed for this role"),
+            409: OpenApiResponse(description="Device conflict"),
+            429: OpenApiResponse(description="Too many verification requests"),
         },
+        examples=[
+            OpenApiExample(
+                "Web verify OTP request",
+                value={"username": "manager01", "otp_code": "123456", "device_id": "web-device-abc"},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Mobile verify OTP request",
+                value={
+                    "username": "employee01",
+                    "otp_code": "123456",
+                    "device_id": "mobile-device-001",
+                    "platform": "android",
+                    "push_token": "push-token-001",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "OTP verify success",
+                value={
+                    "success": True,
+                    "data": {
+                        "message": "Login successful.",
+                        "user": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "username": "manager01",
+                            "email": "manager01@example.com",
+                            "full_name": "Manager User",
+                        },
+                        "tokens": {"access": "<access.jwt>", "refresh": "<refresh.jwt>"},
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Device conflict",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "detail": "You are attempting to login from a different device. Please use the device change request process to change your device."
+                    },
+                },
+                response_only=True,
+                status_codes=["409"],
+            ),
+        ],
     )
     def post(self, request):
-        serializer = OTPVerificationSerializer(data=request.data)
+        client = get_request_client(request)
+        serializer = OTPVerificationSerializer(data=request.data, context={"client": client})
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.validated_data["user"]
             device_id = serializer.validated_data["device_id"]
+
+            if (
+                client == UserDevice.Client.WEB
+                and getattr(getattr(user, "role", None), "code", None) == settings.HRM_EMPLOYEE_ROLE_CODE
+            ):
+                return Response(
+                    {"detail": _("Web access is not allowed for this role.")},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
             # Enforce single session per user using SimpleJWT blacklist
             revoked = revoke_user_outstanding_tokens(user)
@@ -58,7 +121,7 @@ class OTPVerificationView(APIView):
                 logger.info(f"Revoked {revoked} previous refresh token(s) for user {user.username}")
 
             # Generate new tokens
-            tokens = serializer.get_tokens(user, device_id)
+            tokens = serializer.get_tokens(user, device_id, client=client)
 
             logger.info(f"User {user.username} completed login successfully")
 

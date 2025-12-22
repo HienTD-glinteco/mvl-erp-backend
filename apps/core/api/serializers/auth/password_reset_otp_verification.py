@@ -35,6 +35,12 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
             "max_length": _("OTP code must be 6 digits."),
         },
     )
+    device_id = serializers.CharField(
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        help_text="Device identifier provided by client",
+    )
 
     def validate_reset_token(self, value):
         """Validate reset token"""
@@ -79,4 +85,5 @@ class PasswordResetOTPVerificationSerializer(serializers.Serializer):
                 raise serializers.ValidationError(_("OTP code is incorrect."))
 
         attrs["reset_request"] = reset_request
+        attrs["device_id"] = (attrs.get("device_id") or "").strip() or None
         return attrs

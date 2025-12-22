@@ -45,7 +45,7 @@ class GeoLocationAttendanceAPITest(TransactionTestCase, APITestMixin):
 
         # Create user device for validation
         self.user_device = UserDevice.objects.create(
-            user=self.user, device_id="device123", platform=UserDevice.Platform.ANDROID, active=True
+            user=self.user, device_id="device123", platform=UserDevice.Platform.ANDROID
         )
 
         # Mock request.auth to include device_id
@@ -330,7 +330,7 @@ class WiFiAttendanceAPITest(TransactionTestCase, APITestMixin):
 
         # Create user device for validation
         self.user_device = UserDevice.objects.create(
-            user=self.user, device_id="device123", platform=UserDevice.Platform.ANDROID, active=True
+            user=self.user, device_id="device123", platform=UserDevice.Platform.ANDROID
         )
 
         # Mock token with device_id

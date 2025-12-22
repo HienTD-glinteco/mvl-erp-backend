@@ -27,7 +27,12 @@ def validate_attendance_device(request):
         raise ValidationError(_("Token does not contain device_id."))
 
     # 2. Get active user_device
-    user_device = UserDevice.objects.filter(user=request.user, device_id=device_id, active=True).first()
+    user_device = UserDevice.objects.filter(
+        user=request.user,
+        client=UserDevice.Client.MOBILE,
+        state=UserDevice.State.ACTIVE,
+        device_id=device_id,
+    ).first()
 
     if not user_device:
         raise ValidationError(_("User device not found."))

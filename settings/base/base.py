@@ -28,7 +28,12 @@ AUTH_USER_MODEL = "core.User"
 
 # HRM Module Settings
 HRM_CERTIFICATE_NEAR_EXPIRY_DAYS = config("HRM_CERTIFICATE_NEAR_EXPIRY_DAYS", default=30, cast=int)
+HRM_EMPLOYEE_ROLE_CODE = config("HRM_EMPLOYEE_ROLE_CODE", default="employee")
 
 FRONTEND_URL = config("FRONTEND_URL", default="")
 
 LOGO_URL = FRONTEND_URL + "/logo.png"
+
+MOBILE_PATH_PREFIX = "/api/mobile/"
+MOBILE_CLIENT_IDENTIFIER = "mobile"
+WEB_CLIENT_IDENTIFIER = "web"

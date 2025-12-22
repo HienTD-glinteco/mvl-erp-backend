@@ -1,9 +1,9 @@
-
 import json
+from unittest.mock import MagicMock
+
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 from django.urls import reverse
-from unittest.mock import MagicMock
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -12,6 +12,7 @@ from apps.core.models.device import UserDevice
 from apps.hrm.models import AttendanceWifiDevice, Employee
 
 User = get_user_model()
+
 
 class APITestMixin:
     """Mixin to handle wrapped API responses and data extraction."""
@@ -22,6 +23,7 @@ class APITestMixin:
         if "data" in content:
             return content["data"]
         return content
+
 
 class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
     """Test cases for attendance device validation logic."""
@@ -122,7 +124,7 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
             user=self.user,
             device_id="device123",
             platform=UserDevice.Platform.ANDROID,
-            active=False
+            state=UserDevice.State.REVOKED,
         )
 
         # Mock token with valid device_id
@@ -145,7 +147,6 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
             user=self.user,
             device_id="device123",
             platform=UserDevice.Platform.WEB,
-            active=True
         )
 
         # Mock token with valid device_id

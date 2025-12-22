@@ -140,9 +140,7 @@ class TestOtherAttendanceAndBulkApprove:
             uploaded_by=employee.user,
         )
 
-        UserDevice.objects.create(
-            user=employee.user, device_id="device123", platform=UserDevice.Platform.ANDROID, active=True
-        )
+        UserDevice.objects.create(user=employee.user, device_id="device123", platform=UserDevice.Platform.ANDROID)
         token_mock = MagicMock()
         token_mock.get.side_effect = lambda k: "device123" if k == "device_id" else None
         api_client.force_authenticate(user=employee.user, token=token_mock)

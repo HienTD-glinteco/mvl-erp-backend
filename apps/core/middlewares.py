@@ -11,7 +11,7 @@ class ApiResponseWrapperMiddleware(MiddlewareMixin):
     """
 
     def process_response(self, request, response):
-        if request.path in ("/docs/", "/schema/"):  # Document path
+        if request.path in ("/docs/", "/schema/", "/docs/mobile/", "/schema/mobile/"):
             return response
 
         # Only wrap DRF responses or JSON responses

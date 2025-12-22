@@ -2,10 +2,9 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from apps.core.constants import APP_TESTER_OTP_CODE, APP_TESTER_USERNAME
 from apps.core.models import PasswordResetOTP, User, UserDevice
@@ -23,110 +22,63 @@ class AuthenticationTestCase(TestCase):
             last_name="Doe",
         )
         self.login_url = reverse("core:login")
-        self.otp_url = reverse("core:verify_otp")
+        self.mobile_login_url = reverse("mobile-core:login")
+        self.me_url = reverse("core:me")
+        self.mobile_me_url = reverse("mobile-core:me")
         self.forgot_password_url = reverse("core:forgot_password")
 
     @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
-    @patch("apps.core.tasks.send_otp_email_task.delay")
-    def test_successful_login(self, mock_email_task):
-        """Test successful login with correct credentials"""
-        mock_email_task.return_value = MagicMock()
-
-        data = {"username": "testuser001", "password": "testpass123"}
+    @patch("apps.notifications.utils.trigger_send_notification")
+    def test_successful_login(self, mock_trigger_send_notification):
+        """Test successful login with correct credentials (no OTP step)."""
+        data = {"username": "testuser001", "password": "testpass123", "device_id": "web-device-1"}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        self.assertTrue(response_data["success"])
-        self.assertIn("message", response_data["data"])
-        self.assertIn("OTP code has been sent", response_data["data"]["message"])
-        self.assertEqual(response_data["data"]["username"], "testuser001")
-        self.assertIn("email_hint", response_data["data"])
-        # Verify OTP email task was called
-        mock_email_task.assert_called_once()
+        response_data = response.json()["data"]
+        self.assertIn("tokens", response_data)
+        self.assertIn("access", response_data["tokens"])
+        self.assertIn("refresh", response_data["tokens"])
+
+        token = AccessToken(response_data["tokens"]["access"])
+        self.assertEqual(token["client"], "web")
+        self.assertEqual(token["device_id"], "web-device-1")
+        self.assertNotIn("tv", token)
 
     def test_login_with_wrong_credentials(self):
-        """Test login with wrong credentials"""
-        data = {"username": "testuser001", "password": "wrongpassword"}
+        data = {"username": "testuser001", "password": "wrongpassword", "device_id": "web-device-1"}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn("Incorrect password", str(response_data["error"]["non_field_errors"][0]))
+        envelope = response.json()
+        self.assertFalse(envelope["success"])
+        errors = envelope["error"].get("errors", [])
+        self.assertTrue(any("Incorrect password" in str(err.get("detail")) for err in errors))
 
     def test_login_with_nonexistent_user(self):
-        """Test login with non-existent username"""
-        data = {"username": "NONEXISTENT", "password": "testpass123"}
+        data = {"username": "NONEXISTENT", "password": "testpass123", "device_id": "web-device-1"}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn(
-            "Username does not exist",
-            str(response_data["error"]["non_field_errors"][0]),
-        )
+        envelope = response.json()
+        self.assertFalse(envelope["success"])
+        errors = envelope["error"].get("errors", [])
+        self.assertTrue(any("Username does not exist" in str(err.get("detail")) for err in errors))
 
     @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     def test_account_lockout_after_failed_attempts(self):
-        """Test account lockout after 5 failed login attempts"""
-        data = {"username": "testuser001", "password": "wrongpassword"}
+        data = {"username": "testuser001", "password": "wrongpassword", "device_id": "web-device-1"}
 
-        # Make 5 failed attempts
-        for i in range(5):
+        for _ in range(5):
             response = self.client.post(self.login_url, data, format="json")
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # 6th attempt should show account locked message
         response = self.client.post(self.login_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        self.assertIn("locked", str(response_data["error"]["non_field_errors"][0]))
-
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
-    @patch("apps.notifications.utils.trigger_send_notification")
-    def test_otp_verification_success(self, mock_trigger_send_notification):
-        """Test successful OTP verification"""
-        # First generate OTP for the user
-        otp_code = self.user.generate_otp()
-
-        data = {"username": "testuser001", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        self.assertTrue(response_data["success"])
-        self.assertIn("message", response_data["data"])
-        self.assertIn("tokens", response_data["data"])
-        self.assertIn("user", response_data["data"])
-        self.assertIn("access", response_data["data"]["tokens"])
-        self.assertIn("refresh", response_data["data"]["tokens"])
-
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
-    def test_otp_verification_wrong_code(self):
-        """Test OTP verification with wrong code"""
-        # First generate OTP for the user
-        self.user.generate_otp()
-
-        data = {
-            "username": "testuser001",
-            "otp_code": "000000",  # Wrong OTP
-        }
-        response = self.client.post(self.otp_url, data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        # Check for the actual error structure - it could be either format
-        error_data = response_data["error"]
-        self.assertTrue(
-            "non_field_errors" in error_data
-            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
-        )
+        envelope = response.json()
+        self.assertFalse(envelope["success"])
+        errors = envelope["error"].get("errors", [])
+        self.assertTrue(any("locked" in str(err.get("detail")).lower() for err in errors))
 
     @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
@@ -239,45 +191,28 @@ class AuthenticationTestCase(TestCase):
         self.user.is_active = False
         self.user.save()
 
-        data = {"username": "testuser001", "password": "testpass123"}
+        data = {"username": "testuser001", "password": "testpass123", "device_id": "web-device-1"}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        self.assertIn("non_field_errors", response_data["error"])
-        self.assertIn("deactivated", str(response_data["error"]["non_field_errors"][0]))
+        envelope = response.json()
+        self.assertFalse(envelope["success"])
+        errors = envelope["error"].get("errors", [])
+        self.assertTrue(any("deactivated" in str(err.get("detail")).lower() for err in errors))
 
     def test_empty_credentials(self):
         """Test login with empty credentials"""
-        data = {"username": "", "password": ""}
+        data = {"username": "", "password": "", "device_id": ""}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        # Should have validation errors for both fields
-        self.assertTrue("username" in response_data["error"] or "non_field_errors" in response_data["error"])
-
-    def test_otp_expiration(self):
-        """Test OTP verification with expired code"""
-        # Generate OTP and manually expire it
-        otp_code = self.user.generate_otp()
-        self.user.otp_expires_at = timezone.now() - timezone.timedelta(minutes=10)
-        self.user.save()
-
-        data = {"username": "testuser001", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-        # Check for the actual error structure - it could be either format
-        error_data = response_data["error"]
-        self.assertTrue(
-            "non_field_errors" in error_data
-            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
-        )
+        envelope = response.json()
+        self.assertFalse(envelope["success"])
+        errors = envelope["error"].get("errors", [])
+        attrs = {err.get("attr") for err in errors}
+        self.assertIn("username", attrs)
+        self.assertIn("password", attrs)
+        # device_id may be validated after other required fields depending on serializer validation flow
 
     @patch("apps.core.api.views.auth.password_reset.PasswordResetView.throttle_classes", new=[])
     @patch("apps.core.tasks.send_password_reset_email_task.delay")
@@ -373,7 +308,10 @@ class AuthenticationTestCase(TestCase):
     )
     def test_password_reset_step3_without_verified_request(self):
         # Authenticate with a token that didn't come from step 2
-        access = str(RefreshToken.for_user(self.user).access_token)
+        refresh = RefreshToken.for_user(self.user)
+        refresh["client"] = "web"
+        refresh["device_id"] = "web-test"
+        access = str(refresh.access_token)
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
@@ -388,120 +326,177 @@ class AuthenticationTestCase(TestCase):
         envelope = resp.json()
         self.assertFalse(envelope["success"])  # error envelope
 
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    def test_routing_web_and_mobile_login_endpoints_exist(self):
+        """Web endpoints remain unchanged; mobile endpoints exist with /mobile/ prefix."""
+        self.assertEqual(self.login_url, "/api/auth/login/")
+        self.assertEqual(self.mobile_login_url, "/api/mobile/auth/login/")
+
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
-    def test_otp_verification_with_device_id_success(self, mock_trigger_send_notification):
-        """Test OTP verification with device_id creates UserDevice"""
-        otp_code = self.user.generate_otp()
-        device_id = "test-device-123"
+    def test_web_login_sets_claims_and_updates_last_web_device(self, mock_trigger_send_notification):
+        device_id = "web-device-123"
 
-        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
-        response = self.client.post(self.otp_url, data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        self.assertTrue(response_data["success"])
-
-        # Verify device was created
-        self.user.refresh_from_db()
-        self.assertTrue(hasattr(self.user, "device"))
-        self.assertEqual(self.user.device.device_id, device_id)
-
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
-    def test_otp_verification_device_id_already_registered_to_another_user(self):
-        """Test OTP verification fails when device_id is registered to another user"""
-        # Create another user with a device
-        other_user = User.objects.create_user(
-            username="otheruser",
-            email="other@example.com",
-            password="testpass123",
+        resp = self.client.post(
+            self.login_url,
+            {"username": self.user.username, "password": "testpass123", "device_id": device_id},
+            format="json",
         )
-        device_id = "shared-device-123"
-        UserDevice.objects.create(user=other_user, device_id=device_id)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        access = resp.json()["data"]["tokens"]["access"]
 
-        # Try to verify OTP for first user with same device_id
-        otp_code = self.user.generate_otp()
-        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
-        response = self.client.post(self.otp_url, data, format="json")
+        token = AccessToken(access)
+        self.assertEqual(token["client"], "web")
+        self.assertEqual(token["device_id"], device_id)
+        self.assertNotIn("tv", token)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
-
-        # Check error message
-        error_data = response_data["error"]
         self.assertTrue(
-            "non_field_errors" in error_data
-            or ("errors" in error_data and any(err.get("attr") == "non_field_errors" for err in error_data["errors"]))
+            UserDevice.objects.filter(
+                user=self.user,
+                client=UserDevice.Client.WEB,
+                device_id=device_id,
+                platform=UserDevice.Platform.WEB,
+            ).exists()
         )
 
-        # Verify the error message mentions the device is already registered
-        error_message = str(error_data)
-        self.assertIn("already registered", error_message)
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
+    def test_employee_cannot_login_web(self):
+        from apps.core.models import Role
 
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+        employee_role = Role.objects.create(code="employee", name="Employee")
+        employee = User.objects.create_user(username="emp", email="emp@example.com", password="testpass123")
+        employee.role = employee_role
+        employee.save(update_fields=["role"])
+
+        resp = self.client.post(
+            self.login_url,
+            {"username": employee.username, "password": "testpass123", "device_id": "web-emp"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(resp.json()["success"])
+
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
-    def test_otp_verification_device_id_same_user_no_error(self, mock_trigger_send_notification):
-        """Test OTP verification succeeds when device_id is already registered to same user"""
-        device_id = "my-device-456"
-        UserDevice.objects.create(user=self.user, device_id=device_id)
+    def test_web_login_not_blocked_by_mobile_binding(self, mock_trigger_send_notification):
+        UserDevice.objects.create(
+            user=self.user,
+            client=UserDevice.Client.MOBILE,
+            state=UserDevice.State.ACTIVE,
+            device_id="mobile-bound-1",
+            platform="android",
+        )
 
-        otp_code = self.user.generate_otp()
-        data = {"username": "testuser001", "otp_code": otp_code, "device_id": device_id}
-        response = self.client.post(self.otp_url, data, format="json")
+        resp = self.client.post(
+            self.login_url,
+            {"username": self.user.username, "password": "testpass123", "device_id": "web-2"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        self.assertTrue(response_data["success"])
-        self.assertIn("tokens", response_data["data"])
-
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
     @patch("apps.notifications.utils.trigger_send_notification")
-    def test_otp_verification_without_device_id(self, mock_trigger_send_notification):
-        """Test OTP verification without device_id still works"""
-        otp_code = self.user.generate_otp()
+    def test_mobile_login_first_time_creates_active_device_and_sets_claims(self, mock_trigger_send_notification):
+        device_id = "mobile-device-1"
 
-        data = {"username": "testuser001", "otp_code": otp_code}
-        response = self.client.post(self.otp_url, data, format="json")
+        resp = self.client.post(
+            self.mobile_login_url,
+            {
+                "username": self.user.username,
+                "password": "testpass123",
+                "device_id": device_id,
+                "platform": "android",
+                "push_token": "push-1",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_data = response.json()
-        self.assertTrue(response_data["success"])
+        access = resp.json()["data"]["tokens"]["access"]
+        token = AccessToken(access)
+        self.assertEqual(token["client"], "mobile")
+        self.assertEqual(token["device_id"], device_id)
+        self.assertEqual(token["tv"], self.user.mobile_token_version)
 
-        # Verify no device was created
-        self.user.refresh_from_db()
-        self.assertFalse(hasattr(self.user, "device") and self.user.device is not None)
+        self.assertTrue(
+            UserDevice.objects.filter(
+                user=self.user,
+                client=UserDevice.Client.MOBILE,
+                state=UserDevice.State.ACTIVE,
+                device_id=device_id,
+            ).exists()
+        )
 
-    @patch("apps.core.api.views.auth.otp_verification.OTPVerificationView.throttle_classes", new=[])
-    def test_otp_verification_user_with_device_trying_different_unassigned_device(self):
-        """Test OTP verification fails when user with registered device tries to login with different unassigned device.
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
+    def test_mobile_login_same_device_ok(self):
+        UserDevice.objects.create(
+            user=self.user,
+            client=UserDevice.Client.MOBILE,
+            state=UserDevice.State.ACTIVE,
+            device_id="mobile-device-1",
+            platform="android",
+        )
 
-        This is a critical security check to prevent users from bypassing the device change request process.
-        """
-        # Create user with a registered device
-        existing_device_id = "user-existing-device-789"
-        UserDevice.objects.create(user=self.user, device_id=existing_device_id, platform="android")
+        resp = self.client.post(
+            self.mobile_login_url,
+            {"username": self.user.username, "password": "testpass123", "device_id": "mobile-device-1"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            UserDevice.objects.filter(user=self.user, client="mobile", state="active").count(),
+            1,
+        )
 
-        # User tries to login with a different device that is not assigned to anyone
-        new_device_id = "different-unassigned-device-999"
-        otp_code = self.user.generate_otp()
-        data = {"username": "testuser001", "otp_code": otp_code, "device_id": new_device_id}
-        response = self.client.post(self.otp_url, data, format="json")
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
+    def test_mobile_login_different_device_conflict(self):
+        UserDevice.objects.create(
+            user=self.user,
+            client=UserDevice.Client.MOBILE,
+            state=UserDevice.State.ACTIVE,
+            device_id="mobile-device-1",
+            platform="android",
+        )
 
-        # Should reject the login
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response_data = response.json()
-        self.assertFalse(response_data["success"])
+        resp = self.client.post(
+            self.mobile_login_url,
+            {"username": self.user.username, "password": "testpass123", "device_id": "mobile-device-2"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
 
-        # Check error message mentions device change process
-        error_data = response_data["error"]
-        error_message = str(error_data)
-        self.assertIn("different device", error_message.lower())
-        self.assertIn("device change request", error_message.lower())
+    def test_employee_web_token_forbidden_on_web_protected_endpoint(self):
+        from apps.core.models import Role
 
-        # Verify the new device was NOT created
-        self.assertFalse(UserDevice.objects.filter(device_id=new_device_id).exists())
+        employee_role = Role.objects.create(code="employee", name="Employee")
+        employee = User.objects.create_user(username="emp2", email="emp2@example.com", password="testpass123")
+        employee.role = employee_role
+        employee.save(update_fields=["role"])
 
-        # Verify user still has only their original device
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.device.device_id, existing_device_id)
+        refresh = RefreshToken.for_user(employee)
+        refresh["client"] = "web"
+        refresh["device_id"] = "web-emp"
+        access = refresh.access_token
+        access["client"] = "web"
+        access["device_id"] = "web-emp"
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {str(access)}")
+        resp = client.get(self.me_url, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    @patch("apps.core.api.views.auth.login.LoginView.throttle_classes", new=[])
+    def test_mobile_token_version_mismatch_rejected(self):
+        resp = self.client.post(
+            self.mobile_login_url,
+            {"username": self.user.username, "password": "testpass123", "device_id": "mobile-device-1"},
+            format="json",
+        )
+        access = resp.json()["data"]["tokens"]["access"]
+
+        self.user.mobile_token_version += 1
+        self.user.save(update_fields=["mobile_token_version"])
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        resp2 = client.get(self.mobile_me_url, format="json")
+        self.assertEqual(resp2.status_code, status.HTTP_401_UNAUTHORIZED)

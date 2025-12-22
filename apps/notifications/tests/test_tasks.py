@@ -235,7 +235,6 @@ class TestPushNotificationTasks:
             user=recipient,
             device_id="test-fcm-token",
             platform="android",
-            active=True,
         )
         return recipient
 

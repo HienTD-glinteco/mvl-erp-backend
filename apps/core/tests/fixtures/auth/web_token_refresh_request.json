@@ -1,0 +1,10 @@
+{
+  "method": "POST",
+  "path": "/api/token/refresh/",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "refresh": "<refresh.jwt>"
+  }
+}

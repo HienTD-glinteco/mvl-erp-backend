@@ -1,0 +1,18 @@
+{
+  "status_code": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "access": "<access.jwt>",
+      "refresh": "<refresh.jwt>"
+    },
+    "error": null
+  },
+  "jwt_claims": {
+    "access": {
+      "client": "mobile",
+      "device_id": "mobile-device-001",
+      "tv": 1
+    }
+  }
+}
