@@ -9,11 +9,24 @@ import json
 import logging
 from typing import Union
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import CharField, ForeignKey, ManyToManyField, OneToOneField
 from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from apps.files import utils as file_utils
+from apps.files.constants import (
+    ALLOWED_FILE_TYPES,
+    CACHE_KEY_PREFIX,
+    ERROR_CONTENT_TYPE_MISMATCH,
+    ERROR_FILE_NOT_FOUND_S3,
+    ERROR_INVALID_FILE_TOKEN,
+)
+from apps.files.models import FileModel
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +165,9 @@ class FileConfirmSerializerMixin:
                                                    have array schema in OpenAPI. If not provided,
                                                    auto-detected from ManyToManyField and
                                                    GenericRelation fields.
+        file_required_fields (list, optional): Explicit list of field names that are required.
+                                               If any field is required, the 'files' field
+                                               itself will also be marked as required.
 
     Example Request:
         POST /api/hrm/job-descriptions/
@@ -217,8 +233,9 @@ class FileConfirmSerializerMixin:
         if not file_confirm_fields:
             return
 
-        # Get multi-valued fields (explicit or empty)
+        # Get multi-valued and required fields
         file_multi_valued_fields = set(getattr(cls, "file_multi_valued_fields", []))
+        file_required_fields = set(getattr(cls, "file_required_fields", []))
 
         # Get the field name for file tokens (default: "files")
         field_name = getattr(cls, "file_tokens_field", "files")
@@ -226,20 +243,21 @@ class FileConfirmSerializerMixin:
         # Create field definitions with appropriate types
         field_definitions = {}
         for fname in file_confirm_fields:
+            is_required = fname in file_required_fields
             if fname in file_multi_valued_fields:
                 # Multi-valued field: accepts array of strings
                 field_definitions[fname] = serializers.ListField(
                     child=serializers.CharField(),
-                    required=False,
+                    required=is_required,
                     write_only=True,
-                    allow_empty=True,
+                    allow_empty=not is_required,
                     help_text="File tokens for {field} (array of tokens)".format(field=fname),
                 )
             else:
                 # Single-valued field: accepts string or array (validated at runtime)
                 # Using custom field that accepts both for flexibility
                 field_definitions[fname] = _FileTokenField(
-                    required=False,
+                    required=is_required,
                     write_only=True,
                     help_text="File token(s) for {field}".format(field=fname),
                 )
@@ -267,8 +285,11 @@ class FileConfirmSerializerMixin:
         # Check if we have a pre-configured files serializer class
         if hasattr(self.__class__, "_file_fields_serializer_class"):
             # Use the pre-configured serializer class
+            file_required_fields = getattr(self.__class__, "file_required_fields", [])
+            is_any_field_required = bool(file_required_fields)
+
             fields[self.file_tokens_field] = self.__class__._file_fields_serializer_class(
-                required=False,
+                required=is_any_field_required,
                 write_only=True,
                 help_text="File tokens for uploading files. Each key corresponds to a file field on the model.",
             )
@@ -279,17 +300,20 @@ class FileConfirmSerializerMixin:
             if file_fields_info:
                 # Create field definitions with appropriate types based on detection
                 field_definitions = {}
-                for field_name, is_multi in file_fields_info:
+                is_any_field_required = False
+                for field_name, is_multi, is_required in file_fields_info:
+                    if is_required:
+                        is_any_field_required = True
                     if is_multi:
                         field_definitions[field_name] = serializers.ListField(
                             child=serializers.CharField(),
-                            required=False,
-                            allow_empty=True,
+                            required=is_required,
+                            allow_empty=not is_required,
                             help_text="File tokens for {field} (array of tokens)".format(field=field_name),
                         )
                     else:
                         field_definitions[field_name] = _FileTokenField(
-                            required=False,
+                            required=is_required,
                             help_text="File token(s) for {field}".format(field=field_name),
                         )
 
@@ -300,7 +324,7 @@ class FileConfirmSerializerMixin:
                 )
 
                 fields[self.file_tokens_field] = file_fields_serializer_class(
-                    required=False,
+                    required=is_any_field_required,
                     write_only=True,
                     help_text="File tokens for uploading files. Each key corresponds to a file field on the model.",
                 )
@@ -331,7 +355,7 @@ class FileConfirmSerializerMixin:
             5. Any field name matching file patterns - single-valued (fallback)
 
         Returns:
-            list[tuple[str, bool]]: List of (field_name, is_multi_valued) tuples
+            list[tuple[str, bool, bool]]: List of (field_name, is_multi_valued, is_required) tuples
 
         Notes:
             - GenericRelation and ManyToManyField are detected as multi-valued
@@ -341,27 +365,18 @@ class FileConfirmSerializerMixin:
         # 1. Check for explicit override
         if hasattr(self, "file_confirm_fields") and self.file_confirm_fields:
             multi_valued = set(getattr(self, "file_multi_valued_fields", []))
-            return [(fname, fname in multi_valued) for fname in self.file_confirm_fields]
+            required_fields = set(getattr(self, "file_required_fields", []))
+            return [(fname, fname in multi_valued, fname in required_fields) for fname in self.file_confirm_fields]
 
         # 2. Ensure model exists
         if not (hasattr(self, "Meta") and hasattr(self.Meta, "model")):
             return []
 
         model = self.Meta.model
-        file_fields_info = []  # List of (field_name, is_multi_valued)
+        file_fields_info = []  # List of (field_name, is_multi_valued, is_required)
 
         # Common file field name patterns
         file_patterns = ["attachment", "document", "file", "upload", "photo", "image", "avatar"]
-
-        # Import field types
-        from django.contrib.contenttypes.fields import GenericRelation
-        from django.db.models import CharField, ForeignKey, ManyToManyField, OneToOneField
-
-        # Try to import FileModel; if it fails, fall back to name-based detection
-        try:
-            from apps.files.models import FileModel
-        except Exception:
-            FileModel = None
 
         # Track added fields to avoid duplicates
         added_fields = set()
@@ -372,10 +387,13 @@ class FileConfirmSerializerMixin:
             if not field_name or field_name in added_fields:
                 continue
 
+            # Check if field is required on model
+            is_required = not getattr(field, "blank", True)
+
             # Rule 1: CharField with file-related pattern (single-valued)
             if isinstance(field, CharField):
                 if any(pattern in field_name.lower() for pattern in file_patterns):
-                    file_fields_info.append((field_name, False))
+                    file_fields_info.append((field_name, False, is_required))
                     added_fields.add(field_name)
                 continue
 
@@ -385,12 +403,12 @@ class FileConfirmSerializerMixin:
                 if remote:
                     # Direct match to FileModel if available
                     if FileModel is not None and remote == FileModel:
-                        file_fields_info.append((field_name, False))
+                        file_fields_info.append((field_name, False, is_required))
                         added_fields.add(field_name)
                         continue
                     # Fallback: related class name contains 'file'
                     if "file" in getattr(remote, "__name__", "").lower():
-                        file_fields_info.append((field_name, False))
+                        file_fields_info.append((field_name, False, is_required))
                         added_fields.add(field_name)
                         continue
 
@@ -400,25 +418,26 @@ class FileConfirmSerializerMixin:
                 if remote:
                     # Direct match to FileModel if available
                     if FileModel is not None and remote == FileModel:
-                        file_fields_info.append((field_name, True))
+                        file_fields_info.append((field_name, True, is_required))
                         added_fields.add(field_name)
                         continue
                     # Fallback: related class name contains 'file'
                     if "file" in getattr(remote, "__name__", "").lower():
-                        file_fields_info.append((field_name, True))
+                        file_fields_info.append((field_name, True, is_required))
                         added_fields.add(field_name)
                         continue
 
             # Rule 4: GenericRelation (multi-valued)
             if isinstance(field, GenericRelation):
-                file_fields_info.append((field_name, True))
+                # GenericRelation is usually considered optional in model sense
+                file_fields_info.append((field_name, True, False))
                 added_fields.add(field_name)
                 continue
 
             # Rule 5: Optional last-resort name match (single-valued by default)
             if any(pattern in field_name.lower() for pattern in file_patterns):
                 if field_name not in added_fields:
-                    file_fields_info.append((field_name, False))
+                    file_fields_info.append((field_name, False, is_required))
                     added_fields.add(field_name)
 
         return file_fields_info
@@ -433,7 +452,7 @@ class FileConfirmSerializerMixin:
         Returns:
             list: Deduplicated list of field names that should appear in the files schema
         """
-        return [name for name, _ in self._get_file_confirm_fields_with_info()]
+        return [name for name, _, _ in self._get_file_confirm_fields_with_info()]
 
     def _is_multi_valued_field(self, field_name):
         """
@@ -455,9 +474,6 @@ class FileConfirmSerializerMixin:
             return False
 
         model = self.Meta.model
-
-        from django.contrib.contenttypes.fields import GenericRelation
-        from django.db.models import ManyToManyField
 
         try:
             field = model._meta.get_field(field_name)
@@ -500,14 +516,6 @@ class FileConfirmSerializerMixin:
         Raises:
             ValidationError: If any token is invalid or file doesn't exist
         """
-        from apps.files.constants import (
-            ALLOWED_FILE_TYPES,
-            CACHE_KEY_PREFIX,
-            ERROR_CONTENT_TYPE_MISMATCH,
-            ERROR_FILE_NOT_FOUND_S3,
-            ERROR_INVALID_FILE_TOKEN,
-        )
-
         files_to_confirm = []
         for field_name, token_list in normalized_mappings.items():
             for file_token in token_list:
@@ -558,8 +566,6 @@ class FileConfirmSerializerMixin:
         Raises:
             ValidationError: If token is invalid or file doesn't exist
         """
-        from rest_framework.exceptions import ValidationError
-
         cache_key = f"{cache_prefix}{file_token}"
         cached_data = cache.get(cache_key)
 
@@ -617,8 +623,6 @@ class FileConfirmSerializerMixin:
         Raises:
             ValidationError: If content type doesn't match
         """
-        from rest_framework.exceptions import ValidationError
-
         actual_type = temp_metadata.get("content_type")
         allowed_types = allowed_types_map[purpose]
 
@@ -642,9 +646,6 @@ class FileConfirmSerializerMixin:
         Raises:
             ValidationError: If any file token is invalid or file doesn't exist
         """
-        from apps.files.models import FileModel
-        from apps.files.utils import S3FileUploadService
-
         # Get file token mappings from validated data
         file_mappings = self.validated_data.get(self.file_tokens_field, {})
         if not file_mappings:
@@ -654,7 +655,7 @@ class FileConfirmSerializerMixin:
         content_type = ContentType.objects.get_for_model(instance.__class__)
 
         # Initialize S3 service
-        s3_service = S3FileUploadService()
+        s3_service = file_utils.S3FileUploadService()
 
         # Normalize and validate file mappings
         normalized_mappings = self._normalize_file_mappings(file_mappings)

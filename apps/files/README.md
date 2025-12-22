@@ -110,11 +110,15 @@ The `FileConfirmSerializerMixin` enables automatic file confirmation during seri
 
 ```python
 from rest_framework import serializers
-from libs import FileConfirmSerializerMixin
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import JobDescription
 
 class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
-    # Note: 'files' field is automatically added by the mixin
+    # Specify which fields should show up in 'files' object
+    file_confirm_fields = ['attachment', 'document']
+
+    # Optional: specify required file fields
+    file_required_fields = ['attachment']
 
     class Meta:
         model = JobDescription
@@ -131,6 +135,14 @@ class JobDescriptionSerializer(FileConfirmSerializerMixin, serializers.ModelSeri
         ]
         read_only_fields = ["id", "code", "created_at", "updated_at"]
 ```
+
+### Multi-valued and Required Fields
+
+The mixin supports various configurations for the `files` field:
+
+- `file_confirm_fields`: Explicit list of field names that represent files.
+- `file_multi_valued_fields`: Fields that accept multiple files (e.g., `GenericRelation` or `ManyToManyField`).
+- `file_required_fields`: Fields that MUST be provided during creation/update.
 
 ### Workflow
 
