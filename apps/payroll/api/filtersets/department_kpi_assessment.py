@@ -9,6 +9,8 @@ class DepartmentKPIAssessmentFilterSet(django_filters.FilterSet):
     Provides filtering by:
     - department (exact match by ID)
     - department_code (exact match)
+    - branch (exact match by branch ID)
+    - block (exact match by block ID)
     - period (exact match by period ID)
     - month (exact match by date via period)
     - month_year (year-month format n/YYYY via period)
@@ -19,6 +21,8 @@ class DepartmentKPIAssessmentFilterSet(django_filters.FilterSet):
 
     department = django_filters.NumberFilter(field_name="department__id", lookup_expr="exact")
     department_code = django_filters.CharFilter(field_name="department__code", lookup_expr="exact")
+    branch = django_filters.NumberFilter(field_name="department__branch__id", lookup_expr="exact")
+    block = django_filters.NumberFilter(field_name="department__block__id", lookup_expr="exact")
     period = django_filters.NumberFilter(field_name="period__id", lookup_expr="exact")
     month = django_filters.DateFilter(field_name="period__month", lookup_expr="exact")
     month_year = django_filters.CharFilter(method="filter_month_year")
@@ -31,6 +35,8 @@ class DepartmentKPIAssessmentFilterSet(django_filters.FilterSet):
         fields = [
             "department",
             "department_code",
+            "branch",
+            "block",
             "period",
             "month",
             "month_year",
