@@ -376,7 +376,7 @@ class EmployeeSerializer(FileConfirmSerializerMixin, FieldFilteringSerializerMix
             )
 
 
-class EmployeeDecisionMixin:
+class EmployeeDecisionMixin(serializers.Serializer):
     decision_id = serializers.PrimaryKeyRelatedField(
         queryset=Decision.objects.all(),
         required=False,
