@@ -13,6 +13,7 @@ from apps.payroll.api.serializers import (
     KPIAssessmentPeriodGenerateSerializer,
     KPIAssessmentPeriodListSerializer,
     KPIAssessmentPeriodSerializer,
+    KPIAssessmentPeriodSummarySerializer,
 )
 from apps.payroll.models import (
     DepartmentKPIAssessment,
@@ -23,7 +24,7 @@ from apps.payroll.models import (
 from apps.payroll.utils import (
     generate_department_assessments_for_period,
     generate_employee_assessments_for_period,
-    validate_unit_control,
+    update_department_assessment_status,
 )
 from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -181,6 +182,32 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
+    summary=extend_schema(
+        summary="Get assessment summary statistics",
+        description="Get summary statistics for a period including finished/unfinished departments and unit control validation status",
+        tags=["8.6: KPI Assessment Periods"],
+        request=None,
+        responses={
+            200: KPIAssessmentPeriodSummarySerializer,
+        },
+        examples=[
+            OpenApiExample(
+                "Success Response",
+                value={
+                    "success": True,
+                    "data": {
+                        "total_departments": 10,
+                        "departments_finished": 7,
+                        "departments_not_finished": 3,
+                        "departments_not_valid_control": 2,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+        ],
+    ),
 )
 class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
     """ViewSet for KPIAssessmentPeriod model.
@@ -273,56 +300,52 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
             )
 
         with transaction.atomic():
-            # Process employee assessments
+            # Process employee assessments - set default grade for ungraded employees
             employees_set_to_c = 0
             employee_assessments = EmployeeKPIAssessment.objects.filter(period=period)
 
+            # First pass: set default grades without triggering signals
+            employees_to_update = []
             for assessment in employee_assessments:
                 # If not assessed (no scores), set grade_hrm = 'C'
                 if (
                     assessment.total_employee_score is None
                     and assessment.total_manager_score is None
                     and not assessment.grade_hrm
+                    and not assessment.grade_manager
                 ):
                     assessment.grade_hrm = "C"
                     employees_set_to_c += 1
+                    employees_to_update.append(assessment)
 
-                # Finalize the assessment
+            # Bulk update to avoid triggering signal for each save
+            if employees_to_update:
+                EmployeeKPIAssessment.objects.bulk_update(employees_to_update, ["grade_hrm"], batch_size=100)
+
+            # Second pass: finalize all employee assessments
+            for assessment in employee_assessments:
                 assessment.finalized = True
-                assessment.save()
 
-            # Process department assessments
+            EmployeeKPIAssessment.objects.bulk_update(employee_assessments, ["finalized"], batch_size=100)
+
+            # Process department assessments - update all department statuses
             departments_validated = 0
             departments_invalid = 0
-            department_assessments = DepartmentKPIAssessment.objects.filter(period=period).select_related("department")
-
-            unit_control = period.kpi_config_snapshot.get("unit_control", {})
+            department_assessments = DepartmentKPIAssessment.objects.filter(period=period)
 
             for dept_assessment in department_assessments:
-                # Get all employee assessments in this department for this period
-                dept_employees = employee_assessments.filter(employee__department=dept_assessment.department)
+                # Update department status (is_finished and is_valid_unit_control)
+                # This will check all employees in the department and validate unit control
+                update_department_assessment_status(dept_assessment)
 
-                # Count grades
-                grade_counts = {"A": 0, "B": 0, "C": 0, "D": 0}
-                for emp_assessment in dept_employees:
-                    grade = emp_assessment.grade_hrm or emp_assessment.grade_manager
-                    if grade in grade_counts:
-                        grade_counts[grade] += 1
+                # Refresh from db to get updated values
+                dept_assessment.refresh_from_db()
 
-                # Validate unit control
-                total_employees = dept_employees.count()
-                is_valid, violations = validate_unit_control(
-                    dept_assessment.grade,
-                    grade_counts,
-                    total_employees,
-                    unit_control,
-                )
-
-                dept_assessment.is_valid_unit_control = is_valid
+                # Finalize the department assessment
                 dept_assessment.finalized = True
-                dept_assessment.save()
+                dept_assessment.save(update_fields=["finalized"])
 
-                if is_valid:
+                if dept_assessment.is_valid_unit_control:
                     departments_validated += 1
                 else:
                     departments_invalid += 1
@@ -338,6 +361,31 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
                 "employees_set_to_c": employees_set_to_c,
                 "departments_validated": departments_validated,
                 "departments_invalid": departments_invalid,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["get"], url_path="summary")
+    def summary(self, request, pk=None):
+        """Get summary statistics for the assessment period."""
+        period = self.get_object()
+
+        # Get all department assessments for this period
+        department_assessments = DepartmentKPIAssessment.objects.filter(period=period)
+
+        total_departments = department_assessments.count()
+
+        # Count using the new fields
+        departments_finished = department_assessments.filter(is_finished=True).count()
+        departments_not_finished = department_assessments.filter(is_finished=False).count()
+        departments_not_valid_control = department_assessments.filter(is_valid_unit_control=False).count()
+
+        return Response(
+            {
+                "total_departments": total_departments,
+                "departments_finished": departments_finished,
+                "departments_not_finished": departments_not_finished,
+                "departments_not_valid_control": departments_not_valid_control,
             },
             status=status.HTTP_200_OK,
         )

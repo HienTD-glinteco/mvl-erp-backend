@@ -11,7 +11,7 @@ class DepartmentKPIAssessmentFilterSet(django_filters.FilterSet):
     - department_code (exact match)
     - period (exact match by period ID)
     - month (exact match by date via period)
-    - month_year (year-month format YYYY-MM via period)
+    - month_year (year-month format n/YYYY via period)
     - grade (exact match)
     - finalized (boolean)
     - auto_assigned_to_employees (boolean)
@@ -40,16 +40,16 @@ class DepartmentKPIAssessmentFilterSet(django_filters.FilterSet):
         ]
 
     def filter_month_year(self, queryset, name, value):
-        """Filter by month in YYYY-MM format."""
+        """Filter by month in n/YYYY format (e.g., 1/2025, 12/2025)."""
         if not value:
             return queryset
 
         try:
-            # Parse YYYY-MM format
-            parts = value.split("-")
+            # Parse n/YYYY format
+            parts = value.split("/")
             if len(parts) == 2:
-                year = int(parts[0])
-                month_num = int(parts[1])
+                month_num = int(parts[0])
+                year = int(parts[1])
                 return queryset.filter(period__month__year=year, period__month__month=month_num)
         except (ValueError, IndexError):
             pass

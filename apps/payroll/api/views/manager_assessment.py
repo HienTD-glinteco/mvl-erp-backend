@@ -4,8 +4,9 @@ from rest_framework.filters import OrderingFilter
 
 from apps.payroll.api.serializers.employee_kpi_assessment import (
     ManagerAssessmentSerializer,
+    ManagerAssessmentUpdateRequestSerializer,
 )
-from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
+from apps.payroll.models import EmployeeKPIAssessment
 from apps.payroll.utils import recalculate_assessment_scores
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -28,11 +29,10 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
-                                "employee_username": "john.doe",
-                                "employee_fullname": "John Doe",
-                                "month": "2025-12-01",
+                                "period": {"id": 3, "month": "12/2025", "finalized": False},
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                                 "total_possible_score": "100.00",
+                                "total_employee_score": "88.50",
                                 "total_manager_score": "80.00",
                                 "grade_manager": "B",
                                 "plan_tasks": "Complete Q4 targets",
@@ -60,11 +60,10 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
+                        "total_employee_score": "88.50",
                         "total_manager_score": "80.00",
                         "grade_manager": "B",
                         "plan_tasks": "Complete Q4 targets",
@@ -75,11 +74,22 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "items": [
                             {
                                 "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
                                 "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
                                 "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
                                 "employee_score": "60.00",
                                 "manager_score": "58.00",
-                            }
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-01T00:00:00Z",
+                            },
                         ],
                     },
                     "error": None,
@@ -90,14 +100,37 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     ),
     partial_update=extend_schema(
         summary="Update manager assessment",
-        description="Batch update manager scores for items and manager_assessment field",
+        description="""Batch update manager scores for items and manager_assessment field.
+
+        **Request Body Format:**
+        - `manager_assessment` (string, optional): Manager's assessment comments and feedback
+        - `items` (array, optional): List of item updates with structure:
+          - `item_id` (integer): ID of the KPI item to update
+          - `score` (decimal): Manager score for that item
+
+        **Example:**
+        ```json
+        {
+            "manager_assessment": "Good performance, needs improvement in communication",
+            "items": [
+                {"item_id": 1, "score": "65.00"},
+                {"item_id": 2, "score": "28.50"},
+                {"item_id": 3, "score": "90.00"}
+            ]
+        }
+        ```
+        """,
         tags=["8.7: Manager Assessment"],
+        request=ManagerAssessmentUpdateRequestSerializer,
         examples=[
             OpenApiExample(
                 "Update Request - Batch update",
                 value={
                     "manager_assessment": "Good performance overall, needs improvement in communication",
-                    "items": {"1": "65.00", "2": "28.50"},
+                    "items": [
+                        {"item_id": 1, "score": "65.00"},
+                        {"item_id": 2, "score": "28.50"},
+                    ],
                 },
                 request_only=True,
             ),
@@ -107,11 +140,10 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12-01",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
+                        "total_employee_score": "93.50",
                         "total_manager_score": "93.50",
                         "grade_manager": "A",
                         "plan_tasks": "Complete Q4 targets",
@@ -119,7 +151,44 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "proposal": "Improve workflow",
                         "manager_assessment": "Good performance overall, needs improvement in communication",
                         "finalized": False,
-                        "items": [],
+                        "items": [
+                            {
+                                "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
+                                "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
+                                "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
+                                "employee_score": "60.00",
+                                "manager_score": "65.00",
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "assessment": 1,
+                                "criterion_id": "KPI-002",
+                                "target": None,
+                                "criterion": "Customer Satisfaction",
+                                "sub_criterion": "Survey Rating",
+                                "evaluation_type": "quantitative",
+                                "description": "Maintain high customer satisfaction",
+                                "component_total_score": "30.00",
+                                "group_number": 1,
+                                "order": 2,
+                                "employee_score": "30.00",
+                                "manager_score": "28.50",
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                        ],
                     },
                     "error": None,
                 },
@@ -140,7 +209,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
     serializer_class = ManagerAssessmentSerializer
     http_method_names = ["get", "patch"]
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["employee__username", "employee__first_name", "employee__last_name"]
+    search_fields = ["employee__username", "employee__fullname", "employee__code"]
     ordering_fields = ["period__month", "employee__username", "grade_manager", "total_manager_score"]
     ordering = ["-period__month"]
 
@@ -174,32 +243,21 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
         )
 
     def perform_update(self, serializer):
-        """Save the updated assessment and handle batch item updates."""
-        items_data = self.request.data.get("items", {})
-
-        # Check finalized status before any updates
+        """Save the updated assessment and handle batch item updates using serializer validation."""
         assessment = self.get_object()
-        if assessment.finalized:
-            from django.utils.translation import gettext as _
-            from rest_framework.exceptions import ValidationError
 
-            raise ValidationError(_("Cannot update finalized assessment"))
+        # Create request serializer with assessment context for validation
+        request_serializer = ManagerAssessmentUpdateRequestSerializer(
+            data=self.request.data, context={"assessment": assessment}
+        )
+        request_serializer.is_valid(raise_exception=True)
 
         # Update assessment fields (manager_assessment)
         assessment = serializer.save()
 
-        # Batch update items if provided
-        if items_data:
-            for item_id, score in items_data.items():
-                try:
-                    item = assessment.items.get(id=int(item_id))
-                    item.manager_score = score
-                    item.save()
-                except (EmployeeKPIItem.DoesNotExist, ValueError):
-                    continue
+        # Update items using serializer method
+        request_serializer.update_items(assessment, request_serializer.validated_data)
 
-            # Refresh assessment to get updated items, then recalculate
-            assessment.refresh_from_db()
-
-        # Always recalculate totals after any update
+        # Refresh assessment to get updated items, then recalculate
+        assessment.refresh_from_db()
         recalculate_assessment_scores(assessment)

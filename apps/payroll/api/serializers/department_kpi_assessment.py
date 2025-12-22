@@ -1,6 +1,12 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.hrm.models import Department
+from apps.payroll.api.serializers.common_nested import (
+    DepartmentNestedSerializer,
+    EmployeeNestedSerializer,
+    KPIAssessmentPeriodNestedSerializer,
+)
 from apps.payroll.models import DepartmentKPIAssessment
 
 
@@ -10,9 +16,14 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
     Provides full CRUD operations for department KPI assessments.
     """
 
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    department_code = serializers.CharField(source="department.code", read_only=True)
-    month = serializers.SerializerMethodField()
+    department = DepartmentNestedSerializer(read_only=True)
+    department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source="department",
+        write_only=True,
+    )
+    leader = EmployeeNestedSerializer(source="department.leader", read_only=True)
+    period_detail = KPIAssessmentPeriodNestedSerializer(source="period", read_only=True)
     kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
 
     class Meta:
@@ -20,10 +31,10 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "period",
+            "period_detail",
             "department",
-            "department_name",
-            "department_code",
-            "month",
+            "department_id",
+            "leader",
             "kpi_config_snapshot",
             "grade",
             "default_grade",
@@ -38,7 +49,6 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "month",
             "kpi_config_snapshot",
             "default_grade",
             "assigned_by",
@@ -48,10 +58,6 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
-    def get_month(self, obj):
-        """Return month in YYYY-MM format."""
-        return obj.period.month.strftime("%Y-%m")
 
     def validate(self, data):
         """Validate department assessment data."""
@@ -85,30 +91,22 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
 class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing department KPI assessments."""
 
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    department_code = serializers.CharField(source="department.code", read_only=True)
-    month = serializers.SerializerMethodField()
-    # kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
+    leader = EmployeeNestedSerializer(source="department.leader", read_only=True)
+    period = KPIAssessmentPeriodNestedSerializer(read_only=True)
 
     class Meta:
         model = DepartmentKPIAssessment
         fields = [
             "id",
-            "period_id",
+            "period",
             "department",
-            "department_name",
-            "department_code",
-            "month",
-            # "kpi_config_snapshot",
+            "leader",
             "grade",
             "finalized",
             "created_at",
             "updated_at",
         ]
-
-    def get_month(self, obj):
-        """Return month in YYYY-MM format."""
-        return obj.period.month.strftime("%Y-%m")
 
 
 class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):

@@ -78,6 +78,12 @@ class DepartmentKPIAssessment(BaseModel):
         help_text="Whether assessment is locked",
     )
 
+    is_finished = models.BooleanField(
+        default=False,
+        verbose_name="Is finished",
+        help_text="Whether all employees in this department have been graded",
+    )
+
     is_valid_unit_control = models.BooleanField(
         default=True, verbose_name="Is valid unit control", help_text="This department valid unit control or not"
     )
