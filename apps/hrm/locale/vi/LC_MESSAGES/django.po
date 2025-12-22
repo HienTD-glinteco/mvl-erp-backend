@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 13:58+0700\n"
+"POT-Creation-Date: 2025-12-22 15:21+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -496,7 +496,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/recruitment_expense.py:342
 #: apps/hrm/api/views/recruitment_request.py:391
 #: apps/hrm/api/views/recruitment_source.py:57
-#: apps/hrm/api/views/timesheet.py:55 apps/hrm/api/views/timesheet.py:282
+#: apps/hrm/api/views/timesheet.py:57 apps/hrm/api/views/timesheet.py:360
 msgid "HRM"
 msgstr "HCNS"
 
@@ -2191,44 +2191,49 @@ msgstr ""
 "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
 "mới có thể bị xóa."
 
-#: apps/hrm/api/views/timesheet.py:56
-msgid "Employee timesheet"
-msgstr "Bảng công"
-
-#: apps/hrm/api/views/timesheet.py:60 apps/hrm/api/views/timesheet.py:61
-msgid "List employee timesheets"
-msgstr "Bảng công"
-
-#: apps/hrm/api/views/timesheet.py:64 apps/hrm/api/views/timesheet.py:65
-#: apps/hrm/api/views/timesheet.py:291 apps/hrm/api/views/timesheet.py:292
-msgid "Get employee timesheet details"
-msgstr "Chi tiết bảng công nhân viên"
-
-#: apps/hrm/api/views/timesheet.py:68
-msgid "History timesheets"
-msgstr "Lịch sử bảng công"
-
-#: apps/hrm/api/views/timesheet.py:69
-msgid "View history of timesheets"
-msgstr "Xem lịch sử thay đổi bảng công"
-
-#: apps/hrm/api/views/timesheet.py:72
-msgid "History detail of timesheets"
-msgstr "Xem chi tiết lịch sử bảng công"
-
-#: apps/hrm/api/views/timesheet.py:73
-msgid "View history detail of timesheets"
-msgstr "Xem chi tiết lịch sử bảng công"
-
-#: apps/hrm/api/views/timesheet.py:153
-msgid "Month filter cannot be in the future."
-msgstr "Bộ lọc tháng không thể ở tương lai."
-
-#: apps/hrm/api/views/timesheet.py:283 apps/hrm/models/timesheet.py:106
+#: apps/hrm/api/views/timesheet.py:58 apps/hrm/api/views/timesheet.py:361
+#: apps/hrm/models/timesheet.py:106
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/api/views/timesheet.py:287 apps/hrm/api/views/timesheet.py:288
+#: apps/hrm/api/views/timesheet.py:62 apps/hrm/api/views/timesheet.py:63
+msgid "List employee timesheets"
+msgstr "Bảng công"
+
+#: apps/hrm/api/views/timesheet.py:66 apps/hrm/api/views/timesheet.py:67
+#: apps/hrm/api/views/timesheet.py:369 apps/hrm/api/views/timesheet.py:370
+msgid "Get employee timesheet details"
+msgstr "Chi tiết bảng công nhân viên"
+
+#: apps/hrm/api/views/timesheet.py:70
+msgid "History timesheets"
+msgstr "Lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:71
+msgid "View history of timesheets"
+msgstr "Xem lịch sử thay đổi bảng công"
+
+#: apps/hrm/api/views/timesheet.py:74
+msgid "History detail of timesheets"
+msgstr "Xem chi tiết lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:75
+msgid "View history detail of timesheets"
+msgstr "Xem chi tiết lịch sử bảng công"
+
+#: apps/hrm/api/views/timesheet.py:78 apps/hrm/api/views/timesheet.py:79
+msgid "List timesheets of current employee"
+msgstr "Liệt kê bảng chấm công của nhân viên hiện tại"
+
+#: apps/hrm/api/views/timesheet.py:165
+msgid "The current user is not associated with any employee."
+msgstr "Người dùng hiện tại không liên kết với bất kỳ nhân viên nào."
+
+#: apps/hrm/api/views/timesheet.py:231
+msgid "Month filter cannot be in the future."
+msgstr "Bộ lọc tháng không thể ở tương lai."
+
+#: apps/hrm/api/views/timesheet.py:365 apps/hrm/api/views/timesheet.py:366
 msgid "List employee timesheet entries"
 msgstr "Danh sách ngày công nhân viên"
 

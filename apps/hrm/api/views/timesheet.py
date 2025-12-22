@@ -4,19 +4,21 @@ from datetime import date, timedelta
 from typing import Any, Iterable
 
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
+    OpenApiParameter,
     extend_schema,
     extend_schema_view,
 )
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.hrm.api.filtersets.timesheet import EmployeeTimesheetFilterSet
+from apps.hrm.api.filtersets import EmployeeTimesheetFilterSet, MineTimesheetFilterSet
 from apps.hrm.api.serializers.timesheet import (
     EmployeeTimesheetSerializer,
     TimeSheetEntryDetailSerializer,
@@ -25,7 +27,7 @@ from apps.hrm.constants import EmployeeSalaryType, ProposalStatus, ProposalType
 from apps.hrm.models import Employee, ProposalTimeSheetEntry
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
-from libs import BaseReadOnlyModelViewSet
+from libs.drf.base_viewset import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
 
@@ -53,7 +55,7 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ordering = "fullname"
 
     module = _("HRM")
-    submodule = _("Employee timesheet")
+    submodule = _("Timesheet")
     permission_prefix = "timesheet"
     PERMISSION_REGISTERED_ACTIONS = {
         "list": {
@@ -71,6 +73,10 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
         "history_detail": {
             "name_template": _("History detail of timesheets"),
             "description_template": _("View history detail of timesheets"),
+        },
+        "mine": {
+            "name_template": _("List timesheets of current employee"),
+            "description_template": _("List timesheets of current employee"),
         },
     }
 
@@ -132,9 +138,81 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
         return Response(serialized)
 
+    @extend_schema(
+        summary="List timesheets of current employee",
+        description=("Retrieve timesheet summaries for current employee."),
+        tags=["6.6: Timesheet - For Mobile"],
+        parameters=[
+            OpenApiParameter(
+                name="month",
+                description="Month in MM/YYYY format, e.g. 03/2025",
+                required=False,
+                type=str,
+            ),
+        ],
+        responses={
+            200: EmployeeTimesheetSerializer,
+        },
+    )
+    @action(detail=False, methods=["get"], url_path="mine", filterset_class=MineTimesheetFilterSet)
+    def mine(self, request, *args, **kwargs):
+        employee = getattr(request.user, "employee", None)
+        if not employee:
+            return Response(
+                {
+                    "success": False,
+                    "data": None,
+                    "error": _("The current user is not associated with any employee."),
+                },
+                status=400,
+            )
+
+        # Determine month/year from filterset (fallback to current month)
+        first_day, last_day, month_key, __ = self._get_timesheet_params(request)
+
+        # Bulk fetch TimeSheetEntries for the set of employees to avoid N+1 queries
+        all_entries = TimeSheetEntry.objects.filter(
+            employee=employee,
+            date__range=(first_day, last_day),
+        ).order_by("employee_id", "date")
+
+        entries_by_employee = defaultdict(list)
+        all_entries_ids = []
+        for e in all_entries:
+            entries_by_employee[e.employee_id].append(e)
+            all_entries_ids.append(e.id)
+
+        # Identify which timesheet entries have complaints
+        complaint_entry_ids = set(
+            ProposalTimeSheetEntry.objects.filter(
+                timesheet_entry_id__in=all_entries_ids,
+                proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+                proposal__proposal_status=ProposalStatus.PENDING,
+            )
+            .values_list("timesheet_entry_id", flat=True)
+            .distinct()
+        )
+
+        # Bulk fetch monthly timesheets for the given month_key and map to employees
+        monthly_qs = EmployeeMonthlyTimesheet.objects.filter(employee=employee, month_key=month_key)
+        monthly_map = {m.employee_id: m for m in monthly_qs}
+
+        entries = entries_by_employee.get(employee.id, [])
+        monthly = monthly_map.get(employee.id)
+        payload = self._prepare_employee_data(
+            employee, entries, monthly, first_day, last_day, complaint_entry_ids=complaint_entry_ids
+        )
+
+        # Serialize the results to ensure Decimal fields are handled and types match
+        context = self.get_serializer_context()
+        context["complaint_entry_ids"] = complaint_entry_ids
+        serialized = EmployeeTimesheetSerializer(payload, context=context).data
+
+        return Response(serialized)
+
     def _get_timesheet_params(self, request):
         # Determine month/year from filterset (fallback to current month)
-        filterset = EmployeeTimesheetFilterSet(data=request.GET)
+        filterset = self.filterset_class(data=request.GET)
         if filterset.is_valid():
             cleaned_params = filterset.form.cleaned_data
         else:
