@@ -14,7 +14,12 @@ from .employee import EmployeeViewSet
 from .employee_certificate import EmployeeCertificateViewSet
 from .employee_dependent import EmployeeDependentViewSet
 from .employee_relationship import EmployeeRelationshipViewSet
-from .employee_reports import EmployeeReportsViewSet, EmployeeSeniorityReportViewSet
+from .employee_reports import (
+    EmployeeReportsViewSet,
+    EmployeeSeniorityReportViewSet,
+    EmployeeTypeConversionReportSerializer,
+    EmployeeTypeConversionReportViewSet,
+)
 from .employee_role import EmployeeRoleViewSet
 from .employee_work_history import EmployeeWorkHistoryViewSet
 from .holiday import CompensatoryWorkdayViewSet, HolidayViewSet
@@ -69,6 +74,8 @@ __all__ = [
     "PositionViewSet",
     "EmployeeReportsViewSet",
     "EmployeeSeniorityReportViewSet",
+    "EmployeeTypeConversionReportSerializer",
+    "EmployeeTypeConversionReportViewSet",
     "EmployeeRoleViewSet",
     "EmployeeViewSet",
     "EmployeeCertificateViewSet",

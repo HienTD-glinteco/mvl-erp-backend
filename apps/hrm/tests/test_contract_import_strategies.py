@@ -74,7 +74,10 @@ class TestContractImportStrategies:
             phone="0900000001",
         )
 
-        # Reconnect if necessary, but typically fine for test scope.
+        yield
+
+        # Reconnect the signal after tests to ensure other tests are not affected
+        post_save.connect(create_user_for_employee, sender=Employee)
 
     # --- Group 1: Creation ---
 

@@ -220,6 +220,8 @@ def create_employee_type_change_event(
         detail=detail,
         previous_data=previous_data,
         decision=decision,
+        old_employee_type=old_employee_type,
+        new_employee_type=new_employee_type,
     )
 
 

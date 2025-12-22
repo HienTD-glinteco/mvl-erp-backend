@@ -1,10 +1,24 @@
-from datetime import date, time
+from datetime import date, datetime, time
+from decimal import Decimal
 
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 
-from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.core.models import AdministrativeUnit, Province, User
+from apps.hrm.api.serializers.proposal import (
+    ProposalExportXLSXSerializer,
+    ProposalJobTransferExportXLSXSerializer,
+    ProposalLateExemptionExportXLSXSerializer,
+    ProposalMaternityLeaveExportXLSXSerializer,
+    ProposalPaidLeaveExportXLSXSerializer,
+)
+from apps.hrm.api.views.proposal import (
+    ProposalLateExemptionViewSet,
+    ProposalPaidLeaveViewSet,
+)
+from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetStatus
 from apps.hrm.models import (
     Block,
     Branch,
@@ -12,6 +26,8 @@ from apps.hrm.models import (
     Employee,
     Position,
     Proposal,
+    ProposalAsset,
+    ProposalOvertimeEntry,
     ProposalTimeSheetEntry,
     ProposalVerifier,
     TimeSheetEntry,
@@ -174,8 +190,6 @@ def has_error_for_field(error_response: dict, field_name: str) -> bool:
 @pytest.fixture
 def test_employee(db):
     """Create a test employee for proposal tests."""
-    from apps.core.models import AdministrativeUnit, Province
-
     province = Province.objects.create(name="Test Province", code="TP_EXPORT")
     admin_unit = AdministrativeUnit.objects.create(
         parent_province=province,
@@ -425,8 +439,6 @@ class TestProposalAPI:
     def test_retrieve_proposal_approved_by_includes_employee_data(self, api_client, superuser, test_employee):
         """Test that approved_by includes employee nested data when proposal is approved."""
         # Create a second employee to act as approver
-        from apps.hrm.models import Employee
-
         approver = Employee.objects.create(
             code="MV_PROP_002",
             fullname="Approver Employee",
@@ -492,8 +504,6 @@ class TestProposalAPI:
 
     def test_filter_by_created_by(self, api_client, superuser, test_employee):
         """Test filtering proposals by created_by employee ID."""
-        from apps.core.models import AdministrativeUnit, Province
-
         # Create another employee
         province = Province.objects.create(name="Other Province", code="OP")
         admin_unit = AdministrativeUnit.objects.create(
@@ -553,8 +563,6 @@ class TestProposalAPI:
 
     def test_filter_by_created_by_department(self, api_client, superuser, test_employee):
         """Test filtering proposals by creator's department ID."""
-        from apps.core.models import AdministrativeUnit, Province
-
         # Create another employee in a different department
         province = Province.objects.create(name="Dept Province", code="DP")
         admin_unit = AdministrativeUnit.objects.create(
@@ -613,8 +621,6 @@ class TestProposalAPI:
 
     def test_filter_by_created_by_branch(self, api_client, superuser, test_employee):
         """Test filtering proposals by creator's branch ID."""
-        from apps.core.models import AdministrativeUnit, Province
-
         # Create another employee in a different branch
         province = Province.objects.create(name="Branch Province", code="BP")
         admin_unit = AdministrativeUnit.objects.create(
@@ -673,8 +679,6 @@ class TestProposalAPI:
 
     def test_filter_by_created_by_block(self, api_client, superuser, test_employee):
         """Test filtering proposals by creator's block ID."""
-        from apps.core.models import AdministrativeUnit, Province
-
         # Create another employee in a different block
         province = Province.objects.create(name="Block Province", code="BLP")
         admin_unit = AdministrativeUnit.objects.create(
@@ -733,8 +737,6 @@ class TestProposalAPI:
 
     def test_filter_by_created_by_position(self, api_client, superuser, test_employee):
         """Test filtering proposals by creator's position ID."""
-        from apps.core.models import AdministrativeUnit, Province
-
         # Create another employee with a different position
         province = Province.objects.create(name="Position Province", code="PP")
         admin_unit = AdministrativeUnit.objects.create(
@@ -1073,10 +1075,12 @@ class TestTimesheetEntryComplaintProposalAPI:
 
     def test_approve_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
         """Test that approved_by is set to the current user's employee when approving."""
-        from rest_framework.test import APIClient
-
+        approver_user = User.objects.create_user(
+            username="approver_user", password="testpassword", email="approver_user@email.com", is_superuser=True
+        )
         # Create a user with an associated employee (the approver)
         approver_employee = Employee.objects.create(
+            user=approver_user,
             code="MV_APPROVER_001",
             fullname="Approver Employee",
             username="user_approver_001",
@@ -1091,10 +1095,8 @@ class TestTimesheetEntryComplaintProposalAPI:
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
         )
-        approver_user = approver_employee.user
+
         # Grant superuser permission to bypass RoleBasedPermission checks
-        approver_user.is_superuser = True
-        approver_user.save()
 
         # Create a proposal
         proposal = Proposal.objects.create(
@@ -1103,6 +1105,17 @@ class TestTimesheetEntryComplaintProposalAPI:
             timesheet_entry_complaint_complaint_reason="Wrong time",
             proposal_status=ProposalStatus.PENDING,
             created_by=test_employee,
+        )
+
+        # Create a linked timesheet entry to avoid ProposalExecutionError
+        ts_entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date.today(),
+            status=TimesheetStatus.ON_TIME,
+        )
+        ProposalTimeSheetEntry.objects.create(
+            proposal=proposal,
+            timesheet_entry=ts_entry,
         )
 
         # Use a client authenticated as the approver_user (who has an employee)
@@ -1148,10 +1161,13 @@ class TestTimesheetEntryComplaintProposalAPI:
 
     def test_reject_complaint_sets_approved_by_when_user_has_employee(self, api_client, test_employee):
         """Test that approved_by is set to the current user's employee when rejecting."""
-        from rest_framework.test import APIClient
+        rejecter_user = User.objects.create_user(
+            username="rejecter_user", password="testpassword", email="rejecter_user@email.com", is_superuser=True
+        )
 
         # Create a user with an associated employee (the rejecter)
         rejecter_employee = Employee.objects.create(
+            user=rejecter_user,
             code="MV_REJECTER_001",
             fullname="Rejecter Employee",
             username="user_rejecter_001",
@@ -1166,10 +1182,6 @@ class TestTimesheetEntryComplaintProposalAPI:
             start_date=date(2020, 1, 1),
             status=Employee.Status.ACTIVE,
         )
-        rejecter_user = rejecter_employee.user
-        # Grant superuser permission to bypass RoleBasedPermission checks
-        rejecter_user.is_superuser = True
-        rejecter_user.save()
 
         # Create a proposal
         proposal = Proposal.objects.create(
@@ -1565,12 +1577,6 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
     @pytest.fixture
     def timesheet_entry(self, db, test_employee):
         """Create a test timesheet entry for the test employee."""
-        from datetime import datetime
-        from decimal import Decimal
-
-        from apps.hrm.constants import TimesheetStatus
-        from apps.hrm.models import TimeSheetEntry
-
         entry = TimeSheetEntry(
             employee=test_employee,
             date=date.today(),
@@ -1587,8 +1593,6 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         self, api_client, superuser, test_employee, timesheet_entry
     ):
         """Test that listing complaint proposals includes the linked timesheet entry ID."""
-        from apps.hrm.models import ProposalTimeSheetEntry
-
         # Create complaint proposal
         proposal = Proposal.objects.create(
             code="DX_TS_001",
@@ -1619,7 +1623,6 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
         self, api_client, superuser, test_employee, timesheet_entry
     ):
         """Test that retrieving a complaint proposal includes the linked timesheet entry ID."""
-        from apps.hrm.models import ProposalTimeSheetEntry
 
         # Create complaint proposal
         proposal = Proposal.objects.create(
@@ -1664,8 +1667,6 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
 
     def test_approve_complaint_returns_timesheet_entry_id(self, api_client, superuser, test_employee, timesheet_entry):
         """Test that approving a complaint proposal returns the linked timesheet entry ID in response."""
-        from apps.hrm.models import ProposalTimeSheetEntry
-
         # Create complaint proposal
         proposal = Proposal.objects.create(
             code="DX_TS_004",
@@ -1695,8 +1696,6 @@ class TestTimesheetEntryComplaintWithTimesheetEntry:
 
     def test_reject_complaint_returns_timesheet_entry_id(self, api_client, superuser, test_employee, timesheet_entry):
         """Test that rejecting a complaint proposal returns the linked timesheet entry ID in response."""
-        from apps.hrm.models import ProposalTimeSheetEntry
-
         # Create complaint proposal
         proposal = Proposal.objects.create(
             code="DX_TS_005",
@@ -1884,8 +1883,6 @@ class TestOvertimeWorkProposalAPI:
 
     def test_list_overtime_work_proposals(self, api_client, superuser, test_employee):
         """Test listing overtime work proposals only shows overtime work type."""
-        from apps.hrm.models import ProposalOvertimeEntry
-
         proposal = Proposal.objects.create(
             code="DX_OT_001",
             proposal_type=ProposalType.OVERTIME_WORK,
@@ -2096,8 +2093,6 @@ class TestAssetAllocationProposalAPI:
 
     def test_list_asset_allocation_proposals(self, api_client, superuser, test_employee):
         """Test listing asset allocation proposals only shows the correct type."""
-        from apps.hrm.models import ProposalAsset
-
         proposal = Proposal.objects.create(
             code="DX_AA_001",
             proposal_type=ProposalType.ASSET_ALLOCATION,
@@ -2128,8 +2123,6 @@ class TestAssetAllocationProposalAPI:
 
     def test_retrieve_asset_allocation_proposal_includes_assets(self, api_client, superuser, test_employee):
         """Test retrieving an asset allocation proposal includes the assets."""
-        from apps.hrm.models import ProposalAsset
-
         proposal = Proposal.objects.create(
             code="DX_AA_002",
             proposal_type=ProposalType.ASSET_ALLOCATION,
@@ -2270,8 +2263,6 @@ class TestProposalExportXLSX:
 
     def test_export_serializer_fields(self):
         """Test that export serializer includes correct base fields."""
-        from apps.hrm.api.serializers.proposal import ProposalExportXLSXSerializer
-
         serializer = ProposalExportXLSXSerializer()
         field_names = list(serializer.fields.keys())
 
@@ -2291,7 +2282,6 @@ class TestProposalExportXLSX:
 
     def test_late_exemption_export_serializer_fields(self):
         """Test that late exemption export serializer includes type-specific fields."""
-        from apps.hrm.api.serializers.proposal import ProposalLateExemptionExportXLSXSerializer
 
         serializer = ProposalLateExemptionExportXLSXSerializer()
         field_names = list(serializer.fields.keys())
@@ -2307,8 +2297,6 @@ class TestProposalExportXLSX:
 
     def test_paid_leave_export_serializer_fields(self):
         """Test that paid leave export serializer includes type-specific fields."""
-        from apps.hrm.api.serializers.proposal import ProposalPaidLeaveExportXLSXSerializer
-
         serializer = ProposalPaidLeaveExportXLSXSerializer()
         field_names = list(serializer.fields.keys())
 
@@ -2324,8 +2312,6 @@ class TestProposalExportXLSX:
 
     def test_job_transfer_export_serializer_fields(self):
         """Test that job transfer export serializer includes type-specific fields."""
-        from apps.hrm.api.serializers.proposal import ProposalJobTransferExportXLSXSerializer
-
         serializer = ProposalJobTransferExportXLSXSerializer()
         field_names = list(serializer.fields.keys())
 
@@ -2343,8 +2329,6 @@ class TestProposalExportXLSX:
 
     def test_maternity_leave_export_serializer_fields(self):
         """Test that maternity leave export serializer includes type-specific fields."""
-        from apps.hrm.api.serializers.proposal import ProposalMaternityLeaveExportXLSXSerializer
-
         serializer = ProposalMaternityLeaveExportXLSXSerializer()
         field_names = list(serializer.fields.keys())
 
@@ -2361,15 +2345,6 @@ class TestProposalExportXLSX:
 
     def test_viewset_uses_export_serializer_for_export_action(self):
         """Test that ViewSet uses correct export serializer for export action."""
-        from apps.hrm.api.serializers.proposal import (
-            ProposalLateExemptionExportXLSXSerializer,
-            ProposalPaidLeaveExportXLSXSerializer,
-        )
-        from apps.hrm.api.views.proposal import (
-            ProposalLateExemptionViewSet,
-            ProposalPaidLeaveViewSet,
-        )
-
         # Test late exemption viewset
         late_exemption_viewset = ProposalLateExemptionViewSet()
         late_exemption_viewset.action = "export"

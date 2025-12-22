@@ -112,6 +112,7 @@ class EmployeeModelTest(TestCase):
             department=self.department,
             citizen_id="123456789",
         )
+
         self.assertTrue(employee.code.startswith("MV"))
         self.assertEqual(employee.fullname, "John Doe")
         self.assertEqual(employee.username, "johndoe")

@@ -26,6 +26,7 @@ from apps.hrm.api.views import (
     EmployeeRoleViewSet,
     EmployeeSeniorityReportViewSet,
     EmployeeTimesheetViewSet,
+    EmployeeTypeConversionReportViewSet,
     EmployeeViewSet,
     EmployeeWorkHistoryViewSet,
     HolidayViewSet,
@@ -163,6 +164,11 @@ router.register(r"proposals", ProposalViewSet, basename="proposal")
 router.register(r"reports", EmployeeReportsViewSet, basename="employee-reports")
 router.register(
     r"reports/employee-seniority-report", EmployeeSeniorityReportViewSet, basename="employee-seniority-reports"
+)
+router.register(
+    r"reports/employee-type-conversion-report",
+    EmployeeTypeConversionReportViewSet,
+    basename="employee-type-conversion-reports",
 )
 router.register(r"reports", RecruitmentReportsViewSet, basename="recruitment-reports")
 
