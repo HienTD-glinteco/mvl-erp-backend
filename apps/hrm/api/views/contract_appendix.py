@@ -246,7 +246,14 @@ class ContractAppendixViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLo
     serializer_class = ContractAppendixSerializer
     filterset_class = ContractAppendixFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["code", "contract_number", "parent_contract__code", "employee__fullname"]
+    search_fields = [
+        "code",
+        "contract_number",
+        "parent_contract__code",
+        "parent_contract__contract_number",
+        "employee__fullname",
+        "employee__code",
+    ]
     ordering_fields = [
         "code",
         "contract_number",
