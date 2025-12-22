@@ -8,7 +8,7 @@ class KPIAssessmentPeriodGenerateSerializer(serializers.Serializer):
 
     month = serializers.CharField(
         max_length=7,
-        help_text="Month in YYYY-MM format (e.g., 2025-12)",
+        help_text="Month in n/YYYY format (e.g., 1/2025, 12/2025)",
     )
 
 
@@ -17,7 +17,7 @@ class KPIAssessmentPeriodGenerateResponseSerializer(serializers.Serializer):
 
     message = serializers.CharField(help_text="Success message")
     period_id = serializers.IntegerField(help_text="ID of the created/existing period")
-    month = serializers.CharField(help_text="Month of the period in YYYY-MM format")
+    month = serializers.CharField(help_text="Month of the period in n/YYYY format")
     employee_assessments_created = serializers.IntegerField(help_text="Number of employee assessments created")
     department_assessments_created = serializers.IntegerField(help_text="Number of department assessments created")
 
@@ -66,7 +66,6 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
-            "month",
             "created_by",
             "updated_by",
             "created_at",
@@ -74,8 +73,8 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
         ]
 
     def get_month(self, obj):
-        """Return month in YYYY-MM format."""
-        return obj.month.strftime("%Y-%m")
+        """Return month in n/YYYY format (month without leading zero)."""
+        return obj.month.strftime("%-m/%Y")
 
 
 class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
@@ -105,8 +104,8 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
         ]
 
     def get_month(self, obj):
-        """Return month in YYYY-MM format."""
-        return obj.month.strftime("%Y-%m")
+        """Return month in n/YYYY format (month without leading zero)."""
+        return obj.month.strftime("%-m/%Y")
 
     def get_employee_count(self, obj):
         """Get count of employee assessments in this period."""

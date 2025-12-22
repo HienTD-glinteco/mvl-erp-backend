@@ -1,31 +1,19 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from apps.hrm.models import Employee
+from apps.payroll.api.serializers.common_nested import (
+    EmployeeNestedSerializer,
+    KPIAssessmentPeriodNestedSerializer,
+)
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 
 
 class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
     """Base serializer for EmployeeKPIAssessment with common fields and methods."""
 
-    employee_username = serializers.CharField(source="employee.username", read_only=True)
-    employee_fullname = serializers.SerializerMethodField()
-    month = serializers.SerializerMethodField()
-
-    def get_month(self, obj):
-        """Return month in YYYY-MM format."""
-        return obj.period.month.strftime("%Y-%m")
-
-    def get_employee_fullname(self, obj):
-        """Get employee full name if available."""
-        try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.filter(username=obj.employee.username).first()
-            if employee:
-                return employee.fullname
-        except (ImportError, AttributeError):
-            pass
-        return obj.employee.get_full_name()
+    employee = EmployeeNestedSerializer(read_only=True)
+    period = KPIAssessmentPeriodNestedSerializer(read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -136,6 +124,11 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     """
 
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
+    employee_id = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        source="employee",
+        write_only=True,
+    )
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -143,9 +136,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
+            "employee_id",
             "total_possible_score",
             "total_manager_score",
             "grade_manager",
@@ -165,7 +156,6 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         ]
         read_only_fields = [
             "id",
-            "month",
             "total_possible_score",
             "total_manager_score",
             "grade_manager",
@@ -213,9 +203,6 @@ class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
             "kpi_config_snapshot",
             "total_possible_score",
             "total_manager_score",
@@ -263,9 +250,6 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
             "total_possible_score",
             "grade_manager",
             "plan_tasks",
@@ -278,9 +262,6 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
             "total_possible_score",
             "grade_manager",
             "finalized",
@@ -311,9 +292,6 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -329,9 +307,6 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
-            "employee_username",
-            "employee_fullname",
-            "month",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",

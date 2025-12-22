@@ -140,7 +140,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
     serializer_class = ManagerAssessmentSerializer
     http_method_names = ["get", "patch"]
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
-    search_fields = ["employee__username", "employee__first_name", "employee__last_name"]
+    search_fields = ["employee__username", "employee__fullname", "employee__code"]
     ordering_fields = ["period__month", "employee__username", "grade_manager", "total_manager_score"]
     ordering = ["-period__month"]
 
