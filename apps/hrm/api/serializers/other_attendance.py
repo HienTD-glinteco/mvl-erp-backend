@@ -19,9 +19,9 @@ class OtherAttendanceSerializer(FileConfirmSerializerMixin, serializers.ModelSer
         max_digits=20, decimal_places=17, min_value=-180, max_value=180, required=True
     )
     description = serializers.CharField(required=True)
-    image_id = serializers.IntegerField(required=True)
 
-    file_confirm_fields = ["image_id"]
+    file_confirm_fields = ["image"]
+    file_required_fields = ["image"]
 
     class Meta:
         model = AttendanceRecord
@@ -30,7 +30,7 @@ class OtherAttendanceSerializer(FileConfirmSerializerMixin, serializers.ModelSer
             "latitude",
             "longitude",
             "description",
-            "image_id",
+            "image",
         ]
 
     def validate(self, attrs):

@@ -1,12 +1,16 @@
 """Tests for ContractType model and API."""
 
+import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework import status
 
+from apps.files.constants import CACHE_KEY_PREFIX
 from apps.hrm.models import ContractType
 
 
@@ -112,8 +116,6 @@ class TestContractTypeModel:
 
     def test_contract_type_unique_name(self, contract_type):
         """Test that contract type name is unique."""
-        from django.db import IntegrityError
-
         with pytest.raises(IntegrityError):
             ContractType.objects.create(
                 name="Test Contract Type",  # Duplicate name
@@ -150,8 +152,6 @@ class TestContractTypeModel:
 
     def test_annual_leave_days_max_validation(self, db):
         """Test that annual leave days cannot exceed 12."""
-        from django.core.exceptions import ValidationError
-
         with pytest.raises(ValidationError):
             contract_type = ContractType(
                 name="Invalid Leave Days",
@@ -451,16 +451,12 @@ class TestContractTypeAPI:
         db,
     ):
         """Test creating a contract type with template file using FileConfirmSerializerMixin."""
-        import json
-
-        from apps.files.constants import CACHE_KEY_PREFIX
-
         # Setup file token
         file_token = "test-template-token-001"
         cache_data = {}
 
-        def cache_get_side_effect(key):
-            return cache_data.get(key)
+        def cache_get_side_effect(key, default=None, version=None):
+            return cache_data.get(key, default)
 
         def cache_delete_side_effect(key):
             if key in cache_data:
