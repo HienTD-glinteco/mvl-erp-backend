@@ -473,6 +473,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/bank.py:102 apps/hrm/api/views/bank_account.py:60
 #: apps/hrm/api/views/contract.py:309
 #: apps/hrm/api/views/contract_appendix.py:268
+#: apps/hrm/api/views/contract_appendix.py:261
 #: apps/hrm/api/views/contract_type.py:264 apps/hrm/api/views/decision.py:245
 #: apps/hrm/api/views/employee.py:98
 #: apps/hrm/api/views/employee_certificate.py:300
@@ -518,6 +519,8 @@ msgstr "Quản lý Hợp Đồng"
 #: apps/hrm/api/views/contract.py:314 apps/hrm/api/views/contract.py:315
 #: apps/hrm/api/views/contract_appendix.py:273
 #: apps/hrm/api/views/contract_appendix.py:274
+#: apps/hrm/api/views/contract_appendix.py:266
+#: apps/hrm/api/views/contract_appendix.py:267
 #, python-brace-format
 msgid "Publish {model_name}"
 msgstr "Ban hành {model_name}"
@@ -3766,11 +3769,11 @@ msgstr "Token xác thực không hợp lệ do thiếu device_id"
 msgid "Token does not contain device_id."
 msgstr "Token không chứa device_id"
 
-#: apps/hrm/utils/attendance_validation.py:33
+#: apps/hrm/utils/attendance_validation.py:38
 msgid "User device not found."
 msgstr "Không tìm thấy thiết bị."
 
-#: apps/hrm/utils/attendance_validation.py:37
+#: apps/hrm/utils/attendance_validation.py:42
 msgid "Attendance is only allowed from mobile devices."
 msgstr "Chức năng điểm danh chỉ được cho phép thực hiện trên thiết bị di động"
 

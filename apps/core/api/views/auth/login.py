@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -9,8 +10,13 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from apps.audit_logging import LogAction, log_audit_event
+from apps.core.api.authentication import get_request_client
 from apps.core.api.serializers.auth import LoginSerializer
-from apps.core.api.serializers.auth.responses import LoginResponseSerializer
+from apps.core.utils.jwt import revoke_user_outstanding_tokens
+from apps.notifications.models import Notification
+from apps.notifications.utils import create_notification
+from libs.request_utils import UNKNOWN_IP, get_client_ip, get_user_agent
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +27,9 @@ class LoginRateThrottle(AnonRateThrottle):
 
 
 class LoginView(APIView):
-    """
-    API endpoint for user login with username and password.
+    """API endpoint for user login with username and password.
 
-    After successful credential verification, sends OTP to user's email.
+    Issues JWT tokens immediately (no OTP step).
     """
 
     permission_classes = [AllowAny]
@@ -33,31 +38,47 @@ class LoginView(APIView):
 
     @extend_schema(
         summary="Login with username and password",
-        description="Authenticate login credentials and send OTP code via email",
+        description="Authenticate login credentials and return JWT tokens.",
         responses={
-            200: LoginResponseSerializer,
+            200: OpenApiResponse(description="Login success"),
             400: OpenApiResponse(description="Invalid login credentials"),
+            403: OpenApiResponse(description="Web access is not allowed for this role"),
+            409: OpenApiResponse(description="Device conflict"),
             429: OpenApiResponse(description="Too many login requests"),
-            500: OpenApiResponse(description="System error while sending OTP"),
         },
         tags=["1.1: Auth"],
         examples=[
             OpenApiExample(
-                "Login request",
-                description="Example login request",
-                value={"username": "admin", "password": "SecurePassword123!"},
+                "Web login request",
+                value={"username": "manager01", "password": "SecurePassword123!", "device_id": "web-device-abc"},
                 request_only=True,
             ),
             OpenApiExample(
-                "Login success - OTP sent",
-                description="Success response when OTP is sent to email",
+                "Mobile login request",
+                value={
+                    "username": "employee01",
+                    "password": "SecurePassword123!",
+                    "device_id": "mobile-device-001",
+                    "platform": "android",
+                    "push_token": "push-token-001",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Login success",
                 value={
                     "success": True,
                     "data": {
-                        "message": "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login.",
-                        "username": "admin",
-                        "email_hint": "adm***@example.com",
+                        "message": "Login successful.",
+                        "user": {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "username": "manager01",
+                            "email": "manager01@example.com",
+                            "full_name": "Manager User",
+                        },
+                        "tokens": {"access": "<access.jwt>", "refresh": "<refresh.jwt>"},
                     },
+                    "error": None,
                 },
                 response_only=True,
             ),
@@ -78,31 +99,64 @@ class LoginView(APIView):
         ],
     )
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+        client = get_request_client(request)
+        serializer = LoginSerializer(data=request.data, context={"client": client})
+        serializer.is_valid(raise_exception=True)
 
-        if serializer.is_valid():
-            user = serializer.validated_data["user"]
+        user = serializer.validated_data["user"]
 
-            # Send OTP email
-            if serializer.send_otp_email(user):
-                logger.info(f"Login attempt successful for user {user.username}, OTP sent")
-                response_data = {
-                    "message": _(
-                        "OTP code has been sent to your email. Please check your email and enter the OTP code to complete login."
-                    ),
-                    "username": user.username,
-                    "email_hint": f"{user.email[:3]}***@{user.email.split('@')[1]}",
-                }
-                return Response(response_data, status=status.HTTP_200_OK)
-            else:
-                logger.error(f"Failed to send OTP email for user {user.username}")
-                return Response(
-                    {"message": _("Unable to send OTP code. Please try again later.")},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+        if client == "web" and getattr(getattr(user, "role", None), "code", None) == settings.HRM_EMPLOYEE_ROLE_CODE:
+            return Response(
+                {"detail": _("Web access is not allowed for this role.")},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        logger.warning(f"Invalid login attempt: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        revoked = revoke_user_outstanding_tokens(user)
+        if revoked:
+            logger.info("Revoked %s previous refresh token(s) for user %s", revoked, user.username)
+
+        tokens = serializer.get_tokens(user, client=client)
+
+        try:
+            modified_object = user.employee
+        except Exception:
+            modified_object = None
+
+        log_audit_event(
+            action=LogAction.LOGIN,
+            modified_object=modified_object,
+            user=user,
+            request=request,
+            change_message=f"User {user.username} logged in successfully",
+        )
+
+        ip_address = get_client_ip(request) or UNKNOWN_IP
+        user_agent = get_user_agent(request)
+        login_message = _("Your account was logged in from IP address: {ip_address}").format(ip_address=ip_address)
+
+        create_notification(
+            actor=user,
+            recipient=user,
+            verb=_("logged in"),
+            message=login_message,
+            extra_data={
+                "ip_address": ip_address,
+                "user_agent": user_agent,
+            },
+            delivery_method=Notification.DeliveryMethod.FIREBASE,
+        )
+
+        response_data = {
+            "message": _("Login successful."),
+            "user": {
+                "id": str(user.id),
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.get_full_name(),
+            },
+            "tokens": tokens,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def check_throttles(self, request):
         """

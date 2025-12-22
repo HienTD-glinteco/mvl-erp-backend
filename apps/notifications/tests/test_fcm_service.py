@@ -43,7 +43,6 @@ class TestFCMService:
             user=recipient,
             device_id="test-fcm-token-xyz",
             platform="android",
-            active=True,
         )
         return recipient
 
@@ -116,8 +115,8 @@ class TestFCMService:
 
         # Mark device as inactive
         device = recipient_with_device.device
-        device.active = False
-        device.save()
+        device.state = UserDevice.State.REVOKED
+        device.save(update_fields=["state"])
 
         notification = Notification.objects.create(
             actor=actor,

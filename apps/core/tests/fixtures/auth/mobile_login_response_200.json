@@ -1,0 +1,27 @@
+{
+  "status_code": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "message": "Login successful.",
+      "user": {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "username": "employee01",
+        "email": "employee01@example.com",
+        "full_name": "Employee User"
+      },
+      "tokens": {
+        "access": "<access.jwt>",
+        "refresh": "<refresh.jwt>"
+      }
+    },
+    "error": null
+  },
+  "jwt_claims": {
+    "access": {
+      "client": "mobile",
+      "device_id": "mobile-device-001",
+      "tv": 1
+    }
+  }
+}

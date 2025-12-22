@@ -7,7 +7,7 @@ REST_FRAMEWORK = {
     #     "libs.renderers.EnvelopeJSONRenderer",
     # ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.core.api.authentication.ClientAwareJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "apps.core.api.permissions.RoleBasedPermission",

@@ -148,12 +148,22 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         self.assertEqual(proposal.approved_by, self.admin_employee)
 
         # Verify device was assigned to requester
-        requester_device = UserDevice.objects.get(user=self.requester_user)
+        requester_device = UserDevice.objects.get(user=self.requester_user, client="mobile", state="active")
         self.assertEqual(requester_device.device_id, new_device_id)
         self.assertEqual(requester_device.platform, "ios")
 
-        # Verify old device was removed
-        self.assertFalse(UserDevice.objects.filter(device_id=self.old_device_id).exists())
+        # Verify old device was revoked (kept for history)
+        self.assertTrue(
+            UserDevice.objects.filter(
+                user=self.requester_user,
+                device_id=self.old_device_id,
+                client="mobile",
+                state="revoked",
+            ).exists()
+        )
+
+        self.requester_user.refresh_from_db()
+        self.assertEqual(self.requester_user.mobile_token_version, 2)
 
     @patch("apps.notifications.utils.trigger_send_notification")
     @patch("apps.core.utils.jwt.OutstandingToken")
@@ -180,17 +190,37 @@ class DeviceChangeProposalApprovalTestCase(TestCase):
         proposal.refresh_from_db()
         self.assertEqual(proposal.proposal_status, ProposalStatus.APPROVED)
 
-        # Verify device was reassigned to requester
-        requester_device = UserDevice.objects.get(user=self.requester_user)
+        # Verify device was assigned to requester
+        requester_device = UserDevice.objects.get(user=self.requester_user, client="mobile", state="active")
         self.assertEqual(requester_device.device_id, self.conflicting_device_id)
 
-        # Verify other_user no longer has the device
+        # Verify other_user no longer has the device as ACTIVE
         self.assertFalse(
-            UserDevice.objects.filter(user=self.other_user, device_id=self.conflicting_device_id).exists()
+            UserDevice.objects.filter(
+                user=self.other_user,
+                device_id=self.conflicting_device_id,
+                client="mobile",
+                state="active",
+            ).exists()
+        )
+        self.assertTrue(
+            UserDevice.objects.filter(
+                user=self.other_user,
+                device_id=self.conflicting_device_id,
+                client="mobile",
+                state="revoked",
+            ).exists()
         )
 
-        # Verify old device was removed from requester
-        self.assertFalse(UserDevice.objects.filter(device_id=self.old_device_id).exists())
+        # Verify old device was revoked from requester
+        self.assertTrue(
+            UserDevice.objects.filter(
+                user=self.requester_user,
+                device_id=self.old_device_id,
+                client="mobile",
+                state="revoked",
+            ).exists()
+        )
 
     @patch("apps.notifications.utils.trigger_send_notification")
     def test_reject_device_change(self, mock_notify):

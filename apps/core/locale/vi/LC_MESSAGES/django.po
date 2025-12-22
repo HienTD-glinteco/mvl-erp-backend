@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 13:00+0700\n"
+"POT-Creation-Date: 2025-12-22 14:08+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -14,6 +14,23 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: apps/core/api/authentication.py:34
+msgid "Token client does not match endpoint client."
+msgstr "Token client không khớp với client của endpoint."
+
+#: apps/core/api/authentication.py:39
+msgid "Missing token version."
+msgstr "Thiếu phiên bản token."
+
+#: apps/core/api/authentication.py:47
+msgid "Token has been revoked."
+msgstr "Khoá token đã được thu hồi."
+
+#: apps/core/api/authentication.py:57 apps/core/api/views/auth/login.py:110
+#: apps/core/api/views/auth/otp_verification.py:114
+msgid "Web access is not allowed for this role."
+msgstr "Truy cập web không được phép cho vai trò này."
 
 #: apps/core/api/permissions.py:51
 msgid "You need to login to perform this action"
@@ -24,26 +41,26 @@ msgid "You do not have permission to perform this action"
 msgstr "Bạn không có quyền thực hiện hành động này"
 
 #: apps/core/api/serializers/auth/device_change.py:20
-#: apps/core/api/serializers/auth/login.py:19
-#: apps/core/api/serializers/auth/otp_verification.py:17
+#: apps/core/api/serializers/auth/login.py:28
+#: apps/core/api/serializers/auth/otp_verification.py:28
 msgid "Please enter your username."
 msgstr "Vui lòng nhập tên đăng nhập."
 
 #: apps/core/api/serializers/auth/device_change.py:21
-#: apps/core/api/serializers/auth/login.py:20
-#: apps/core/api/serializers/auth/login.py:35
-#: apps/core/api/serializers/auth/otp_verification.py:18
+#: apps/core/api/serializers/auth/login.py:29
+#: apps/core/api/serializers/auth/login.py:67
+#: apps/core/api/serializers/auth/otp_verification.py:29
 msgid "Username cannot be blank."
 msgstr "Tên đăng nhập không được để trống."
 
 #: apps/core/api/serializers/auth/device_change.py:28
-#: apps/core/api/serializers/auth/login.py:27
+#: apps/core/api/serializers/auth/login.py:36
 msgid "Please enter your password."
 msgstr "Vui lòng nhập mật khẩu."
 
 #: apps/core/api/serializers/auth/device_change.py:29
-#: apps/core/api/serializers/auth/login.py:28
-#: apps/core/api/serializers/auth/login.py:41
+#: apps/core/api/serializers/auth/login.py:37
+#: apps/core/api/serializers/auth/login.py:72
 msgid "Password cannot be blank."
 msgstr "Mật khẩu không được để trống."
 
@@ -60,8 +77,8 @@ msgid "Incorrect password. Please try again."
 msgstr "Mật khẩu không đúng."
 
 #: apps/core/api/serializers/auth/device_change.py:70
-#: apps/core/api/serializers/auth/login.py:52
-#: apps/core/api/serializers/auth/otp_verification.py:56
+#: apps/core/api/serializers/auth/login.py:92
+#: apps/core/api/serializers/auth/otp_verification.py:85
 msgid "Username does not exist."
 msgstr "Tên đăng nhập không tồn tại."
 
@@ -92,33 +109,33 @@ msgid "Invalid request ID format."
 msgstr "Request ID không hợp lệ"
 
 #: apps/core/api/serializers/auth/device_change.py:108
-#: apps/core/api/serializers/auth/otp_verification.py:26
+#: apps/core/api/serializers/auth/otp_verification.py:37
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:32
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:48
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:54
 msgid "Please enter the OTP code."
 msgstr "Vui lòng nhập mã OTP."
 
 #: apps/core/api/serializers/auth/device_change.py:109
 #: apps/core/api/serializers/auth/device_change.py:127
-#: apps/core/api/serializers/auth/otp_verification.py:27
-#: apps/core/api/serializers/auth/otp_verification.py:43
+#: apps/core/api/serializers/auth/otp_verification.py:38
+#: apps/core/api/serializers/auth/otp_verification.py:68
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:33
 msgid "OTP code cannot be blank."
 msgstr "Mã OTP không được để trống."
 
 #: apps/core/api/serializers/auth/device_change.py:110
 #: apps/core/api/serializers/auth/device_change.py:111
-#: apps/core/api/serializers/auth/otp_verification.py:28
-#: apps/core/api/serializers/auth/otp_verification.py:29
+#: apps/core/api/serializers/auth/otp_verification.py:39
+#: apps/core/api/serializers/auth/otp_verification.py:40
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:34
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:35
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:55
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:61
 msgid "OTP code must be 6 digits."
 msgstr "Mã OTP phải có 6 chữ số."
 
 #: apps/core/api/serializers/auth/device_change.py:129
-#: apps/core/api/serializers/auth/otp_verification.py:45
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:52
+#: apps/core/api/serializers/auth/otp_verification.py:70
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:58
 msgid "OTP code can only contain digits."
 msgstr "Mã OTP chỉ được chứa số."
 
@@ -159,44 +176,51 @@ msgstr ""
 msgid "Incorrect OTP code. You have {attempts} attempt(s) remaining."
 msgstr "Mã OTP không đúng. Bạn còn {attempts} lần thử."
 
-#: apps/core/api/serializers/auth/login.py:58
-#, python-format
-msgid "Account is locked. Please try again in %(minutes)d minutes."
-msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
-
-#: apps/core/api/serializers/auth/login.py:63
-#: apps/core/api/serializers/auth/password_reset.py:45
-#: apps/core/api/serializers/auth/password_reset_change_password.py:78
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:70
-msgid "Account has been deactivated."
-msgstr "Tài khoản đã bị vô hiệu hóa."
-
-#: apps/core/api/serializers/auth/login.py:71
-msgid ""
-"Account has been locked due to 5 failed login attempts. Please try again in "
-"5 minutes."
-msgstr ""
-"Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
-
-#: apps/core/api/serializers/auth/login.py:74
-msgid "Incorrect password."
-msgstr "Mật khẩu không đúng."
-
-#: apps/core/api/serializers/auth/otp_verification.py:60
-msgid "OTP code is incorrect or has expired."
-msgstr "Mã OTP không đúng hoặc đã hết hạn."
-
-#: apps/core/api/serializers/auth/otp_verification.py:67
-msgid "This device is already registered to another user."
-msgstr "Thiết bị này đã được đăng ký cho người dùng khác."
-
-#: apps/core/api/serializers/auth/otp_verification.py:79
+#: apps/core/api/serializers/auth/login.py:17
+#: apps/core/api/serializers/auth/otp_verification.py:17
 msgid ""
 "You are attempting to login from a different device. Please use the device "
 "change request process to change your device."
 msgstr ""
 "Bạn đang cố gắng đăng nhập từ một thiết bị khác. Vui lòng sử dụng quy trình "
 "yêu cầu đổi thiết bị để thay đổi thiết bị."
+
+#: apps/core/api/serializers/auth/login.py:97
+#, python-format
+msgid "Account is locked. Please try again in %(minutes)d minutes."
+msgstr "Tài khoản đã bị khóa. Vui lòng thử lại sau %(minutes)d phút."
+
+#: apps/core/api/serializers/auth/login.py:101
+#: apps/core/api/serializers/auth/password_reset.py:45
+#: apps/core/api/serializers/auth/password_reset_change_password.py:78
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:76
+msgid "Account has been deactivated."
+msgstr "Tài khoản đã bị vô hiệu hóa."
+
+#: apps/core/api/serializers/auth/login.py:108
+msgid ""
+"Account has been locked due to 5 failed login attempts. Please try again in "
+"5 minutes."
+msgstr ""
+"Tài khoản đã bị khóa do đăng nhập sai quá 5 lần. Vui lòng thử lại sau 5 phút."
+
+#: apps/core/api/serializers/auth/login.py:111
+msgid "Incorrect password."
+msgstr "Mật khẩu không đúng."
+
+#: apps/core/api/serializers/auth/login.py:115
+#: apps/core/api/serializers/auth/otp_verification.py:93
+msgid "Device ID is required for mobile login."
+msgstr ""
+
+#: apps/core/api/serializers/auth/login.py:126
+#: apps/core/api/serializers/auth/otp_verification.py:105
+msgid "This device is already registered to another user."
+msgstr "Thiết bị này đã được đăng ký cho người dùng khác."
+
+#: apps/core/api/serializers/auth/otp_verification.py:89
+msgid "OTP code is incorrect or has expired."
+msgstr "Mã OTP không đúng hoặc đã hết hạn."
 
 #: apps/core/api/serializers/auth/password_change.py:23
 msgid "Please enter your current password."
@@ -272,7 +296,7 @@ msgid "Password reset request has expired."
 msgstr "Yêu cầu đặt lại mật khẩu đã hết hạn."
 
 #: apps/core/api/serializers/auth/password_reset_otp_verification.py:23
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:42
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:48
 msgid "Please enter the reset token."
 msgstr "Vui lòng nhập reset token."
 
@@ -280,19 +304,19 @@ msgstr "Vui lòng nhập reset token."
 msgid "Reset token cannot be blank."
 msgstr "Reset token không được để trống."
 
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:66
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:72
 msgid "Reset token is invalid or has expired."
 msgstr "Reset token không hợp lệ hoặc đã hết hạn."
 
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:75
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:81
 msgid "OTP code has expired."
 msgstr "Mã OTP đã hết hạn."
 
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:77
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:83
 msgid "Maximum attempts exceeded. Please request a new OTP."
 msgstr "Đã vượt quá số lần thử tối đa. Vui lòng yêu cầu OTP mới."
 
-#: apps/core/api/serializers/auth/password_reset_otp_verification.py:79
+#: apps/core/api/serializers/auth/password_reset_otp_verification.py:85
 msgid "OTP code is incorrect."
 msgstr "Mã OTP không đúng."
 
@@ -337,56 +361,30 @@ msgid ""
 "Device change request verified. Your request is pending approval from admin."
 msgstr ""
 
-#: apps/core/api/views/auth/login.py:91
-msgid ""
-"OTP code has been sent to your email. Please check your email and enter the "
-"OTP code to complete login."
-msgstr ""
-"Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email và nhập mã OTP "
-"để hoàn tất đăng nhập."
-
-#: apps/core/api/views/auth/login.py:100
-msgid "Unable to send OTP code. Please try again later."
-msgstr "Không thể gửi mã OTP. Vui lòng thử lại sau."
-
-#: apps/core/api/views/auth/login.py:116
-#, python-format
-msgid "Request was throttled. Expected available in %(wait)s seconds."
-msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau %(wait)s giây."
-
-#: apps/core/api/views/auth/login.py:118
-msgid "Request was throttled. Please try again later."
-msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau."
-
-#: apps/core/api/views/auth/otp_verification.py:39
-msgid "Verify OTP code"
-msgstr "Xác thực mã OTP"
-
-#: apps/core/api/views/auth/otp_verification.py:40
-msgid "Verify OTP code and return JWT tokens to complete login"
-msgstr "Xác thực mã OTP và trả về JWT tokens để hoàn tất đăng nhập"
-
-#: apps/core/api/views/auth/otp_verification.py:44
-msgid "Invalid or expired OTP code"
-msgstr "Mã OTP không hợp lệ hoặc đã hết hạn"
-
-#: apps/core/api/views/auth/otp_verification.py:45
-#: apps/core/api/views/auth/password_reset_otp_verification.py:44
-msgid "Too many verification requests"
-msgstr "Quá nhiều yêu cầu xác thực"
-
-#: apps/core/api/views/auth/otp_verification.py:85
+#: apps/core/api/views/auth/login.py:135
+#: apps/core/api/views/auth/otp_verification.py:148
 #, python-brace-format
 msgid "Your account was logged in from IP address: {ip_address}"
 msgstr "Tài khoản của bạn đã được đăng nhập từ địa chỉ IP: {ip_address}"
 
-#: apps/core/api/views/auth/otp_verification.py:90
+#: apps/core/api/views/auth/login.py:140
+#: apps/core/api/views/auth/otp_verification.py:153
 msgid "logged in"
 msgstr "Đã đăng nhập"
 
-#: apps/core/api/views/auth/otp_verification.py:100
+#: apps/core/api/views/auth/login.py:150
+#: apps/core/api/views/auth/otp_verification.py:163
 msgid "Login successful."
 msgstr "Đăng nhập thành công."
+
+#: apps/core/api/views/auth/login.py:170
+#, python-format
+msgid "Request was throttled. Expected available in %(wait)s seconds."
+msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau %(wait)s giây."
+
+#: apps/core/api/views/auth/login.py:172
+msgid "Request was throttled. Please try again later."
+msgstr "Yêu cầu đạt giới hạn. Vui lòng thử lại sau."
 
 #: apps/core/api/views/auth/password_change.py:36
 msgid "Change password (when current password is known)"
@@ -483,23 +481,7 @@ msgstr ""
 "Mật khẩu đã được đặt lại thành công. Tất cả phiên đăng nhập cũ đã bị đăng "
 "xuất."
 
-#: apps/core/api/views/auth/password_reset_otp_verification.py:38
-msgid "Verify OTP (Step 2) and return JWT"
-msgstr "Xác thực OTP (Bước 2) và trả về JWT"
-
-#: apps/core/api/views/auth/password_reset_otp_verification.py:39
-msgid ""
-"Verify reset_token + OTP, then return access/refresh token for password "
-"change step."
-msgstr ""
-"Xác thực reset_token + OTP, sau đó trả về access/refresh token để gọi bước "
-"đổi mật khẩu."
-
-#: apps/core/api/views/auth/password_reset_otp_verification.py:43
-msgid "Invalid reset token or OTP code"
-msgstr "Reset token hoặc mã OTP không hợp lệ"
-
-#: apps/core/api/views/auth/password_reset_otp_verification.py:66
+#: apps/core/api/views/auth/password_reset_otp_verification.py:80
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
@@ -633,15 +615,15 @@ msgstr "Đơn vị hành chính"
 msgid "Administrative Units"
 msgstr "các Đơn vị hành chính"
 
-#: apps/core/models/device.py:10
+#: apps/core/models/device.py:20
 msgid "iOS"
 msgstr "iOS"
 
-#: apps/core/models/device.py:11
+#: apps/core/models/device.py:21
 msgid "Android"
 msgstr "Android"
 
-#: apps/core/models/device.py:12
+#: apps/core/models/device.py:22
 msgid "Web"
 msgstr "Web"
 
@@ -769,8 +751,6 @@ msgstr ""
 "Đội ngũ MaiVietLand"
 
 #: apps/core/tasks/email.py:97
-#, fuzzy
-#| msgid "Login OTP Code - MaiVietLand"
 msgid "Device Change OTP Code - MaiVietLand"
 msgstr "Mã OTP đăng nhập - MaiVietLand"
 
@@ -817,8 +797,6 @@ msgid "Login OTP Code"
 msgstr "Mã OTP đăng nhập"
 
 #: apps/core/templates/emails/otp_device_change.html:19
-#, fuzzy
-#| msgid "Login OTP Code"
 msgid "Change Device OTP Code"
 msgstr "Mã OTP đăng nhập"
 
@@ -830,15 +808,11 @@ msgid "Hello <strong>%(name)s</strong>,"
 msgstr "Xin chào <strong>%(name)s</strong>,"
 
 #: apps/core/templates/emails/otp_device_change.html:25
-#, fuzzy
-#| msgid "We have received a login request for your MaiVietLand account."
 msgid "We have received a change device request for your MaiVietLand account."
 msgstr ""
 "Chúng tôi đã nhận được yêu cầu đăng nhập vào tài khoản MaiVietLand của bạn."
 
 #: apps/core/templates/emails/otp_device_change.html:27
-#, fuzzy
-#| msgid "Your OTP code to complete the login is:"
 msgid "Your OTP code to complete the request is:"
 msgstr "Mã OTP để hoàn tất đăng nhập của bạn là:"
 

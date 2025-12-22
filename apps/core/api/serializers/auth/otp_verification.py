@@ -1,12 +1,23 @@
 import logging
 
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.models import User, UserDevice
 
 logger = logging.getLogger(__name__)
+
+
+class MobileDeviceConflict(APIException):
+    status_code = 409
+    default_detail = _(
+        "You are attempting to login from a different device. "
+        "Please use the device change request process to change your device."
+    )
+    default_code = "device_conflict"
 
 
 class OTPVerificationSerializer(serializers.Serializer):
@@ -29,12 +40,26 @@ class OTPVerificationSerializer(serializers.Serializer):
             "max_length": _("OTP code must be 6 digits."),
         },
     )
+
+    # Always included in token claims for both web and mobile.
     device_id = serializers.CharField(
         max_length=255,
         required=False,
         allow_null=True,
         allow_blank=True,
-        help_text="Device ID of client app (browser can skip)",
+        help_text="Device identifier provided by client",
+    )
+    platform = serializers.ChoiceField(
+        choices=UserDevice.Platform.choices,
+        required=False,
+        allow_blank=True,
+        help_text="Device platform (ios/android)",
+    )
+    push_token = serializers.CharField(
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        help_text="Push token (e.g., FCM/APNS)",
     )
 
     def validate_otp_code(self, value):
@@ -48,7 +73,11 @@ class OTPVerificationSerializer(serializers.Serializer):
     def validate(self, attrs):
         username = attrs.get("username")
         otp_code = attrs.get("otp_code")
-        device_id = attrs.get("device_id")
+        device_id = (attrs.get("device_id") or "").strip() or None
+        platform = (attrs.get("platform") or "").strip()
+        push_token = (attrs.get("push_token") or "").strip()
+
+        client = self.context.get("client", UserDevice.Client.WEB)
 
         try:
             user = User.objects.get(username=username)
@@ -59,53 +88,90 @@ class OTPVerificationSerializer(serializers.Serializer):
             logger.warning(f"Invalid OTP attempt for user {username}")
             raise serializers.ValidationError(_("OTP code is incorrect or has expired."))
 
-        # Validate device_id if provided
-        if device_id:
-            existing_device = UserDevice.objects.filter(device_id=device_id).first()
-            if existing_device and existing_device.user != user:
-                logger.warning(f"Device ID {device_id} already registered to user {existing_device.user.username}")
+        if client == UserDevice.Client.MOBILE:
+            if not device_id:
+                raise serializers.ValidationError(_("Device ID is required for mobile login."))
+
+            device_taken = (
+                UserDevice.objects.filter(
+                    client=UserDevice.Client.MOBILE,
+                    state=UserDevice.State.ACTIVE,
+                    device_id=device_id,
+                )
+                .exclude(user=user)
+                .first()
+            )
+            if device_taken is not None:
                 raise serializers.ValidationError(_("This device is already registered to another user."))
 
-            # CRITICAL: If user has a registered device and trying to login with a different device
-            # that is not assigned to anyone yet, this should be rejected
-            if hasattr(user, "device") and user.device is not None:
-                if user.device.device_id != device_id and not existing_device:
-                    logger.warning(
-                        f"User {user.username} attempting to login with different device {device_id} "
-                        f"(current device: {user.device.device_id})"
-                    )
-                    raise serializers.ValidationError(
-                        _(
-                            "You are attempting to login from a different device. "
-                            "Please use the device change request process to change your device."
-                        )
-                    )
+            active_device = UserDevice.objects.filter(
+                user=user,
+                client=UserDevice.Client.MOBILE,
+                state=UserDevice.State.ACTIVE,
+            ).first()
+            if active_device is not None and active_device.device_id != device_id:
+                raise MobileDeviceConflict()
 
         attrs["user"] = user
         attrs["device_id"] = device_id
+        attrs["platform"] = platform
+        attrs["push_token"] = push_token
         return attrs
 
-    def get_tokens(self, user, device_id=None):
-        """Get user device id"""
-        if device_id:
-            if not hasattr(user, "device") or user.device is None:
-                UserDevice.objects.create(user=user, device_id=device_id)
-                logger.info(f"Assigned new device_id={device_id} for user={user.username}")
-            else:
-                device_id = user.device.device_id
-        else:
-            device_id = None
+    def get_tokens(self, user: User, device_id: str | None = None, *, client: str = "web"):
+        now = timezone.now()
 
-        """Generate JWT tokens for user"""
+        if client == UserDevice.Client.MOBILE:
+            platform: str = str(self.validated_data.get("platform") or "")
+            push_token: str = str(self.validated_data.get("push_token") or "")
+
+            active_device = UserDevice.objects.filter(
+                user=user,
+                client=UserDevice.Client.MOBILE,
+                state=UserDevice.State.ACTIVE,
+            ).first()
+
+            if active_device is None:
+                UserDevice.objects.create(
+                    user=user,
+                    client=UserDevice.Client.MOBILE,
+                    device_id=device_id or "",
+                    platform=platform,
+                    push_token=push_token,
+                    last_seen_at=now,
+                    state=UserDevice.State.ACTIVE,
+                )
+            else:
+                active_device.platform = platform
+                active_device.push_token = push_token
+                active_device.last_seen_at = now
+                active_device.save(update_fields=["platform", "push_token", "last_seen_at"])
+
+        if client == UserDevice.Client.WEB:
+            if device_id:
+                UserDevice.objects.create(
+                    user=user,
+                    client=UserDevice.Client.WEB,
+                    device_id=device_id,
+                    platform=UserDevice.Platform.WEB,
+                    last_seen_at=now,
+                    state=UserDevice.State.ACTIVE,
+                )
+
         refresh = RefreshToken.for_user(user)
+        refresh["client"] = client
         refresh["device_id"] = device_id
+
         access = refresh.access_token
+        access["client"] = client
         access["device_id"] = device_id
 
-        # Clear OTP after successful login
+        if client == UserDevice.Client.MOBILE:
+            refresh["tv"] = user.mobile_token_version
+            access["tv"] = user.mobile_token_version
+
         user.clear_otp()
 
-        logger.debug(f"User {user.username} logged in successfully")
         return {
             "refresh": str(refresh),
             "access": str(access),

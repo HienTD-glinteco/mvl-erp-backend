@@ -21,6 +21,9 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False, verbose_name="Staff")
     date_joined = models.DateTimeField(default=timezone.now, verbose_name="Date joined")
 
+    # Mobile session versioning (revocation via token version mismatch)
+    mobile_token_version = models.PositiveIntegerField(default=1, verbose_name="Mobile token version")
+
     # Login attempt tracking
     failed_login_attempts = models.IntegerField(default=0, verbose_name="Failed login attempts")
     locked_until = models.DateTimeField(null=True, blank=True, verbose_name="Locked until")
@@ -129,6 +132,11 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         self.otp_expires_at = None
         self.otp_verified = False
         self.save(update_fields=["otp_code", "otp_expires_at", "otp_verified"])
+
+    @property
+    def device(self):
+        """Backward-compatible single device accessor (active mobile device)."""
+        return self.devices.filter(client="mobile", state="active").first()
 
     def has_permission(self, permission_code: str) -> bool:
         """Check if user has a specific permission through their role"""

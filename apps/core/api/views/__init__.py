@@ -3,7 +3,6 @@ from .auth import (
     DeviceChangeRequestView,
     DeviceChangeVerifyOTPView,
     LoginView,
-    OTPVerificationView,
     PasswordChangeView,
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
@@ -19,7 +18,6 @@ from .role import RoleViewSet
 
 __all__ = [
     "LoginView",
-    "OTPVerificationView",
     "PasswordResetView",
     "PasswordResetOTPVerificationView",
     "PasswordResetChangePasswordView",

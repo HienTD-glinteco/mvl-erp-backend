@@ -9,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.core.api.authentication import get_request_client
 from apps.core.api.serializers.auth.password_reset_otp_verification import (
     PasswordResetOTPVerificationSerializer,
 )
@@ -35,17 +36,18 @@ class PasswordResetOTPVerificationView(APIView):
     serializer_class = PasswordResetOTPVerificationSerializer
 
     @extend_schema(
-        summary=_("Verify OTP (Step 2) and return JWT"),
-        description=_("Verify reset_token + OTP, then return access/refresh token for password change step."),
+        summary="Verify OTP (Step 2) and return JWT",
+        description="Verify reset_token + OTP, then return access/refresh token for password change step.",
         tags=["1.1: Auth"],
         responses={
             200: PasswordResetOTPVerificationResponseSerializer,
-            400: OpenApiResponse(description=_("Invalid reset token or OTP code")),
-            429: OpenApiResponse(description=_("Too many verification requests")),
+            400: OpenApiResponse(description="Invalid reset token or OTP code"),
+            429: OpenApiResponse(description="Too many verification requests"),
         },
     )
     def post(self, request):
-        serializer = PasswordResetOTPVerificationSerializer(data=request.data)
+        client = get_request_client(request)
+        serializer = PasswordResetOTPVerificationSerializer(data=request.data, context={"client": client})
 
         if serializer.is_valid():
             reset_request = serializer.validated_data["reset_request"]
@@ -56,9 +58,21 @@ class PasswordResetOTPVerificationView(APIView):
             if revoked:
                 logger.info(f"Revoked {revoked} previous refresh token(s) for user {user.username}")
 
+            device_id = serializer.validated_data.get("device_id")
+
             # Issue new tokens
             refresh = RefreshToken.for_user(user)
-            tokens = {"access": str(refresh.access_token), "refresh": str(refresh)}
+            refresh["client"] = client
+            refresh["device_id"] = device_id
+            access = refresh.access_token
+            access["client"] = client
+            access["device_id"] = device_id
+
+            if client == "mobile":
+                refresh["tv"] = user.mobile_token_version
+                access["tv"] = user.mobile_token_version
+
+            tokens = {"access": str(access), "refresh": str(refresh)}
 
             logger.info(f"Password reset OTP verified for user {user.username}; issued JWT tokens")
             return Response(

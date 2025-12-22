@@ -1,0 +1,10 @@
+{
+  "status_code": 403,
+  "body": {
+    "success": false,
+    "data": null,
+    "error": {
+      "detail": "Web access is not allowed for this role."
+    }
+  }
+}

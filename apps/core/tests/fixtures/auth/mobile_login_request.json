@@ -1,0 +1,14 @@
+{
+  "method": "POST",
+  "path": "/api/mobile/auth/login/",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "username": "employee01",
+    "password": "SecurePassword123!",
+    "device_id": "mobile-device-001",
+    "platform": "android",
+    "push_token": "push-token-001"
+  }
+}

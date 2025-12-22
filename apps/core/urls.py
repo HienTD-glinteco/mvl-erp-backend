@@ -14,7 +14,6 @@ from .api.views import (
     MeUpdateAvatarView,
     MeView,
     NationalityViewSet,
-    OTPVerificationView,
     PasswordChangeView,
     PasswordResetChangePasswordView,
     PasswordResetOTPVerificationView,
@@ -37,7 +36,6 @@ router.register(r"nationalities", NationalityViewSet, basename="nationality")
 urlpatterns = [
     # Authentication endpoints
     path("auth/login/", LoginView.as_view(), name="login"),
-    path("auth/verify-otp/", OTPVerificationView.as_view(), name="verify_otp"),
     # Device Change endpoints
     path("auth/device-change/request/", DeviceChangeRequestView.as_view(), name="device_change_request"),
     path("auth/device-change/verify-otp/", DeviceChangeVerifyOTPView.as_view(), name="device_change_verify_otp"),
