@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 11:44+0700\n"
+"POT-Creation-Date: 2025-12-22 12:27+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -322,26 +322,35 @@ msgstr ""
 msgid "Only grade and note can be updated for finalized assessments"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:69
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:99
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:86
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:153
+msgid "Cannot update finalized assessment"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:92
+msgid "Cannot update assessment that has been assessed by manager"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:232
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:262
 msgid "Cannot update items of a finalized assessment"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:77
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:107
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:240
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:270
 msgid "Employee score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:83
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:113
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
 msgid "Manager score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:180
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:345
 msgid "An assessment for this employee and month already exists"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:189
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:354
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
@@ -355,29 +364,6 @@ msgstr ""
 msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:329
-#: apps/payroll/api/views/employee_kpi_assessment.py:631
-#: apps/payroll/api/views/manager_assessment.py:186
-msgid "Cannot update finalized assessment"
-msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:336
-msgid "Cannot update assessment that has been assessed by manager"
-msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:349
-#: apps/payroll/api/views/employee_kpi_assessment.py:644
-#, python-format
-msgid "Score %(score)s cannot exceed component total score %(total)s"
-msgstr ""
-
-#: apps/payroll/api/views/employee_kpi_assessment.py:352
-#: apps/payroll/api/views/employee_kpi_assessment.py:647
-#, fuzzy
-#| msgid "Invalid model"
-msgid "Invalid item or score value"
-msgstr "Mẫu đối tượng không hợp lệ"
 
 #: apps/payroll/api/views/kpi_assessment_period.py:236
 #, fuzzy

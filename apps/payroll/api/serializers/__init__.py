@@ -10,7 +10,9 @@ from .employee_kpi_assessment import (
     EmployeeKPIItemSerializer,
     EmployeeKPIItemUpdateSerializer,
     EmployeeSelfAssessmentSerializer,
+    EmployeeSelfAssessmentUpdateRequestSerializer,
     ManagerAssessmentSerializer,
+    ManagerAssessmentUpdateRequestSerializer,
 )
 from .kpi_assessment_period import (
     KPIAssessmentPeriodFinalizeResponseSerializer,
@@ -65,7 +67,9 @@ __all__ = [
     "EmployeeKPIItemSerializer",
     "EmployeeKPIItemUpdateSerializer",
     "EmployeeSelfAssessmentSerializer",
+    "EmployeeSelfAssessmentUpdateRequestSerializer",
     "ManagerAssessmentSerializer",
+    "ManagerAssessmentUpdateRequestSerializer",
     "DepartmentKPIAssessmentSerializer",
     "DepartmentKPIAssessmentListSerializer",
     "DepartmentKPIAssessmentUpdateSerializer",

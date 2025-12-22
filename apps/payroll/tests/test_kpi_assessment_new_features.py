@@ -183,10 +183,10 @@ class TestEmployeeSelfAssessmentBatchUpdate:
             "plan_tasks": "Completed all quarterly targets",
             "extra_tasks": "Helped train new team members",
             "proposal": "Suggest implementing new CRM system",
-            "items": {
-                str(items[0].id): "65.00",
-                str(items[1].id): "28.50",
-            },
+            "items": [
+                {"item_id": items[0].id, "score": "65.00"},
+                {"item_id": items[1].id, "score": "28.50"},
+            ],
         }
 
         response = api_client.patch(f"/api/payroll/kpi-assessments/mine/{assessment.id}/", update_data, format="json")
@@ -283,10 +283,10 @@ class TestManagerAssessmentViews:
         # Batch update manager scores
         update_data = {
             "manager_assessment": "Good performance overall, needs improvement in time management",
-            "items": {
-                str(items[0].id): "62.00",
-                str(items[1].id): "27.00",
-            },
+            "items": [
+                {"item_id": items[0].id, "score": "62.00"},
+                {"item_id": items[1].id, "score": "27.00"},
+            ],
         }
 
         response = api_client.patch(

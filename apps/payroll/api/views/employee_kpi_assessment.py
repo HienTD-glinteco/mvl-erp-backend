@@ -13,7 +13,9 @@ from apps.payroll.api.serializers import (
     EmployeeKPIAssessmentUpdateSerializer,
     EmployeeKPIItemSerializer,
     EmployeeSelfAssessmentSerializer,
+    EmployeeSelfAssessmentUpdateRequestSerializer,
     ManagerAssessmentSerializer,
+    ManagerAssessmentUpdateRequestSerializer,
 )
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 from apps.payroll.utils import recalculate_assessment_scores
@@ -44,6 +46,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "month": "2025-12",
                                 "kpi_config_snapshot": {},
                                 "total_possible_score": "100.00",
+                                "total_employee_score": "100.00",
                                 "total_manager_score": "80.00",
                                 "grade_manager": "B",
                                 "grade_manager_overridden": None,
@@ -81,6 +84,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "month": "2025-12",
                         "kpi_config_snapshot": {},
                         "total_possible_score": "100.00",
+                        "total_employee_score": "100.00",
                         "total_manager_score": "80.00",
                         "grade_manager": "B",
                         "grade_manager_overridden": None,
@@ -188,10 +192,8 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Complete Q4 targets",
@@ -201,11 +203,22 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "items": [
                             {
                                 "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
                                 "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
                                 "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
                                 "employee_score": "60.00",
                                 "manager_score": None,
-                            }
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-01T00:00:00Z",
+                            },
                         ],
                     },
                     "error": None,
@@ -221,8 +234,30 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     ),
     partial_update=extend_schema(
         summary="Update self-assessment",
-        description="Batch update employee scores for items, plan_tasks, extra_tasks, and proposal",
+        description="""Batch update employee scores for items, plan_tasks, extra_tasks, and proposal.
+
+        **Request Body Format:**
+        - `plan_tasks` (string, optional): Planned tasks for the assessment period
+        - `extra_tasks` (string, optional): Extra tasks handled during the period
+        - `proposal` (string, optional): Employee's proposals or suggestions
+        - `items` (array, optional): List of item updates with structure:
+          - `item_id` (integer): ID of the KPI item to update
+          - `score` (decimal): Employee score for that item
+
+        **Example:**
+        ```json
+        {
+            "plan_tasks": "Complete quarterly targets",
+            "items": [
+                {"item_id": 1, "score": "65.00"},
+                {"item_id": 2, "score": "28.50"},
+                {"item_id": 3, "score": "90.00"}
+            ]
+        }
+        ```
+        """,
         tags=["8.5: Employee Self-Assessment"],
+        request=EmployeeSelfAssessmentUpdateRequestSerializer,
         examples=[
             OpenApiExample(
                 "Update Request - Batch update items",
@@ -230,7 +265,10 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                     "plan_tasks": "Updated plan tasks",
                     "extra_tasks": "Handled additional tasks",
                     "proposal": "My improvement suggestions",
-                    "items": {"1": "65.00", "2": "28.50"},
+                    "items": [
+                        {"item_id": 1, "score": "65.00"},
+                        {"item_id": 2, "score": "28.50"},
+                    ],
                 },
                 request_only=True,
             ),
@@ -240,17 +278,52 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Updated plan tasks",
                         "extra_tasks": "Handled additional tasks",
                         "proposal": "My improvement suggestions",
                         "finalized": False,
-                        "items": [],
+                        "items": [
+                            {
+                                "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
+                                "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
+                                "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
+                                "employee_score": "65.00",
+                                "manager_score": None,
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "assessment": 1,
+                                "criterion_id": "KPI-002",
+                                "target": None,
+                                "criterion": "Customer Satisfaction",
+                                "sub_criterion": "Survey Rating",
+                                "evaluation_type": "quantitative",
+                                "description": "Maintain high customer satisfaction",
+                                "component_total_score": "30.00",
+                                "group_number": 1,
+                                "order": 2,
+                                "employee_score": "28.50",
+                                "manager_score": None,
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                        ],
                     },
                     "error": None,
                 },
@@ -312,67 +385,24 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
         serializer = self.get_serializer(latest)
         return Response(serializer.data)
 
-    def perform_update(self, serializer):  # noqa: C901
-        """Save the updated assessment and handle batch item updates."""
-        from decimal import Decimal
-
-        items_data = self.request.data.get("items", {})
-
-        # Check finalized status and manager grade before any updates
+    def perform_update(self, serializer):
+        """Save the updated assessment and handle batch item updates using serializer validation."""
         assessment = self.get_object()
 
-        # Validation: Cannot update if finalized
-        if assessment.finalized:
-            from django.utils.translation import gettext as _
-            from rest_framework.exceptions import ValidationError
-
-            raise ValidationError(_("Cannot update finalized assessment"))
-
-        # Validation: Cannot update if manager has already graded
-        if assessment.grade_manager is not None:
-            from django.utils.translation import gettext as _
-            from rest_framework.exceptions import ValidationError
-
-            raise ValidationError(_("Cannot update assessment that has been assessed by manager"))
-
-        # Validate item scores before updating
-        if items_data:
-            errors = {}
-            for item_id, score in items_data.items():
-                try:
-                    item = assessment.items.get(id=int(item_id))
-                    score_decimal = Decimal(str(score))
-
-                    # Validation: Score must not exceed component_total_score
-                    if score_decimal > item.component_total_score:
-                        errors[f"items.{item_id}"] = _(
-                            "Score %(score)s cannot exceed component total score %(total)s"
-                        ) % {"score": score_decimal, "total": item.component_total_score}
-                except (EmployeeKPIItem.DoesNotExist, ValueError, TypeError) as e:
-                    errors[f"items.{item_id}"] = _("Invalid item or score value")
-
-            if errors:
-                from rest_framework.exceptions import ValidationError
-
-                raise ValidationError(errors)
+        # Create request serializer with assessment context for validation
+        request_serializer = EmployeeSelfAssessmentUpdateRequestSerializer(
+            data=self.request.data, context={"assessment": assessment}
+        )
+        request_serializer.is_valid(raise_exception=True)
 
         # Update assessment fields (plan_tasks, extra_tasks, proposal)
         assessment = serializer.save()
 
-        # Batch update items if provided
-        if items_data:
-            for item_id, score in items_data.items():
-                try:
-                    item = assessment.items.get(id=int(item_id))
-                    item.employee_score = score
-                    item.save()
-                except (EmployeeKPIItem.DoesNotExist, ValueError):
-                    continue
+        # Update items using serializer method
+        request_serializer.update_items(assessment, request_serializer.validated_data)
 
-            # Refresh assessment to get updated items, then recalculate
-            assessment.refresh_from_db()
-
-        # Always recalculate totals after any update
+        # Refresh assessment to get updated items, then recalculate
+        assessment.refresh_from_db()
         recalculate_assessment_scores(assessment)
 
     @extend_schema(
@@ -471,11 +501,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
-                                "employee_username": "john.doe",
-                                "employee_fullname": "John Doe",
-                                "month": "2025-12",
+                                "period": {"id": 3, "month": "12/2025", "finalized": False},
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                                 "total_possible_score": "100.00",
+                                "total_employee_score": "88.50",
                                 "total_manager_score": "80.00",
                                 "grade_manager": "B",
                                 "plan_tasks": "Complete Q4 targets",
@@ -503,11 +532,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
+                        "total_employee_score": "88.50",
                         "total_manager_score": "80.00",
                         "grade_manager": "B",
                         "plan_tasks": "Complete Q4 targets",
@@ -518,11 +546,22 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "items": [
                             {
                                 "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
                                 "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
                                 "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
                                 "employee_score": "60.00",
                                 "manager_score": "58.00",
-                            }
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-01T00:00:00Z",
+                            },
                         ],
                     },
                     "error": None,
@@ -533,14 +572,37 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
     ),
     partial_update=extend_schema(
         summary="Update manager assessment",
-        description="Batch update manager scores for items and manager_assessment field",
+        description="""Batch update manager scores for items and manager_assessment field.
+
+        **Request Body Format:**
+        - `manager_assessment` (string, optional): Manager's assessment comments and feedback
+        - `items` (array, optional): List of item updates with structure:
+          - `item_id` (integer): ID of the KPI item to update
+          - `score` (decimal): Manager score for that item
+
+        **Example:**
+        ```json
+        {
+            "manager_assessment": "Good performance, needs improvement in communication",
+            "items": [
+                {"item_id": 1, "score": "65.00"},
+                {"item_id": 2, "score": "28.50"},
+                {"item_id": 3, "score": "90.00"}
+            ]
+        }
+        ```
+        """,
         tags=["8.7: Manager Assessment"],
+        request=ManagerAssessmentUpdateRequestSerializer,
         examples=[
             OpenApiExample(
                 "Update Request - Batch update",
                 value={
                     "manager_assessment": "Good performance overall, needs improvement in communication",
-                    "items": {"1": "65.00", "2": "28.50"},
+                    "items": [
+                        {"item_id": 1, "score": "65.00"},
+                        {"item_id": 2, "score": "28.50"},
+                    ],
                 },
                 request_only=True,
             ),
@@ -550,11 +612,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
                         "total_possible_score": "100.00",
+                        "total_employee_score": "93.50",
                         "total_manager_score": "93.50",
                         "grade_manager": "A",
                         "plan_tasks": "Complete Q4 targets",
@@ -562,7 +623,44 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "proposal": "Improve workflow",
                         "manager_assessment": "Good performance overall, needs improvement in communication",
                         "finalized": False,
-                        "items": [],
+                        "items": [
+                            {
+                                "id": 1,
+                                "assessment": 1,
+                                "criterion_id": "KPI-001",
+                                "target": None,
+                                "criterion": "Revenue Achievement",
+                                "sub_criterion": "Monthly Sales Target",
+                                "evaluation_type": "quantitative",
+                                "description": "Achieve monthly revenue target",
+                                "component_total_score": "70.00",
+                                "group_number": 1,
+                                "order": 1,
+                                "employee_score": "60.00",
+                                "manager_score": "65.00",
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                            {
+                                "id": 2,
+                                "assessment": 1,
+                                "criterion_id": "KPI-002",
+                                "target": None,
+                                "criterion": "Customer Satisfaction",
+                                "sub_criterion": "Survey Rating",
+                                "evaluation_type": "quantitative",
+                                "description": "Maintain high customer satisfaction",
+                                "component_total_score": "30.00",
+                                "group_number": 1,
+                                "order": 2,
+                                "employee_score": "30.00",
+                                "manager_score": "28.50",
+                                "note": None,
+                                "created_at": "2025-12-01T00:00:00Z",
+                                "updated_at": "2025-12-22T05:00:00Z",
+                            },
+                        ],
                     },
                     "error": None,
                 },
@@ -617,57 +715,23 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
         )
 
     def perform_update(self, serializer):
-        """Save the updated assessment and handle batch item updates."""
-        from decimal import Decimal
-
-        items_data = self.request.data.get("items", {})
-
-        # Check finalized status before any updates
+        """Save the updated assessment and handle batch item updates using serializer validation."""
         assessment = self.get_object()
-        if assessment.finalized:
-            from django.utils.translation import gettext as _
-            from rest_framework.exceptions import ValidationError
 
-            raise ValidationError(_("Cannot update finalized assessment"))
-
-        # Validate item scores before updating
-        if items_data:
-            errors = {}
-            for item_id, score in items_data.items():
-                try:
-                    item = assessment.items.get(id=int(item_id))
-                    score_decimal = Decimal(str(score))
-
-                    # Validation: Score must not exceed component_total_score
-                    if score_decimal > item.component_total_score:
-                        errors[f"items.{item_id}"] = _(
-                            "Score %(score)s cannot exceed component total score %(total)s"
-                        ) % {"score": score_decimal, "total": item.component_total_score}
-                except (EmployeeKPIItem.DoesNotExist, ValueError, TypeError) as e:
-                    errors[f"items.{item_id}"] = _("Invalid item or score value")
-
-            if errors:
-                from rest_framework.exceptions import ValidationError
-
-                raise ValidationError(errors)
+        # Create request serializer with assessment context for validation
+        request_serializer = ManagerAssessmentUpdateRequestSerializer(
+            data=self.request.data, context={"assessment": assessment}
+        )
+        request_serializer.is_valid(raise_exception=True)
 
         # Update assessment fields (manager_assessment)
         assessment = serializer.save()
 
-        # Batch update items if provided
-        if items_data:
-            for item_id, score in items_data.items():
-                try:
-                    item = assessment.items.get(id=int(item_id))
-                    item.manager_score = score
-                    item.save()
-                except (EmployeeKPIItem.DoesNotExist, ValueError):
-                    continue
+        # Update items using serializer method
+        request_serializer.update_items(assessment, request_serializer.validated_data)
 
-            # Refresh assessment to get updated items, then recalculate
-            assessment.refresh_from_db()
-
-        # Always recalculate totals after any update
+        # Refresh assessment to get updated items, then recalculate
+        assessment.refresh_from_db()
         recalculate_assessment_scores(assessment)
 
     @extend_schema(

@@ -9,6 +9,169 @@ from apps.payroll.api.serializers.common_nested import (
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 
 
+class EmployeeKPIItemScoreSerializer(serializers.Serializer):
+    """Serializer for updating KPI item scores in batch."""
+
+    item_id = serializers.IntegerField(help_text="ID of the KPI item to update")
+    score = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        help_text="Score value (must not exceed component_total_score)",
+    )
+
+    def validate(self, data):
+        """Validate that score doesn't exceed component_total_score."""
+        item_id = data.get("item_id")
+        score = data.get("score")
+
+        # Get assessment from context
+        assessment = self.context.get("assessment")
+        if not assessment:
+            return data
+
+        # Check if item exists and belongs to this assessment
+        try:
+            item = assessment.items.get(id=item_id)
+        except EmployeeKPIItem.DoesNotExist:
+            raise serializers.ValidationError({"item_id": f"Item with ID {item_id} not found in this assessment"})
+
+        # Validate score doesn't exceed component_total_score
+        if score > item.component_total_score:
+            raise serializers.ValidationError(
+                {"score": f"Score {score} cannot exceed component total score {item.component_total_score}"}
+            )
+
+        return data
+
+
+class EmployeeSelfAssessmentUpdateRequestSerializer(serializers.Serializer):
+    """Request serializer for employee self-assessment batch update.
+
+    Example request:
+    {
+        "plan_tasks": "Complete Q4 targets",
+        "extra_tasks": "Handle urgent requests",
+        "proposal": "Improve workflow automation",
+        "items": [
+            {"item_id": 1, "score": "65.00"},
+            {"item_id": 2, "score": "28.50"},
+            {"item_id": 3, "score": "90.00"}
+        ]
+    }
+
+    The 'items' field is a list of objects where each object contains:
+    - item_id: ID of the KPI item to update
+    - score: Employee's score for that item
+    """
+
+    plan_tasks = serializers.CharField(required=False, allow_blank=True, help_text="Planned tasks for the period")
+    extra_tasks = serializers.CharField(required=False, allow_blank=True, help_text="Extra tasks handled")
+    proposal = serializers.CharField(required=False, allow_blank=True, help_text="Employee's proposals")
+    items = serializers.ListField(
+        child=EmployeeKPIItemScoreSerializer(),
+        required=False,
+        help_text="List of item updates with item_id and score",
+    )
+
+    def validate(self, data):
+        """Validate assessment is not finalized and manager hasn't graded."""
+        assessment = self.context.get("assessment")
+        if not assessment:
+            return data
+
+        # Check if finalized
+        if assessment.finalized:
+            from django.utils.translation import gettext as _
+
+            raise serializers.ValidationError(_("Cannot update finalized assessment"))
+
+        # Check if manager has already graded
+        if assessment.grade_manager is not None:
+            from django.utils.translation import gettext as _
+
+            raise serializers.ValidationError(_("Cannot update assessment that has been assessed by manager"))
+
+        return data
+
+    def update_items(self, assessment, validated_data):
+        """Update item scores from validated data."""
+        items_data = validated_data.get("items", [])
+
+        for item_data in items_data:
+            item_id = item_data["item_id"]
+            score = item_data["score"]
+
+            try:
+                item = assessment.items.get(id=item_id)
+                item.employee_score = score
+                item.save()
+            except EmployeeKPIItem.DoesNotExist:
+                continue
+
+        return assessment
+
+
+class ManagerAssessmentUpdateRequestSerializer(serializers.Serializer):
+    """Request serializer for manager assessment batch update.
+
+    Example request:
+    {
+        "manager_assessment": "Good performance overall",
+        "items": [
+            {"item_id": 1, "score": "65.00"},
+            {"item_id": 2, "score": "28.50"},
+            {"item_id": 3, "score": "90.00"}
+        ]
+    }
+
+    The 'items' field is a list of objects where each object contains:
+    - item_id: ID of the KPI item to update
+    - score: Manager's score for that item
+    """
+
+    manager_assessment = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Manager's assessment comments and feedback",
+    )
+    items = serializers.ListField(
+        child=EmployeeKPIItemScoreSerializer(),
+        required=False,
+        help_text="List of item updates with item_id and score",
+    )
+
+    def validate(self, data):
+        """Validate assessment is not finalized."""
+        assessment = self.context.get("assessment")
+        if not assessment:
+            return data
+
+        # Check if finalized
+        if assessment.finalized:
+            from django.utils.translation import gettext as _
+
+            raise serializers.ValidationError(_("Cannot update finalized assessment"))
+
+        return data
+
+    def update_items(self, assessment, validated_data):
+        """Update item scores from validated data."""
+        items_data = validated_data.get("items", [])
+
+        for item_data in items_data:
+            item_id = item_data["item_id"]
+            score = item_data["score"]
+
+            try:
+                item = assessment.items.get(id=item_id)
+                item.manager_score = score
+                item.save()
+            except EmployeeKPIItem.DoesNotExist:
+                continue
+
+        return assessment
+
+
 class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
     """Base serializer for EmployeeKPIAssessment with common fields and methods."""
 
@@ -138,6 +301,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "employee",
             "employee_id",
             "total_possible_score",
+            "total_employee_score",
             "total_manager_score",
             "grade_manager",
             "grade_manager_overridden",
@@ -157,6 +321,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         read_only_fields = [
             "id",
             "total_possible_score",
+            "total_employee_score",
             "total_manager_score",
             "grade_manager",
             "created_by",
@@ -205,6 +370,7 @@ class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
             "employee",
             "kpi_config_snapshot",
             "total_possible_score",
+            "total_employee_score",
             "total_manager_score",
             "grade_manager",
             "grade_manager_overridden",
@@ -251,6 +417,7 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "period",
             "employee",
             "total_possible_score",
+            "total_employee_score",
             "grade_manager",
             "plan_tasks",
             "extra_tasks",
@@ -263,6 +430,7 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "period",
             "employee",
             "total_possible_score",
+            "total_employee_score",
             "grade_manager",
             "finalized",
             "items",
