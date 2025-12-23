@@ -157,6 +157,10 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
                             "code": "E0001",
                             "fullname": "John Doe",
                         },
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "amount": 2500000,
                         "month": "11/2025",
                         "status": "NOT_CALCULATED",
@@ -190,7 +194,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
                     "success": False,
                     "data": None,
                     "error": {
-                        "employee": ["Employee must be active"],
+                        "employee_id": ["Employee must be active"],
                     },
                 },
                 response_only=True,
@@ -229,6 +233,10 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
                             "code": "E0001",
                             "fullname": "John Doe",
                         },
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "amount": 3000000,
                         "month": "11/2025",
                         "status": "NOT_CALCULATED",
@@ -269,6 +277,10 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
                             "code": "E0001",
                             "fullname": "John Doe",
                         },
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "amount": 3500000,
                         "month": "11/2025",
                         "status": "NOT_CALCULATED",
@@ -322,7 +334,48 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
         ],
     ),
     export=extend_schema(
+        summary="Export travel expenses to XLSX",
+        description="Export the filtered travel expenses list to XLSX. By default, returns a presigned download URL (delivery=link). Use delivery=direct to download the file directly.",
         tags=["10.4: Travel Expenses"],
+        examples=[
+            OpenApiExample(
+                "Success - Export link",
+                value={
+                    "success": True,
+                    "data": {
+                        "download_url": "https://example.com/exports/travel-expenses-2025-11.xlsx",
+                        "expires_at": "2025-11-15T12:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Success - Async export started",
+                value={
+                    "success": True,
+                    "data": {
+                        "task_id": "d3b07384-d9a1-4c8e-9f88-1234567890ab",
+                        "status": "PENDING",
+                        "message": "Export started. Check status at /api/export/status/?task_id=d3b07384-d9a1-4c8e-9f88-1234567890ab",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["202"],
+            ),
+            OpenApiExample(
+                "Error - Invalid delivery",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"detail": "Invalid delivery parameter; allowed: link, direct"},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
     ),
 )
 class TravelExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
