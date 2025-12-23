@@ -7,7 +7,7 @@ import pytest
 from django.contrib.auth import get_user_model
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Employee
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -72,7 +72,16 @@ def department(db, branch, block):
 
 
 @pytest.fixture
-def employee(db, branch, block, department):
+def position(db):
+    """Create a test position."""
+    return Position.objects.create(
+        name=f"Test Position {random_code()}",
+        code=random_code("POS"),
+    )
+
+
+@pytest.fixture
+def employee(db, branch, block, department, position):
     """Create a test employee."""
     from datetime import date
 
@@ -86,6 +95,7 @@ def employee(db, branch, block, department):
         branch=branch,
         block=block,
         department=department,
+        position=position,
         start_date=date.today(),
     )
 
