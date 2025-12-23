@@ -144,7 +144,66 @@ class KPIAssessmentPeriodAPITest(TestCase):
 
     def test_generate_period(self):
         """Test generating assessments for a new period."""
-        data = {"month": "2026-01"}
+        # Use a past month that's definitely not in the future
+        data = {"month": "2024-01"}
+
+        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.get_response_data(response)["success"], True)
+        self.assertIn("period_id", self.get_response_data(response)["data"])
+
+    def test_generate_period_future_month_rejected(self):
+        """Test that future months are rejected."""
+        from datetime import date
+
+        today = date.today()
+        # Calculate a future month (2 months from now)
+        future_year = today.year if today.month < 11 else today.year + 1
+        future_month = (today.month + 2) if today.month < 11 else (today.month + 2 - 12)
+        future_month_str = f"{future_year}-{future_month:02d}"
+
+        data = {"month": future_month_str}
+
+        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = self.get_response_data(response)
+        self.assertEqual(response_data["success"], False)
+        # Error can be in response_data["error"] or response_data["error"]["detail"]
+        error_message = (
+            response_data["error"]["detail"] if isinstance(response_data["error"], dict) else response_data["error"]
+        )
+        self.assertIn("Cannot create assessment period for future months", error_message)
+
+    def test_generate_period_current_month_allowed(self):
+        """Test that current month is allowed."""
+        from datetime import date
+
+        today = date.today()
+        current_month_str = f"{today.year}-{today.month:02d}"
+
+        data = {"month": current_month_str}
+
+        response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
+
+        # Should succeed (201) or fail because period already exists (400)
+        # Either is acceptable for this test
+        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
+
+        if response.status_code == status.HTTP_400_BAD_REQUEST:
+            # If it fails, it should be because period exists, not because it's future
+            response_data = self.get_response_data(response)
+            error_message = (
+                response_data["error"]["detail"]
+                if isinstance(response_data["error"], dict)
+                else response_data["error"]
+            )
+            self.assertNotIn("future", error_message.lower())
+
+    def test_generate_period_past_month_allowed(self):
+        """Test that past months are allowed."""
+        data = {"month": "2023-06"}
 
         response = self.client.post("/api/payroll/kpi-periods/generate/", data, format="json")
 

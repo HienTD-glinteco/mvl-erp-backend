@@ -103,7 +103,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     ),
     generate=extend_schema(
         summary="Generate KPI assessments for a month",
-        description="Generate employee and department KPI assessments for the specified month. Creates a new period if it doesn't exist.",
+        description="Generate employee and department KPI assessments for the specified month. Creates a new period if it doesn't exist. Only allows creating periods for current or past months.",
         tags=["8.6: KPI Assessment Periods"],
         request=KPIAssessmentPeriodGenerateSerializer,
         responses={
@@ -127,6 +127,14 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                 },
                 response_only=True,
                 status_codes=["201"],
+            ),
+            OpenApiExample(
+                "Error - Future month",
+                value={
+                    "detail": "Cannot create assessment period for future months",
+                },
+                response_only=True,
+                status_codes=["400"],
             ),
             OpenApiExample(
                 "Error - Period exists",
@@ -275,6 +283,15 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
         except (ValueError, AttributeError):
             return Response(
                 {"detail": _("Invalid month format. Use YYYY-MM (e.g., 2025-12)")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if month is in the future
+        today = date.today()
+        current_month_start = date(today.year, today.month, 1)
+        if month_date > current_month_start:
+            return Response(
+                {"detail": _("Cannot create assessment period for future months")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
