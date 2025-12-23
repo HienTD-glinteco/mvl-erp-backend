@@ -3,6 +3,7 @@ from .employee_kpi_assessment import EmployeeKPIAssessment, EmployeeKPIItem
 from .kpi_assessment_period import KPIAssessmentPeriod
 from .kpi_config import KPIConfig
 from .kpi_criterion import KPICriterion
+from .recovery_voucher import RecoveryVoucher
 from .salary_config import SalaryConfig
 from .travel_expense import TravelExpense
 
@@ -15,4 +16,5 @@ __all__ = [
     "EmployeeKPIItem",
     "DepartmentKPIAssessment",
     "TravelExpense",
+    "RecoveryVoucher",
 ]

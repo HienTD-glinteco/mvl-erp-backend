@@ -10,4 +10,5 @@ class PayrollConfig(AppConfig):
 
     def ready(self):
         """Import signals when app is ready."""
+        """Import signal handlers when app is ready."""
         import apps.payroll.signals  # noqa: F401
