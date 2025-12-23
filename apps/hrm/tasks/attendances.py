@@ -129,6 +129,77 @@ def sync_attendance_logs_for_device(self, device_id: int) -> dict[str, Any] | No
 
 
 @shared_task
+def process_realtime_attendance_event(event_data: dict[str, Any]) -> dict[str, Any]:
+    """Process a single realtime attendance event from ZK listener.
+
+    Args:
+        event_data: Dictionary containing event data (device_id, user_id, timestamp, etc.)
+
+    Returns:
+        dict: Result of processing
+    """
+    try:
+        device_id = event_data.get("device_id")
+        user_id = event_data.get("user_id")
+        timestamp_str = event_data.get("timestamp")
+
+        if not device_id or not user_id or not timestamp_str:
+            return {"success": False, "error": "Missing required fields"}
+
+        # Convert timestamp back to datetime
+        if isinstance(timestamp_str, str):
+            timestamp = datetime.fromisoformat(timestamp_str)
+        else:
+            timestamp = timestamp_str
+
+        # Ensure timezone awareness
+        if timezone.is_naive(timestamp):
+            timestamp = timezone.make_aware(timestamp)
+
+        # Get device
+        try:
+            device = AttendanceDevice.objects.get(id=device_id)
+        except AttendanceDevice.DoesNotExist:
+            return {"success": False, "error": f"Device {device_id} not found"}
+
+        # Check for duplicates
+        # We check if a record with same code and timestamp exists for this device
+        if AttendanceRecord.objects.filter(
+            biometric_device_id=device_id,
+            attendance_code=user_id,
+            timestamp=timestamp,
+        ).exists():
+            return {"success": True, "duplicate": True}
+
+        # Get employee (optional, but good to link if possible)
+        employee = Employee.objects.filter(attendance_code=user_id).first()
+
+        # Create record
+        temp_prefix = getattr(AttendanceRecord, "TEMP_CODE_PREFIX", "TEMP_")
+        record = AttendanceRecord.objects.create(
+            code=f"{temp_prefix}{get_random_string(16)}",
+            biometric_device=device,
+            employee=employee,
+            attendance_code=user_id,
+            timestamp=timestamp,
+            raw_data=event_data,
+            is_valid=True,
+        )
+
+        # Trigger timesheet updates
+        trigger_timesheet_updates_from_records([record])
+
+        logger.info(
+            f"Processed realtime event for user {user_id} at {timestamp} (Device: {device.name})"
+        )
+        return {"success": True, "record_id": record.id}
+
+    except Exception as e:
+        logger.exception(f"Error processing realtime attendance event: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@shared_task
 def sync_all_attendance_devices() -> dict[str, Any]:
     """Sync attendance logs from all active devices.
 

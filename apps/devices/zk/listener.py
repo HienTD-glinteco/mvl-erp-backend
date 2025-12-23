@@ -129,7 +129,10 @@ class ZKRealtimeDeviceListener:
         self._registered_device_ids: set[int] = set()  # Track currently registered devices
         self._running = False
         self._shutdown_event = asyncio.Event()
-        self._executor: ThreadPoolExecutor | None = None
+
+        # Dual executors
+        self._listener_executor: ThreadPoolExecutor | None = None
+        self._general_executor: ThreadPoolExecutor | None = None
 
     async def start(self):
         """Start the realtime listener for all enabled devices."""
@@ -137,8 +140,13 @@ class ZKRealtimeDeviceListener:
         self._running = True
         self._shutdown_event.clear()
 
-        # Initialize thread pool executor
-        self._executor = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="zk_listener")
+        # Initialize thread pool executors
+        # Listener executor needs one thread per device + buffer
+        self._listener_executor = ThreadPoolExecutor(
+            max_workers=self.max_workers + 10, thread_name_prefix="zk_listen"
+        )
+        # General executor for connection/disconnection/info tasks
+        self._general_executor = ThreadPoolExecutor(max_workers=20, thread_name_prefix="zk_gen")
 
         # Start initial devices
         await self._check_and_start_devices()
@@ -157,9 +165,9 @@ class ZKRealtimeDeviceListener:
             pass
 
     async def _run_blocking(self, func: Callable, *args):
-        """Run a blocking function in the custom thread pool executor."""
+        """Run a blocking function in the general thread pool executor."""
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(self._executor, func, *args)
+        return await loop.run_in_executor(self._general_executor, func, *args)
 
     async def _periodic_device_checker(self):
         """Periodically check for new or re-enabled devices and start listeners for them."""
@@ -232,10 +240,14 @@ class ZKRealtimeDeviceListener:
 
         self._device_tasks.clear()
 
-        # Shutdown executor
-        if self._executor:
-            self._executor.shutdown(wait=False)
-            self._executor = None
+        # Shutdown executors
+        if self._listener_executor:
+            self._listener_executor.shutdown(wait=False)
+            self._listener_executor = None
+
+        if self._general_executor:
+            self._general_executor.shutdown(wait=False)
+            self._general_executor = None
 
         logger.info("Realtime attendance listener stopped")
 
@@ -252,14 +264,20 @@ class ZKRealtimeDeviceListener:
 
         zk_conn = None
 
+        # Create a function to run the blocking live capture loop
+        # We capture the main loop here to pass it to the blocking function
+        main_loop = asyncio.get_running_loop()
+        def _run_blocking_capture(connection, last_update):
+            return self._live_capture_loop_blocking(device, connection, last_update, main_loop)
+
         while self._running:
             try:
                 logger.info(f"Connecting to device: {device.name} at {device.ip_address}:{device.port}")
 
-                # Connect to device
+                # Connect to device (uses general executor)
                 zk_conn = await self._connect_device(device)
 
-                # Get device info and notify via callback
+                # Get device info and notify via callback (uses general executor)
                 device_info = await self._get_device_info(zk_conn)
                 await self._safe_call(self._on_device_connected, device.device_id, device_info)
 
@@ -272,8 +290,11 @@ class ZKRealtimeDeviceListener:
 
                 logger.info(f"Successfully connected to device: {device.name}, starting live capture")
 
-                # Start live capture loop
-                await self._live_capture_loop(device, zk_conn, last_device_info_update)
+                # Run the live capture loop in the dedicated listener executor
+                # This blocks one thread in the listener pool for the duration of the connection
+                await main_loop.run_in_executor(
+                    self._listener_executor, _run_blocking_capture, zk_conn, last_device_info_update
+                )
 
             except (ZKErrorConnection, ZKErrorResponse, ConnectionError, ZKNetworkError) as e:
                 consecutive_failures += 1
@@ -427,74 +448,72 @@ class ZKRealtimeDeviceListener:
                 name = str(callback)
             logger.exception(f"Callback {name} raised an exception: {e}")
 
-    async def _live_capture_loop(self, device: ZKDeviceInfo, zk_conn: ZK, last_info_update: float):
-        """Run the live capture loop for a connected device.
+    def _live_capture_loop_blocking(
+        self, device: ZKDeviceInfo, zk_conn: ZK, last_info_update: float, main_loop: asyncio.AbstractEventLoop
+    ):
+        """Run the live capture loop in a blocking way (to be run in a thread).
+
+        This replaces the async generator approach to avoid context switching overhead
+        and thread starvation.
 
         Args:
             device: DeviceInfo instance
             zk_conn: Connected ZK instance
             last_info_update: Timestamp of last device info update
+            main_loop: Reference to the main asyncio loop for dispatching events
         """
+        logger.debug(f"Starting blocking capture loop for device {device.name}")
 
-        def _do_live_capture():
-            """Run live capture in a separate thread."""
+        try:
             for attendance in zk_conn.live_capture(new_timeout=DEFAULT_LIVE_CAPTURE_TIMEOUT):
-                # Check if we should stop
-                if not self._running or (hasattr(zk_conn, "end_live_capture") and zk_conn.end_live_capture):
+                # Check if we should stop (thread-safe boolean check)
+                if not self._running:
                     break
+
+                if hasattr(zk_conn, "end_live_capture") and zk_conn.end_live_capture:
+                    break
+
+                # Update device info periodically (also dispatch to main loop)
+                current_time = time.time()
+                if current_time - last_info_update >= DEVICE_INFO_UPDATE_INTERVAL:
+                    # We need to schedule this on the general executor or just do it here?
+                    # Since get_device_info is blocking (network I/O), we can do it here.
+                    # But wait, _get_device_info uses _run_blocking which uses _general_executor.
+                    # We are already in a thread (listener executor).
+                    # Calling _run_blocking would try to schedule a task on main loop (run_in_executor).
+                    # But we are not in an async context here. We are in a blocking function.
+
+                    # Solution: Do it directly here, synchronously.
+                    try:
+                        info = {
+                            "serial_number": zk_conn.get_serialnumber() or "",
+                            "registration_number": zk_conn.get_device_name() or "",
+                            "firmware_version": zk_conn.get_firmware_version() or "",
+                        }
+                        if self._on_device_connected:
+                            # Schedule callback on main loop
+                            asyncio.run_coroutine_threadsafe(
+                                self._safe_call(self._on_device_connected, device.device_id, info), main_loop
+                            )
+                        last_info_update = current_time
+                    except Exception as e:
+                        logger.warning(f"Error updating device info in loop: {e}")
 
                 # None means timeout, continue waiting
                 if attendance is None:
                     continue
 
-                # Yield the attendance event
-                yield attendance
-
-        # Run live capture in executor
-        loop = asyncio.get_event_loop()
-
-        try:
-            # We need to run the generator in a thread
-            async for attendance in self._async_generator_from_sync(_do_live_capture, loop):
-                if attendance is not None:
-                    await self._process_attendance_event(device, attendance)
-
-                # Periodically update device info
-                current_time = time.time()
-                if current_time - last_info_update >= DEVICE_INFO_UPDATE_INTERVAL:
-                    device_info = await self._get_device_info(zk_conn)
-                    if self._on_device_connected:
-                        await self._run_blocking(self._on_device_connected, device.device_id, device_info)
-                    last_info_update = current_time
+                # Process the event
+                # We need to dispatch this to the main loop to be processed asynchronously
+                # Create a coroutine object
+                coro = self._process_attendance_event(device, attendance)
+                # Schedule it
+                asyncio.run_coroutine_threadsafe(coro, main_loop)
 
         except Exception as e:
             logger.error(f"Error in live capture loop for device {device.name}: {str(e)}")
+            # We raise so the outer loop handles the error (retry logic)
             raise
-
-    async def _async_generator_from_sync(self, sync_gen_func, loop):
-        """Convert a synchronous generator to an async generator.
-
-        Args:
-            sync_gen_func: Function that returns a synchronous generator
-            loop: Event loop
-
-        Yields:
-            Items from the synchronous generator
-        """
-
-        def _get_next_item(gen):
-            try:
-                return next(gen), False
-            except StopIteration:
-                return None, True
-
-        gen = sync_gen_func()
-
-        while True:
-            item, done = await loop.run_in_executor(self._executor, _get_next_item, gen)
-            if done:
-                break
-            yield item
 
     async def _process_attendance_event(self, device: ZKDeviceInfo, attendance: Attendance):
         """Process a single attendance event by calling the event handler.
