@@ -10,13 +10,11 @@ keeping device communication logic separate from business logic.
 import asyncio
 import logging
 import signal
-import time
-from typing import Any, Dict, List
+from typing import Any
 
 from asgiref.sync import sync_to_async
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.utils.crypto import get_random_string
 
 from apps.devices.zk import ZKAttendanceEvent, ZKDeviceInfo, ZKRealtimeDeviceListener
 from apps.hrm.models import (
@@ -157,9 +155,6 @@ class Command(BaseCommand):
                 updated_fields.append("updated_at")
                 device.save(update_fields=updated_fields)
 
-            # Update cache
-            self.device_cache[device_id] = device
-
             logger.info(f"Device {device.name} (ID: {device_id}) connected successfully")
 
         except AttendanceDevice.DoesNotExist:
@@ -175,9 +170,6 @@ class Command(BaseCommand):
             if device.is_connected:
                 device.is_connected = False
                 device.save(update_fields=["is_connected", "updated_at"])
-
-            # Update cache
-            self.device_cache[device_id] = device
 
             logger.info(f"Device {device.name} (ID: {device_id}) disconnected")
 
@@ -214,4 +206,3 @@ class Command(BaseCommand):
             logger.error(f"Device ID {device_id} not found in database")
         except Exception as e:
             logger.exception(f"Error handling device disabled event for device ID {device_id}: {str(e)}")
-

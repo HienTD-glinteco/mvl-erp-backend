@@ -53,3 +53,50 @@ The consumer task will process events in batches (e.g., every 100 events or ever
 -   The `ZKRealtimeDeviceListener` now uses a dedicated `concurrent.futures.ThreadPoolExecutor` for all blocking operations (device connections, `live_capture` loops, and synchronous callbacks).
 -   This ensures that the main asyncio loop and its default executor are not starved, significantly improving scalability for a large number of concurrent device connections.
 -   The `max_workers` parameter can be configured to control the size of this dedicated thread pool.
+
+## Robust Realtime Attendance Architecture (Recommended Follow-up)
+
+## Problem Summary
+Despite the batch processing and caching improvements above, operational experience shows missing attendance records and reliability issues when scaling to many devices. Root causes include:
+
+- Thread pool contention between long-running listener loops and short-lived admin tasks.
+- Listener loops that yield frequently cause scheduling gaps and lost events under heavy load.
+- Processing and business logic (DB writes, timesheet updates) still run in the same process, so failures there can impact event capture.
+
+## Key Recommendations
+
+1.  Dedicated Listening & Threading Model
+	- Dual thread pools:
+		* `_listener_executor`: sized to `num_devices + buffer`, dedicated strictly to persistent `live_capture` loops.
+		* `_general_executor`: separate pool for short-lived operations (connect, disconnect, get_info, callbacks).
+	- Persist listening threads:
+		* Refactor each `_live_capture_loop` to run as a continuous blocking loop inside a single thread, managing its own timeouts and heartbeat logic without exiting on each yield.
+		* Use `asyncio.run_coroutine_threadsafe` or `loop.call_soon_threadsafe` to push events to the main process without repeatedly reacquiring executor threads.
+
+2.  Offload Business Logic to Celery
+	- Create a new Celery task `process_realtime_attendance_event(event_data)` in `apps/hrm/tasks/attendances.py` that encapsulates:
+		* Employee and Device lookups, duplicate detection, `AttendanceRecord` creation, and subsequent timesheet triggers.
+	- The realtime listener's responsibility becomes lightweight: capture events and enqueue them to Celery (e.g., `process_realtime_attendance_event.delay(event_data)`).
+	- Benefits: listener remains responsive even if DB or processing tasks stall; Celery provides retry, visibility, and scaling.
+
+3.  Reliability & Dynamic Scaling
+	- Calculate and allocate `_listener_executor` size dynamically based on the number of enabled devices and a configurable buffer.
+	- Maintain exponential backoff for connection retries but ensure health-check or administrative tasks do not use `_listener_executor` capacity needed for active listeners.
+	- Implement health monitoring to detect stalled listeners and respawn threads without disrupting the global executor.
+
+## Expected Outcomes
+
+- Zero gaps in event capture due to persistent dedicated listener threads.
+- Higher device capacity because listening is isolated from processing logic.
+- Greater resilience: processing failures won't stop event collection; Celery ensures retries and persistence.
+
+## Migration Options (phased)
+
+- Blue/Green approach: Run the new listener process alongside the existing one; route a subset of devices to the new architecture to validate behavior at scale.
+- Hybrid approach: Keep lightweight queue-and-batch processing for low-volume sites, and enable Celery-offload mode for high-volume deployments via a config flag.
+
+## Next Steps
+
+- Implement `_listener_executor` and `_general_executor` in `apps/devices/zk/listener.py`.
+- Add `process_realtime_attendance_event` Celery task in `apps/hrm/tasks/attendances.py` and unit tests.
+- Deploy in staging with a subset of devices; monitor for missed events and throughput.
