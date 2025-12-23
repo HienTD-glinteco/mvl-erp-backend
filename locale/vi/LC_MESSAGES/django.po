@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 14:15+0700\n"
+"POT-Creation-Date: 2025-12-23 14:31+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -323,7 +323,7 @@ msgid "Only grade and note can be updated for finalized assessments"
 msgstr "Chỉ có thể cập nhật xếp loại và ghi chú cho các đánh giá đã hoàn tất"
 
 #: apps/payroll/api/serializers/employee_kpi_assessment.py:90
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:157
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:163
 msgid "Cannot update finalized assessment"
 msgstr "Không thể cập nhật đánh giá đã hoàn tất"
 
@@ -331,26 +331,26 @@ msgstr "Không thể cập nhật đánh giá đã hoàn tất"
 msgid "Cannot update assessment that has been assessed by manager"
 msgstr "Không thể cập nhật đánh giá đã được quản lý đánh giá"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:240
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:270
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
 msgid "Cannot update items of a finalized assessment"
 msgstr "Không thể cập nhật các mục của đánh giá đã hoàn tất"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:248
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:278
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
 msgid "Employee score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:260
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:290
 msgid "Manager score cannot exceed component total score"
 msgstr "Điểm của quản lý không được vượt quá tổng điểm thành phần"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:361
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:367
 msgid "An assessment for this employee and month already exists"
 msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:370
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
