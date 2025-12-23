@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 14:31+0700\n"
+"POT-Creation-Date: 2025-12-23 16:10+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -365,6 +365,65 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
+#: apps/payroll/api/serializers/sales_revenue.py:81
+#, fuzzy
+#| msgid "Name is required"
+msgid "Revenue is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:83
+#, fuzzy
+#| msgid "Employee must be active"
+msgid "Revenue must be non-negative"
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/sales_revenue.py:89
+#, fuzzy
+#| msgid "Amount is required"
+msgid "Transaction count is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:91
+msgid "Transaction count must be non-negative"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:97
+#: apps/payroll/api/serializers/travel_expense.py:101
+msgid "Employee is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:100
+#: apps/payroll/api/serializers/travel_expense.py:104
+msgid "Employee must be active"
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/sales_revenue.py:107
+#: apps/payroll/api/serializers/travel_expense.py:111
+msgid "Month is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:119
+#: apps/payroll/api/serializers/travel_expense.py:124
+msgid "Month must be between 1 and 12"
+msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
+
+#: apps/payroll/api/serializers/sales_revenue.py:122
+#: apps/payroll/api/serializers/travel_expense.py:127
+msgid "Year must be between 1900 and 2100"
+msgstr "Năm phải nằm trong khoảng từ 1900 đến 2100"
+
+#: apps/payroll/api/serializers/sales_revenue.py:127
+#: apps/payroll/api/serializers/travel_expense.py:133
+msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/serializers/sales_revenue.py:145
+#: apps/payroll/api/serializers/sales_revenue.py:149
+#, fuzzy
+#| msgid "An assessment for this employee and month already exists"
+msgid "Sales revenue for this employee and month already exists"
+msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
+
 #: apps/payroll/api/serializers/travel_expense.py:85
 msgid "Name is required"
 msgstr "Trường này là bắt buộc"
@@ -380,30 +439,6 @@ msgstr "Trường này là bắt buộc"
 #: apps/payroll/api/serializers/travel_expense.py:95
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
-
-#: apps/payroll/api/serializers/travel_expense.py:101
-msgid "Employee is required"
-msgstr "Trường này là bắt buộc"
-
-#: apps/payroll/api/serializers/travel_expense.py:104
-msgid "Employee must be active"
-msgstr "Nhân viên phải đang hoạt động"
-
-#: apps/payroll/api/serializers/travel_expense.py:111
-msgid "Month is required"
-msgstr "Trường này là bắt buộc"
-
-#: apps/payroll/api/serializers/travel_expense.py:124
-msgid "Month must be between 1 and 12"
-msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
-
-#: apps/payroll/api/serializers/travel_expense.py:127
-msgid "Year must be between 1900 and 2100"
-msgstr "Năm phải nằm trong khoảng từ 1900 đến 2100"
-
-#: apps/payroll/api/serializers/travel_expense.py:133
-msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
-msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
 
 #: apps/payroll/api/views/kpi_assessment_period.py:275
 msgid "Month parameter is required"
@@ -446,6 +481,7 @@ msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
 #: apps/payroll/api/views/salary_config.py:128
+#: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
@@ -457,6 +493,18 @@ msgstr "Cấu hình"
 #: apps/payroll/api/views/salary_config.py:130
 msgid "Payroll View Salary Configuration"
 msgstr "Xem cấu hình bảng lương"
+
+#: apps/payroll/api/views/sales_revenue.py:374
+#, fuzzy
+#| msgid "Travel Expense Management"
+msgid "Sales Revenue Management"
+msgstr "Quản lý chi phí đi lại"
+
+#: apps/payroll/api/views/sales_revenue.py:396
+#, fuzzy
+#| msgid "Cannot delete travel expense for a month with existing payroll."
+msgid "Cannot delete sales revenue for a month with existing payroll."
+msgstr "Không thể xóa chi phí đi lại cho một tháng đã có bảng lương."
 
 #: apps/payroll/api/views/travel_expense.py:409
 msgid "Travel Expense Management"

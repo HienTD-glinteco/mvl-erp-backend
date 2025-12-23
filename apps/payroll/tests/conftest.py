@@ -92,7 +92,7 @@ def employee(db, branch, block, department, position):
         email=f"emp{code}@example.com",
         phone=f"09{random_code(length=8)}",
         citizen_id=f"{random_code(length=12)}",
-        status="active",
+        status="Active",
         branch=branch,
         block=block,
         department=department,

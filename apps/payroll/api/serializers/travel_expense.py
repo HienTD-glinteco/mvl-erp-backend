@@ -100,8 +100,8 @@ class TravelExpenseSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError(_("Employee is required"))
 
-#        if value.status != Employee.Status.ACTIVE:
-#            raise serializers.ValidationError(_("Employee must be active"))
+        if value.status != "Active":
+            raise serializers.ValidationError(_("Employee must be active"))
 
         return value
 

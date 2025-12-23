@@ -181,8 +181,11 @@ class TestTravelExpenseSerializer:
 
     def test_employee_must_be_active(self, employee):
         """Test that employee must be active."""
-        employee.status = "resigned"
-        employee.save()
+        # Use update() to bypass model validation
+        from apps.hrm.models import Employee
+
+        Employee.objects.filter(pk=employee.pk).update(status="Onboarding")
+        employee.refresh_from_db()
 
         data = {
             "name": "Test expense",
