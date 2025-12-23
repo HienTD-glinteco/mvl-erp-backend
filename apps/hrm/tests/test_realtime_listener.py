@@ -1,59 +1,73 @@
-import asyncio
-import datetime
-import types
+from unittest.mock import MagicMock, patch
 
 import pytest
+from django.utils import timezone
 
+from apps.devices.zk import ZKAttendanceEvent
 from apps.hrm.management.commands.run_realtime_attendance_listener import Command
-from apps.hrm.models import AttendanceDevice, AttendanceRecord
 
 
-@pytest.mark.django_db
-def test_save_batch_creates_records_and_updates_device_cache():
-    """save_batch should bulk create AttendanceRecord objects and populate device_cache."""
-    device = AttendanceDevice.objects.create(code="MC_TEST1", name="dev1", ip_address="127.0.0.1", port=4370)
+class TestRealtimeListenerCommand:
+    @pytest.fixture
+    def cmd(self):
+        return Command()
 
-    cmd = Command()
-    assert device.id not in cmd.device_cache
+    @pytest.mark.asyncio
+    async def test_on_attendance_event_dispatches_task(self, cmd):
+        # Mock the process_realtime_attendance_event task
+        with patch("apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event") as mock_task:
+            # Setup command
+            cmd.running = True
 
-    now = datetime.datetime.now()
-    events = [
-        types.SimpleNamespace(device_id=device.id, user_id=str(i), uid=i, timestamp=now, status=1, punch=0)
-        for i in range(2)
-    ]
+            # Create event
+            now = timezone.now()
+            event = ZKAttendanceEvent(
+                device_id=1,
+                device_name="Test Device",
+                user_id="12345",
+                uid=1,
+                timestamp=now,
+                status=0,
+                punch=0
+            )
 
-    # call the original sync implementation of save_batch to avoid thread/transaction locks
-    # The function is decorated with @sync_to_async; access the wrapped sync function.
-    sync_save = getattr(cmd.save_batch, "__wrapped__", None)
-    assert sync_save is not None, "Expected wrapped sync function on save_batch"
-    sync_save(cmd, events)
+            # Call handler
+            await cmd.on_attendance_event(event)
 
-    # bulk_create should have persisted records
-    assert AttendanceRecord.objects.count() == 2
+            # Verify task was called
+            # We need to verify what was passed to .delay()
+            mock_task.delay.assert_called_once()
 
-    # device cache should be populated for the device id
-    assert device.id in cmd.device_cache
+            # Check args
+            call_args = mock_task.delay.call_args
+            event_data = call_args[0][0]
 
+            assert event_data["device_id"] == 1
+            assert event_data["user_id"] == "12345"
+            assert event_data["timestamp"] == now.isoformat()
 
-@pytest.mark.django_db
-def test_drain_queue_processes_queued_events():
-    """drain_queue should drain queued events and create attendance records."""
-    device = AttendanceDevice.objects.create(code="MC_TEST2", name="dev2", ip_address="127.0.0.1", port=4370)
+            assert cmd.processed_count == 1
 
-    cmd = Command()
-    cmd.queue = asyncio.Queue()
+    @pytest.mark.asyncio
+    async def test_on_attendance_event_does_not_dispatch_if_not_running(self, cmd):
+        with patch("apps.hrm.management.commands.run_realtime_attendance_listener.process_realtime_attendance_event") as mock_task:
+            # Setup command
+            cmd.running = False
 
-    now = datetime.datetime.now()
+            # Create event
+            event = ZKAttendanceEvent(
+                device_id=1,
+                device_name="Test Device",
+                user_id="12345",
+                uid=1,
+                timestamp=timezone.now(),
+                status=0,
+                punch=0
+            )
 
-    # Instead of exercising the async queue drain (which would require async DB handling),
-    # call the sync save_batch directly with a constructed batch to validate the same behavior.
-    events = [
-        types.SimpleNamespace(device_id=device.id, user_id="999", uid=1, timestamp=now, status=1, punch=1),
-        types.SimpleNamespace(device_id=device.id, user_id="999", uid=2, timestamp=now, status=1, punch=1),
-    ]
+            # Call handler
+            await cmd.on_attendance_event(event)
 
-    sync_save = getattr(cmd.save_batch, "__wrapped__", None)
-    assert sync_save is not None
-    sync_save(cmd, events)
-
-    assert AttendanceRecord.objects.count() == 2
+            # Verify task was NOT called
+            mock_task.delay.assert_not_called()
+            assert cmd.processed_count == 0
