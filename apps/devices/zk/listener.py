@@ -12,9 +12,10 @@ import logging
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
 from typing import Any
 
+from django.utils import timezone
 from zk import ZK
 from zk.attendance import Attendance
 from zk.exception import ZKErrorConnection, ZKErrorResponse, ZKNetworkError
@@ -142,9 +143,7 @@ class ZKRealtimeDeviceListener:
 
         # Initialize thread pool executors
         # Listener executor needs one thread per device + buffer
-        self._listener_executor = ThreadPoolExecutor(
-            max_workers=self.max_workers + 10, thread_name_prefix="zk_listen"
-        )
+        self._listener_executor = ThreadPoolExecutor(max_workers=self.max_workers + 10, thread_name_prefix="zk_listen")
         # General executor for connection/disconnection/info tasks
         self._general_executor = ThreadPoolExecutor(max_workers=20, thread_name_prefix="zk_gen")
 
@@ -267,6 +266,7 @@ class ZKRealtimeDeviceListener:
         # Create a function to run the blocking live capture loop
         # We capture the main loop here to pass it to the blocking function
         main_loop = asyncio.get_running_loop()
+
         def _run_blocking_capture(connection, last_update):
             return self._live_capture_loop_blocking(device, connection, last_update, main_loop)
 
@@ -517,8 +517,8 @@ class ZKRealtimeDeviceListener:
         try:
             # Ensure timestamp is timezone-aware
             timestamp = attendance.timestamp
-            if timestamp.tzinfo is None:
-                timestamp = timestamp.replace(tzinfo=dt_timezone.utc)
+            if timezone.is_naive(timestamp):
+                timestamp = timezone.make_aware(timestamp)
 
             # Create event object
             event = ZKAttendanceEvent(

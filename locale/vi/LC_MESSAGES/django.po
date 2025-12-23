@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 13:35+0700\n"
+"POT-Creation-Date: 2025-12-23 14:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -446,7 +446,7 @@ msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
 #: apps/payroll/api/views/salary_config.py:128
-#: apps/payroll/api/views/travel_expense.py:355
+#: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
 
@@ -458,11 +458,11 @@ msgstr "Cấu hình"
 msgid "Payroll View Salary Configuration"
 msgstr "Xem cấu hình bảng lương"
 
-#: apps/payroll/api/views/travel_expense.py:356
+#: apps/payroll/api/views/travel_expense.py:409
 msgid "Travel Expense Management"
 msgstr "Quản lý chi phí đi lại"
 
-#: apps/payroll/api/views/travel_expense.py:381
+#: apps/payroll/api/views/travel_expense.py:434
 msgid "Cannot delete travel expense for a month with existing payroll."
 msgstr "Không thể xóa chi phí đi lại cho một tháng đã có bảng lương."
 
