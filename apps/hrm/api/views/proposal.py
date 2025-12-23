@@ -447,7 +447,6 @@ class ProposalViewSet(ProposalMixin, BaseReadOnlyModelViewSet):
         description="Retrieve a list of proposals created by the current user with optional filtering and pagination",
         tags=["9.2: Proposals", "9.2: Proposals - For Mobile"],
         filters=MeProposalFilterSet,  # type: ignore
-        operation_id="hrm_proposals_mine_list",
         responses={200: ProposalCombinedSerializer(many=True)},
         examples=[
             OpenApiExample(
@@ -3488,7 +3487,6 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
         description="Retrieve a list of proposal verifiers assigned to the current user that need verification with optional filtering and pagination",
         tags=["9.3: Proposal Verifiers", "9.3: Proposal Verifiers - For Mobile"],
         filters=MeProposalVerifierFilterSet,  # type: ignore
-        operation_id="hrm_proposal_verifiers_mine_list",
         responses={200: ProposalVerifierNeedVerificationSerializer(many=True)},
         examples=[
             OpenApiExample(

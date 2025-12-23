@@ -45,7 +45,6 @@ class AttendanceReportViewSet(BaseGenericViewSet):
 
     @extend_schema(
         tags=["6.9: Attendance Reports"],
-        operation_id="hrm_reports_attendance_by_method",
         summary="Attendance Report By Method",
         description="Get attendance statistics report by method (device, wifi, geolocation, other). "
         "This report shows the breakdown of employee attendance methods within a specified time period and organizational structure. "
@@ -151,7 +150,6 @@ class AttendanceReportViewSet(BaseGenericViewSet):
 
     @extend_schema(
         tags=["6.9: Attendance Reports"],
-        operation_id="hrm_reports_attendance_by_project",
         summary="Attendance Report By Project",
         description="Get attendance statistics report grouped by projects. "
         "This report shows the number of employees who have attendance records for each project within the specified filters. "
@@ -227,7 +225,6 @@ class AttendanceReportViewSet(BaseGenericViewSet):
 
     @extend_schema(
         tags=["6.9: Attendance Reports"],
-        operation_id="hrm_reports_attendance_by_project_organization",
         summary="Attendance Report By Project Organization",
         description="Get attendance statistics report for personnel working on projects grouped by organizational structure. "
         "This report shows the hierarchical breakdown of employee attendance on projects by branch, block, and department. "
