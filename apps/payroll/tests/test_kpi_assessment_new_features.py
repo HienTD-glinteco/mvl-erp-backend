@@ -298,6 +298,7 @@ class TestManagerAssessmentViews:
         # Batch update manager scores
         update_data = {
             "manager_assessment": "Good performance overall, needs improvement in time management",
+            "grade": "B",
             "items": [
                 {"item_id": items[0].id, "score": "62.00"},
                 {"item_id": items[1].id, "score": "27.00"},
@@ -318,6 +319,7 @@ class TestManagerAssessmentViews:
         assert items[0].manager_score == Decimal("62.00")
         assert items[1].manager_score == Decimal("27.00")
         assert assessment.manager_assessment == "Good performance overall, needs improvement in time management"
+        assert assessment.grade_manager_overridden == "B"
         assert assessment.total_manager_score == Decimal("89.00")
         assert assessment.grade_manager == "B"
 

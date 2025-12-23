@@ -121,6 +121,7 @@ class ManagerAssessmentUpdateRequestSerializer(serializers.Serializer):
     Example request:
     {
         "manager_assessment": "Good performance overall",
+        "grade": "A",
         "items": [
             {"item_id": 1, "score": "65.00"},
             {"item_id": 2, "score": "28.50"},
@@ -137,6 +138,11 @@ class ManagerAssessmentUpdateRequestSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         help_text="Manager's assessment comments and feedback",
+    )
+    grade = serializers.CharField(
+        required=True,
+        max_length=10,
+        help_text="Manager's grade override for the assessment",
     )
     items = serializers.ListField(
         child=EmployeeKPIItemScoreSerializer(),
@@ -478,9 +484,17 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
     - View employee assessments
     - Update manager scores for items (via batch update in view)
     - Update manager_assessment field
+    - Update grade_manager_overridden field
     """
 
     items = EmployeeKPIItemSerializer(many=True, read_only=True)
+    grade = serializers.CharField(
+        source="grade_manager_overridden",
+        required=False,
+        allow_blank=True,
+        max_length=10,
+        help_text="Manager's grade override",
+    )
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -496,6 +510,8 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "total_employee_score",
             "total_manager_score",
             "grade_manager",
+            "grade_manager_overridden",
+            "grade",
             "plan_tasks",
             "extra_tasks",
             "proposal",
@@ -515,6 +531,7 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "total_employee_score",
             "total_manager_score",
             "grade_manager",
+            "grade_manager_overridden",
             "plan_tasks",
             "extra_tasks",
             "proposal",
@@ -527,3 +544,10 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         if self.instance and self.instance.finalized:
             raise serializers.ValidationError("Cannot update finalized assessment")
         return data
+
+    def update(self, instance, validated_data):
+        """Handle grade mapping from request serializer."""
+        request = self.context.get("request")
+        if request and "grade" in request.data:
+            validated_data["grade_manager_overridden"] = request.data["grade"]
+        return super().update(instance, validated_data)
