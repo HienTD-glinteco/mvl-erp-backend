@@ -7,6 +7,7 @@ from .employee_kpi_assessment import (
 from .kpi_assessment_period import KPIAssessmentPeriodViewSet
 from .kpi_config import CurrentKPIConfigView
 from .kpi_criterion import KPICriterionViewSet
+from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
 from .travel_expense import TravelExpenseViewSet
 
@@ -20,4 +21,5 @@ __all__ = [
     "EmployeeKPIAssessmentViewSet",
     "DepartmentKPIAssessmentViewSet",
     "TravelExpenseViewSet",
+    "RecoveryVoucherViewSet",
 ]

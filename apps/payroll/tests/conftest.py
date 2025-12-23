@@ -2,6 +2,7 @@
 
 import random
 import string
+from datetime import date
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -12,10 +13,15 @@ from apps.hrm.models import Block, Branch, Department, Employee
 User = get_user_model()
 
 
-def random_code(prefix="", length=6):
+def random_code(prefix: str = "", length: int = 6):
     """Generate a random code."""
     suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
     return f"{prefix}{suffix}"
+
+
+def random_digits(length: int) -> str:
+    """Generate a numeric string with the given length."""
+    return "".join(random.choices(string.digits, k=length))
 
 
 @pytest.fixture
@@ -74,19 +80,21 @@ def department(db, branch, block):
 @pytest.fixture
 def employee(db, branch, block, department):
     """Create a test employee."""
-    from datetime import date
-
-    code = random_code()
+    suffix = random_code(length=6)
     return Employee.objects.create(
-        username=f"emp{code}",
-        email=f"emp{code}@example.com",
-        phone=f"09{random_code(length=8)}",
-        citizen_id=f"{random_code(length=12)}",
-        status="active",
+        code=f"E{suffix}",
+        fullname="John Doe",
+        username=f"emp{suffix}",
+        email=f"emp{suffix}@example.com",
+        status=Employee.Status.ACTIVE,
+        code_type=Employee.CodeType.MV,
         branch=branch,
         block=block,
         department=department,
-        start_date=date.today(),
+        start_date=date(2024, 1, 1),
+        attendance_code=random_digits(6),
+        citizen_id=random_digits(12),
+        phone=f"09{random_digits(8)}",
     )
 
 

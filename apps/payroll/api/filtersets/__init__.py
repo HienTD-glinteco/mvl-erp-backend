@@ -1,6 +1,7 @@
 from .department_kpi_assessment import DepartmentKPIAssessmentFilterSet
 from .employee_kpi_assessment import EmployeeKPIAssessmentFilterSet
 from .kpi_criterion import KPICriterionFilterSet
+from .recovery_voucher import RecoveryVoucherFilterSet
 from .travel_expense import TravelExpenseFilterSet
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     "EmployeeKPIAssessmentFilterSet",
     "DepartmentKPIAssessmentFilterSet",
     "TravelExpenseFilterSet",
+    "RecoveryVoucherFilterSet",
 ]

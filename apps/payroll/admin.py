@@ -6,6 +6,7 @@ from .models import (
     EmployeeKPIItem,
     KPIConfig,
     KPICriterion,
+    RecoveryVoucher,
     SalaryConfig,
 )
 
@@ -256,3 +257,90 @@ class DepartmentKPIAssessmentAdmin(admin.ModelAdmin):
     search_fields = ["department__name", "employee__username"]
     ordering = ["-id"]
     readonly_fields = ["id"]
+
+
+@admin.register(RecoveryVoucher)
+class RecoveryVoucherAdmin(admin.ModelAdmin):
+    """Admin configuration for RecoveryVoucher model.
+
+    Provides interface to manage recovery and back pay vouchers with filtering
+    and search capabilities.
+    """
+
+    list_display = [
+        "code",
+        "name",
+        "voucher_type",
+        "employee_code",
+        "employee_name",
+        "amount",
+        "get_month_display",
+        "status",
+        "created_at",
+        "updated_at",
+    ]
+    list_filter = ["voucher_type", "status", "month", "created_at"]
+    search_fields = ["code", "name", "employee_code", "employee_name", "note"]
+    readonly_fields = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "created_by",
+        "updated_by",
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ["-updated_at"]
+
+    fieldsets = [
+        (
+            "Basic Information",
+            {
+                "fields": ["code", "name", "voucher_type", "employee"],
+            },
+        ),
+        (
+            "Cached Employee Information",
+            {
+                "fields": ["employee_code", "employee_name"],
+                "description": "These fields are automatically cached from the employee record.",
+                "classes": ["collapse"],
+            },
+        ),
+        (
+            "Financial Details",
+            {
+                "fields": ["amount", "month"],
+            },
+        ),
+        (
+            "Status and Notes",
+            {
+                "fields": ["status", "note"],
+            },
+        ),
+        (
+            "Audit Information",
+            {
+                "fields": ["created_by", "updated_by", "created_at", "updated_at"],
+                "classes": ["collapse"],
+            },
+        ),
+    ]
+
+    def get_month_display(self, obj):
+        """Display month in MM/YYYY format."""
+        if obj.month:
+            return obj.month.strftime("%m/%Y")
+        return "-"
+
+    get_month_display.short_description = "Period"  # type: ignore[attr-defined]
+    get_month_display.admin_order_field = "month"  # type: ignore[attr-defined]
+
+    def save_model(self, request, obj, form, change):
+        """Set created_by or updated_by when saving through admin."""
+        if not change:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
