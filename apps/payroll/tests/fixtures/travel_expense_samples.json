@@ -1,0 +1,137 @@
+{
+  "create_request": {
+    "name": "Client visit 11/2025",
+    "expense_type": "TAXABLE",
+    "employee_id": 101,
+    "amount": 2500000,
+    "month": "11/2025",
+    "note": "Taxi + meals"
+  },
+  "create_response": {
+    "success": true,
+    "data": {
+      "id": 1,
+      "code": "TE-202511-0001",
+      "name": "Client visit 11/2025",
+      "expense_type": "TAXABLE",
+      "employee": {
+        "id": 101,
+        "code": "E0001",
+        "fullname": "John Doe"
+      },
+      "amount": 2500000,
+      "month": "11/2025",
+      "status": "NOT_CALCULATED",
+      "note": "Taxi + meals"
+    },
+    "error": null
+  },
+  "update_request": {
+    "name": "Client visit updated",
+    "expense_type": "TAXABLE",
+    "employee_id": 101,
+    "amount": 3000000,
+    "month": "11/2025",
+    "note": "Updated: Taxi + meals + hotel"
+  },
+  "update_response": {
+    "success": true,
+    "data": {
+      "id": 1,
+      "code": "TE-202511-0001",
+      "name": "Client visit updated",
+      "expense_type": "TAXABLE",
+      "employee": {
+        "id": 101,
+        "code": "E0001",
+        "fullname": "John Doe"
+      },
+      "amount": 3000000,
+      "month": "11/2025",
+      "status": "NOT_CALCULATED",
+      "note": "Updated: Taxi + meals + hotel"
+    },
+    "error": null
+  },
+  "list_response": {
+    "success": true,
+    "data": {
+      "count": 2,
+      "next": null,
+      "previous": null,
+      "results": [
+        {
+          "id": 1,
+          "code": "TE-202511-0001",
+          "name": "Client visit 11/2025",
+          "expense_type": "TAXABLE",
+          "employee": {
+            "id": 101,
+            "code": "E0001",
+            "fullname": "John Doe"
+          },
+          "branch": {
+            "id": 1,
+            "name": "Main Branch",
+            "code": "BR001"
+          },
+          "block": {
+            "id": 10,
+            "name": "Business Block",
+            "code": "BL001"
+          },
+          "department": {
+            "id": 100,
+            "name": "Sales Department",
+            "code": "D001"
+          },
+          "position": {
+            "id": 1000,
+            "name": "Sales Executive",
+            "code": "P001"
+          },
+          "amount": 2500000,
+          "month": "11/2025",
+          "status": "NOT_CALCULATED",
+          "note": "Taxi + meals"
+        },
+        {
+          "id": 2,
+          "code": "TE-202511-0002",
+          "name": "Conference trip",
+          "expense_type": "NON_TAXABLE",
+          "employee": {
+            "id": 101,
+            "code": "E0001",
+            "fullname": "John Doe"
+          },
+          "branch": {
+            "id": 1,
+            "name": "Main Branch",
+            "code": "BR001"
+          },
+          "block": {
+            "id": 10,
+            "name": "Business Block",
+            "code": "BL001"
+          },
+          "department": {
+            "id": 100,
+            "name": "Sales Department",
+            "code": "D001"
+          },
+          "position": {
+            "id": 1000,
+            "name": "Sales Executive",
+            "code": "P001"
+          },
+          "amount": 5000000,
+          "month": "11/2025",
+          "status": "CALCULATED",
+          "note": "Annual tech conference"
+        }
+      ]
+    },
+    "error": null
+  }
+}

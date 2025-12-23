@@ -6,15 +6,15 @@ from django.core.management.base import BaseCommand
 from apps.payroll.models import SalaryConfig
 
 
-def load_default_fixtures():
-    """Load default salary configuration from fixtures file."""
-    fixtures_path = Path(__file__).parent.parent.parent / "fixtures" / "default_salary_config.json"
-    with open(fixtures_path, "r") as f:
+def load_default_initial_data():
+    """Load default salary configuration from initial_data file."""
+    initial_data_path = Path(__file__).parent.parent.parent / "initial_data" / "default_salary_config.json"
+    with open(initial_data_path, "r") as f:
         return json.load(f)
 
 
 class Command(BaseCommand):
-    help = "Initialize salary configuration with default fixtures"
+    help = "Initialize salary configuration with default initial_data"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -26,8 +26,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         reset = options.get("reset", False)
 
-        # Load default fixtures from JSON file
-        default_config = load_default_fixtures()
+        # Load default initial_data from JSON file
+        default_config = load_default_initial_data()
 
         if reset:
             # Delete all existing configurations
@@ -36,11 +36,13 @@ class Command(BaseCommand):
                 SalaryConfig.objects.all().delete()
                 self.stdout.write(self.style.WARNING(f"Deleted {count} existing salary configuration(s)"))
 
-        # Create new configuration with default fixtures
+        # Create new configuration with default initial_data
         config = SalaryConfig.objects.create(config=default_config)
 
         self.stdout.write(
-            self.style.SUCCESS(f"Successfully created salary configuration v{config.version} with default fixtures")
+            self.style.SUCCESS(
+                f"Successfully created salary configuration v{config.version} with default initial_data"
+            )
         )
 
         # Display summary

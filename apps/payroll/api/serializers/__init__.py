@@ -37,6 +37,7 @@ from .salary_config import (
     SalaryConfigSerializer,
     SocialInsuranceSerializer,
 )
+from .travel_expense import TravelExpenseSerializer
 
 __all__ = [
     "SocialInsuranceSerializer",
@@ -73,4 +74,5 @@ __all__ = [
     "DepartmentKPIAssessmentSerializer",
     "DepartmentKPIAssessmentListSerializer",
     "DepartmentKPIAssessmentUpdateSerializer",
+    "TravelExpenseSerializer",
 ]
