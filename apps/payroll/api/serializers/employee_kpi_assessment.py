@@ -3,8 +3,12 @@ from rest_framework import serializers
 
 from apps.hrm.models import Employee
 from apps.payroll.api.serializers.common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
+    DepartmentNestedSerializer,
     EmployeeNestedSerializer,
     KPIAssessmentPeriodNestedSerializer,
+    PositionNestedSerializer,
 )
 from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 
@@ -177,6 +181,10 @@ class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
 
     employee = EmployeeNestedSerializer(read_only=True)
     period = KPIAssessmentPeriodNestedSerializer(read_only=True)
+    block = BlockNestedSerializer(source="employee.block", read_only=True)
+    branch = BranchNestedSerializer(source="employee.branch", read_only=True)
+    department = DepartmentNestedSerializer(source="employee.department", read_only=True)
+    position = PositionNestedSerializer(source="employee.position", read_only=True)
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -300,6 +308,10 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "period",
             "employee",
             "employee_id",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -320,6 +332,10 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         ]
         read_only_fields = [
             "id",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -368,6 +384,10 @@ class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
+            "block",
+            "branch",
+            "department",
+            "position",
             "kpi_config_snapshot",
             "total_possible_score",
             "total_employee_score",
@@ -416,6 +436,10 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "grade_manager",
@@ -429,6 +453,10 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "grade_manager",
@@ -460,6 +488,10 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -475,6 +507,10 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "id",
             "period",
             "employee",
+            "block",
+            "branch",
+            "department",
+            "position",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",

@@ -26,7 +26,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
     def setup(self, branch, block):
         """Set up test data."""
         self.client = APIClient()
-        self.user = User.objects.create_user(
+        self.user = User.objects.create_superuser(
             username="testuser",
             email="test@example.com",
             password="testpass123",

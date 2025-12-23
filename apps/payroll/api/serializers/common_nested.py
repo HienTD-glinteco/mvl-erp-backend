@@ -8,15 +8,21 @@ compact representations of related models.
 from rest_framework import serializers
 
 from apps.hrm.api.serializers.common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
     DepartmentNestedSerializer,
     EmployeeNestedSerializer,
+    PositionNestedSerializer,
 )
 from apps.payroll.models import KPIAssessmentPeriod
 
 # Re-export HRM nested serializers for convenience
 __all__ = [
+    "BlockNestedSerializer",
+    "BranchNestedSerializer",
     "EmployeeNestedSerializer",
     "DepartmentNestedSerializer",
+    "PositionNestedSerializer",
     "KPIAssessmentPeriodNestedSerializer",
 ]
 
