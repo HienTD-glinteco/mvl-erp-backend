@@ -197,7 +197,7 @@ class DepartmentKPIAssessmentAPITest(TestCase):
         # Department assessments are generated when generating a period
         response = self.client.post(
             "/api/payroll/kpi-periods/generate/",
-            {"month": "2026-01"},
+            {"month": "2024-01"},
             format="json",
         )
 

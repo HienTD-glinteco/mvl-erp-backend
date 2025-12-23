@@ -722,10 +722,8 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Get employee record for current user
         try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.get(username=user.username)
-        except Employee.DoesNotExist:
+            employee = user.employee
+        except AttributeError:
             return EmployeeKPIAssessment.objects.none()
 
         # Return assessments where this employee is the manager
@@ -773,10 +771,8 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Get employee record for current user
         try:
-            from apps.hrm.models import Employee
-
-            employee = Employee.objects.get(username=user.username)
-        except Employee.DoesNotExist:
+            employee = user.employee
+        except AttributeError:
             return Response(
                 {"detail": "Employee record not found"},
                 status=status.HTTP_404_NOT_FOUND,
