@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 from apps.hrm.models import Department
 from apps.payroll.api.serializers.common_nested import (
+    BlockNestedSerializer,
+    BranchNestedSerializer,
     DepartmentNestedSerializer,
     EmployeeNestedSerializer,
     KPIAssessmentPeriodNestedSerializer,
@@ -16,6 +18,8 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
     Provides full CRUD operations for department KPI assessments.
     """
 
+    block = BlockNestedSerializer(source="department.block", read_only=True)
+    branch = BranchNestedSerializer(source="department.branch", read_only=True)
     department = DepartmentNestedSerializer(read_only=True)
     department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
@@ -32,6 +36,8 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "id",
             "period",
             "period_detail",
+            "block",
+            "branch",
             "department",
             "department_id",
             "leader",
@@ -41,15 +47,17 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "assigned_by",
             "assigned_at",
             "finalized",
+            "note",
             "grade_distribution",
             "created_by",
             "updated_by",
             "created_at",
             "updated_at",
-            "note",
         ]
         read_only_fields = [
             "id",
+            "block",
+            "branch",
             "kpi_config_snapshot",
             "default_grade",
             "assigned_by",
@@ -60,6 +68,13 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def to_representation(self, instance):
+        """Ensure grade_distribution has default structure if empty."""
+        data = super().to_representation(instance)
+        if not data.get("grade_distribution"):
+            data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        return data
 
     def validate(self, data):
         """Validate department assessment data."""
@@ -93,6 +108,8 @@ class DepartmentKPIAssessmentSerializer(serializers.ModelSerializer):
 class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing department KPI assessments."""
 
+    block = BlockNestedSerializer(source="department.block", read_only=True)
+    branch = BranchNestedSerializer(source="department.branch", read_only=True)
     department = DepartmentNestedSerializer(read_only=True)
     leader = EmployeeNestedSerializer(source="department.leader", read_only=True)
     period = KPIAssessmentPeriodNestedSerializer(read_only=True)
@@ -102,14 +119,24 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "period",
+            "block",
+            "branch",
             "department",
             "leader",
             "grade",
             "grade_distribution",
+            "note",
             "finalized",
             "created_at",
             "updated_at",
         ]
+
+    def to_representation(self, instance):
+        """Ensure grade_distribution has default structure if empty."""
+        data = super().to_representation(instance)
+        if not data.get("grade_distribution"):
+            data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        return data
 
 
 class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
@@ -117,13 +144,21 @@ class DepartmentKPIAssessmentUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DepartmentKPIAssessment
-        fields = ["grade", "note"]
+        fields = ["grade", "note", "grade_distribution"]
+        read_only_fields = ["grade_distribution"]
 
     def validate_grade(self, value):
         """Validate grade is one of A/B/C/D."""
         if value and value not in ["A", "B", "C", "D"]:
             raise serializers.ValidationError(_("Grade must be one of: A, B, C, D"))
         return value
+
+    def to_representation(self, instance):
+        """Ensure grade_distribution has default structure if empty."""
+        data = super().to_representation(instance)
+        if not data.get("grade_distribution"):
+            data["grade_distribution"] = {"A": 0, "B": 0, "C": 0, "D": 0}
+        return data
 
     def update(self, instance, validated_data):
         """Update department assessment and sync leader's grade_hrm."""

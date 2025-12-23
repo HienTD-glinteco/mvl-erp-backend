@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-22 15:21+0700\n"
+"POT-Creation-Date: 2025-12-23 12:35+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -188,7 +188,7 @@ msgstr "Kiểm tra trạng thái nhập dữ liệu"
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:54
+#: apps/imports/api/views.py:54 apps/payroll/models/travel_expense.py:111
 msgid "Status"
 msgstr "Trạng thái"
 
@@ -309,105 +309,142 @@ msgstr "Không được phép xem job này"
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:76
+#: apps/payroll/api/serializers/department_kpi_assessment.py:91
 msgid "An assessment for this department and period already exists"
 msgstr ""
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:81
-#: apps/payroll/api/serializers/department_kpi_assessment.py:125
+#: apps/payroll/api/serializers/department_kpi_assessment.py:96
+#: apps/payroll/api/serializers/department_kpi_assessment.py:153
 msgid "Grade must be one of: A, B, C, D"
-msgstr ""
+msgstr "Xếp loại phải là một trong các giá trị: A, B, C, D"
 
-#: apps/payroll/api/serializers/department_kpi_assessment.py:88
+#: apps/payroll/api/serializers/department_kpi_assessment.py:103
 msgid "Only grade and note can be updated for finalized assessments"
-msgstr ""
+msgstr "Chỉ có thể cập nhật xếp loại và ghi chú cho các đánh giá đã hoàn tất"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:86
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:153
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:90
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:157
 msgid "Cannot update finalized assessment"
-msgstr ""
+msgstr "Không thể cập nhật đánh giá đã hoàn tất"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:92
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:96
 msgid "Cannot update assessment that has been assessed by manager"
-msgstr ""
-
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:232
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:262
-msgid "Cannot update items of a finalized assessment"
-msgstr ""
+msgstr "Không thể cập nhật đánh giá đã được quản lý đánh giá"
 
 #: apps/payroll/api/serializers/employee_kpi_assessment.py:240
 #: apps/payroll/api/serializers/employee_kpi_assessment.py:270
+msgid "Cannot update items of a finalized assessment"
+msgstr "Không thể cập nhật các mục của đánh giá đã hoàn tất"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:248
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:278
 msgid "Employee score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
 msgid "Manager score cannot exceed component total score"
-msgstr ""
+msgstr "Điểm của quản lý không được vượt quá tổng điểm thành phần"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:345
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:361
 msgid "An assessment for this employee and month already exists"
-msgstr ""
+msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:354
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:370
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
-msgstr ""
+msgstr "Chỉ có thể cập nhật điểm và ghi chú cho các đánh giá đã hoàn tất"
 
 #: apps/payroll/api/serializers/kpi_criterion.py:40
 msgid "Component total score must be between 0 and 100"
-msgstr ""
+msgstr "Tổng điểm thành phần phải nằm trong khoảng từ 0 đến 100"
 
 #: apps/payroll/api/serializers/kpi_criterion.py:69
 msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
-msgstr ""
+msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:262
-#, fuzzy
-#| msgid "This field is required"
+#: apps/payroll/api/serializers/travel_expense.py:85
+msgid "Name is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:87
+msgid "Name must not exceed 250 characters"
+msgstr "Tên không được vượt quá 250 ký tự"
+
+#: apps/payroll/api/serializers/travel_expense.py:93
+msgid "Amount is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:95
+msgid "Amount must be greater than 0"
+msgstr "Số tiền phải lớn hơn 0"
+
+#: apps/payroll/api/serializers/travel_expense.py:101
+msgid "Employee is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:104
+msgid "Employee must be active"
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/travel_expense.py:111
+msgid "Month is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:124
+msgid "Month must be between 1 and 12"
+msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
+
+#: apps/payroll/api/serializers/travel_expense.py:127
+msgid "Year must be between 1900 and 2100"
+msgstr "Năm phải nằm trong khoảng từ 1900 đến 2100"
+
+#: apps/payroll/api/serializers/travel_expense.py:133
+msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:267
 msgid "Month parameter is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:272
+#: apps/payroll/api/views/kpi_assessment_period.py:277
 msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
-msgstr ""
+msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:287
+#: apps/payroll/api/views/kpi_assessment_period.py:292
 msgid "No KPI configuration found. Please create one first."
-msgstr ""
+msgstr "Không tìm thấy cấu hình KPI. Vui lòng tạo một cấu hình trước."
 
-#: apps/payroll/api/views/kpi_assessment_period.py:308
+#: apps/payroll/api/views/kpi_assessment_period.py:313
 msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:324
+#: apps/payroll/api/views/kpi_assessment_period.py:329
 msgid "Period is already finalized"
-msgstr ""
+msgstr "Kỳ đánh giá đã được hoàn tất"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:386
+#: apps/payroll/api/views/kpi_assessment_period.py:391
 msgid "Period finalized successfully"
-msgstr ""
+msgstr "Hoàn tất kỳ đánh giá thành công"
 
 #: apps/payroll/api/views/kpi_config.py:99
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/kpi_config.py:102
-#, fuzzy
-#| msgid "View KPI configuration"
 msgid "KPI View KPI Configuration"
 msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/salary_config.py:127
 msgid "View salary configuration"
-msgstr ""
+msgstr "Xem cấu hình lương"
 
 #: apps/payroll/api/views/salary_config.py:128
+#: apps/payroll/api/views/travel_expense.py:355
 msgid "Payroll"
-msgstr ""
+msgstr "Bảng lương"
 
 #: apps/payroll/api/views/salary_config.py:129
 msgid "Configuration"
@@ -415,7 +452,15 @@ msgstr "Cấu hình"
 
 #: apps/payroll/api/views/salary_config.py:130
 msgid "Payroll View Salary Configuration"
-msgstr ""
+msgstr "Xem cấu hình bảng lương"
+
+#: apps/payroll/api/views/travel_expense.py:356
+msgid "Travel Expense Management"
+msgstr "Quản lý chi phí đi lại"
+
+#: apps/payroll/api/views/travel_expense.py:381
+msgid "Cannot delete travel expense for a month with existing payroll."
+msgstr "Không thể xóa chi phí đi lại cho một tháng đã có bảng lương."
 
 #: apps/payroll/models/kpi_criterion.py:38
 msgid "Sales"
@@ -432,6 +477,54 @@ msgstr ""
 #: apps/payroll/models/kpi_criterion.py:43
 msgid "Discipline"
 msgstr ""
+
+#: apps/payroll/models/travel_expense.py:94
+msgid "Code"
+msgstr "Mã"
+
+#: apps/payroll/models/travel_expense.py:95
+msgid "Expense name"
+msgstr "Tên chi phí"
+
+#: apps/payroll/models/travel_expense.py:96
+msgid "Expense type"
+msgstr "Loại chi phí"
+
+#: apps/payroll/models/travel_expense.py:101
+msgid "Employee"
+msgstr "Nhân viên"
+
+#: apps/payroll/models/travel_expense.py:103
+msgid "Amount"
+msgstr "Số tiền"
+
+#: apps/payroll/models/travel_expense.py:104
+msgid "First day of the expense month"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/payroll/models/travel_expense.py:113
+msgid "Note"
+msgstr "Ghi chú"
+
+#: apps/payroll/models/travel_expense.py:120
+msgid "Created by"
+msgstr "Người tạo"
+
+#: apps/payroll/models/travel_expense.py:128
+msgid "Updated by"
+msgstr "Người cập nhật"
+
+#: apps/payroll/models/travel_expense.py:132
+msgid "Travel Expense"
+msgstr "Công tác phí"
+
+#: apps/payroll/models/travel_expense.py:133
+msgid "Travel Expenses"
+msgstr "Các công tác phí"
 
 #: apps/realestate/models/project.py:17
 msgid "Active"

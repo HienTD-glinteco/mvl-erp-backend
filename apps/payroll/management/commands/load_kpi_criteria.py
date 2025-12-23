@@ -8,7 +8,7 @@ from apps.payroll.models import KPICriterion
 
 
 class Command(BaseCommand):
-    help = "Load default KPI criteria from fixtures"
+    help = "Load default KPI criteria from initial_data"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -18,13 +18,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        fixtures_path = Path(__file__).parent.parent.parent / "fixtures" / "kpi_criteria.json"
+        initial_data_path = Path(__file__).parent.parent.parent / "initial_data" / "kpi_criteria.json"
 
-        if not fixtures_path.exists():
-            self.stdout.write(self.style.ERROR(f"Fixtures file not found: {fixtures_path}"))
+        if not initial_data_path.exists():
+            self.stdout.write(self.style.ERROR(f"Data file not found: {initial_data_path}"))
             return
 
-        with open(fixtures_path, "r") as f:
+        with open(initial_data_path, "r") as f:
             data = json.load(f)
 
         if options["clear"]:
