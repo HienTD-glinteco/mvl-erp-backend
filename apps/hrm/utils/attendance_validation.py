@@ -29,7 +29,7 @@ def validate_attendance_device(request):
     # 2. Get active user_device
     user_device = UserDevice.objects.filter(
         user=request.user,
-        client=UserDevice.Client.MOBILE,
+        # client=UserDevice.Client.MOBILE,
         state=UserDevice.State.ACTIVE,
         device_id=device_id,
     ).first()
@@ -37,8 +37,8 @@ def validate_attendance_device(request):
     if not user_device:
         raise ValidationError(_("User device not found."))
 
-    # 3. Validate platform
-    if user_device.platform not in [UserDevice.Platform.ANDROID, UserDevice.Platform.IOS]:
+    # 3. Validate client
+    if user_device.client != UserDevice.Client.MOBILE:
         raise ValidationError(_("Attendance is only allowed from mobile devices."))
 
     return user_device

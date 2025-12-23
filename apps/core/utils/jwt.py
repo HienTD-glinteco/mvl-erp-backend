@@ -13,7 +13,7 @@ except Exception:  # token_blacklist app might not be installed in some environm
     OutstandingToken = None  # type: ignore
 
 
-MOBILE_TOKEN_VERSION_CACHE_KEY = "mvl:mobile_token_version:{user_id}"
+MOBILE_TOKEN_VERSION_CACHE_KEY = "mvl:mobile_token_version:{user_id}"  # noqa: B105
 MOBILE_TOKEN_VERSION_CACHE_TTL_SECONDS = 300
 
 

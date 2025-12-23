@@ -3,8 +3,10 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from libs.models.base_model_mixin import BaseModel
 
-class UserDevice(models.Model):
+
+class UserDevice(BaseModel):
     """User device model for mobile device binding and push notifications."""
 
     class Client(models.TextChoices):

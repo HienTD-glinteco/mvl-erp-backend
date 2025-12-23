@@ -123,8 +123,8 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
         UserDevice.objects.create(
             user=self.user,
             device_id="device123",
-            platform=UserDevice.Platform.ANDROID,
             state=UserDevice.State.REVOKED,
+            client=UserDevice.Client.MOBILE,
         )
 
         # Mock token with valid device_id
@@ -142,11 +142,11 @@ class AttendanceDeviceValidationAPITest(TransactionTestCase, APITestMixin):
 
     def test_validation_invalid_platform(self):
         """Test validation fails when platform is not mobile."""
-        # Create user device with WEB platform
+        # Create user device with WEB client
         UserDevice.objects.create(
             user=self.user,
             device_id="device123",
-            platform=UserDevice.Platform.WEB,
+            client=UserDevice.Client.WEB,
         )
 
         # Mock token with valid device_id
