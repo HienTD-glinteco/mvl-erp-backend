@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from apps.devices import DeviceConnectionError
+from libs.datetimes import make_aware
 from apps.devices.zk import ZKDeviceService
 from apps.hrm.models import (
     AttendanceDevice,
@@ -153,8 +154,7 @@ def process_realtime_attendance_event(event_data: dict[str, Any]) -> dict[str, A
             timestamp = timestamp_str
 
         # Ensure timezone awareness
-        if timezone.is_naive(timestamp):
-            timestamp = timezone.make_aware(timestamp)
+        timestamp = make_aware(timestamp)
 
         # Get device
         try:

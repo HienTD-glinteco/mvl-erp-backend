@@ -476,14 +476,6 @@ class ZKRealtimeDeviceListener:
                 # Update device info periodically (also dispatch to main loop)
                 current_time = time.time()
                 if current_time - last_info_update >= DEVICE_INFO_UPDATE_INTERVAL:
-                    # We need to schedule this on the general executor or just do it here?
-                    # Since get_device_info is blocking (network I/O), we can do it here.
-                    # But wait, _get_device_info uses _run_blocking which uses _general_executor.
-                    # We are already in a thread (listener executor).
-                    # Calling _run_blocking would try to schedule a task on main loop (run_in_executor).
-                    # But we are not in an async context here. We are in a blocking function.
-
-                    # Solution: Do it directly here, synchronously.
                     try:
                         info = {
                             "serial_number": zk_conn.get_serialnumber() or "",
