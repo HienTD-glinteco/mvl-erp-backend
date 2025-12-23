@@ -524,6 +524,8 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                                 "total_employee_score": "88.50",
                                 "total_manager_score": "80.00",
                                 "grade_manager": "B",
+                                "grade_manager_overridden": None,
+                                "grade": None,
                                 "plan_tasks": "Complete Q4 targets",
                                 "extra_tasks": "Handle urgent requests",
                                 "proposal": "Improve workflow",
@@ -559,6 +561,8 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "total_employee_score": "88.50",
                         "total_manager_score": "80.00",
                         "grade_manager": "B",
+                        "grade_manager_overridden": None,
+                        "grade": None,
                         "plan_tasks": "Complete Q4 targets",
                         "extra_tasks": "Handle urgent requests",
                         "proposal": "Improve workflow",
@@ -593,10 +597,11 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
     ),
     partial_update=extend_schema(
         summary="Update manager assessment",
-        description="""Batch update manager scores for items and manager_assessment field.
+        description="""Batch update manager scores for items, manager_assessment field, and grade override.
 
         **Request Body Format:**
         - `manager_assessment` (string, optional): Manager's assessment comments and feedback
+        - `grade` (string, optional): Manager's grade override (will be saved to grade_manager_overridden)
         - `items` (array, optional): List of item updates with structure:
           - `item_id` (integer): ID of the KPI item to update
           - `score` (decimal): Manager score for that item
@@ -605,6 +610,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
         ```json
         {
             "manager_assessment": "Good performance, needs improvement in communication",
+            "grade": "A",
             "items": [
                 {"item_id": 1, "score": "65.00"},
                 {"item_id": 2, "score": "28.50"},
@@ -620,6 +626,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                 "Update Request - Batch update",
                 value={
                     "manager_assessment": "Good performance overall, needs improvement in communication",
+                    "grade": "A",
                     "items": [
                         {"item_id": 1, "score": "65.00"},
                         {"item_id": 2, "score": "28.50"},
@@ -643,6 +650,8 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "total_employee_score": "93.50",
                         "total_manager_score": "93.50",
                         "grade_manager": "A",
+                        "grade_manager_overridden": "A",
+                        "grade": "A",
                         "plan_tasks": "Complete Q4 targets",
                         "extra_tasks": "Handle urgent requests",
                         "proposal": "Improve workflow",
@@ -748,11 +757,12 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
         )
         request_serializer.is_valid(raise_exception=True)
 
-        # Update assessment fields (manager_assessment)
+        # Update assessment fields (manager_assessment and grade_manager_overridden)
+        validated_request_data = request_serializer.validated_data
         assessment = serializer.save()
 
         # Update items using serializer method
-        request_serializer.update_items(assessment, request_serializer.validated_data)
+        request_serializer.update_items(assessment, validated_request_data)
 
         # Refresh assessment to get updated items, then recalculate
         assessment.refresh_from_db()
