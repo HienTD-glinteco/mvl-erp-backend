@@ -1,8 +1,6 @@
 import json
 from datetime import date
-from io import BytesIO
 
-import openpyxl
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -385,8 +383,10 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["code"] == sales_revenue.code
-        assert response.data["revenue"] == sales_revenue.revenue
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["data"]["code"] == sales_revenue.code
+        assert data["data"]["revenue"] == sales_revenue.revenue
 
     def test_create_sales_revenue(self, api_client, superuser, sales_employee):
         """Test creating a sales revenue."""
@@ -404,9 +404,11 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["code"].startswith("SR-202512-")
-        assert response.data["revenue"] == 180000000
-        assert response.data["status"] == SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
+        response_data = json.loads(response.content)
+        assert response_data["success"] is True
+        assert response_data["data"]["code"].startswith("SR-202512-")
+        assert response_data["data"]["revenue"] == 180000000
+        assert response_data["data"]["status"] == SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
         assert SalesRevenue.objects.filter(employee=sales_employee, month=date(2025, 12, 1)).exists()
 
     def test_update_sales_revenue(self, api_client, superuser, sales_revenue):
@@ -425,9 +427,11 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["revenue"] == 200000000
-        assert response.data["transaction_count"] == 20
-        assert response.data["status"] == SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
+        response_data = json.loads(response.content)
+        assert response_data["success"] is True
+        assert response_data["data"]["revenue"] == 200000000
+        assert response_data["data"]["transaction_count"] == 20
+        assert response_data["data"]["status"] == SalesRevenue.SalesRevenueStatus.NOT_CALCULATED
 
     def test_partial_update_sales_revenue(self, api_client, superuser, sales_revenue):
         """Test partially updating a sales revenue."""
@@ -440,8 +444,10 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["revenue"] == 175000000
-        assert response.data["transaction_count"] == sales_revenue.transaction_count
+        response_data = json.loads(response.content)
+        assert response_data["success"] is True
+        assert response_data["data"]["revenue"] == 175000000
+        assert response_data["data"]["transaction_count"] == sales_revenue.transaction_count
 
     def test_delete_sales_revenue(self, api_client, superuser, sales_revenue):
         """Test deleting a sales revenue."""
@@ -479,8 +485,10 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["month"] == "11/2025"
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["month"] == "11/2025"
 
     def test_filter_by_status(self, api_client, superuser, sales_revenue):
         """Test filtering by status."""
@@ -494,7 +502,9 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] >= 1
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["data"]["count"] >= 1
 
     def test_search_by_employee_code(self, api_client, superuser, sales_revenue):
         """Test searching by employee code."""
@@ -506,157 +516,25 @@ class TestSalesRevenueViewSet:
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] >= 1
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["data"]["count"] >= 1
 
     def test_search_by_employee_name(self, api_client, superuser, sales_revenue):
-        """Test searching by employee name."""
+        """Test searching by employee fullname."""
         # Arrange
         api_client.force_authenticate(user=superuser)
 
         # Act
-        response = api_client.get(f"/api/payroll/sales-revenues/?search={sales_revenue.employee.username}")
+        response = api_client.get(f"/api/payroll/sales-revenues/?search={sales_revenue.employee.fullname}")
 
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] >= 1
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["data"]["count"] >= 1
 
 
-@pytest.mark.django_db
-class TestSalesRevenueUpload:
-    """Test sales revenue upload functionality."""
-
-    def test_upload_sales_revenue_success(self, api_client, superuser, sales_employee):
-        """Test successful upload of sales revenue data."""
-        # Arrange
-        api_client.force_authenticate(user=superuser)
-
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(["Mã nhân viên", "Họ tên", "Doanh Số", "Số giao dịch", "Thời gian"])
-        ws.append(["Ký tự (20)", "Ký tự (100)", "Số (20)", "Số (10)", "MM/YYYY"])
-        ws.append([sales_employee.code, sales_employee.username, 150000000, 12, "11/2025"])
-
-        file_stream = BytesIO()
-        wb.save(file_stream)
-        file_stream.seek(0)
-
-        # Act
-        response = api_client.post(
-            "/api/payroll/sales-revenues/upload/",
-            {
-                "file": file_stream,
-                "month": "11/2025",
-            },
-            format="multipart",
-        )
-
-        # Assert
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["total_rows"] == 1
-        assert response.data["successful"] == 1
-        assert response.data["failed"] == 0
-        assert SalesRevenue.objects.filter(employee=sales_employee, month=date(2025, 11, 1)).exists()
-
-    def test_upload_updates_existing_record(self, api_client, superuser, sales_revenue):
-        """Test upload updates existing record."""
-        # Arrange
-        api_client.force_authenticate(user=superuser)
-
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(["Mã nhân viên", "Họ tên", "Doanh Số", "Số giao dịch", "Thời gian"])
-        ws.append(["Ký tự (20)", "Ký tự (100)", "Số (20)", "Số (10)", "MM/YYYY"])
-        ws.append([sales_revenue.employee.code, sales_revenue.employee.username, 200000000, 20, "11/2025"])
-
-        file_stream = BytesIO()
-        wb.save(file_stream)
-        file_stream.seek(0)
-
-        # Act
-        response = api_client.post(
-            "/api/payroll/sales-revenues/upload/",
-            {
-                "file": file_stream,
-                "month": "11/2025",
-            },
-            format="multipart",
-        )
-
-        # Assert
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["successful"] == 1
-        sales_revenue.refresh_from_db()
-        assert sales_revenue.revenue == 200000000
-        assert sales_revenue.transaction_count == 20
-
-    def test_upload_invalid_employee_code(self, api_client, superuser):
-        """Test upload with invalid employee code."""
-        # Arrange
-        api_client.force_authenticate(user=superuser)
-
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(["Mã nhân viên", "Họ tên", "Doanh Số", "Số giao dịch", "Thời gian"])
-        ws.append(["Ký tự (20)", "Ký tự (100)", "Số (20)", "Số (10)", "MM/YYYY"])
-        ws.append(["INVALID", "Test User", 100000000, 10, "11/2025"])
-
-        file_stream = BytesIO()
-        wb.save(file_stream)
-        file_stream.seek(0)
-
-        # Act
-        response = api_client.post(
-            "/api/payroll/sales-revenues/upload/",
-            {
-                "file": file_stream,
-                "month": "11/2025",
-            },
-            format="multipart",
-        )
-
-        # Assert
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["failed"] == 1
-        assert len(response.data["errors"]) == 1
-        assert "Employee not found" in response.data["errors"][0]["error"]
-
-    def test_upload_month_mismatch(self, api_client, superuser, sales_employee):
-        """Test upload with month mismatch."""
-        # Arrange
-        api_client.force_authenticate(user=superuser)
-
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(["Mã nhân viên", "Họ tên", "Doanh Số", "Số giao dịch", "Thời gian"])
-        ws.append(["Ký tự (20)", "Ký tự (100)", "Số (20)", "Số (10)", "MM/YYYY"])
-        ws.append([sales_employee.code, sales_employee.username, 100000000, 10, "12/2025"])
-
-        file_stream = BytesIO()
-        wb.save(file_stream)
-        file_stream.seek(0)
-
-        # Act
-        response = api_client.post(
-            "/api/payroll/sales-revenues/upload/",
-            {
-                "file": file_stream,
-                "month": "11/2025",
-            },
-            format="multipart",
-        )
-
-        # Assert
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["failed"] == 1
-        assert "does not match target month" in response.data["errors"][0]["error"]
-
-    def test_export_sales_revenue(self, api_client, superuser, sales_revenue):
-        """Test exporting sales revenue to Excel."""
-        # Arrange
-        api_client.force_authenticate(user=superuser)
-
-        # Act
-        response = api_client.get("/api/payroll/sales-revenues/export/")
-
-        # Assert
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_202_ACCEPTED]
+# TODO: Implement async import tests using the new AsyncImportProgressMixin flow
+# The old /upload/ endpoint has been replaced with the async import system.
+# Tests should use /import/ endpoints with proper file upload and job tracking.

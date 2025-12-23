@@ -1,4 +1,3 @@
-import uuid
 from datetime import date
 
 from django.conf import settings
@@ -7,53 +6,11 @@ from django.db import models
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs import ColorVariant
-from libs.models import BaseModel, ColoredValueMixin
-
-
-def generate_sales_revenue_code(instance: "SalesRevenue") -> str:
-    """Generate sales revenue code in format SR-{YYYYMM}-{seq}.
-
-    Args:
-        instance: SalesRevenue instance which MUST have an id and month.
-
-    Returns:
-        Generated code string (e.g., "SR-202511-0001")
-
-    Raises:
-        ValueError: If the instance has no id or month.
-    """
-    if not hasattr(instance, "id") or instance.id is None:
-        raise ValueError("SalesRevenue must have an id to generate code")
-
-    if not instance.month:
-        raise ValueError("SalesRevenue must have a month to generate code")
-
-    year = instance.month.year
-    month = instance.month.month
-    month_key = f"{year}{month:02d}"
-
-    max_code = (
-        SalesRevenue.objects.filter(month=instance.month, code__startswith=f"SR-{month_key}-")
-        .exclude(pk=instance.pk)
-        .values_list("code", flat=True)
-    )
-
-    max_seq = 0
-    for code in max_code:
-        try:
-            seq_part = code.split("-")[-1]
-            seq = int(seq_part)
-            if seq > max_seq:
-                max_seq = seq
-        except (ValueError, IndexError):
-            continue
-
-    seq = max_seq + 1
-    return f"SR-{month_key}-{seq:04d}"
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 
 
 @audit_logging_register
-class SalesRevenue(ColoredValueMixin, BaseModel):
+class SalesRevenue(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Sales revenue model for tracking employee sales performance.
 
     This model stores monthly sales revenue information for sales employees
@@ -72,6 +29,7 @@ class SalesRevenue(ColoredValueMixin, BaseModel):
     """
 
     CODE_PREFIX = "SR"
+    TEMP_CODE_PREFIX = "TEMP_"
 
     class SalesRevenueStatus(models.TextChoices):
         NOT_CALCULATED = "NOT_CALCULATED", "Not calculated"
@@ -140,21 +98,12 @@ class SalesRevenue(ColoredValueMixin, BaseModel):
         return self.get_colored_value("status")
 
     def save(self, *args, **kwargs):
-        """Override save to generate code and normalize month."""
-        # Generate temporary code for new instances
-        if not self.code:
-            self.code = f"TEMP_{uuid.uuid4().hex[:8]}"
-
+        """Override save to normalize month."""
         # Ensure month is first day of month
         if self.month:
             self.month = date(self.month.year, self.month.month, 1)
 
         super().save(*args, **kwargs)
-
-        # Generate permanent code after save (when we have an id)
-        if self.code.startswith("TEMP_"):
-            self.code = generate_sales_revenue_code(self)
-            super().save(update_fields=["code"])
 
     def reset_status_to_not_calculated(self):
         """Reset status to NOT_CALCULATED (used when editing)."""

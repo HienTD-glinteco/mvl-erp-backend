@@ -6,15 +6,16 @@ from apps.hrm.models import Employee
 from apps.payroll.models import SalesRevenue
 
 
-def process_sales_revenue_row(row_index: int, row: dict, import_job_id: int, options: dict) -> dict:  # noqa: C901
+def process_sales_revenue_row(row_index: int, row: list | tuple, import_job_id: int, options: dict) -> dict:  # noqa: C901
     """Process a single sales revenue row from import file.
 
     Args:
         row_index: Row number in the file (1-based)
-        row: Dictionary containing row data with keys from header
+        row: List/tuple of row values from Excel file
         import_job_id: ID of the ImportJob
         options: Dictionary containing:
-            - target_month: date object for the target month
+            - headers: List of column headers from Excel file
+            - handler_options: Dict with target_month
 
     Returns:
         Dictionary with:
@@ -23,16 +24,34 @@ def process_sales_revenue_row(row_index: int, row: dict, import_job_id: int, opt
             - error: str with error message on failure
     """
     try:
-        # Extract target month from options
-        target_month = options.get("target_month")
-        if not target_month:
+        # Map row list to dict using headers
+        headers = options.get("headers", [])
+        if not headers:
+            return {"ok": False, "error": "Headers not found in options"}
+
+        row_dict = dict(zip(headers, row, strict=False))
+
+        # Extract and parse target month from options
+        target_month_str = options.get("handler_options", {}).get("target_month")
+        if not target_month_str:
             return {"ok": False, "error": "Target month not provided in options"}
 
+        # Parse target month string (format: MM/YYYY)
+        try:
+            parts = str(target_month_str).split("/")
+            if len(parts) != 2:
+                raise ValueError("Invalid format")
+            target_month_num = int(parts[0])
+            target_year = int(parts[1])
+            target_month = date(target_year, target_month_num, 1)
+        except (ValueError, TypeError, IndexError):
+            return {"ok": False, "error": "Invalid target month format, expected MM/YYYY"}
+
         # Extract fields from row
-        employee_code = str(row.get("Mã nhân viên", "")).strip() if row.get("Mã nhân viên") else ""
-        revenue_raw = row.get("Doanh Số", 0)
-        transaction_count_raw = row.get("Số giao dịch", 0)
-        month_str = str(row.get("Thời gian", "")).strip() if row.get("Thời gian") else ""
+        employee_code = str(row_dict.get("Mã nhân viên", "")).strip() if row_dict.get("Mã nhân viên") else ""
+        revenue_raw = row_dict.get("Doanh Số", 0)
+        transaction_count_raw = row_dict.get("Số giao dịch", 0)
+        month_str = str(row_dict.get("Thời gian", "")).strip() if row_dict.get("Thời gian") else ""
 
         # Validate employee code
         if not employee_code:

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 14:15+0700\n"
+"POT-Creation-Date: 2025-12-23 15:48+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -481,7 +481,7 @@ msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
 #: apps/payroll/api/views/salary_config.py:128
-#: apps/payroll/api/views/sales_revenue.py:371
+#: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
@@ -494,13 +494,13 @@ msgstr "Cấu hình"
 msgid "Payroll View Salary Configuration"
 msgstr "Xem cấu hình bảng lương"
 
-#: apps/payroll/api/views/sales_revenue.py:372
+#: apps/payroll/api/views/sales_revenue.py:374
 #, fuzzy
 #| msgid "Travel Expense Management"
 msgid "Sales Revenue Management"
 msgstr "Quản lý chi phí đi lại"
 
-#: apps/payroll/api/views/sales_revenue.py:394
+#: apps/payroll/api/views/sales_revenue.py:396
 #, fuzzy
 #| msgid "Cannot delete travel expense for a month with existing payroll."
 msgid "Cannot delete sales revenue for a month with existing payroll."

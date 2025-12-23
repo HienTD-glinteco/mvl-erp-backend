@@ -336,6 +336,8 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
             ),
         ],
     ),
+    start_import=extend_schema(tags=["10.5: Sales Revenue Management"]),
+    import_template=extend_schema(tags=["10.5: Sales Revenue Management"]),
 )
 class SalesRevenueViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for SalesRevenue model.
