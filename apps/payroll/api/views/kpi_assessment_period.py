@@ -218,6 +218,11 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
     Provides CRUD operations for KPI assessment periods.
     """
 
+    module = "Payroll"
+    submodule = "KPI Period Management"
+    permission_prefix = "kpi_assessment_period"
+    operation = "KPI-Assessment-Period"
+
     queryset = KPIAssessmentPeriod.objects.all().order_by("-month")
     serializer_class = KPIAssessmentPeriodSerializer
     filter_backends = [PhraseSearchFilter]

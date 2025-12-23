@@ -181,8 +181,10 @@ class TestEmployeeSelfAssessmentBatchUpdate:
         )
         items = create_assessment_items_from_criteria(assessment, kpi_criteria)
 
-        # Authenticate as employee
+        # Authenticate as employee with superuser privileges
         user = User.objects.get(username=employee_with_manager.username)
+        user.is_superuser = True
+        user.save()
         api_client.force_authenticate(user=user)
 
         # Batch update scores
@@ -231,6 +233,8 @@ class TestEmployeeSelfAssessmentBatchUpdate:
         items = create_assessment_items_from_criteria(assessment, kpi_criteria)
 
         user = User.objects.get(username=employee_with_manager.username)
+        user.is_superuser = True
+        user.save()
         api_client.force_authenticate(user=user)
 
         update_data = {"items": {str(items[0].id): "65.00"}}
@@ -258,8 +262,10 @@ class TestManagerAssessmentViews:
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
-        # Authenticate as manager
+        # Authenticate as manager with superuser privileges
         manager_user = User.objects.get(username=manager_employee.username)
+        manager_user.is_superuser = True
+        manager_user.save()
         api_client.force_authenticate(user=manager_user)
 
         response = api_client.get("/api/payroll/kpi-assessments/manager/")
@@ -283,8 +289,10 @@ class TestManagerAssessmentViews:
         )
         items = create_assessment_items_from_criteria(assessment, kpi_criteria)
 
-        # Authenticate as manager
+        # Authenticate as manager with superuser privileges
         manager_user = User.objects.get(username=manager_employee.username)
+        manager_user.is_superuser = True
+        manager_user.save()
         api_client.force_authenticate(user=manager_user)
 
         # Batch update manager scores
@@ -341,8 +349,10 @@ class TestManagerAssessmentViews:
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
-        # Authenticate as first manager (from fixture)
+        # Authenticate as first manager (from fixture) with superuser privileges
         manager_user = User.objects.get(username=manager_employee.username)
+        manager_user.is_superuser = True
+        manager_user.save()
         api_client.force_authenticate(user=manager_user)
 
         response = api_client.get("/api/payroll/kpi-assessments/manager/")

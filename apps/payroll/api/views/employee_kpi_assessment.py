@@ -40,10 +40,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "results": [
                             {
                                 "id": 1,
-                                "employee": 1,
-                                "employee_username": "john.doe",
-                                "employee_fullname": "John Doe",
-                                "month": "2025-12",
+                                "period": {"id": 3, "month": "12/2025", "finalized": False},
+                                "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                                "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                                "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                                "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                                "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                                 "kpi_config_snapshot": {},
                                 "total_possible_score": "100.00",
                                 "total_employee_score": "100.00",
@@ -78,10 +80,12 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": True,
                     "data": {
                         "id": 1,
-                        "employee": 1,
-                        "employee_username": "john.doe",
-                        "employee_fullname": "John Doe",
-                        "month": "2025-12",
+                        "period": {"id": 3, "month": "12/2025", "finalized": False},
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "kpi_config_snapshot": {},
                         "total_possible_score": "100.00",
                         "total_employee_score": "100.00",
@@ -194,6 +198,10 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "id": 1,
                         "period": {"id": 3, "month": "12/2025", "finalized": False},
                         "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Complete Q4 targets",
@@ -280,6 +288,10 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
                         "id": 1,
                         "period": {"id": 3, "month": "12/2025", "finalized": False},
                         "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "total_possible_score": "100.00",
                         "grade_manager": "B",
                         "plan_tasks": "Updated plan tasks",
@@ -347,6 +359,7 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
     # Permission attributes
     module = "Payroll"
     submodule = "Employee Self-Assessment"
+    permission_prefix = "employee_self_assessment"
     operation = "Self-Assessment"
 
     def get_queryset(self):
@@ -503,6 +516,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                                 "id": 1,
                                 "period": {"id": 3, "month": "12/2025", "finalized": False},
                                 "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                                "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                                "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                                "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                                "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                                 "total_possible_score": "100.00",
                                 "total_employee_score": "88.50",
                                 "total_manager_score": "80.00",
@@ -534,6 +551,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "id": 1,
                         "period": {"id": 3, "month": "12/2025", "finalized": False},
                         "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "total_possible_score": "100.00",
                         "total_employee_score": "88.50",
                         "total_manager_score": "80.00",
@@ -614,6 +635,10 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
                         "id": 1,
                         "period": {"id": 3, "month": "12/2025", "finalized": False},
                         "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "block": {"id": 1, "name": "Sales Block", "code": "BL001"},
+                        "branch": {"id": 1, "name": "Hanoi Branch", "code": "HN"},
+                        "department": {"id": 1, "name": "Sales Department", "code": "SALES"},
+                        "position": {"id": 1, "name": "Sales Manager", "code": "SM"},
                         "total_possible_score": "100.00",
                         "total_employee_score": "93.50",
                         "total_manager_score": "93.50",
@@ -688,6 +713,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
     # Permission attributes
     module = "Payroll"
     submodule = "Manager Assessment"
+    permission_prefix = "employee_manager_assessment"
     operation = "Manager-Assessment"
 
     def get_queryset(self):

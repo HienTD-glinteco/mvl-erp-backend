@@ -18,6 +18,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     - branch (filter by employee's branch)
     - block (filter by employee's block)
     - department (filter by employee's department)
+    - position (filter by employee's position)
     """
 
     employee = django_filters.NumberFilter(field_name="employee__id", lookup_expr="exact")
@@ -31,6 +32,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     branch = django_filters.NumberFilter(field_name="employee__branch__id", lookup_expr="exact")
     block = django_filters.NumberFilter(field_name="employee__block__id", lookup_expr="exact")
     department = django_filters.NumberFilter(field_name="employee__department__id", lookup_expr="exact")
+    position = django_filters.NumberFilter(field_name="employee__position__", lookup_expr="exact")
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -46,6 +48,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
             "branch",
             "block",
             "department",
+            "position",
         ]
 
     def filter_month_year(self, queryset, name, value):
