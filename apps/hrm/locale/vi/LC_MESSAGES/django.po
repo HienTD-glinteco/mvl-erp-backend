@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-24 06:52+0700\n"
+"POT-Creation-Date: 2025-12-24 11:48+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3236,11 +3236,11 @@ msgstr "Mô tả công việc"
 msgid "Job Descriptions"
 msgstr "Mô tả công việc"
 
-#: apps/hrm/models/monthly_timesheet.py:111
+#: apps/hrm/models/monthly_timesheet.py:129
 msgid "Employee monthly timesheet"
 msgstr ""
 
-#: apps/hrm/models/monthly_timesheet.py:112
+#: apps/hrm/models/monthly_timesheet.py:130
 msgid "Employee monthly timesheets"
 msgstr ""
 

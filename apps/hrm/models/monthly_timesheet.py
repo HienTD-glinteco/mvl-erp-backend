@@ -59,6 +59,24 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         default=DECIMAL_ZERO,
         verbose_name="Overtime hours",
     )
+    saturday_in_week_overtime_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name="Saturday and in week overtime hours",
+    )
+    sunday_overtime_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name="Sunday overtime hours",
+    )
+    holiday_overtime_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=DECIMAL_ZERO,
+        verbose_name="Holiday overtime hours",
+    )
     total_worked_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
