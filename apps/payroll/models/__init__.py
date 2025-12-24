@@ -5,6 +5,7 @@ from .kpi_config import KPIConfig
 from .kpi_criterion import KPICriterion
 from .recovery_voucher import RecoveryVoucher
 from .salary_config import SalaryConfig
+from .sales_revenue import SalesRevenue
 from .travel_expense import TravelExpense
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "DepartmentKPIAssessment",
     "TravelExpense",
     "RecoveryVoucher",
+    "SalesRevenue",
 ]

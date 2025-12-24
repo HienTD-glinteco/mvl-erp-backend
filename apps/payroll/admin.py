@@ -4,10 +4,13 @@ from .models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
     EmployeeKPIItem,
+    KPIAssessmentPeriod,
     KPIConfig,
     KPICriterion,
     RecoveryVoucher,
     SalaryConfig,
+    SalesRevenue,
+    TravelExpense,
 )
 
 
@@ -259,6 +262,46 @@ class DepartmentKPIAssessmentAdmin(admin.ModelAdmin):
     readonly_fields = ["id"]
 
 
+@admin.register(KPIAssessmentPeriod)
+class KPIAssessmentPeriodAdmin(admin.ModelAdmin):
+    """Admin for KPIAssessmentPeriod model."""
+
+    list_display = ["id", "month", "finalized", "created_by", "created_at", "updated_at"]
+    list_filter = ["finalized", "created_at"]
+    search_fields = ["note"]
+    ordering = ["-month"]
+    readonly_fields = ["created_at", "updated_at"]
+    fieldsets = [
+        (
+            "Basic Information",
+            {
+                "fields": ["month", "kpi_config_snapshot"],
+            },
+        ),
+        (
+            "Status",
+            {
+                "fields": ["finalized", "note"],
+            },
+        ),
+        (
+            "Audit Information",
+            {
+                "fields": ["created_by", "updated_by", "created_at", "updated_at"],
+                "classes": ["collapse"],
+            },
+        ),
+    ]
+
+    def save_model(self, request, obj, form, change):
+        """Set created_by or updated_by when saving through admin."""
+        if not change:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
 @admin.register(RecoveryVoucher)
 class RecoveryVoucherAdmin(admin.ModelAdmin):
     """Admin configuration for RecoveryVoucher model.
@@ -336,6 +379,117 @@ class RecoveryVoucherAdmin(admin.ModelAdmin):
 
     get_month_display.short_description = "Period"  # type: ignore[attr-defined]
     get_month_display.admin_order_field = "month"  # type: ignore[attr-defined]
+
+    def save_model(self, request, obj, form, change):
+        """Set created_by or updated_by when saving through admin."""
+        if not change:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(TravelExpense)
+class TravelExpenseAdmin(admin.ModelAdmin):
+    """Admin for TravelExpense model."""
+
+    list_display = [
+        "code",
+        "name",
+        "employee",
+        "expense_type",
+        "amount",
+        "month",
+        "status",
+        "created_at",
+    ]
+    list_filter = ["expense_type", "status", "month", "created_at"]
+    search_fields = ["code", "name", "employee__code", "employee__fullname"]
+    ordering = ["-created_at"]
+    readonly_fields = ["code", "status", "created_at", "updated_at"]
+    autocomplete_fields = ["employee"]
+    fieldsets = [
+        (
+            "Basic Information",
+            {
+                "fields": ["code", "name", "expense_type", "employee"],
+            },
+        ),
+        (
+            "Amount and Period",
+            {
+                "fields": ["amount", "month"],
+            },
+        ),
+        (
+            "Status and Notes",
+            {
+                "fields": ["status", "note"],
+            },
+        ),
+        (
+            "Audit Information",
+            {
+                "fields": ["created_by", "updated_by", "created_at", "updated_at"],
+                "classes": ["collapse"],
+            },
+        ),
+    ]
+
+    def save_model(self, request, obj, form, change):
+        """Set created_by or updated_by when saving through admin."""
+        if not change:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(SalesRevenue)
+class SalesRevenueAdmin(admin.ModelAdmin):
+    """Admin for SalesRevenue model."""
+
+    list_display = [
+        "code",
+        "employee",
+        "revenue",
+        "transaction_count",
+        "month",
+        "status",
+        "created_at",
+    ]
+    list_filter = ["status", "month", "created_at"]
+    search_fields = ["code", "employee__code", "employee__fullname"]
+    ordering = ["-created_at"]
+    readonly_fields = ["code", "status", "created_at", "updated_at"]
+    autocomplete_fields = ["employee"]
+    fieldsets = [
+        (
+            "Basic Information",
+            {
+                "fields": ["code", "employee"],
+            },
+        ),
+        (
+            "Revenue Details",
+            {
+                "fields": ["revenue", "transaction_count", "month"],
+            },
+        ),
+        (
+            "Status",
+            {
+                "fields": ["status"],
+            },
+        ),
+        (
+            "Audit Information",
+            {
+                "fields": ["created_by", "updated_by", "created_at", "updated_at"],
+                "classes": ["collapse"],
+            },
+        ),
+    ]
 
     def save_model(self, request, obj, form, change):
         """Set created_by or updated_by when saving through admin."""

@@ -9,6 +9,7 @@ from .kpi_config import CurrentKPIConfigView
 from .kpi_criterion import KPICriterionViewSet
 from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
+from .sales_revenue import SalesRevenueViewSet
 from .travel_expense import TravelExpenseViewSet
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "DepartmentKPIAssessmentViewSet",
     "TravelExpenseViewSet",
     "RecoveryVoucherViewSet",
+    "SalesRevenueViewSet",
 ]

@@ -95,10 +95,10 @@ class CurrentKPIConfigView(APIView):
         ],
     )
     @register_permission(
-        "kpi.view_kpi_config",
+        "payroll.kpi_config",
         _("View KPI configuration"),
-        "KPI",
-        "Configuration",
+        "Payroll",
+        "KPI Configuration",
         _("KPI View KPI Configuration"),
     )
     def get(self, request):

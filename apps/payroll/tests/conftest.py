@@ -8,7 +8,7 @@ import pytest
 from django.contrib.auth import get_user_model
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.models import Block, Branch, Department, Employee
+from apps.hrm.models import Block, Branch, Department, Employee, Position
 
 User = get_user_model()
 
@@ -78,7 +78,16 @@ def department(db, branch, block):
 
 
 @pytest.fixture
-def employee(db, branch, block, department):
+def position(db):
+    """Create a test position."""
+    return Position.objects.create(
+        name=f"Test Position {random_code()}",
+        code=random_code("POS"),
+    )
+
+
+@pytest.fixture
+def employee(db, branch, block, department, position):
     """Create a test employee."""
     suffix = random_code(length=6)
     return Employee.objects.create(
@@ -91,6 +100,7 @@ def employee(db, branch, block, department):
         branch=branch,
         block=block,
         department=department,
+        position=position,
         start_date=date(2024, 1, 1),
         attendance_code=random_digits(6),
         citizen_id=random_digits(12),

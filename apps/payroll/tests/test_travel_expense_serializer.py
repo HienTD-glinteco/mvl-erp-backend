@@ -179,6 +179,26 @@ class TestTravelExpenseSerializer:
         assert not serializer.is_valid()
         assert "employee_id" in serializer.errors
 
+    def test_employee_must_be_active(self, employee):
+        """Test that employee must be active."""
+        # Use update() to bypass model validation
+        from apps.hrm.models import Employee
+
+        Employee.objects.filter(pk=employee.pk).update(status="Onboarding")
+        employee.refresh_from_db()
+
+        data = {
+            "name": "Test expense",
+            "expense_type": "TAXABLE",
+            "employee_id": employee.id,
+            "amount": 1000000,
+            "month": "11/2025",
+        }
+
+        serializer = TravelExpenseSerializer(data=data)
+        assert not serializer.is_valid()
+        assert "employee_id" in serializer.errors
+
     def test_update_resets_status(self, employee, user):
         """Test that updating an expense resets status to NOT_CALCULATED."""
         expense = TravelExpense.objects.create(
