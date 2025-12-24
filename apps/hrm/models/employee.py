@@ -163,44 +163,44 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=10,
         choices=CodeType.choices,
         default=CodeType.MV,
-        verbose_name="Employee type",
+        verbose_name=_("Employee type"),
     )
-    code = models.CharField(max_length=50, unique=True, verbose_name="Employee code")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Employee code"))
     avatar = models.ForeignKey(
         "files.FileModel",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="employee_avatars",
-        verbose_name="Avatar",
+        verbose_name=_("Avatar"),
     )
-    fullname = models.CharField(max_length=200, verbose_name="Full name")
+    fullname = models.CharField(max_length=200, verbose_name=_("Full name"))
     attendance_code = models.CharField(
         max_length=20,
         validators=[RegexValidator(regex=r"^\d+$", message=_("Attendance code must contain only digits"))],
-        verbose_name="Attendance code",
+        verbose_name=_("Attendance code"),
     )
-    username = models.CharField(max_length=150, unique=True, verbose_name="Username")
-    email = models.EmailField(unique=True, verbose_name="Email")
+    username = models.CharField(max_length=150, unique=True, verbose_name=_("Username"))
+    email = models.EmailField(unique=True, verbose_name=_("Email"))
 
     # Organizational structure
     branch = models.ForeignKey(
         "Branch",
         on_delete=models.CASCADE,
         related_name="employees",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
     )
     block = models.ForeignKey(
         "Block",
         on_delete=models.CASCADE,
         related_name="employees",
-        verbose_name="Block",
+        verbose_name=_("Block"),
     )
     department = models.ForeignKey(
         "Department",
         on_delete=models.CASCADE,
         related_name="employees",
-        verbose_name="Department",
+        verbose_name=_("Department"),
     )
     position = models.ForeignKey(
         "Position",
@@ -208,60 +208,60 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employees",
-        verbose_name="Position",
+        verbose_name=_("Position"),
     )
     employee_type = models.CharField(
         max_length=30,
         choices=EmployeeType.choices,
         null=True,
         blank=True,
-        verbose_name="Employee type (classification)",
+        verbose_name=_("Employee type (classification)"),
     )
 
     # Employment details
-    start_date = models.DateField(verbose_name="Start date")
+    start_date = models.DateField(verbose_name=_("Start date"))
     status = models.CharField(
         max_length=50,
         choices=Status.choices,
         default=Status.ONBOARDING,
-        verbose_name="Status",
+        verbose_name=_("Status"),
     )
     resignation_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Resignation start date",
+        verbose_name=_("Resignation start date"),
     )
     resignation_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Resignation end date",
+        verbose_name=_("Resignation end date"),
     )
     resignation_reason = models.CharField(
         max_length=50,
         choices=ResignationReason.choices,
         null=True,
         blank=True,
-        verbose_name="Resignation reason",
+        verbose_name=_("Resignation reason"),
     )
-    note = SafeTextField(blank=True, verbose_name="Note")
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
 
     # Personal information
     date_of_birth = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date of birth",
+        verbose_name=_("Date of birth"),
     )
     gender = models.CharField(
         max_length=10,
         choices=Gender.choices,
         default=Gender.MALE,
-        verbose_name="Gender",
+        verbose_name=_("Gender"),
     )
     marital_status = models.CharField(
         max_length=10,
         choices=MaritalStatus.choices,
         default=MaritalStatus.SINGLE,
-        verbose_name="Marital status",
+        verbose_name=_("Marital status"),
     )
     nationality = models.ForeignKey(
         "core.Nationality",
@@ -269,17 +269,17 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employees",
-        verbose_name="Nationality",
+        verbose_name=_("Nationality"),
     )
     ethnicity = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Ethnicity",
+        verbose_name=_("Ethnicity"),
     )
     religion = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Religion",
+        verbose_name=_("Religion"),
     )
 
     # ID and documentation
@@ -287,17 +287,17 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=12,
         unique=True,
         validators=[CitizenIdValidator],
-        verbose_name="Citizen ID",
+        verbose_name=_("Citizen ID"),
     )
     citizen_id_issued_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Citizen ID issued date",
+        verbose_name=_("Citizen ID issued date"),
     )
     citizen_id_issued_place = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Citizen ID issued place",
+        verbose_name=_("Citizen ID issued place"),
     )
     citizen_id_file = models.ForeignKey(
         "files.FileModel",
@@ -305,12 +305,12 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee_citizen_id_files",
-        verbose_name="Citizen ID file",
+        verbose_name=_("Citizen ID file"),
     )
     tax_code = models.CharField(
         max_length=12,
         blank=True,
-        verbose_name="Tax code",
+        verbose_name=_("Tax code"),
     )
 
     # Contact information
@@ -318,43 +318,43 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=10,
         unique=True,
         validators=[RegexValidator(regex=r"^\d{10}$", message=_("Phone number must be exactly 10 digits"))],
-        verbose_name="Phone number",
+        verbose_name=_("Phone number"),
     )
     personal_email = models.EmailField(
         max_length=100,
         null=True,
         blank=True,
-        verbose_name="Personal email",
+        verbose_name=_("Personal email"),
     )
 
     # Address information
     place_of_birth = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Place of birth",
+        verbose_name=_("Place of birth"),
     )
     residential_address = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name="Residential address",
+        verbose_name=_("Residential address"),
     )
     permanent_address = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name="Permanent address",
+        verbose_name=_("Permanent address"),
     )
 
     # Emergency contact
     emergency_contact_name = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Emergency contact name",
+        verbose_name=_("Emergency contact name"),
     )
     emergency_contact_phone = models.CharField(
         max_length=10,
         blank=True,
         validators=[RegexValidator(regex=r"^\d*$", message=_("Phone number must contain only digits"))],
-        verbose_name="Emergency contact phone",
+        verbose_name=_("Emergency contact phone"),
     )
 
     # User account
@@ -364,11 +364,11 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee",
-        verbose_name="User",
+        verbose_name=_("User"),
     )
     is_onboarding_email_sent = models.BooleanField(
         default=False,
-        verbose_name="Is onboarding email sent",
+        verbose_name=_("Is onboarding email sent"),
     )
 
     # Recruitment
@@ -378,7 +378,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employees",
-        verbose_name="Recruitment Candidate",
+        verbose_name=_("Recruitment Candidate"),
     )
 
     # Available leave days (e.g., remaining annual leave)
@@ -386,7 +386,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_digits=6,
         decimal_places=2,
         default=0,
-        verbose_name="Available leave days",
+        verbose_name=_("Available leave days"),
         help_text="Number of available leave days for the employee",
     )
 

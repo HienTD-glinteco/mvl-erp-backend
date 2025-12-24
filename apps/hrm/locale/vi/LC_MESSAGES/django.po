@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-24 11:48+0700\n"
+"POT-Creation-Date: 2025-12-24 17:42+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -590,7 +590,7 @@ msgstr "Tên đầy đủ"
 msgid "Attendance Code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/api/views/employee.py:574
+#: apps/hrm/api/views/employee.py:574 apps/hrm/models/employee.py:227
 msgid "Status"
 msgstr "Trạng Thái"
 
@@ -610,19 +610,23 @@ msgstr "Ngày Nghỉ Việc"
 msgid "Contract Type"
 msgstr "Loại Hợp Đồng"
 
-#: apps/hrm/api/views/employee.py:579 apps/hrm/models/organization.py:314
+#: apps/hrm/api/views/employee.py:579 apps/hrm/models/employee.py:211
+#: apps/hrm/models/organization.py:314
 msgid "Position"
 msgstr "Chức Vụ"
 
-#: apps/hrm/api/views/employee.py:580 apps/hrm/models/organization.py:47
+#: apps/hrm/api/views/employee.py:580 apps/hrm/models/employee.py:191
+#: apps/hrm/models/organization.py:47
 msgid "Branch"
 msgstr "Chi Nhánh"
 
-#: apps/hrm/api/views/employee.py:581 apps/hrm/models/organization.py:112
+#: apps/hrm/api/views/employee.py:581 apps/hrm/models/employee.py:197
+#: apps/hrm/models/organization.py:112
 msgid "Block"
 msgstr "Khối"
 
-#: apps/hrm/api/views/employee.py:582 apps/hrm/models/organization.py:182
+#: apps/hrm/api/views/employee.py:582 apps/hrm/models/employee.py:203
+#: apps/hrm/models/organization.py:182
 msgid "Department"
 msgstr "Phòng Ban"
 
@@ -634,7 +638,7 @@ msgstr "Số điện thoại"
 msgid "Personal Email"
 msgstr "Email cá nhân"
 
-#: apps/hrm/api/views/employee.py:585
+#: apps/hrm/api/views/employee.py:585 apps/hrm/models/employee.py:184
 msgid "Email"
 msgstr "Email"
 
@@ -654,7 +658,7 @@ msgstr "Mã Số Thuế"
 msgid "Emergency Contact"
 msgstr "Liên Hệ Khẩn Cấp"
 
-#: apps/hrm/api/views/employee.py:590
+#: apps/hrm/api/views/employee.py:590 apps/hrm/models/employee.py:258
 msgid "Gender"
 msgstr "Giới Tính"
 
@@ -670,19 +674,19 @@ msgstr "Nơi Sinh"
 msgid "Marital Status"
 msgstr "Tình Trạng Hôn Nhân"
 
-#: apps/hrm/api/views/employee.py:594
+#: apps/hrm/api/views/employee.py:594 apps/hrm/models/employee.py:277
 msgid "Ethnicity"
 msgstr "Dân Tộc"
 
-#: apps/hrm/api/views/employee.py:595
+#: apps/hrm/api/views/employee.py:595 apps/hrm/models/employee.py:282
 msgid "Religion"
 msgstr "Tôn giáo"
 
-#: apps/hrm/api/views/employee.py:596
+#: apps/hrm/api/views/employee.py:596 apps/hrm/models/employee.py:272
 msgid "Nationality"
 msgstr "Quốc Tịch"
 
-#: apps/hrm/api/views/employee.py:597
+#: apps/hrm/api/views/employee.py:597 apps/hrm/models/employee.py:290
 msgid "Citizen ID"
 msgstr "Số CMND/CCCD"
 
@@ -2758,10 +2762,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2770,22 +2776,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -3052,17 +3063,179 @@ msgstr "Đã kết hôn"
 msgid "Divorced"
 msgstr "Đã ly hôn"
 
+#: apps/hrm/models/employee.py:166
+#, fuzzy
+#| msgid "Old employee type"
+msgid "Employee type"
+msgstr "Loại nhân viên cũ"
+
+#: apps/hrm/models/employee.py:168
+#, fuzzy
+#| msgid "Employee Code"
+msgid "Employee code"
+msgstr "Mã Nhân Viên"
+
+#: apps/hrm/models/employee.py:175
+msgid "Avatar"
+msgstr ""
+
+#: apps/hrm/models/employee.py:177
+#, fuzzy
+#| msgid "Full Name"
+msgid "Full name"
+msgstr "Tên đầy đủ"
+
 #: apps/hrm/models/employee.py:180
 msgid "Attendance code must contain only digits"
 msgstr "Mã chấm công chỉ được chứa chữ số"
+
+#: apps/hrm/models/employee.py:181
+#, fuzzy
+#| msgid "Attendance Code"
+msgid "Attendance code"
+msgstr "Mã Chấm Công"
+
+#: apps/hrm/models/employee.py:183
+#, fuzzy
+#| msgid "Login Username"
+msgid "Username"
+msgstr "Tên Đăng Nhập"
+
+#: apps/hrm/models/employee.py:218
+#, fuzzy
+#| msgid "Employee certificate"
+msgid "Employee type (classification)"
+msgstr "Bằng cấp chứng chỉ"
+
+#: apps/hrm/models/employee.py:222
+#, fuzzy
+#| msgid "Start Date"
+msgid "Start date"
+msgstr "Ngày Bắt Đầu"
+
+#: apps/hrm/models/employee.py:232
+#, fuzzy
+#| msgid "Resignation Date"
+msgid "Resignation start date"
+msgstr "Ngày Nghỉ Việc"
+
+#: apps/hrm/models/employee.py:237
+#, fuzzy
+#| msgid "Resignation Date"
+msgid "Resignation end date"
+msgstr "Ngày Nghỉ Việc"
+
+#: apps/hrm/models/employee.py:244
+#, fuzzy
+#| msgid "Resignation Reason"
+msgid "Resignation reason"
+msgstr "Lý Do Nghỉ Việc"
+
+#: apps/hrm/models/employee.py:246
+#, fuzzy
+#| msgid "Notes"
+msgid "Note"
+msgstr "Ghi Chú"
+
+#: apps/hrm/models/employee.py:252
+#, fuzzy
+#| msgid "Date of Birth"
+msgid "Date of birth"
+msgstr "Ngày Sinh"
+
+#: apps/hrm/models/employee.py:264
+#, fuzzy
+#| msgid "Marital Status"
+msgid "Marital status"
+msgstr "Tình Trạng Hôn Nhân"
+
+#: apps/hrm/models/employee.py:295
+#, fuzzy
+#| msgid "ID Issued Date"
+msgid "Citizen ID issued date"
+msgstr "Ngày Cấp CMND/CCCD"
+
+#: apps/hrm/models/employee.py:300
+#, fuzzy
+#| msgid "ID Issued Place"
+msgid "Citizen ID issued place"
+msgstr "Nơi Cấp CMND/CCCD"
+
+#: apps/hrm/models/employee.py:308
+#, fuzzy
+#| msgid "Citizen ID"
+msgid "Citizen ID file"
+msgstr "Số CMND/CCCD"
+
+#: apps/hrm/models/employee.py:313
+#, fuzzy
+#| msgid "Tax Code"
+msgid "Tax code"
+msgstr "Mã Số Thuế"
 
 #: apps/hrm/models/employee.py:320
 msgid "Phone number must be exactly 10 digits"
 msgstr "Số điện thoại phải đúng 10 chữ số"
 
+#: apps/hrm/models/employee.py:321
+msgid "Phone number"
+msgstr ""
+
+#: apps/hrm/models/employee.py:327
+#, fuzzy
+#| msgid "Personal Email"
+msgid "Personal email"
+msgstr "Email cá nhân"
+
+#: apps/hrm/models/employee.py:334
+#, fuzzy
+#| msgid "Place of Birth"
+msgid "Place of birth"
+msgstr "Nơi Sinh"
+
+#: apps/hrm/models/employee.py:339
+#, fuzzy
+#| msgid "Residential Address"
+msgid "Residential address"
+msgstr "Địa Chỉ Cư Trú"
+
+#: apps/hrm/models/employee.py:344
+#, fuzzy
+#| msgid "Permanent Address"
+msgid "Permanent address"
+msgstr "Địa Chỉ Thường Trú"
+
+#: apps/hrm/models/employee.py:351
+#, fuzzy
+#| msgid "Emergency Contact"
+msgid "Emergency contact name"
+msgstr "Liên Hệ Khẩn Cấp"
+
 #: apps/hrm/models/employee.py:356
 msgid "Phone number must contain only digits"
 msgstr "Số điện thoại chỉ được chứa chữ số"
+
+#: apps/hrm/models/employee.py:357
+#, fuzzy
+#| msgid "Emergency Contact"
+msgid "Emergency contact phone"
+msgstr "Liên Hệ Khẩn Cấp"
+
+#: apps/hrm/models/employee.py:367
+msgid "User"
+msgstr ""
+
+#: apps/hrm/models/employee.py:371
+msgid "Is onboarding email sent"
+msgstr ""
+
+#: apps/hrm/models/employee.py:381 apps/hrm/models/recruitment_candidate.py:137
+msgid "Recruitment Candidate"
+msgstr "Ứng viên"
+
+#: apps/hrm/models/employee.py:389
+msgid "Available leave days"
+msgstr ""
 
 #: apps/hrm/models/employee.py:394
 msgid "Employee"
@@ -3494,10 +3667,6 @@ msgstr "3-5 năm"
 #: apps/hrm/models/recruitment_candidate.py:34
 msgid "More Than 5 Years"
 msgstr "Nhiều hơn 5 năm"
-
-#: apps/hrm/models/recruitment_candidate.py:137
-msgid "Recruitment Candidate"
-msgstr "Ứng viên"
 
 #: apps/hrm/models/recruitment_candidate.py:138
 msgid "Recruitment Candidates"
