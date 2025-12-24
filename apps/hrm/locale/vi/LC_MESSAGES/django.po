@@ -2236,11 +2236,11 @@ msgstr "Danh sách ngày công nhân viên"
 
 #: apps/hrm/constants.py:25
 msgid "Official"
-msgstr "Nhân viên chính thức"
+msgstr "Chính thức"
 
 #: apps/hrm/constants.py:26
 msgid "Apprentice"
-msgstr "Nhân viên thử việc"
+msgstr "Học việc"
 
 #: apps/hrm/constants.py:27
 msgid "Unpaid - Official"
@@ -2257,7 +2257,7 @@ msgstr "Thử việc"
 #: apps/hrm/constants.py:30
 #: apps/hrm/management/commands/setup_default_org_data.py:58
 msgid "Intern"
-msgstr "Học việc"
+msgstr "Thực tập sinh"
 
 #: apps/hrm/constants.py:31
 msgid "Probation Type 1"
