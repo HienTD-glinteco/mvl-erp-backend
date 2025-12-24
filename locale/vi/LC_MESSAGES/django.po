@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 16:10+0700\n"
+"POT-Creation-Date: 2025-12-24 09:41+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -188,7 +188,8 @@ msgstr "Kiểm tra trạng thái nhập dữ liệu"
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:54 apps/payroll/models/travel_expense.py:111
+#: apps/imports/api/views.py:54 apps/payroll/models/recovery_voucher.py:68
+#: apps/payroll/models/travel_expense.py:111
 msgid "Status"
 msgstr "Trạng thái"
 
@@ -365,6 +366,43 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
+#: apps/payroll/api/serializers/recovery_voucher.py:91
+msgid "Month is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:99
+msgid "Month must be between 1 and 12."
+msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:103
+msgid "Month must be in MM/YYYY format."
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:108
+msgid "Employee is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:110
+msgid "Employee must be in active or onboarding status."
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:117
+#: apps/payroll/models/recovery_voucher.py:108
+msgid "Amount must be greater than 0."
+msgstr "Số tiền phải lớn hơn 0"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:123
+msgid "Name is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:125
+msgid "Name must not exceed 250 characters."
+msgstr "Tên không được vượt quá 250 ký tự"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:131
+msgid "Note must not exceed 500 characters."
+msgstr "Ghi chú không được vượt quá 500 ký tự"
+
 #: apps/payroll/api/serializers/sales_revenue.py:81
 #, fuzzy
 #| msgid "Name is required"
@@ -372,10 +410,8 @@ msgid "Revenue is required"
 msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/serializers/sales_revenue.py:83
-#, fuzzy
-#| msgid "Employee must be active"
 msgid "Revenue must be non-negative"
-msgstr "Nhân viên phải đang hoạt động"
+msgstr ""
 
 #: apps/payroll/api/serializers/sales_revenue.py:89
 #, fuzzy
@@ -394,8 +430,10 @@ msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/serializers/sales_revenue.py:100
 #: apps/payroll/api/serializers/travel_expense.py:104
+#, fuzzy
+#| msgid "Employee is required"
 msgid "Employee must be active"
-msgstr "Nhân viên phải đang hoạt động"
+msgstr "Trường này là bắt buộc"
 
 #: apps/payroll/api/serializers/sales_revenue.py:107
 #: apps/payroll/api/serializers/travel_expense.py:111
@@ -476,15 +514,24 @@ msgstr "Xem cấu hình KPI"
 msgid "KPI View KPI Configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/salary_config.py:127
-msgid "View salary configuration"
-msgstr "Xem cấu hình lương"
-
+#: apps/payroll/api/views/recovery_voucher.py:338
 #: apps/payroll/api/views/salary_config.py:128
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
+
+#: apps/payroll/api/views/recovery_voucher.py:339
+msgid "Recovery/Back Pay"
+msgstr "Truy thu / Truy lĩnh"
+
+#: apps/payroll/api/views/recovery_voucher.py:362
+msgid "Cannot delete voucher for a month with existing payroll."
+msgstr "Không thể xóa phiếu cho một tháng đã có bảng lương."
+
+#: apps/payroll/api/views/salary_config.py:127
+msgid "View salary configuration"
+msgstr "Xem cấu hình lương"
 
 #: apps/payroll/api/views/salary_config.py:129
 msgid "Configuration"
@@ -504,7 +551,7 @@ msgstr "Quản lý chi phí đi lại"
 #, fuzzy
 #| msgid "Cannot delete travel expense for a month with existing payroll."
 msgid "Cannot delete sales revenue for a month with existing payroll."
-msgstr "Không thể xóa chi phí đi lại cho một tháng đã có bảng lương."
+msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
 
 #: apps/payroll/api/views/travel_expense.py:409
 msgid "Travel Expense Management"
@@ -512,7 +559,7 @@ msgstr "Quản lý chi phí đi lại"
 
 #: apps/payroll/api/views/travel_expense.py:434
 msgid "Cannot delete travel expense for a month with existing payroll."
-msgstr "Không thể xóa chi phí đi lại cho một tháng đã có bảng lương."
+msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
 
 #: apps/payroll/models/kpi_criterion.py:38
 msgid "Sales"
@@ -524,11 +571,82 @@ msgstr ""
 
 #: apps/payroll/models/kpi_criterion.py:42
 msgid "Work Performance"
-msgstr ""
+msgstr "Hiệu quả công việc"
 
 #: apps/payroll/models/kpi_criterion.py:43
 msgid "Discipline"
-msgstr ""
+msgstr "Kỷ luật"
+
+#: apps/payroll/models/recovery_voucher.py:33
+msgid "Recovery"
+msgstr "Truy thu"
+
+#: apps/payroll/models/recovery_voucher.py:34
+msgid "Back Pay"
+msgstr "Truy lĩnh"
+
+#: apps/payroll/models/recovery_voucher.py:37
+msgid "Not Calculated"
+msgstr "Chưa tính vào bảng lương"
+
+#: apps/payroll/models/recovery_voucher.py:38
+msgid "Calculated"
+msgstr "Đã tính vào bảng lương"
+
+#: apps/payroll/models/recovery_voucher.py:47
+msgid "Voucher Code"
+msgstr "Mã phiếu"
+
+#: apps/payroll/models/recovery_voucher.py:48
+msgid "Name"
+msgstr "Tên"
+
+#: apps/payroll/models/recovery_voucher.py:52
+msgid "Voucher Type"
+msgstr "Loại phiếu"
+
+#: apps/payroll/models/recovery_voucher.py:58
+#: apps/payroll/models/travel_expense.py:101
+msgid "Employee"
+msgstr "Nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:60
+msgid "Employee Code"
+msgstr "Mã nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:61
+msgid "Employee Name"
+msgstr "Tên nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:62
+msgid "Amount (VND)"
+msgstr "Số tiền"
+
+#: apps/payroll/models/recovery_voucher.py:63
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/payroll/models/recovery_voucher.py:70
+#: apps/payroll/models/travel_expense.py:113
+msgid "Note"
+msgstr "Ghi chú"
+
+#: apps/payroll/models/recovery_voucher.py:76
+msgid "Created By"
+msgstr "Người tạo"
+
+#: apps/payroll/models/recovery_voucher.py:83
+msgid "Updated By"
+msgstr "Người cập nhật"
+
+#: apps/payroll/models/recovery_voucher.py:87
+msgid "Recovery Voucher"
+msgstr "Phiếu truy thu/truy lĩnh"
+
+#: apps/payroll/models/recovery_voucher.py:88
+msgid "Recovery Vouchers"
+msgstr "Các phiếu truy thu/truy lĩnh"
 
 #: apps/payroll/models/travel_expense.py:94
 msgid "Code"
@@ -542,10 +660,6 @@ msgstr "Tên chi phí"
 msgid "Expense type"
 msgstr "Loại chi phí"
 
-#: apps/payroll/models/travel_expense.py:101
-msgid "Employee"
-msgstr "Nhân viên"
-
 #: apps/payroll/models/travel_expense.py:103
 msgid "Amount"
 msgstr "Số tiền"
@@ -553,14 +667,6 @@ msgstr "Số tiền"
 #: apps/payroll/models/travel_expense.py:104
 msgid "First day of the expense month"
 msgstr ""
-
-#: apps/payroll/models/travel_expense.py:104
-msgid "Month"
-msgstr "Tháng"
-
-#: apps/payroll/models/travel_expense.py:113
-msgid "Note"
-msgstr "Ghi chú"
 
 #: apps/payroll/models/travel_expense.py:120
 msgid "Created by"

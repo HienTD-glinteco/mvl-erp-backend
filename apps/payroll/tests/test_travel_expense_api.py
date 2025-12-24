@@ -65,7 +65,6 @@ class TestTravelExpenseAPI:
             data=json.dumps(create_data),
             content_type="application/json",
         )
-
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
 

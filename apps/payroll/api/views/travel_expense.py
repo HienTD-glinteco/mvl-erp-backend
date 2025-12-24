@@ -128,7 +128,7 @@ from libs.export_xlsx.mixins import ExportXLSXMixin
     ),
     create=extend_schema(
         summary="Create a new travel expense",
-        description="Create a new travel expense record. Code is auto-generated in format TE-{YYYYMM}-{seq}. Status defaults to NOT_CALCULATED. Month must be in MM/YYYY format. Employee must be active.",
+        description="Create a new travel expense record. Code is auto-generated in format TE-{YYYYMM}-{seq}. Status defaults to NOT_CALCULATED. Month must be in MM/YYYY format",
         tags=["10.4: Travel Expenses"],
         examples=[
             OpenApiExample(
@@ -407,7 +407,7 @@ class TravelExpenseViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet)
     # Permission registration attributes
     module = _("Payroll")
     submodule = _("Travel Expense Management")
-    permission_prefix = "travel_expense"
+    permission_prefix = "payroll.travel_expense"
 
     def perform_create(self, serializer):
         """Set created_by when creating a new travel expense."""
