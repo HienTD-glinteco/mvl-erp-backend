@@ -3,7 +3,7 @@ from .employee_kpi_assessment import EmployeeKPIAssessment, EmployeeKPIItem
 from .kpi_assessment_period import KPIAssessmentPeriod
 from .kpi_config import KPIConfig
 from .kpi_criterion import KPICriterion
-from .penalty_ticket import PenaltyTicket, generate_penalty_ticket_code
+from .penalty_ticket import PenaltyTicket
 from .recovery_voucher import RecoveryVoucher
 from .salary_config import SalaryConfig
 from .sales_revenue import SalesRevenue
@@ -21,5 +21,4 @@ __all__ = [
     "RecoveryVoucher",
     "SalesRevenue",
     "PenaltyTicket",
-    "generate_penalty_ticket_code",
 ]

@@ -29,6 +29,8 @@ class RecoveryVoucher(ColoredValueMixin, AutoCodeMixin, BaseModel):
         note: Optional notes about the voucher
     """
 
+    CODE_PREFIX = "RV"
+
     class VoucherType(models.TextChoices):
         RECOVERY = "RECOVERY", _("Recovery")
         BACK_PAY = "BACK_PAY", _("Back Pay")

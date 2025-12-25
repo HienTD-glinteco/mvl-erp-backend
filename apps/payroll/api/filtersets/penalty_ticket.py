@@ -2,7 +2,6 @@
 
 import django_filters
 
-from apps.payroll.constants import PaymentStatus, PayrollStatus
 from apps.payroll.models import PenaltyTicket
 
 
@@ -11,11 +10,8 @@ class PenaltyTicketFilterSet(django_filters.FilterSet):
 
     month = django_filters.CharFilter(method="filter_month")
     employee_code = django_filters.CharFilter(field_name="employee_code", lookup_expr="exact")
-    payment_status = django_filters.ChoiceFilter(
-        field_name="payment_status", choices=PaymentStatus.choices, lookup_expr="exact"
-    )
-    payroll_status = django_filters.ChoiceFilter(
-        field_name="payroll_status", choices=PayrollStatus.choices, lookup_expr="exact"
+    status = django_filters.ChoiceFilter(
+        field_name="status", choices=PenaltyTicket.Status.choices, lookup_expr="exact"
     )
     # Organizational hierarchy filters through employee
     branch = django_filters.NumberFilter(field_name="employee__branch__id")
@@ -34,8 +30,7 @@ class PenaltyTicketFilterSet(django_filters.FilterSet):
             "position",
             "employee",
             "employee_code",
-            "payment_status",
-            "payroll_status",
+            "status",
         ]
 
     def filter_month(self, queryset, name, value):

@@ -33,8 +33,7 @@ class TestPenaltyTicket:
         assert ticket.amount == 100000
         # Code should be auto-generated after save
         assert ticket.code.startswith("RVF-202511-")
-        assert ticket.payment_status == "UNPAID"
-        assert ticket.payroll_status == "NOT_CALCULATED"
+        assert ticket.status == "UNPAID"
 
     def test_penalty_ticket_code_generation(self, employee, user):
         """Test automatic code generation."""

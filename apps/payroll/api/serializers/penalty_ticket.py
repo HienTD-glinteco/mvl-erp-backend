@@ -11,7 +11,6 @@ from apps.hrm.api.serializers.common_nested import (
     PositionNestedSerializer,
 )
 from apps.hrm.models import Employee
-from apps.payroll.constants import PaymentStatus, PayrollStatus, ViolationType
 from apps.payroll.models import PenaltyTicket
 
 
@@ -31,13 +30,12 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
     month = serializers.CharField(max_length=7, help_text="Month in MM/YYYY format")
     violation_count = serializers.IntegerField(min_value=1, default=1, help_text="Number of violations in the ticket")
     violation_type = serializers.ChoiceField(
-        choices=ViolationType.choices, default=ViolationType.OTHER, help_text="Type of violation"
+        choices=PenaltyTicket.ViolationType.choices,
+        default=PenaltyTicket.ViolationType.OTHER,
+        help_text="Type of violation",
     )
-    payment_status = serializers.ChoiceField(
-        choices=PaymentStatus.choices, default=PaymentStatus.UNPAID, help_text="Penalty payment status"
-    )
-    payroll_status = serializers.ChoiceField(
-        choices=PayrollStatus.choices, default=PayrollStatus.NOT_CALCULATED, help_text="Payroll calculation status"
+    status = serializers.ChoiceField(
+        choices=PenaltyTicket.Status.choices, default=PenaltyTicket.Status.UNPAID, help_text="Penalty payment status"
     )
     attachments = serializers.PrimaryKeyRelatedField(
         queryset=FileModel.objects.all(),
@@ -62,8 +60,7 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
             "violation_count",
             "violation_type",
             "amount",
-            "payment_status",
-            "payroll_status",
+            "status",
             "note",
             "attachments",
             "created_at",
@@ -146,7 +143,7 @@ class PenaltyTicketUpdateSerializer(PenaltyTicketSerializer):
         read_only_fields = PenaltyTicketSerializer.Meta.read_only_fields + ["code"]
 
 
-class PaymentStatusUpdateSerializer(serializers.Serializer):
+class BulkUpdateStatusSerializer(serializers.Serializer):
     """Serializer for bulk payment status updates."""
 
     ids = serializers.ListField(
@@ -154,7 +151,7 @@ class PaymentStatusUpdateSerializer(serializers.Serializer):
         allow_empty=False,
         help_text="List of penalty ticket IDs",
     )
-    payment_status = serializers.ChoiceField(choices=PaymentStatus.choices, help_text="Desired payment status")
+    status = serializers.ChoiceField(choices=PenaltyTicket.Status.choices, help_text="Desired payment status")
 
     def validate_ids(self, value):
         existing_ids = set(PenaltyTicket.objects.filter(id__in=value).values_list("id", flat=True))
@@ -162,3 +159,13 @@ class PaymentStatusUpdateSerializer(serializers.Serializer):
         if missing_ids:
             raise serializers.ValidationError(f"Tickets not found: {missing_ids}")
         return value
+
+    def bulk_update_status(self):
+        """Bulk update payment status for given ticket IDs."""
+        ids = self.validated_data["ids"]
+        tickets = PenaltyTicket.objects.filter(id__in=ids)
+        for ticket in tickets:
+            ticket.status = self.validated_data["status"]
+            ticket.updated_by = self.context["request"].user
+            ticket.save(update_fields=["status", "updated_by"])
+        return len(tickets)

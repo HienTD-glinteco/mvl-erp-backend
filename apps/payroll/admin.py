@@ -498,11 +498,10 @@ class PenaltyTicketAdmin(admin.ModelAdmin):
         "employee_name",
         "amount",
         "month",
-        "payment_status",
-        "payroll_status",
+        "status",
         "created_at",
     ]
-    list_filter = ["month", "payment_status", "payroll_status"]
+    list_filter = ["month", "status"]
     search_fields = ["code", "employee_code", "employee_name", "note"]
     readonly_fields = [
         "code",
@@ -539,8 +538,7 @@ class PenaltyTicketAdmin(admin.ModelAdmin):
                     "violation_count",
                     "violation_type",
                     "amount",
-                    "payment_status",
-                    "payroll_status",
+                    "status",
                     "note",
                     "attachments",
                 ],

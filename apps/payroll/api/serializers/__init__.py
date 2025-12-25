@@ -24,7 +24,7 @@ from .kpi_assessment_period import (
 )
 from .kpi_config import GradeThresholdSerializer, KPIConfigSchemaSerializer, KPIConfigSerializer, UnitControlSerializer
 from .kpi_criterion import KPICriterionSerializer
-from .penalty_ticket import PaymentStatusUpdateSerializer, PenaltyTicketSerializer, PenaltyTicketUpdateSerializer
+from .penalty_ticket import BulkUpdateStatusSerializer, PenaltyTicketSerializer, PenaltyTicketUpdateSerializer
 from .recovery_voucher import RecoveryVoucherSerializer
 from .salary_config import (
     BusinessCommissionCriteriaSerializer,
@@ -82,5 +82,5 @@ __all__ = [
     "SalesRevenueSerializer",
     "PenaltyTicketSerializer",
     "PenaltyTicketUpdateSerializer",
-    "PaymentStatusUpdateSerializer",
+    "BulkUpdateStatusSerializer",
 ]

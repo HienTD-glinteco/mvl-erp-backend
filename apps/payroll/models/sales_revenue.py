@@ -29,7 +29,6 @@ class SalesRevenue(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """
 
     CODE_PREFIX = "SR"
-    TEMP_CODE_PREFIX = "TEMP_"
 
     class SalesRevenueStatus(models.TextChoices):
         NOT_CALCULATED = "NOT_CALCULATED", "Not calculated"
