@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 17:10+0700\n"
+"POT-Creation-Date: 2025-12-25 23:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -367,13 +367,18 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
-#: apps/payroll/api/serializers/penalty_ticket.py:108
+#: apps/payroll/api/serializers/penalty_ticket.py:115
 msgid "Payment date cannot be in the future."
 msgstr "Ngày nộp tiền không được ở tương lai."
 
-#: apps/payroll/api/serializers/penalty_ticket.py:113
+#: apps/payroll/api/serializers/penalty_ticket.py:120
 msgid "Payment date cannot be before the penalty month."
 msgstr "Ngày nộp tiền không được trước tháng phạt."
+
+#: apps/payroll/api/serializers/penalty_ticket.py:146
+#, python-brace-format
+msgid "File IDs not found or not confirmed: {ids}"
+msgstr ""
 
 #: apps/payroll/api/serializers/recovery_voucher.py:91
 msgid "Month is required."

@@ -111,7 +111,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "amount": 100000,
                     "status": "UNPAID",
                     "note": "Uniform violation - missing name tag",
-                    "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
+                    "attachment_ids": [1],
                 },
                 request_only=True,
             ),
