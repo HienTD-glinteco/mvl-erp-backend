@@ -73,6 +73,14 @@ class BusinessProgressiveSalarySerializer(serializers.Serializer):
     tiers = BusinessCommissionTierSerializer(many=True)
 
 
+class OvertimeMultipliersSerializer(serializers.Serializer):
+    """Serializer for overtime multipliers configuration"""
+
+    saturday_inweek = serializers.FloatField()
+    sunday = serializers.FloatField()
+    holiday = serializers.FloatField()
+
+
 class SalaryConfigSchemaSerializer(serializers.Serializer):
     """Complete salary configuration schema serializer.
 
@@ -82,6 +90,7 @@ class SalaryConfigSchemaSerializer(serializers.Serializer):
     insurance_contributions = InsuranceContributionsSerializer()
     personal_income_tax = PersonalIncomeTaxSerializer()
     kpi_salary = KpiSalarySerializer()
+    overtime_multipliers = OvertimeMultipliersSerializer()
     business_progressive_salary = BusinessProgressiveSalarySerializer()
 
 
