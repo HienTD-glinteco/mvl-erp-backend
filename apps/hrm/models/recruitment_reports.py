@@ -18,7 +18,7 @@ class BaseReportDepartmentModel(BaseReportModel):
         Branch,
         on_delete=models.CASCADE,
         related_name="%(class)s_reports",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         null=True,
         blank=True,
     )
@@ -26,7 +26,7 @@ class BaseReportDepartmentModel(BaseReportModel):
         Block,
         on_delete=models.CASCADE,
         related_name="%(class)s_reports",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         null=True,
         blank=True,
     )
@@ -34,7 +34,7 @@ class BaseReportDepartmentModel(BaseReportModel):
         Department,
         on_delete=models.CASCADE,
         related_name="%(class)s_reports",
-        verbose_name="Department",
+        verbose_name=_("Department"),
         null=True,
         blank=True,
     )
@@ -54,23 +54,23 @@ class StaffGrowthReport(BaseReportDepartmentModel):
 
     month_key = models.CharField(
         max_length=7,
-        verbose_name="Month key",
+        verbose_name=_("Month key"),
         help_text="Format: MM/YYYY for monthly aggregation",
         db_index=True,
     )
     week_key = models.CharField(
         max_length=20,
-        verbose_name="Week key",
+        verbose_name=_("Week key"),
         help_text="Format: Week W - MM/YYYY for weekly aggregation",
         db_index=True,
         null=True,
         blank=True,
     )
-    num_introductions = models.PositiveIntegerField(default=0, verbose_name="Number of introductions")
-    num_returns = models.PositiveIntegerField(default=0, verbose_name="Number of returns")
-    num_recruitment_source = models.PositiveIntegerField(default=0, verbose_name="Number of new recruitment source")
-    num_transfers = models.PositiveIntegerField(default=0, verbose_name="Number of transfers")
-    num_resignations = models.PositiveIntegerField(default=0, verbose_name="Number of resignations")
+    num_introductions = models.PositiveIntegerField(default=0, verbose_name=_("Number of introductions"))
+    num_returns = models.PositiveIntegerField(default=0, verbose_name=_("Number of returns"))
+    num_recruitment_source = models.PositiveIntegerField(default=0, verbose_name=_("Number of new recruitment source"))
+    num_transfers = models.PositiveIntegerField(default=0, verbose_name=_("Number of transfers"))
+    num_resignations = models.PositiveIntegerField(default=0, verbose_name=_("Number of resignations"))
 
     class Meta:
         verbose_name = _("Staff Growth Report")
@@ -92,12 +92,12 @@ class RecruitmentSourceReport(BaseReportDepartmentModel):
         "RecruitmentSource",
         on_delete=models.CASCADE,
         related_name="source_reports",
-        verbose_name="Recruitment source",
+        verbose_name=_("Recruitment source"),
     )
-    num_hires = models.PositiveIntegerField(default=0, verbose_name="Number of hires")
+    num_hires = models.PositiveIntegerField(default=0, verbose_name=_("Number of hires"))
 
     class Meta:
-        verbose_name = "Recruitment Source Report"
+        verbose_name = _("Recruitment Source Report")
         verbose_name_plural = "Recruitment Source Reports"
 
     def __str__(self):
@@ -115,12 +115,12 @@ class RecruitmentChannelReport(BaseReportDepartmentModel):
         "RecruitmentChannel",
         on_delete=models.CASCADE,
         related_name="channel_reports",
-        verbose_name="Recruitment channel",
+        verbose_name=_("Recruitment channel"),
     )
-    num_hires = models.PositiveIntegerField(default=0, verbose_name="Number of hires")
+    num_hires = models.PositiveIntegerField(default=0, verbose_name=_("Number of hires"))
 
     class Meta:
-        verbose_name = "Recruitment Channel Report"
+        verbose_name = _("Recruitment Channel Report")
         verbose_name_plural = "Recruitment Channel Reports"
 
     def __str__(self):
@@ -145,11 +145,11 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
     source_type = models.CharField(
         max_length=50,
         choices=RecruitmentSourceType.choices,
-        verbose_name="Source type",
+        verbose_name=_("Source type"),
     )
     month_key = models.CharField(
         max_length=7,
-        verbose_name="Month key",
+        verbose_name=_("Month key"),
         help_text="Format: YYYY-MM for monthly aggregation",
         db_index=True,
     )
@@ -157,18 +157,18 @@ class RecruitmentCostReport(BaseReportDepartmentModel):
         max_digits=15,
         decimal_places=2,
         default=0,
-        verbose_name="Total cost",
+        verbose_name=_("Total cost"),
     )
-    num_hires = models.PositiveIntegerField(default=0, verbose_name="Number of hires")
+    num_hires = models.PositiveIntegerField(default=0, verbose_name=_("Number of hires"))
     avg_cost_per_hire = models.DecimalField(
         max_digits=15,
         decimal_places=2,
         default=0,
-        verbose_name="Average cost per hire",
+        verbose_name=_("Average cost per hire"),
     )
 
     class Meta:
-        verbose_name = "Recruitment Cost Report"
+        verbose_name = _("Recruitment Cost Report")
         verbose_name_plural = "Recruitment Cost Reports"
 
     def __str__(self):
@@ -191,17 +191,17 @@ class HiredCandidateReport(BaseReportDepartmentModel):
     source_type = models.CharField(
         max_length=50,
         choices=RecruitmentSourceType.choices,
-        verbose_name="Source type",
+        verbose_name=_("Source type"),
     )
     month_key = models.CharField(
         max_length=7,
-        verbose_name="Month key",
+        verbose_name=_("Month key"),
         help_text="Format: MM/YYYY for monthly aggregation",
         db_index=True,
     )
     week_key = models.CharField(
         max_length=20,
-        verbose_name="Week key",
+        verbose_name=_("Week key"),
         help_text="Format: Week W - MM/YYYY for weekly aggregation",
         db_index=True,
         null=True,
@@ -211,20 +211,20 @@ class HiredCandidateReport(BaseReportDepartmentModel):
         "Employee",
         on_delete=models.CASCADE,
         related_name="hired_candidate_reports",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         null=True,
         blank=True,
         help_text="Only applicable for 'referral_source' type",
     )
-    num_candidates_hired = models.PositiveIntegerField(default=0, verbose_name="Number of candidates hired")
+    num_candidates_hired = models.PositiveIntegerField(default=0, verbose_name=_("Number of candidates hired"))
     num_experienced = models.PositiveIntegerField(
         default=0,
-        verbose_name="Number of experienced candidates",
+        verbose_name=_("Number of experienced candidates"),
         help_text="Candidates with prior work experience",
     )
 
     class Meta:
-        verbose_name = "Hired Candidate Report"
+        verbose_name = _("Hired Candidate Report")
         verbose_name_plural = "Hired Candidate Reports"
 
     def __str__(self):

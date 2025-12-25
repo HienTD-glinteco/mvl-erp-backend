@@ -14,8 +14,8 @@ class Bank(BaseModel):
         code: Unique bank code/identifier
     """
 
-    name = models.CharField(max_length=255, verbose_name="Bank name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Bank code")
+    name = models.CharField(max_length=255, verbose_name=_("Bank name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Bank code"))
 
     class Meta:
         verbose_name = _("Bank")

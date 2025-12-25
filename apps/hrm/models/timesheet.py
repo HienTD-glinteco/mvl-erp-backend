@@ -34,37 +34,37 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Employee",
         on_delete=models.CASCADE,
         related_name="timesheets",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
-    date = models.DateField(verbose_name="Date")
+    date = models.DateField(verbose_name=_("Date"))
 
-    start_time = models.DateTimeField(null=True, blank=True, verbose_name="Start time")
-    end_time = models.DateTimeField(null=True, blank=True, verbose_name="End time")
+    start_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Start time"))
+    end_time = models.DateTimeField(null=True, blank=True, verbose_name=_("End time"))
 
     # Original Logs & Manual Correction
-    check_in_time = models.DateTimeField(null=True, blank=True, verbose_name="Original Check-in")
-    check_out_time = models.DateTimeField(null=True, blank=True, verbose_name="Original Check-out")
+    check_in_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Original Check-in"))
+    check_out_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Original Check-out"))
 
     morning_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Morning hours"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Morning hours")
     )
     afternoon_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Afternoon hours"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Afternoon hours")
     )
     official_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Official hours"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Official hours")
     )
     overtime_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Overtime hours"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Overtime hours")
     )
     total_worked_hours = models.DecimalField(
-        max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name="Total worked hours"
+        max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total worked hours")
     )
 
     # Working days for this entry (partial days allowed). Calculated from official_hours
     # using STANDARD_WORKING_HOURS_PER_DAY (e.g., 8 hours = 1 working day).
     working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Working days"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Working days")
     )
 
     day_type = models.CharField(
@@ -72,35 +72,35 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         choices=TimesheetDayType.choices,
         null=True,
         blank=True,
-        verbose_name="Day type",
+        verbose_name=_("Day type"),
     )
 
     status = models.CharField(
-        max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name="Status"
+        max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name=_("Status")
     )
 
     absent_reason = models.CharField(
-        max_length=64, choices=TimesheetReason.choices, null=True, blank=True, verbose_name="Absent reason"
+        max_length=64, choices=TimesheetReason.choices, null=True, blank=True, verbose_name=_("Absent reason")
     )
 
     # Whether this entry should be counted as full salary (affects payroll calculations)
-    is_full_salary = models.BooleanField(default=True, verbose_name="Is full salary")
+    is_full_salary = models.BooleanField(default=True, verbose_name=_("Is full salary"))
 
-    count_for_payroll = models.BooleanField(default=True, verbose_name="Count for payroll")
+    count_for_payroll = models.BooleanField(default=True, verbose_name=_("Count for payroll"))
 
     # Flag to prevent automatic updates from overwriting manual corrections (e.g., from approved proposals)
-    is_manually_corrected = models.BooleanField(default=False, verbose_name="Is manually corrected")
+    is_manually_corrected = models.BooleanField(default=False, verbose_name=_("Is manually corrected"))
     manually_corrected_by = models.ForeignKey(
         "Employee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="corrected_timesheets",
-        verbose_name="Manually corrected by",
+        verbose_name=_("Manually corrected by"),
     )
-    manually_corrected_at = models.DateTimeField(null=True, blank=True, verbose_name="Manually corrected at")
+    manually_corrected_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Manually corrected at"))
 
-    note = SafeTextField(blank=True, verbose_name="Note")
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
 
     VARIANT_MAPPING = {
         "status": {

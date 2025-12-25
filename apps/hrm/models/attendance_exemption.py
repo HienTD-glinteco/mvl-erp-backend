@@ -23,19 +23,19 @@ class AttendanceExemption(BaseModel):
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="attendance_exemption",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee to be exempt from attendance tracking",
     )
     effective_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Effective Date",
+        verbose_name=_("Effective Date"),
         help_text="Date when exemption becomes active",
     )
     notes = models.TextField(
         blank=True,
         max_length=1000,
-        verbose_name="Notes",
+        verbose_name=_("Notes"),
         help_text="Additional notes or remarks",
     )
 

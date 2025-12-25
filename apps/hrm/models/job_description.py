@@ -14,22 +14,22 @@ class JobDescription(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "JD"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Job description code")
-    title = models.CharField(max_length=200, verbose_name="Job title")
-    position_title = models.CharField(max_length=255, verbose_name="Position title")
-    responsibility = SafeTextField(verbose_name="Responsibility")
-    requirement = SafeTextField(verbose_name="Requirement")
-    preferred_criteria = SafeTextField(blank=True, verbose_name="Preferred criteria")
-    benefit = SafeTextField(verbose_name="Benefit")
-    proposed_salary = models.CharField(max_length=100, verbose_name="Proposed salary")
-    note = SafeTextField(blank=True, verbose_name="Note")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Job description code"))
+    title = models.CharField(max_length=200, verbose_name=_("Job title"))
+    position_title = models.CharField(max_length=255, verbose_name=_("Position title"))
+    responsibility = SafeTextField(verbose_name=_("Responsibility"))
+    requirement = SafeTextField(verbose_name=_("Requirement"))
+    preferred_criteria = SafeTextField(blank=True, verbose_name=_("Preferred criteria"))
+    benefit = SafeTextField(verbose_name=_("Benefit"))
+    proposed_salary = models.CharField(max_length=100, verbose_name=_("Proposed salary"))
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
     attachment = models.ForeignKey(
         "files.FileModel",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="job_descriptions",
-        verbose_name="Attachment",
+        verbose_name=_("Attachment"),
     )
 
     class Meta:

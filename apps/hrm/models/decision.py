@@ -37,18 +37,18 @@ class Decision(ColoredValueMixin, BaseModel):
     decision_number = models.CharField(
         max_length=50,
         unique=True,
-        verbose_name="Decision number",
+        verbose_name=_("Decision number"),
         help_text="Unique decision number/code",
     )
 
     name = models.CharField(
         max_length=500,
-        verbose_name="Decision name",
+        verbose_name=_("Decision name"),
         help_text="Name or title of the decision",
     )
 
     signing_date = models.DateField(
-        verbose_name="Signing date",
+        verbose_name=_("Signing date"),
         help_text="Date when the decision was signed",
     )
 
@@ -56,12 +56,12 @@ class Decision(ColoredValueMixin, BaseModel):
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="signed_decisions",
-        verbose_name="Signer",
+        verbose_name=_("Signer"),
         help_text="Employee who signed the decision",
     )
 
     effective_date = models.DateField(
-        verbose_name="Effective date",
+        verbose_name=_("Effective date"),
         help_text="Date when the decision becomes effective",
     )
 
@@ -69,7 +69,7 @@ class Decision(ColoredValueMixin, BaseModel):
         max_length=500,
         null=True,
         blank=True,
-        verbose_name="Reason",
+        verbose_name=_("Reason"),
         help_text="Reason for the decision",
     )
 
@@ -77,7 +77,7 @@ class Decision(ColoredValueMixin, BaseModel):
         max_length=2000,
         null=True,
         blank=True,
-        verbose_name="Decision content",
+        verbose_name=_("Decision content"),
         help_text="Full content of the decision",
     )
 
@@ -85,7 +85,7 @@ class Decision(ColoredValueMixin, BaseModel):
         max_length=1000,
         null=True,
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes",
     )
 
@@ -93,7 +93,7 @@ class Decision(ColoredValueMixin, BaseModel):
         max_length=20,
         choices=SigningStatus.choices,
         default=SigningStatus.DRAFT,
-        verbose_name="Signing status",
+        verbose_name=_("Signing status"),
         help_text="Current signing status of the decision",
     )
 

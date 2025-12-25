@@ -13,16 +13,16 @@ class InterviewCandidate(BaseModel):
         "RecruitmentCandidate",
         on_delete=models.CASCADE,
         related_name="interview_candidates",
-        verbose_name="Recruitment candidate",
+        verbose_name=_("Recruitment candidate"),
     )
     interview_schedule = models.ForeignKey(
         "InterviewSchedule",
         on_delete=models.CASCADE,
         related_name="interview_candidates",
-        verbose_name="Interview schedule",
+        verbose_name=_("Interview schedule"),
     )
-    interview_time = models.DateTimeField(verbose_name="Interview time")
-    email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="Email sent at")
+    interview_time = models.DateTimeField(verbose_name=_("Interview time"))
+    email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Email sent at"))
 
     class Meta:
         verbose_name = _("Interview Candidate")
