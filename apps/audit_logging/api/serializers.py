@@ -103,8 +103,16 @@ class AuditLogSearchSerializer(serializers.Serializer):
     user_id = serializers.CharField(required=False, help_text="Filter by user ID")
     username = serializers.CharField(required=False, help_text="Filter by username")
     employee_code = serializers.CharField(required=False, help_text="Filter by employee code")
-    action = serializers.CharField(required=False, help_text="Filter by action type")
-    object_type = serializers.CharField(required=False, help_text="Filter by object type")
+    actions = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Filter by action types (use multiple values: ?actions=CREATE&actions=UPDATE)",
+    )
+    object_types = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Filter by object types (use multiple values: ?object_types=User&object_types=Role)",
+    )
     object_id = serializers.CharField(required=False, help_text="Filter by object ID")
     search_term = serializers.CharField(required=False, help_text="Free text search")
     page_size = serializers.IntegerField(required=False, default=25, min_value=1, max_value=100)
@@ -140,19 +148,26 @@ class AuditLogSearchSerializer(serializers.Serializer):
             dt_end = timezone.make_aware(datetime.combine(to_date, time.max))
             filters["to_date"] = dt_end.astimezone(UTC).isoformat()
 
-        # Extract other filters
+        # Extract single-value filters
         for field in [
             "user_id",
             "username",
             "employee_code",
-            "action",
-            "object_type",
             "object_id",
             "search_term",
         ]:
             value = self.validated_data.get(field)
             if value:
                 filters[field] = value
+
+        # Extract multiple-value filters
+        actions = self.validated_data.get("actions")
+        if actions:
+            filters["action"] = actions if len(actions) > 1 else actions[0]
+
+        object_types = self.validated_data.get("object_types")
+        if object_types:
+            filters["object_type"] = object_types if len(object_types) > 1 else object_types[0]
 
         # Pagination parameters
         page_size = self.validated_data.get("page_size", 50)

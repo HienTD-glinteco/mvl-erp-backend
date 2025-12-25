@@ -118,7 +118,7 @@ class TestAuditLogViewSet(TestCase):
         }
 
         url = "/api/audit-logs/search/"
-        response = self.client.get(url, {"action": "test_action", "page_size": "10", "page": "1"})
+        response = self.client.get(url, {"actions": "test_action", "page_size": "10", "page": "1"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
@@ -511,3 +511,141 @@ class TestAuditLogViewSet(TestCase):
         call_kwargs = mock_client.search_logs.call_args.kwargs
         self.assertIn("employee_code", call_kwargs["filters"])
         self.assertEqual(call_kwargs["filters"]["employee_code"], "EMP001")
+
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
+    def test_search_audit_logs_with_multiple_actions(self, mock_get_client):
+        """Test audit log search with multiple actions (?actions=CREATE&actions=UPDATE)."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "results": [
+                {
+                    "log_id": "test-123",
+                    "timestamp": "2023-12-15T10:30:00Z",
+                    "user_id": "1",
+                    "username": "testuser",
+                    "action": "CREATE",
+                    "object_type": "User",
+                },
+                {
+                    "log_id": "test-456",
+                    "timestamp": "2023-12-15T10:35:00Z",
+                    "user_id": "1",
+                    "username": "testuser",
+                    "action": "UPDATE",
+                    "object_type": "User",
+                },
+            ],
+            "count": 2,
+            "next": None,
+            "previous": None,
+        }
+
+        url = "/api/audit-logs/search/"
+        # Pass list to send multiple values: ?actions=CREATE&actions=UPDATE
+        response = self.client.get(url, {"actions": ["CREATE", "UPDATE"]})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertEqual(response_data["data"]["count"], 2)
+
+        # Verify action filter was passed as a list
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("action", call_kwargs["filters"])
+        self.assertEqual(call_kwargs["filters"]["action"], ["CREATE", "UPDATE"])
+
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
+    def test_search_audit_logs_with_multiple_object_types(self, mock_get_client):
+        """Test audit log search with multiple object_types (?object_types=User&object_types=Role)."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "results": [
+                {
+                    "log_id": "test-123",
+                    "timestamp": "2023-12-15T10:30:00Z",
+                    "user_id": "1",
+                    "username": "testuser",
+                    "action": "CREATE",
+                    "object_type": "User",
+                },
+                {
+                    "log_id": "test-456",
+                    "timestamp": "2023-12-15T10:35:00Z",
+                    "user_id": "1",
+                    "username": "testuser",
+                    "action": "CREATE",
+                    "object_type": "Role",
+                },
+            ],
+            "count": 2,
+            "next": None,
+            "previous": None,
+        }
+
+        url = "/api/audit-logs/search/"
+        # Pass list to send multiple values: ?object_types=User&object_types=Role
+        response = self.client.get(url, {"object_types": ["User", "Role"]})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertTrue(response_data["success"])
+        self.assertEqual(response_data["data"]["count"], 2)
+
+        # Verify object_type filter was passed as a list
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("object_type", call_kwargs["filters"])
+        self.assertEqual(call_kwargs["filters"]["object_type"], ["User", "Role"])
+
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
+    def test_search_audit_logs_with_single_action(self, mock_get_client):
+        """Test that single action is passed as string, not list."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "results": [],
+            "count": 0,
+            "next": None,
+            "previous": None,
+        }
+
+        url = "/api/audit-logs/search/"
+        response = self.client.get(url, {"actions": "CREATE"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify action filter is a string when single value
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("action", call_kwargs["filters"])
+        self.assertEqual(call_kwargs["filters"]["action"], "CREATE")
+
+    @patch("apps.audit_logging.api.serializers.get_opensearch_client")
+    def test_search_audit_logs_with_single_object_type(self, mock_get_client):
+        """Test that single object_type is passed as string, not list."""
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        mock_client.search_logs.return_value = {
+            "results": [],
+            "count": 0,
+            "next": None,
+            "previous": None,
+        }
+
+        url = "/api/audit-logs/search/"
+        response = self.client.get(url, {"object_types": "User"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify object_type filter is a string when single value
+        mock_client.search_logs.assert_called_once()
+        call_kwargs = mock_client.search_logs.call_args.kwargs
+        self.assertIn("object_type", call_kwargs["filters"])
+        self.assertEqual(call_kwargs["filters"]["object_type"], "User")
