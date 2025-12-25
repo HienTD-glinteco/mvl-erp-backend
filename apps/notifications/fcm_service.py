@@ -92,7 +92,7 @@ class FCMService:
             True if notification was sent successfully, False otherwise
         """
         if not settings.FCM_ENABLED:
-            logger.info("FCM is disabled, skipping notification")
+            logger.debug("FCM is disabled, skipping notification")
             return False
 
         if not initialize_firebase():
@@ -301,7 +301,7 @@ class FCMService:
             FCMResult with success status and message_id if successful
         """
         if not settings.FCM_ENABLED:
-            logger.info("FCM is disabled, skipping notification")
+            logger.debug("FCM is disabled, skipping notification")
             return FCMResult(success=False, error="FCM is disabled")
 
         if not initialize_firebase():
@@ -442,7 +442,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.info("FCM is disabled, skipping topic subscription")
+            logger.debug("FCM is disabled, skipping topic subscription")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),
@@ -524,7 +524,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.info("FCM is disabled, skipping topic unsubscription")
+            logger.debug("FCM is disabled, skipping topic unsubscription")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),
@@ -625,7 +625,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.info("FCM is disabled, skipping multicast")
+            logger.debug("FCM is disabled, skipping multicast")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),

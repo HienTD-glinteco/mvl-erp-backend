@@ -13,6 +13,7 @@ from apps.payroll.models import (
 )
 from apps.payroll.utils import update_department_assessment_status
 from libs.code_generation import register_auto_code_signal
+from apps.notifications.utils import create_notification
 
 
 @receiver(post_save, sender=EmployeeKPIAssessment)
@@ -46,8 +47,6 @@ def notify_employee_kpi_assessment_created(sender, instance, created, **kwargs):
     """Notify employee when a KPI assessment is created."""
     # Scenario C: KPI Evaluation Created
     if created:
-        from apps.notifications.utils import create_notification
-
         recipient = instance.employee.user
         if not recipient:
             return
@@ -63,7 +62,7 @@ def notify_employee_kpi_assessment_created(sender, instance, created, **kwargs):
             verb="created",
             target=instance,
             message=message,
-            client='mobile'
+            target_client='mobile'
         )
 
 
