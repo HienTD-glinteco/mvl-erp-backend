@@ -85,6 +85,11 @@
       }
     ]
   },
+  "overtime_multipliers": {
+    "saturday_inweek": 1.5,
+    "sunday": 2,
+    "holiday": 3
+  },
   "business_progressive_salary": {
     "apply_on": "base_salary",
     "tiers": [

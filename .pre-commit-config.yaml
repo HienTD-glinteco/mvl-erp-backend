@@ -48,12 +48,6 @@ repos:
         language: system
         types: [python]
         stages: [pre-commit]
-    -   id: django-makemigrations
-        name: Django makemigrations check
-        entry: python manage.py makemigrations --check
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
     -   id: django-makemessages
         name: Django makemessages update
         entry: python manage.py makemessages -l vi --no-obsolete
@@ -64,6 +58,18 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
         files: '\.(py|html)$'
+    -   id: django-compilemessages
+        name: Django compilemessages
+        entry: python manage.py compilemessages -l vi
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+    -   id: django-makemigrations
+        name: Django makemigrations check
+        entry: python manage.py makemigrations --check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.13.2
