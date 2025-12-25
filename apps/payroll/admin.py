@@ -485,6 +485,14 @@ class SalesRevenueAdmin(admin.ModelAdmin):
     ]
 
 
+class InlineAttachmentAdmin(admin.TabularInline):
+    """Inline admin for displaying attachments in PenaltyTicket admin."""
+
+    model = PenaltyTicket.attachments.through
+    extra = 0
+    readonly_fields = ["filemodel"]
+
+
 @admin.register(PenaltyTicket)
 class PenaltyTicketAdmin(admin.ModelAdmin):
     """Admin configuration for PenaltyTicket model.
@@ -513,6 +521,7 @@ class PenaltyTicketAdmin(admin.ModelAdmin):
         "updated_at",
     ]
     ordering = ["-created_at"]
+    inlines = [InlineAttachmentAdmin]
 
     fieldsets = [
         (

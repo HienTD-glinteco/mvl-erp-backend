@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from apps.files.api.serializers.file_serializers import FileSerializer
+from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.files.models import FileModel
 from apps.hrm.api.serializers.common_nested import (
     BlockNestedSerializer,
@@ -16,7 +18,7 @@ from apps.hrm.models import Employee
 from apps.payroll.models import PenaltyTicket
 
 
-class PenaltyTicketSerializer(serializers.ModelSerializer):
+class PenaltyTicketSerializer(FileConfirmSerializerMixin, serializers.ModelSerializer):
     """Serializer for PenaltyTicket CRUD operations."""
 
     employee = EmployeeNestedSerializer(read_only=True)
@@ -39,12 +41,15 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
     status = serializers.ChoiceField(
         choices=PenaltyTicket.Status.choices, default=PenaltyTicket.Status.UNPAID, help_text="Penalty payment status"
     )
-    attachments = serializers.PrimaryKeyRelatedField(
-        queryset=FileModel.objects.all(),
-        many=True,
+    attachments = FileSerializer(many=True, read_only=True)
+
+    # Write-only field for attachment IDs
+    attachment_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
         required=False,
-        allow_empty=True,
-        help_text="List of file IDs for attachments",
+        allow_empty=False,
+        help_text="List of confirmed file IDs to attach to this ticket",
     )
 
     class Meta:
@@ -66,6 +71,7 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
             "status",
             "note",
             "attachments",
+            "attachment_ids",
             "created_at",
             "updated_at",
         ]
@@ -74,6 +80,7 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
             "code",
             "employee_code",
             "employee_name",
+            "attachments",
             "created_at",
             "updated_at",
         ]
@@ -123,21 +130,58 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def validate_attachment_ids(self, value):
+        """Validate that all attachment IDs exist in the database."""
+        if not value:
+            return value
+
+        # Get existing file IDs
+        existing_ids = set(FileModel.objects.filter(id__in=value, is_confirmed=True).values_list("id", flat=True))
+        provided_ids = set(value)
+
+        # Check for missing IDs
+        missing_ids = provided_ids - existing_ids
+        if missing_ids:
+            raise serializers.ValidationError(
+                _("File IDs not found or not confirmed: {ids}").format(ids=list(missing_ids))
+            )
+
+        return value
+
     def create(self, validated_data):
-        """Create penalty ticket with attachments."""
-        attachments = validated_data.pop("attachments", [])
-        ticket = super().create(validated_data)
-        if attachments:
-            ticket.attachments.set(attachments)
-        return ticket
+        """Create PenaltyTicket and link attachments."""
+        attachment_ids = validated_data.pop("attachment_ids", [])
+        instance = super().create(validated_data)
+        if attachment_ids:
+            self._link_attachments(instance, attachment_ids)
+
+        return instance
 
     def update(self, instance, validated_data):
-        """Update penalty ticket with attachments."""
-        attachments = validated_data.pop("attachments", None)
-        ticket = super().update(instance, validated_data)
-        if attachments is not None:
-            ticket.attachments.set(attachments)
-        return ticket
+        """Update PenaltyTicket and link attachments."""
+        attachment_ids = validated_data.pop("attachment_ids", None)
+        instance = super().update(instance, validated_data)
+
+        # Only update attachments if attachment_ids was provided in the request
+        if attachment_ids is not None:
+            self._link_attachments(instance, attachment_ids)
+
+        return instance
+
+    def _link_attachments(self, instance, attachment_ids):
+        """Link file attachments to the PenaltyTicket instance.
+
+        Uses GenericRelation's set() method to efficiently replace all attachments.
+
+        Args:
+            instance: The PenaltyTicket instance to link files to
+            attachment_ids: List of FileModel IDs to link
+        """
+        # Get the FileModel instances to link
+        files_to_link = FileModel.objects.filter(id__in=attachment_ids)
+
+        # Use GenericRelation's set() method to replace all attachments
+        instance.attachments.set(files_to_link)
 
     def to_representation(self, instance):
         """Convert date fields and attachments for API response."""
