@@ -1,16 +1,23 @@
 """Signals for payroll app."""
 
+from datetime import date
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.payroll.models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
+    KPIAssessmentPeriod,
     PenaltyTicket,
     RecoveryVoucher,
     SalesRevenue,
 )
-from apps.payroll.utils import update_department_assessment_status
+from apps.payroll.utils import (
+    create_assessment_items_from_criteria,
+    recalculate_assessment_scores,
+    update_department_assessment_status,
+)
 from libs.code_generation import register_auto_code_signal
 
 
@@ -40,10 +47,114 @@ def update_department_status_on_employee_assessment_save(sender, instance, **kwa
     update_department_assessment_status(dept_assessment)
 
 
-"""Signal handlers for Payroll app."""
+@receiver(post_save, sender=EmployeeKPIAssessment)
+def update_assessment_status(sender, instance, **kwargs):
+    """Update assessment status based on completion state.
+
+    Status logic:
+    - new: Default when created
+    - waiting_manager: Employee has completed self-assessment but manager hasn't assessed
+    - completed: Manager has completed assessment
+    """
+    needs_update = False
+    new_status = None
+
+    # Check if manager has assessed (total_manager_score is set or grade_manager exists)
+    has_manager_assessment = instance.total_manager_score is not None or instance.grade_manager is not None
+
+    # Check if employee has completed self-assessment (total_employee_score is set)
+    has_employee_assessment = instance.total_employee_score is not None
+
+    if has_manager_assessment:
+        if instance.status != EmployeeKPIAssessment.StatusChoices.COMPLETED:
+            new_status = EmployeeKPIAssessment.StatusChoices.COMPLETED
+            needs_update = True
+    elif has_employee_assessment:
+        if instance.status != EmployeeKPIAssessment.StatusChoices.WAITING_MANAGER:
+            new_status = EmployeeKPIAssessment.StatusChoices.WAITING_MANAGER
+            needs_update = True
+    else:
+        if instance.status != EmployeeKPIAssessment.StatusChoices.NEW:
+            new_status = EmployeeKPIAssessment.StatusChoices.NEW
+            needs_update = True
+
+    # Update status if needed (avoid recursive signal)
+    if needs_update:
+        EmployeeKPIAssessment.objects.filter(pk=instance.pk).update(status=new_status)
 
 
-def generate_sales_revenue_code(instance: SalesRevenue) -> str:
+@receiver(post_save, sender="hrm.Employee")
+def create_kpi_assessment_for_new_employee(sender, instance, created, **kwargs):
+    """Create KPI assessment for newly created employee if period exists.
+
+    When a new employee is created, check if there's an active KPI assessment period
+    for the month of their start_date. If yes, create an assessment for them.
+    """
+    if not created:
+        return
+
+    # Import here to avoid circular import
+    from apps.hrm.models import Department
+    from apps.payroll.models import KPICriterion
+
+    # Check if employee has start_date
+    if not instance.start_date:
+        return
+
+    # Get the first day of the month from start_date
+    # Note: Django's post_save signal can fire with unconverted field values
+    # when objects are created with string dates (e.g., Employee.objects.create(start_date="2023-01-01"))
+    # The database will have the correct date, but in-memory instance.start_date might still be a string
+    start_date = instance.start_date
+    if isinstance(start_date, str):
+        from datetime import datetime
+
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+    month_date = date(start_date.year, start_date.month, 1)
+
+    # Check if KPI assessment period exists for this month
+    try:
+        period = KPIAssessmentPeriod.objects.get(month=month_date)
+    except KPIAssessmentPeriod.DoesNotExist:
+        # No period exists for this month
+        return
+
+    # Check if employee has department
+    if not instance.department:
+        return
+
+    # Determine target based on department function
+    if instance.department.function == Department.DepartmentFunction.BUSINESS:
+        target = "sales"
+    else:
+        target = "backoffice"
+
+    # Get active criteria for target
+    criteria = KPICriterion.objects.filter(target=target, active=True).order_by("evaluation_type", "order")
+
+    if not criteria.exists():
+        return
+
+    # Check if assessment already exists
+    if EmployeeKPIAssessment.objects.filter(employee=instance, period=period).exists():
+        return
+
+    # Create assessment
+    assessment = EmployeeKPIAssessment.objects.create(
+        employee=instance,
+        period=period,
+        manager=instance.department.leader if hasattr(instance.department, "leader") else None,
+    )
+
+    # Create items from criteria
+    create_assessment_items_from_criteria(assessment, list(criteria))
+
+    # Calculate totals
+    recalculate_assessment_scores(assessment)
+
+
+def generate_sales_revenue_code(instance: SalesRevenue) -> None:
     """Generate sales revenue code in format SR-{YYYYMM}-{seq}.
 
     Args:
@@ -79,7 +190,8 @@ def generate_sales_revenue_code(instance: SalesRevenue) -> str:
             continue
 
     seq = max_seq + 1
-    return f"{SalesRevenue.CODE_PREFIX}-{month_key}-{seq:04d}"
+    instance.code = f"{SalesRevenue.CODE_PREFIX}-{month_key}-{seq:04d}"
+    instance.save(update_fields=["code"])
 
 
 register_auto_code_signal(
@@ -89,7 +201,7 @@ register_auto_code_signal(
 )
 
 
-def generate_recovery_voucher_code(instance: RecoveryVoucher) -> str:
+def generate_recovery_voucher_code(instance: RecoveryVoucher) -> None:
     """Generate and assign code for RecoveryVoucher in format RV-{YYYYMM}-{seq}.
 
     Args:
@@ -120,7 +232,8 @@ def generate_recovery_voucher_code(instance: RecoveryVoucher) -> str:
             continue
 
     next_seq = max_seq + 1
-    return f"{prefix}{str(next_seq).zfill(4)}"
+    instance.code = f"{prefix}{str(next_seq).zfill(4)}"
+    instance.save(update_fields=["code"])
 
 
 register_auto_code_signal(
@@ -130,7 +243,7 @@ register_auto_code_signal(
 )
 
 
-def generate_penalty_ticket_code(instance: "PenaltyTicket") -> str:
+def generate_penalty_ticket_code(instance: "PenaltyTicket") -> None:
     """Generate and assign a code for a PenaltyTicket instance.
 
     Format: RVF-{YYYYMM}-{seq}
@@ -151,7 +264,8 @@ def generate_penalty_ticket_code(instance: "PenaltyTicket") -> str:
     month_str = instance.month.strftime("%Y%m")
     seq = str(instance.id).zfill(4)
 
-    return f"{PenaltyTicket.CODE_PREFIX}-{month_str}-{seq}"
+    instance.code = f"{PenaltyTicket.CODE_PREFIX}-{month_str}-{seq}"
+    instance.save(update_fields=["code"])
 
 
 register_auto_code_signal(

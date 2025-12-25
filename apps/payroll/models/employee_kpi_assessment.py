@@ -21,6 +21,7 @@ class EmployeeKPIAssessment(BaseModel):
         period: Foreign key to KPIAssessmentPeriod
         employee: Foreign key to hrm.Employee (employee being assessed)
         manager: Foreign key to hrm.Employee (manager from department leader)
+        status: Assessment status (new, waiting_manager, completed)
         total_possible_score: Sum of all component_total_score from items
         total_manager_score: Sum of all manager scores from items
         grade_manager: Final grade used for payroll (A/B/C/D)
@@ -29,13 +30,21 @@ class EmployeeKPIAssessment(BaseModel):
         extra_tasks: Extra tasks handled during the period
         proposal: Employee's proposals or suggestions
         manager_assessment: Manager's assessment comments and feedback
+        manager_assessment_date: Date when manager completed assessment
         grade_hrm: HRM department's final grade assessment
+        hrm_assessed: Whether HRM has assessed this
+        hrm_assessment_date: Date when HRM completed assessment
         finalized: Whether assessment is locked (no further edits)
         department_assignment_source: Reference to DepartmentKPIAssessment if grade assigned by dept
         created_by: User who created this assessment
         updated_by: User who last updated this assessment
         note: Additional notes or comments
     """
+
+    class StatusChoices(models.TextChoices):
+        NEW = "new", "New"
+        WAITING_MANAGER = "waiting_manager", "Waiting for manager assessment"
+        COMPLETED = "completed", "Completed"
 
     period = models.ForeignKey(
         "KPIAssessmentPeriod",
@@ -61,6 +70,14 @@ class EmployeeKPIAssessment(BaseModel):
         related_name="managed_kpi_assessments",
         verbose_name="Manager",
         help_text="Manager responsible for assessing this employee (from department leader)",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=StatusChoices.choices,
+        default=StatusChoices.NEW,
+        verbose_name="Status",
+        help_text="Assessment status (system-managed)",
     )
 
     total_possible_score = models.DecimalField(
@@ -132,12 +149,32 @@ class EmployeeKPIAssessment(BaseModel):
         help_text="Manager's assessment comments and feedback",
     )
 
+    manager_assessment_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Manager assessment date",
+        help_text="Date when manager completed assessment",
+    )
+
     grade_hrm = models.CharField(
         max_length=10,
         null=True,
         blank=True,
         verbose_name="HRM grade",
         help_text="HRM department's final grade assessment",
+    )
+
+    hrm_assessed = models.BooleanField(
+        default=False,
+        verbose_name="HRM assessed",
+        help_text="Whether HRM has assessed this",
+    )
+
+    hrm_assessment_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="HRM assessment date",
+        help_text="Date when HRM completed assessment",
     )
 
     finalized = models.BooleanField(
@@ -192,6 +229,7 @@ class EmployeeKPIAssessment(BaseModel):
             models.Index(fields=["employee", "period"]),
             models.Index(fields=["period"]),
             models.Index(fields=["finalized"]),
+            models.Index(fields=["status"]),
         ]
 
     def __str__(self):

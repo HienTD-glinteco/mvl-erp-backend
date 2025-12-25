@@ -329,7 +329,7 @@ class TestManagerAssessmentViews:
         """Test manager can only see their own employees' assessments."""
         from apps.payroll.utils import create_assessment_items_from_criteria
 
-        # Create another manager
+        # Create another manager with start_date in a different month to avoid auto-assessment creation
         code = random_code()
         other_manager = Employee.objects.create(
             username=f"othermgr{code}",
@@ -340,7 +340,7 @@ class TestManagerAssessmentViews:
             branch=department.branch,
             block=department.block,
             status=Employee.Status.ACTIVE,
-            start_date=date.today(),
+            start_date=date(2025, 11, 15),  # Different month to avoid signal creating assessment
         )
 
         # Create assessment with different manager

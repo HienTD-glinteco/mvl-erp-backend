@@ -180,7 +180,14 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
         return EmployeeKPIAssessmentSerializer
 
     def perform_update(self, serializer):
-        """Set updated_by when updating."""
+        """Set updated_by and hrm_assessment_date when updating."""
+        from django.utils import timezone
+
+        # Set hrm_assessment_date if grade_hrm is being set
+        if "grade_hrm" in serializer.validated_data:
+            serializer.validated_data["hrm_assessed"] = True
+            serializer.validated_data["hrm_assessment_date"] = timezone.now()
+
         serializer.save(updated_by=self.request.user)
 
 
@@ -385,17 +392,16 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        """Return only the latest assessment."""
+        """Return all assessments for the employee."""
         queryset = self.get_queryset()
-        latest = queryset.first()
 
-        if not latest:
-            return Response(
-                {"detail": "No assessment found for current period"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        # Apply pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(latest)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def perform_update(self, serializer):
@@ -749,6 +755,8 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
     def perform_update(self, serializer):
         """Save the updated assessment and handle batch item updates using serializer validation."""
+        from django.utils import timezone
+
         assessment = self.get_object()
 
         # Create request serializer with assessment context for validation
@@ -759,6 +767,11 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
 
         # Update assessment fields (manager_assessment and grade_manager_overridden)
         validated_request_data = request_serializer.validated_data
+
+        # Set manager_assessment_date if manager is completing assessment
+        if "grade" in validated_request_data or validated_request_data.get("items"):
+            serializer.validated_data["manager_assessment_date"] = timezone.now()
+
         assessment = serializer.save()
 
         # Update items using serializer method
