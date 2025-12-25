@@ -667,7 +667,6 @@ class ProposalTimeSheetEntry(BaseModel):
         on_delete=models.CASCADE,
         related_name="timesheet_entries",
         verbose_name=_("Proposal"),
-        limit_choices_to={"proposal_type": ProposalType.TIMESHEET_ENTRY_COMPLAINT},
     )
 
     timesheet_entry = models.ForeignKey(
@@ -695,7 +694,7 @@ class ProposalTimeSheetEntry(BaseModel):
 
         This validation enforces two constraints:
         1. A complaint proposal can only be linked to ONE timesheet entry (Proposal → TimeSheetEntry)
-        2. A timesheet entry can only have ONE complaint proposal (TimeSheetEntry → Proposal)
+        2. A timesheet entry can only have ONE ACTIVE complaint proposal (TimeSheetEntry → Proposal)
 
         NOTE:
         Since we have a constraint that Proposal (with type TIMESHEET_ENTRY_COMPLAINT)
@@ -710,6 +709,9 @@ class ProposalTimeSheetEntry(BaseModel):
 
         # Only validate for TIMESHEET_ENTRY_COMPLAINT type proposals
         if self.proposal_id and self.proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
+            # Terminal statuses that allow a new complaint to supersede the old one
+            TERMINAL_STATUSES = [ProposalStatus.REJECTED]
+
             # Build base queryset excluding self if this is an update
             base_qs = ProposalTimeSheetEntry.objects.all()
             if self.pk:
@@ -722,14 +724,17 @@ class ProposalTimeSheetEntry(BaseModel):
                     {"proposal": _("A timesheet entry complaint proposal can only be linked to one timesheet entry.")}
                 )
 
-            # Check 2: TimeSheetEntry can only have one complaint proposal
+            # Check 2: TimeSheetEntry can only have one ACTIVE (Non-Terminal) complaint proposal
             existing_for_timesheet = base_qs.filter(
                 timesheet_entry_id=self.timesheet_entry_id,
                 proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            ).exclude(
+                proposal__proposal_status__in=TERMINAL_STATUSES
             )
+
             if existing_for_timesheet.exists():
                 raise ValidationError(
-                    {"timesheet_entry": _("This timesheet entry already has a complaint proposal linked to it.")}
+                    {"timesheet_entry": _("This timesheet entry already has a pending or approved complaint proposal.")}
                 )
 
     def save(self, *args, **kwargs):
