@@ -19,8 +19,7 @@ def create_notification(
     message: str = "",
     extra_data: Optional[dict] = None,
     delivery_method: str = "firebase",
-    target_device: Optional[UserDevice] = None,
-    client: Optional[str] = None,
+    target_client: Optional[str] = None,
 ) -> Notification:
     """Create a new notification.
 
@@ -32,8 +31,7 @@ def create_notification(
         message: Optional custom message
         extra_data: Optional dictionary with additional context data
         delivery_method: How to deliver the notification ('firebase', 'email', or 'both')
-        target_device: Specific device to send the notification to
-        client: Client type ('mobile' or 'web') to target specific device type if target_device is not set
+        target_client: Specific client to send the notification to (e.g., 'mobile', 'web')
 
     Returns:
         The created Notification instance
@@ -50,13 +48,9 @@ def create_notification(
         ...     message="Great work!",
         ...     extra_data={"post_id": 123, "comment_url": "/posts/123#comment-456"},
         ...     delivery_method="both",
-        ...     client="mobile"
+        ...     target_client="mobile"
         ... )
     """
-
-    # If client is provided but target_device is not, try to resolve the active device for that client
-    if client and not target_device:
-        target_device = recipient.devices.filter(client=client, state=UserDevice.State.ACTIVE).first()
 
     notification_data = {
         "actor": actor,
@@ -65,7 +59,7 @@ def create_notification(
         "message": message,
         "extra_data": extra_data or {},
         "delivery_method": delivery_method,
-        "target_device": target_device,
+        "target_client": target_client,
     }
 
     if target:
@@ -87,8 +81,7 @@ def create_bulk_notifications(
     message: str = "",
     extra_data: Optional[dict] = None,
     delivery_method: str = "firebase",
-    target_device: Optional[UserDevice] = None,
-    client: Optional[str] = None,
+    target_client: Optional[str] = None,
 ) -> list[Notification]:
     """Create multiple notifications for different recipients at once.
 
@@ -100,8 +93,7 @@ def create_bulk_notifications(
         message: Optional custom message
         extra_data: Optional dictionary with additional context data
         delivery_method: How to deliver the notification ('firebase', 'email', or 'both')
-        target_device: Specific device to send the notification to (same for all recipients)
-        client: Client type ('mobile' or 'web') to target specific device type if target_device is not set
+        target_client: Specific client to send the notification to (same for all recipients)
 
     Returns:
         List of created Notification instances
@@ -118,7 +110,7 @@ def create_bulk_notifications(
         ...     message="Check out this update!",
         ...     extra_data={"post_id": 123},
         ...     delivery_method="both",
-        ...     client="mobile"
+        ...     target_client="mobile"
         ... )
     """
     notification_objects = []
@@ -130,13 +122,6 @@ def create_bulk_notifications(
         target_id = str(target.pk)
 
     for recipient in recipients:
-
-        # Resolve target device for each recipient if client is provided
-        # Use local variable to avoid overwriting the argument
-        current_target_device = target_device
-        if client and not current_target_device:
-            current_target_device = recipient.devices.filter(client=client, state=UserDevice.State.ACTIVE).first()
-
         notification_objects.append(
             Notification(
                 actor=actor,
@@ -147,7 +132,7 @@ def create_bulk_notifications(
                 message=message,
                 extra_data=extra_data or {},
                 delivery_method=delivery_method,
-                target_device=current_target_device,
+                target_client=target_client,
             )
         )
 
@@ -166,8 +151,7 @@ def notify_user(
     message: str = "",
     extra_data: Optional[dict] = None,
     delivery_method: str = "firebase",
-    target_device: Optional[UserDevice] = None,
-    client: Optional[str] = None,
+    target_client: Optional[str] = None,
 ) -> Optional[Notification]:
     """Create a notification, but only if the recipient is not the actor.
 
@@ -181,8 +165,7 @@ def notify_user(
         message: Optional custom message
         extra_data: Optional dictionary with additional context data
         delivery_method: How to deliver the notification ('firebase', 'email', or 'both')
-        target_device: Specific device to send the notification to
-        client: Client type ('mobile' or 'web') to target specific device type if target_device is not set
+        target_client: Specific client to send the notification to
 
     Returns:
         The created Notification instance or None if actor == recipient
@@ -198,7 +181,7 @@ def notify_user(
         ...     verb="commented on your post",
         ...     extra_data={"post_id": 123},
         ...     delivery_method="both",
-        ...     client="mobile"
+        ...     target_client="mobile"
         ... )
     """
     if actor == recipient:
@@ -212,6 +195,5 @@ def notify_user(
         message=message,
         extra_data=extra_data,
         delivery_method=delivery_method,
-        target_device=target_device,
-        client=client,
+        target_client=target_client,
     )

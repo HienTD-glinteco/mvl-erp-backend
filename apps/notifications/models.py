@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from libs.models import BaseModel
+from apps.core.models.device import UserDevice
 
 
 class Notification(BaseModel):
@@ -93,13 +94,13 @@ class Notification(BaseModel):
         help_text="How the notification should be delivered",
     )
 
-    target_device = models.ForeignKey(
-        "core.UserDevice",
-        on_delete=models.SET_NULL,
+    target_client = models.CharField(
+        max_length=20,
+        choices=UserDevice.Client.choices,
         null=True,
         blank=True,
-        verbose_name="Target device",
-        help_text="Specific device to send the notification to. If null, send to all active devices."
+        verbose_name="Target client",
+        help_text="Specific client to send the notification to. If null, send to all active devices."
     )
 
     class Meta:

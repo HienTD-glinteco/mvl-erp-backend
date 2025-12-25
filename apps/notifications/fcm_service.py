@@ -92,7 +92,7 @@ class FCMService:
             True if notification was sent successfully, False otherwise
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping notification")
+            logger.info("FCM is disabled, skipping notification")
             return False
 
         if not initialize_firebase():
@@ -103,31 +103,40 @@ class FCMService:
         payload = cls._build_payload(notification, title, body, data)
 
         # Logic:
-        # IF notification.target_device is set: Send ONLY to that device's token.
-        # ELSE: Fetch ALL active devices for the recipient and send to all of them.
+        # IF notification.target_client is set:
+        #   Send to all active devices for that client (e.g. mobile).
+        # ELSE:
+        #   Fetch ALL active devices for the recipient and send to all of them.
 
-        if notification.target_device:
-            device = notification.target_device
-            if not device.fcm_token or not device.active:
-                logger.debug(f"Target device {device.id} not available or inactive")
-                return False
+        devices_qs = notification.recipient.devices.filter(state='active')
 
-            return cls._send_fcm_message(device.fcm_token, payload)
+        if notification.target_client:
+            devices_qs = devices_qs.filter(client=notification.target_client)
 
-        else:
-            # Fallback to sending to all active devices
-            devices = notification.recipient.devices.filter(state='active')
-            if not devices.exists():
-                logger.debug(f"No active devices found for user {notification.recipient.username}")
-                return False
+        if not devices_qs.exists():
+            logger.info(f"No active devices found for user {notification.recipient.username} (client={notification.target_client or 'all'})")
+            return False
 
-            success = False
-            for device in devices:
-                if device.fcm_token:
-                    if cls._send_fcm_message(device.fcm_token, payload):
-                        success = True
+        # Extract tokens
+        tokens = list(devices_qs.exclude(push_token__isnull=True).exclude(push_token__exact='').values_list('push_token', flat=True))
 
-            return success
+        if not tokens:
+            logger.info(f"No valid push tokens found for user {notification.recipient.username}")
+            return False
+
+        # Use multicast if multiple tokens, or single send if just one (though multicast handles one fine)
+        # Multicast is more efficient and provides detailed results
+
+        # Note: We need to adapt _build_payload to return what send_multicast expects or adapt here.
+        # _build_payload returns a dict with 'notification' and 'data' keys suitable for legacy or v1 send.
+        # send_multicast expects title, body, data, tokens arguments.
+
+        return cls.send_multicast(
+            tokens=tokens,
+            title=payload['notification']['title'],
+            body=payload['notification']['body'],
+            data=payload['data']
+        )
 
     @classmethod
     def _build_payload(
@@ -248,7 +257,7 @@ class FCMService:
             True if notification was sent successfully, False otherwise
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping notification")
+            logger.info("FCM is disabled, skipping notification")
             return False
 
         if not initialize_firebase():
@@ -292,7 +301,7 @@ class FCMService:
             FCMResult with success status and message_id if successful
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping notification")
+            logger.info("FCM is disabled, skipping notification")
             return FCMResult(success=False, error="FCM is disabled")
 
         if not initialize_firebase():
@@ -433,7 +442,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping topic subscription")
+            logger.info("FCM is disabled, skipping topic subscription")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),
@@ -515,7 +524,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping topic unsubscription")
+            logger.info("FCM is disabled, skipping topic unsubscription")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),
@@ -616,7 +625,7 @@ class FCMService:
             FCMResult with details of which tokens succeeded/failed
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping multicast")
+            logger.info("FCM is disabled, skipping multicast")
             return FCMResult(
                 success=False,
                 failure_count=len(tokens),
