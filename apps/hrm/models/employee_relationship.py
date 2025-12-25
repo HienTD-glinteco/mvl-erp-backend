@@ -44,14 +44,14 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         editable=False,
         null=True,
         blank=True,
-        verbose_name="Code",
+        verbose_name=_("Code"),
         help_text="Auto-generated unique code for this relationship",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="relationships",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee associated with this relationship",
     )
 
@@ -60,7 +60,7 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         max_length=50,
         blank=True,
         editable=False,
-        verbose_name="Employee code",
+        verbose_name=_("Employee code"),
         help_text="Cached employee code",
     )
 
@@ -68,27 +68,27 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         max_length=255,
         blank=True,
         editable=False,
-        verbose_name="Employee name",
+        verbose_name=_("Employee name"),
         help_text="Cached employee name",
     )
 
     relative_name = models.CharField(
         max_length=255,
-        verbose_name="Relative name",
+        verbose_name=_("Relative name"),
         help_text="Full name of the relative",
     )
 
     relation_type = models.CharField(
         max_length=20,
         choices=RelationType.choices,
-        verbose_name="Relation type",
+        verbose_name=_("Relation type"),
         help_text="Type of relationship to the employee",
     )
 
     date_of_birth = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date of birth",
+        verbose_name=_("Date of birth"),
         help_text="Date of birth of the relative",
     )
 
@@ -96,27 +96,27 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         max_length=12,
         blank=True,
         validators=[validate_national_id],
-        verbose_name="Citizen ID",
+        verbose_name=_("Citizen ID"),
         help_text="National ID (CMND/CCCD) - 9 or 12 digits",
     )
 
     occupation = models.CharField(
         max_length=255,
         blank=True,
-        verbose_name="Occupation",
+        verbose_name=_("Occupation"),
         help_text="Occupation or job title of the relative",
     )
 
     tax_code = models.CharField(
         max_length=50,
         blank=True,
-        verbose_name="Tax code",
+        verbose_name=_("Tax code"),
         help_text="Tax identification number",
     )
 
     address = models.TextField(
         blank=True,
-        verbose_name="Address",
+        verbose_name=_("Address"),
         help_text="Residential address of the relative",
     )
 
@@ -124,7 +124,7 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         max_length=20,
         blank=True,
         validators=[validate_phone],
-        verbose_name="Phone",
+        verbose_name=_("Phone"),
         help_text="Contact phone number",
     )
 
@@ -134,19 +134,19 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="relationship_attachments",
-        verbose_name="Attachment",
+        verbose_name=_("Attachment"),
         help_text="Supporting document or file attachment",
     )
 
     note = models.TextField(
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes or information",
     )
 
     is_active = models.BooleanField(
         default=True,
-        verbose_name="Is active",
+        verbose_name=_("Is active"),
         help_text="Whether this relationship record is active",
     )
 
@@ -156,7 +156,7 @@ class EmployeeRelationship(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="created_relationships",
-        verbose_name="Created by",
+        verbose_name=_("Created by"),
         help_text="User who created this record",
     )
 

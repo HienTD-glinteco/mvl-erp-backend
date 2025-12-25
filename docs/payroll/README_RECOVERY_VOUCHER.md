@@ -27,7 +27,7 @@ This module implements comprehensive CRUD operations for recovery and back pay v
 4. **Export**
    - Export to XLSX format
    - Respects all applied filters
-- Columns: code, name, voucher_type, employee (nested id/code/fullname), block, branch, department, position, employee_code, employee_name, amount, month, status, note
+   - Columns: code, name, voucher_type, employee_code, employee_name, amount, period, status, note
 
 ## Models
 
@@ -44,7 +44,7 @@ Core model for recovery and back pay vouchers.
 - `employee_code`: Cached employee code for search
 - `employee_name`: Cached employee name for search
 - `amount`: Amount in Vietnamese Dong (integer, must be > 0)
-- `month`: Period stored as first day of the month (stored as date)
+- `period`: Period as first day of month (stored as date)
 - `status`: NOT_CALCULATED or CALCULATED
 - `note`: Optional notes (SafeTextField, max 500 chars)
 - `created_by`: User who created the voucher
@@ -53,7 +53,7 @@ Core model for recovery and back pay vouchers.
 - `updated_at`: Last update timestamp
 
 **Indexes:**
-- (month, employee)
+- (period, employee)
 - (status)
 - (-updated_at)
 
@@ -92,25 +92,21 @@ GET /api/payroll/recovery-vouchers/
     "next": null,
     "previous": null,
     "results": [
-      {
-        "id": "uuid",
-        "code": "RV-202509-0001",
-        "name": "September back pay",
-        "voucher_type": "BACK_PAY",
-        "voucher_type_display": "Back Pay",
-        "employee": {
-          "id": "e5d8f1a3-...",
-          "code": "E0001",
-          "fullname": "John Doe"
-        },
-        "block": null,
-        "branch": null,
-        "department": null,
-        "position": null,
-        "employee_code": "E0001",
-        "employee_name": "John Doe",
-        "amount": 1500000,
-        "month": "09/2025",
+        {
+            "id": "uuid",
+            "code": "RV-202509-0001",
+            "name": "September back pay",
+            "voucher_type": "BACK_PAY",
+            "voucher_type_display": "Back Pay",
+            "employee_code": "E0001",
+            "employee_name": "John Doe",
+            "org_branch": "Branch A",
+            "org_block": "Block 1",
+            "org_department": "Sales",
+            "position_title": "Sales Executive",
+            "amount": 1500000,
+            "period": "2025-09-01",
+            "period_display": "09/2025",
         "status": "NOT_CALCULATED",
         "status_display": "Not Calculated",
         "note": "Adjustment for commission",
@@ -128,7 +124,7 @@ GET /api/payroll/recovery-vouchers/
 GET /api/payroll/recovery-vouchers/{id}/
 ```
 
-**Response:** Single voucher with all fields, including nested employee (code/fullname), block, branch, department, position, and audit fields.
+**Response:** Single voucher with all fields including employee UUID and audit fields.
 
 ### Create Voucher
 ```
@@ -140,9 +136,9 @@ POST /api/payroll/recovery-vouchers/
 {
   "name": "September back pay",
   "voucher_type": "BACK_PAY",
-  "employee_id": "uuid",
+  "employee": "uuid",
   "amount": 1500000,
-  "month": "09/2025",
+  "period_str": "09/2025",
   "note": "Adjustment for commission"
 }
 ```
@@ -150,9 +146,9 @@ POST /api/payroll/recovery-vouchers/
 **Validations:**
 - `name`: Required, max 250 chars
 - `voucher_type`: Required, must be RECOVERY or BACK_PAY
-- `employee_id`: Required, must exist and be active/onboarding
+- `employee`: Required, must exist and be active/onboarding
 - `amount`: Required, must be > 0
-- `month`: Required, format MM/YYYY
+- `period_str`: Required, format MM/YYYY
 - `note`: Optional, max 500 chars
 
 **Response:** Created voucher with auto-generated code and status NOT_CALCULATED
@@ -200,9 +196,9 @@ headers = {"Authorization": "Bearer <token>"}
 data = {
     "name": "September salary recovery",
     "voucher_type": "RECOVERY",
-    "employee_id": "employee-uuid",
+    "employee": "employee-uuid",
     "amount": 500000,
-    "month": "09/2025",
+    "period_str": "09/2025",
     "note": "Excess payment recovery"
 }
 
@@ -233,12 +229,12 @@ curl -X POST https://api.example.com/api/payroll/recovery-vouchers/ \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-  "name": "December back pay",
-  "voucher_type": "BACK_PAY",
-  "employee_id": "employee-uuid",
-  "amount": 1200000,
-  "month": "12/2025",
-  "note": "Curl sample request"
+    "name": "December back pay",
+    "voucher_type": "BACK_PAY",
+    "employee": "employee-uuid",
+    "amount": 1200000,
+    "period_str": "12/2025",
+    "note": "Curl sample request"
   }'
 ```
 
@@ -250,23 +246,13 @@ curl -X POST https://api.example.com/api/payroll/recovery-vouchers/ \
     "code": "RV-202512-0001",
     "name": "December back pay",
     "voucher_type": "BACK_PAY",
-    "voucher_type_display": "Back Pay",
-    "employee": {
-      "id": "employee-uuid",
-      "code": "E0001",
-      "fullname": "John Doe"
-    },
-    "block": null,
-    "branch": null,
-    "department": null,
-    "position": null,
-    "employee_code": "E0001",
-    "employee_name": "John Doe",
+    "org_branch": "Branch A",
+    "org_block": "Block 1",
+    "org_department": "Payroll",
+    "position_title": "Payroll Specialist",
     "amount": 1200000,
-    "month": "12/2025",
-    "status": "NOT_CALCULATED",
-    "status_display": "Not Calculated",
-    "note": "Curl sample request"
+    "period": "2025-12-01",
+    "status": "NOT_CALCULATED"
   },
   "error": null
 }
@@ -285,15 +271,19 @@ curl "https://api.example.com/api/payroll/recovery-vouchers/?period=12/2025" \
     "next": null,
     "previous": null,
     "results": [
-      {
-        "id": "uuid",
-        "code": "RV-202512-0001",
-        "name": "December back pay",
-        "voucher_type": "BACK_PAY",
-        "amount": 1200000,
-        "period": "2025-12-01",
-        "note": "Curl sample request"
-      }
+        {
+          "id": "uuid",
+          "code": "RV-202512-0001",
+          "name": "December back pay",
+          "voucher_type": "BACK_PAY",
+          "org_branch": "Branch A",
+          "org_block": "Block 1",
+          "org_department": "Payroll",
+          "position_title": "Payroll Specialist",
+          "amount": 1200000,
+          "period": "2025-12-01",
+          "note": "Curl sample request"
+        }
     ]
   },
   "error": null
@@ -467,10 +457,17 @@ from apps.payroll.models import RecoveryVoucher
 
 # Reset all calculated vouchers for a period
 RecoveryVoucher.objects.filter(
+<<<<<<< HEAD
     month__year=2025,
     month__month=9,
     status=RecoveryVoucher.RecoveryVoucherStatus.CALCULATED
     ).update(status=RecoveryVoucher.RecoveryVoucherStatus.NOT_CALCULATED)
+=======
+    period__year=2025,
+    period__month=9,
+    status=RecoveryVoucher.Status.CALCULATED
+).update(status=RecoveryVoucher.Status.NOT_CALCULATED)
+>>>>>>> 12214860 (Translation 1)
 ```
 
 **Bulk create vouchers:**
@@ -482,7 +479,11 @@ vouchers = [
         voucher_type=RecoveryVoucher.VoucherType.BACK_PAY,
         employee=employee,
         amount=1000000 + i * 100000,
+<<<<<<< HEAD
         month=date(2025, 9, 1)
+=======
+        period=date(2025, 9, 1)
+>>>>>>> 12214860 (Translation 1)
     )
     for i in range(10)
 ]

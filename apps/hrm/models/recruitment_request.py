@@ -39,19 +39,19 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
         },
     }
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Request code")
-    name = models.CharField(max_length=255, verbose_name="Request name")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Request code"))
+    name = models.CharField(max_length=255, verbose_name=_("Request name"))
     job_description = models.ForeignKey(
         "JobDescription",
         on_delete=models.PROTECT,
         related_name="recruitment_requests",
-        verbose_name="Job description",
+        verbose_name=_("Job description"),
     )
     branch = models.ForeignKey(
         "Branch",
         on_delete=models.PROTECT,
         related_name="recruitment_requests",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         null=True,
         blank=True,
     )
@@ -59,7 +59,7 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Block",
         on_delete=models.PROTECT,
         related_name="recruitment_requests",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         null=True,
         blank=True,
     )
@@ -67,7 +67,7 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Department",
         on_delete=models.PROTECT,
         related_name="recruitment_requests",
-        verbose_name="Department",
+        verbose_name=_("Department"),
         null=True,
         blank=True,
     )
@@ -75,21 +75,21 @@ class RecruitmentRequest(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Employee",
         on_delete=models.PROTECT,
         related_name="proposed_recruitment_requests",
-        verbose_name="Proposer",
+        verbose_name=_("Proposer"),
     )
     recruitment_type = models.CharField(
         max_length=20,
         choices=RecruitmentType.choices,
-        verbose_name="Recruitment type",
+        verbose_name=_("Recruitment type"),
     )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.DRAFT,
-        verbose_name="Status",
+        verbose_name=_("Status"),
     )
-    proposed_salary = models.CharField(max_length=100, verbose_name="Proposed salary")
-    number_of_positions = models.IntegerField(default=1, verbose_name="Number of positions")
+    proposed_salary = models.CharField(max_length=100, verbose_name=_("Proposed salary"))
+    number_of_positions = models.IntegerField(default=1, verbose_name=_("Number of positions"))
 
     class Meta:
         verbose_name = _("Recruitment Request")

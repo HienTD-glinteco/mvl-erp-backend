@@ -25,35 +25,35 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "DX"
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Proposal code")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Proposal code"))
 
-    proposal_date = models.DateField(auto_now_add=True, verbose_name="Proposal date")
+    proposal_date = models.DateField(auto_now_add=True, verbose_name=_("Proposal date"))
 
     proposal_type = models.CharField(
         max_length=64,
         choices=ProposalType.choices,
         null=True,
         blank=True,
-        verbose_name="Proposal type",
+        verbose_name=_("Proposal type"),
     )
 
     proposal_status = models.CharField(
         max_length=32,
         choices=ProposalStatus.choices,
         default=ProposalStatus.PENDING,
-        verbose_name="Proposal status",
+        verbose_name=_("Proposal status"),
     )
 
-    note = SafeTextField(null=True, blank=True, verbose_name="Note for employee who create the proposal")
+    note = SafeTextField(null=True, blank=True, verbose_name=_("Note for employee who create the proposal"))
     approval_note = SafeTextField(
-        null=True, blank=True, verbose_name="Note for employee who approve/reject the proposal"
+        null=True, blank=True, verbose_name=_("Note for employee who approve/reject the proposal")
     )
 
     created_by = models.ForeignKey(
         "Employee",
         on_delete=models.PROTECT,
         related_name="created_proposals",
-        verbose_name="Created by",
+        verbose_name=_("Created by"),
     )
 
     approved_by = models.ForeignKey(
@@ -62,41 +62,41 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="approved_proposals",
         null=True,
         blank=True,
-        verbose_name="Approved by",
+        verbose_name=_("Approved by"),
     )
     approved_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Approved at",
+        verbose_name=_("Approved at"),
     )
 
     # TIMESHEET_ENTRY_COMPLAINT fields
     timesheet_entry_complaint_complaint_date = models.DateField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint date"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint date")
     )
     timesheet_entry_complaint_complaint_reason = SafeTextField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint Complaint reason"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint Complaint reason")
     )
 
     timesheet_entry_complaint_proposed_check_in_time = models.TimeField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint Proposed check-in time"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint Proposed check-in time")
     )
 
     timesheet_entry_complaint_proposed_check_out_time = models.TimeField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint Proposed check-out time"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint Proposed check-out time")
     )
 
     timesheet_entry_complaint_approved_check_in_time = models.TimeField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint Approved check-in time"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint Approved check-in time")
     )
 
     timesheet_entry_complaint_approved_check_out_time = models.TimeField(
-        null=True, blank=True, verbose_name="Timesheet Entry Complaint Approved check-out time"
+        null=True, blank=True, verbose_name=_("Timesheet Entry Complaint Approved check-out time")
     )
     timesheet_entry_complaint_latitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
-        verbose_name="Latitude",
+        verbose_name=_("Latitude"),
         help_text="Timesheet Entry Complaint Latitude coordinate",
         validators=[MinValueValidator(-90), MaxValueValidator(90)],
         blank=True,
@@ -105,14 +105,14 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     timesheet_entry_complaint_longitude = models.DecimalField(
         max_digits=20,
         decimal_places=17,
-        verbose_name="Longitude",
+        verbose_name=_("Longitude"),
         help_text="Timesheet Entry Complaint Longitude coordinate",
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
         blank=True,
         null=True,
     )
     timesheet_entry_complaint_address = models.CharField(
-        max_length=255, blank=True, verbose_name="Timesheet Entry Complaint Address", null=True
+        max_length=255, blank=True, verbose_name=_("Timesheet Entry Complaint Address"), null=True
     )
     timesheet_entry_complaint_complaint_image = models.ForeignKey(
         "files.FileModel",
@@ -120,53 +120,53 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="timesheet_entry_complaint_proposals",
-        verbose_name="Timesheet Entry Complaint Image",
+        verbose_name=_("Timesheet Entry Complaint Image"),
     )
 
     # LATE_EXEMPTION fields
     late_exemption_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Late exemption start date",
+        verbose_name=_("Late exemption start date"),
     )
     late_exemption_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Late exemption end date",
+        verbose_name=_("Late exemption end date"),
     )
     late_exemption_minutes = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name="Late exemption minutes",
+        verbose_name=_("Late exemption minutes"),
     )
 
     # POST_MATERNITY_BENEFITS fields
     post_maternity_benefits_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Post-maternity benefits start date",
+        verbose_name=_("Post-maternity benefits start date"),
     )
     post_maternity_benefits_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Post-maternity benefits end date",
+        verbose_name=_("Post-maternity benefits end date"),
     )
 
     # MATERNITY_LEAVE fields
     maternity_leave_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Maternity leave start date",
+        verbose_name=_("Maternity leave start date"),
     )
     maternity_leave_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Maternity leave end date",
+        verbose_name=_("Maternity leave end date"),
     )
     maternity_leave_estimated_due_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Maternity leave estimated due date",
+        verbose_name=_("Maternity leave estimated due date"),
     )
     maternity_leave_replacement_employee = models.ForeignKey(
         "Employee",
@@ -174,57 +174,57 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="replacement_for_maternity_proposals",
         null=True,
         blank=True,
-        verbose_name="Replacement employee for maternity leave",
+        verbose_name=_("Replacement employee for maternity leave"),
     )
 
     # PAID_LEAVE fields
     paid_leave_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Paid leave start date",
+        verbose_name=_("Paid leave start date"),
     )
     paid_leave_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Paid leave end date",
+        verbose_name=_("Paid leave end date"),
     )
     paid_leave_shift = models.CharField(
         max_length=20,
         choices=ProposalWorkShift.choices,
         null=True,
         blank=True,
-        verbose_name="Paid leave shift",
+        verbose_name=_("Paid leave shift"),
     )
     paid_leave_reason = SafeTextField(
         max_length=500,
         null=True,
         blank=True,
-        verbose_name="Paid leave reason",
+        verbose_name=_("Paid leave reason"),
     )
 
     # UNPAID_LEAVE fields
     unpaid_leave_start_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Unpaid leave start date",
+        verbose_name=_("Unpaid leave start date"),
     )
     unpaid_leave_end_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Unpaid leave end date",
+        verbose_name=_("Unpaid leave end date"),
     )
     unpaid_leave_shift = models.CharField(
         max_length=20,
         choices=ProposalWorkShift.choices,
         null=True,
         blank=True,
-        verbose_name="Unpaid leave shift",
+        verbose_name=_("Unpaid leave shift"),
     )
     unpaid_leave_reason = SafeTextField(
         max_length=500,
         null=True,
         blank=True,
-        verbose_name="Unpaid leave reason",
+        verbose_name=_("Unpaid leave reason"),
     )
 
     # JOB_TRANSFER fields
@@ -234,7 +234,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="job_transfer_proposals",
         null=True,
         blank=True,
-        verbose_name="New branch",
+        verbose_name=_("New branch"),
     )
     job_transfer_new_block = models.ForeignKey(
         "Block",
@@ -242,7 +242,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="job_transfer_proposals",
         null=True,
         blank=True,
-        verbose_name="New block",
+        verbose_name=_("New block"),
     )
     job_transfer_new_department = models.ForeignKey(
         "Department",
@@ -250,7 +250,7 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="job_transfer_proposals",
         null=True,
         blank=True,
-        verbose_name="New department",
+        verbose_name=_("New department"),
     )
     job_transfer_new_position = models.ForeignKey(
         "Position",
@@ -258,18 +258,18 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         related_name="job_transfer_proposals",
         null=True,
         blank=True,
-        verbose_name="New position",
+        verbose_name=_("New position"),
     )
     job_transfer_effective_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Job transfer effective date",
+        verbose_name=_("Job transfer effective date"),
     )
     job_transfer_reason = models.CharField(
         max_length=250,
         null=True,
         blank=True,
-        verbose_name="Job transfer reason",
+        verbose_name=_("Job transfer reason"),
     )
 
     # DEVICE_CHANGE fields
@@ -277,27 +277,27 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=255,
         null=True,
         blank=True,
-        verbose_name="New device ID",
+        verbose_name=_("New device ID"),
         help_text="New device ID being requested",
     )
     device_change_new_platform = models.CharField(
         max_length=20,
         null=True,
         blank=True,
-        verbose_name="New platform",
+        verbose_name=_("New platform"),
         help_text="Platform of the new device (ios, android, web)",
     )
     device_change_old_device_id = models.CharField(
         max_length=255,
         null=True,
         blank=True,
-        verbose_name="Old device ID",
+        verbose_name=_("Old device ID"),
         help_text="Previous device ID (if any)",
     )
     device_change_contact_info = SafeTextField(
         null=True,
         blank=True,
-        verbose_name="Contact info / notes",
+        verbose_name=_("Contact info / notes"),
         help_text="Additional contact information or notes for device change request",
     )
 
@@ -666,7 +666,7 @@ class ProposalTimeSheetEntry(BaseModel):
         "Proposal",
         on_delete=models.CASCADE,
         related_name="timesheet_entries",
-        verbose_name="Proposal",
+        verbose_name=_("Proposal"),
         limit_choices_to={"proposal_type": ProposalType.TIMESHEET_ENTRY_COMPLAINT},
     )
 
@@ -674,7 +674,7 @@ class ProposalTimeSheetEntry(BaseModel):
         "TimeSheetEntry",
         on_delete=models.CASCADE,
         related_name="proposals",
-        verbose_name="Timesheet entry",
+        verbose_name=_("Timesheet entry"),
     )
 
     class Meta:
@@ -745,33 +745,33 @@ class ProposalVerifier(ColoredValueMixin, BaseModel):
         "Proposal",
         on_delete=models.CASCADE,
         related_name="verifiers",
-        verbose_name="Proposal",
+        verbose_name=_("Proposal"),
     )
 
     employee = models.ForeignKey(
         "Employee",
         on_delete=models.CASCADE,
         related_name="verifiable_proposals",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
 
     status = models.CharField(
         max_length=32,
         choices=ProposalVerifierStatus.choices,
         default=ProposalVerifierStatus.PENDING,
-        verbose_name="Status",
+        verbose_name=_("Status"),
     )
 
     verified_time = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Verified time",
+        verbose_name=_("Verified time"),
     )
 
     note = SafeTextField(
         null=True,
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
     )
 
     VARIANT_MAPPING = {
@@ -824,7 +824,7 @@ class ProposalAsset(BaseModel):
 
     name = models.CharField(
         max_length=255,
-        verbose_name="Asset name",
+        verbose_name=_("Asset name"),
     )
 
     unit_type = models.CharField(
@@ -832,25 +832,25 @@ class ProposalAsset(BaseModel):
         choices=ProposalAssetUnitType.choices,
         null=True,
         blank=True,
-        verbose_name="Unit type",
+        verbose_name=_("Unit type"),
     )
 
     quantity = models.PositiveIntegerField(
-        verbose_name="Quantity",
+        verbose_name=_("Quantity"),
     )
 
     note = SafeTextField(
         max_length=250,
         null=True,
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
     )
 
     proposal = models.ForeignKey(
         "Proposal",
         on_delete=models.CASCADE,
         related_name="assets",
-        verbose_name="Proposal",
+        verbose_name=_("Proposal"),
         limit_choices_to={"proposal_type": ProposalType.ASSET_ALLOCATION},
     )
 
@@ -873,29 +873,29 @@ class ProposalOvertimeEntry(BaseModel):
     """Model for overtime work entries in overtime work proposals."""
 
     date = models.DateField(
-        verbose_name="Overtime date",
+        verbose_name=_("Overtime date"),
     )
 
     start_time = models.TimeField(
-        verbose_name="Start time",
+        verbose_name=_("Start time"),
     )
 
     end_time = models.TimeField(
-        verbose_name="End time",
+        verbose_name=_("End time"),
     )
 
     description = SafeTextField(
         max_length=250,
         null=True,
         blank=True,
-        verbose_name="Description",
+        verbose_name=_("Description"),
     )
 
     proposal = models.ForeignKey(
         "Proposal",
         on_delete=models.CASCADE,
         related_name="overtime_entries",
-        verbose_name="Proposal",
+        verbose_name=_("Proposal"),
         limit_choices_to={"proposal_type": ProposalType.OVERTIME_WORK},
     )
 

@@ -84,53 +84,53 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         editable=False,
         null=True,
         blank=True,
-        verbose_name="Code",
+        verbose_name=_("Code"),
         help_text="Auto-generated unique code for this certificate",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="certificates",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee who owns this certificate",
     )
     certificate_type = models.CharField(
         max_length=50,
         choices=CertificateType.choices,
-        verbose_name="Certificate type",
+        verbose_name=_("Certificate type"),
         help_text="Type of certificate",
     )
     certificate_code = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Certificate code",
+        verbose_name=_("Certificate code"),
         help_text="Certificate number or code issued by the certifying organization",
     )
     certificate_name = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Certificate name",
+        verbose_name=_("Certificate name"),
         help_text="Specific name of the certificate or exam",
     )
     issue_date = models.DateField(
-        verbose_name="Issue date",
+        verbose_name=_("Issue date"),
         help_text="Date when the certificate was issued",
     )
     effective_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Effective date",
+        verbose_name=_("Effective date"),
         help_text="Date when the certificate becomes effective",
     )
     expiry_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Expiry date",
+        verbose_name=_("Expiry date"),
         help_text="Date when the certificate expires (if applicable)",
     )
     issuing_organization = models.CharField(
         max_length=100,
-        verbose_name="Issuing organization",
+        verbose_name=_("Issuing organization"),
         help_text="Organization that issued the certificate",
         blank=True,
         null=True,
@@ -141,33 +141,33 @@ class EmployeeCertificate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee_certificates",
-        verbose_name="Certificate file",
+        verbose_name=_("Certificate file"),
         help_text="Uploaded certificate file",
     )
     notes = models.TextField(
         blank=True,
-        verbose_name="Notes",
+        verbose_name=_("Notes"),
         help_text="Additional notes about the certificate",
     )
     training_specialization = models.CharField(
         max_length=100,
         null=True,
         blank=True,
-        verbose_name="Training specialization",
+        verbose_name=_("Training specialization"),
         help_text="Training specialization or major",
     )
     graduation_diploma = models.CharField(
         max_length=100,
         null=True,
         blank=True,
-        verbose_name="Graduation diploma",
+        verbose_name=_("Graduation diploma"),
         help_text="Graduation diploma or degree",
     )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.VALID,
-        verbose_name="Status",
+        verbose_name=_("Status"),
         help_text="Certificate status based on expiry date",
         db_index=True,
     )

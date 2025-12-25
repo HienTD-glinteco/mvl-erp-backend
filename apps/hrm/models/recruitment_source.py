@@ -14,12 +14,12 @@ class RecruitmentSource(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "RS"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
-    name = models.CharField(max_length=250, verbose_name="Source name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Source code")
-    description = SafeTextField(blank=True, verbose_name="Description", max_length=500)
+    name = models.CharField(max_length=250, verbose_name=_("Source name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Source code"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"), max_length=500)
     allow_referral = models.BooleanField(
         default=False,
-        verbose_name="Allow referral",
+        verbose_name=_("Allow referral"),
         help_text="Enable users to set referrer and referee for candidates from this source",
     )
 

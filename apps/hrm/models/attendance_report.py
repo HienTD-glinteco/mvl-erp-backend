@@ -30,13 +30,13 @@ class AttendanceDailyReport(BaseReportModel):
         Employee,
         on_delete=models.CASCADE,
         related_name="attendance_daily_reports",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         null=True,
         blank=True,
     )
@@ -44,7 +44,7 @@ class AttendanceDailyReport(BaseReportModel):
         Block,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         null=True,
         blank=True,
     )
@@ -52,7 +52,7 @@ class AttendanceDailyReport(BaseReportModel):
         Department,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Department",
+        verbose_name=_("Department"),
         null=True,
         blank=True,
     )
@@ -62,12 +62,12 @@ class AttendanceDailyReport(BaseReportModel):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="Project",
+        verbose_name=_("Project"),
     )
     attendance_method = models.CharField(
         max_length=20,
         choices=AttendanceType.choices,
-        verbose_name="Attendance method",
+        verbose_name=_("Attendance type"),
     )
     attendance_record = models.ForeignKey(
         AttendanceRecord,
@@ -75,7 +75,7 @@ class AttendanceDailyReport(BaseReportModel):
         null=True,
         blank=True,
         related_name="daily_reports",
-        verbose_name="Attendance record",
+        verbose_name=_("Attendance record"),
     )
 
     class Meta:

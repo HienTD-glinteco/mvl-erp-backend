@@ -30,34 +30,34 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         "Employee",
         on_delete=models.CASCADE,
         related_name="monthly_timesheets",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
 
     # Report date is the first day of the month for which this row summarizes data.
-    report_date = models.DateField(verbose_name="Report date")
+    report_date = models.DateField(verbose_name=_("Report date"))
     # Month key in YYYYMM format to ease reporting and indexing
-    month_key = models.CharField(max_length=6, verbose_name="Month key")
+    month_key = models.CharField(max_length=6, verbose_name=_("Month key"))
 
     # Working day counts (use Decimal to allow partial days)
     probation_working_days = models.DecimalField(
-        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Probation working days"
+        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Probation working days")
     )
     official_working_days = models.DecimalField(
-        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Official working days"
+        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Official working days")
     )
     total_working_days = models.DecimalField(
-        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Total working days"
+        max_digits=6, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Total working days")
     )
 
     # Hour aggregates
     official_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Official hours"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Official hours")
     )
     overtime_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Overtime hours",
+        verbose_name=_("Overtime hours"),
     )
     saturday_in_week_overtime_hours = models.DecimalField(
         max_digits=8,
@@ -81,25 +81,25 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Total worked hours",
+        verbose_name=_("Total worked hours"),
         help_text="Sum of official_hours and overtime_hours",
     )
 
     # Leave counts (days) - use decimal to allow partial days
     paid_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Paid leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Paid leave days")
     )
     unpaid_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Unpaid leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Unpaid leave days")
     )
     maternity_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Maternity leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Maternity leave days")
     )
     public_holiday_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Public holiday days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Public holiday days")
     )
     unexcused_absence_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Unexcused absence days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Unexcused absence days")
     )
 
     # Leave balances
@@ -107,22 +107,24 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Carried over leave from last year. Only applied for January. After that, this field must be set to 0.",
+        verbose_name=_(
+            "Carried over leave from last year. Only applied for January. After that, this field must be set to 0."
+        ),
     )
     opening_balance_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Opening balance leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Opening balance leave days")
     )
     generated_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Generated leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Generated leave days")
     )
     consumed_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Consumed leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Consumed leave days")
     )
     remaining_leave_days = models.DecimalField(
-        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name="Remaining leave days"
+        max_digits=8, decimal_places=2, default=DECIMAL_ZERO, verbose_name=_("Remaining leave days")
     )
 
-    note = SafeTextField(blank=True, verbose_name="Note")
+    note = SafeTextField(blank=True, verbose_name=_("Note"))
 
     class Meta:
         db_table = "hrm_employee_monthly_timesheet"

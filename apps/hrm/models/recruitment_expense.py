@@ -14,37 +14,37 @@ from .recruitment_request import RecruitmentRequest
 class RecruitmentExpense(BaseModel):
     """Recruitment expense for tracking recruitment costs"""
 
-    date = models.DateField(verbose_name="Expense date")
+    date = models.DateField(verbose_name=_("Expense date"))
     recruitment_source = models.ForeignKey(
         "RecruitmentSource",
         on_delete=models.PROTECT,
         related_name="expenses",
-        verbose_name="Recruitment source",
+        verbose_name=_("Recruitment source"),
     )
     recruitment_channel = models.ForeignKey(
         "RecruitmentChannel",
         on_delete=models.PROTECT,
         related_name="expenses",
-        verbose_name="Recruitment channel",
+        verbose_name=_("Recruitment channel"),
     )
     recruitment_request = models.ForeignKey(
         "RecruitmentRequest",
         on_delete=models.PROTECT,
         related_name="expenses",
-        verbose_name="Recruitment request",
+        verbose_name=_("Recruitment request"),
     )
     num_candidates_participated = models.PositiveIntegerField(
         default=0,
-        verbose_name="Number of candidates participated",
+        verbose_name=_("Number of candidates participated"),
     )
     total_cost = models.DecimalField(
         max_digits=15,
         decimal_places=2,
-        verbose_name="Total cost",
+        verbose_name=_("Total cost"),
     )
     num_candidates_hired = models.PositiveIntegerField(
         default=0,
-        verbose_name="Number of candidates hired",
+        verbose_name=_("Number of candidates hired"),
     )
     referee = models.ForeignKey(
         "Employee",
@@ -52,7 +52,7 @@ class RecruitmentExpense(BaseModel):
         null=True,
         blank=True,
         related_name="referee_expenses",
-        verbose_name="Referee",
+        verbose_name=_("Referee"),
     )
     referrer = models.ForeignKey(
         "Employee",
@@ -60,17 +60,17 @@ class RecruitmentExpense(BaseModel):
         null=True,
         blank=True,
         related_name="referrer_expenses",
-        verbose_name="Referrer",
+        verbose_name=_("Referrer"),
     )
     activity = models.TextField(
         max_length=1000,
         blank=True,
-        verbose_name="Activity description",
+        verbose_name=_("Activity description"),
     )
     note = models.TextField(
         max_length=500,
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
     )
 
     class Meta:

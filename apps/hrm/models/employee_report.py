@@ -31,27 +31,27 @@ class EmployeeStatusBreakdownReport(BaseReportModel):
         Branch,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
     )
     block = models.ForeignKey(
         Block,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Block",
+        verbose_name=_("Block"),
     )
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Department",
+        verbose_name=_("Department"),
     )
-    count_active = models.IntegerField(default=0, verbose_name="Active count")
-    count_onboarding = models.IntegerField(default=0, verbose_name="Onboarding count")
-    count_maternity_leave = models.IntegerField(default=0, verbose_name="Maternity leave count")
-    count_unpaid_leave = models.IntegerField(default=0, verbose_name="Unpaid leave count")
-    count_resigned = models.IntegerField(default=0, verbose_name="Resigned count")
-    total_not_resigned = models.IntegerField(default=0, verbose_name="Total not resigned")
-    count_resigned_reasons = models.JSONField(default=dict, verbose_name="Resignation reasons breakdown")
+    count_active = models.IntegerField(default=0, verbose_name=_("Active count"))
+    count_onboarding = models.IntegerField(default=0, verbose_name=_("Onboarding count"))
+    count_maternity_leave = models.IntegerField(default=0, verbose_name=_("Maternity leave count"))
+    count_unpaid_leave = models.IntegerField(default=0, verbose_name=_("Unpaid leave count"))
+    count_resigned = models.IntegerField(default=0, verbose_name=_("Resigned count"))
+    total_not_resigned = models.IntegerField(default=0, verbose_name=_("Total not resigned"))
+    count_resigned_reasons = models.JSONField(default=dict, verbose_name=_("Resignation reasons breakdown"))
 
     class Meta:
         verbose_name = _("Employee Status Breakdown Report")
@@ -98,37 +98,37 @@ class EmployeeResignedReasonReport(BaseReportModel):
         Branch,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
     )
     block = models.ForeignKey(
         Block,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Block",
+        verbose_name=_("Block"),
     )
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
         related_name="+",
-        verbose_name="Department",
+        verbose_name=_("Department"),
     )
 
     # Total resigned count (sum of all reasons)
-    count_resigned = models.IntegerField(default=0, verbose_name="Resigned count")
+    count_resigned = models.IntegerField(default=0, verbose_name=_("Resigned count"))
 
     # Flat columns for each resignation reason
-    agreement_termination = models.IntegerField(default=0, verbose_name="Agreement Termination")
-    probation_fail = models.IntegerField(default=0, verbose_name="Probation Fail")
-    job_abandonment = models.IntegerField(default=0, verbose_name="Job Abandonment")
-    disciplinary_termination = models.IntegerField(default=0, verbose_name="Disciplinary Termination")
-    workforce_reduction = models.IntegerField(default=0, verbose_name="Workforce Reduction")
-    underperforming = models.IntegerField(default=0, verbose_name="Underperforming")
-    contract_expired = models.IntegerField(default=0, verbose_name="Contract Expired")
-    voluntary_health = models.IntegerField(default=0, verbose_name="Voluntary - Health Reasons")
-    voluntary_personal = models.IntegerField(default=0, verbose_name="Voluntary - Personal Reasons")
-    voluntary_career_change = models.IntegerField(default=0, verbose_name="Voluntary - Career Change")
-    voluntary_other = models.IntegerField(default=0, verbose_name="Voluntary - Other")
-    other = models.IntegerField(default=0, verbose_name="Other")
+    agreement_termination = models.IntegerField(default=0, verbose_name=_("Agreement Termination"))
+    probation_fail = models.IntegerField(default=0, verbose_name=_("Probation Fail"))
+    job_abandonment = models.IntegerField(default=0, verbose_name=_("Job Abandonment"))
+    disciplinary_termination = models.IntegerField(default=0, verbose_name=_("Disciplinary Termination"))
+    workforce_reduction = models.IntegerField(default=0, verbose_name=_("Workforce Reduction"))
+    underperforming = models.IntegerField(default=0, verbose_name=_("Underperforming"))
+    contract_expired = models.IntegerField(default=0, verbose_name=_("Contract Expired"))
+    voluntary_health = models.IntegerField(default=0, verbose_name=_("Voluntary - Health Reasons"))
+    voluntary_personal = models.IntegerField(default=0, verbose_name=_("Voluntary - Personal Reasons"))
+    voluntary_career_change = models.IntegerField(default=0, verbose_name=_("Voluntary - Career Change"))
+    voluntary_other = models.IntegerField(default=0, verbose_name=_("Voluntary - Other"))
+    other = models.IntegerField(default=0, verbose_name=_("Other"))
 
     class Meta:
         verbose_name = _("Employee Resigned Reason Report")

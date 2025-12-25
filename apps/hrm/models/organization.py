@@ -15,32 +15,32 @@ class Branch(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "CN"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
-    name = models.CharField(max_length=200, verbose_name="Branch name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Branch code")
-    address = SafeTextField(blank=True, verbose_name="Address")
-    phone = models.CharField(max_length=1000, blank=True, verbose_name="Phone number")
-    email = models.EmailField(blank=True, verbose_name="Email")
+    name = models.CharField(max_length=200, verbose_name=_("Branch name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Branch code"))
+    address = SafeTextField(blank=True, verbose_name=_("Address"))
+    phone = models.CharField(max_length=1000, blank=True, verbose_name=_("Phone number"))
+    email = models.EmailField(blank=True, verbose_name=_("Email"))
     province = models.ForeignKey(
         "core.Province",
         on_delete=models.PROTECT,
         related_name="branches",
-        verbose_name="Province",
+        verbose_name=_("Province"),
     )
     administrative_unit = models.ForeignKey(
         "core.AdministrativeUnit",
         on_delete=models.PROTECT,
         related_name="branches",
-        verbose_name="Administrative unit",
+        verbose_name=_("Administrative unit"),
     )
-    description = SafeTextField(blank=True, verbose_name="Description")
-    is_active = models.BooleanField(default=True, verbose_name="Active")
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
     director = models.ForeignKey(
         "Employee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="directed_branches",
-        verbose_name="Branch director",
+        verbose_name=_("Branch director"),
     )
 
     class Meta:
@@ -60,12 +60,12 @@ class BranchContactInfo(BaseModel):
         Branch,
         on_delete=models.CASCADE,
         related_name="contact_infos",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
     )
-    business_line = models.CharField(max_length=50, verbose_name="Business line")
-    name = models.CharField(max_length=100, verbose_name="Contact name")
-    phone_number = models.CharField(max_length=10, verbose_name="Phone number")
-    email = models.EmailField(verbose_name="Email")
+    business_line = models.CharField(max_length=50, verbose_name=_("Business line"))
+    name = models.CharField(max_length=100, verbose_name=_("Contact name"))
+    phone_number = models.CharField(max_length=10, verbose_name=_("Phone number"))
+    email = models.EmailField(verbose_name=_("Email"))
 
     class Meta:
         verbose_name = _("Branch contact info")
@@ -88,24 +88,24 @@ class Block(AutoCodeMixin, BaseModel):
         SUPPORT = "support", _("Support Block")
         BUSINESS = "business", _("Business Block")
 
-    name = models.CharField(max_length=200, verbose_name="Block name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Block code")
-    block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name="Block type")
+    name = models.CharField(max_length=200, verbose_name=_("Block name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Block code"))
+    block_type = models.CharField(max_length=20, choices=BlockType.choices, verbose_name=_("Block type"))
     branch = models.ForeignKey(
         Branch,
         on_delete=models.PROTECT,
         related_name="blocks",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
     )
-    description = SafeTextField(blank=True, verbose_name="Description")
-    is_active = models.BooleanField(default=True, verbose_name="Active")
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
     director = models.ForeignKey(
         "Employee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="directed_blocks",
-        verbose_name="Block director",
+        verbose_name=_("Block director"),
     )
 
     class Meta:
@@ -145,38 +145,38 @@ class Department(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="led_departments",
-        verbose_name="Department leader",
+        verbose_name=_("Department leader"),
     )
-    name = models.CharField(max_length=200, verbose_name="Department name")
-    code = models.CharField(max_length=50, verbose_name="Department code")
-    branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name="departments", verbose_name="Branch")
-    block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name="departments", verbose_name="Block")
+    name = models.CharField(max_length=200, verbose_name=_("Department name"))
+    code = models.CharField(max_length=50, verbose_name=_("Department code"))
+    branch = models.ForeignKey(Branch, on_delete=models.PROTECT, related_name="departments", verbose_name=_("Branch"))
+    block = models.ForeignKey(Block, on_delete=models.PROTECT, related_name="departments", verbose_name=_("Block"))
     parent_department = models.ForeignKey(
         "self",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="sub_departments",
-        verbose_name="Parent department",
+        verbose_name=_("Parent department"),
     )
     # New fields according to SRS 2.3.2
     function = models.CharField(
         max_length=50,
         choices=DepartmentFunction.choices,
         default=DepartmentFunction.BUSINESS,  # Default to business function
-        verbose_name="Department function",
+        verbose_name=_("Department function"),
     )
-    is_main_department = models.BooleanField(default=False, verbose_name="Is main department")
+    is_main_department = models.BooleanField(default=False, verbose_name=_("Is main department"))
     management_department = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="managed_departments",
-        verbose_name="Management department",
+        verbose_name=_("Management department"),
     )
-    description = SafeTextField(blank=True, verbose_name="Description")
-    is_active = models.BooleanField(default=True, verbose_name="Active")
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
         verbose_name = _("Department")
@@ -297,18 +297,18 @@ class Position(AutoCodeMixin, BaseModel):
     CODE_PREFIX = "CV"
     TEMP_CODE_PREFIX = TEMP_CODE_PREFIX
 
-    name = models.CharField(max_length=200, verbose_name="Position name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="Position code")
+    name = models.CharField(max_length=200, verbose_name=_("Position name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Position code"))
     data_scope = models.CharField(
         max_length=20,
         choices=DataScope.choices,
         default=DataScope.DEPARTMENT,
-        verbose_name="Data scope",
+        verbose_name=_("Data scope"),
     )
-    is_leadership = models.BooleanField(default=False, verbose_name="Leadership position")
-    include_in_employee_report = models.BooleanField(default=True, verbose_name="Include in Employee report")
-    description = SafeTextField(blank=True, verbose_name="Description")
-    is_active = models.BooleanField(default=True, verbose_name="Active")
+    is_leadership = models.BooleanField(default=False, verbose_name=_("Leadership position"))
+    include_in_employee_report = models.BooleanField(default=True, verbose_name=_("Include in Employee report"))
+    description = SafeTextField(blank=True, verbose_name=_("Description"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
 
     class Meta:
         verbose_name = _("Position")

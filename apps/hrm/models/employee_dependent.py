@@ -40,34 +40,34 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         editable=False,
         null=True,
         blank=True,
-        verbose_name="Code",
+        verbose_name=_("Code"),
         help_text="Auto-generated unique code for this dependent",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.PROTECT,
         related_name="dependents",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee associated with this dependent",
     )
 
     dependent_name = models.CharField(
         max_length=255,
-        verbose_name="Dependent name",
+        verbose_name=_("Dependent name"),
         help_text="Full name of the dependent",
     )
 
     relationship = models.CharField(
         max_length=20,
         choices=RelationType.choices,
-        verbose_name="Relationship",
+        verbose_name=_("Relationship"),
         help_text="Type of relationship to the employee",
     )
 
     date_of_birth = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Date of birth",
+        verbose_name=_("Date of birth"),
         help_text="Date of birth of the dependent",
     )
 
@@ -75,19 +75,19 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         max_length=12,
         blank=True,
         validators=[validate_national_id],
-        verbose_name="Citizen ID",
+        verbose_name=_("Citizen ID"),
         help_text="National ID (CMND/CCCD) - 9 or 12 digits",
     )
 
     effective_date = models.DateField(
-        verbose_name="Effective date",
+        verbose_name=_("Effective date"),
         help_text="Start date for tax deduction applicability",
     )
 
     tax_code = models.CharField(
         max_length=50,
         blank=True,
-        verbose_name="Tax code",
+        verbose_name=_("Tax code"),
         help_text="Tax identification number",
     )
 
@@ -97,19 +97,19 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="employee_dependents",
-        verbose_name="Attachment",
+        verbose_name=_("Attachment"),
         help_text="Supporting document or file attachment",
     )
 
     note = models.TextField(
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes or information",
     )
 
     is_active = models.BooleanField(
         default=True,
-        verbose_name="Is active",
+        verbose_name=_("Is active"),
         help_text="Whether this dependent record is active",
     )
 
@@ -119,7 +119,7 @@ class EmployeeDependent(AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="created_dependents",
-        verbose_name="Created by",
+        verbose_name=_("Created by"),
         help_text="User who created this record",
     )
 
