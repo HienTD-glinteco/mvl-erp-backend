@@ -99,21 +99,35 @@ class FCMService:
             logger.error("Firebase not initialized, cannot send notification")
             return False
 
-        try:
-            device = notification.recipient.device
-        except Exception:
-            logger.debug(f"No device found for user {notification.recipient.username}")
-            return False
-
-        if not device or not device.fcm_token or not device.active:
-            logger.debug(f"Device not available or inactive for user {notification.recipient.username}")
-            return False
-
         # Build the notification payload
         payload = cls._build_payload(notification, title, body, data)
 
-        # Send via Firebase Admin SDK
-        return cls._send_fcm_message(device.fcm_token, payload)
+        # Logic:
+        # IF notification.target_device is set: Send ONLY to that device's token.
+        # ELSE: Fetch ALL active devices for the recipient and send to all of them.
+
+        if notification.target_device:
+            device = notification.target_device
+            if not device.fcm_token or not device.active:
+                logger.debug(f"Target device {device.id} not available or inactive")
+                return False
+
+            return cls._send_fcm_message(device.fcm_token, payload)
+
+        else:
+            # Fallback to sending to all active devices
+            devices = notification.recipient.devices.filter(state='active')
+            if not devices.exists():
+                logger.debug(f"No active devices found for user {notification.recipient.username}")
+                return False
+
+            success = False
+            for device in devices:
+                if device.fcm_token:
+                    if cls._send_fcm_message(device.fcm_token, payload):
+                        success = True
+
+            return success
 
     @classmethod
     def _build_payload(

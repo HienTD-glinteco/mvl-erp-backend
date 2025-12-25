@@ -93,6 +93,15 @@ class Notification(BaseModel):
         help_text="How the notification should be delivered",
     )
 
+    target_device = models.ForeignKey(
+        "core.UserDevice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Target device",
+        help_text="Specific device to send the notification to. If null, send to all active devices."
+    )
+
     class Meta:
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"

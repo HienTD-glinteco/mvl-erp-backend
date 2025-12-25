@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 14:49+0700\n"
+"POT-Creation-Date: 2025-12-25 16:11+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -242,8 +242,32 @@ msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
 msgid "For Saturday compensatory workdays, only afternoon session is allowed"
 msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
 
+#: apps/hrm/api/serializers/holiday.py:72
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory workday date overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
 #: apps/hrm/api/serializers/holiday.py:83 apps/hrm/models/holiday.py:86
 msgid "A compensatory workday with this date already exists for this holiday"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:100
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"A compensatory workday with the same date and session already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:111
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"A compensatory workday with full_day session conflicts with existing session "
+"for holiday '{comp_day.holiday.name}'"
 msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
 
 #: apps/hrm/api/serializers/holiday.py:121
@@ -261,6 +285,49 @@ msgstr "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"
 #: apps/hrm/api/serializers/holiday.py:230
 msgid "This holiday overlaps with an existing holiday"
 msgstr "Kỳ nghỉ lễ này trùng với một kỳ nghỉ lễ đã tồn tại"
+
+#: apps/hrm/api/serializers/holiday.py:236
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday must be on Saturday or Sunday"
+msgid "Compensatory date {comp_date} must be on Saturday or Sunday"
+msgstr "Ngày làm bù phải vào thứ Bảy hoặc Chủ Nhật"
+
+#: apps/hrm/api/serializers/holiday.py:256
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "For Saturday compensatory workdays, only afternoon session is allowed"
+msgid ""
+"For Saturday compensatory workday {comp_date}, only afternoon session is "
+"allowed"
+msgstr "Ngày làm bù vào thứ Bảy chỉ được phép trong buổi chiều"
+
+#: apps/hrm/api/serializers/holiday.py:266
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory date {comp_date} falls within the holiday date range"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/api/serializers/holiday.py:282
+#, fuzzy, python-brace-format
+#| msgid "Compensatory workday date cannot fall within the holiday date range"
+msgid "Compensatory date {comp_date} overlaps with holiday: {holiday_name}"
+msgstr "Ngày làm bù không thể nằm trong khoảng ngày nghỉ lễ"
+
+#: apps/hrm/api/serializers/holiday.py:299
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "A compensatory workday with this date already exists for this holiday"
+msgid ""
+"Compensatory date {comp_date} with session {comp_session} already exists for "
+"holiday '{comp_day.holiday.name}'"
+msgstr "Ngày làm bù bị trùng với ngày làm bù khác"
+
+#: apps/hrm/api/serializers/holiday.py:310
+#, python-brace-format
+msgid ""
+"Compensatory date {comp_date} with full_day session conflicts with existing "
+"{comp_day.session} session for holiday '{comp_day.holiday.name}'"
+msgstr ""
 
 #: apps/hrm/api/serializers/holiday.py:337
 msgid "Cannot modify holidays that are in the past or present"
@@ -743,27 +810,6 @@ msgstr "Xem báo cáo số lượng nhân sự"
 #: apps/hrm/api/views/employee_reports.py:66
 msgid "Retrieve employee resigned reasons summary report"
 msgstr "Xem báo cáo Báo cáo Tỉ lệ lý do nghỉ việc"
-
-#: apps/hrm/api/views/employee_reports.py:78
-#: apps/hrm/api/views/recruitment_reports.py:714 apps/hrm/constants.py:68
-#: apps/hrm/constants.py:73 apps/hrm/utils/functions.py:162
-msgid "Week"
-msgstr "Tuần"
-
-#: apps/hrm/api/views/employee_reports.py:98
-#: apps/hrm/api/views/recruitment_reports.py:165
-#: apps/hrm/api/views/recruitment_reports.py:842 apps/hrm/constants.py:69
-#: apps/hrm/constants.py:74
-msgid "Month"
-msgstr "Tháng"
-
-#: apps/hrm/api/views/employee_reports.py:124 apps/hrm/constants.py:75
-msgid "Quarter"
-msgstr "Quý"
-
-#: apps/hrm/api/views/employee_reports.py:145 apps/hrm/constants.py:76
-msgid "Year"
-msgstr "Năm"
 
 #: apps/hrm/api/views/employee_reports.py:350
 msgid "Average"
@@ -2306,6 +2352,22 @@ msgstr "Phòng tuyển dụng"
 msgid "Returning Employee"
 msgstr "Quay lại"
 
+#: apps/hrm/constants.py:68 apps/hrm/constants.py:73
+msgid "Week"
+msgstr "Tuần"
+
+#: apps/hrm/constants.py:69 apps/hrm/constants.py:74
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/hrm/constants.py:75
+msgid "Quarter"
+msgstr "Quý"
+
+#: apps/hrm/constants.py:76
+msgid "Year"
+msgstr "Năm"
+
 #: apps/hrm/constants.py:82
 msgid "All data"
 msgstr "Tất cả dữ liệu"
@@ -2550,6 +2612,8 @@ msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
 #: apps/hrm/import_handlers/employee.py:678
+#: apps/hrm/tests/test_employee_import_history.py:80
+#: apps/hrm/tests/test_employee_import_history.py:124
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
 
@@ -2769,12 +2833,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2783,27 +2845,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -3794,10 +3851,12 @@ msgid "Timesheets"
 msgstr "Bảng chấm công"
 
 #: apps/hrm/models/timesheet.py:225
+#: apps/hrm/tests/test_timesheet_upgrade.py:263
 msgid "Paid"
 msgstr "Có lương"
 
 #: apps/hrm/models/timesheet.py:227
+#: apps/hrm/tests/test_timesheet_upgrade.py:259
 msgid "Unpaid"
 msgstr "Không lương"
 
@@ -3934,6 +3993,50 @@ msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""
 "Đề xuất khiếu nại %(id)s thiếu thời gian check-in/check-out đã được phê "
 "duyệt."
+
+#: apps/hrm/signals/notifications.py:54
+msgid "Your timekeeping complaint has been approved by HR."
+msgstr "Khiếu nại chấm công của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:57
+#, python-format
+msgid "Your timekeeping complaint was rejected by HR with note: \"%(note)s\".."
+msgstr "Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng Ghi chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:63
+#, python-format
+msgid "Your %(proposal_type)s proposal has been approved by HR."
+msgstr "Đề xuất %(proposal_type)s của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:66
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by HR with note: \"%(note)s\".."
+msgstr "Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng Ghi chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:93
+#, python-format
+msgid "Your timekeeping complaint has been confirmed by %(manager_name)s."
+msgstr "Khiếu nại chấm công của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:96
+#, python-format
+msgid "Your %(proposal_type)s proposal has been confirmed by %(manager_name)s."
+msgstr "Đề xuất %(proposal_type)s của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:116
+#, python-format
+msgid ""
+"Your timekeeping complaint was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr "Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi %(manager_name)s cùng Ghi chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:119
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr "Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi %(manager_name)s cùng Ghi chú \"%(note)s\"."
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."

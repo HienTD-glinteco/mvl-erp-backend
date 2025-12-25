@@ -9,3 +9,4 @@ class HrmConfig(AppConfig):
     def ready(self):
         """Import signal handlers when the app is ready."""
         import apps.hrm.signals  # noqa: F401
+        import apps.hrm.signals.notifications  # noqa: F401

@@ -2,6 +2,7 @@
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.translation import gettext as _
 
 from apps.payroll.models import (
     DepartmentKPIAssessment,
@@ -38,6 +39,32 @@ def update_department_status_on_employee_assessment_save(sender, instance, **kwa
 
     # Update department status
     update_department_assessment_status(dept_assessment)
+
+
+@receiver(post_save, sender=EmployeeKPIAssessment)
+def notify_employee_kpi_assessment_created(sender, instance, created, **kwargs):
+    """Notify employee when a KPI assessment is created."""
+    # Scenario C: KPI Evaluation Created
+    if created:
+        from apps.notifications.utils import create_notification
+
+        recipient = instance.employee.user
+        if not recipient:
+            return
+
+        # Format: MM/YYYY
+        period_str = instance.period.month.strftime("%m/%Y")
+
+        message = _('KPI Assessment for period %(period)s has been created. Please access KPI Assessment to complete.') % {'period': period_str}
+
+        create_notification(
+            actor=instance.created_by if instance.created_by else recipient, # Ideally created_by, but fallback to recipient
+            recipient=recipient,
+            verb="created",
+            target=instance,
+            message=message,
+            client='mobile'
+        )
 
 
 """Signal handlers for Payroll app."""

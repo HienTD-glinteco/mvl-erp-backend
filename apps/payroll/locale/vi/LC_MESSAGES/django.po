@@ -1,0 +1,504 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-25 16:11+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+#: apps/payroll/api/serializers/department_kpi_assessment.py:91
+msgid "An assessment for this department and period already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:96
+#: apps/payroll/api/serializers/department_kpi_assessment.py:153
+msgid "Grade must be one of: A, B, C, D"
+msgstr ""
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:103
+msgid "Only grade and note can be updated for finalized assessments"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:90
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:163
+msgid "Cannot update finalized assessment"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:96
+msgid "Cannot update assessment that has been assessed by manager"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
+msgid "Cannot update items of a finalized assessment"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
+msgid "Employee score cannot exceed component total score"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:260
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:290
+msgid "Manager score cannot exceed component total score"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:367
+msgid "An assessment for this employee and month already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
+msgid ""
+"Only grade_manager_overridden and note can be updated for finalized "
+"assessments"
+msgstr ""
+
+#: apps/payroll/api/serializers/kpi_criterion.py:40
+msgid "Component total score must be between 0 and 100"
+msgstr ""
+
+#: apps/payroll/api/serializers/kpi_criterion.py:69
+msgid ""
+"A criterion with this target, evaluation type, and criterion already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:91
+msgid "Month is required."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:99
+msgid "Month must be between 1 and 12."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:103
+msgid "Month must be in MM/YYYY format."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:108
+msgid "Employee is required."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:110
+msgid "Employee must be in active or onboarding status."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:117
+#: apps/payroll/models/recovery_voucher.py:110
+msgid "Amount must be greater than 0."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:123
+msgid "Name is required."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:125
+msgid "Name must not exceed 250 characters."
+msgstr ""
+
+#: apps/payroll/api/serializers/recovery_voucher.py:131
+msgid "Note must not exceed 500 characters."
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:81
+msgid "Revenue is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:83
+msgid "Revenue must be non-negative"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:89
+msgid "Transaction count is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:91
+msgid "Transaction count must be non-negative"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:97
+#: apps/payroll/api/serializers/travel_expense.py:101
+msgid "Employee is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:100
+#: apps/payroll/api/serializers/travel_expense.py:104
+msgid "Employee must be active"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:107
+#: apps/payroll/api/serializers/travel_expense.py:111
+msgid "Month is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:119
+#: apps/payroll/api/serializers/travel_expense.py:124
+msgid "Month must be between 1 and 12"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:122
+#: apps/payroll/api/serializers/travel_expense.py:127
+msgid "Year must be between 1900 and 2100"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:127
+#: apps/payroll/api/serializers/travel_expense.py:133
+msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:145
+#: apps/payroll/api/serializers/sales_revenue.py:149
+msgid "Sales revenue for this employee and month already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/travel_expense.py:85
+msgid "Name is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/travel_expense.py:87
+msgid "Name must not exceed 250 characters"
+msgstr ""
+
+#: apps/payroll/api/serializers/travel_expense.py:93
+msgid "Amount is required"
+msgstr ""
+
+#: apps/payroll/api/serializers/travel_expense.py:95
+msgid "Amount must be greater than 0"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:275
+msgid "Month parameter is required"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:285
+msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:294
+msgid "Cannot create assessment period for future months"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:301
+#, python-brace-format
+msgid "Assessment period for {month_str} already exists"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:309
+msgid "No KPI configuration found. Please create one first."
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:330
+msgid "Assessment generation completed successfully"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:346
+msgid "Period is already finalized"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:408
+msgid "Period finalized successfully"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_config.py:99
+msgid "View KPI configuration"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_config.py:102
+msgid "KPI View KPI Configuration"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:194
+#: apps/payroll/api/views/penalty_tickets.py:224
+#: apps/payroll/api/views/penalty_tickets.py:235
+#: apps/payroll/api/views/penalty_tickets.py:246
+#: apps/payroll/api/views/penalty_tickets.py:257
+#: apps/payroll/api/views/penalty_tickets.py:268
+#: apps/payroll/api/views/penalty_tickets.py:279
+#: apps/payroll/api/views/penalty_tickets.py:315
+#: apps/payroll/api/views/recovery_voucher.py:338
+#: apps/payroll/api/views/salary_config.py:128
+#: apps/payroll/api/views/sales_revenue.py:373
+#: apps/payroll/api/views/travel_expense.py:408
+msgid "Payroll"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:195
+#: apps/payroll/api/views/penalty_tickets.py:225
+#: apps/payroll/api/views/penalty_tickets.py:236
+#: apps/payroll/api/views/penalty_tickets.py:247
+#: apps/payroll/api/views/penalty_tickets.py:258
+#: apps/payroll/api/views/penalty_tickets.py:269
+#: apps/payroll/api/views/penalty_tickets.py:280
+#: apps/payroll/api/views/penalty_tickets.py:316
+msgid "Penalty Management"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:223
+msgid "View penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:226
+msgid "View Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:234
+msgid "View penalty ticket details"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:237
+msgid "View Penalty Ticket Details"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:245
+msgid "Create penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:248
+msgid "Create Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:256
+msgid "Update penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:259
+msgid "Update Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:267
+msgid "Partially update penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:270
+msgid "Partially Update Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:278
+msgid "Delete penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:281
+msgid "Delete Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:314
+msgid "Bulk update penalty ticket status"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:317
+msgid "Update Penalty Ticket Status"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:326
+msgid "Authentication credentials were not provided."
+msgstr ""
+
+#: apps/payroll/api/views/recovery_voucher.py:339
+msgid "Recovery/Back Pay"
+msgstr ""
+
+#: apps/payroll/api/views/recovery_voucher.py:362
+msgid "Cannot delete voucher for a month with existing payroll."
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:127
+msgid "View salary configuration"
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:129
+msgid "Configuration"
+msgstr ""
+
+#: apps/payroll/api/views/salary_config.py:130
+msgid "Payroll View Salary Configuration"
+msgstr ""
+
+#: apps/payroll/api/views/sales_revenue.py:374
+msgid "Sales Revenue Management"
+msgstr ""
+
+#: apps/payroll/api/views/sales_revenue.py:396
+msgid "Cannot delete sales revenue for a month with existing payroll."
+msgstr ""
+
+#: apps/payroll/api/views/travel_expense.py:409
+msgid "Travel Expense Management"
+msgstr ""
+
+#: apps/payroll/api/views/travel_expense.py:434
+msgid "Cannot delete travel expense for a month with existing payroll."
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:38
+msgid "Sales"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:39
+msgid "Backoffice"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:42
+msgid "Work Performance"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:43
+msgid "Discipline"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:21
+msgid "Paid"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:22
+msgid "Unpaid"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:27
+msgid "Violation under 10 minutes"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:28
+msgid "Violation over 10 minutes"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:29
+msgid "Absent without reason"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:30
+msgid "Uniform error"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:31
+msgid "Other violation"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:35
+msgid "Recovery"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:36
+msgid "Back Pay"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:39
+msgid "Not Calculated"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:40
+msgid "Calculated"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:49
+msgid "Voucher Code"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:50
+msgid "Name"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:54
+msgid "Voucher Type"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:60
+#: apps/payroll/models/travel_expense.py:101
+msgid "Employee"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:62
+msgid "Employee Code"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:63
+msgid "Employee Name"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:64
+msgid "Amount (VND)"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:65
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:70
+#: apps/payroll/models/travel_expense.py:111
+msgid "Status"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:72
+#: apps/payroll/models/travel_expense.py:113
+msgid "Note"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:78
+msgid "Created By"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:85
+msgid "Updated By"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:89
+msgid "Recovery Voucher"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:90
+msgid "Recovery Vouchers"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:94
+msgid "Code"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:95
+msgid "Expense name"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:96
+msgid "Expense type"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:103
+msgid "Amount"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:104
+msgid "First day of the expense month"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:120
+msgid "Created by"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:128
+msgid "Updated by"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:132
+msgid "Travel Expense"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:133
+msgid "Travel Expenses"
+msgstr ""
+
+#: apps/payroll/signals.py:57
+#, python-format
+msgid ""
+"KPI Assessment for period %(period)s has been created. Please access KPI "
+"Assessment to complete."
+msgstr "Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để hoàn tất."
