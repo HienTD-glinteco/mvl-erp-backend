@@ -140,3 +140,163 @@ def penalty_ticket(db, employee, penalty_month, user):
         note="Uniform violation - missing name tag",
         created_by=user,
     )
+
+
+# ========== Payroll Fixtures ==========
+
+
+@pytest.fixture
+def salary_config():
+    """Create a salary configuration."""
+    from apps.payroll.models import SalaryConfig
+
+    config_data = {
+        "insurance_contributions": {
+            "social_insurance": {"employee_rate": 0.08, "employer_rate": 0.17, "salary_ceiling": 46800000},
+            "health_insurance": {"employee_rate": 0.015, "employer_rate": 0.03, "salary_ceiling": 46800000},
+            "unemployment_insurance": {"employee_rate": 0.01, "employer_rate": 0.01, "salary_ceiling": 46800000},
+            "union_fee": {"employee_rate": 0.01, "employer_rate": 0.01, "salary_ceiling": 46800000},
+            "accident_occupational_insurance": {"employee_rate": 0, "employer_rate": 0.005, "salary_ceiling": None},
+        },
+        "personal_income_tax": {
+            "standard_deduction": 11000000,
+            "dependent_deduction": 4400000,
+            "progressive_levels": [
+                {"up_to": 5000000, "rate": 0.05},
+                {"up_to": 10000000, "rate": 0.1},
+                {"up_to": 18000000, "rate": 0.15},
+                {"up_to": 32000000, "rate": 0.2},
+                {"up_to": 52000000, "rate": 0.25},
+                {"up_to": 80000000, "rate": 0.3},
+                {"up_to": None, "rate": 0.35},
+            ],
+        },
+        "kpi_salary": {
+            "apply_on": "base_salary",
+            "tiers": [
+                {"code": "A", "percentage": 0.1, "description": "Excellent"},
+                {"code": "B", "percentage": 0.05, "description": "Good"},
+                {"code": "C", "percentage": 0, "description": "Average"},
+                {"code": "D", "percentage": -0.05, "description": "Below Average"},
+            ],
+        },
+        "overtime_multipliers": {"saturday_inweek": 1.5, "sunday": 2, "holiday": 3},
+        "business_progressive_salary": {
+            "apply_on": "base_salary",
+            "tiers": [
+                {"code": "M0", "amount": 0, "criteria": []},
+                {"code": "M1", "amount": 7000000, "criteria": []},
+            ],
+        },
+    }
+
+    return SalaryConfig.objects.create(config=config_data)
+
+
+@pytest.fixture
+def salary_period(salary_config):
+    """Create a salary period."""
+    from apps.payroll.models import SalaryPeriod
+
+    return SalaryPeriod.objects.create(month=date(2024, 1, 1), salary_config_snapshot=salary_config.config)
+
+
+@pytest.fixture
+def contract(sales_employee):
+    """Create an active contract."""
+    from decimal import Decimal
+
+    from apps.hrm.models import Contract, ContractType
+
+    contract_type = ContractType.objects.first()
+    return Contract.objects.create(
+        employee=sales_employee,
+        contract_type=contract_type,
+        base_salary=Decimal("20000000"),
+        kpi_salary=Decimal("2000000"),
+        lunch_allowance=Decimal("1000000"),
+        phone_allowance=Decimal("500000"),
+        other_allowance=Decimal("500000"),
+        sign_date=date(2024, 1, 1),
+        effective_date=date(2024, 1, 1),
+        status=Contract.ContractStatus.ACTIVE,
+    )
+
+
+@pytest.fixture
+def timesheet(sales_employee, salary_period):
+    """Create a timesheet."""
+    from decimal import Decimal
+
+    from apps.hrm.models import EmployeeMonthlyTimesheet
+
+    return EmployeeMonthlyTimesheet.objects.create(
+        employee=sales_employee,
+        report_date=salary_period.month,
+        month_key="202401",
+        total_working_days=Decimal("22.00"),
+        official_working_days=Decimal("22.00"),
+        probation_working_days=Decimal("0.00"),
+        saturday_in_week_overtime_hours=Decimal("0.00"),
+        sunday_overtime_hours=Decimal("0.00"),
+        holiday_overtime_hours=Decimal("0.00"),
+    )
+
+
+@pytest.fixture
+def kpi_assessment_period(salary_period):
+    """Create KPI assessment period."""
+    from apps.payroll.models import KPIAssessmentPeriod
+
+    return KPIAssessmentPeriod.objects.create(
+        month=salary_period.month,
+        name=f"KPI {salary_period.month.strftime('%Y-%m')}",
+        status=KPIAssessmentPeriod.Status.COMPLETED,
+    )
+
+
+@pytest.fixture
+def kpi_assessment(sales_employee, kpi_assessment_period):
+    """Create KPI assessment."""
+    from decimal import Decimal
+
+    from apps.payroll.models import EmployeeKPIAssessment
+
+    return EmployeeKPIAssessment.objects.create(
+        employee=sales_employee,
+        period=kpi_assessment_period,
+        grade_manager="C",
+        total_manager_score=Decimal("80.00"),
+        total_possible_score=Decimal("100.00"),
+    )
+
+
+@pytest.fixture
+def payroll_slip(salary_period, sales_employee):
+    """Create a payroll slip."""
+    from apps.payroll.models import PayrollSlip
+
+    return PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+
+
+@pytest.fixture
+def payroll_slip_pending(salary_period, sales_employee):
+    """Create a pending payroll slip."""
+    from apps.payroll.models import PayrollSlip
+
+    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+    slip.status = PayrollSlip.Status.PENDING
+    slip.save()
+    return slip
+
+
+@pytest.fixture
+def payroll_slip_ready(salary_period, sales_employee, contract, timesheet):
+    """Create a ready payroll slip."""
+    from apps.payroll.models import PayrollSlip
+    from apps.payroll.services.payroll_calculation import PayrollCalculationService
+
+    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+    calculator = PayrollCalculationService(slip)
+    calculator.calculate()
+    return slip
