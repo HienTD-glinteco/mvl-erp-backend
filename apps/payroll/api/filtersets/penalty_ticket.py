@@ -19,6 +19,7 @@ class PenaltyTicketFilterSet(django_filters.FilterSet):
     department = django_filters.NumberFilter(field_name="employee__department__id")
     position = django_filters.NumberFilter(field_name="employee__position__id")
     employee = django_filters.NumberFilter(field_name="employee__id")
+    payment_date = django_filters.DateFilter(field_name="payment_date", lookup_expr="exact")
 
     class Meta:
         model = PenaltyTicket
@@ -31,6 +32,7 @@ class PenaltyTicketFilterSet(django_filters.FilterSet):
             "employee",
             "employee_code",
             "status",
+            "payment_date",
         ]
 
     def filter_month(self, queryset, name, value):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 16:35+0700\n"
+"POT-Creation-Date: 2025-12-25 17:10+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -188,7 +188,8 @@ msgstr "Kiểm tra trạng thái nhập dữ liệu"
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:54 apps/payroll/models/recovery_voucher.py:70
+#: apps/imports/api/views.py:54 apps/payroll/models/penalty_ticket.py:60
+#: apps/payroll/models/recovery_voucher.py:70
 #: apps/payroll/models/travel_expense.py:111
 msgid "Status"
 msgstr "Trạng thái"
@@ -366,6 +367,14 @@ msgid ""
 "A criterion with this target, evaluation type, and criterion already exists"
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
+#: apps/payroll/api/serializers/penalty_ticket.py:108
+msgid "Payment date cannot be in the future."
+msgstr "Ngày nộp tiền không được ở tương lai."
+
+#: apps/payroll/api/serializers/penalty_ticket.py:113
+msgid "Payment date cannot be before the penalty month."
+msgstr "Ngày nộp tiền không được trước tháng phạt."
+
 #: apps/payroll/api/serializers/recovery_voucher.py:91
 msgid "Month is required."
 msgstr "Trường này là bắt buộc"
@@ -510,14 +519,14 @@ msgstr "Xem cấu hình KPI"
 msgid "KPI View KPI Configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/penalty_tickets.py:194
-#: apps/payroll/api/views/penalty_tickets.py:224
-#: apps/payroll/api/views/penalty_tickets.py:235
-#: apps/payroll/api/views/penalty_tickets.py:246
-#: apps/payroll/api/views/penalty_tickets.py:257
-#: apps/payroll/api/views/penalty_tickets.py:268
-#: apps/payroll/api/views/penalty_tickets.py:279
-#: apps/payroll/api/views/penalty_tickets.py:315
+#: apps/payroll/api/views/penalty_tickets.py:197
+#: apps/payroll/api/views/penalty_tickets.py:227
+#: apps/payroll/api/views/penalty_tickets.py:238
+#: apps/payroll/api/views/penalty_tickets.py:249
+#: apps/payroll/api/views/penalty_tickets.py:260
+#: apps/payroll/api/views/penalty_tickets.py:271
+#: apps/payroll/api/views/penalty_tickets.py:282
+#: apps/payroll/api/views/penalty_tickets.py:318
 #: apps/payroll/api/views/recovery_voucher.py:338
 #: apps/payroll/api/views/salary_config.py:128
 #: apps/payroll/api/views/sales_revenue.py:373
@@ -525,84 +534,84 @@ msgstr "Xem cấu hình KPI"
 msgid "Payroll"
 msgstr "Bảng lương"
 
-#: apps/payroll/api/views/penalty_tickets.py:195
-#: apps/payroll/api/views/penalty_tickets.py:225
-#: apps/payroll/api/views/penalty_tickets.py:236
-#: apps/payroll/api/views/penalty_tickets.py:247
-#: apps/payroll/api/views/penalty_tickets.py:258
-#: apps/payroll/api/views/penalty_tickets.py:269
-#: apps/payroll/api/views/penalty_tickets.py:280
-#: apps/payroll/api/views/penalty_tickets.py:316
+#: apps/payroll/api/views/penalty_tickets.py:198
+#: apps/payroll/api/views/penalty_tickets.py:228
+#: apps/payroll/api/views/penalty_tickets.py:239
+#: apps/payroll/api/views/penalty_tickets.py:250
+#: apps/payroll/api/views/penalty_tickets.py:261
+#: apps/payroll/api/views/penalty_tickets.py:272
+#: apps/payroll/api/views/penalty_tickets.py:283
+#: apps/payroll/api/views/penalty_tickets.py:319
 #, fuzzy
 #| msgid "Travel Expense Management"
 msgid "Penalty Management"
 msgstr "Quản lý chi phí đi lại"
 
-#: apps/payroll/api/views/penalty_tickets.py:223
+#: apps/payroll/api/views/penalty_tickets.py:226
 msgid "View penalty tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:226
+#: apps/payroll/api/views/penalty_tickets.py:229
 msgid "View Penalty Tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:234
+#: apps/payroll/api/views/penalty_tickets.py:237
 msgid "View penalty ticket details"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:237
+#: apps/payroll/api/views/penalty_tickets.py:240
 msgid "View Penalty Ticket Details"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:245
+#: apps/payroll/api/views/penalty_tickets.py:248
 msgid "Create penalty tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:248
+#: apps/payroll/api/views/penalty_tickets.py:251
 msgid "Create Penalty Tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:256
+#: apps/payroll/api/views/penalty_tickets.py:259
 msgid "Update penalty tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:259
+#: apps/payroll/api/views/penalty_tickets.py:262
 msgid "Update Penalty Tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:267
+#: apps/payroll/api/views/penalty_tickets.py:270
 #, fuzzy
 #| msgid "Partially update {model_name}"
 msgid "Partially update penalty tickets"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: apps/payroll/api/views/penalty_tickets.py:270
+#: apps/payroll/api/views/penalty_tickets.py:273
 #, fuzzy
 #| msgid "Partially update {model_name}"
 msgid "Partially Update Penalty Tickets"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: apps/payroll/api/views/penalty_tickets.py:278
+#: apps/payroll/api/views/penalty_tickets.py:281
 msgid "Delete penalty tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:281
+#: apps/payroll/api/views/penalty_tickets.py:284
 msgid "Delete Penalty Tickets"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:314
+#: apps/payroll/api/views/penalty_tickets.py:317
 #, fuzzy
 #| msgid "Partially update {model_name}"
 msgid "Bulk update penalty ticket status"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: apps/payroll/api/views/penalty_tickets.py:317
+#: apps/payroll/api/views/penalty_tickets.py:320
 #, fuzzy
 #| msgid "Partially update {model_name}"
 msgid "Update Penalty Ticket Status"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: apps/payroll/api/views/penalty_tickets.py:326
+#: apps/payroll/api/views/penalty_tickets.py:329
 #, fuzzy
 #| msgid "Authentication required"
 msgid "Authentication credentials were not provided."
@@ -692,6 +701,53 @@ msgstr ""
 msgid "Other violation"
 msgstr ""
 
+#: apps/payroll/models/penalty_ticket.py:42
+#: apps/payroll/models/recovery_voucher.py:62
+msgid "Employee Code"
+msgstr "Mã nhân viên"
+
+#: apps/payroll/models/penalty_ticket.py:43
+#: apps/payroll/models/recovery_voucher.py:63
+msgid "Employee Name"
+msgstr "Tên nhân viên"
+
+#: apps/payroll/models/penalty_ticket.py:46
+msgid "Violation Count"
+msgstr "Số lần vi phạm"
+
+#: apps/payroll/models/penalty_ticket.py:51
+msgid "Violation Type"
+msgstr "Loại vi phạm"
+
+#: apps/payroll/models/penalty_ticket.py:54
+#: apps/payroll/models/travel_expense.py:103
+msgid "Amount"
+msgstr "Số tiền"
+
+#: apps/payroll/models/penalty_ticket.py:55
+#: apps/payroll/models/recovery_voucher.py:65
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/payroll/models/penalty_ticket.py:63
+msgid "Payment Date"
+msgstr "Ngày nộp tiền"
+
+#: apps/payroll/models/penalty_ticket.py:64
+#: apps/payroll/models/recovery_voucher.py:72
+#: apps/payroll/models/travel_expense.py:113
+msgid "Note"
+msgstr "Ghi chú"
+
+#: apps/payroll/models/penalty_ticket.py:92
+msgid "Penalty Ticket"
+msgstr "Phiếu phạt"
+
+#: apps/payroll/models/penalty_ticket.py:93
+msgid "Penalty Tickets"
+msgstr "Các phiếu phạt"
+
 #: apps/payroll/models/recovery_voucher.py:35
 msgid "Recovery"
 msgstr "Truy thu"
@@ -725,27 +781,9 @@ msgstr "Loại phiếu"
 msgid "Employee"
 msgstr "Nhân viên"
 
-#: apps/payroll/models/recovery_voucher.py:62
-msgid "Employee Code"
-msgstr "Mã nhân viên"
-
-#: apps/payroll/models/recovery_voucher.py:63
-msgid "Employee Name"
-msgstr "Tên nhân viên"
-
 #: apps/payroll/models/recovery_voucher.py:64
 msgid "Amount (VND)"
 msgstr "Số tiền"
-
-#: apps/payroll/models/recovery_voucher.py:65
-#: apps/payroll/models/travel_expense.py:104
-msgid "Month"
-msgstr "Tháng"
-
-#: apps/payroll/models/recovery_voucher.py:72
-#: apps/payroll/models/travel_expense.py:113
-msgid "Note"
-msgstr "Ghi chú"
 
 #: apps/payroll/models/recovery_voucher.py:78
 msgid "Created By"
@@ -774,10 +812,6 @@ msgstr "Tên chi phí"
 #: apps/payroll/models/travel_expense.py:96
 msgid "Expense type"
 msgstr "Loại chi phí"
-
-#: apps/payroll/models/travel_expense.py:103
-msgid "Amount"
-msgstr "Số tiền"
 
 #: apps/payroll/models/travel_expense.py:104
 msgid "First day of the expense month"

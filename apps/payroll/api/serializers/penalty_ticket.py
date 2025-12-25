@@ -1,5 +1,7 @@
 """Serializers for penalty ticket API."""
 
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.files.models import FileModel
@@ -51,6 +53,7 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
             "id",
             "code",
             "month",
+            "payment_date",
             "employee",
             "employee_id",
             "block",
@@ -96,6 +99,18 @@ class PenaltyTicketSerializer(serializers.ModelSerializer):
         """Ensure amount is positive."""
         if value <= 0:
             raise serializers.ValidationError("Amount must be greater than 0")
+        return value
+
+    def validate_payment_date(self, value):
+        """Ensure payment date is not in the future and not before penalty month."""
+        if value:
+            if value > timezone.now().date():
+                raise serializers.ValidationError(_("Payment date cannot be in the future."))
+            month = self.initial_data.get("month")
+            if month:
+                month_date = self.validate_month(month)
+                if value < month_date:
+                    raise serializers.ValidationError(_("Payment date cannot be before the penalty month."))
         return value
 
     def validate(self, attrs):
