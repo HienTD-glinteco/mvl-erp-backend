@@ -59,13 +59,11 @@ def update_assessment_status(sender, instance, **kwargs):
     needs_update = False
     new_status = None
 
-    # Check if manager has assessed (manager_score exists on any item or grade_manager_overridden is set)
-    has_manager_assessment = (
-        instance.items.filter(manager_score__isnull=False).exists() or instance.grade_manager_overridden
-    )
+    # Check if manager has assessed (total_manager_score is set or grade_manager exists)
+    has_manager_assessment = instance.total_manager_score is not None or instance.grade_manager is not None
 
-    # Check if employee has completed self-assessment
-    has_employee_assessment = instance.items.filter(employee_score__isnull=False).exists()
+    # Check if employee has completed self-assessment (total_employee_score is set)
+    has_employee_assessment = instance.total_employee_score is not None
 
     if has_manager_assessment:
         if instance.status != EmployeeKPIAssessment.StatusChoices.COMPLETED:
