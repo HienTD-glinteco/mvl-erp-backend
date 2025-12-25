@@ -9,8 +9,16 @@ import logging
 from datetime import date
 
 from celery import shared_task
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
-from apps.hrm.models import Employee, EmployeeMonthlyTimesheet
+from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.models import (
+    Employee,
+    EmployeeMonthlyTimesheet,
+    Proposal,
+    ProposalTimeSheetEntry,
+)
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.services.timesheets import (
     create_entries_for_employee_month,
@@ -120,3 +128,76 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
             "Failed to recalculate timesheets for employee %s from %s: %s", employee_id, start_date_str, e
         )
         return {"success": False, "error": str(e)}
+
+
+@shared_task
+def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
+    """Link existing proposals to a newly created timesheet entry.
+
+    This task searches for proposals that affect the timesheet entry's date
+    (e.g., Leave, Overtime, Complaint) and creates ProposalTimeSheetEntry records.
+    """
+    try:
+        entry = TimeSheetEntry.objects.get(pk=timesheet_entry_id)
+    except TimeSheetEntry.DoesNotExist:
+        logger.warning("TimeSheetEntry %s not found.", timesheet_entry_id)
+        return {"success": False, "error": "TimeSheetEntry not found"}
+
+    date_obj = entry.date
+    employee = entry.employee
+
+    # 1. Date range based proposals
+    range_q = Q(
+        proposal_type__in=[
+            ProposalType.LATE_EXEMPTION,
+            ProposalType.POST_MATERNITY_BENEFITS,
+            ProposalType.MATERNITY_LEAVE,
+            ProposalType.PAID_LEAVE,
+            ProposalType.UNPAID_LEAVE,
+        ]
+    ) & (
+        (Q(late_exemption_start_date__lte=date_obj) & Q(late_exemption_end_date__gte=date_obj))
+        | (
+            Q(post_maternity_benefits_start_date__lte=date_obj)
+            & Q(post_maternity_benefits_end_date__gte=date_obj)
+        )
+        | (Q(maternity_leave_start_date__lte=date_obj) & Q(maternity_leave_end_date__gte=date_obj))
+        | (Q(paid_leave_start_date__lte=date_obj) & Q(paid_leave_end_date__gte=date_obj))
+        | (Q(unpaid_leave_start_date__lte=date_obj) & Q(unpaid_leave_end_date__gte=date_obj))
+    )
+
+    # 2. Specific date proposals (Complaint)
+    complaint_q = Q(
+        proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+        timesheet_entry_complaint_complaint_date=date_obj,
+    )
+
+    # 3. Overtime (via relation)
+    # Query proposals that have an overtime entry on this date
+    overtime_q = Q(proposal_type=ProposalType.OVERTIME_WORK, overtime_entries__date=date_obj)
+
+    # Combine logic: Created by employee AND (ranges OR complaint OR overtime)
+    # Filter for APPROVED or PENDING proposals (exclude REJECTED, DRAFT, CANCELLED if any)
+    final_q = (
+        Q(created_by=employee)
+        & (range_q | complaint_q | overtime_q)
+        & Q(proposal_status__in=[ProposalStatus.APPROVED, ProposalStatus.PENDING])
+    )
+
+    proposals = Proposal.objects.filter(final_q).distinct()
+
+    created_count = 0
+    for proposal in proposals:
+        try:
+            _, created = ProposalTimeSheetEntry.objects.get_or_create(
+                proposal=proposal, timesheet_entry=entry
+            )
+            if created:
+                created_count += 1
+        except ValidationError as e:
+            logger.warning("Could not link proposal %s to entry %s: %s", proposal.id, entry.id, e)
+
+    if created_count > 0:
+        logger.info("Linked %d proposals to TimeSheetEntry %s", created_count, timesheet_entry_id)
+
+    return {"success": True, "linked_count": created_count}

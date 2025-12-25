@@ -3,15 +3,17 @@ from datetime import date, datetime, time
 
 import pytest
 from django.utils import timezone
+from unittest.mock import MagicMock, patch
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.constants import ProposalStatus, ProposalType, ProposalWorkShift, TimesheetStatus
 from apps.hrm.models.employee import Employee
 from apps.hrm.models.organization import Block, Branch, Department
-from apps.hrm.models.proposal import Proposal
+from apps.hrm.models.proposal import Proposal, ProposalTimeSheetEntry, ProposalOvertimeEntry
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
+from apps.hrm.tasks.timesheets import link_proposals_to_timesheet_entry_task
 
 pytestmark = pytest.mark.django_db
 
@@ -150,3 +152,130 @@ def test_single_punch_marks_not_on_time(settings):
     TimesheetCalculator(ts).compute_status()
 
     assert ts.status == TimesheetStatus.SINGLE_PUNCH
+
+
+class TestTimeSheetProposalLinking:
+    @pytest.fixture
+    def employee(self):
+        return _create_employee()
+
+    def test_link_paid_leave_proposal(self, employee):
+        # Create Approved Paid Leave Proposal covering today
+        today = timezone.localdate()
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=today,
+            paid_leave_end_date=today,
+            paid_leave_reason="Vacation"
+        )
+
+        # Create TimeSheetEntry
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=today
+        )
+
+        # Run task directly (bypass signal/celery for logic test)
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert
+        assert result["success"] is True
+        assert result["linked_count"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_link_overtime_proposal(self, employee):
+        today = timezone.localdate()
+
+        # Create Approved Overtime Proposal
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+            proposal_status=ProposalStatus.APPROVED
+        )
+        ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=today,
+            start_time=time(18, 0),
+            end_time=time(20, 0)
+        )
+
+        # Create TimeSheetEntry
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=today
+        )
+
+        # Run task
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert
+        assert result["linked_count"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_link_complaint_proposal(self, employee):
+        today = timezone.localdate()
+
+        # Create Complaint Proposal
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+            proposal_status=ProposalStatus.PENDING,
+            timesheet_entry_complaint_complaint_date=today,
+            timesheet_entry_complaint_complaint_reason="Missed punch"
+        )
+
+        # Create TimeSheetEntry
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=today
+        )
+
+        # Run task
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert
+        assert result["linked_count"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_does_not_link_rejected_proposal(self, employee):
+        today = timezone.localdate()
+
+        # Create Rejected Proposal
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.REJECTED,
+            paid_leave_start_date=today,
+            paid_leave_end_date=today,
+            approval_note="Rejected"
+        )
+
+        # Create TimeSheetEntry
+        entry = TimeSheetEntry.objects.create(
+            employee=employee,
+            date=today
+        )
+
+        # Run task
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert
+        assert result["linked_count"] == 0
+        assert not ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_signal_triggers_task(self, employee, django_capture_on_commit_callbacks):
+        # Verify signal triggers the task
+        today = timezone.localdate()
+
+        with patch("apps.hrm.tasks.timesheets.link_proposals_to_timesheet_entry_task.delay") as mock_delay:
+            # Create TimeSheetEntry should trigger signal which uses transaction.on_commit
+            with django_capture_on_commit_callbacks(execute=True):
+                entry = TimeSheetEntry.objects.create(
+                    employee=employee,
+                    date=today
+                )
+
+            # Assert that the task was called
+            mock_delay.assert_called_with(entry.id)
