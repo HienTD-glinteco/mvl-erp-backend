@@ -45,6 +45,11 @@ class SalaryConfigSerializerTest(TestCase):
                     {"code": "D", "percentage": -0.05, "description": "Below Average"},
                 ],
             },
+            "overtime_multipliers": {
+                "saturday_inweek": 1.5,
+                "sunday": 2.0,
+                "holiday": 3.0,
+            },
             "business_progressive_salary": {
                 "apply_on": "base_salary",
                 "tiers": [
