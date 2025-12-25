@@ -1,8 +1,6 @@
 # Generated migration for KPICriterion model enhancement
 
-from decimal import Decimal
 
-import django.core.validators
 from django.db import migrations, models
 
 

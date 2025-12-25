@@ -202,15 +202,17 @@ def salary_period(salary_config):
 
 
 @pytest.fixture
-def contract(sales_employee):
+def contract(employee):
     """Create an active contract."""
     from decimal import Decimal
 
     from apps.hrm.models import Contract, ContractType
 
-    contract_type = ContractType.objects.first()
+    # Get or create contract type
+    contract_type, _ = ContractType.objects.get_or_create(code="LABOR", defaults={"name": "Labor Contract"})
+
     return Contract.objects.create(
-        employee=sales_employee,
+        employee=employee,
         contract_type=contract_type,
         base_salary=Decimal("20000000"),
         kpi_salary=Decimal("2000000"),
@@ -224,14 +226,14 @@ def contract(sales_employee):
 
 
 @pytest.fixture
-def timesheet(sales_employee, salary_period):
+def timesheet(employee, salary_period):
     """Create a timesheet."""
     from decimal import Decimal
 
     from apps.hrm.models import EmployeeMonthlyTimesheet
 
     return EmployeeMonthlyTimesheet.objects.create(
-        employee=sales_employee,
+        employee=employee,
         report_date=salary_period.month,
         month_key="202401",
         total_working_days=Decimal("22.00"),
@@ -248,22 +250,30 @@ def kpi_assessment_period(salary_period):
     """Create KPI assessment period."""
     from apps.payroll.models import KPIAssessmentPeriod
 
+    # Simple KPI config snapshot
+    kpi_config = {
+        "grading_criteria": {
+            "A": {"min_score": 90, "percentage": 0.1},
+            "B": {"min_score": 80, "percentage": 0.05},
+            "C": {"min_score": 70, "percentage": 0},
+            "D": {"min_score": 0, "percentage": -0.05},
+        }
+    }
+
     return KPIAssessmentPeriod.objects.create(
-        month=salary_period.month,
-        name=f"KPI {salary_period.month.strftime('%Y-%m')}",
-        status=KPIAssessmentPeriod.Status.COMPLETED,
+        month=salary_period.month, finalized=True, kpi_config_snapshot=kpi_config
     )
 
 
 @pytest.fixture
-def kpi_assessment(sales_employee, kpi_assessment_period):
+def kpi_assessment(employee, kpi_assessment_period):
     """Create KPI assessment."""
     from decimal import Decimal
 
     from apps.payroll.models import EmployeeKPIAssessment
 
     return EmployeeKPIAssessment.objects.create(
-        employee=sales_employee,
+        employee=employee,
         period=kpi_assessment_period,
         grade_manager="C",
         total_manager_score=Decimal("80.00"),
@@ -272,31 +282,31 @@ def kpi_assessment(sales_employee, kpi_assessment_period):
 
 
 @pytest.fixture
-def payroll_slip(salary_period, sales_employee):
+def payroll_slip(salary_period, employee):
     """Create a payroll slip."""
     from apps.payroll.models import PayrollSlip
 
-    return PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+    return PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
 
 
 @pytest.fixture
-def payroll_slip_pending(salary_period, sales_employee):
+def payroll_slip_pending(salary_period, employee):
     """Create a pending payroll slip."""
     from apps.payroll.models import PayrollSlip
 
-    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
     slip.status = PayrollSlip.Status.PENDING
     slip.save()
     return slip
 
 
 @pytest.fixture
-def payroll_slip_ready(salary_period, sales_employee, contract, timesheet):
+def payroll_slip_ready(salary_period, employee, contract, timesheet):
     """Create a ready payroll slip."""
     from apps.payroll.models import PayrollSlip
     from apps.payroll.services.payroll_calculation import PayrollCalculationService
 
-    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=sales_employee)
+    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
     calculator = PayrollCalculationService(slip)
     calculator.calculate()
     return slip

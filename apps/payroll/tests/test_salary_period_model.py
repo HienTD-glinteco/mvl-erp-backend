@@ -17,9 +17,7 @@ class TestSalaryPeriodModel:
         month = date(2024, 1, 1)
 
         # Act
-        period = SalaryPeriod.objects.create(
-            month=month, salary_config_snapshot=salary_config.config
-        )
+        period = SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
 
         # Assert
         assert period.code == "SP-202401"
@@ -32,15 +30,11 @@ class TestSalaryPeriodModel:
         """Test that only one period per month is allowed."""
         # Arrange
         month = date(2024, 1, 1)
-        SalaryPeriod.objects.create(
-            month=month, salary_config_snapshot=salary_config.config
-        )
+        SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
 
         # Act & Assert
         with pytest.raises(Exception):  # Unique constraint violation
-            SalaryPeriod.objects.create(
-                month=month, salary_config_snapshot=salary_config.config
-            )
+            SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
 
     def test_can_complete_all_ready(self, salary_period, payroll_slip_ready):
         """Test period can be completed when all slips are READY."""
@@ -85,9 +79,7 @@ class TestSalaryConfigSnapshot:
         month = date(2024, 1, 1)
 
         # Act
-        period = SalaryPeriod.objects.create(
-            month=month, salary_config_snapshot=salary_config.config
-        )
+        period = SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
 
         # Assert
         assert period.salary_config_snapshot is not None
@@ -97,10 +89,12 @@ class TestSalaryConfigSnapshot:
     def test_old_period_unchanged_after_config_update(self, salary_period, salary_config):
         """Test that old periods remain unchanged when config is updated."""
         # Arrange
-        original_snapshot = salary_period.salary_config_snapshot.copy()
+        import copy
+
+        original_snapshot = copy.deepcopy(salary_period.salary_config_snapshot)
 
         # Act - Update salary config
-        new_config = salary_config.config.copy()
+        new_config = copy.deepcopy(salary_config.config)
         new_config["insurance_contributions"]["social_insurance"]["employee_rate"] = 0.09
         salary_config.config = new_config
         salary_config.save()
@@ -109,8 +103,6 @@ class TestSalaryConfigSnapshot:
         salary_period.refresh_from_db()
         assert salary_period.salary_config_snapshot == original_snapshot
         assert (
-            salary_period.salary_config_snapshot["insurance_contributions"]["social_insurance"][
-                "employee_rate"
-            ]
+            salary_period.salary_config_snapshot["insurance_contributions"]["social_insurance"]["employee_rate"]
             == 0.08
         )
