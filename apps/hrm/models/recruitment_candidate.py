@@ -45,27 +45,27 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         }
     }
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Candidate code")
-    name = models.CharField(max_length=200, verbose_name="Candidate name")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Candidate code"))
+    name = models.CharField(max_length=200, verbose_name=_("Candidate name"))
     citizen_id = models.CharField(
         max_length=12,
         unique=True,
-        verbose_name="Citizen ID",
+        verbose_name=_("Citizen ID"),
         validators=[CitizenIdValidator],
     )
-    email = models.EmailField(verbose_name="Email")
-    phone = models.CharField(max_length=20, verbose_name="Phone")
+    email = models.EmailField(verbose_name=_("Email"))
+    phone = models.CharField(max_length=20, verbose_name=_("Phone"))
     recruitment_request = models.ForeignKey(
         "RecruitmentRequest",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name="Recruitment request",
+        verbose_name=_("Recruitment request"),
     )
     branch = models.ForeignKey(
         "Branch",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         null=True,
         blank=True,
     )
@@ -73,7 +73,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Block",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         null=True,
         blank=True,
     )
@@ -81,7 +81,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "Department",
         on_delete=models.PROTECT,
         related_name="recruitment_candidates",
-        verbose_name="Department",
+        verbose_name=_("Department"),
         null=True,
         blank=True,
     )
@@ -89,40 +89,40 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         "RecruitmentSource",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name="Recruitment source",
+        verbose_name=_("Recruitment source"),
     )
     recruitment_channel = models.ForeignKey(
         "RecruitmentChannel",
         on_delete=models.PROTECT,
         related_name="candidates",
-        verbose_name="Recruitment channel",
+        verbose_name=_("Recruitment channel"),
     )
     years_of_experience = models.CharField(
         max_length=30,
         choices=YearsOfExperience.choices,
         default=YearsOfExperience.NO_EXPERIENCE,
-        verbose_name="Years of experience",
+        verbose_name=_("Years of experience"),
     )
-    submitted_date = models.DateField(verbose_name="Submitted date")
+    submitted_date = models.DateField(verbose_name=_("Submitted date"))
     status = models.CharField(
         max_length=30,
         choices=Status.choices,
         default=Status.CONTACTED,
-        verbose_name="Status",
+        verbose_name=_("Status"),
     )
     onboard_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Onboard date",
+        verbose_name=_("Onboard date"),
     )
-    note = models.TextField(blank=True, verbose_name="Note")
+    note = models.TextField(blank=True, verbose_name=_("Note"))
     referrer = models.ForeignKey(
         "Employee",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="referred_candidates",
-        verbose_name="Referrer",
+        verbose_name=_("Referrer"),
     )
     employee = models.OneToOneField(
         "Employee",
@@ -130,7 +130,7 @@ class RecruitmentCandidate(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="related_candidate",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
 
     class Meta:

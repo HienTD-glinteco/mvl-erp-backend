@@ -22,17 +22,17 @@ class BankAccount(BaseModel):
         "Employee",
         on_delete=models.CASCADE,
         related_name="bank_accounts",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
     bank = models.ForeignKey(
         "Bank",
         on_delete=models.CASCADE,
         related_name="bank_accounts",
-        verbose_name="Bank",
+        verbose_name=_("Bank"),
     )
-    account_number = models.CharField(max_length=20, verbose_name="Account number")
-    account_name = models.CharField(max_length=50, verbose_name="Account name")
-    is_primary = models.BooleanField(default=False, verbose_name="Is primary")
+    account_number = models.CharField(max_length=20, verbose_name=_("Account number"))
+    account_name = models.CharField(max_length=50, verbose_name=_("Account name"))
+    is_primary = models.BooleanField(default=False, verbose_name=_("Is primary"))
 
     class Meta:
         verbose_name = _("Bank Account")

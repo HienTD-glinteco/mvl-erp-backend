@@ -46,25 +46,25 @@ class EmployeeWorkHistory(BaseModel):
         RETURN_TO_WORK = "Return to Work", _("Return to Work")
 
     date = models.DateField(
-        verbose_name="Date",
+        verbose_name=_("Date"),
         help_text="Date of the work history event",
     )
     name = models.CharField(
         max_length=50,
         choices=EventType.choices,
-        verbose_name="Event type",
+        verbose_name=_("Event type"),
         help_text="Type of the work history event",
     )
     detail = models.TextField(
         blank=True,
-        verbose_name="Details",
+        verbose_name=_("Details"),
         help_text="Detailed description of the work history event",
     )
     employee = models.ForeignKey(
         "hrm.Employee",
         on_delete=models.CASCADE,
         related_name="work_histories",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee associated with this work history record",
     )
     branch = models.ForeignKey(
@@ -73,7 +73,7 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         help_text="Branch (auto-populated from employee)",
     )
     block = models.ForeignKey(
@@ -82,7 +82,7 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         help_text="Block (auto-populated from employee)",
     )
     department = models.ForeignKey(
@@ -91,7 +91,7 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Department",
+        verbose_name=_("Department"),
         help_text="Department (auto-populated from employee)",
     )
     position = models.ForeignKey(
@@ -100,12 +100,12 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Position",
+        verbose_name=_("Position"),
         help_text="Position (auto-populated from employee)",
     )
     note = SafeTextField(
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes about the work history event",
     )
     status = models.CharField(
@@ -113,25 +113,25 @@ class EmployeeWorkHistory(BaseModel):
         choices=Employee.Status.choices,
         null=True,
         blank=True,
-        verbose_name="Status",
+        verbose_name=_("Status"),
         help_text="New employee status after the event (for state-change events)",
     )
     from_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="From date",
+        verbose_name=_("From date"),
         help_text="Start date of the event period",
     )
     to_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name="To date",
+        verbose_name=_("To date"),
         help_text="End date of the event period",
     )
     retain_seniority = models.BooleanField(
         null=True,
         blank=True,
-        verbose_name="Retain seniority",
+        verbose_name=_("Retain seniority"),
         help_text="For return to work events, whether seniority is retained or reset",
     )
     resignation_reason = models.CharField(
@@ -139,7 +139,7 @@ class EmployeeWorkHistory(BaseModel):
         choices=Employee.ResignationReason.choices,
         null=True,
         blank=True,
-        verbose_name="Resignation reason",
+        verbose_name=_("Resignation reason"),
         help_text="Reason for resignation (if applicable)",
     )
     contract = models.ForeignKey(
@@ -148,7 +148,7 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Contract",
+        verbose_name=_("Contract"),
         help_text="New contract for contract-change event",
     )
     decision = models.ForeignKey(
@@ -157,7 +157,7 @@ class EmployeeWorkHistory(BaseModel):
         null=True,
         blank=True,
         related_name="employee_work_histories",
-        verbose_name="Decision",
+        verbose_name=_("Decision"),
         help_text="Decision associated with this work history event",
     )
     old_employee_type = models.CharField(
@@ -179,7 +179,7 @@ class EmployeeWorkHistory(BaseModel):
     previous_data = models.JSONField(
         null=True,
         blank=True,
-        verbose_name="Previous data",
+        verbose_name=_("Previous data"),
         help_text="JSON data storing previous values (status, branch_id, block_id, department_id, contract_type, contract_id)",
     )
 

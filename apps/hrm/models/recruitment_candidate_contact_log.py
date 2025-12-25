@@ -13,16 +13,16 @@ class RecruitmentCandidateContactLog(BaseModel):
         "Employee",
         on_delete=models.PROTECT,
         related_name="candidate_contact_logs",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
     )
-    date = models.DateField(verbose_name="Contact date")
-    method = models.CharField(max_length=100, verbose_name="Contact method")
-    note = models.TextField(blank=True, verbose_name="Note")
+    date = models.DateField(verbose_name=_("Contact date"))
+    method = models.CharField(max_length=100, verbose_name=_("Contact method"))
+    note = models.TextField(blank=True, verbose_name=_("Note"))
     recruitment_candidate = models.ForeignKey(
         "RecruitmentCandidate",
         on_delete=models.CASCADE,
         related_name="contact_logs",
-        verbose_name="Recruitment candidate",
+        verbose_name=_("Recruitment candidate"),
     )
 
     class Meta:

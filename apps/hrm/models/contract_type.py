@@ -108,21 +108,21 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         unique=True,
         null=True,
         blank=True,
-        verbose_name="Contract type code",
+        verbose_name=_("Contract type code"),
         help_text="Auto-generated unique contract type code",
     )
 
     name = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name="Contract type name",
+        verbose_name=_("Contract type name"),
         help_text="Name of the contract type",
     )
 
     symbol = models.CharField(
         max_length=20,
         default="",
-        verbose_name="Contract type symbol",
+        verbose_name=_("Contract type symbol"),
         help_text="Symbol or abbreviation for the contract type",
     )
 
@@ -130,7 +130,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=20,
         choices=Category.choices,
         default=Category.CONTRACT,
-        verbose_name="Category",
+        verbose_name=_("Category"),
         help_text="Whether this is a contract type or appendix type",
     )
 
@@ -138,14 +138,14 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=20,
         choices=DurationType.choices,
         default=DurationType.INDEFINITE,
-        verbose_name="Duration type",
+        verbose_name=_("Duration type"),
         help_text="Whether the contract has a fixed term or is indefinite",
     )
 
     duration_months = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name="Duration in months",
+        verbose_name=_("Duration in months"),
         help_text="Number of months for fixed-term contracts",
     )
 
@@ -153,7 +153,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name="Base salary",
+        verbose_name=_("Base salary"),
         help_text="Base salary amount",
     )
 
@@ -162,7 +162,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name="Lunch allowance",
+        verbose_name=_("Lunch allowance"),
         help_text="Lunch allowance amount",
     )
 
@@ -171,7 +171,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name="Phone allowance",
+        verbose_name=_("Phone allowance"),
         help_text="Phone allowance amount",
     )
 
@@ -180,14 +180,14 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name="Other allowance",
+        verbose_name=_("Other allowance"),
         help_text="Other allowance amount",
     )
 
     net_percentage = models.IntegerField(
         choices=NetPercentage.choices,
         default=NetPercentage.FULL,
-        verbose_name="Net percentage",
+        verbose_name=_("Net percentage"),
         help_text="Net salary percentage at the time of contract",
     )
 
@@ -195,7 +195,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=20,
         choices=TaxCalculationMethod.choices,
         default=TaxCalculationMethod.PROGRESSIVE,
-        verbose_name="Tax calculation method",
+        verbose_name=_("Tax calculation method"),
         help_text="Method for calculating tax",
     )
 
@@ -203,41 +203,41 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=20,
         choices=WorkingTimeType.choices,
         default=WorkingTimeType.FULL_TIME,
-        verbose_name="Working time type",
+        verbose_name=_("Working time type"),
         help_text="Type of working time arrangement",
     )
 
     annual_leave_days = models.PositiveIntegerField(
         default=12,
         validators=[MinValueValidator(0), MaxValueValidator(12)],
-        verbose_name="Annual leave days",
+        verbose_name=_("Annual leave days"),
         help_text="Number of annual leave days (maximum 12)",
     )
 
     has_social_insurance = models.BooleanField(
         default=True,
-        verbose_name="Has social insurance",
+        verbose_name=_("Has social insurance"),
         help_text="Whether social insurance is included",
     )
 
     working_conditions = SafeTextField(
         max_length=1000,
         default="",
-        verbose_name="Working conditions",
+        verbose_name=_("Working conditions"),
         help_text="Description of working conditions",
     )
 
     rights_and_obligations = SafeTextField(
         max_length=5000,
         default="",
-        verbose_name="Rights and obligations",
+        verbose_name=_("Rights and obligations"),
         help_text="Rights and obligations of parties",
     )
 
     terms = SafeTextField(
         max_length=5000,
         default="",
-        verbose_name="Terms",
+        verbose_name=_("Terms"),
         help_text="Contract terms and conditions",
     )
 
@@ -245,7 +245,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         max_length=500,
         null=True,
         blank=True,
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes",
     )
 
@@ -255,7 +255,7 @@ class ContractType(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="contract_type_templates",
-        verbose_name="Template file",
+        verbose_name=_("Template file"),
         help_text="Template file for the contract",
     )
 

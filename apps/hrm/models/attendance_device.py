@@ -41,79 +41,79 @@ class AttendanceDevice(AutoCodeMixin, BaseModel):
         db_table = "hrm_attendance_device"
         ordering = ["name"]
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Code")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
     name = models.CharField(
         max_length=200,
-        verbose_name="Device name",
+        verbose_name=_("Device name"),
         help_text="Name for the device",
     )
     block = models.ForeignKey(
         "Block",
         on_delete=models.CASCADE,
         related_name="attendance_devices",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         help_text="Organization Block where device is installed",
         null=True,
         blank=True,
     )
     ip_address = models.CharField(
         max_length=255,
-        verbose_name="IP address or domain",
+        verbose_name=_("IP address or domain"),
         help_text="Network address for device communication",
     )
     port = models.PositiveIntegerField(
-        verbose_name="Port",
+        verbose_name=_("Port"),
         help_text="Network port for device communication",
     )
     password = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Password",
+        verbose_name=_("Password"),
         help_text="Authentication password for device access",
     )
     serial_number = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Serial number",
+        verbose_name=_("Serial number"),
         help_text="Manufacturer's device serial number",
     )
     registration_number = models.CharField(
         max_length=100,
         blank=True,
-        verbose_name="Registration number",
+        verbose_name=_("Registration number"),
         help_text="Device registration or license number",
     )
     is_enabled = models.BooleanField(
         default=True,
-        verbose_name="Is enabled",
+        verbose_name=_("Is enabled"),
         help_text="Whether the device is enabled for automatic synchronization",
     )
     is_connected = models.BooleanField(
         default=False,
-        verbose_name="Connection status",
+        verbose_name=_("Connection status"),
         help_text="Whether the device is currently online and reachable",
     )
     realtime_enabled = models.BooleanField(
         default=True,
-        verbose_name="Realtime enabled",
+        verbose_name=_("Realtime enabled"),
         help_text="Whether realtime listener is enabled for this device",
     )
     realtime_disabled_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Realtime disabled at",
+        verbose_name=_("Realtime disabled at"),
         help_text="Timestamp when realtime was disabled due to connection failures",
     )
     polling_synced_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Last polling sync",
+        verbose_name=_("Last polling sync"),
         help_text="Timestamp of last successful polling sync from device",
     )
     note = models.TextField(
         blank=True,
         default="",
-        verbose_name="Note",
+        verbose_name=_("Note"),
         help_text="Additional notes or comments about the device",
     )
 

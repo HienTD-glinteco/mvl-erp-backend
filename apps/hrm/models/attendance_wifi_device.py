@@ -26,15 +26,15 @@ class AttendanceWifiDevice(ColoredValueMixin, AutoCodeMixin, BaseModel):
     }
 
     # Basic fields
-    name = models.CharField(max_length=100, verbose_name="WiFi name")
-    code = models.CharField(max_length=50, unique=True, verbose_name="WiFi code")
+    name = models.CharField(max_length=100, verbose_name=_("WiFi name"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("WiFi code"))
     branch = models.ForeignKey(
         "Branch",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="attendance_wifis",
-        verbose_name="Branch",
+        verbose_name=_("Branch"),
         help_text="Branch where this WiFi is located",
     )
     block = models.ForeignKey(
@@ -43,22 +43,22 @@ class AttendanceWifiDevice(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_wifis",
-        verbose_name="Block",
+        verbose_name=_("Block"),
         help_text="Block where this WiFi is located (must belong to selected branch)",
     )
     bssid = models.CharField(
         max_length=17,
         unique=True,
-        verbose_name="BSSID",
+        verbose_name=_("BSSID"),
         help_text="WiFi hardware identifier (MAC address format: XX:XX:XX:XX:XX:XX)",
     )
     state = models.CharField(
         max_length=20,
         choices=State.choices,
         default=State.IN_USE,
-        verbose_name="State",
+        verbose_name=_("State"),
     )
-    notes = SafeTextField(blank=True, verbose_name="Notes")
+    notes = SafeTextField(blank=True, verbose_name=_("Notes"))
 
     class Meta:
         verbose_name = _("Attendance WiFiDevice")

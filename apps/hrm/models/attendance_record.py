@@ -70,14 +70,14 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
             models.Index(fields=["-timestamp"]),
         ]
 
-    code = models.CharField(max_length=50, unique=True, verbose_name="Code")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
 
     # Attendance type and method
     attendance_type = models.CharField(
         max_length=20,
         choices=AttendanceType.choices,
         default=AttendanceType.BIOMETRIC_DEVICE,
-        verbose_name="Attendance type",
+        verbose_name=_("Attendance type"),
         help_text="Type of attendance method used",
     )
 
@@ -88,7 +88,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name="Biometric Device",
+        verbose_name=_("Biometric Device"),
         help_text="Attendance device that captured this record (for biometric device type)",
     )
 
@@ -99,19 +99,19 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name="Employee",
+        verbose_name=_("Employee"),
         help_text="Employee associated with this attendance record",
     )
 
     attendance_code = models.CharField(
         max_length=20,
         blank=True,
-        verbose_name="Attendance code",
+        verbose_name=_("Attendance code"),
         help_text="User ID from device, used to match with Employee.attendance_code",
     )
 
     timestamp = models.DateTimeField(
-        verbose_name="Timestamp",
+        verbose_name=_("Timestamp"),
         help_text="Date and time when attendance was recorded",
     )
 
@@ -122,7 +122,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(-90), MaxValueValidator(90)],
-        verbose_name="Latitude",
+        verbose_name=_("Latitude"),
         help_text="GeoLocation latitude coordinate (for geolocation attendance)",
     )
     longitude = models.DecimalField(
@@ -131,7 +131,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
-        verbose_name="Longitude",
+        verbose_name=_("Longitude"),
         help_text="GeoLocation longitude coordinate (for geolocation attendance)",
     )
     attendance_geolocation = models.ForeignKey(
@@ -140,7 +140,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name="Attendance geolocation",
+        verbose_name=_("Attendance geolocation"),
         help_text="Geolocation reference (for geolocation attendance)",
     )
     image = models.ForeignKey(
@@ -149,7 +149,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name="Image",
+        verbose_name=_("Image"),
         help_text="Attendance photo (for geolocation attendance)",
     )
 
@@ -160,7 +160,7 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="attendance_records",
-        verbose_name="WiFi device",
+        verbose_name=_("WiFi device"),
         help_text="WiFi device reference (for WiFi attendance)",
     )
 
@@ -175,18 +175,18 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         default=True,
         null=True,
         blank=True,
-        verbose_name="Is valid",
+        verbose_name=_("Is valid"),
         help_text="Whether this attendance record is valid",
     )
     is_pending = models.BooleanField(
         default=False,
-        verbose_name="Is pending",
+        verbose_name=_("Is pending"),
         help_text="Whether this attendance record is pending approval",
     )
     approved_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name="Approved at",
+        verbose_name=_("Approved at"),
         help_text="Date and time when this record was approved",
     )
     approved_by = models.ForeignKey(
@@ -195,18 +195,18 @@ class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
         null=True,
         blank=True,
         related_name="approved_attendance_records",
-        verbose_name="Approved by",
+        verbose_name=_("Approved by"),
         help_text="Employee who approved this record",
     )
     notes = SafeTextField(
         blank=True,
-        verbose_name="Notes",
+        verbose_name=_("Notes"),
         help_text="Additional notes or comments about this attendance record",
     )
     raw_data = models.JSONField(
         null=True,
         blank=True,
-        verbose_name="Raw data",
+        verbose_name=_("Raw data"),
         help_text="Complete raw data from device for debugging purposes",
     )
 
