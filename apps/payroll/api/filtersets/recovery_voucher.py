@@ -16,14 +16,30 @@ class RecoveryVoucherFilterSet(django_filters.FilterSet):
         field_name="status",
         choices=RecoveryVoucher.RecoveryVoucherStatus.choices,
     )
-    employee_id = django_filters.UUIDFilter(field_name="employee__id")
     month = django_filters.CharFilter(method="filter_month")
     amount_min = django_filters.NumberFilter(field_name="amount", lookup_expr="gte")
     amount_max = django_filters.NumberFilter(field_name="amount", lookup_expr="lte")
+    # Organizational hierarchy filters through employee
+    branch = django_filters.NumberFilter(field_name="employee__branch__id")
+    block = django_filters.NumberFilter(field_name="employee__block__id")
+    department = django_filters.NumberFilter(field_name="employee__department__id")
+    position = django_filters.NumberFilter(field_name="employee__position__id")
+    employee = django_filters.NumberFilter(field_name="employee__id")
 
     class Meta:
         model = RecoveryVoucher
-        fields = ["voucher_type", "status", "employee_id", "month", "amount_min", "amount_max"]
+        fields = [
+            "voucher_type",
+            "status",
+            "branch",
+            "block",
+            "department",
+            "position",
+            "employee",
+            "month",
+            "amount_min",
+            "amount_max",
+        ]
 
     def filter_month(self, queryset, name, value):
         """Filter by month in MM/YYYY format."""

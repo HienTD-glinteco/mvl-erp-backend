@@ -9,6 +9,8 @@ from django.contrib.auth import get_user_model
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Employee, Position
+from apps.payroll.constants import ViolationType
+from apps.payroll.models import PenaltyTicket
 
 User = get_user_model()
 
@@ -116,4 +118,26 @@ def user(db):
         username=username,
         email=f"{username}@example.com",
         password="testpass123",
+    )
+
+
+@pytest.fixture
+def penalty_month():
+    """Return a test month (first day)."""
+    return date(2025, 11, 1)
+
+
+@pytest.fixture
+def penalty_ticket(db, employee, penalty_month, user):
+    """Create a test penalty ticket."""
+    return PenaltyTicket.objects.create(
+        employee=employee,
+        employee_code=employee.code,
+        employee_name=employee.fullname,
+        month=penalty_month,
+        amount=100000,
+        violation_count=1,
+        violation_type=ViolationType.UNDER_10_MINUTES,
+        note="Uniform violation - missing name tag",
+        created_by=user,
     )
