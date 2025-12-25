@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 10:27+0700\n"
+"POT-Creation-Date: 2025-12-25 10:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -336,7 +336,7 @@ msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 msgid "Number of positions must be at least 1."
 msgstr "Số lượng vị trí tuyển dụng phải lớn hơn hoặc bằng 1."
 
-#: apps/hrm/api/serializers/timesheet.py:101
+#: apps/hrm/api/serializers/timesheet.py:103
 msgid "Note is required when manually correcting timesheet."
 msgstr "Ghi chú là bắt buộc khi chỉnh sửa chấm công thủ công."
 
@@ -2193,7 +2193,7 @@ msgstr ""
 "mới có thể bị xóa."
 
 #: apps/hrm/api/views/timesheet.py:58 apps/hrm/api/views/timesheet.py:361
-#: apps/hrm/models/timesheet.py:106
+#: apps/hrm/models/timesheet.py:116
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
@@ -2762,10 +2762,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2774,22 +2776,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -3775,15 +3782,15 @@ msgstr "Nguồn tuyển dụng"
 msgid "Recruitment Sources"
 msgstr "Nguồn tuyển dụng"
 
-#: apps/hrm/models/timesheet.py:107
+#: apps/hrm/models/timesheet.py:117
 msgid "Timesheets"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/models/timesheet.py:215
+#: apps/hrm/models/timesheet.py:225
 msgid "Paid"
 msgstr "Có lương"
 
-#: apps/hrm/models/timesheet.py:217
+#: apps/hrm/models/timesheet.py:227
 msgid "Unpaid"
 msgstr "Không lương"
 

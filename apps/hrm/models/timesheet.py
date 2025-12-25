@@ -15,12 +15,13 @@ from apps.hrm.constants import (
     TimesheetStatus,
 )
 from apps.hrm.models.work_schedule import WorkSchedule
+from libs.constants import ColorVariant
 from libs.decimals import quantize_decimal
-from libs.models import AutoCodeMixin, BaseModel, SafeTextField
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
 
 @audit_logging_register
-class TimeSheetEntry(AutoCodeMixin, BaseModel):
+class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Employee timesheet entry.
 
     - Hours are stored as Decimal with 2 decimal places.
@@ -100,6 +101,15 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
     manually_corrected_at = models.DateTimeField(null=True, blank=True, verbose_name="Manually corrected at")
 
     note = SafeTextField(blank=True, verbose_name="Note")
+
+    VARIANT_MAPPING = {
+        "status": {
+            TimesheetStatus.ABSENT: ColorVariant.RED,
+            TimesheetStatus.ON_TIME: ColorVariant.GREEN,
+            TimesheetStatus.NOT_ON_TIME: ColorVariant.YELLOW,
+            TimesheetStatus.SINGLE_PUNCH: ColorVariant.YELLOW,
+        }
+    }
 
     class Meta:
         db_table = "hrm_timesheet"
@@ -217,3 +227,7 @@ class TimeSheetEntry(AutoCodeMixin, BaseModel):
             status = _("Unpaid")
 
         return status
+
+    @property
+    def colored_status(self) -> dict:
+        return self.get_colored_value("status")

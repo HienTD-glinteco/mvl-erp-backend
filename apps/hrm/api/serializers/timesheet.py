@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from apps.hrm.models import TimeSheetEntry
+from libs.drf.serializers.colored_value import ColoredValueSerializer
 
 from .employee import EmployeeSerializer
 
@@ -15,13 +16,14 @@ class TimesheetEntryComplain(serializers.Serializer):
 
 class TimesheetEntrySerializer(serializers.ModelSerializer):
     has_complaint = serializers.SerializerMethodField()
+    colored_status = ColoredValueSerializer()
 
     class Meta:
         model = TimeSheetEntry
         fields = [
             "id",
             "date",
-            "status",
+            "colored_status",
             "check_in_time",
             "check_out_time",
             "start_time",
