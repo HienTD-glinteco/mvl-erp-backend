@@ -348,11 +348,11 @@ msgstr ""
 msgid "Manager score cannot exceed component total score"
 msgstr "Điểm của quản lý không được vượt quá tổng điểm thành phần"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:367
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
 msgid "An assessment for this employee and month already exists"
 msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:385
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
