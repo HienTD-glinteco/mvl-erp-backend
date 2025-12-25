@@ -14,7 +14,7 @@ from apps.hrm.api.serializers.common_nested import (
     EmployeeNestedSerializer,
     PositionNestedSerializer,
 )
-from apps.payroll.models import KPIAssessmentPeriod
+from apps.payroll.models import KPIAssessmentPeriod, SalaryPeriod
 
 # Re-export HRM nested serializers for convenience
 __all__ = [
@@ -24,6 +24,7 @@ __all__ = [
     "DepartmentNestedSerializer",
     "PositionNestedSerializer",
     "KPIAssessmentPeriodNestedSerializer",
+    "SalaryPeriodNestedSerializer",
 ]
 
 
@@ -40,3 +41,12 @@ class KPIAssessmentPeriodNestedSerializer(serializers.ModelSerializer):
     def get_month(self, obj):
         """Return month in n/YYYY format (month without leading zero)."""
         return obj.month.strftime("%-m/%Y")
+
+
+class SalaryPeriodNestedSerializer(serializers.ModelSerializer):
+    """Nested serializer for SalaryPeriod."""
+
+    class Meta:
+        model = SalaryPeriod
+        fields = ["id", "code", "month", "status"]
+        read_only_fields = ["id", "code", "month", "status"]
