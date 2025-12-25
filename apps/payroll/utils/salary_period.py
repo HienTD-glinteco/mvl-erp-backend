@@ -1,7 +1,7 @@
 """Utility functions for salary period management."""
 
 import calendar
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from apps.hrm.models.holiday import Holiday
@@ -32,9 +32,7 @@ def calculate_standard_working_days(year: int, month: int) -> Decimal:
         # Monday=0, Sunday=6
         if current_date.weekday() < 5:  # Monday to Friday
             working_days += 1
-        current_date = current_date.replace(day=current_date.day + 1) if current_date.day < calendar.monthrange(year, month)[1] else last_day.replace(day=last_day.day + 1)
-        if current_date > last_day:
-            break
+        current_date += timedelta(days=1)
     
     # Subtract holidays that fall on weekdays
     holidays = Holiday.objects.filter(
@@ -53,11 +51,7 @@ def calculate_standard_working_days(year: int, month: int) -> Decimal:
             if current_date.weekday() < 5:
                 working_days -= 1
             
-            # Move to next day
-            if current_date.day < calendar.monthrange(current_date.year, current_date.month)[1]:
-                current_date = current_date.replace(day=current_date.day + 1)
-            else:
-                break
+            current_date += timedelta(days=1)
     
     return Decimal(str(working_days))
 
