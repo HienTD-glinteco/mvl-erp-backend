@@ -7,6 +7,7 @@ from .models import (
     KPIAssessmentPeriod,
     KPIConfig,
     KPICriterion,
+    PenaltyTicket,
     RecoveryVoucher,
     SalaryConfig,
     SalesRevenue,
@@ -333,11 +334,10 @@ class RecoveryVoucherAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    ordering = ["-updated_at"]
-
+    ordering = ["-created_at"]
     fieldsets = [
         (
-            "Basic Information",
+            "Voucher Information",
             {
                 "fields": ["code", "name", "voucher_type", "employee"],
             },
@@ -480,6 +480,70 @@ class SalesRevenueAdmin(admin.ModelAdmin):
             "Status",
             {
                 "fields": ["status"],
+            },
+        ),
+    ]
+
+
+@admin.register(PenaltyTicket)
+class PenaltyTicketAdmin(admin.ModelAdmin):
+    """Admin configuration for PenaltyTicket model.
+
+    Provides interface to view and manage penalty tickets (uniform violations).
+    """
+
+    list_display = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "amount",
+        "month",
+        "payment_status",
+        "payroll_status",
+        "created_at",
+    ]
+    list_filter = ["month", "payment_status", "payroll_status"]
+    search_fields = ["code", "employee_code", "employee_name", "note"]
+    readonly_fields = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "created_by",
+        "updated_by",
+        "created_at",
+        "updated_at",
+    ]
+    ordering = ["-created_at"]
+
+    fieldsets = [
+        (
+            "Ticket Information",
+            {
+                "fields": ["code", "month"],
+            },
+        ),
+        (
+            "Employee Information",
+            {
+                "fields": [
+                    "employee",
+                    "employee_code",
+                    "employee_name",
+                ],
+            },
+        ),
+        (
+            "Violation Details",
+            {
+                "fields": [
+                    "violation_count",
+                    "violation_type",
+                    "amount",
+                    "payment_status",
+                    "payroll_status",
+                    "note",
+                    "attachments",
+                ],
             },
         ),
         (
