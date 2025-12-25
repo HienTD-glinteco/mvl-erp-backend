@@ -307,3 +307,36 @@ register_auto_code_signal(
     temp_code_prefix="TEMP_",
     custom_generate_code=generate_penalty_ticket_code,
 )
+
+
+@receiver(post_save, sender=PenaltyTicket)
+def on_penalty_ticket_status_changed(sender, instance, created, update_fields, **kwargs):
+    """Recalculate payroll when penalty ticket status changes.
+
+    This signal triggers when a PenaltyTicket is saved.
+    Recalculates payroll to update penalty blocking status.
+    """
+    # Skip recalculation on creation or if status wasn't updated
+    if created or (update_fields and "status" not in update_fields):
+        return
+
+    from apps.payroll.models import PayrollSlip, SalaryPeriod
+    from apps.payroll.services.payroll_calculation import PayrollCalculationService
+
+    # Find salary period for this month
+    try:
+        salary_period = SalaryPeriod.objects.get(month=instance.month)
+    except SalaryPeriod.DoesNotExist:
+        # No salary period for this month yet
+        return
+
+    # Find payroll slip for this employee
+    try:
+        payroll_slip = PayrollSlip.objects.get(salary_period=salary_period, employee=instance.employee)
+    except PayrollSlip.DoesNotExist:
+        # No payroll slip yet
+        return
+
+    # Recalculate payroll
+    calculator = PayrollCalculationService(payroll_slip)
+    calculator.calculate()
