@@ -39,29 +39,29 @@ class PenaltyTicket(AutoCodeMixin, BaseModel):
         related_name="penalty_tickets",
         verbose_name="Employee",
     )
-    employee_code = models.CharField(max_length=50, verbose_name="Employee Code")
-    employee_name = models.CharField(max_length=200, verbose_name="Employee Name")
+    employee_code = models.CharField(max_length=50, verbose_name=_("Employee Code"))
+    employee_name = models.CharField(max_length=200, verbose_name=_("Employee Name"))
 
     # Violation details
-    violation_count = models.PositiveIntegerField(default=1, verbose_name="Violation Count")
+    violation_count = models.PositiveIntegerField(default=1, verbose_name=_("Violation Count"))
     violation_type = models.CharField(
         max_length=30,
         choices=ViolationType.choices,
         default=ViolationType.OTHER,
-        verbose_name="Violation Type",
+        verbose_name=_("Violation Type"),
         db_index=True,
     )
-    amount = models.PositiveIntegerField(verbose_name="Amount")
-    month = models.DateField(verbose_name="Month", db_index=True)
+    amount = models.PositiveIntegerField(verbose_name=_("Amount"))
+    month = models.DateField(verbose_name=_("Month"), db_index=True)
     status = models.CharField(
         max_length=15,
         choices=Status.choices,
         default=Status.UNPAID,
-        verbose_name="Status",
+        verbose_name=_("Status"),
         db_index=True,
     )
-    note = SafeTextField(max_length=500, blank=True, verbose_name="Note")
-
+    payment_date = models.DateField(null=True, blank=True, verbose_name=_("Payment Date"), db_index=True)
+    note = SafeTextField(max_length=500, blank=True, verbose_name=_("Note"))
     # Optional attachments
     attachments = models.ManyToManyField(
         "files.FileModel",
@@ -89,8 +89,8 @@ class PenaltyTicket(AutoCodeMixin, BaseModel):
     )
 
     class Meta:
-        verbose_name = "Penalty Ticket"
-        verbose_name_plural = "Penalty Tickets"
+        verbose_name = _("Penalty Ticket")
+        verbose_name_plural = _("Penalty Tickets")
         db_table = "payroll_penalty_ticket"
         ordering = ["-created_at"]
         indexes = [
