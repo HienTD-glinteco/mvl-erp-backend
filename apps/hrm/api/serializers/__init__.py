@@ -96,7 +96,7 @@ from .recruitment_reports import (
 )
 from .recruitment_request import RecruitmentRequestSerializer
 from .recruitment_source import RecruitmentSourceSerializer
-from .timesheet import EmployeeTimesheetSerializer
+from .timesheet import EmployeeTimesheetSerializer, TimeSheetEntryDetailSerializer, TimeSheetEntryUpdateSerializer
 from .wifi_attendance import WiFiAttendanceSerializer
 from .work_schedule import WorkScheduleSerializer
 
@@ -184,6 +184,8 @@ __all__ = [
     "EmployeeTypeConversionReportSerializer",
     "ResignedReasonItemSerializer",
     "EmployeeTimesheetSerializer",
+    "TimeSheetEntryDetailSerializer",
+    "TimeSheetEntryUpdateSerializer",
     "WorkScheduleSerializer",
     "DecisionSerializer",
     "DecisionExportSerializer",

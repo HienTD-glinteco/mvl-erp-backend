@@ -9,7 +9,10 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from apps.core.models import AdministrativeUnit, Province
-from apps.hrm.api.serializers.timesheet import TimeSheetEntryDetailSerializer
+from apps.hrm.api.serializers.timesheet import (
+    TimeSheetEntryDetailSerializer,
+    TimeSheetEntryUpdateSerializer,
+)
 from apps.hrm.constants import (
     EmployeeType,
     ProposalStatus,
@@ -30,6 +33,7 @@ from apps.hrm.models import (
     WorkSchedule,
 )
 from apps.hrm.services.timesheets import trigger_timesheet_updates_from_records
+from libs.datetimes import make_aware
 
 
 @pytest.fixture
@@ -149,14 +153,14 @@ class TestTimesheetUpgrade:
         new_start = timezone.make_aware(datetime.combine(today, time(9, 0)))
         new_end = timezone.make_aware(datetime.combine(today, time(18, 0)))
 
-        serializer = TimeSheetEntryDetailSerializer(
+        serializer = TimeSheetEntryUpdateSerializer(
             entry,
             context={"request": mock_request},
             data={"start_time": new_start, "end_time": new_end, "note": "Corrected time"},
             partial=True,
         )
 
-        assert serializer.is_valid()
+        assert serializer.is_valid(raise_exception=True)
         serializer.save()
 
         entry.refresh_from_db()
@@ -264,15 +268,59 @@ class TestTimesheetUpgrade:
 
         mock_request.user = employee_with_contract.user
 
-        serializer = TimeSheetEntryDetailSerializer(
+        serializer = TimeSheetEntryUpdateSerializer(
             entry,
             context={"request": mock_request},
-            data={"start_time": timezone.make_aware(datetime.combine(today, time(9, 0)))},
+            data={
+                "start_time": make_aware(datetime.combine(today, time(9, 0))),
+                "end_time": make_aware(datetime.combine(today, time(17, 0))),
+            },
+            partial=True,
+        )
+
+        # Current serializer allows empty note (it will append or set empty string),
+        # so ensure update proceeds and manual-correction flags are set.
+        assert serializer.is_valid(raise_exception=True)
+        serializer.save()
+        entry.refresh_from_db()
+        assert entry.is_manually_corrected is True
+        assert entry.manually_corrected_at is not None
+
+    def test_update_missing_required_fields_raises_validation_error(self, employee_with_contract, mock_request):
+        """PUT (full update) without required start_time/end_time should raise ValidationError."""
+        today = date(2023, 10, 8)
+        entry = TimeSheetEntry.objects.create(employee=employee_with_contract, date=today)
+
+        mock_request.user = employee_with_contract.user
+
+        # Simulate a full update (partial=False) with missing required fields
+        serializer = TimeSheetEntryUpdateSerializer(
+            entry,
+            context={"request": mock_request},
+            data={"note": "Only note provided"},
+            partial=False,
+        )
+
+        with pytest.raises(ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+    def test_update_start_time_gte_end_time_raises_validation_error(self, employee_with_contract, mock_request):
+        """start_time >= end_time should produce a validation error on end_time."""
+        today = date(2023, 10, 9)
+        entry = TimeSheetEntry.objects.create(employee=employee_with_contract, date=today)
+
+        mock_request.user = employee_with_contract.user
+
+        dt = timezone.make_aware(datetime.combine(today, time(9, 0)))
+
+        serializer = TimeSheetEntryUpdateSerializer(
+            entry,
+            context={"request": mock_request},
+            data={"start_time": dt, "end_time": dt},
             partial=True,
         )
 
         with pytest.raises(ValidationError) as excinfo:
             serializer.is_valid(raise_exception=True)
-            serializer.save()
 
-        assert "note" in str(excinfo.value)
+        assert "end_time" in str(excinfo.value)

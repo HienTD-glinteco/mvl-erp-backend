@@ -15,19 +15,21 @@ from drf_spectacular.utils import (
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeTimesheetFilterSet, MineTimesheetFilterSet
-from apps.hrm.api.serializers.timesheet import (
+from apps.hrm.api.serializers import (
     EmployeeTimesheetSerializer,
     TimeSheetEntryDetailSerializer,
+    TimeSheetEntryUpdateSerializer,
 )
 from apps.hrm.constants import EmployeeSalaryType, ProposalStatus, ProposalType
 from apps.hrm.models import Employee, ProposalTimeSheetEntry
 from apps.hrm.models.monthly_timesheet import EmployeeMonthlyTimesheet
 from apps.hrm.models.timesheet import TimeSheetEntry
-from libs.drf.base_viewset import BaseReadOnlyModelViewSet
+from libs.drf.base_viewset import BaseGenericViewSet, BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
 
@@ -350,9 +352,61 @@ class EmployeeTimesheetViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             ),
         ],
     ),
+    update=extend_schema(
+        summary="Update a timesheet entry",
+        description=(
+            "Update an existing timesheet entry. Only editable fields provided in the "
+            "request will be updated. Returns the updated timesheet entry in the response."
+        ),
+        tags=["6.6: Timesheet"],
+        request=TimeSheetEntryUpdateSerializer,
+        responses={
+            200: TimeSheetEntryDetailSerializer,
+        },
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "NC000001",
+                        "employee": {"id": 1, "code": "EMP001", "fullname": "John Doe"},
+                        "date": "2025-01-15",
+                        "start_time": "2025-01-15T08:00:00Z",
+                        "end_time": "2025-01-15T17:00:00Z",
+                        "morning_hours": "4.00",
+                        "afternoon_hours": "4.00",
+                        "official_hours": "8.00",
+                        "overtime_hours": "0.00",
+                        "total_worked_hours": "8.00",
+                        "status": "on_time",
+                        "absent_reason": None,
+                        "is_full_salary": True,
+                        "count_for_payroll": True,
+                        "note": "",
+                        "created_at": "2025-01-15T00:00:00Z",
+                        "updated_at": "2025-01-15T00:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            ),
+            OpenApiExample(
+                "Validation Error",
+                value={"success": False, "data": None, "error": {"start_time": ["Invalid value"]}},
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
 )
-class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
-    """Read-only ViewSet for TimeSheetEntry detail view."""
+class TimeSheetEntryViewSet(
+    AuditLoggingMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin, BaseGenericViewSet
+):
+    """ViewSet for TimeSheetEntry detail view."""
+
+    http_method_names = ["get", "head", "put"]
 
     queryset = TimeSheetEntry.objects.select_related("employee").all()
     serializer_class = TimeSheetEntryDetailSerializer
@@ -366,7 +420,16 @@ class TimeSheetEntryViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             "description_template": _("List employee timesheet entries"),
         },
         "retrieve": {
-            "name_template": _("Get employee timesheet details"),
-            "description_template": _("Get employee timesheet details"),
+            "name_template": _("Get employee timesheet entry"),
+            "description_template": _("Get employee timesheet entry"),
+        },
+        "update": {
+            "name_template": _("Update an employee timesheet entry"),
+            "description_template": _("Update an employee timesheet entry"),
         },
     }
+
+    def get_serializer_class(self):
+        if self.action == "update":
+            return TimeSheetEntryUpdateSerializer
+        return super().get_serializer_class()

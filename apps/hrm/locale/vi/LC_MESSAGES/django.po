@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 14:24+0700\n"
+"POT-Creation-Date: 2025-12-25 14:49+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -336,9 +336,9 @@ msgstr "Ứng viên {code} đã được chuyển đổi thành nhân viên"
 msgid "Number of positions must be at least 1."
 msgstr "Số lượng vị trí tuyển dụng phải lớn hơn hoặc bằng 1."
 
-#: apps/hrm/api/serializers/timesheet.py:103
-msgid "Note is required when manually correcting timesheet."
-msgstr "Ghi chú là bắt buộc khi chỉnh sửa chấm công thủ công."
+#: apps/hrm/api/serializers/timesheet.py:99
+msgid "End time must be after start time."
+msgstr "Thời gian kết thúc phải sau thời gian bắt đầu"
 
 #: apps/hrm/api/serializers/wifi_attendance.py:33
 msgid "WiFi device not found"
@@ -495,7 +495,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/recruitment_expense.py:342
 #: apps/hrm/api/views/recruitment_request.py:391
 #: apps/hrm/api/views/recruitment_source.py:57
-#: apps/hrm/api/views/timesheet.py:57 apps/hrm/api/views/timesheet.py:360
+#: apps/hrm/api/views/timesheet.py:59 apps/hrm/api/views/timesheet.py:414
 msgid "HRM"
 msgstr "HCNS"
 
@@ -2192,51 +2192,58 @@ msgstr ""
 "Không thể xóa yêu cầu tuyển dụng. Chỉ những yêu cầu có trạng thái BẢN NHÁP "
 "mới có thể bị xóa."
 
-#: apps/hrm/api/views/timesheet.py:58 apps/hrm/api/views/timesheet.py:361
+#: apps/hrm/api/views/timesheet.py:60 apps/hrm/api/views/timesheet.py:415
 #: apps/hrm/models/timesheet.py:116
 msgid "Timesheet"
 msgstr "Bảng chấm công"
 
-#: apps/hrm/api/views/timesheet.py:62 apps/hrm/api/views/timesheet.py:63
+#: apps/hrm/api/views/timesheet.py:64 apps/hrm/api/views/timesheet.py:65
 msgid "List employee timesheets"
 msgstr "Bảng công"
 
-#: apps/hrm/api/views/timesheet.py:66 apps/hrm/api/views/timesheet.py:67
-#: apps/hrm/api/views/timesheet.py:369 apps/hrm/api/views/timesheet.py:370
+#: apps/hrm/api/views/timesheet.py:68 apps/hrm/api/views/timesheet.py:69
 msgid "Get employee timesheet details"
 msgstr "Chi tiết bảng công nhân viên"
 
-#: apps/hrm/api/views/timesheet.py:70
+#: apps/hrm/api/views/timesheet.py:72
 msgid "History timesheets"
 msgstr "Lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:71
+#: apps/hrm/api/views/timesheet.py:73
 msgid "View history of timesheets"
 msgstr "Xem lịch sử thay đổi bảng công"
 
-#: apps/hrm/api/views/timesheet.py:74
+#: apps/hrm/api/views/timesheet.py:76
 msgid "History detail of timesheets"
 msgstr "Xem chi tiết lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:75
+#: apps/hrm/api/views/timesheet.py:77
 msgid "View history detail of timesheets"
 msgstr "Xem chi tiết lịch sử bảng công"
 
-#: apps/hrm/api/views/timesheet.py:78 apps/hrm/api/views/timesheet.py:79
+#: apps/hrm/api/views/timesheet.py:80 apps/hrm/api/views/timesheet.py:81
 msgid "List timesheets of current employee"
 msgstr "Liệt kê bảng chấm công của nhân viên hiện tại"
 
-#: apps/hrm/api/views/timesheet.py:165
+#: apps/hrm/api/views/timesheet.py:167
 msgid "The current user is not associated with any employee."
 msgstr "Người dùng hiện tại không liên kết với bất kỳ nhân viên nào."
 
-#: apps/hrm/api/views/timesheet.py:231
+#: apps/hrm/api/views/timesheet.py:233
 msgid "Month filter cannot be in the future."
 msgstr "Bộ lọc tháng không thể ở tương lai."
 
-#: apps/hrm/api/views/timesheet.py:365 apps/hrm/api/views/timesheet.py:366
+#: apps/hrm/api/views/timesheet.py:419 apps/hrm/api/views/timesheet.py:420
 msgid "List employee timesheet entries"
 msgstr "Danh sách ngày công nhân viên"
+
+#: apps/hrm/api/views/timesheet.py:423 apps/hrm/api/views/timesheet.py:424
+msgid "Get employee timesheet entry"
+msgstr "Xem chi tiết ngày công của nhân viên"
+
+#: apps/hrm/api/views/timesheet.py:427 apps/hrm/api/views/timesheet.py:428
+msgid "Update an employee timesheet entry"
+msgstr "Cập nhật ngày công của nhân viên"
 
 #: apps/hrm/constants.py:25
 msgid "Official"
