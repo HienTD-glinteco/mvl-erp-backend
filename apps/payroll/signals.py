@@ -1,6 +1,6 @@
 """Signals for payroll app."""
 
-from datetime import datetime
+from datetime import date
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -102,7 +102,16 @@ def create_kpi_assessment_for_new_employee(sender, instance, created, **kwargs):
         return
 
     # Get the first day of the month from start_date
-    month_date = datetime(instance.start_date.year, instance.start_date.month, 1).date()
+    # Note: Django's post_save signal can fire with unconverted field values
+    # when objects are created with string dates (e.g., Employee.objects.create(start_date="2023-01-01"))
+    # The database will have the correct date, but in-memory instance.start_date might still be a string
+    start_date = instance.start_date
+    if isinstance(start_date, str):
+        from datetime import datetime
+
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+    month_date = date(start_date.year, start_date.month, 1)
 
     # Check if KPI assessment period exists for this month
     try:
