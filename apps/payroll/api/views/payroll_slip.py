@@ -24,7 +24,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all payroll slips",
         description="Retrieve a paginated list of payroll slips with filtering and search support",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         examples=[
             OpenApiExample(
                 "Success - List of payroll slips",
@@ -73,7 +73,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get payroll slip details",
         description="Retrieve detailed calculation breakdown for a specific payroll slip",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         examples=[
             OpenApiExample(
                 "Success - Single payroll slip",
@@ -102,23 +102,31 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
+    create=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
+    update=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
+    partial_update=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
+    destroy=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
 )
 class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing payroll slips.
-    
+
     Provides CRUD operations and custom actions for payroll slip management:
     - List, retrieve payroll slips
     - Recalculate individual slip
     - Hold/release slip
     - Change status (ready, deliver)
     """
-    
+
     queryset = PayrollSlip.objects.select_related(
-        "employee",
-        "salary_period",
-        "delivered_by",
-        "created_by",
-        "updated_by"
+        "employee", "salary_period", "delivered_by", "created_by", "updated_by"
     ).all()
     serializer_class = PayrollSlipSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
@@ -126,7 +134,7 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["calculated_at", "gross_income", "net_salary", "employee_code"]
     ordering = ["-calculated_at"]
     search_fields = ["employee_code", "employee_name", "code"]
-    
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
         if self.action == "list":
@@ -136,11 +144,11 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
         elif self.action in ["ready", "deliver"]:
             return PayrollSlipStatusUpdateSerializer
         return PayrollSlipSerializer
-    
+
     @extend_schema(
         summary="Recalculate payroll slip",
         description="Recalculate salary for this payroll slip based on current data",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         examples=[
             OpenApiExample(
                 "Success - Recalculated",
@@ -163,33 +171,35 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
     def recalculate(self, request, pk=None):
         """Recalculate this payroll slip."""
         slip = self.get_object()
-        
+
         # Store old net salary for comparison
         old_net_salary = slip.net_salary
-        
+
         # Import here to avoid circular import
         from apps.payroll.services.payroll_calculation import PayrollCalculationService
-        
+
         calculator = PayrollCalculationService(slip)
         calculator.calculate()
-        
+
         # Check if changed
         changed = old_net_salary != slip.net_salary
         if changed:
             slip.need_resend_email = True
             slip.save(update_fields=["need_resend_email"])
-        
-        return Response({
-            "id": slip.id,
-            "net_salary": slip.net_salary,
-            "changed": changed,
-            "need_resend_email": slip.need_resend_email,
-        })
-    
+
+        return Response(
+            {
+                "id": slip.id,
+                "net_salary": slip.net_salary,
+                "changed": changed,
+                "need_resend_email": slip.need_resend_email,
+            }
+        )
+
     @extend_schema(
         summary="Hold payroll slip",
         description="Put payroll slip on hold with a reason",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         request=PayrollSlipHoldSerializer,
         responses={200: PayrollSlipStatusUpdateSerializer},
         examples=[
@@ -220,22 +230,24 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
         slip = self.get_object()
         serializer = PayrollSlipHoldSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         slip.status = PayrollSlip.Status.HOLD
         slip.status_note = serializer.validated_data["reason"]
         slip.save(update_fields=["status", "status_note", "updated_at"])
-        
-        response_serializer = PayrollSlipStatusUpdateSerializer({
-            "id": slip.id,
-            "status": slip.status,
-            "status_note": slip.status_note,
-        })
+
+        response_serializer = PayrollSlipStatusUpdateSerializer(
+            {
+                "id": slip.id,
+                "status": slip.status,
+                "status_note": slip.status_note,
+            }
+        )
         return Response(response_serializer.data)
-    
+
     @extend_schema(
         summary="Mark payroll slip as ready",
         description="Change slip status from HOLD to READY",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         responses={200: PayrollSlipStatusUpdateSerializer},
         examples=[
             OpenApiExample(
@@ -258,36 +270,35 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
     def ready(self, request, pk=None):
         """Mark the payroll slip as ready."""
         slip = self.get_object()
-        
+
         # Can only change to READY from HOLD or if already READY
         if slip.status not in [PayrollSlip.Status.HOLD, PayrollSlip.Status.READY]:
-            return Response(
-                {"error": _("Can only mark HOLD slips as READY")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            return Response({"error": _("Can only mark HOLD slips as READY")}, status=status.HTTP_400_BAD_REQUEST)
+
         # Check if has unpaid penalties
         if slip.has_unpaid_penalty:
             return Response(
                 {"error": _("Cannot mark as READY - employee has unpaid penalty tickets")},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         slip.status = PayrollSlip.Status.READY
         slip.status_note = ""
         slip.save(update_fields=["status", "status_note", "updated_at"])
-        
-        response_serializer = PayrollSlipStatusUpdateSerializer({
-            "id": slip.id,
-            "status": slip.status,
-            "status_note": slip.status_note,
-        })
+
+        response_serializer = PayrollSlipStatusUpdateSerializer(
+            {
+                "id": slip.id,
+                "status": slip.status,
+                "status_note": slip.status_note,
+            }
+        )
         return Response(response_serializer.data)
-    
+
     @extend_schema(
         summary="Deliver payroll slip",
         description="Mark slip as delivered to accounting",
-        tags=["10.6: Payroll Slips"],
+        tags=["10.7: Payroll Slips"],
         responses={200: PayrollSlipStatusUpdateSerializer},
         examples=[
             OpenApiExample(
@@ -310,24 +321,23 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
     def deliver(self, request, pk=None):
         """Mark the payroll slip as delivered."""
         from django.utils import timezone
-        
+
         slip = self.get_object()
-        
+
         # Can only deliver READY slips
         if slip.status != PayrollSlip.Status.READY:
-            return Response(
-                {"error": _("Can only deliver READY slips")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            return Response({"error": _("Can only deliver READY slips")}, status=status.HTTP_400_BAD_REQUEST)
+
         slip.status = PayrollSlip.Status.DELIVERED
         slip.delivered_at = timezone.now()
         slip.delivered_by = request.user
         slip.save(update_fields=["status", "delivered_at", "delivered_by", "updated_at"])
-        
-        response_serializer = PayrollSlipStatusUpdateSerializer({
-            "id": slip.id,
-            "status": slip.status,
-            "status_note": slip.status_note,
-        })
+
+        response_serializer = PayrollSlipStatusUpdateSerializer(
+            {
+                "id": slip.id,
+                "status": slip.status,
+                "status_note": slip.status_note,
+            }
+        )
         return Response(response_serializer.data)

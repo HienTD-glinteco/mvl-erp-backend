@@ -25,7 +25,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     list=extend_schema(
         summary="List all salary periods",
         description="Retrieve a paginated list of salary periods with filtering and ordering support",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Success - List of salary periods",
@@ -58,7 +58,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     retrieve=extend_schema(
         summary="Get salary period details",
         description="Retrieve detailed information about a specific salary period including config snapshot",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Success - Single salary period",
@@ -95,7 +95,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
     create=extend_schema(
         summary="Create a new salary period",
         description="Create a new salary period for a specific month. Automatically snapshots current salary config.",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Request - Create salary period",
@@ -128,10 +128,19 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
+    update=extend_schema(
+        tags=["10.6: Salary Periods"],
+    ),
+    partial_update=extend_schema(
+        tags=["10.6: Salary Periods"],
+    ),
+    destroy=extend_schema(
+        tags=["10.6: Salary Periods"],
+    ),
 )
 class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing salary periods.
-    
+
     Provides CRUD operations and custom actions for salary period management:
     - List, create, retrieve salary periods
     - Get period statistics
@@ -139,7 +148,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     - Complete period (mark as finished)
     - Send email notifications
     """
-    
+
     queryset = SalaryPeriod.objects.all()
     serializer_class = SalaryPeriodSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
@@ -147,7 +156,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     ordering_fields = ["month", "created_at", "total_employees"]
     ordering = ["-month"]
     search_fields = ["code"]
-    
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
         if self.action == "list":
@@ -157,11 +166,11 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         elif self.action == "statistics":
             return SalaryPeriodStatisticsSerializer
         return SalaryPeriodSerializer
-    
+
     @extend_schema(
         summary="Get salary period statistics",
         description="Get statistical summary of payroll slips in this period",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         responses={200: SalaryPeriodStatisticsSerializer},
         examples=[
             OpenApiExample(
@@ -187,7 +196,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     def statistics(self, request, pk=None):
         """Get statistics for this salary period."""
         period = self.get_object()
-        
+
         # Count by status
         stats = period.payroll_slips.aggregate(
             pending_count=Count("id", filter=Q(status=PayrollSlip.Status.PENDING)),
@@ -197,22 +206,20 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
             total_gross_income=Sum("gross_income"),
             total_net_salary=Sum("net_salary"),
         )
-        
+
         serializer = SalaryPeriodStatisticsSerializer(stats)
         return Response(serializer.data)
-    
+
     @extend_schema(
         summary="Recalculate all payroll slips",
         description="Trigger recalculation for all payroll slips in this period",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Success - Recalculation started",
                 value={
                     "success": True,
-                    "data": {
-                        "message": "Recalculation started for 50 payroll slips"
-                    },
+                    "data": {"message": "Recalculation started for 50 payroll slips"},
                     "error": None,
                 },
                 response_only=True,
@@ -224,25 +231,23 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     def recalculate(self, request, pk=None):
         """Recalculate all payroll slips in this period."""
         period = self.get_object()
-        
+
         # Import here to avoid circular import
         from apps.payroll.services.payroll_calculation import PayrollCalculationService
-        
+
         # Get all slips in this period
         slips = period.payroll_slips.all()
-        
+
         for slip in slips:
             calculator = PayrollCalculationService(slip)
             calculator.calculate()
-        
-        return Response({
-            "message": f"Recalculation started for {slips.count()} payroll slips"
-        })
-    
+
+        return Response({"message": f"Recalculation started for {slips.count()} payroll slips"})
+
     @extend_schema(
         summary="Complete salary period",
         description="Mark period as completed and set all READY slips to DELIVERED",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Success - Period completed",
@@ -265,27 +270,29 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     def complete(self, request, pk=None):
         """Complete the salary period."""
         period = self.get_object()
-        
+
         if not period.can_complete():
             return Response(
                 {"error": _("Cannot complete period with pending or hold payroll slips")},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Complete the period
         period.complete(user=request.user)
-        
-        return Response({
-            "id": period.id,
-            "status": period.status,
-            "completed_at": period.completed_at,
-            "delivered_count": period.payroll_slips.filter(status=PayrollSlip.Status.DELIVERED).count(),
-        })
-    
+
+        return Response(
+            {
+                "id": period.id,
+                "status": period.status,
+                "completed_at": period.completed_at,
+                "delivered_count": period.payroll_slips.filter(status=PayrollSlip.Status.DELIVERED).count(),
+            }
+        )
+
     @extend_schema(
         summary="Send email notifications",
         description="Send payroll slip emails to employees",
-        tags=["10.5: Salary Periods"],
+        tags=["10.6: Salary Periods"],
         examples=[
             OpenApiExample(
                 "Success - Emails sent",
@@ -307,16 +314,18 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     def send_emails(self, request, pk=None):
         """Send email notifications for payroll slips."""
         period = self.get_object()
-        
+
         # Filter slips to send
         filter_status = request.data.get("filter_status", [PayrollSlip.Status.READY, PayrollSlip.Status.DELIVERED])
         slips = period.payroll_slips.filter(status__in=filter_status)
-        
+
         # TODO: Implement email sending logic
         # For now, just return mock data
-        
-        return Response({
-            "sent_count": slips.count(),
-            "failed_count": 0,
-            "failed_emails": [],
-        })
+
+        return Response(
+            {
+                "sent_count": slips.count(),
+                "failed_count": 0,
+                "failed_emails": [],
+            }
+        )

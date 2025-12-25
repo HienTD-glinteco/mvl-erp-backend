@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 10:45+0700\n"
+"POT-Creation-Date: 2025-12-25 14:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -188,7 +188,8 @@ msgstr "Kiểm tra trạng thái nhập dữ liệu"
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:54
+#: apps/imports/api/views.py:54 apps/payroll/models/recovery_voucher.py:70
+#: apps/payroll/models/travel_expense.py:111
 msgid "Status"
 msgstr "Trạng thái"
 
@@ -197,6 +198,7 @@ msgid "Import Check Status"
 msgstr "Quyền kiểm tra trạng thái nhập dữ liệu"
 
 #: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
+#: apps/payroll/models/payroll_slip.py:32
 msgid "Pending"
 msgstr "Đang chờ"
 
@@ -204,7 +206,8 @@ msgstr "Đang chờ"
 msgid "Running"
 msgstr "Đang chạy"
 
-#: apps/mailtemplates/models.py:22 apps/realestate/models/project.py:19
+#: apps/mailtemplates/models.py:22 apps/payroll/models/salary_period.py:35
+#: apps/realestate/models/project.py:19
 msgid "Completed"
 msgstr "Đã hoàn thành"
 
@@ -308,6 +311,527 @@ msgstr "Không được phép xem job này"
 #: apps/mailtemplates/views.py:554
 msgid "Job not found"
 msgstr "Job không tồn tại"
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:91
+msgid "An assessment for this department and period already exists"
+msgstr ""
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:96
+#: apps/payroll/api/serializers/department_kpi_assessment.py:153
+msgid "Grade must be one of: A, B, C, D"
+msgstr "Xếp loại phải là một trong các giá trị: A, B, C, D"
+
+#: apps/payroll/api/serializers/department_kpi_assessment.py:103
+msgid "Only grade and note can be updated for finalized assessments"
+msgstr "Chỉ có thể cập nhật xếp loại và ghi chú cho các đánh giá đã hoàn tất"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:90
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:163
+msgid "Cannot update finalized assessment"
+msgstr "Không thể cập nhật đánh giá đã hoàn tất"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:96
+msgid "Cannot update assessment that has been assessed by manager"
+msgstr "Không thể cập nhật đánh giá đã được quản lý đánh giá"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
+msgid "Cannot update items of a finalized assessment"
+msgstr "Không thể cập nhật các mục của đánh giá đã hoàn tất"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
+msgid "Employee score cannot exceed component total score"
+msgstr ""
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:260
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:290
+msgid "Manager score cannot exceed component total score"
+msgstr "Điểm của quản lý không được vượt quá tổng điểm thành phần"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:367
+msgid "An assessment for this employee and month already exists"
+msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
+
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
+msgid ""
+"Only grade_manager_overridden and note can be updated for finalized "
+"assessments"
+msgstr "Chỉ có thể cập nhật điểm và ghi chú cho các đánh giá đã hoàn tất"
+
+#: apps/payroll/api/serializers/kpi_criterion.py:40
+msgid "Component total score must be between 0 and 100"
+msgstr "Tổng điểm thành phần phải nằm trong khoảng từ 0 đến 100"
+
+#: apps/payroll/api/serializers/kpi_criterion.py:69
+msgid ""
+"A criterion with this target, evaluation type, and criterion already exists"
+msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:91
+msgid "Month is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:99
+#, fuzzy
+#| msgid "Month must be between 1 and 12"
+msgid "Month must be between 1 and 12."
+msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:103
+msgid "Month must be in MM/YYYY format."
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:108
+msgid "Employee is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:110
+msgid "Employee must be in active or onboarding status."
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:117
+#: apps/payroll/models/recovery_voucher.py:110
+msgid "Amount must be greater than 0."
+msgstr "Số tiền phải lớn hơn 0"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:123
+msgid "Name is required."
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:125
+msgid "Name must not exceed 250 characters."
+msgstr "Tên không được vượt quá 250 ký tự"
+
+#: apps/payroll/api/serializers/recovery_voucher.py:131
+msgid "Note must not exceed 500 characters."
+msgstr "Ghi chú không được vượt quá 500 ký tự"
+
+#: apps/payroll/api/serializers/sales_revenue.py:81
+msgid "Revenue is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:83
+msgid "Revenue must be non-negative"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:89
+msgid "Transaction count is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:91
+msgid "Transaction count must be non-negative"
+msgstr ""
+
+#: apps/payroll/api/serializers/sales_revenue.py:97
+#: apps/payroll/api/serializers/travel_expense.py:101
+#, fuzzy
+#| msgid "Employee is required."
+msgid "Employee is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:100
+#: apps/payroll/api/serializers/travel_expense.py:104
+msgid "Employee must be active"
+msgstr "Nhân viên phải đang hoạt động"
+
+#: apps/payroll/api/serializers/sales_revenue.py:107
+#: apps/payroll/api/serializers/travel_expense.py:111
+msgid "Month is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/sales_revenue.py:119
+#: apps/payroll/api/serializers/travel_expense.py:124
+msgid "Month must be between 1 and 12"
+msgstr "Tháng phải nằm trong khoảng từ 1 đến 12"
+
+#: apps/payroll/api/serializers/sales_revenue.py:122
+#: apps/payroll/api/serializers/travel_expense.py:127
+msgid "Year must be between 1900 and 2100"
+msgstr "Năm phải nằm trong khoảng từ 1900 đến 2100"
+
+#: apps/payroll/api/serializers/sales_revenue.py:127
+#: apps/payroll/api/serializers/travel_expense.py:133
+msgid "Month must be in MM/YYYY format (e.g., 11/2025)"
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/serializers/sales_revenue.py:145
+#: apps/payroll/api/serializers/sales_revenue.py:149
+msgid "Sales revenue for this employee and month already exists"
+msgstr "Đã tồn tại doanh thu bán hàng cho nhân viên và tháng này"
+
+#: apps/payroll/api/serializers/travel_expense.py:85
+msgid "Name is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:87
+msgid "Name must not exceed 250 characters"
+msgstr "Tên không được vượt quá 250 ký tự"
+
+#: apps/payroll/api/serializers/travel_expense.py:93
+msgid "Amount is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/serializers/travel_expense.py:95
+msgid "Amount must be greater than 0"
+msgstr "Số tiền phải lớn hơn 0"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:275
+msgid "Month parameter is required"
+msgstr "Trường này là bắt buộc"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:285
+msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
+msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:294
+msgid "Cannot create assessment period for future months"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:309
+msgid "No KPI configuration found. Please create one first."
+msgstr "Không tìm thấy cấu hình KPI. Vui lòng tạo một cấu hình trước."
+
+#: apps/payroll/api/views/kpi_assessment_period.py:330
+msgid "Assessment generation completed successfully"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:346
+msgid "Period is already finalized"
+msgstr "Kỳ đánh giá đã được hoàn tất"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:408
+msgid "Period finalized successfully"
+msgstr "Hoàn tất kỳ đánh giá thành công"
+
+#: apps/payroll/api/views/kpi_config.py:99
+msgid "View KPI configuration"
+msgstr "Xem cấu hình KPI"
+
+#: apps/payroll/api/views/kpi_config.py:102
+msgid "KPI View KPI Configuration"
+msgstr "Xem cấu hình KPI"
+
+#: apps/payroll/api/views/payroll_slip.py:277
+msgid "Can only mark HOLD slips as READY"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:284
+msgid "Cannot mark as READY - employee has unpaid penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:331
+msgid "Can only deliver READY slips"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:194
+#: apps/payroll/api/views/penalty_tickets.py:224
+#: apps/payroll/api/views/penalty_tickets.py:235
+#: apps/payroll/api/views/penalty_tickets.py:246
+#: apps/payroll/api/views/penalty_tickets.py:257
+#: apps/payroll/api/views/penalty_tickets.py:268
+#: apps/payroll/api/views/penalty_tickets.py:279
+#: apps/payroll/api/views/penalty_tickets.py:315
+#: apps/payroll/api/views/recovery_voucher.py:338
+#: apps/payroll/api/views/salary_config.py:128
+#: apps/payroll/api/views/sales_revenue.py:373
+#: apps/payroll/api/views/travel_expense.py:408
+msgid "Payroll"
+msgstr "Bảng lương"
+
+#: apps/payroll/api/views/penalty_tickets.py:195
+#: apps/payroll/api/views/penalty_tickets.py:225
+#: apps/payroll/api/views/penalty_tickets.py:236
+#: apps/payroll/api/views/penalty_tickets.py:247
+#: apps/payroll/api/views/penalty_tickets.py:258
+#: apps/payroll/api/views/penalty_tickets.py:269
+#: apps/payroll/api/views/penalty_tickets.py:280
+#: apps/payroll/api/views/penalty_tickets.py:316
+#, fuzzy
+#| msgid "Travel Expense Management"
+msgid "Penalty Management"
+msgstr "Quản lý chi phí đi lại"
+
+#: apps/payroll/api/views/penalty_tickets.py:223
+msgid "View penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:226
+msgid "View Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:234
+msgid "View penalty ticket details"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:237
+msgid "View Penalty Ticket Details"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:245
+msgid "Create penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:248
+msgid "Create Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:256
+msgid "Update penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:259
+msgid "Update Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:267
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Partially update penalty tickets"
+msgstr "Quyền cập nhật một phần {model_name}"
+
+#: apps/payroll/api/views/penalty_tickets.py:270
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Partially Update Penalty Tickets"
+msgstr "Quyền cập nhật một phần {model_name}"
+
+#: apps/payroll/api/views/penalty_tickets.py:278
+msgid "Delete penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:281
+msgid "Delete Penalty Tickets"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:314
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Bulk update penalty ticket status"
+msgstr "Quyền cập nhật một phần {model_name}"
+
+#: apps/payroll/api/views/penalty_tickets.py:317
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Update Penalty Ticket Status"
+msgstr "Quyền cập nhật một phần {model_name}"
+
+#: apps/payroll/api/views/penalty_tickets.py:326
+#, fuzzy
+#| msgid "Authentication required"
+msgid "Authentication credentials were not provided."
+msgstr "Yêu cầu xác thực"
+
+#: apps/payroll/api/views/recovery_voucher.py:339
+msgid "Recovery/Back Pay"
+msgstr "Truy thu / Truy lĩnh"
+
+#: apps/payroll/api/views/recovery_voucher.py:362
+msgid "Cannot delete voucher for a month with existing payroll."
+msgstr "Không thể xóa phiếu cho một tháng đã có bảng lương."
+
+#: apps/payroll/api/views/salary_config.py:127
+msgid "View salary configuration"
+msgstr "Xem cấu hình lương"
+
+#: apps/payroll/api/views/salary_config.py:129
+msgid "Configuration"
+msgstr "Cấu hình"
+
+#: apps/payroll/api/views/salary_config.py:130
+msgid "Payroll View Salary Configuration"
+msgstr "Xem cấu hình bảng lương"
+
+#: apps/payroll/api/views/salary_period.py:280
+msgid "Cannot complete period with pending or hold payroll slips"
+msgstr ""
+
+#: apps/payroll/api/views/sales_revenue.py:374
+#, fuzzy
+#| msgid "Travel Expense Management"
+msgid "Sales Revenue Management"
+msgstr "Quản lý chi phí đi lại"
+
+#: apps/payroll/api/views/sales_revenue.py:396
+#, fuzzy
+#| msgid "Cannot delete travel expense for a month with existing payroll."
+msgid "Cannot delete sales revenue for a month with existing payroll."
+msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
+
+#: apps/payroll/api/views/travel_expense.py:409
+msgid "Travel Expense Management"
+msgstr "Quản lý chi phí đi lại"
+
+#: apps/payroll/api/views/travel_expense.py:434
+msgid "Cannot delete travel expense for a month with existing payroll."
+msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
+
+#: apps/payroll/models/kpi_criterion.py:38
+msgid "Sales"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:39
+msgid "Backoffice"
+msgstr ""
+
+#: apps/payroll/models/kpi_criterion.py:42
+msgid "Work Performance"
+msgstr "Hiệu quả công việc"
+
+#: apps/payroll/models/kpi_criterion.py:43
+msgid "Discipline"
+msgstr "Kỷ luật"
+
+#: apps/payroll/models/payroll_slip.py:33
+msgid "Ready"
+msgstr ""
+
+#: apps/payroll/models/payroll_slip.py:34
+msgid "Hold"
+msgstr ""
+
+#: apps/payroll/models/payroll_slip.py:35
+msgid "Delivered"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:21
+msgid "Paid"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:22
+msgid "Unpaid"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:27
+msgid "Violation under 10 minutes"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:28
+msgid "Violation over 10 minutes"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:29
+msgid "Absent without reason"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:30
+msgid "Uniform error"
+msgstr ""
+
+#: apps/payroll/models/penalty_ticket.py:31
+msgid "Other violation"
+msgstr ""
+
+#: apps/payroll/models/recovery_voucher.py:35
+msgid "Recovery"
+msgstr "Truy thu"
+
+#: apps/payroll/models/recovery_voucher.py:36
+msgid "Back Pay"
+msgstr "Truy lĩnh"
+
+#: apps/payroll/models/recovery_voucher.py:39
+msgid "Not Calculated"
+msgstr "Chưa tính vào bảng lương"
+
+#: apps/payroll/models/recovery_voucher.py:40
+msgid "Calculated"
+msgstr "Đã tính vào bảng lương"
+
+#: apps/payroll/models/recovery_voucher.py:49
+msgid "Voucher Code"
+msgstr "Mã phiếu"
+
+#: apps/payroll/models/recovery_voucher.py:50
+msgid "Name"
+msgstr "Tên"
+
+#: apps/payroll/models/recovery_voucher.py:54
+msgid "Voucher Type"
+msgstr "Loại phiếu"
+
+#: apps/payroll/models/recovery_voucher.py:60
+#: apps/payroll/models/travel_expense.py:101
+msgid "Employee"
+msgstr "Nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:62
+msgid "Employee Code"
+msgstr "Mã nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:63
+msgid "Employee Name"
+msgstr "Tên nhân viên"
+
+#: apps/payroll/models/recovery_voucher.py:64
+msgid "Amount (VND)"
+msgstr "Số tiền"
+
+#: apps/payroll/models/recovery_voucher.py:65
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/payroll/models/recovery_voucher.py:72
+#: apps/payroll/models/travel_expense.py:113
+msgid "Note"
+msgstr "Ghi chú"
+
+#: apps/payroll/models/recovery_voucher.py:78
+msgid "Created By"
+msgstr "Người tạo"
+
+#: apps/payroll/models/recovery_voucher.py:85
+msgid "Updated By"
+msgstr "Người cập nhật"
+
+#: apps/payroll/models/recovery_voucher.py:89
+msgid "Recovery Voucher"
+msgstr "Phiếu truy thu/truy lĩnh"
+
+#: apps/payroll/models/recovery_voucher.py:90
+msgid "Recovery Vouchers"
+msgstr "Các phiếu truy thu/truy lĩnh"
+
+#: apps/payroll/models/salary_period.py:34
+msgid "Ongoing"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:94
+msgid "Code"
+msgstr "Mã"
+
+#: apps/payroll/models/travel_expense.py:95
+msgid "Expense name"
+msgstr "Tên chi phí"
+
+#: apps/payroll/models/travel_expense.py:96
+msgid "Expense type"
+msgstr "Loại chi phí"
+
+#: apps/payroll/models/travel_expense.py:103
+msgid "Amount"
+msgstr "Số tiền"
+
+#: apps/payroll/models/travel_expense.py:104
+msgid "First day of the expense month"
+msgstr ""
+
+#: apps/payroll/models/travel_expense.py:120
+msgid "Created by"
+msgstr "Người tạo"
+
+#: apps/payroll/models/travel_expense.py:128
+msgid "Updated by"
+msgstr "Người cập nhật"
+
+#: apps/payroll/models/travel_expense.py:132
+msgid "Travel Expense"
+msgstr "Công tác phí"
+
+#: apps/payroll/models/travel_expense.py:133
+msgid "Travel Expenses"
+msgstr "Các công tác phí"
 
 #: apps/realestate/models/project.py:17
 msgid "Active"
