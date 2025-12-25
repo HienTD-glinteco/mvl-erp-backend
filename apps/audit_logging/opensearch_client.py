@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from collections.abc import Iterable
 from typing import Any, Dict, List
 
 from django.conf import settings
@@ -283,6 +284,9 @@ class OpenSearchClient:
                         }
                     }
                 )
+            elif isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+                # Terms query for list of values
+                must_clauses.append({"terms": {key: list(value)}})
             else:
                 # Exact match for other fields
                 must_clauses.append({"term": {key: value}})

@@ -48,7 +48,7 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TimeSheetEntry
-        fields = [
+        fields = read_only_fields = [
             "id",
             "employee",
             "date",
@@ -75,39 +75,42 @@ class TimeSheetEntryDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = [
-            "id",
-            "employee",
-            "check_in_time",
-            "check_out_time",
-            "manually_corrected_by",
-            "manually_corrected_at",
-            "working_days",
-            "day_type",
-            "official_hours",
-            "total_worked_hours",
-            "created_at",
-            "updated_at",
-            "is_holiday",
-            "payroll_status",
+
+
+class TimeSheetEntryUpdateSerializer(serializers.ModelSerializer):
+    start_time = serializers.DateTimeField(required=True)
+    end_time = serializers.DateTimeField(required=True)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = TimeSheetEntry
+        fields = [
+            "start_time",
+            "end_time",
+            "note",
         ]
 
-    def update(self, instance, validated_data):
+    def validate(self, attrs):
+        start_time = attrs.get("start_time")
+        end_time = attrs.get("end_time")
+        note = attrs.get("note") or ""
+
+        if start_time and end_time and start_time >= end_time:
+            raise serializers.ValidationError({"end_time": _("End time must be after start time.")})
+
+        note = note.strip()
+        if self.instance.note:
+            note = self.instance.note + "\n---\n" + note
+
+        attrs["note"] = note
+        attrs["is_manually_corrected"] = True
+        attrs["manually_corrected_at"] = timezone.now()
+
         request = self.context.get("request")
+        if request and request.user and hasattr(request.user, "employee"):
+            attrs["manually_corrected_by"] = request.user.employee
 
-        # Check if start_time or end_time is being updated
-        if "start_time" in validated_data or "end_time" in validated_data:
-            # Requirement: Note is required when updating start/end time
-            note = validated_data.get("note", instance.note)
-            if not note:
-                raise serializers.ValidationError({"note": _("Note is required when manually correcting timesheet.")})
-
-            instance.is_manually_corrected = True
-            instance.manually_corrected_at = timezone.now()
-            if request and request.user and hasattr(request.user, "employee"):
-                instance.manually_corrected_by = request.user.employee
-
-        return super().update(instance, validated_data)
+        return attrs
 
 
 class EmployeeTimesheetSerializer(serializers.Serializer):
