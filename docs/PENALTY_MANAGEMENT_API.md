@@ -11,6 +11,7 @@ All API endpoints are prefixed with `/api/payroll/`.
 ## Authentication
 
 All endpoints require authentication. Include the authentication token in the request header:
+
 ```
 Authorization: Bearer <your-token>
 ```
@@ -20,6 +21,7 @@ Authorization: Bearer <your-token>
 All API responses follow the envelope format:
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -29,6 +31,7 @@ All API responses follow the envelope format:
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -49,6 +52,7 @@ Retrieve a paginated list of penalty tickets with filters and search.
 **Endpoint:** `GET /api/payroll/penalty-tickets`
 
 **Query Parameters:**
+
 - `period`: Filter by period in MM/YYYY format
 - `month`: Filter by penalty month in MM/YYYY format
 - `employee`: Filter by employee ID
@@ -58,6 +62,7 @@ Retrieve a paginated list of penalty tickets with filters and search.
 - `page` / `page_size`: Pagination controls
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -93,6 +98,7 @@ Create a new penalty ticket. The ticket code is generated automatically.
 **Endpoint:** `POST /api/payroll/penalty-tickets`
 
 **Request Body:**
+
 ```json
 {
   "period": "11/2025",
@@ -104,6 +110,7 @@ Create a new penalty ticket. The ticket code is generated automatically.
 ```
 
 **Example Success Response:**
+
 ```json
 {
   "success": true,
@@ -132,6 +139,7 @@ Update an existing penalty ticket. The `code`, `employee_code`, and `employee_na
 **Endpoint:** `PUT /api/payroll/penalty-tickets/{id}`
 
 **Request Body:**
+
 ```json
 {
   "period": "11/2025",
@@ -149,6 +157,7 @@ Remove a penalty ticket by ID.
 **Endpoint:** `DELETE /api/payroll/penalty-tickets/{id}`
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -166,6 +175,7 @@ Retrieve a paginated list of penalty tickets (uniform violations).
 **Endpoint:** `GET /api/payroll/penalty-tickets`
 
 **Query Parameters:**
+
 - `period`: Filter by period (MM/YYYY format)
 - `employee`: Filter by employee ID
 - `employee_code`: Filter by employee code
@@ -179,11 +189,13 @@ Retrieve a paginated list of penalty tickets (uniform violations).
 - `page_size`: Results per page
 
 **Example Request:**
+
 ```bash
 GET /api/payroll/penalty-tickets?period=11/2025&org_department=Sales
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -225,6 +237,7 @@ Retrieve details of a specific penalty ticket.
 **Endpoint:** `GET /api/payroll/penalty-tickets/{id}`
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -257,6 +270,7 @@ Create a new penalty ticket for uniform violation.
 **Endpoint:** `POST /api/payroll/penalty-tickets`
 
 **Request Body:**
+
 ```json
 {
   "period": "11/2025",
@@ -268,6 +282,7 @@ Create a new penalty ticket for uniform violation.
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -298,6 +313,7 @@ Update an existing penalty ticket.
 **Endpoint:** `PUT /api/payroll/penalty-tickets/{id}`
 
 **Request Body:**
+
 ```json
 {
   "period": "11/2025",
@@ -309,6 +325,7 @@ Update an existing penalty ticket.
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -334,6 +351,7 @@ Delete a penalty ticket.
 **Endpoint:** `DELETE /api/payroll/penalty-tickets/{id}`
 
 **Example Response:**
+
 ```
 HTTP 204 No Content
 ```
@@ -345,17 +363,19 @@ HTTP 204 No Content
 ### Fine Calculations
 
 1. **Late Fine:** `max(late_count - 2, 0) × 50,000 VND`
+
    - First 2 late days are free
    - Each additional late day costs 50,000 VND
 
 2. **Absence Fine:** `absence_count × 100,000 VND`
+
    - Each unexcused absence costs 100,000 VND
 
 3. **Total Fine:** Sum of late fine, absence fine, and uniform violation fine
 
 ### Payroll Integration
 
-- When a penalty ticket is created/updated/deleted, the affected employee's penalty board `payroll_status` is reset to `NOT_CALCULATED`
+- When a penalty ticket is created/updated/deleted, the affected employee's penalty board `status` is reset to `NOT_CALCULATED`
 - When monthly payroll is created, all penalty boards for that period are marked as `CALCULATED`
 
 ### Code Generation
@@ -366,13 +386,13 @@ HTTP 204 No Content
 
 ## Error Codes
 
-| HTTP Status | Error Code | Description |
-|-------------|-----------|-------------|
-| 400 | Bad Request | Invalid input or validation error |
-| 401 | Unauthorized | Missing or invalid authentication |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource not found |
-| 500 | Internal Server Error | Server error |
+| HTTP Status | Error Code            | Description                       |
+| ----------- | --------------------- | --------------------------------- |
+| 400         | Bad Request           | Invalid input or validation error |
+| 401         | Unauthorized          | Missing or invalid authentication |
+| 403         | Forbidden             | Insufficient permissions          |
+| 404         | Not Found             | Resource not found                |
+| 500         | Internal Server Error | Server error                      |
 
 ## Permissions
 

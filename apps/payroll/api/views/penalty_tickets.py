@@ -13,11 +13,10 @@ from apps.core.api.permissions import RoleBasedPermission
 from apps.core.utils.permissions import register_permission
 from apps.payroll.api.filtersets import PenaltyTicketFilterSet
 from apps.payroll.api.serializers import (
-    PaymentStatusUpdateSerializer,
+    BulkUpdateStatusSerializer,
     PenaltyTicketSerializer,
     PenaltyTicketUpdateSerializer,
 )
-from apps.payroll.constants import PaymentStatus
 from apps.payroll.models import PenaltyTicket
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
@@ -48,8 +47,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                 "violation_count": 1,
                                 "violation_type": "UNDER_10_MINUTES",
                                 "amount": 100000,
-                                "payment_status": "UNPAID",
-                                "payroll_status": "NOT_CALCULATED",
+                                "status": "UNPAID",
                                 "note": "Uniform violation - missing name tag",
                                 "attachments": [],
                                 "created_at": "2025-11-15T10:00:00Z",
@@ -83,8 +81,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "violation_count": 1,
                         "violation_type": "UNDER_10_MINUTES",
                         "amount": 100000,
-                        "payment_status": "UNPAID",
-                        "payroll_status": "NOT_CALCULATED",
+                        "status": "UNPAID",
                         "note": "Uniform violation",
                         "attachments": [],
                     },
@@ -110,7 +107,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "violation_count": 1,
                     "violation_type": "UNDER_10_MINUTES",
                     "amount": 100000,
-                    "payment_status": "UNPAID",
+                    "status": "UNPAID",
                     "note": "Uniform violation - missing name tag",
                     "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
                 },
@@ -130,8 +127,7 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                         "violation_count": 1,
                         "violation_type": "UNDER_10_MINUTES",
                         "amount": 100000,
-                        "payment_status": "UNPAID",
-                        "payroll_status": "NOT_CALCULATED",
+                        "status": "UNPAID",
                         "note": "Uniform violation - missing name tag",
                         "attachments": [],
                     },
@@ -193,7 +189,7 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = PenaltyTicketFilterSet
     search_fields = ["code", "employee_code", "employee_name"]
-    ordering_fields = ["created_at", "month", "amount", "payment_status", "payroll_status"]
+    ordering_fields = ["created_at", "month", "amount", "status"]
     ordering = ["-created_at"]
     module = _("Payroll")
     submodule = _("Penalty Management")
@@ -292,11 +288,11 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
         summary="Update payment status for penalty tickets",
         description="Mark one or multiple penalty tickets as paid or unpaid.",
         tags=["10.3: Penalty Management"],
-        request=PaymentStatusUpdateSerializer,
+        request=BulkUpdateStatusSerializer,
         examples=[
             OpenApiExample(
                 "Mark tickets as paid",
-                value={"ids": [1, 2, 3], "payment_status": PaymentStatus.PAID},
+                value={"ids": [1, 2, 3], "status": PenaltyTicket.Status.PAID},
                 request_only=True,
             ),
             OpenApiExample(
@@ -315,23 +311,24 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
     )
     @register_permission(
         "payroll.change_penalty_ticket",
-        description=_("Update penalty ticket payment status"),
+        description=_("Bulk update penalty ticket status"),
         module=_("Payroll"),
         submodule=_("Penalty Management"),
-        name=_("Update Penalty Ticket Payment Status"),
+        name=_("Update Penalty Ticket Status"),
     )
-    @action(detail=False, methods=["post"], url_path="payment-status")
-    def update_payment_status(self, request, *args, **kwargs):
+    @action(detail=False, methods=["post"], url_path="bulk-update-status")
+    def bulk_update_status(self, request, *args, **kwargs):
         """Bulk update payment status for penalty tickets."""
-        serializer = PaymentStatusUpdateSerializer(data=request.data)
+        serializer = BulkUpdateStatusSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-
-        ids = serializer.validated_data["ids"]
-        payment_status = serializer.validated_data["payment_status"]
-        user = self.request.user if self.request.user.is_authenticated else None
-        updated_count = PenaltyTicket.objects.filter(id__in=ids).update(payment_status=payment_status, updated_by=user)
+        if not self.request.user.is_authenticated:
+            return Response(
+                {"detail": _("Authentication credentials were not provided.")},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        counter = serializer.bulk_update_status()
 
         return Response(
-            {"updated_count": updated_count},
+            {"updated_count": counter},
             status=status.HTTP_200_OK,
         )

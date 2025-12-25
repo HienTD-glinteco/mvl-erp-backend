@@ -9,7 +9,6 @@ from django.contrib.auth import get_user_model
 
 from apps.core.models import AdministrativeUnit, Province
 from apps.hrm.models import Block, Branch, Department, Employee, Position
-from apps.payroll.constants import ViolationType
 from apps.payroll.models import PenaltyTicket
 
 User = get_user_model()
@@ -137,7 +136,7 @@ def penalty_ticket(db, employee, penalty_month, user):
         month=penalty_month,
         amount=100000,
         violation_count=1,
-        violation_type=ViolationType.UNDER_10_MINUTES,
+        violation_type=PenaltyTicket.ViolationType.UNDER_10_MINUTES,
         note="Uniform violation - missing name tag",
         created_by=user,
     )

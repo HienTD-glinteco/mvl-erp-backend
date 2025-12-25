@@ -97,8 +97,7 @@ class PenaltyTicketAPITest(APITestCase):
         self.assertEqual(data["violation_count"], 2)
         self.assertEqual(data["violation_type"], "OVER_10_MINUTES")
         self.assertEqual(data["amount"], 100000)
-        self.assertEqual(data["payment_status"], "UNPAID")
-        self.assertEqual(data["payroll_status"], "NOT_CALCULATED")
+        self.assertEqual(data["status"], "UNPAID")
 
         ticket = PenaltyTicket.objects.get(id=data["id"])
         self.assertEqual(ticket.created_by, self.user)
@@ -166,8 +165,7 @@ class PenaltyTicketAPITest(APITestCase):
             "month": "11/2025",
             "violation_count": 3,
             "violation_type": "UNIFORM_ERROR",
-            "payment_status": "PAID",
-            "payroll_status": "NOT_CALCULATED",
+            "status": "PAID",
             "amount": 150000,
             "note": "Updated note",
         }
@@ -182,7 +180,7 @@ class PenaltyTicketAPITest(APITestCase):
         self.assertEqual(data["note"], "Updated note")
         self.assertEqual(data["violation_count"], 3)
         self.assertEqual(data["violation_type"], "UNIFORM_ERROR")
-        self.assertEqual(data["payment_status"], "PAID")
+        self.assertEqual(data["status"], "PAID")
 
     def test_delete_penalty_ticket(self):
         """Test deleting a penalty ticket."""
@@ -203,8 +201,8 @@ class PenaltyTicketAPITest(APITestCase):
         # Verify ticket was deleted
         self.assertFalse(PenaltyTicket.objects.filter(id=ticket.id).exists())
 
-    def test_update_payment_status_action(self):
-        """Test bulk payment status update."""
+    def test_bulk_update_status_action(self):
+        """Test bulk status update."""
         ticket = PenaltyTicket.objects.create(
             employee=self.employee,
             employee_code=self.employee.code,
@@ -214,8 +212,8 @@ class PenaltyTicketAPITest(APITestCase):
             created_by=self.user,
         )
 
-        url = reverse("payroll:penalty-tickets-update-payment-status")
-        payload = {"ids": [ticket.id], "payment_status": "PAID"}
+        url = reverse("payroll:penalty-tickets-bulk-update-status")
+        payload = {"ids": [ticket.id], "status": "PAID"}
 
         response = self.client.post(url, payload, format="json")
 
@@ -225,5 +223,5 @@ class PenaltyTicketAPITest(APITestCase):
         self.assertEqual(response_data["data"]["updated_count"], 1)
 
         ticket.refresh_from_db()
-        self.assertEqual(ticket.payment_status, "PAID")
+        self.assertEqual(ticket.status, "PAID")
         self.assertEqual(ticket.updated_by, self.user)
