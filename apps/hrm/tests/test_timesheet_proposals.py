@@ -13,7 +13,10 @@ from apps.hrm.models.proposal import Proposal, ProposalTimeSheetEntry, ProposalO
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
-from apps.hrm.tasks.timesheets import link_proposals_to_timesheet_entry_task
+from apps.hrm.tasks.timesheets import (
+    link_proposals_to_timesheet_entry_task,
+    link_timesheet_entries_to_proposal_task,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -330,3 +333,80 @@ class TestTimeSheetProposalLinking:
 
             # Assert that the task was called
             mock_delay.assert_called_with(entry.id)
+
+
+class TestProposalToTimeSheetEntryLinking:
+    @pytest.fixture
+    def employee(self):
+        return _create_employee()
+
+    def test_link_timesheets_to_proposal(self, employee):
+        today = timezone.localdate()
+        entry = TimeSheetEntry.objects.create(employee=employee, date=today)
+
+        # Create Proposal covering today
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=today,
+            paid_leave_end_date=today,
+        )
+
+        # Run task
+        result = link_timesheet_entries_to_proposal_task(proposal.id)
+
+        # Assert
+        assert result["success"] is True
+        assert result["added"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_proposal_date_change_syncs_links(self, employee):
+        day1 = timezone.localdate()
+        day2 = day1.replace(year=day1.year - 1)
+
+        entry1 = TimeSheetEntry.objects.create(employee=employee, date=day1)
+        entry2 = TimeSheetEntry.objects.create(employee=employee, date=day2)
+
+        # Create Proposal covering day1
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=day1,
+            paid_leave_end_date=day1,
+        )
+
+        # Initial Link
+        link_timesheet_entries_to_proposal_task(proposal.id)
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry1).exists()
+        assert not ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry2).exists()
+
+        # Change Proposal to cover day2
+        proposal.paid_leave_start_date = day2
+        proposal.paid_leave_end_date = day2
+        proposal.save()
+
+        # Sync again
+        result = link_timesheet_entries_to_proposal_task(proposal.id)
+
+        # Assert
+        assert result["removed"] == 1 # Removed entry1
+        assert result["added"] == 1   # Added entry2
+        assert not ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry1).exists()
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry2).exists()
+
+    def test_proposal_signal_triggers_task(self, employee, django_capture_on_commit_callbacks):
+        today = timezone.localdate()
+
+        with patch("apps.hrm.tasks.timesheets.link_timesheet_entries_to_proposal_task.delay") as mock_delay:
+            with django_capture_on_commit_callbacks(execute=True):
+                proposal = Proposal.objects.create(
+                    created_by=employee,
+                    proposal_type=ProposalType.PAID_LEAVE,
+                    proposal_status=ProposalStatus.APPROVED,
+                    paid_leave_start_date=today,
+                    paid_leave_end_date=today,
+                )
+
+            mock_delay.assert_called_with(proposal.id)
