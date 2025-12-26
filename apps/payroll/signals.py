@@ -4,7 +4,10 @@ from datetime import date
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.translation import gettext as _
 
+from apps.core.models import UserDevice
+from apps.notifications.utils import create_notification
 from apps.payroll.models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
@@ -81,6 +84,37 @@ def update_assessment_status(sender, instance, **kwargs):
     # Update status if needed (avoid recursive signal)
     if needs_update:
         EmployeeKPIAssessment.objects.filter(pk=instance.pk).update(status=new_status)
+
+
+@receiver(post_save, sender=EmployeeKPIAssessment)
+def notify_employee_kpi_assessment_created(sender, instance, created, **kwargs):
+    """Notify employee when a KPI assessment is created."""
+    # Scenario C: KPI Evaluation Created
+    if created:
+        recipient = instance.employee.user
+        if not recipient:
+            return
+
+        # Format: MM/YYYY
+        period_str = instance.period.month.strftime("%m/%Y")
+
+        message = _(
+            "KPI Assessment for period %(period)s has been created. Please access KPI Assessment to complete."
+        ) % {"period": period_str}
+
+        create_notification(
+            actor=instance.created_by
+            if instance.created_by
+            else recipient,  # Ideally created_by, but fallback to recipient
+            recipient=recipient,
+            verb="created",
+            target=instance,
+            message=message,
+            target_client=UserDevice.Client.MOBILE,
+        )
+
+
+"""Signal handlers for Payroll app."""
 
 
 @receiver(post_save, sender="hrm.Employee")

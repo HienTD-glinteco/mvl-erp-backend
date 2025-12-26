@@ -99,21 +99,39 @@ class FCMService:
             logger.error("Firebase not initialized, cannot send notification")
             return False
 
-        try:
-            device = notification.recipient.device
-        except Exception:
-            logger.debug(f"No device found for user {notification.recipient.username}")
-            return False
-
-        if not device or not device.fcm_token or not device.active:
-            logger.debug(f"Device not available or inactive for user {notification.recipient.username}")
-            return False
-
         # Build the notification payload
         payload = cls._build_payload(notification, title, body, data)
 
-        # Send via Firebase Admin SDK
-        return cls._send_fcm_message(device.fcm_token, payload)
+        devices_qs = notification.recipient.devices.filter(state="active")
+        if notification.target_client:
+            devices_qs = devices_qs.filter(client=notification.target_client)
+
+        if not devices_qs.exists():
+            logger.info(
+                f"No active devices found for user {notification.recipient.username} (client={notification.target_client or 'all'})"
+            )
+            return False
+
+        # Extract tokens
+        tokens = list(
+            devices_qs.exclude(push_token__isnull=True)
+            .exclude(push_token__exact="")  # nosec B106
+            .values_list("push_token", flat=True)
+        )
+
+        if not tokens:
+            logger.info(f"No valid push tokens found for user {notification.recipient.username}")
+            return False
+
+        # Use multicast if multiple tokens, or single send if just one (though multicast handles one fine)
+        # Multicast is more efficient and provides detailed results
+        result = cls.send_multicast(
+            tokens=tokens,
+            title=payload["notification"]["title"],
+            body=payload["notification"]["body"],
+            data=payload["data"],
+        )
+        return result.success
 
     @classmethod
     def _build_payload(
@@ -234,7 +252,7 @@ class FCMService:
             True if notification was sent successfully, False otherwise
         """
         if not settings.FCM_ENABLED:
-            logger.debug("FCM is disabled, skipping notification")
+            logger.info("FCM is disabled, skipping notification")
             return False
 
         if not initialize_firebase():

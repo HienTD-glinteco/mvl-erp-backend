@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 09:36+0700\n"
+"POT-Creation-Date: 2025-12-26 09:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5124,6 +5124,59 @@ msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""
 "Đề xuất khiếu nại %(id)s thiếu thời gian check-in/check-out đã được phê "
 "duyệt."
+
+#: apps/hrm/signals/notifications.py:55
+msgid "Your timekeeping complaint has been approved by HR."
+msgstr "Khiếu nại chấm công của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:58
+#, python-format
+msgid "Your timekeeping complaint was rejected by HR with note: \"%(note)s\".."
+msgstr ""
+"Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng Ghi chú "
+"\"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:64
+#, python-format
+msgid "Your %(proposal_type)s proposal has been approved by HR."
+msgstr "Đề xuất %(proposal_type)s của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:69
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by HR with note: \"%(note)s\".."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng "
+"Ghi chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:119
+#, python-format
+msgid "Your timekeeping complaint has been confirmed by %(manager_name)s."
+msgstr "Khiếu nại chấm công của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:124
+#, python-format
+msgid "Your %(proposal_type)s proposal has been confirmed by %(manager_name)s."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:142
+#, python-format
+msgid ""
+"Your timekeeping complaint was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr ""
+"Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi %(manager_name)s cùng Ghi "
+"chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:148
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi %(manager_name)s "
+"cùng Ghi chú \"%(note)s\"."
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."
