@@ -6,7 +6,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
-from apps.payroll.api.filtersets import EmployeeKPIAssessmentFilterSet
+from apps.payroll.api.filtersets import EmployeeKPIAssessmentFilterSet, ManagerAssessmentFilterSet
 from apps.payroll.api.serializers import (
     EmployeeKPIAssessmentListSerializer,
     EmployeeKPIAssessmentSerializer,
@@ -719,6 +719,7 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
     """
 
     serializer_class = ManagerAssessmentSerializer
+    filterset_class = ManagerAssessmentFilterSet
     http_method_names = ["get", "patch"]
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["employee__username", "employee__fullname", "employee__code"]
