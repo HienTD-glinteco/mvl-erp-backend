@@ -191,6 +191,7 @@ class BaseEmployeeKPIAssessmentSerializer(serializers.ModelSerializer):
     branch = BranchNestedSerializer(source="employee.branch", read_only=True)
     department = DepartmentNestedSerializer(source="employee.department", read_only=True)
     position = PositionNestedSerializer(source="employee.position", read_only=True)
+    colored_status = serializers.ReadOnlyField()
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -319,6 +320,7 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "department",
             "position",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -391,8 +393,6 @@ class EmployeeKPIAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
 class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
     """Lightweight serializer for listing employee KPI assessments without nested items."""
 
-    kpi_config_snapshot = serializers.JSONField(source="period.kpi_config_snapshot", read_only=True)
-
     class Meta:
         model = EmployeeKPIAssessment
         fields = [
@@ -403,8 +403,8 @@ class EmployeeKPIAssessmentListSerializer(BaseEmployeeKPIAssessmentSerializer):
             "branch",
             "department",
             "position",
-            "kpi_config_snapshot",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -461,6 +461,7 @@ class EmployeeSelfAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "department",
             "position",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
@@ -537,6 +538,7 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
             "department",
             "position",
             "status",
+            "colored_status",
             "total_possible_score",
             "total_employee_score",
             "total_manager_score",
