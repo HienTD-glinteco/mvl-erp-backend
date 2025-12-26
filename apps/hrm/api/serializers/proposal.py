@@ -408,7 +408,15 @@ class ProposalTimesheetEntryComplaintVerifierSerializer(ProposalVerifierSerializ
         model = ProposalVerifier
         fields = read_only_fields = [
             "id",
+            "proposal_id",
+            "employee_id",
+            "employee",
+            "status",
             "colored_status",
+            "verified_time",
+            "note",
+            "created_at",
+            "updated_at",
         ]
 
 

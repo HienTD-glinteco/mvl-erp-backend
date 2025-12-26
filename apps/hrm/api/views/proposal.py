@@ -126,7 +126,7 @@ def get_common_list_parameters(search_fields=None, ordering_fields=None, additio
 
 
 class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
-    queryset = Proposal.objects.all()
+    queryset = Proposal.objects.select_related("created_by", "approved_by")
     serializer_class = ProposalSerializer  # Subclasses should override
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     filterset_class = ProposalFilterSet

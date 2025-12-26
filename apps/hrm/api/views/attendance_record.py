@@ -4,11 +4,10 @@ from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_v
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import AttendanceRecordFilterSet
 from apps.hrm.api.serializers import AttendanceRecordSerializer
 from apps.hrm.api.serializers.geolocation_attendance import GeoLocationAttendanceSerializer
@@ -18,7 +17,6 @@ from apps.hrm.models import AttendanceRecord
 from apps.hrm.utils.attendance_validation import validate_attendance_device
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.mixin.permission import PermissionRegistrationMixin
-from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
 
 
 @extend_schema_view(
@@ -89,24 +87,11 @@ from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
             ),
         ],
     ),
-    update=extend_schema(
-        summary="Update attendance record",
-        description="Update attendance record. Only timestamp, is_valid, and notes can be modified.",
-        tags=["6.11: Attendance Record"],
-    ),
-    partial_update=extend_schema(
-        summary="Partially update attendance record",
-        description="Partially update attendance record. Only timestamp, is_valid, and notes can be modified.",
-        tags=["6.11: Attendance Record"],
-    ),
 )
 class AttendanceRecordViewSet(
-    AuditLoggingMixin,
     PermissionRegistrationMixin,
-    ProtectedDeleteMixin,
     ListModelMixin,
     RetrieveModelMixin,
-    UpdateModelMixin,
     GenericViewSet,
 ):
     """ViewSet for AttendanceRecord model.
@@ -118,7 +103,7 @@ class AttendanceRecordViewSet(
 
     queryset = AttendanceRecord.objects.select_related(
         "biometric_device", "employee", "attendance_geolocation", "attendance_wifi_device"
-    ).all()
+    )
     serializer_class = AttendanceRecordSerializer
     filterset_class = AttendanceRecordFilterSet
     filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]

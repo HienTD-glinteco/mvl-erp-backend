@@ -2,13 +2,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
-from apps.audit_logging.decorators import audit_logging_register
 from apps.hrm.constants import TEMP_CODE_PREFIX, AttendanceType
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
 
-@audit_logging_register
 class AttendanceRecord(ColoredValueMixin, AutoCodeMixin, BaseModel):
     """Attendance record model for storing employee clock-in/out logs.
 
