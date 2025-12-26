@@ -130,6 +130,27 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
         return {"success": False, "error": str(e)}
 
 
+def _get_proposal_date_ranges(proposal):
+    """Helper to extract date ranges for proposal types with start/end dates."""
+    mapping = {
+        ProposalType.LATE_EXEMPTION: ("late_exemption_start_date", "late_exemption_end_date"),
+        ProposalType.POST_MATERNITY_BENEFITS: (
+            "post_maternity_benefits_start_date",
+            "post_maternity_benefits_end_date",
+        ),
+        ProposalType.MATERNITY_LEAVE: ("maternity_leave_start_date", "maternity_leave_end_date"),
+        ProposalType.PAID_LEAVE: ("paid_leave_start_date", "paid_leave_end_date"),
+        ProposalType.UNPAID_LEAVE: ("unpaid_leave_start_date", "unpaid_leave_end_date"),
+    }
+
+    fields = mapping.get(proposal.proposal_type)
+    if fields:
+        start = getattr(proposal, fields[0])
+        end = getattr(proposal, fields[1])
+        return start, end
+    return None, None
+
+
 @shared_task
 def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     """Link existing proposals to a newly created timesheet entry.
@@ -147,23 +168,38 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     employee = entry.employee
 
     # 1. Date range based proposals
-    range_q = Q(
-        proposal_type__in=[
-            ProposalType.LATE_EXEMPTION,
-            ProposalType.POST_MATERNITY_BENEFITS,
-            ProposalType.MATERNITY_LEAVE,
-            ProposalType.PAID_LEAVE,
-            ProposalType.UNPAID_LEAVE,
-        ]
-    ) & (
-        (Q(late_exemption_start_date__lte=date_obj) & Q(late_exemption_end_date__gte=date_obj))
-        | (
-            Q(post_maternity_benefits_start_date__lte=date_obj)
-            & Q(post_maternity_benefits_end_date__gte=date_obj)
-        )
-        | (Q(maternity_leave_start_date__lte=date_obj) & Q(maternity_leave_end_date__gte=date_obj))
-        | (Q(paid_leave_start_date__lte=date_obj) & Q(paid_leave_end_date__gte=date_obj))
-        | (Q(unpaid_leave_start_date__lte=date_obj) & Q(unpaid_leave_end_date__gte=date_obj))
+    # Explicitly constructing Q for each type to avoid 'or' confusion and check specific fields safely
+    range_q = Q(pk__in=[])
+
+    # Late Exemption
+    range_q |= Q(
+        proposal_type=ProposalType.LATE_EXEMPTION,
+        late_exemption_start_date__lte=date_obj,
+        late_exemption_end_date__gte=date_obj,
+    )
+    # Post Maternity
+    range_q |= Q(
+        proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
+        post_maternity_benefits_start_date__lte=date_obj,
+        post_maternity_benefits_end_date__gte=date_obj,
+    )
+    # Maternity Leave
+    range_q |= Q(
+        proposal_type=ProposalType.MATERNITY_LEAVE,
+        maternity_leave_start_date__lte=date_obj,
+        maternity_leave_end_date__gte=date_obj,
+    )
+    # Paid Leave
+    range_q |= Q(
+        proposal_type=ProposalType.PAID_LEAVE,
+        paid_leave_start_date__lte=date_obj,
+        paid_leave_end_date__gte=date_obj,
+    )
+    # Unpaid Leave
+    range_q |= Q(
+        proposal_type=ProposalType.UNPAID_LEAVE,
+        unpaid_leave_start_date__lte=date_obj,
+        unpaid_leave_end_date__gte=date_obj,
     )
 
     # 2. Specific date proposals (Complaint)
@@ -225,6 +261,7 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
         return {"success": False, "error": "Proposal not found"}
 
     creator = proposal.created_by
+    entries_q = Q(pk__in=[])
 
     # Identify relevant dates based on proposal type
     if proposal.proposal_type in [
@@ -234,43 +271,21 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
         ProposalType.PAID_LEAVE,
         ProposalType.UNPAID_LEAVE,
     ]:
-        start = (
-            proposal.late_exemption_start_date
-            or proposal.post_maternity_benefits_start_date
-            or proposal.maternity_leave_start_date
-            or proposal.paid_leave_start_date
-            or proposal.unpaid_leave_start_date
-        )
-        end = (
-            proposal.late_exemption_end_date
-            or proposal.post_maternity_benefits_end_date
-            or proposal.maternity_leave_end_date
-            or proposal.paid_leave_end_date
-            or proposal.unpaid_leave_end_date
-        )
+        # Use helper to get start/end dates based on type, avoiding long chain of ORs
+        start, end = _get_proposal_date_ranges(proposal)
 
         if start and end:
-            # We don't list dates, we construct a query for TimeSheetEntry
             entries_q = Q(date__gte=start, date__lte=end)
-        else:
-            entries_q = Q(pk__in=[])  # Empty query
 
     elif proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
         if proposal.timesheet_entry_complaint_complaint_date:
             entries_q = Q(date=proposal.timesheet_entry_complaint_complaint_date)
-        else:
-            entries_q = Q(pk__in=[])
 
     elif proposal.proposal_type == ProposalType.OVERTIME_WORK:
         # Overtime entries might be multiple non-contiguous dates
         ot_dates = proposal.overtime_entries.values_list("date", flat=True)
         if ot_dates:
             entries_q = Q(date__in=ot_dates)
-        else:
-            entries_q = Q(pk__in=[])
-    else:
-        # Other types don't link to timesheets
-        entries_q = Q(pk__in=[])
 
     # Find relevant timesheet entries
     relevant_timesheet_ids = set(
