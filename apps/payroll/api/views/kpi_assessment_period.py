@@ -49,6 +49,50 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                             {
                                 "id": 1,
                                 "month": "12/2025",
+                                "kpi_config_snapshot": {
+                                    "name": "2025 KPI Configuration",
+                                    "description": "Standard KPI grading configuration for 2025",
+                                    "ambiguous_assignment": "auto_prefer_default",
+                                    "grade_thresholds": [
+                                        {
+                                            "min": 90.0,
+                                            "max": 100.0,
+                                            "possible_codes": ["A"],
+                                            "label": "Excellent",
+                                            "default_code": "A",
+                                        },
+                                        {
+                                            "min": 75.0,
+                                            "max": 90.0,
+                                            "possible_codes": ["B"],
+                                            "label": "Good",
+                                            "default_code": "B",
+                                        },
+                                        {
+                                            "min": 50.0,
+                                            "max": 75.0,
+                                            "possible_codes": ["C"],
+                                            "label": "Average",
+                                            "default_code": "C",
+                                        },
+                                        {
+                                            "min": 0.0,
+                                            "max": 50.0,
+                                            "possible_codes": ["D"],
+                                            "label": "Below Average",
+                                            "default_code": "D",
+                                        },
+                                    ],
+                                    "unit_control": {
+                                        "department": {
+                                            "A": {"min": 0.0, "max": 0.3, "target": 0.2},
+                                            "B": {"min": 0.2, "max": 0.5, "target": 0.4},
+                                            "C": {"min": 0.2, "max": 0.6, "target": 0.3},
+                                            "D": {"min": 0.0, "max": 0.2, "target": 0.1},
+                                        }
+                                    },
+                                    "meta": {},
+                                },
                                 "finalized": False,
                                 "employee_count": 50,
                                 "department_count": 10,
@@ -77,11 +121,50 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                     "success": True,
                     "data": {
                         "id": 1,
-                        "month": "2025-12",
+                        "month": "12/2025",
                         "kpi_config_snapshot": {
-                            "name": "2025 KPI Config",
-                            "grade_thresholds": [],
-                            "unit_control": {},
+                            "name": "2025 KPI Configuration",
+                            "description": "Standard KPI grading configuration for 2025",
+                            "ambiguous_assignment": "auto_prefer_default",
+                            "grade_thresholds": [
+                                {
+                                    "min": 90.0,
+                                    "max": 100.0,
+                                    "possible_codes": ["A"],
+                                    "label": "Excellent",
+                                    "default_code": "A",
+                                },
+                                {
+                                    "min": 75.0,
+                                    "max": 90.0,
+                                    "possible_codes": ["B"],
+                                    "label": "Good",
+                                    "default_code": "B",
+                                },
+                                {
+                                    "min": 50.0,
+                                    "max": 75.0,
+                                    "possible_codes": ["C"],
+                                    "label": "Average",
+                                    "default_code": "C",
+                                },
+                                {
+                                    "min": 0.0,
+                                    "max": 50.0,
+                                    "possible_codes": ["D"],
+                                    "label": "Below Average",
+                                    "default_code": "D",
+                                },
+                            ],
+                            "unit_control": {
+                                "department": {
+                                    "A": {"min": 0.0, "max": 0.3, "target": 0.2},
+                                    "B": {"min": 0.2, "max": 0.5, "target": 0.4},
+                                    "C": {"min": 0.2, "max": 0.6, "target": 0.3},
+                                    "D": {"min": 0.0, "max": 0.2, "target": 0.1},
+                                }
+                            },
+                            "meta": {},
                         },
                         "finalized": False,
                         "created_by": None,

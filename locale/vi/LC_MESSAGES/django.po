@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 23:54+0700\n"
+"POT-Creation-Date: 2025-12-26 10:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -333,26 +333,26 @@ msgstr "Không thể cập nhật đánh giá đã hoàn tất"
 msgid "Cannot update assessment that has been assessed by manager"
 msgstr "Không thể cập nhật đánh giá đã được quản lý đánh giá"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:246
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:276
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:247
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:277
 msgid "Cannot update items of a finalized assessment"
 msgstr "Không thể cập nhật các mục của đánh giá đã hoàn tất"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:254
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:284
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:255
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:285
 msgid "Employee score cannot exceed component total score"
 msgstr ""
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:260
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:290
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:261
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:291
 msgid "Manager score cannot exceed component total score"
 msgstr "Điểm của quản lý không được vượt quá tổng điểm thành phần"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:376
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:378
 msgid "An assessment for this employee and month already exists"
 msgstr "Đã tồn tại đánh giá cho nhân viên và tháng này"
 
-#: apps/payroll/api/serializers/employee_kpi_assessment.py:385
+#: apps/payroll/api/serializers/employee_kpi_assessment.py:387
 msgid ""
 "Only grade_manager_overridden and note can be updated for finalized "
 "assessments"
@@ -488,31 +488,31 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:275
+#: apps/payroll/api/views/kpi_assessment_period.py:358
 msgid "Month parameter is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:285
+#: apps/payroll/api/views/kpi_assessment_period.py:368
 msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:294
+#: apps/payroll/api/views/kpi_assessment_period.py:377
 msgid "Cannot create assessment period for future months"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:309
+#: apps/payroll/api/views/kpi_assessment_period.py:392
 msgid "No KPI configuration found. Please create one first."
 msgstr "Không tìm thấy cấu hình KPI. Vui lòng tạo một cấu hình trước."
 
-#: apps/payroll/api/views/kpi_assessment_period.py:330
+#: apps/payroll/api/views/kpi_assessment_period.py:413
 msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:346
+#: apps/payroll/api/views/kpi_assessment_period.py:429
 msgid "Period is already finalized"
 msgstr "Kỳ đánh giá đã được hoàn tất"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:408
+#: apps/payroll/api/views/kpi_assessment_period.py:491
 msgid "Period finalized successfully"
 msgstr "Hoàn tất kỳ đánh giá thành công"
 

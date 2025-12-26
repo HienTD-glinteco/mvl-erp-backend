@@ -563,6 +563,7 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
         expected_fields = [
             "id",
             "month",
+            "kpi_config_snapshot",
             "finalized",
             "employee_count",
             "department_count",

@@ -6,11 +6,12 @@ from django.db import models
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.payroll.models.kpi_criterion import KPICriterion
-from libs.models import BaseModel, SafeTextField
+from libs import ColorVariant
+from libs.models import BaseModel, ColoredValueMixin, SafeTextField
 
 
 @audit_logging_register
-class EmployeeKPIAssessment(BaseModel):
+class EmployeeKPIAssessment(ColoredValueMixin, BaseModel):
     """Employee KPI assessment model for monthly KPI evaluations.
 
     This model stores KPI assessment for employees with snapshot of criteria
@@ -45,6 +46,14 @@ class EmployeeKPIAssessment(BaseModel):
         NEW = "new", "New"
         WAITING_MANAGER = "waiting_manager", "Waiting for manager assessment"
         COMPLETED = "completed", "Completed"
+
+    VARIANT_MAPPING = {
+        "status": {
+            StatusChoices.NEW: ColorVariant.GREY,
+            StatusChoices.WAITING_MANAGER: ColorVariant.YELLOW,
+            StatusChoices.COMPLETED: ColorVariant.GREEN,
+        },
+    }
 
     period = models.ForeignKey(
         "KPIAssessmentPeriod",
@@ -231,6 +240,11 @@ class EmployeeKPIAssessment(BaseModel):
             models.Index(fields=["finalized"]),
             models.Index(fields=["status"]),
         ]
+
+    @property
+    def colored_status(self):
+        """Get status with color variant"""
+        return self.get_colored_value("status")
 
     def __str__(self):
         return f"{self.employee.code} - {self.period.month.strftime('%Y-%m')} - Grade: {self.grade_manager or 'N/A'}"
