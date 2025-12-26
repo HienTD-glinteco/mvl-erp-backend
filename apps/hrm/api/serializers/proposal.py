@@ -720,7 +720,6 @@ class ProposalDeviceChangeSerializer(ProposalByTypeSerializer):
             "device_change_new_device_id",
             "device_change_new_platform",
             "device_change_old_device_id",
-            "device_change_contact_info",
         ]
         read_only_fields = ProposalByTypeSerializer.Meta.read_only_fields
 
@@ -983,7 +982,6 @@ class ProposalCombinedSerializer(
                 "device_change_new_device_id",
                 "device_change_new_platform",
                 "device_change_old_device_id",
-                "device_change_contact_info",
             ]
         )
         read_only_fields = fields
@@ -997,7 +995,6 @@ class ProposalDeviceChangeExportXLSXSerializer(ProposalExportXLSXSerializer):
             "device_change_new_device_id",
             "device_change_new_platform",
             "device_change_old_device_id",
-            "device_change_contact_info",
         ]
         read_only_fields = fields
 

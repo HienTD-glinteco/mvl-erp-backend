@@ -294,12 +294,6 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         verbose_name=_("Old device ID"),
         help_text="Previous device ID (if any)",
     )
-    device_change_contact_info = SafeTextField(
-        null=True,
-        blank=True,
-        verbose_name=_("Contact info / notes"),
-        help_text="Additional contact information or notes for device change request",
-    )
 
     class Meta:
         db_table = "hrm_proposal"
@@ -728,13 +722,15 @@ class ProposalTimeSheetEntry(BaseModel):
             existing_for_timesheet = base_qs.filter(
                 timesheet_entry_id=self.timesheet_entry_id,
                 proposal__proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
-            ).exclude(
-                proposal__proposal_status__in=TERMINAL_STATUSES
-            )
+            ).exclude(proposal__proposal_status__in=TERMINAL_STATUSES)
 
             if existing_for_timesheet.exists():
                 raise ValidationError(
-                    {"timesheet_entry": _("This timesheet entry already has a pending or approved complaint proposal.")}
+                    {
+                        "timesheet_entry": _(
+                            "This timesheet entry already has a pending or approved complaint proposal."
+                        )
+                    }
                 )
 
     def save(self, *args, **kwargs):

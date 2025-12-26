@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 15:45+0700\n"
+"POT-Creation-Date: 2025-12-26 16:34+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -593,7 +593,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/api/views/employee.py:574
 #: apps/hrm/models/attendance_geolocation.py:77 apps/hrm/models/employee.py:227
 #: apps/hrm/models/employee_certificate.py:170
-#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:767
+#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:763
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:79
 msgid "Status"
@@ -1066,9 +1066,9 @@ msgid "Retrieve departments that can serve as management departments"
 msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
 #: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3365
-#: apps/hrm/models/proposal.py:306 apps/hrm/models/proposal.py:669
-#: apps/hrm/models/proposal.py:753 apps/hrm/models/proposal.py:858
-#: apps/hrm/models/proposal.py:903
+#: apps/hrm/models/proposal.py:300 apps/hrm/models/proposal.py:663
+#: apps/hrm/models/proposal.py:749 apps/hrm/models/proposal.py:854
+#: apps/hrm/models/proposal.py:899
 msgid "Proposal"
 msgstr "Đề xuất"
 
@@ -1930,97 +1930,97 @@ msgstr "Từ chối Đề xuất Cấp tài sản"
 msgid "Allows the user to reject an asset allocation proposal"
 msgstr "Cho phép người dùng từ chối đề xuất cấp tài sản"
 
-#: apps/hrm/api/views/proposal.py:3687
+#: apps/hrm/api/views/proposal.py:3683
 msgid "List Device Change Proposals"
 msgstr "Danh sách Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3688
+#: apps/hrm/api/views/proposal.py:3684
 msgid "Allows the user to list device change proposals"
 msgstr "Cho phép người dùng xem danh sách đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3691
+#: apps/hrm/api/views/proposal.py:3687
 msgid "Retrieve Device Change Proposal"
 msgstr "Xem chi tiết Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3692
+#: apps/hrm/api/views/proposal.py:3688
 msgid "Allows the user to retrieve a specific device change proposal"
 msgstr ""
 "Cho phép người dùng xem chi tiết một đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3695
+#: apps/hrm/api/views/proposal.py:3691
 msgid "Create Device Change Proposal"
 msgstr "Tạo Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3696
+#: apps/hrm/api/views/proposal.py:3692
 msgid "Allows the user to create a new device change proposal"
 msgstr "Cho phép người dùng tạo mới đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3699
+#: apps/hrm/api/views/proposal.py:3695
 msgid "Update Device Change Proposal"
 msgstr "Cập nhật Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3700
+#: apps/hrm/api/views/proposal.py:3696
 msgid "Allows the user to update an existing device change proposal"
 msgstr "Cho phép người dùng cập nhật đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3703
+#: apps/hrm/api/views/proposal.py:3699
 msgid "Partially Update Device Change Proposal"
 msgstr "Cập nhật một phần Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3704
+#: apps/hrm/api/views/proposal.py:3700
 msgid "Allows the user to partially update an existing device change proposal"
 msgstr ""
 "Cho phép người dùng cập nhật một phần đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3707
+#: apps/hrm/api/views/proposal.py:3703
 msgid "Delete Device Change Proposal"
 msgstr "Xóa Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3708
+#: apps/hrm/api/views/proposal.py:3704
 msgid "Allows the user to delete a device change proposal"
 msgstr "Cho phép người dùng xóa đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3711
+#: apps/hrm/api/views/proposal.py:3707
 msgid "Export Device Change Proposals"
 msgstr "Xuất Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3712
+#: apps/hrm/api/views/proposal.py:3708
 msgid "Allows the user to export device change proposals"
 msgstr "Cho phép người dùng xuất đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3715
+#: apps/hrm/api/views/proposal.py:3711
 msgid "View Device Change Proposal Histories"
 msgstr "Xem lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3716
+#: apps/hrm/api/views/proposal.py:3712
 msgid "Allows the user to view audit logs for device change proposals"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi cho đề xuất thay đổi thiết bị đăng "
 "nhập"
 
-#: apps/hrm/api/views/proposal.py:3719
+#: apps/hrm/api/views/proposal.py:3715
 msgid "View Device Change Proposal History Detail"
 msgstr "Xem chi tiết lịch sử Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3720
+#: apps/hrm/api/views/proposal.py:3716
 msgid "Allows the user to view detailed audit log for a device change proposal"
 msgstr ""
 "Cho phép người dùng xem nhật ký thay đổi chi tiết cho đề xuất thay đổi thiết "
 "bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3723
+#: apps/hrm/api/views/proposal.py:3719
 msgid "Approve Device Change Proposal"
 msgstr "Phê duyệt Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3724
+#: apps/hrm/api/views/proposal.py:3720
 msgid "Allows the user to approve a device change proposal"
 msgstr "Cho phép người dùng phê duyệt đề xuất thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3727
+#: apps/hrm/api/views/proposal.py:3723
 msgid "Reject Device Change Proposal"
 msgstr "Từ chối Đề xuất Thay đổi thiết bị đăng nhập"
 
-#: apps/hrm/api/views/proposal.py:3728
+#: apps/hrm/api/views/proposal.py:3724
 msgid "Allows the user to reject a device change proposal"
 msgstr "Cho phép người dùng từ chối đề xuất thay đổi thiết bị đăng nhập"
 
@@ -2944,8 +2944,8 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/employee_work_history.py:108
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/monthly_timesheet.py:127 apps/hrm/models/proposal.py:779
-#: apps/hrm/models/proposal.py:851 apps/hrm/models/recruitment_candidate.py:118
+#: apps/hrm/models/monthly_timesheet.py:127 apps/hrm/models/proposal.py:775
+#: apps/hrm/models/proposal.py:847 apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:103
 #: apps/hrm/models/work_schedule.py:82
@@ -2965,7 +2965,7 @@ msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 #: apps/hrm/models/employee_dependent.py:50
 #: apps/hrm/models/employee_relationship.py:54
 #: apps/hrm/models/employee_work_history.py:67
-#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:760
+#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:756
 #: apps/hrm/models/recruitment_candidate.py:133
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:37
@@ -4109,7 +4109,7 @@ msgstr "Đơn vị hành chính"
 
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:100
 #: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:310
-#: apps/hrm/models/proposal.py:896 apps/hrm/models/recruitment_channel.py:33
+#: apps/hrm/models/proposal.py:892 apps/hrm/models/recruitment_channel.py:33
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
@@ -4447,162 +4447,158 @@ msgstr "Nền tảng mới"
 msgid "Old device ID"
 msgstr "Mã thiết bị cũ"
 
-#: apps/hrm/models/proposal.py:300
-msgid "Contact info / notes"
-msgstr "Ghi chú / Thông tin liên hệ"
-
-#: apps/hrm/models/proposal.py:307
+#: apps/hrm/models/proposal.py:301
 msgid "Proposals"
 msgstr "Đề xuất"
 
-#: apps/hrm/models/proposal.py:365
+#: apps/hrm/models/proposal.py:359
 msgid "day"
 msgstr "Ngày"
 
-#: apps/hrm/models/proposal.py:448
+#: apps/hrm/models/proposal.py:442
 msgid "Late exemption start date is required"
 msgstr "Trường thông tin này là bắt buộc"
 
-#: apps/hrm/models/proposal.py:450
+#: apps/hrm/models/proposal.py:444
 msgid "Late exemption end date is required"
 msgstr "Trường thông tin này là bắt buộc"
 
-#: apps/hrm/models/proposal.py:452
+#: apps/hrm/models/proposal.py:446
 msgid "Late exemption minutes is required"
 msgstr "Trường thông tin này là bắt buộc"
 
-#: apps/hrm/models/proposal.py:457
+#: apps/hrm/models/proposal.py:451
 msgid "Late exemption end date must be on or after start date"
 msgstr "Ngày kết thúc miễn trừ trễ phải từ ngày bắt đầu trở đi"
 
-#: apps/hrm/models/proposal.py:467
+#: apps/hrm/models/proposal.py:461
 msgid "Post-maternity benefits start date is required"
 msgstr "Trường thông tin này là bắt buộc"
 
-#: apps/hrm/models/proposal.py:469
+#: apps/hrm/models/proposal.py:463
 msgid "Post-maternity benefits end date is required"
 msgstr "Trường thông tin này là bắt buộc"
 
-#: apps/hrm/models/proposal.py:475
+#: apps/hrm/models/proposal.py:469
 msgid "Post-maternity benefits end date must be on or after start date"
 msgstr ""
 "Ngày kết thúc chế độ làm việc hậu thai sản phải lớn hơn hoặc bằng ngày bắt "
 "đầu"
 
-#: apps/hrm/models/proposal.py:505
+#: apps/hrm/models/proposal.py:499
 msgid "Maternity leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ thai sản phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:517
+#: apps/hrm/models/proposal.py:511
 msgid "Paid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ có lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:529
+#: apps/hrm/models/proposal.py:523
 msgid "Unpaid leave end date must be on or after start date"
 msgstr "Ngày kết thúc nghỉ không lương phải lớn hơn hoặc bằng ngày bắt đầu"
 
-#: apps/hrm/models/proposal.py:540
+#: apps/hrm/models/proposal.py:534
 msgid "Job transfer effective date is required"
 msgstr "Ngày hiệu lực điều chuyển công tác là bắt buộc"
 
-#: apps/hrm/models/proposal.py:544
+#: apps/hrm/models/proposal.py:538
 msgid "New department is required for job transfer"
 msgstr "Phong ban mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:548
+#: apps/hrm/models/proposal.py:542
 msgid "New position is required for job transfer"
 msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 
-#: apps/hrm/models/proposal.py:564
+#: apps/hrm/models/proposal.py:558
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:676
+#: apps/hrm/models/proposal.py:670
 #, fuzzy
 #| msgid "Timesheet entry complaint"
 msgid "Timesheet entry"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:681
+#: apps/hrm/models/proposal.py:675
 msgid "Proposal Timesheet Entry"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:682
+#: apps/hrm/models/proposal.py:676
 msgid "Proposal Timesheet Entries"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:724
+#: apps/hrm/models/proposal.py:718
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr "Một ngày công chỉ có thể tạo 1 khiếu nại chấm công."
 
-#: apps/hrm/models/proposal.py:737
+#: apps/hrm/models/proposal.py:731
 #, fuzzy
 #| msgid "This timesheet entry already has a complaint proposal linked to it."
 msgid ""
 "This timesheet entry already has a pending or approved complaint proposal."
 msgstr "Ngày công này đã có khiếu nại chấm công liên kết."
 
-#: apps/hrm/models/proposal.py:773
+#: apps/hrm/models/proposal.py:769
 #, fuzzy
 #| msgid "Verified"
 msgid "Verified time"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/models/proposal.py:792
+#: apps/hrm/models/proposal.py:788
 msgid "Proposal Verifier"
 msgstr "Người xác minh"
 
-#: apps/hrm/models/proposal.py:793
+#: apps/hrm/models/proposal.py:789
 msgid "Proposal Verifiers"
 msgstr "Người xác minh"
 
-#: apps/hrm/models/proposal.py:818
+#: apps/hrm/models/proposal.py:814
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr "Loại đề xuất hiện tại chỉ cho phép một người xác minh."
 
-#: apps/hrm/models/proposal.py:832
+#: apps/hrm/models/proposal.py:828
 msgid "Asset name"
 msgstr "Tên thiết bị"
 
-#: apps/hrm/models/proposal.py:840
+#: apps/hrm/models/proposal.py:836
 msgid "Unit type"
 msgstr "Đơn vị"
 
-#: apps/hrm/models/proposal.py:844
+#: apps/hrm/models/proposal.py:840
 msgid "Quantity"
 msgstr "Số lượng"
 
-#: apps/hrm/models/proposal.py:864
+#: apps/hrm/models/proposal.py:860
 msgid "Proposal Asset"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:865
+#: apps/hrm/models/proposal.py:861
 msgid "Proposal Assets"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:881
+#: apps/hrm/models/proposal.py:877
 msgid "Overtime date"
 msgstr "Ngày làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:885 apps/hrm/models/timesheet.py:41
+#: apps/hrm/models/proposal.py:881 apps/hrm/models/timesheet.py:41
 msgid "Start time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/proposal.py:889 apps/hrm/models/timesheet.py:42
+#: apps/hrm/models/proposal.py:885 apps/hrm/models/timesheet.py:42
 msgid "End time"
 msgstr "Ngày Kết Thúc"
 
-#: apps/hrm/models/proposal.py:909
+#: apps/hrm/models/proposal.py:905
 msgid "Proposal Overtime Entry"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:910
+#: apps/hrm/models/proposal.py:906
 msgid "Proposal Overtime Entries"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:936
+#: apps/hrm/models/proposal.py:932
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 
