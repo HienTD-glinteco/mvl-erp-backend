@@ -182,7 +182,7 @@ class TestTimeSheetProposalLinking:
 
         # Assert
         assert result["success"] is True
-        assert result["linked_count"] == 1
+        assert result["added"] == 1
         assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
 
     def test_link_overtime_proposal(self, employee):
@@ -211,7 +211,7 @@ class TestTimeSheetProposalLinking:
         result = link_proposals_to_timesheet_entry_task(entry.id)
 
         # Assert
-        assert result["linked_count"] == 1
+        assert result["added"] == 1
         assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
 
     def test_link_complaint_proposal(self, employee):
@@ -236,10 +236,10 @@ class TestTimeSheetProposalLinking:
         result = link_proposals_to_timesheet_entry_task(entry.id)
 
         # Assert
-        assert result["linked_count"] == 1
+        assert result["added"] == 1
         assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
 
-    def test_does_not_link_rejected_proposal(self, employee):
+    def test_links_rejected_proposal(self, employee):
         today = timezone.localdate()
 
         # Create Rejected Proposal
@@ -261,9 +261,60 @@ class TestTimeSheetProposalLinking:
         # Run task
         result = link_proposals_to_timesheet_entry_task(entry.id)
 
-        # Assert
-        assert result["linked_count"] == 0
+        # Assert should be linked now (due to removal of status filter)
+        assert result["added"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_sync_proposals_removes_outdated_links(self, employee):
+        today = timezone.localdate()
+
+        # 1. Create a proposal that WAS valid but now might not be (e.g., date changed or we force link it)
+        # For simplicity, we create a proposal that matches nothing
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=today, # Valid
+            paid_leave_end_date=today,
+            paid_leave_reason="Vacation"
+        )
+
+        entry = TimeSheetEntry.objects.create(employee=employee, date=today)
+
+        # Manually link it first
+        ProposalTimeSheetEntry.objects.create(proposal=proposal, timesheet_entry=entry)
+
+        # Now change the proposal dates so it NO LONGER matches
+        proposal.paid_leave_start_date = today.replace(year=today.year - 1)
+        proposal.paid_leave_end_date = today.replace(year=today.year - 1)
+        proposal.save()
+
+        # Run task
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert removed
+        assert result["removed"] == 1
         assert not ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
+
+    def test_sync_proposals_adds_new_links(self, employee):
+        today = timezone.localdate()
+        entry = TimeSheetEntry.objects.create(employee=employee, date=today)
+
+        # Create new proposal matching
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.PAID_LEAVE,
+            proposal_status=ProposalStatus.APPROVED,
+            paid_leave_start_date=today,
+            paid_leave_end_date=today,
+        )
+
+        # Run task
+        result = link_proposals_to_timesheet_entry_task(entry.id)
+
+        # Assert added
+        assert result["added"] == 1
+        assert ProposalTimeSheetEntry.objects.filter(proposal=proposal, timesheet_entry=entry).exists()
 
     def test_signal_triggers_task(self, employee, django_capture_on_commit_callbacks):
         # Verify signal triggers the task

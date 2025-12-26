@@ -135,7 +135,7 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     """Link existing proposals to a newly created timesheet entry.
 
     This task searches for proposals that affect the timesheet entry's date
-    (e.g., Leave, Overtime, Complaint) and creates ProposalTimeSheetEntry records.
+    (e.g., Leave, Overtime, Complaint) and syncs ProposalTimeSheetEntry records.
     """
     try:
         entry = TimeSheetEntry.objects.get(pk=timesheet_entry_id)
@@ -177,27 +177,35 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
     overtime_q = Q(proposal_type=ProposalType.OVERTIME_WORK, overtime_entries__date=date_obj)
 
     # Combine logic: Created by employee AND (ranges OR complaint OR overtime)
-    # Filter for APPROVED or PENDING proposals (exclude REJECTED, DRAFT, CANCELLED if any)
-    final_q = (
-        Q(created_by=employee)
-        & (range_q | complaint_q | overtime_q)
-        & Q(proposal_status__in=[ProposalStatus.APPROVED, ProposalStatus.PENDING])
+    final_q = Q(created_by=employee) & (range_q | complaint_q | overtime_q)
+
+    # Get relevant proposal IDs
+    relevant_proposal_ids = set(Proposal.objects.filter(final_q).values_list("id", flat=True))
+
+    # Get existing linked proposal IDs
+    existing_linked_ids = set(
+        ProposalTimeSheetEntry.objects.filter(timesheet_entry=entry).values_list("proposal_id", flat=True)
     )
 
-    proposals = Proposal.objects.filter(final_q).distinct()
+    # Determine changes
+    to_add_ids = relevant_proposal_ids - existing_linked_ids
+    to_remove_ids = existing_linked_ids - relevant_proposal_ids
 
-    created_count = 0
-    for proposal in proposals:
-        try:
-            _, created = ProposalTimeSheetEntry.objects.get_or_create(
-                proposal=proposal, timesheet_entry=entry
-            )
-            if created:
-                created_count += 1
-        except ValidationError as e:
-            logger.warning("Could not link proposal %s to entry %s: %s", proposal.id, entry.id, e)
+    # Bulk Delete
+    if to_remove_ids:
+        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
+            timesheet_entry=entry, proposal_id__in=to_remove_ids
+        ).delete()
+        logger.info("Unlinked %s proposals from entry %s", deleted_count, entry.id)
 
-    if created_count > 0:
-        logger.info("Linked %d proposals to TimeSheetEntry %s", created_count, timesheet_entry_id)
+    # Bulk Create
+    if to_add_ids:
+        new_links = [
+            ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry)
+            for pid in to_add_ids
+        ]
+        # NOTE: ignore_conflicts=True to handle potential race conditions safely
+        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
+        logger.info("Linked %s proposals to entry %s", len(objs), entry.id)
 
-    return {"success": True, "linked_count": created_count}
+    return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}
