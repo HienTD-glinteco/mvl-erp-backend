@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Notifications\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 10:27+0700\n"
+"POT-Creation-Date: 2025-12-26 09:57+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -55,15 +55,15 @@ msgstr "Tất cả thông báo đã được đánh dấu đã đọc"
 msgid "Unread notification count"
 msgstr "Số lượng thông báo chưa đọc"
 
-#: apps/notifications/models.py:18
+#: apps/notifications/models.py:19
 msgid "Firebase"
 msgstr "Firebase"
 
-#: apps/notifications/models.py:19
+#: apps/notifications/models.py:20
 msgid "Email"
 msgstr "Email"
 
-#: apps/notifications/models.py:20
+#: apps/notifications/models.py:21
 msgid "Both"
 msgstr "Cả hai"
 

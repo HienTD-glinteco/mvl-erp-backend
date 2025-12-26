@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from apps.payroll.models import KPIAssessmentPeriod
 
+from .kpi_config import KPIConfigSchemaReadOnlySerializer
+
 
 class KPIAssessmentPeriodGenerateSerializer(serializers.Serializer):
     """Serializer for generating KPI assessments."""
@@ -50,6 +52,7 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
     """Serializer for KPIAssessmentPeriod model."""
 
     month = serializers.SerializerMethodField()
+    kpi_config_snapshot = KPIConfigSchemaReadOnlySerializer(read_only=True)
 
     class Meta:
         model = KPIAssessmentPeriod
@@ -66,6 +69,7 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "kpi_config_snapshot",
             "created_by",
             "updated_by",
             "created_at",
@@ -81,6 +85,7 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
     """List serializer for KPIAssessmentPeriod model."""
 
     month = serializers.SerializerMethodField()
+    kpi_config_snapshot = KPIConfigSchemaReadOnlySerializer(read_only=True)
     employee_count = serializers.SerializerMethodField()
     department_count = serializers.SerializerMethodField()
     employee_self_assessed_count = serializers.SerializerMethodField()
@@ -91,6 +96,7 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "month",
+            "kpi_config_snapshot",
             "finalized",
             "employee_count",
             "department_count",

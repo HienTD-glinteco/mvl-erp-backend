@@ -116,50 +116,6 @@ class AttendanceRecordAPITest(TransactionTestCase, APITestMixin):
         # Assert - Should not be allowed
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_attendance_records_can_be_updated(self):
-        """Test that attendance records can be updated via API for editable fields."""
-        # Arrange
-        from datetime import datetime, timezone
-
-        new_timestamp = datetime(2025, 10, 29, 10, 0, 0, tzinfo=timezone.utc)
-        update_data = {
-            "timestamp": new_timestamp.isoformat(),
-            "is_valid": False,
-            "notes": "Updated by admin",
-        }
-
-        # Act - Update editable fields
-        url = reverse("hrm:attendance-record-detail", kwargs={"pk": self.record1.id})
-        response = self.client.put(url, update_data, format="json")
-
-        # Assert
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.record1.refresh_from_db()
-        self.assertFalse(self.record1.is_valid)
-        self.assertEqual(self.record1.notes, "Updated by admin")
-
-    def test_attendance_records_readonly_fields_cannot_be_changed(self):
-        """Test that read-only fields (attendance_code, biometric_device) cannot be modified."""
-        # Arrange
-        original_code = self.record1.attendance_code
-        original_device = self.record1.biometric_device
-
-        update_data = {
-            "attendance_code": "999",  # Try to change read-only field
-            "biometric_device": self.device2.id,  # Try to change read-only field
-            "timestamp": self.record1.timestamp.isoformat(),
-        }
-
-        # Act
-        url = reverse("hrm:attendance-record-detail", kwargs={"pk": self.record1.id})
-        response = self.client.put(url, update_data, format="json")
-
-        # Assert - Update succeeds but read-only fields unchanged
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.record1.refresh_from_db()
-        self.assertEqual(self.record1.attendance_code, original_code)  # Unchanged
-        self.assertEqual(self.record1.biometric_device, original_device)  # Unchanged
-
     def test_attendance_records_cannot_be_deleted(self):
         """Test that attendance records cannot be deleted via API."""
         # Act

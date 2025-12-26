@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-25 17:05+0700\n"
+"POT-Creation-Date: 2025-12-26 09:57+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -301,7 +301,7 @@ msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/proposal.py:524
+#: apps/hrm/api/serializers/proposal.py:532
 msgid "At least one overtime entry is required"
 msgstr "Thời gian làm thêm giờ là bắt buộc"
 
@@ -397,39 +397,39 @@ msgstr ""
 msgid "Cannot delete this {model_name} because it has protected relationships"
 msgstr "Không thể xóa {model_name} này vì nó có các mối quan hệ được bảo vệ"
 
-#: apps/hrm/api/views/attendance_record.py:132
+#: apps/hrm/api/views/attendance_record.py:117
 msgid "Attendance Record Management"
 msgstr "Log chấm công"
 
-#: apps/hrm/api/views/attendance_record.py:136
+#: apps/hrm/api/views/attendance_record.py:121
 msgid "Record attendance by GeoLocation"
 msgstr "Log chấm Công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:137
+#: apps/hrm/api/views/attendance_record.py:122
 msgid "Record attendance using GeoLocation coordinates"
 msgstr "Chấm công GPS"
 
-#: apps/hrm/api/views/attendance_record.py:140
+#: apps/hrm/api/views/attendance_record.py:125
 msgid "Record attendance by WiFi"
 msgstr "Chấm Công WiFi"
 
-#: apps/hrm/api/views/attendance_record.py:141
+#: apps/hrm/api/views/attendance_record.py:126
 msgid "Record attendance using WiFi BSSID"
 msgstr "Chấm công bằng WiFi BSSID"
 
-#: apps/hrm/api/views/attendance_record.py:144
+#: apps/hrm/api/views/attendance_record.py:129
 msgid "Record attendance by Other"
 msgstr "Chấm Công Khác"
 
-#: apps/hrm/api/views/attendance_record.py:145
+#: apps/hrm/api/views/attendance_record.py:130
 msgid "Record attendance manually or by other means"
 msgstr "Log chấm Công thủ công hoặc lý do khác"
 
-#: apps/hrm/api/views/attendance_record.py:148
+#: apps/hrm/api/views/attendance_record.py:133
 msgid "Bulk approve for Other attendance records"
 msgstr "Duyệt hàng loạt cho log chấm công Khác"
 
-#: apps/hrm/api/views/attendance_record.py:149
+#: apps/hrm/api/views/attendance_record.py:134
 msgid "Approve or reject multiple Other attendance records"
 msgstr "Duyệt hoặc từ chối hàng loạt log chấm công Khác"
 
@@ -746,7 +746,7 @@ msgstr "Tên Đăng Nhập"
 #: apps/hrm/api/views/employee.py:603
 #: apps/hrm/models/attendance_exemption.py:38
 #: apps/hrm/models/attendance_geolocation.py:79
-#: apps/hrm/models/attendance_record.py:203
+#: apps/hrm/models/attendance_record.py:201
 #: apps/hrm/models/attendance_wifi_device.py:61
 #: apps/hrm/models/employee_certificate.py:149 apps/hrm/models/holiday.py:23
 #: apps/hrm/models/holiday.py:75
@@ -2331,7 +2331,7 @@ msgstr "Thực tập sinh"
 msgid "Probation Type 1"
 msgstr "Thử việc loại 1"
 
-#: apps/hrm/constants.py:45 apps/hrm/models/attendance_record.py:91
+#: apps/hrm/constants.py:45 apps/hrm/models/attendance_record.py:89
 msgid "Biometric Device"
 msgstr "Chấm công vân tay"
 
@@ -2560,15 +2560,15 @@ msgid "Bag"
 msgstr "Túi"
 
 #: apps/hrm/constants.py:213 apps/hrm/constants.py:229
-#: apps/hrm/models/attendance_record.py:50
+#: apps/hrm/models/attendance_record.py:48
 msgid "Pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/constants.py:214 apps/hrm/models/attendance_record.py:48
+#: apps/hrm/constants.py:214 apps/hrm/models/attendance_record.py:46
 msgid "Approved"
 msgstr "Đã duyệt"
 
-#: apps/hrm/constants.py:215 apps/hrm/models/attendance_record.py:49
+#: apps/hrm/constants.py:215 apps/hrm/models/attendance_record.py:47
 #: apps/hrm/models/recruitment_candidate.py:27
 msgid "Rejected"
 msgstr "Đã từ chối"
@@ -2879,7 +2879,7 @@ msgid "Attendance Devices"
 msgstr "các Thiết Bị Chấm Công"
 
 #: apps/hrm/models/attendance_device.py:44
-#: apps/hrm/models/attendance_record.py:73
+#: apps/hrm/models/attendance_record.py:71
 #: apps/hrm/models/employee_certificate.py:87
 #: apps/hrm/models/employee_dependent.py:43
 #: apps/hrm/models/employee_relationship.py:47
@@ -2951,7 +2951,7 @@ msgid "Connection successful. Firmware: %(firmware)s"
 msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 
 #: apps/hrm/models/attendance_exemption.py:26
-#: apps/hrm/models/attendance_record.py:102
+#: apps/hrm/models/attendance_record.py:100
 #: apps/hrm/models/attendance_report.py:33 apps/hrm/models/bank_account.py:25
 #: apps/hrm/models/contract.py:96 apps/hrm/models/employee.py:394
 #: apps/hrm/models/employee_certificate.py:94
@@ -3015,12 +3015,12 @@ msgid "Address"
 msgstr "Địa chỉ"
 
 #: apps/hrm/models/attendance_geolocation.py:53
-#: apps/hrm/models/attendance_record.py:125 apps/hrm/models/proposal.py:99
+#: apps/hrm/models/attendance_record.py:123 apps/hrm/models/proposal.py:99
 msgid "Latitude"
 msgstr "Vĩ độ"
 
 #: apps/hrm/models/attendance_geolocation.py:60
-#: apps/hrm/models/attendance_record.py:134 apps/hrm/models/proposal.py:108
+#: apps/hrm/models/attendance_record.py:132 apps/hrm/models/proposal.py:108
 msgid "Longitude"
 msgstr "Kinh độ"
 
@@ -3054,56 +3054,56 @@ msgstr "Log chấm Công GPS"
 msgid "Attendance Geolocations"
 msgstr "các log Chấm Công GPS"
 
-#: apps/hrm/models/attendance_record.py:61
+#: apps/hrm/models/attendance_record.py:59
 msgid "Attendance Record"
 msgstr "Log Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:62
+#: apps/hrm/models/attendance_record.py:60
 msgid "Attendance Records"
 msgstr "các Log Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:80
+#: apps/hrm/models/attendance_record.py:78
 #: apps/hrm/models/attendance_report.py:70
 msgid "Attendance type"
 msgstr "Phương thức chấm công"
 
-#: apps/hrm/models/attendance_record.py:109 apps/hrm/models/employee.py:181
+#: apps/hrm/models/attendance_record.py:107 apps/hrm/models/employee.py:181
 msgid "Attendance code"
 msgstr "Mã Chấm Công"
 
-#: apps/hrm/models/attendance_record.py:114
+#: apps/hrm/models/attendance_record.py:112
 msgid "Timestamp"
 msgstr "Thời gian Ghi nhận"
 
-#: apps/hrm/models/attendance_record.py:143
+#: apps/hrm/models/attendance_record.py:141
 msgid "Attendance geolocation"
 msgstr "Log chấm Công GPS"
 
-#: apps/hrm/models/attendance_record.py:152
+#: apps/hrm/models/attendance_record.py:150
 msgid "Image"
 msgstr "Ảnh"
 
-#: apps/hrm/models/attendance_record.py:163
+#: apps/hrm/models/attendance_record.py:161
 msgid "WiFi device"
 msgstr "Thiết bị WiFi"
 
-#: apps/hrm/models/attendance_record.py:178
+#: apps/hrm/models/attendance_record.py:176
 msgid "Is valid"
 msgstr "Còn hiệu lực"
 
-#: apps/hrm/models/attendance_record.py:183
+#: apps/hrm/models/attendance_record.py:181
 msgid "Is pending"
 msgstr "Đang chờ"
 
-#: apps/hrm/models/attendance_record.py:189 apps/hrm/models/proposal.py:70
+#: apps/hrm/models/attendance_record.py:187 apps/hrm/models/proposal.py:70
 msgid "Approved at"
 msgstr "Đã duyệt lúc"
 
-#: apps/hrm/models/attendance_record.py:198 apps/hrm/models/proposal.py:65
+#: apps/hrm/models/attendance_record.py:196 apps/hrm/models/proposal.py:65
 msgid "Approved by"
 msgstr "Đã duyệt bởi"
 
-#: apps/hrm/models/attendance_record.py:209
+#: apps/hrm/models/attendance_record.py:207
 msgid "Raw data"
 msgstr "Đữ liệu thô"
 
@@ -5124,6 +5124,59 @@ msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""
 "Đề xuất khiếu nại %(id)s thiếu thời gian check-in/check-out đã được phê "
 "duyệt."
+
+#: apps/hrm/signals/notifications.py:55
+msgid "Your timekeeping complaint has been approved by HR."
+msgstr "Khiếu nại chấm công của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:58
+#, python-format
+msgid "Your timekeeping complaint was rejected by HR with note: \"%(note)s\".."
+msgstr ""
+"Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng Ghi chú "
+"\"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:64
+#, python-format
+msgid "Your %(proposal_type)s proposal has been approved by HR."
+msgstr "Đề xuất %(proposal_type)s của bạn đã được \"Duyệt\" bởi phòng nhân sự."
+
+#: apps/hrm/signals/notifications.py:69
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by HR with note: \"%(note)s\".."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi Phòng nhân sự cùng "
+"Ghi chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:119
+#, python-format
+msgid "Your timekeeping complaint has been confirmed by %(manager_name)s."
+msgstr "Khiếu nại chấm công của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:124
+#, python-format
+msgid "Your %(proposal_type)s proposal has been confirmed by %(manager_name)s."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã được \"Xác nhận\" bởi %(manager_name)s."
+
+#: apps/hrm/signals/notifications.py:142
+#, python-format
+msgid ""
+"Your timekeeping complaint was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr ""
+"Khiếu nại chấm công của bạn đã bị \"Từ chối\" bởi %(manager_name)s cùng Ghi "
+"chú \"%(note)s\"."
+
+#: apps/hrm/signals/notifications.py:148
+#, python-format
+msgid ""
+"Your %(proposal_type)s proposal was rejected by %(manager_name)s with note: "
+"\"%(note)s\".."
+msgstr ""
+"Đề xuất %(proposal_type)s của bạn đã bị \"Từ chối\" bởi %(manager_name)s "
+"cùng Ghi chú \"%(note)s\"."
 
 #: apps/hrm/tasks/employee.py:41
 msgid "Reactivated from maternity leave automatically by system task."

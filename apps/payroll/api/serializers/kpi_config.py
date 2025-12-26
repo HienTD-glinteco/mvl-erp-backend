@@ -46,7 +46,7 @@ class UnitControlSerializer(serializers.Serializer):
 class KPIConfigSchemaSerializer(serializers.Serializer):
     """Complete KPI configuration schema serializer.
 
-    This serializer validates the entire config JSON structure.
+    This serializer validates the entire config JSON structure for write operations.
     """
 
     name = serializers.CharField(max_length=255)
@@ -56,6 +56,24 @@ class KPIConfigSchemaSerializer(serializers.Serializer):
     )
     grade_thresholds = GradeThresholdSerializer(many=True)
     unit_control = serializers.DictField(child=UnitControlSerializer())
+    meta = serializers.DictField(required=False)
+
+
+class KPIConfigSchemaReadOnlySerializer(serializers.Serializer):
+    """Read-only serializer for KPI configuration schema.
+
+    This serializer is more lenient for reading existing data and snapshots.
+    All fields are optional to handle legacy or partial data.
+    """
+
+    name = serializers.CharField(max_length=255, required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
+    ambiguous_assignment = serializers.ChoiceField(
+        choices=["manual", "auto_prefer_default", "auto_prefer_highest", "auto_prefer_first"],
+        required=False,
+    )
+    grade_thresholds = GradeThresholdSerializer(many=True, required=False)
+    unit_control = serializers.DictField(child=UnitControlSerializer(), required=False)
     meta = serializers.DictField(required=False)
 
 

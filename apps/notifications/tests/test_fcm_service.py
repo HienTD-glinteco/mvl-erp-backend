@@ -42,7 +42,9 @@ class TestFCMService:
         UserDevice.objects.create(
             user=recipient,
             device_id="test-fcm-token-xyz",
-            platform="android",
+            push_token="test-fcm-token-xyz",
+            platform=UserDevice.Platform.ANDROID,
+            client=UserDevice.Client.MOBILE,
         )
         return recipient
 
@@ -68,22 +70,26 @@ class TestFCMService:
         # Assert
         assert result is False
 
-    @patch("apps.notifications.fcm_service.messaging.send")
+    @patch("apps.notifications.fcm_service.messaging.send_each_for_multicast")
     @patch("apps.notifications.fcm_service.initialize_firebase")
     @patch("apps.notifications.fcm_service.settings")
-    def test_send_notification_success(self, mock_settings, mock_init, mock_send, notification):
+    def test_send_notification_success(self, mock_settings, mock_init, mock_send_each_for_multicast, notification):
         """Test successful notification sending."""
         # Arrange
         mock_settings.FCM_ENABLED = True
         mock_init.return_value = True
-        mock_send.return_value = "message-id-123"
+        mock_send_each_for_multicast.return_value = Mock(
+            success_count=1,
+            failure_count=0,
+            responses=[Mock(success=True)],
+        )
 
         # Act
         result = FCMService.send_notification(notification)
 
         # Assert
         assert result is True
-        mock_send.assert_called_once()
+        mock_send_each_for_multicast.assert_called_once()
 
     @patch("apps.notifications.fcm_service.initialize_firebase")
     @patch("apps.notifications.fcm_service.settings")
