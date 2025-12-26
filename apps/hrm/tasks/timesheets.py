@@ -9,8 +9,16 @@ import logging
 from datetime import date
 
 from celery import shared_task
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
-from apps.hrm.models import Employee, EmployeeMonthlyTimesheet
+from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.models import (
+    Employee,
+    EmployeeMonthlyTimesheet,
+    Proposal,
+    ProposalTimeSheetEntry,
+)
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.services.timesheets import (
     create_entries_for_employee_month,
@@ -120,3 +128,194 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
             "Failed to recalculate timesheets for employee %s from %s: %s", employee_id, start_date_str, e
         )
         return {"success": False, "error": str(e)}
+
+
+def _get_proposal_date_ranges(proposal):
+    """Helper to extract date ranges for proposal types with start/end dates."""
+    mapping = {
+        ProposalType.LATE_EXEMPTION: ("late_exemption_start_date", "late_exemption_end_date"),
+        ProposalType.POST_MATERNITY_BENEFITS: (
+            "post_maternity_benefits_start_date",
+            "post_maternity_benefits_end_date",
+        ),
+        ProposalType.MATERNITY_LEAVE: ("maternity_leave_start_date", "maternity_leave_end_date"),
+        ProposalType.PAID_LEAVE: ("paid_leave_start_date", "paid_leave_end_date"),
+        ProposalType.UNPAID_LEAVE: ("unpaid_leave_start_date", "unpaid_leave_end_date"),
+    }
+
+    fields = mapping.get(proposal.proposal_type)
+    if fields:
+        start = getattr(proposal, fields[0])
+        end = getattr(proposal, fields[1])
+        return start, end
+    return None, None
+
+
+@shared_task
+def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
+    """Link existing proposals to a newly created timesheet entry.
+
+    This task searches for proposals that affect the timesheet entry's date
+    (e.g., Leave, Overtime, Complaint) and syncs ProposalTimeSheetEntry records.
+    """
+    try:
+        entry = TimeSheetEntry.objects.get(pk=timesheet_entry_id)
+    except TimeSheetEntry.DoesNotExist:
+        logger.warning("TimeSheetEntry %s not found.", timesheet_entry_id)
+        return {"success": False, "error": "TimeSheetEntry not found"}
+
+    date_obj = entry.date
+    employee = entry.employee
+
+    # 1. Date range based proposals
+    # Explicitly constructing Q for each type to avoid 'or' confusion and check specific fields safely
+    range_q = Q(pk__in=[])
+
+    # Late Exemption
+    range_q |= Q(
+        proposal_type=ProposalType.LATE_EXEMPTION,
+        late_exemption_start_date__lte=date_obj,
+        late_exemption_end_date__gte=date_obj,
+    )
+    # Post Maternity
+    range_q |= Q(
+        proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
+        post_maternity_benefits_start_date__lte=date_obj,
+        post_maternity_benefits_end_date__gte=date_obj,
+    )
+    # Maternity Leave
+    range_q |= Q(
+        proposal_type=ProposalType.MATERNITY_LEAVE,
+        maternity_leave_start_date__lte=date_obj,
+        maternity_leave_end_date__gte=date_obj,
+    )
+    # Paid Leave
+    range_q |= Q(
+        proposal_type=ProposalType.PAID_LEAVE,
+        paid_leave_start_date__lte=date_obj,
+        paid_leave_end_date__gte=date_obj,
+    )
+    # Unpaid Leave
+    range_q |= Q(
+        proposal_type=ProposalType.UNPAID_LEAVE,
+        unpaid_leave_start_date__lte=date_obj,
+        unpaid_leave_end_date__gte=date_obj,
+    )
+
+    # 2. Specific date proposals (Complaint)
+    complaint_q = Q(
+        proposal_type=ProposalType.TIMESHEET_ENTRY_COMPLAINT,
+        timesheet_entry_complaint_complaint_date=date_obj,
+    )
+
+    # 3. Overtime (via relation)
+    # Query proposals that have an overtime entry on this date
+    overtime_q = Q(proposal_type=ProposalType.OVERTIME_WORK, overtime_entries__date=date_obj)
+
+    # Combine logic: Created by employee AND (ranges OR complaint OR overtime)
+    final_q = Q(created_by=employee) & (range_q | complaint_q | overtime_q)
+
+    # Get relevant proposal IDs
+    relevant_proposal_ids = set(Proposal.objects.filter(final_q).values_list("id", flat=True))
+
+    # Get existing linked proposal IDs
+    existing_linked_ids = set(
+        ProposalTimeSheetEntry.objects.filter(timesheet_entry=entry).values_list("proposal_id", flat=True)
+    )
+
+    # Determine changes
+    to_add_ids = relevant_proposal_ids - existing_linked_ids
+    to_remove_ids = existing_linked_ids - relevant_proposal_ids
+
+    # Bulk Delete
+    if to_remove_ids:
+        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
+            timesheet_entry=entry, proposal_id__in=to_remove_ids
+        ).delete()
+        logger.info("Unlinked %s proposals from entry %s", deleted_count, entry.id)
+
+    # Bulk Create
+    if to_add_ids:
+        new_links = [
+            ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry)
+            for pid in to_add_ids
+        ]
+        # NOTE: ignore_conflicts=True to handle potential race conditions safely
+        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
+        logger.info("Linked %s proposals to entry %s", len(objs), entry.id)
+
+    return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}
+
+
+@shared_task
+def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
+    """Link existing timesheet entries to a newly created/updated proposal.
+
+    This task searches for timesheet entries for the proposal's creator within
+    the proposal's effective date range and syncs ProposalTimeSheetEntry records.
+    """
+    try:
+        proposal = Proposal.objects.get(pk=proposal_id)
+    except Proposal.DoesNotExist:
+        logger.warning("Proposal %s not found.", proposal_id)
+        return {"success": False, "error": "Proposal not found"}
+
+    creator = proposal.created_by
+    entries_q = Q(pk__in=[])
+
+    # Identify relevant dates based on proposal type
+    if proposal.proposal_type in [
+        ProposalType.LATE_EXEMPTION,
+        ProposalType.POST_MATERNITY_BENEFITS,
+        ProposalType.MATERNITY_LEAVE,
+        ProposalType.PAID_LEAVE,
+        ProposalType.UNPAID_LEAVE,
+    ]:
+        # Use helper to get start/end dates based on type, avoiding long chain of ORs
+        start, end = _get_proposal_date_ranges(proposal)
+
+        if start and end:
+            entries_q = Q(date__gte=start, date__lte=end)
+
+    elif proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
+        if proposal.timesheet_entry_complaint_complaint_date:
+            entries_q = Q(date=proposal.timesheet_entry_complaint_complaint_date)
+
+    elif proposal.proposal_type == ProposalType.OVERTIME_WORK:
+        # Overtime entries might be multiple non-contiguous dates
+        ot_dates = proposal.overtime_entries.values_list("date", flat=True)
+        if ot_dates:
+            entries_q = Q(date__in=ot_dates)
+
+    # Find relevant timesheet entries
+    relevant_timesheet_ids = set(
+        TimeSheetEntry.objects.filter(entries_q, employee=creator).values_list("id", flat=True)
+    )
+
+    # Get existing linked timesheet IDs
+    existing_linked_ids = set(
+        ProposalTimeSheetEntry.objects.filter(proposal=proposal).values_list("timesheet_entry_id", flat=True)
+    )
+
+    # Determine changes
+    to_add_ids = relevant_timesheet_ids - existing_linked_ids
+    to_remove_ids = existing_linked_ids - relevant_timesheet_ids
+
+    # Bulk Delete
+    if to_remove_ids:
+        deleted_count, _ = ProposalTimeSheetEntry.objects.filter(
+            proposal=proposal, timesheet_entry_id__in=to_remove_ids
+        ).delete()
+        logger.info("Unlinked %s timesheet entries from proposal %s", deleted_count, proposal.id)
+
+    # Bulk Create
+    if to_add_ids:
+        new_links = [
+            ProposalTimeSheetEntry(proposal=proposal, timesheet_entry_id=tid)
+            for tid in to_add_ids
+        ]
+        # NOTE: ignore_conflicts=True to handle potential race conditions safely
+        objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
+        logger.info("Linked %s timesheet entries to proposal %s", len(objs), proposal.id)
+
+    return {"success": True, "added": len(to_add_ids), "removed": len(to_remove_ids)}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 09:57+0700\n"
+"POT-Creation-Date: 2025-12-26 12:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -593,7 +593,7 @@ msgstr "Mã Chấm Công"
 #: apps/hrm/api/views/employee.py:574
 #: apps/hrm/models/attendance_geolocation.py:77 apps/hrm/models/employee.py:227
 #: apps/hrm/models/employee_certificate.py:170
-#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:762
+#: apps/hrm/models/employee_work_history.py:116 apps/hrm/models/proposal.py:767
 #: apps/hrm/models/recruitment_candidate.py:111
 #: apps/hrm/models/recruitment_request.py:89 apps/hrm/models/timesheet.py:79
 msgid "Status"
@@ -1067,8 +1067,8 @@ msgstr "Lấy các phòng ban có thể làm phòng ban quản lý"
 
 #: apps/hrm/api/views/proposal.py:138 apps/hrm/api/views/proposal.py:3365
 #: apps/hrm/models/proposal.py:306 apps/hrm/models/proposal.py:669
-#: apps/hrm/models/proposal.py:748 apps/hrm/models/proposal.py:853
-#: apps/hrm/models/proposal.py:898
+#: apps/hrm/models/proposal.py:753 apps/hrm/models/proposal.py:858
+#: apps/hrm/models/proposal.py:903
 msgid "Proposal"
 msgstr "Đề xuất"
 
@@ -2937,8 +2937,8 @@ msgstr "Lần đồng bộ cuối"
 #: apps/hrm/models/employee_work_history.py:108
 #: apps/hrm/models/interview_schedule.py:31
 #: apps/hrm/models/job_description.py:25
-#: apps/hrm/models/monthly_timesheet.py:127 apps/hrm/models/proposal.py:774
-#: apps/hrm/models/proposal.py:846 apps/hrm/models/recruitment_candidate.py:118
+#: apps/hrm/models/monthly_timesheet.py:127 apps/hrm/models/proposal.py:779
+#: apps/hrm/models/proposal.py:851 apps/hrm/models/recruitment_candidate.py:118
 #: apps/hrm/models/recruitment_candidate_contact_log.py:20
 #: apps/hrm/models/recruitment_expense.py:73 apps/hrm/models/timesheet.py:103
 #: apps/hrm/models/work_schedule.py:82
@@ -2958,7 +2958,7 @@ msgstr "Kết nối thành công. Phiên bản phần mềm: %(firmware)s"
 #: apps/hrm/models/employee_dependent.py:50
 #: apps/hrm/models/employee_relationship.py:54
 #: apps/hrm/models/employee_work_history.py:67
-#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:755
+#: apps/hrm/models/monthly_timesheet.py:33 apps/hrm/models/proposal.py:760
 #: apps/hrm/models/recruitment_candidate.py:133
 #: apps/hrm/models/recruitment_candidate_contact_log.py:16
 #: apps/hrm/models/recruitment_reports.py:214 apps/hrm/models/timesheet.py:37
@@ -4102,7 +4102,7 @@ msgstr "Đơn vị hành chính"
 
 #: apps/hrm/models/organization.py:35 apps/hrm/models/organization.py:100
 #: apps/hrm/models/organization.py:178 apps/hrm/models/organization.py:310
-#: apps/hrm/models/proposal.py:891 apps/hrm/models/recruitment_channel.py:33
+#: apps/hrm/models/proposal.py:896 apps/hrm/models/recruitment_channel.py:33
 #: apps/hrm/models/recruitment_source.py:19
 msgid "Description"
 msgstr "Mô tả"
@@ -4510,89 +4510,92 @@ msgstr "Chức vụ mới là bắt buộc cho điều chuyển công tác"
 msgid "Resolution note is required when rejecting a proposal"
 msgstr "Ghi chú là bắt buộc khi từ chối đề xuất"
 
-#: apps/hrm/models/proposal.py:677
+#: apps/hrm/models/proposal.py:676
 #, fuzzy
 #| msgid "Timesheet entry complaint"
 msgid "Timesheet entry"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:682
+#: apps/hrm/models/proposal.py:681
 msgid "Proposal Timesheet Entry"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:683
+#: apps/hrm/models/proposal.py:682
 msgid "Proposal Timesheet Entries"
 msgstr "Khiếu nại chấm công"
 
-#: apps/hrm/models/proposal.py:722
+#: apps/hrm/models/proposal.py:724
 msgid ""
 "A timesheet entry complaint proposal can only be linked to one timesheet "
 "entry."
 msgstr "Một ngày công chỉ có thể tạo 1 khiếu nại chấm công."
 
-#: apps/hrm/models/proposal.py:732
-msgid "This timesheet entry already has a complaint proposal linked to it."
+#: apps/hrm/models/proposal.py:737
+#, fuzzy
+#| msgid "This timesheet entry already has a complaint proposal linked to it."
+msgid ""
+"This timesheet entry already has a pending or approved complaint proposal."
 msgstr "Ngày công này đã có khiếu nại chấm công liên kết."
 
-#: apps/hrm/models/proposal.py:768
+#: apps/hrm/models/proposal.py:773
 #, fuzzy
 #| msgid "Verified"
 msgid "Verified time"
 msgstr "Đã xác nhận"
 
-#: apps/hrm/models/proposal.py:787
+#: apps/hrm/models/proposal.py:792
 msgid "Proposal Verifier"
 msgstr "Người xác minh"
 
-#: apps/hrm/models/proposal.py:788
+#: apps/hrm/models/proposal.py:793
 msgid "Proposal Verifiers"
 msgstr "Người xác minh"
 
-#: apps/hrm/models/proposal.py:813
+#: apps/hrm/models/proposal.py:818
 msgid "Only one verifier is allowed per proposal in the current system design."
 msgstr "Loại đề xuất hiện tại chỉ cho phép một người xác minh."
 
-#: apps/hrm/models/proposal.py:827
+#: apps/hrm/models/proposal.py:832
 msgid "Asset name"
 msgstr "Tên thiết bị"
 
-#: apps/hrm/models/proposal.py:835
+#: apps/hrm/models/proposal.py:840
 msgid "Unit type"
 msgstr "Đơn vị"
 
-#: apps/hrm/models/proposal.py:839
+#: apps/hrm/models/proposal.py:844
 msgid "Quantity"
 msgstr "Số lượng"
 
-#: apps/hrm/models/proposal.py:859
+#: apps/hrm/models/proposal.py:864
 msgid "Proposal Asset"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:860
+#: apps/hrm/models/proposal.py:865
 msgid "Proposal Assets"
 msgstr "Đề xuất cấp thiết bị"
 
-#: apps/hrm/models/proposal.py:876
+#: apps/hrm/models/proposal.py:881
 msgid "Overtime date"
 msgstr "Ngày làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:880 apps/hrm/models/timesheet.py:41
+#: apps/hrm/models/proposal.py:885 apps/hrm/models/timesheet.py:41
 msgid "Start time"
 msgstr "Ngày Bắt Đầu"
 
-#: apps/hrm/models/proposal.py:884 apps/hrm/models/timesheet.py:42
+#: apps/hrm/models/proposal.py:889 apps/hrm/models/timesheet.py:42
 msgid "End time"
 msgstr "Ngày Kết Thúc"
 
-#: apps/hrm/models/proposal.py:904
+#: apps/hrm/models/proposal.py:909
 msgid "Proposal Overtime Entry"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:905
+#: apps/hrm/models/proposal.py:910
 msgid "Proposal Overtime Entries"
 msgstr "Đề xuất làm thêm giờ"
 
-#: apps/hrm/models/proposal.py:931
+#: apps/hrm/models/proposal.py:936
 msgid "End time must be after start time"
 msgstr "Thời gian kết thúc làm ngoài giờ phải sau thời gian bắt đầu"
 

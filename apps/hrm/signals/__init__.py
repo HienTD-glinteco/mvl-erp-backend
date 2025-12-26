@@ -51,6 +51,7 @@ from .day_type_triggers import *  # noqa: E402, F401, F403
 from .employee import *  # noqa: E402, F401, F403
 from .hr_reports import *  # noqa: E402, F401, F403
 from .recruitment_reports import *  # noqa: E402, F401, F403
+from .proposal_timesheet_entry import *  # noqa: E402, F401, F403
 from .work_schedule import *  # noqa: E402, F401, F403
 
 # Register auto-code generation for models (excluding Employee and EmployeeCertificate)
