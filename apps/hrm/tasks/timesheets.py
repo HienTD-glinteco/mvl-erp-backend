@@ -225,7 +225,6 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
         return {"success": False, "error": "Proposal not found"}
 
     creator = proposal.created_by
-    dates = []
 
     # Identify relevant dates based on proposal type
     if proposal.proposal_type in [
@@ -249,13 +248,6 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
             or proposal.paid_leave_end_date
             or proposal.unpaid_leave_end_date
         )
-        if start and end:
-            # Query range
-            pass
-        else:
-            # Invalid range, treat as empty
-            start = None
-            end = None
 
         if start and end:
             # We don't list dates, we construct a query for TimeSheetEntry
