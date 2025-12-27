@@ -9,10 +9,9 @@ import logging
 from datetime import date
 
 from celery import shared_task
-from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from apps.hrm.constants import ProposalStatus, ProposalType
+from apps.hrm.constants import ProposalType
 from apps.hrm.models import (
     Employee,
     EmployeeMonthlyTimesheet,
@@ -236,10 +235,7 @@ def link_proposals_to_timesheet_entry_task(timesheet_entry_id: int) -> dict:
 
     # Bulk Create
     if to_add_ids:
-        new_links = [
-            ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry)
-            for pid in to_add_ids
-        ]
+        new_links = [ProposalTimeSheetEntry(proposal_id=pid, timesheet_entry=entry) for pid in to_add_ids]
         # NOTE: ignore_conflicts=True to handle potential race conditions safely
         objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
         logger.info("Linked %s proposals to entry %s", len(objs), entry.id)
@@ -310,10 +306,7 @@ def link_timesheet_entries_to_proposal_task(proposal_id: int) -> dict:
 
     # Bulk Create
     if to_add_ids:
-        new_links = [
-            ProposalTimeSheetEntry(proposal=proposal, timesheet_entry_id=tid)
-            for tid in to_add_ids
-        ]
+        new_links = [ProposalTimeSheetEntry(proposal=proposal, timesheet_entry_id=tid) for tid in to_add_ids]
         # NOTE: ignore_conflicts=True to handle potential race conditions safely
         objs = ProposalTimeSheetEntry.objects.bulk_create(new_links, ignore_conflicts=True)
         logger.info("Linked %s timesheet entries to proposal %s", len(objs), proposal.id)
