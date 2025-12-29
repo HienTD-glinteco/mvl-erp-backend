@@ -248,7 +248,6 @@ class DeviceChangeVerifyOTPView(APIView):
                 device_change_new_device_id=device_request.new_device_id,
                 device_change_new_platform=device_request.new_platform,
                 device_change_old_device_id=old_device_id,
-                device_change_contact_info=device_request.notes,
                 note=device_request.notes,
             )
 

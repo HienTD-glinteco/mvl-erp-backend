@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 11:41+0700\n"
+"POT-Creation-Date: 2025-12-29 10:32+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,6 +228,27 @@ msgstr "Xem cấu hình KPI"
 
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
+#: apps/payroll/api/views/payroll_slip.py:264
+msgid "Can only mark HOLD slips as READY"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:269
+msgid "Cannot mark as READY - employee has unpaid penalty tickets"
+msgstr ""
+
+#: apps/payroll/api/views/payroll_slip.py:317
+msgid "Can only deliver READY slips"
+msgstr ""
+
+#: apps/payroll/api/views/penalty_tickets.py:202
+#: apps/payroll/api/views/penalty_tickets.py:232
+#: apps/payroll/api/views/penalty_tickets.py:243
+#: apps/payroll/api/views/penalty_tickets.py:254
+#: apps/payroll/api/views/penalty_tickets.py:265
+#: apps/payroll/api/views/penalty_tickets.py:276
+#: apps/payroll/api/views/penalty_tickets.py:287
+#: apps/payroll/api/views/penalty_tickets.py:323
+#: apps/payroll/api/views/recovery_voucher.py:338
 #: apps/payroll/api/views/salary_config.py:128
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
@@ -278,6 +299,10 @@ msgstr "Cấu hình"
 msgid "Payroll View Salary Configuration"
 msgstr "Xem cấu hình bảng lương"
 
+#: apps/payroll/api/views/salary_period.py:228
+msgid "Cannot complete period with pending or hold payroll slips"
+msgstr ""
+
 #: apps/payroll/api/views/sales_revenue.py:374
 #, fuzzy
 #| msgid "Travel Expense Management"
@@ -313,6 +338,22 @@ msgstr "Hiệu quả công việc"
 #: apps/payroll/models/kpi_criterion.py:43
 msgid "Discipline"
 msgstr "Kỷ luật"
+
+#: apps/payroll/models/payroll_slip.py:52
+msgid "Pending"
+msgstr ""
+
+#: apps/payroll/models/payroll_slip.py:53
+msgid "Ready"
+msgstr ""
+
+#: apps/payroll/models/payroll_slip.py:54
+msgid "Hold"
+msgstr ""
+
+#: apps/payroll/models/payroll_slip.py:55
+msgid "Delivered"
+msgstr ""
 
 #: apps/payroll/models/penalty_ticket.py:21
 msgid "Paid"
@@ -448,6 +489,14 @@ msgstr "Phiếu truy thu/truy lĩnh"
 msgid "Recovery Vouchers"
 msgstr "Các phiếu truy thu/truy lĩnh"
 
+#: apps/payroll/models/salary_period.py:52
+msgid "Ongoing"
+msgstr ""
+
+#: apps/payroll/models/salary_period.py:53
+msgid "Completed"
+msgstr ""
+
 #: apps/payroll/models/travel_expense.py:94
 msgid "Code"
 msgstr "Mã"
@@ -480,7 +529,7 @@ msgstr "Công tác phí"
 msgid "Travel Expenses"
 msgstr "Các công tác phí"
 
-#: apps/payroll/signals.py:102
+#: apps/payroll/signals.py:108
 #, python-format
 msgid ""
 "KPI Assessment for period %(period)s has been created. Please access KPI "
@@ -488,3 +537,28 @@ msgid ""
 msgstr ""
 "Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để "
 "hoàn tất."
+
+#: apps/payroll/tasks.py:205
+#, python-format
+msgid ""
+"Hello %(employee_name)s,\n"
+"\n"
+"Your payroll slip for %(month)s is ready.\n"
+"\n"
+"Employee Code: %(employee_code)s\n"
+"Department: %(department)s\n"
+"Position: %(position)s\n"
+"\n"
+"Gross Income: %(gross_income)s VND\n"
+"Net Salary: %(net_salary)s VND\n"
+"\n"
+"Please log in to the system to view full details.\n"
+"\n"
+"Best regards,\n"
+"MaiVietLand Team"
+msgstr ""
+
+#: apps/payroll/tasks.py:231
+#, python-format
+msgid "Payroll Slip %(month)s - MaiVietLand"
+msgstr ""

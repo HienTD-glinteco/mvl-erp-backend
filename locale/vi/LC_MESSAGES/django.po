@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 10:45+0700\n"
+"POT-Creation-Date: 2025-12-29 10:30+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -455,3 +455,210 @@ msgstr "Email này được gửi tự động, vui lòng không trả lời."
 #: templates/emails/base_email.html:27
 msgid "All rights reserved."
 msgstr ""
+
+#: templates/emails/payroll_slip.html:4
+#, fuzzy
+#| msgid "Payroll"
+msgid "Payroll Slip"
+msgstr "Bảng lương"
+
+#: templates/emails/payroll_slip.html:6
+#, fuzzy
+#| msgid "Payroll View Salary Configuration"
+msgid "Payroll Slip Notification"
+msgstr "Xem cấu hình bảng lương"
+
+#: templates/emails/payroll_slip.html:19
+msgid "Hello"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:21
+msgid "Your payroll slip for"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:21
+msgid "is ready."
+msgstr ""
+
+#: templates/emails/payroll_slip.html:25
+#, fuzzy
+#| msgid "Note"
+msgid "Note:"
+msgstr "Ghi chú"
+
+#: templates/emails/payroll_slip.html:25
+msgid "This payroll slip is on hold:"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:29
+#, fuzzy
+#| msgid "Employee Code"
+msgid "Employee Information"
+msgstr "Mã nhân viên"
+
+#: templates/emails/payroll_slip.html:32
+msgid "Employee Code"
+msgstr "Mã nhân viên"
+
+#: templates/emails/payroll_slip.html:36
+#, fuzzy
+#| msgid "Name"
+msgid "Full Name"
+msgstr "Tên"
+
+#: templates/emails/payroll_slip.html:40
+msgid "Department"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:44
+msgid "Position"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:49
+msgid "Salary Components"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:52
+msgid "Base Salary"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:56
+msgid "KPI Bonus"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:57 templates/emails/payroll_slip.html:61
+msgid "Grade"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:60
+msgid "Business Progressive Salary"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:64
+msgid "Lunch Allowance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:68
+msgid "Phone Allowance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:72
+msgid "Other Allowance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:76
+msgid "Overtime Pay"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:77
+msgid "hours"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:80
+msgid "Travel Expense"
+msgstr "Công tác phí"
+
+#: templates/emails/payroll_slip.html:85
+msgid "Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:88
+msgid "Standard Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:89 templates/emails/payroll_slip.html:93
+#: templates/emails/payroll_slip.html:97 templates/emails/payroll_slip.html:101
+msgid "days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:92
+msgid "Total Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:96
+msgid "Official Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:100
+msgid "Probation Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:105
+msgid "Deductions"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:108
+msgid "Social Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:112
+msgid "Health Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:116
+msgid "Unemployment Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:120
+msgid "Union Fee"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:124
+msgid "Personal Income Tax"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:129
+#, fuzzy
+#| msgid "Recovery Voucher"
+msgid "Recovery Amount"
+msgstr "Phiếu truy thu/truy lĩnh"
+
+#: templates/emails/payroll_slip.html:136
+msgid "Additional Payment"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:139
+#, fuzzy
+#| msgid "Back Pay"
+msgid "Back Pay Amount"
+msgstr "Truy lĩnh"
+
+#: templates/emails/payroll_slip.html:146
+msgid "Gross Income"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:147
+msgid "Net Salary"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:152
+msgid "Warning:"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:152
+msgid "You have"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:152
+msgid "unpaid penalty ticket(s). Please check with HR department."
+msgstr ""
+
+#: templates/emails/payroll_slip.html:156
+msgid ""
+"Please log in to the system to view full details and download your payroll "
+"slip."
+msgstr ""
+
+#: templates/emails/payroll_slip.html:158
+msgid "If you have any questions, please contact the HR department."
+msgstr ""
+
+#: templates/emails/payroll_slip.html:160
+msgid "Best regards,"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:160
+#, fuzzy
+#| msgid "MaiVietLand"
+msgid "MaiVietLand Team"
+msgstr "MaiVietLand"

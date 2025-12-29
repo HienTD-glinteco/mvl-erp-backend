@@ -16,3 +16,5 @@ USE_TZ = True
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),  # add locale path for non-specific app
 ]
+
+LANGUAGE = [("vi", "Vietnamese"), ("en", "English")]
