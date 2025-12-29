@@ -24,6 +24,12 @@ from .kpi_assessment_period import (
 )
 from .kpi_config import GradeThresholdSerializer, KPIConfigSchemaSerializer, KPIConfigSerializer, UnitControlSerializer
 from .kpi_criterion import KPICriterionSerializer
+from .payroll_slip import (
+    PayrollSlipHoldSerializer,
+    PayrollSlipListSerializer,
+    PayrollSlipSerializer,
+    PayrollSlipStatusUpdateSerializer,
+)
 from .penalty_ticket import BulkUpdateStatusSerializer, PenaltyTicketSerializer, PenaltyTicketUpdateSerializer
 from .recovery_voucher import RecoveryVoucherSerializer
 from .salary_config import (
@@ -38,6 +44,12 @@ from .salary_config import (
     SalaryConfigSchemaSerializer,
     SalaryConfigSerializer,
     SocialInsuranceSerializer,
+)
+from .salary_period import (
+    SalaryPeriodCreateSerializer,
+    SalaryPeriodListSerializer,
+    SalaryPeriodSerializer,
+    SalaryPeriodStatisticsSerializer,
 )
 from .sales_revenue import SalesRevenueSerializer
 from .travel_expense import TravelExpenseSerializer
@@ -83,4 +95,12 @@ __all__ = [
     "PenaltyTicketSerializer",
     "PenaltyTicketUpdateSerializer",
     "BulkUpdateStatusSerializer",
+    "SalaryPeriodSerializer",
+    "SalaryPeriodListSerializer",
+    "SalaryPeriodCreateSerializer",
+    "SalaryPeriodStatisticsSerializer",
+    "PayrollSlipSerializer",
+    "PayrollSlipListSerializer",
+    "PayrollSlipHoldSerializer",
+    "PayrollSlipStatusUpdateSerializer",
 ]

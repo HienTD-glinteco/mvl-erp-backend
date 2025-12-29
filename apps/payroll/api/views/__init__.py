@@ -7,9 +7,11 @@ from .employee_kpi_assessment import (
 from .kpi_assessment_period import KPIAssessmentPeriodViewSet
 from .kpi_config import CurrentKPIConfigView
 from .kpi_criterion import KPICriterionViewSet
+from .payroll_slip import PayrollSlipViewSet
 from .penalty_tickets import PenaltyTicketViewSet
 from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
+from .salary_period import SalaryPeriodViewSet
 from .sales_revenue import SalesRevenueViewSet
 from .travel_expense import TravelExpenseViewSet
 
@@ -26,4 +28,6 @@ __all__ = [
     "RecoveryVoucherViewSet",
     "SalesRevenueViewSet",
     "PenaltyTicketViewSet",
+    "SalaryPeriodViewSet",
+    "PayrollSlipViewSet",
 ]

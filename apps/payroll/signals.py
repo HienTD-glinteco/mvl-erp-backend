@@ -2,20 +2,26 @@
 
 from datetime import date
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext as _
 
 from apps.core.models import UserDevice
+from apps.hrm.models import Contract, EmployeeDependent, EmployeeMonthlyTimesheet
 from apps.notifications.utils import create_notification
 from apps.payroll.models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
     KPIAssessmentPeriod,
+    PayrollSlip,
     PenaltyTicket,
     RecoveryVoucher,
+    SalaryPeriod,
     SalesRevenue,
+    TravelExpense,
 )
+from apps.payroll.models.payroll_slip import generate_payroll_slip_code
+from apps.payroll.models.salary_period import generate_salary_period_code
 from apps.payroll.utils import (
     create_assessment_items_from_criteria,
     recalculate_assessment_scores,
@@ -307,3 +313,102 @@ register_auto_code_signal(
     temp_code_prefix="TEMP_",
     custom_generate_code=generate_penalty_ticket_code,
 )
+
+
+# Register auto-code generation for SalaryPeriod
+register_auto_code_signal(
+    SalaryPeriod,
+    temp_code_prefix="TEMP_",
+    custom_generate_code=generate_salary_period_code,
+)
+
+
+# Register auto-code generation for PayrollSlip
+register_auto_code_signal(
+    PayrollSlip,
+    temp_code_prefix="TEMP_",
+    custom_generate_code=generate_payroll_slip_code,
+)
+
+
+@receiver(post_save, sender=PenaltyTicket)
+def on_penalty_ticket_status_changed(sender, instance, created, update_fields, **kwargs):
+    """Recalculate payroll when penalty ticket status changes.
+
+    This signal triggers when a PenaltyTicket is saved.
+    Recalculates payroll to update penalty blocking status.
+    """
+    # Skip recalculation on creation or if status wasn't updated
+    if created or (update_fields and "status" not in update_fields):
+        return
+
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    # Trigger async recalculation
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+# ========== Payroll Auto-Recalculation Signals ==========
+
+
+@receiver(post_save, sender=Contract)
+def on_contract_saved(sender, instance, created, **kwargs):
+    """Recalculate payroll when contract changes."""
+    if instance.status == "ACTIVE":
+        from apps.payroll.tasks import recalculate_payroll_slip_task
+
+        month = instance.effective_date.replace(day=1)
+        recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())
+
+
+@receiver(post_save, sender=EmployeeMonthlyTimesheet)
+def on_timesheet_saved(sender, instance, **kwargs):
+    """Recalculate payroll when timesheet changes."""
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.report_date.isoformat())
+
+
+@receiver(post_save, sender=EmployeeKPIAssessment)
+def on_kpi_assessment_saved(sender, instance, **kwargs):
+    """Recalculate payroll when KPI assessment changes."""
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.period.month.isoformat())
+
+
+@receiver(post_save, sender=SalesRevenue)
+def on_sales_revenue_saved(sender, instance, **kwargs):
+    """Recalculate payroll when sales revenue changes."""
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver([post_save, post_delete], sender=TravelExpense)
+def on_travel_expense_changed(sender, instance, **kwargs):
+    """Recalculate payroll when travel expense changes."""
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver([post_save, post_delete], sender=RecoveryVoucher)
+def on_recovery_voucher_changed(sender, instance, **kwargs):
+    """Recalculate payroll when recovery voucher changes."""
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver([post_save, post_delete], sender=EmployeeDependent)
+def on_dependent_changed(sender, instance, **kwargs):
+    """Recalculate payroll when dependents change."""
+    from datetime import date
+
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    # Recalculate current month
+    today = date.today()
+    month = today.replace(day=1)
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())
