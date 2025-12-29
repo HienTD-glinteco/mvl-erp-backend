@@ -60,6 +60,7 @@ class PermissionRegistrationMixin:
             "description_template": _("View history detail of {model_name}"),
         },
     }
+    PERMISSION_REGISTERED_ACTIONS = {}  # type: ignore
 
     @classmethod
     def get_model_name(cls):
@@ -110,7 +111,7 @@ class PermissionRegistrationMixin:
         return custom_actions
 
     @classmethod
-    def get_registered_permissions(cls):
+    def get_registered_permissions(cls):  # noqa: C901
         """
         Get all permission metadata for this viewset.
 
