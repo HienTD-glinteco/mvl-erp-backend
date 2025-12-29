@@ -10,8 +10,9 @@ from datetime import date
 
 from celery import shared_task
 from django.db.models import Q
+from django.utils import timezone
 
-from apps.hrm.constants import ProposalType
+from apps.hrm.constants import ProposalType, TimesheetStatus
 from apps.hrm.models import (
     Employee,
     EmployeeMonthlyTimesheet,
@@ -19,6 +20,7 @@ from apps.hrm.models import (
     ProposalTimeSheetEntry,
 )
 from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 from apps.hrm.services.timesheets import (
     create_entries_for_employee_month,
     create_entries_for_month_all,
@@ -117,6 +119,9 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
         count = 0
 
         for entry in entries:
+            # We must use the calculator to update logic
+            calc = TimesheetCalculator(entry)
+            calc.compute_all()
             entry.save()
             count += 1
 
@@ -127,6 +132,36 @@ def recalculate_timesheets(employee_id: int, start_date_str: str) -> dict:
             "Failed to recalculate timesheets for employee %s from %s: %s", employee_id, start_date_str, e
         )
         return {"success": False, "error": str(e)}
+
+
+@shared_task
+def finalize_daily_timesheets() -> dict:
+    """End-of-day task to finalize statuses for the day.
+
+    Runs daily (e.g., at 17:30).
+    Logic:
+    - Queries all TimeSheetEntry for today.
+    - If status is None or implicitly ABSENT (no logs), sets status = ABSENT.
+    - If status is SINGLE_PUNCH (1 log), ensures working_days logic is applied (Calculator handles this).
+    - Saving the entry triggers recalculation via clean/save logic usually, but here we invoke Calculator explicitly to be sure.
+    """
+    today = timezone.localdate()
+    # Or just today = date.today() depending on TZ settings.
+    # Use localdate for safety if server has UTC.
+
+    entries = TimeSheetEntry.objects.filter(date=today)
+    count = 0
+
+    for entry in entries:
+        # Re-run calculator to finalize status based on logs (or lack thereof)
+        # The calculator logic handles "No logs -> ABSENT" and "1 log -> SINGLE_PUNCH"
+
+        calc = TimesheetCalculator(entry)
+        calc.compute_all()
+        entry.save()
+        count += 1
+
+    return {"success": True, "finalized_count": count, "date": today}
 
 
 def _get_proposal_date_ranges(proposal):
