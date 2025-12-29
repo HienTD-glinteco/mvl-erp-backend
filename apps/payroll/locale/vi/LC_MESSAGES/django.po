@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 10:32+0700\n"
+"POT-Creation-Date: 2025-12-29 17:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -226,8 +226,6 @@ msgstr "Xem cấu hình KPI"
 msgid "KPI View KPI Configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/penalty_tickets.py:201
-#: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/payroll_slip.py:264
 msgid "Can only mark HOLD slips as READY"
 msgstr ""
@@ -240,15 +238,8 @@ msgstr ""
 msgid "Can only deliver READY slips"
 msgstr ""
 
-#: apps/payroll/api/views/penalty_tickets.py:202
-#: apps/payroll/api/views/penalty_tickets.py:232
-#: apps/payroll/api/views/penalty_tickets.py:243
-#: apps/payroll/api/views/penalty_tickets.py:254
-#: apps/payroll/api/views/penalty_tickets.py:265
-#: apps/payroll/api/views/penalty_tickets.py:276
-#: apps/payroll/api/views/penalty_tickets.py:287
-#: apps/payroll/api/views/penalty_tickets.py:323
-#: apps/payroll/api/views/recovery_voucher.py:338
+#: apps/payroll/api/views/penalty_tickets.py:201
+#: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:128
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408

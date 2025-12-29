@@ -30,6 +30,11 @@ class EmployeeSummarySerializer(serializers.Serializer):
     position = serializers.SerializerMethodField()
     status = serializers.CharField(read_only=True)
     start_date = serializers.DateField(read_only=True)
+    employee_type_display = serializers.SerializerMethodField()
+
+    def get_employee_type_display(self, obj) -> str:
+        """Get employee type display value"""
+        return obj.get_employee_type_display()
 
     def get_avatar(self, obj) -> FileSerializer:
         """Get avatar information"""

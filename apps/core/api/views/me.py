@@ -70,6 +70,7 @@ class MeView(APIView):
                             "position": {"id": 3, "name": "Software Engineer", "code": "SE"},
                             "status": "Active",
                             "start_date": "2023-06-01",
+                            "employee_type_display": "Full-time",
                         },
                         "links": {"self": "/api/me", "employee": "/api/hrm/employees/55"},
                     },
