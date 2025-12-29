@@ -13,6 +13,8 @@ from apps.payroll.api.views import (
     PayrollSlipViewSet,
     PenaltyTicketViewSet,
     RecoveryVoucherViewSet,
+    SalaryPeriodNotReadySlipsView,
+    SalaryPeriodReadySlipsView,
     SalaryPeriodViewSet,
     SalesRevenueViewSet,
     TravelExpenseViewSet,
@@ -37,6 +39,10 @@ router.register(r"payroll-slips", PayrollSlipViewSet, basename="payroll-slips")
 urlpatterns = [
     path("salary-config/", CurrentSalaryConfigView.as_view(), name="salary-config-current"),
     path("kpi-config/", CurrentKPIConfigView.as_view(), name="kpi-config-current"),
+    path("salary-periods/<int:pk>/ready/", SalaryPeriodReadySlipsView.as_view(), name="salary-period-ready"),
+    path(
+        "salary-periods/<int:pk>/not-ready/", SalaryPeriodNotReadySlipsView.as_view(), name="salary-period-not-ready"
+    ),
 ]
 
 urlpatterns += router.urls

@@ -50,41 +50,6 @@ def recalculate_payroll_slip_task(employee_id, month_str):
 
 
 @shared_task
-def recalculate_salary_period_task(salary_period_id):
-    """Recalculate all payroll slips in a salary period asynchronously.
-
-    Args:
-        salary_period_id: SalaryPeriod ID
-
-    Returns:
-        str: Result message
-    """
-    from apps.payroll.models import SalaryPeriod
-
-    try:
-        salary_period = SalaryPeriod.objects.get(pk=salary_period_id)
-    except SalaryPeriod.DoesNotExist:
-        return f"Salary period {salary_period_id} not found"
-
-    if salary_period.status == SalaryPeriod.Status.COMPLETED:
-        return "Salary period is completed, cannot recalculate"
-
-    payroll_slips = salary_period.payroll_slips.all()
-
-    success_count = 0
-    failed_count = 0
-
-    for slip in payroll_slips:
-        try:
-            recalculate_payroll_slip_task.delay(str(slip.employee_id), slip.salary_period.month.isoformat())
-            success_count += 1
-        except Exception:
-            failed_count += 1
-
-    return f"Queued {success_count} recalculations, {failed_count} failed"
-
-
-@shared_task
 def auto_generate_salary_period():
     """Auto-generate next month's salary period on last day of month.
 
@@ -248,3 +213,140 @@ MaiVietLand Team"""
         logger.error(f"Failed to send payroll email to employee {employee.code}: {str(e)}")
         sentry_sdk.capture_exception(e)
         return f"Failed to send email: {str(e)}"
+
+
+@shared_task(bind=True)
+def create_salary_period_task(self, month_str, proposal_deadline_str=None, kpi_assessment_deadline_str=None):
+    """Create salary period and generate all payroll slips asynchronously.
+
+    Args:
+        self: Task instance (bind=True)
+        month_str: Month in YYYY-MM format
+        proposal_deadline_str: Optional proposal deadline (YYYY-MM-DD)
+        kpi_assessment_deadline_str: Optional KPI assessment deadline (YYYY-MM-DD)
+
+    Returns:
+        dict: Result with period_id and statistics
+    """
+    from datetime import date
+
+    from apps.hrm.models import Employee
+    from apps.payroll.models import PayrollSlip, SalaryConfig, SalaryPeriod
+    from apps.payroll.services.payroll_calculation import PayrollCalculationService
+
+    try:
+        # Parse month (YYYY-MM format)
+        year, month = map(int, month_str.split("-"))
+        target_month = date(year, month, 1)
+
+        # Parse deadlines if provided
+        proposal_deadline = date.fromisoformat(proposal_deadline_str) if proposal_deadline_str else None
+        kpi_assessment_deadline = (
+            date.fromisoformat(kpi_assessment_deadline_str) if kpi_assessment_deadline_str else None
+        )
+
+        # Get latest salary config
+        salary_config = SalaryConfig.objects.first()
+        if not salary_config:
+            return {"error": "No salary configuration found"}
+
+        # Create salary period
+        salary_period = SalaryPeriod.objects.create(
+            month=target_month,
+            salary_config_snapshot=salary_config.config,
+            proposal_deadline=proposal_deadline,
+            kpi_assessment_deadline=kpi_assessment_deadline,
+        )
+
+        # Get employees to create payroll slips for
+        active_employees = Employee.objects.exclude(status=Employee.Status.RESIGNED)
+        resigned_in_period = Employee.objects.filter(
+            status=Employee.Status.RESIGNED,
+            resignation_start_date__year=target_month.year,
+            resignation_start_date__month=target_month.month,
+        )
+        employees = active_employees | resigned_in_period
+
+        created_count = 0
+        for employee in employees:
+            # Update task state for progress tracking
+            self.update_state(
+                state="PROGRESS",
+                meta={"current": created_count, "total": employees.count(), "status": "Creating payroll slips"},
+            )
+
+            payroll_slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+            # Calculate payroll immediately
+            calculator = PayrollCalculationService(payroll_slip)
+            calculator.calculate()
+            created_count += 1
+
+        # Update employee count and statistics
+        salary_period.total_employees = created_count
+        salary_period.save(update_fields=["total_employees"])
+        salary_period.update_statistics()
+
+        return {
+            "period_id": salary_period.id,
+            "period_code": salary_period.code,
+            "total_employees": created_count,
+            "status": "completed",
+        }
+
+    except Exception as e:
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+
+
+@shared_task(bind=True)
+def recalculate_salary_period_task(self, period_id):
+    """Recalculate all payroll slips in a salary period asynchronously.
+
+    Args:
+        self: Task instance (bind=True)
+        period_id: SalaryPeriod ID
+
+    Returns:
+        dict: Result with statistics
+    """
+    from apps.payroll.models import SalaryPeriod
+    from apps.payroll.services.payroll_calculation import PayrollCalculationService
+
+    try:
+        salary_period = SalaryPeriod.objects.get(pk=period_id)
+
+        if salary_period.status == SalaryPeriod.Status.COMPLETED:
+            return {"error": "Cannot recalculate completed period"}
+
+        payroll_slips = salary_period.payroll_slips.all()
+        total = payroll_slips.count()
+        recalculated_count = 0
+
+        for slip in payroll_slips:
+            # Update task state for progress tracking
+            self.update_state(
+                state="PROGRESS",
+                meta={"current": recalculated_count, "total": total, "status": "Recalculating payroll slips"},
+            )
+
+            calculator = PayrollCalculationService(slip)
+            calculator.calculate()
+            recalculated_count += 1
+
+        # Update statistics
+        salary_period.update_statistics()
+
+        return {
+            "period_id": salary_period.id,
+            "period_code": salary_period.code,
+            "recalculated_count": recalculated_count,
+            "status": "completed",
+        }
+
+    except Exception as e:
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}

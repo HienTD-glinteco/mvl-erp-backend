@@ -44,9 +44,15 @@ class KPIAssessmentPeriodNestedSerializer(serializers.ModelSerializer):
 
 
 class SalaryPeriodNestedSerializer(serializers.ModelSerializer):
-    """Nested serializer for SalaryPeriod."""
+    """Nested serializer for SalaryPeriod with formatted month."""
+
+    month = serializers.SerializerMethodField()
 
     class Meta:
         model = SalaryPeriod
         fields = ["id", "code", "month", "status"]
         read_only_fields = ["id", "code", "month", "status"]
+
+    def get_month(self, obj):
+        """Return month in n/YYYY format (month without leading zero)."""
+        return obj.month.strftime("%-m/%Y")

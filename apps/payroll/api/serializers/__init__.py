@@ -46,10 +46,12 @@ from .salary_config import (
     SocialInsuranceSerializer,
 )
 from .salary_period import (
+    SalaryPeriodCreateAsyncSerializer,
     SalaryPeriodCreateSerializer,
     SalaryPeriodListSerializer,
     SalaryPeriodSerializer,
-    SalaryPeriodStatisticsSerializer,
+    SalaryPeriodUpdateDeadlinesSerializer,
+    TaskStatusSerializer,
 )
 from .sales_revenue import SalesRevenueSerializer
 from .travel_expense import TravelExpenseSerializer
@@ -98,7 +100,9 @@ __all__ = [
     "SalaryPeriodSerializer",
     "SalaryPeriodListSerializer",
     "SalaryPeriodCreateSerializer",
-    "SalaryPeriodStatisticsSerializer",
+    "SalaryPeriodCreateAsyncSerializer",
+    "SalaryPeriodUpdateDeadlinesSerializer",
+    "TaskStatusSerializer",
     "PayrollSlipSerializer",
     "PayrollSlipListSerializer",
     "PayrollSlipHoldSerializer",

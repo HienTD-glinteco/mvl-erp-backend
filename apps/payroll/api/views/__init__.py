@@ -12,6 +12,7 @@ from .penalty_tickets import PenaltyTicketViewSet
 from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
 from .salary_period import SalaryPeriodViewSet
+from .salary_period_slips import SalaryPeriodNotReadySlipsView, SalaryPeriodReadySlipsView
 from .sales_revenue import SalesRevenueViewSet
 from .travel_expense import TravelExpenseViewSet
 
@@ -30,4 +31,6 @@ __all__ = [
     "PenaltyTicketViewSet",
     "SalaryPeriodViewSet",
     "PayrollSlipViewSet",
+    "SalaryPeriodReadySlipsView",
+    "SalaryPeriodNotReadySlipsView",
 ]

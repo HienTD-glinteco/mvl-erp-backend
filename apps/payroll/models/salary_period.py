@@ -93,6 +93,75 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         default=0, verbose_name="Total Employees", help_text="Count of employees with payroll slips in this period"
     )
 
+    # Deadline fields
+    proposal_deadline = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Proposal Deadline",
+        help_text="Deadline for submitting payroll-related proposals (default: 2nd of next month)",
+    )
+
+    kpi_assessment_deadline = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="KPI Assessment Deadline",
+        help_text="Deadline for KPI assessments (default: 5th of next month)",
+    )
+
+    # Statistics fields
+    employees_need_recovery = models.PositiveIntegerField(
+        default=0, verbose_name="Employees Need Recovery", help_text="Count of employees with recovery vouchers"
+    )
+
+    employees_with_penalties = models.PositiveIntegerField(
+        default=0, verbose_name="Employees With Penalties", help_text="Count of employees with penalty tickets"
+    )
+
+    employees_paid_penalties = models.PositiveIntegerField(
+        default=0, verbose_name="Employees Paid Penalties", help_text="Count of employees who paid penalties"
+    )
+
+    employees_with_travel = models.PositiveIntegerField(
+        default=0, verbose_name="Employees With Travel", help_text="Count of employees with travel expenses"
+    )
+
+    employees_need_email = models.PositiveIntegerField(
+        default=0, verbose_name="Employees Need Email", help_text="Count of employees needing payroll email"
+    )
+
+    # Payroll slip aggregate statistics
+    pending_count = models.PositiveIntegerField(
+        default=0, verbose_name="Pending Count", help_text="Count of payroll slips in PENDING status"
+    )
+
+    ready_count = models.PositiveIntegerField(
+        default=0, verbose_name="Ready Count", help_text="Count of payroll slips in READY status"
+    )
+
+    hold_count = models.PositiveIntegerField(
+        default=0, verbose_name="Hold Count", help_text="Count of payroll slips in HOLD status"
+    )
+
+    delivered_count = models.PositiveIntegerField(
+        default=0, verbose_name="Delivered Count", help_text="Count of payroll slips in DELIVERED status"
+    )
+
+    total_gross_income = models.DecimalField(
+        max_digits=20,
+        decimal_places=0,
+        default=0,
+        verbose_name="Total Gross Income",
+        help_text="Sum of gross income from all payroll slips",
+    )
+
+    total_net_salary = models.DecimalField(
+        max_digits=20,
+        decimal_places=0,
+        default=0,
+        verbose_name="Total Net Salary",
+        help_text="Sum of net salary from all payroll slips",
+    )
+
     completed_at = models.DateTimeField(
         null=True, blank=True, verbose_name="Completed At", help_text="Timestamp when period was completed"
     )
@@ -145,6 +214,20 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         if not self.pk and not self.standard_working_days:
             self.standard_working_days = calculate_standard_working_days(self.month.year, self.month.month)
 
+        # Set default deadlines if not provided (only on creation)
+        if not self.pk:
+            from dateutil.relativedelta import relativedelta
+
+            # Default proposal deadline: 2nd of next month
+            if not self.proposal_deadline:
+                next_month = self.month + relativedelta(months=1)
+                self.proposal_deadline = next_month.replace(day=2)
+
+            # Default KPI assessment deadline: 5th of next month
+            if not self.kpi_assessment_deadline:
+                next_month = self.month + relativedelta(months=1)
+                self.kpi_assessment_deadline = next_month.replace(day=5)
+
         super().save(*args, **kwargs)
 
     def can_complete(self) -> bool:
@@ -165,20 +248,17 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         return not blocking_slips
 
     def complete(self, user=None):
-        """Mark period as completed and set all READY slips to DELIVERED.
+        """Complete the salary period.
+
+        Marks period as completed and changes all READY slips to DELIVERED.
+        Can be executed at any time without checking can_complete.
 
         Args:
-            user: User who is completing the period
-
-        Raises:
-            ValueError: If period cannot be completed
+            user: User completing the period
         """
         from django.utils import timezone
 
         from .payroll_slip import PayrollSlip
-
-        if not self.can_complete():
-            raise ValueError("Cannot complete period with pending or hold payroll slips")
 
         # Update all READY slips to DELIVERED
         self.payroll_slips.filter(status=PayrollSlip.Status.READY).update(
@@ -190,3 +270,73 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         self.completed_at = timezone.now()
         self.completed_by = user
         self.save(update_fields=["status", "completed_at", "completed_by", "updated_at"])
+
+    def update_statistics(self):
+        """Update all statistics fields based on current payroll slips."""
+        from django.db.models import Count, Q, Sum
+
+        from apps.payroll.models import PenaltyTicket, RecoveryVoucher, TravelExpense
+
+        # Count employees with recovery vouchers
+        self.employees_need_recovery = (
+            RecoveryVoucher.objects.filter(month=self.month, voucher_type=RecoveryVoucher.VoucherType.RECOVERY)
+            .values("employee")
+            .distinct()
+            .count()
+        )
+
+        # Count employees with penalty tickets (any status)
+        self.employees_with_penalties = (
+            PenaltyTicket.objects.filter(month=self.month).values("employee").distinct().count()
+        )
+
+        # Count employees who paid penalties
+        self.employees_paid_penalties = (
+            PenaltyTicket.objects.filter(month=self.month, status=PenaltyTicket.Status.PAID)
+            .values("employee")
+            .distinct()
+            .count()
+        )
+
+        # Count employees with travel expenses
+        self.employees_with_travel = (
+            TravelExpense.objects.filter(month=self.month).values("employee").distinct().count()
+        )
+
+        # Count employees needing email (need_resend_email = True)
+        self.employees_need_email = self.payroll_slips.filter(need_resend_email=True).count()
+
+        # Update payroll slip aggregate statistics
+        from .payroll_slip import PayrollSlip
+
+        stats = self.payroll_slips.aggregate(
+            pending_count=Count("id", filter=Q(status=PayrollSlip.Status.PENDING)),
+            ready_count=Count("id", filter=Q(status=PayrollSlip.Status.READY)),
+            hold_count=Count("id", filter=Q(status=PayrollSlip.Status.HOLD)),
+            delivered_count=Count("id", filter=Q(status=PayrollSlip.Status.DELIVERED)),
+            total_gross_income=Sum("gross_income"),
+            total_net_salary=Sum("net_salary"),
+        )
+
+        self.pending_count = stats["pending_count"] or 0
+        self.ready_count = stats["ready_count"] or 0
+        self.hold_count = stats["hold_count"] or 0
+        self.delivered_count = stats["delivered_count"] or 0
+        self.total_gross_income = stats["total_gross_income"] or 0
+        self.total_net_salary = stats["total_net_salary"] or 0
+
+        self.save(
+            update_fields=[
+                "employees_need_recovery",
+                "employees_with_penalties",
+                "employees_paid_penalties",
+                "employees_with_travel",
+                "employees_need_email",
+                "pending_count",
+                "ready_count",
+                "hold_count",
+                "delivered_count",
+                "total_gross_income",
+                "total_net_salary",
+            ]
+        )

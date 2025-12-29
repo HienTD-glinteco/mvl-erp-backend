@@ -301,12 +301,78 @@ def payroll_slip_pending(salary_period, employee):
 
 
 @pytest.fixture
-def payroll_slip_ready(salary_period, employee, contract, timesheet):
+def employee_ready(branch, block, department, position):
+    """Create an employee for ready payroll slip."""
+    from apps.hrm.models import Employee
+
+    suffix = random_code(length=6)
+    return Employee.objects.create(
+        code=f"ER{suffix}",
+        fullname="Ready Employee",
+        username=f"emp_ready{suffix}",
+        email=f"emp_ready{suffix}@example.com",
+        status=Employee.Status.ACTIVE,
+        code_type=Employee.CodeType.MV,
+        branch=branch,
+        block=block,
+        department=department,
+        position=position,
+        start_date=date(2024, 1, 1),
+        attendance_code=random_digits(6),
+    )
+
+
+@pytest.fixture
+def contract_ready(employee_ready):
+    """Create an active contract for ready employee."""
+    from decimal import Decimal
+
+    from apps.hrm.models import Contract, ContractType
+
+    # Get or create contract type
+    contract_type, _ = ContractType.objects.get_or_create(code="LABOR", defaults={"name": "Labor Contract"})
+
+    return Contract.objects.create(
+        employee=employee_ready,
+        contract_type=contract_type,
+        base_salary=Decimal("20000000"),
+        kpi_salary=Decimal("2000000"),
+        lunch_allowance=Decimal("1000000"),
+        phone_allowance=Decimal("500000"),
+        other_allowance=Decimal("500000"),
+        sign_date=date(2024, 1, 1),
+        effective_date=date(2024, 1, 1),
+        status=Contract.ContractStatus.ACTIVE,
+    )
+
+
+@pytest.fixture
+def timesheet_ready(employee_ready, salary_period):
+    """Create a timesheet for ready employee."""
+    from decimal import Decimal
+
+    from apps.hrm.models import EmployeeMonthlyTimesheet
+
+    return EmployeeMonthlyTimesheet.objects.create(
+        employee=employee_ready,
+        report_date=salary_period.month,
+        month_key="202401",
+        total_working_days=Decimal("22.00"),
+        official_working_days=Decimal("22.00"),
+        probation_working_days=Decimal("0.00"),
+        saturday_in_week_overtime_hours=Decimal("0.00"),
+        sunday_overtime_hours=Decimal("0.00"),
+        holiday_overtime_hours=Decimal("0.00"),
+    )
+
+
+@pytest.fixture
+def payroll_slip_ready(salary_period, employee_ready, contract_ready, timesheet_ready):
     """Create a ready payroll slip."""
     from apps.payroll.models import PayrollSlip
     from apps.payroll.services.payroll_calculation import PayrollCalculationService
 
-    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+    slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee_ready)
     calculator = PayrollCalculationService(slip)
     calculator.calculate()
     return slip
