@@ -38,6 +38,26 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
     date = models.DateField(verbose_name=_("Date"))
 
+    # Snapshot Fields
+    contract = models.ForeignKey(
+        "Contract",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Contract snapshot"),
+        help_text=_("Snapshot of the active contract at the time of creation."),
+    )
+    wage_rate = models.IntegerField(
+        default=100,
+        verbose_name=_("Wage rate"),
+        help_text=_("Snapshot of the contract wage rate."),
+    )
+    is_exempt = models.BooleanField(
+        default=False,
+        verbose_name=_("Is exempt"),
+        help_text=_("Whether the employee is exempt from attendance tracking (e.g., Board of Directors)."),
+    )
+
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Start time"))
     end_time = models.DateTimeField(null=True, blank=True, verbose_name=_("End time"))
 
@@ -60,6 +80,30 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     total_worked_hours = models.DecimalField(
         max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total worked hours")
     )
+
+    # Detailed Overtime Breakdown
+    ot_tc1_hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("OT TC1 (Weekday) hours")
+    )
+    ot_tc2_hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("OT TC2 (Weekend) hours")
+    )
+    ot_tc3_hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("OT TC3 (Holiday) hours")
+    )
+    ot_start_time = models.DateTimeField(null=True, blank=True, verbose_name=_("OT Start Time"))
+    ot_end_time = models.DateTimeField(null=True, blank=True, verbose_name=_("OT End Time"))
+
+    # Detailed Metrics & Penalties
+    compensation_value = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Compensation value")
+    )
+    paid_leave_hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Paid leave hours")
+    )
+    late_minutes = models.IntegerField(default=0, verbose_name=_("Late minutes"))
+    early_minutes = models.IntegerField(default=0, verbose_name=_("Early minutes"))
+    is_punished = models.BooleanField(default=False, verbose_name=_("Is punished"))
 
     # Working days for this entry (partial days allowed). Calculated from official_hours
     # using STANDARD_WORKING_HOURS_PER_DAY (e.g., 8 hours = 1 working day).
