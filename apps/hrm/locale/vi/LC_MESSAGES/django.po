@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 10:30+0700\n"
+"POT-Creation-Date: 2025-12-29 11:21+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -292,16 +292,16 @@ msgstr ""
 msgid "No valid 'Other' attendance records found for the provided IDs."
 msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
 
-#: apps/hrm/api/serializers/proposal.py:305
+#: apps/hrm/api/serializers/proposal.py:300
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:311
+#: apps/hrm/api/serializers/proposal.py:306
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/proposal.py:532
+#: apps/hrm/api/serializers/proposal.py:527
 msgid "At least one overtime entry is required"
 msgstr "Thời gian làm thêm giờ là bắt buộc"
 
@@ -5117,7 +5117,7 @@ msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 msgid "Contract changed from {old_contract} to {new_contract}"
 msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"
 
-#: apps/hrm/services/proposal_service.py:152
+#: apps/hrm/services/proposal_service.py:151
 #, python-format
 msgid "Complaint proposal %(id)s missing approved check-in/out times"
 msgstr ""

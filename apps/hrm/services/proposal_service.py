@@ -6,9 +6,8 @@ from django.utils.translation import gettext as _
 
 from apps.core.models import UserDevice
 from apps.core.utils.jwt import bump_user_mobile_token_version, revoke_user_outstanding_tokens
-from apps.hrm.constants import ProposalStatus, ProposalType, TimesheetReason, TimesheetStatus
+from apps.hrm.constants import ProposalType, TimesheetReason, TimesheetStatus
 from apps.hrm.models import Proposal, ProposalOvertimeEntry, ProposalTimeSheetEntry, TimeSheetEntry
-from apps.notifications.utils import create_notification
 
 
 class ProposalExecutionError(Exception):
@@ -218,7 +217,6 @@ class ProposalService:
         2. Removes requester's old UserDevice (if single device policy)
         3. Creates/updates UserDevice for requester with new device_id
         4. Revokes outstanding tokens for requester (force re-login)
-        5. Sends notifications to affected users
 
         Args:
             proposal: The approved device change Proposal instance
@@ -244,9 +242,7 @@ class ProposalService:
             state=UserDevice.State.ACTIVE,
             device_id=new_device_id,
         ).first()
-        previous_owner_user = None
         if existing_device and existing_device.user != requester_user:
-            previous_owner_user = existing_device.user
             existing_device.state = UserDevice.State.REVOKED
             existing_device.save(update_fields=["state"])
 
@@ -271,111 +267,4 @@ class ProposalService:
 
         # Step 4: Bump token version and blacklist refresh tokens (force re-login)
         bump_user_mobile_token_version(requester_user)
-        revoked_count = revoke_user_outstanding_tokens(requester_user)
-
-        # Step 5: Send notifications
-        # Notify requester about approval and device assignment
-        if requester_user:
-            create_notification(
-                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
-                recipient=requester_user,
-                verb="Device change approved",
-                message=f"Your device change request has been approved. New device {new_device_id} has been assigned to your account. Please log in again.",
-                extra_data={
-                    "proposal_id": str(proposal.id),
-                    "new_device_id": new_device_id,
-                    "tokens_revoked": revoked_count,
-                },
-            )
-
-        # Notify previous owner (if device was reassigned from another user)
-        if previous_owner_user:
-            create_notification(
-                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
-                recipient=previous_owner_user,
-                verb="Device reassigned",
-                message=f"Your device {new_device_id} has been reassigned to another user per admin approval.",
-                extra_data={"proposal_id": str(proposal.id), "device_id": new_device_id},
-            )
-
-    @staticmethod
-    def notify_proposal_approval(proposal: Proposal) -> None:
-        """Notify the user about proposal approval.
-
-        Args:
-            proposal: The approved Proposal instance
-        """
-        handler_map = {
-            ProposalType.TIMESHEET_ENTRY_COMPLAINT: ProposalService._notify_complaint_proposal,
-            ProposalType.DEVICE_CHANGE: ProposalService._notify_device_change_proposal,
-        }
-
-        handler = handler_map.get(proposal.proposal_type)  # type: ignore
-        if handler:
-            handler(proposal)
-
-    @staticmethod
-    def _notify_complaint_proposal(proposal: Proposal) -> None:
-        """Notify user about timesheet entry complaint proposal approval.
-
-        Args:
-            proposal: The approved complaint Proposal instance
-        """
-        if not proposal.approved_by:
-            # NOTE: only send notification if approved_by is set
-            return
-
-        status_display = proposal.get_proposal_status_display()
-        message = (
-            f"Your timesheet complaint has been {status_display} with approved "
-            f"check-in time: {proposal.timesheet_entry_complaint_approved_check_in_time} "
-            f"and check-out time: {proposal.timesheet_entry_complaint_approved_check_out_time}."
-        )  # noqa: E501
-
-        create_notification(
-            actor=proposal.approved_by.user,  # type: ignore
-            recipient=proposal.created_by.user,  # type: ignore
-            verb=f"Your timesheet complaint has been {status_display}.",
-            message=message,
-            extra_data={"proposal_id": str(proposal.id)},
-        )
-
-    @staticmethod
-    def _notify_device_change_proposal(proposal: Proposal) -> None:
-        """Notify user about device change proposal status.
-
-        This is called for both approval and rejection notifications.
-
-        Args:
-            proposal: The device change Proposal instance
-        """
-        if not proposal.created_by:
-            return
-
-        status_display = proposal.get_proposal_status_display()
-        requester_user = proposal.created_by.user
-
-        if proposal.proposal_status == ProposalStatus.APPROVED:
-            message = (
-                f"Your device change request has been {status_display}. "
-                f"Device {proposal.device_change_new_device_id} has been assigned to your account. "
-                f"Please log in again to use the new device."
-            )
-        elif proposal.proposal_status == ProposalStatus.REJECTED:
-            message = f"Your device change request has been {status_display}."
-            if proposal.approval_note:
-                message += f" Reason: {proposal.approval_note}"
-        else:
-            message = f"Your device change request status: {status_display}."
-
-        if requester_user:
-            create_notification(
-                actor=proposal.approved_by.user if proposal.approved_by else requester_user,  # type: ignore
-                recipient=requester_user,
-                verb=f"Device change request {status_display}",
-                message=message,
-                extra_data={
-                    "proposal_id": str(proposal.id),
-                    "new_device_id": proposal.device_change_new_device_id,
-                },
-            )
+        revoke_user_outstanding_tokens(requester_user)

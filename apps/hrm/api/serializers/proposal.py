@@ -110,12 +110,7 @@ class ProposalChangeStatusSerializer(serializers.ModelSerializer):
 
     def post_update(self, instance: Proposal) -> None:
         """Hook for additional actions after updating the proposal."""
-        # Execute the proposal if it was approved
-        try:
-            ProposalService.notify_proposal_approval(instance)
-        except Exception as e:
-            # Log the error but don't fail the approval
-            logger.error(f"Failed to send approval notification for proposal {instance.id}: {str(e)}", exc_info=True)
+        pass
 
 
 class ProposalApproveSerializer(ProposalChangeStatusSerializer):
