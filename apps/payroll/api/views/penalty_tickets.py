@@ -10,7 +10,6 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.permissions import RoleBasedPermission
-from apps.core.utils.permissions import register_permission
 from apps.payroll.api.filtersets import PenaltyTicketFilterSet
 from apps.payroll.api.serializers import (
     BulkUpdateStatusSerializer,
@@ -203,6 +202,13 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
     submodule = _("Penalty Management")
     permission_prefix = "payroll.penalty_ticket"
 
+    PERMISSION_REGISTERED_ACTIONS = {
+        "bulk_update_status": {
+            "name_template": _("Bulk Update Penalty Ticket Status"),
+            "description_template": _("Bulk update payment status for penalty tickets"),
+        },
+    }
+
     def get_serializer_class(self):
         """Use different serializer for update operations."""
         if self.action in ["update", "partial_update"]:
@@ -225,72 +231,6 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
     def perform_update(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
         serializer.save(updated_by=user)
-
-    @register_permission(
-        "payroll.view_penalty_ticket",
-        description=_("View penalty tickets"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("View Penalty Tickets"),
-    )
-    def list(self, request, *args, **kwargs):
-        """List penalty tickets."""
-        return super().list(request, *args, **kwargs)
-
-    @register_permission(
-        "payroll.view_penalty_ticket",
-        description=_("View penalty ticket details"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("View Penalty Ticket Details"),
-    )
-    def retrieve(self, request, *args, **kwargs):
-        """Retrieve penalty ticket details."""
-        return super().retrieve(request, *args, **kwargs)
-
-    @register_permission(
-        "payroll.add_penalty_ticket",
-        description=_("Create penalty tickets"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("Create Penalty Tickets"),
-    )
-    def create(self, request, *args, **kwargs):
-        """Create penalty ticket."""
-        return super().create(request, *args, **kwargs)
-
-    @register_permission(
-        "payroll.change_penalty_ticket",
-        description=_("Update penalty tickets"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("Update Penalty Tickets"),
-    )
-    def update(self, request, *args, **kwargs):
-        """Update penalty ticket."""
-        return super().update(request, *args, **kwargs)
-
-    @register_permission(
-        "payroll.change_penalty_ticket",
-        description=_("Partially update penalty tickets"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("Partially Update Penalty Tickets"),
-    )
-    def partial_update(self, request, *args, **kwargs):
-        """Partially update penalty ticket."""
-        return super().partial_update(request, *args, **kwargs)
-
-    @register_permission(
-        "payroll.delete_penalty_ticket",
-        description=_("Delete penalty tickets"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("Delete Penalty Tickets"),
-    )
-    def destroy(self, request, *args, **kwargs):
-        """Delete penalty ticket."""
-        return super().destroy(request, *args, **kwargs)
 
     @extend_schema(
         summary="Update payment status for penalty tickets",
@@ -316,13 +256,6 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
                 status_codes=["400"],
             ),
         ],
-    )
-    @register_permission(
-        "payroll.change_penalty_ticket",
-        description=_("Bulk update penalty ticket status"),
-        module=_("Payroll"),
-        submodule=_("Penalty Management"),
-        name=_("Update Penalty Ticket Status"),
     )
     @action(detail=False, methods=["post"], url_path="bulk-update-status")
     def bulk_update_status(self, request, *args, **kwargs):

@@ -2,6 +2,7 @@ from django.db.models import ProtectedError
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -354,8 +355,6 @@ class RecoveryVoucherViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSe
         try:
             instance.delete()
         except ProtectedError:
-            from rest_framework.exceptions import ValidationError
-
             raise ValidationError(
                 {
                     "code": "PAYROLL_EXISTS",

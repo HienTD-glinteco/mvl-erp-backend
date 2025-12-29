@@ -403,7 +403,7 @@ msgstr "Log chấm công"
 
 #: apps/hrm/api/views/attendance_record.py:121
 msgid "Record attendance by GeoLocation"
-msgstr "Log chấm Công GPS"
+msgstr "chấm Công GPS"
 
 #: apps/hrm/api/views/attendance_record.py:122
 msgid "Record attendance using GeoLocation coordinates"
@@ -3048,7 +3048,7 @@ msgstr "Đã xóa lúc"
 
 #: apps/hrm/models/attendance_geolocation.py:100
 msgid "Attendance Geolocation"
-msgstr "Log chấm Công GPS"
+msgstr "chấm Công GPS"
 
 #: apps/hrm/models/attendance_geolocation.py:101
 msgid "Attendance Geolocations"
@@ -3077,7 +3077,7 @@ msgstr "Thời gian Ghi nhận"
 
 #: apps/hrm/models/attendance_record.py:141
 msgid "Attendance geolocation"
-msgstr "Log chấm Công GPS"
+msgstr "chấm Công GPS"
 
 #: apps/hrm/models/attendance_record.py:150
 msgid "Image"

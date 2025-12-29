@@ -4,11 +4,13 @@ roles:
     is_system_role: true
     permissions:
       - "*"
+
   - code: VT000000002
     name: Nhân viên
     is_system_role: true
     permissions:
       - employee_permissions
+
   - code: VT000000003
     name: Quản lý tuyển dụng
     is_system_role: true

@@ -226,6 +226,8 @@ msgstr "Xem cấu hình KPI"
 msgid "KPI View KPI Configuration"
 msgstr "Xem cấu hình KPI"
 
+#: apps/payroll/api/views/penalty_tickets.py:201
+#: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/payroll_slip.py:264
 msgid "Can only mark HOLD slips as READY"
 msgstr ""
@@ -253,94 +255,35 @@ msgstr ""
 msgid "Payroll"
 msgstr "Bảng lương"
 
-#: apps/payroll/api/views/penalty_tickets.py:203
-#: apps/payroll/api/views/penalty_tickets.py:233
-#: apps/payroll/api/views/penalty_tickets.py:244
-#: apps/payroll/api/views/penalty_tickets.py:255
-#: apps/payroll/api/views/penalty_tickets.py:266
-#: apps/payroll/api/views/penalty_tickets.py:277
-#: apps/payroll/api/views/penalty_tickets.py:288
-#: apps/payroll/api/views/penalty_tickets.py:324
+#: apps/payroll/api/views/penalty_tickets.py:202
 #, fuzzy
 #| msgid "Travel Expense Management"
 msgid "Penalty Management"
 msgstr "Quản lý chi phí đi lại"
 
-#: apps/payroll/api/views/penalty_tickets.py:231
-msgid "View penalty tickets"
-msgstr ""
+#: apps/payroll/api/views/penalty_tickets.py:207
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Bulk Update Penalty Ticket Status"
+msgstr "Quyền cập nhật một phần {model_name}"
 
-#: apps/payroll/api/views/penalty_tickets.py:234
-msgid "View Penalty Tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:242
-msgid "View penalty ticket details"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:245
-msgid "View Penalty Ticket Details"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:253
-msgid "Create penalty tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:256
-msgid "Create Penalty Tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:264
-msgid "Update penalty tickets"
-msgstr ""
+#: apps/payroll/api/views/penalty_tickets.py:208
+#, fuzzy
+#| msgid "Partially update {model_name}"
+msgid "Bulk update payment status for penalty tickets"
+msgstr "Quyền cập nhật một phần {model_name}"
 
 #: apps/payroll/api/views/penalty_tickets.py:267
-msgid "Update Penalty Tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:275
-#, fuzzy
-#| msgid "Partially update {model_name}"
-msgid "Partially update penalty tickets"
-msgstr "Quyền cập nhật một phần {model_name}"
-
-#: apps/payroll/api/views/penalty_tickets.py:278
-#, fuzzy
-#| msgid "Partially update {model_name}"
-msgid "Partially Update Penalty Tickets"
-msgstr "Quyền cập nhật một phần {model_name}"
-
-#: apps/payroll/api/views/penalty_tickets.py:286
-msgid "Delete penalty tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:289
-msgid "Delete Penalty Tickets"
-msgstr ""
-
-#: apps/payroll/api/views/penalty_tickets.py:322
-#, fuzzy
-#| msgid "Partially update {model_name}"
-msgid "Bulk update penalty ticket status"
-msgstr "Quyền cập nhật một phần {model_name}"
-
-#: apps/payroll/api/views/penalty_tickets.py:325
-#, fuzzy
-#| msgid "Partially update {model_name}"
-msgid "Update Penalty Ticket Status"
-msgstr "Quyền cập nhật một phần {model_name}"
-
-#: apps/payroll/api/views/penalty_tickets.py:334
 #, fuzzy
 #| msgid "Authentication required"
 msgid "Authentication credentials were not provided."
 msgstr "Yêu cầu xác thực"
 
-#: apps/payroll/api/views/recovery_voucher.py:339
+#: apps/payroll/api/views/recovery_voucher.py:340
 msgid "Recovery/Back Pay"
 msgstr "Truy thu / Truy lĩnh"
 
-#: apps/payroll/api/views/recovery_voucher.py:362
+#: apps/payroll/api/views/recovery_voucher.py:361
 msgid "Cannot delete voucher for a month with existing payroll."
 msgstr "Không thể xóa phiếu cho một tháng đã có bảng lương."
 
