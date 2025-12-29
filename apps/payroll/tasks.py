@@ -96,6 +96,7 @@ def auto_generate_salary_period():
     """
     from apps.hrm.models import Employee
     from apps.payroll.models import PayrollSlip, SalaryConfig, SalaryPeriod
+    from apps.payroll.services.payroll_calculation import PayrollCalculationService
 
     today = date.today()
 
@@ -128,17 +129,29 @@ def auto_generate_salary_period():
         month=next_month, salary_config_snapshot=salary_config.config, created_by=None
     )
 
-    # Create payroll slips for all active employees
-    active_employees = Employee.objects.filter(is_active=True)
+    # Get employees to create payroll slips for
+    # Include all employees except RESIGNED, and RESIGNED employees with resignation_start_date in this period
+    active_employees = Employee.objects.exclude(status=Employee.Status.RESIGNED)
+    resigned_in_period = Employee.objects.filter(
+        status=Employee.Status.RESIGNED,
+        resignation_start_date__year=next_month.year,
+        resignation_start_date__month=next_month.month,
+    )
+    employees = active_employees | resigned_in_period
 
-    for employee in active_employees:
-        PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+    created_count = 0
+    for employee in employees:
+        payroll_slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+        # Calculate payroll immediately
+        calculator = PayrollCalculationService(payroll_slip)
+        calculator.calculate()
+        created_count += 1
 
     # Update employee count
-    salary_period.total_employees = active_employees.count()
+    salary_period.total_employees = created_count
     salary_period.save(update_fields=["total_employees"])
 
-    return f"Created salary period for {next_month} with {active_employees.count()} employees"
+    return f"Created salary period for {next_month} with {created_count} employees and calculated all payrolls"
 
 
 @shared_task
@@ -151,17 +164,87 @@ def send_payroll_email_task(payroll_slip_id):
     Returns:
         str: Result message
     """
+    import logging
+
+    import sentry_sdk
+    from django.conf import settings
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    from django.utils.translation import gettext as _
+
     from apps.payroll.models import PayrollSlip
 
+    logger = logging.getLogger(__name__)
+
     try:
-        payroll_slip = PayrollSlip.objects.get(pk=payroll_slip_id)
+        payroll_slip = PayrollSlip.objects.select_related("employee", "salary_period").get(pk=payroll_slip_id)
     except PayrollSlip.DoesNotExist:
         return f"Payroll slip {payroll_slip_id} not found"
 
-    # TODO: Implement actual email sending
-    # For now, just mark as sent
-    payroll_slip.email_sent_at = timezone.now()
-    payroll_slip.need_resend_email = False
-    payroll_slip.save(update_fields=["email_sent_at", "need_resend_email"])
+    employee = payroll_slip.employee
 
-    return f"Email sent to {payroll_slip.employee.email}"
+    if not employee.email:
+        return f"Employee {employee.code} has no email address"
+
+    try:
+        context = {
+            "employee": employee,
+            "payroll_slip": payroll_slip,
+            "salary_period": payroll_slip.salary_period,
+            "current_year": timezone.now().year,
+        }
+
+        try:
+            html_message = render_to_string("emails/payroll_slip.html", context)
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            logger.error(f"Failed to render payroll slip email template for employee {employee.code}: {str(e)}")
+            raise
+
+        plain_message = _(
+            """Hello %(employee_name)s,
+
+Your payroll slip for %(month)s is ready.
+
+Employee Code: %(employee_code)s
+Department: %(department)s
+Position: %(position)s
+
+Gross Income: %(gross_income)s VND
+Net Salary: %(net_salary)s VND
+
+Please log in to the system to view full details.
+
+Best regards,
+MaiVietLand Team"""
+        ) % {
+            "employee_name": employee.fullname,
+            "month": payroll_slip.salary_period.month.strftime("%B %Y"),
+            "employee_code": payroll_slip.employee_code,
+            "department": payroll_slip.department_name,
+            "position": payroll_slip.position_name,
+            "gross_income": f"{payroll_slip.gross_income:,.0f}",
+            "net_salary": f"{payroll_slip.net_salary:,.0f}",
+        }
+
+        send_mail(
+            subject=_("Payroll Slip %(month)s - MaiVietLand")
+            % {"month": payroll_slip.salary_period.month.strftime("%m/%Y")},
+            message=plain_message,
+            html_message=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[employee.email],
+            fail_silently=False,
+        )
+
+        payroll_slip.email_sent_at = timezone.now()
+        payroll_slip.need_resend_email = False
+        payroll_slip.save(update_fields=["email_sent_at", "need_resend_email"])
+
+        logger.info(f"Payroll email sent successfully to employee {employee.code}")
+        return f"Email sent to {employee.email}"
+
+    except Exception as e:
+        logger.error(f"Failed to send payroll email to employee {employee.code}: {str(e)}")
+        sentry_sdk.capture_exception(e)
+        return f"Failed to send email: {str(e)}"

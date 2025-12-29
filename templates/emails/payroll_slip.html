@@ -1,0 +1,161 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Payroll Slip" %}{% endblock %}
+
+{% block header_title %}{% trans "Payroll Slip Notification" %}{% endblock %}
+
+{% block extra_styles %}
+    .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; }
+    .info-table th, .info-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    .info-table th { background-color: #2c3e50; color: white; font-weight: bold; width: 40%; }
+    .info-table tr:hover { background-color: #f5f5f5; }
+    .section-title { color: #2c3e50; margin-top: 25px; margin-bottom: 15px; font-size: 18px; font-weight: bold; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; }
+    .highlight { background-color: #3498db; color: white; padding: 15px; border-radius: 5px; text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0; }
+    .warning { background-color: #f39c12; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; }
+{% endblock %}
+
+{% block content %}
+    <p>{% trans "Hello" %} <strong>{{ employee.fullname }}</strong>,</p>
+
+    <p>{% trans "Your payroll slip for" %} <strong>{{ salary_period.month|date:"F Y" }}</strong> {% trans "is ready." %}</p>
+
+    {% if payroll_slip.status == 'HOLD' %}
+    <div class="warning">
+        <strong>{% trans "Note:" %}</strong> {% trans "This payroll slip is on hold:" %} {{ payroll_slip.status_note }}
+    </div>
+    {% endif %}
+
+    <h3 class="section-title">{% trans "Employee Information" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Employee Code" %}</th>
+            <td>{{ payroll_slip.employee_code }}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Full Name" %}</th>
+            <td>{{ payroll_slip.employee_name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Department" %}</th>
+            <td>{{ payroll_slip.department_name }}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Position" %}</th>
+            <td>{{ payroll_slip.position_name }}</td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">{% trans "Salary Components" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Base Salary" %}</th>
+            <td>{{ payroll_slip.base_salary|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "KPI Bonus" %}</th>
+            <td>{{ payroll_slip.kpi_bonus|floatformat:0 }} VND ({% trans "Grade" %}: {{ payroll_slip.kpi_grade }})</td>
+        </tr>
+        <tr>
+            <th>{% trans "Business Progressive Salary" %}</th>
+            <td>{{ payroll_slip.business_progressive_salary|floatformat:0 }} VND ({% trans "Grade" %}: {{ payroll_slip.business_grade }})</td>
+        </tr>
+        <tr>
+            <th>{% trans "Lunch Allowance" %}</th>
+            <td>{{ payroll_slip.lunch_allowance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Phone Allowance" %}</th>
+            <td>{{ payroll_slip.phone_allowance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Other Allowance" %}</th>
+            <td>{{ payroll_slip.other_allowance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Overtime Pay" %}</th>
+            <td>{{ payroll_slip.overtime_pay|floatformat:0 }} VND ({{ payroll_slip.total_overtime_hours }} {% trans "hours" %})</td>
+        </tr>
+        <tr>
+            <th>{% trans "Travel Expense" %}</th>
+            <td>{{ payroll_slip.total_travel_expense|floatformat:0 }} VND</td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">{% trans "Working Days" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Standard Working Days" %}</th>
+            <td>{{ payroll_slip.standard_working_days }} {% trans "days" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Total Working Days" %}</th>
+            <td>{{ payroll_slip.total_working_days }} {% trans "days" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Official Working Days" %}</th>
+            <td>{{ payroll_slip.official_working_days }} {% trans "days" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Probation Working Days" %}</th>
+            <td>{{ payroll_slip.probation_working_days }} {% trans "days" %}</td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">{% trans "Deductions" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Social Insurance" %}</th>
+            <td>{{ payroll_slip.employee_social_insurance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Health Insurance" %}</th>
+            <td>{{ payroll_slip.employee_health_insurance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Unemployment Insurance" %}</th>
+            <td>{{ payroll_slip.employee_unemployment_insurance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Union Fee" %}</th>
+            <td>{{ payroll_slip.employee_union_fee|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Personal Income Tax" %}</th>
+            <td>{{ payroll_slip.personal_income_tax|floatformat:0 }} VND</td>
+        </tr>
+        {% if payroll_slip.recovery_amount > 0 %}
+        <tr>
+            <th>{% trans "Recovery Amount" %}</th>
+            <td>{{ payroll_slip.recovery_amount|floatformat:0 }} VND</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    {% if payroll_slip.back_pay_amount > 0 %}
+    <h3 class="section-title">{% trans "Additional Payment" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Back Pay Amount" %}</th>
+            <td>{{ payroll_slip.back_pay_amount|floatformat:0 }} VND</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    <div class="highlight">
+        <div>{% trans "Gross Income" %}: {{ payroll_slip.gross_income|floatformat:0 }} VND</div>
+        <div style="margin-top: 10px; font-size: 24px;">{% trans "Net Salary" %}: {{ payroll_slip.net_salary|floatformat:0 }} VND</div>
+    </div>
+
+    {% if payroll_slip.has_unpaid_penalty %}
+    <div class="warning">
+        <strong>{% trans "Warning:" %}</strong> {% trans "You have" %} {{ payroll_slip.unpaid_penalty_count }} {% trans "unpaid penalty ticket(s). Please check with HR department." %}
+    </div>
+    {% endif %}
+
+    <p>{% trans "Please log in to the system to view full details and download your payroll slip." %}</p>
+
+    <p>{% trans "If you have any questions, please contact the HR department." %}</p>
+
+    <p>{% trans "Best regards," %}<br>{% trans "MaiVietLand Team" %}</p>
+{% endblock %}

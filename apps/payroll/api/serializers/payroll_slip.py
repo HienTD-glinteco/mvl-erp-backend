@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from apps.hrm.api.serializers.common_nested import EmployeeNestedSerializer
 from apps.payroll.models import PayrollSlip
+from libs import ColoredValueSerializer
 
 from .common_nested import SalaryPeriodNestedSerializer
 
@@ -13,6 +14,7 @@ class PayrollSlipListSerializer(serializers.ModelSerializer):
 
     employee = EmployeeNestedSerializer(read_only=True)
     salary_period = SalaryPeriodNestedSerializer(read_only=True)
+    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
 
     class Meta:
         model = PayrollSlip
@@ -28,6 +30,7 @@ class PayrollSlipListSerializer(serializers.ModelSerializer):
             "gross_income",
             "net_salary",
             "status",
+            "colored_status",
             "has_unpaid_penalty",
             "unpaid_penalty_count",
             "need_resend_email",
@@ -35,12 +38,17 @@ class PayrollSlipListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    def get_colored_status(self, obj):
+        """Get colored status value."""
+        return obj.get_colored_value("status")
+
 
 class PayrollSlipSerializer(serializers.ModelSerializer):
     """Detail serializer for PayrollSlip with all calculation fields."""
 
     employee = EmployeeNestedSerializer(read_only=True)
     salary_period = SalaryPeriodNestedSerializer(read_only=True)
+    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
 
     class Meta:
         model = PayrollSlip
@@ -117,6 +125,7 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "net_salary",
             # Status
             "status",
+            "colored_status",
             "status_note",
             "need_resend_email",
             "email_sent_at",
@@ -131,6 +140,10 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "updated_by",
         ]
         read_only_fields = fields
+
+    def get_colored_status(self, obj):
+        """Get colored status value."""
+        return obj.get_colored_value("status")
 
 
 class PayrollSlipHoldSerializer(serializers.Serializer):

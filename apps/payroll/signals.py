@@ -1,6 +1,5 @@
 """Signals for payroll app."""
 
-
 from datetime import date
 
 from django.db.models.signals import post_delete, post_save
@@ -14,11 +13,15 @@ from apps.payroll.models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
     KPIAssessmentPeriod,
+    PayrollSlip,
     PenaltyTicket,
     RecoveryVoucher,
+    SalaryPeriod,
     SalesRevenue,
     TravelExpense,
 )
+from apps.payroll.models.payroll_slip import generate_payroll_slip_code
+from apps.payroll.models.salary_period import generate_salary_period_code
 from apps.payroll.utils import (
     create_assessment_items_from_criteria,
     recalculate_assessment_scores,
@@ -309,6 +312,22 @@ register_auto_code_signal(
     PenaltyTicket,
     temp_code_prefix="TEMP_",
     custom_generate_code=generate_penalty_ticket_code,
+)
+
+
+# Register auto-code generation for SalaryPeriod
+register_auto_code_signal(
+    SalaryPeriod,
+    temp_code_prefix="TEMP_",
+    custom_generate_code=generate_salary_period_code,
+)
+
+
+# Register auto-code generation for PayrollSlip
+register_auto_code_signal(
+    PayrollSlip,
+    temp_code_prefix="TEMP_",
+    custom_generate_code=generate_payroll_slip_code,
 )
 
 

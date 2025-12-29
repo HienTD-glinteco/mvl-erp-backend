@@ -11,13 +11,12 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.payroll.api.serializers import (
-    SalaryPeriodCreateSerializer,
     SalaryPeriodListSerializer,
     SalaryPeriodSerializer,
     SalaryPeriodStatisticsSerializer,
 )
 from apps.payroll.models import PayrollSlip, SalaryPeriod
-from libs import BaseModelViewSet
+from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
 
@@ -92,53 +91,8 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
-    create=extend_schema(
-        summary="Create a new salary period",
-        description="Create a new salary period for a specific month. Automatically snapshots current salary config.",
-        tags=["10.6: Salary Periods"],
-        examples=[
-            OpenApiExample(
-                "Request - Create salary period",
-                value={"month": "2024-01-01"},
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Success - Created salary period",
-                value={
-                    "success": True,
-                    "data": {
-                        "id": 1,
-                        "code": "SP-202401",
-                        "month": "2024-01-01",
-                        "salary_config_snapshot": {},
-                        "status": "ONGOING",
-                        "standard_working_days": "23.00",
-                        "total_employees": 0,
-                        "completed_at": None,
-                        "completed_by": None,
-                        "created_at": "2024-01-01T00:00:00Z",
-                        "updated_at": "2024-01-01T00:00:00Z",
-                        "created_by": None,
-                        "updated_by": None,
-                    },
-                    "error": None,
-                },
-                response_only=True,
-                status_codes=["201"],
-            ),
-        ],
-    ),
-    update=extend_schema(
-        tags=["10.6: Salary Periods"],
-    ),
-    partial_update=extend_schema(
-        tags=["10.6: Salary Periods"],
-    ),
-    destroy=extend_schema(
-        tags=["10.6: Salary Periods"],
-    ),
 )
-class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
+class SalaryPeriodViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for managing salary periods.
 
     Provides CRUD operations and custom actions for salary period management:
@@ -161,8 +115,6 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         """Return appropriate serializer based on action."""
         if self.action == "list":
             return SalaryPeriodListSerializer
-        elif self.action == "create":
-            return SalaryPeriodCreateSerializer
         elif self.action == "statistics":
             return SalaryPeriodStatisticsSerializer
         return SalaryPeriodSerializer

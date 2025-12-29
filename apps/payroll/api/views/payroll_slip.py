@@ -16,7 +16,7 @@ from apps.payroll.api.serializers import (
     PayrollSlipStatusUpdateSerializer,
 )
 from apps.payroll.models import PayrollSlip
-from libs import BaseModelViewSet
+from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
 
 
@@ -102,20 +102,8 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
-    create=extend_schema(
-        tags=["10.7: Payroll Slips"],
-    ),
-    update=extend_schema(
-        tags=["10.7: Payroll Slips"],
-    ),
-    partial_update=extend_schema(
-        tags=["10.7: Payroll Slips"],
-    ),
-    destroy=extend_schema(
-        tags=["10.7: Payroll Slips"],
-    ),
 )
-class PayrollSlipViewSet(AuditLoggingMixin, BaseModelViewSet):
+class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for managing payroll slips.
 
     Provides CRUD operations and custom actions for payroll slip management:

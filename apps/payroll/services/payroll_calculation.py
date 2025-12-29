@@ -14,7 +14,6 @@ from apps.payroll.models import (
     SalesRevenue,
     TravelExpense,
 )
-from apps.payroll.utils.payroll_calculation import calculate_business_progressive_salary
 
 
 class PayrollCalculationService:
@@ -35,7 +34,8 @@ class PayrollCalculationService:
         """Perform full payroll calculation and update the slip.
 
         This method orchestrates the entire calculation process including:
-        - Contract data retrieval
+        - Employee data caching
+        - Contract data retrieval (optional - if no contract, salary fields will be 0)
         - KPI calculation
         - Sales performance
         - Timesheet and overtime
@@ -46,57 +46,61 @@ class PayrollCalculationService:
         - Penalty status check
         - Final net salary
         """
-        # Step 1: Get employee's active contract
+        # Step 1: Cache employee information (independent of contract)
+        self._cache_employee_data()
+
+        # Step 2: Get employee's active contract (optional)
         contract = self._get_active_contract()
-        if not contract:
-            self._set_pending_status("No active contract")
-            return
 
-        # Step 2: Cache contract data
-        self._cache_contract_data(contract)
+        # Step 3: Cache contract data (if contract exists)
+        if contract:
+            self._cache_contract_data(contract)
+        else:
+            # Set salary fields to 0 if no contract
+            self._set_zero_salary_fields()
 
-        # Step 3: Get KPI grade and calculate bonus
+        # Step 4: Get KPI grade and calculate bonus
         self._calculate_kpi_bonus()
 
-        # Step 4: Get sales data and calculate business progressive salary
+        # Step 5: Get sales data and calculate business progressive salary
         self._calculate_business_progressive_salary()
 
-        # Step 5: Get timesheet data
+        # Step 6: Get timesheet data
         timesheet = self._get_timesheet()
         self._process_timesheet_data(timesheet)
 
-        # Step 6: Calculate overtime pay
+        # Step 7: Calculate overtime pay
         self._calculate_overtime_pay()
 
-        # Step 7: Get travel expenses
+        # Step 8: Get travel expenses
         self._calculate_travel_expenses()
 
-        # Step 8: Calculate gross income
+        # Step 9: Calculate gross income
         self._calculate_gross_income()
 
-        # Step 9: Calculate insurance contributions
+        # Step 10: Calculate insurance contributions
         self._calculate_insurance_contributions()
 
-        # Step 10: Calculate personal income tax
+        # Step 11: Calculate personal income tax
         self._calculate_personal_income_tax()
 
-        # Step 11: Get recovery vouchers
+        # Step 12: Get recovery vouchers
         self._process_recovery_vouchers()
 
-        # Step 12: Calculate net salary
+        # Step 13: Calculate net salary
         self._calculate_net_salary()
 
-        # Step 13: Check for unpaid penalties
+        # Step 14: Check for unpaid penalties
         self._check_unpaid_penalties()
 
-        # Step 14: Determine final status
+        # Step 15: Determine final status
         self._determine_final_status(contract, timesheet)
 
-        # Step 15: Update timestamp and save
+        # Step 16: Update timestamp and save
         self.slip.calculated_at = timezone.now()
         self.slip.save()
 
-        # Step 16: Update related models status
+        # Step 17: Update related models status
         self._update_related_models_status()
 
     def _get_active_contract(self) -> Optional[Contract]:
@@ -109,6 +113,16 @@ class PayrollCalculationService:
             .first()
         )
 
+    def _cache_employee_data(self):
+        """Cache employee information in the payroll slip.
+
+        This caches basic employee info that doesn't depend on contract.
+        """
+        self.slip.employee_code = self.employee.code
+        self.slip.employee_name = self.employee.fullname
+        self.slip.department_name = self.employee.department.name if self.employee.department else ""
+        self.slip.position_name = self.employee.position.name if self.employee.position else ""
+
     def _cache_contract_data(self, contract: Contract):
         """Cache contract data in the payroll slip."""
         self.slip.contract_id = contract.id
@@ -117,13 +131,17 @@ class PayrollCalculationService:
         self.slip.lunch_allowance = contract.lunch_allowance or 0
         self.slip.phone_allowance = contract.phone_allowance or 0
         self.slip.other_allowance = contract.other_allowance or 0
-
-        # Cache employee information
-        self.slip.employee_code = self.employee.code
-        self.slip.employee_name = self.employee.fullname
-        self.slip.department_name = self.employee.department.name if self.employee.department else ""
-        self.slip.position_name = self.employee.position.name if self.employee.position else ""
         self.slip.employment_status = contract.status
+
+    def _set_zero_salary_fields(self):
+        """Set salary fields to 0 when no contract exists."""
+        self.slip.contract_id = None
+        self.slip.base_salary = 0
+        self.slip.kpi_salary = 0
+        self.slip.lunch_allowance = 0
+        self.slip.phone_allowance = 0
+        self.slip.other_allowance = 0
+        self.slip.employment_status = ""
 
     def _calculate_kpi_bonus(self):
         """Calculate KPI bonus based on assessment."""
@@ -163,9 +181,32 @@ class PayrollCalculationService:
             sales_revenue = 0
             sales_transaction_count = 0
 
-        business_grade, business_progressive_salary = calculate_business_progressive_salary(
-            sales_revenue, sales_transaction_count, self.config["business_progressive_salary"]["tiers"]
-        )
+        # Calculate business progressive salary using tier matching logic
+        tiers = self.config["business_progressive_salary"]["tiers"]
+        # Sort tiers by amount descending to get highest matching tier
+        sorted_tiers = sorted(tiers, key=lambda t: t["amount"], reverse=True)
+
+        business_grade = "M0"
+        business_progressive_salary = Decimal("0")
+
+        for tier in sorted_tiers:
+            criteria = tier["criteria"]
+            meets_all = True
+
+            for criterion in criteria:
+                if criterion["name"] == "revenue":
+                    if sales_revenue < criterion["min"]:
+                        meets_all = False
+                        break
+                elif criterion["name"] == "transaction_count":
+                    if sales_transaction_count < criterion["min"]:
+                        meets_all = False
+                        break
+
+            if meets_all:
+                business_grade = tier["code"]
+                business_progressive_salary = Decimal(str(tier["amount"]))
+                break
 
         self.slip.sales_revenue = sales_revenue
         self.slip.sales_transaction_count = sales_transaction_count
@@ -198,11 +239,22 @@ class PayrollCalculationService:
 
     def _calculate_overtime_pay(self):
         """Calculate overtime payment."""
+        # Calculate total salary for hourly rate
+        total_salary = (
+            self.slip.base_salary
+            + self.slip.kpi_salary
+            + self.slip.lunch_allowance
+            + self.slip.phone_allowance
+            + self.slip.other_allowance
+            + self.slip.kpi_bonus
+            + self.slip.business_progressive_salary
+        )
+
         # Calculate hourly rate
         if self.period.standard_working_days > 0:
-            self.slip.hourly_rate = (
-                self.slip.base_salary / (self.period.standard_working_days * Decimal("8"))
-            ).quantize(Decimal("0.01"))
+            self.slip.hourly_rate = (total_salary / (self.period.standard_working_days * Decimal("8"))).quantize(
+                Decimal("0.01")
+            )
         else:
             self.slip.hourly_rate = Decimal("0.00")
 
@@ -432,13 +484,6 @@ class PayrollCalculationService:
             if self.slip.status == self.slip.Status.PENDING:
                 self.slip.status = self.slip.Status.READY
                 self.slip.status_note = ""
-
-    def _set_pending_status(self, reason: str):
-        """Set slip to pending status with reason."""
-        self.slip.status = self.slip.Status.PENDING
-        self.slip.status_note = reason
-        self.slip.calculated_at = timezone.now()
-        self.slip.save()
 
     def _update_related_models_status(self):
         """Update status of related models to CALCULATED."""

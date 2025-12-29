@@ -51,16 +51,3 @@ def calculate_standard_working_days(year: int, month: int) -> Decimal:
             current_date += timedelta(days=1)
 
     return Decimal(str(working_days))
-
-
-def generate_salary_period_code(year: int, month: int) -> str:
-    """Generate salary period code in format SP-YYYYMM.
-
-    Args:
-        year: Year of the salary period
-        month: Month number (1-12)
-
-    Returns:
-        str: Generated code (e.g., "SP-202401")
-    """
-    return f"SP-{year:04d}{month:02d}"

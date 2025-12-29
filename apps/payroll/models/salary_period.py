@@ -5,13 +5,31 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import BaseModel
+from libs.constants import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
 
-from ..utils.salary_period import calculate_standard_working_days, generate_salary_period_code
+from ..utils.salary_period import calculate_standard_working_days
+
+
+def generate_salary_period_code(instance, force_save: bool = True) -> None:
+    """Generate code for SalaryPeriod in format SP_YYYYMM.
+
+    Args:
+        instance: SalaryPeriod instance
+        force_save: If True, save the instance after setting code
+    """
+    if not hasattr(instance, "id") or instance.id is None:
+        raise ValueError("SalaryPeriod must have an id to generate code")
+
+    code = f"SP_{instance.month.strftime('%Y%m')}"
+    instance.code = code
+
+    if force_save:
+        instance.save(update_fields=["code"])
 
 
 @audit_logging_register
-class SalaryPeriod(BaseModel):
+class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
     """Salary period model representing a monthly salary calculation period.
 
     This model stores information about a salary period including the month,
@@ -33,6 +51,15 @@ class SalaryPeriod(BaseModel):
 
         ONGOING = "ONGOING", _("Ongoing")
         COMPLETED = "COMPLETED", _("Completed")
+
+    CODE_PREFIX = "SP"
+
+    VARIANT_MAPPING = {
+        "status": {
+            Status.ONGOING: ColorVariant.BLUE,
+            Status.COMPLETED: ColorVariant.GREEN,
+        }
+    }
 
     code = models.CharField(
         max_length=50, unique=True, verbose_name="Code", help_text="Unique code in format SP-YYYYMM"
@@ -114,10 +141,6 @@ class SalaryPeriod(BaseModel):
 
     def save(self, *args, **kwargs):
         """Override save to auto-generate code and calculate working days."""
-        # Generate code if not set
-        if not self.code:
-            self.code = generate_salary_period_code(self.month.year, self.month.month)
-
         # Calculate standard working days if not set
         if not self.pk and not self.standard_working_days:
             self.standard_working_days = calculate_standard_working_days(self.month.year, self.month.month)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 16:34+0700\n"
+"POT-Creation-Date: 2025-12-29 10:30+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2827,12 +2827,10 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
-#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
-#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2841,27 +2839,22 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
-#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
-#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
-#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
-#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
-#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 

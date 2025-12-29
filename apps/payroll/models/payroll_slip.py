@@ -7,11 +7,31 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
-from libs.models import AutoCodeMixin, BaseModel
+from libs.constants import ColorVariant
+from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin
+
+
+def generate_payroll_slip_code(instance, force_save: bool = True) -> None:
+    """Generate code for PayrollSlip in format PS_YYYYMM_ID.
+
+    Args:
+        instance: PayrollSlip instance
+        force_save: If True, save the instance after setting code
+    """
+    if not hasattr(instance, "id") or instance.id is None:
+        raise ValueError("PayrollSlip must have an id to generate code")
+
+    month_str = instance.salary_period.month.strftime("%Y%m")
+    instance_id = str(instance.id).zfill(4)
+    code = f"PS_{month_str}_{instance_id}"
+    instance.code = code
+
+    if force_save:
+        instance.save(update_fields=["code"])
 
 
 @audit_logging_register
-class PayrollSlip(AutoCodeMixin, BaseModel):
+class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     """Payroll slip model representing individual employee salary calculation for a period.
 
     This model stores comprehensive salary calculation including contract details,
@@ -35,6 +55,15 @@ class PayrollSlip(AutoCodeMixin, BaseModel):
         DELIVERED = "DELIVERED", _("Delivered")
 
     CODE_PREFIX = "PS"
+
+    VARIANT_MAPPING = {
+        "status": {
+            Status.PENDING: ColorVariant.YELLOW,
+            Status.READY: ColorVariant.GREEN,
+            Status.HOLD: ColorVariant.RED,
+            Status.DELIVERED: ColorVariant.BLUE,
+        }
+    }
 
     # ========== Basic Information ==========
     code = models.CharField(max_length=50, unique=True, verbose_name="Code")

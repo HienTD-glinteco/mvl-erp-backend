@@ -20,7 +20,7 @@ class TestSalaryPeriodModel:
         period = SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
 
         # Assert
-        assert period.code == "SP-202401"
+        assert period.code.startswith("SP_")
         assert period.month == month
         assert period.status == SalaryPeriod.Status.ONGOING
         assert period.standard_working_days > 0
@@ -106,3 +106,59 @@ class TestSalaryConfigSnapshot:
             salary_period.salary_config_snapshot["insurance_contributions"]["social_insurance"]["employee_rate"]
             == 0.08
         )
+
+
+@pytest.mark.django_db
+class TestSalaryPeriodCodeGeneration:
+    """Test salary period code generation."""
+
+    def test_code_format(self, salary_config):
+        """Test code is generated in format SP_YYYYMM."""
+        # Arrange
+        month = date(2024, 1, 1)
+
+        # Act
+        period = SalaryPeriod.objects.create(month=month, salary_config_snapshot=salary_config.config)
+
+        # Assert
+        assert period.code == "SP_202401"
+
+    def test_code_different_months(self, salary_config):
+        """Test code changes with different months."""
+        # Act
+        period1 = SalaryPeriod.objects.create(month=date(2024, 1, 1), salary_config_snapshot=salary_config.config)
+        period2 = SalaryPeriod.objects.create(month=date(2024, 2, 1), salary_config_snapshot=salary_config.config)
+
+        # Assert
+        assert period1.code == "SP_202401"
+        assert period2.code == "SP_202402"
+
+
+@pytest.mark.django_db
+class TestSalaryPeriodColoredValue:
+    """Test colored value for salary period status."""
+
+    def test_colored_status_ongoing(self, salary_period):
+        """Test colored status for ONGOING status."""
+        # Arrange
+        salary_period.status = SalaryPeriod.Status.ONGOING
+        salary_period.save()
+
+        # Act
+        colored_status = salary_period.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == SalaryPeriod.Status.ONGOING
+        assert colored_status["variant"] is not None
+
+    def test_colored_status_completed(self, salary_period, payroll_slip_ready, user):
+        """Test colored status for COMPLETED status."""
+        # Arrange
+        salary_period.complete(user=user)
+
+        # Act
+        colored_status = salary_period.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == SalaryPeriod.Status.COMPLETED
+        assert colored_status["variant"] is not None

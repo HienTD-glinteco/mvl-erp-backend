@@ -22,8 +22,8 @@ class TestPayrollSlipModel:
         connection.close()  # Force commit to trigger signals
         slip.refresh_from_db()
 
-        # Assert - After signal, code should be generated
-        assert "PS-" in slip.code or slip.code.startswith("TEMP_")  # Accept both
+        # Assert - After signal, code should be generated in format PS_YYYYMM_NNNN
+        assert slip.code.startswith("PS_")
         assert slip.salary_period == salary_period
         assert slip.employee == employee
         assert slip.status == PayrollSlip.Status.PENDING
@@ -57,9 +57,14 @@ class TestPayrollCalculation:
         assert payroll_slip.gross_income > 0
         assert payroll_slip.net_salary > 0
 
-    def test_calculation_without_contract(self, payroll_slip):
-        """Test payroll calculation without contract sets PENDING status."""
+    def test_calculation_without_contract(self, payroll_slip, employee):
+        """Test payroll calculation without contract calculates with 0 salary fields."""
         # Arrange
+        # Ensure no contract exists for this employee
+        from apps.hrm.models import Contract
+
+        Contract.objects.filter(employee=employee).delete()
+
         calculator = PayrollCalculationService(payroll_slip)
 
         # Act
@@ -67,6 +72,18 @@ class TestPayrollCalculation:
 
         # Assert
         payroll_slip.refresh_from_db()
+        # Should calculate normally but with 0 salary fields
+        assert payroll_slip.base_salary == 0
+        assert payroll_slip.kpi_salary == 0
+        assert payroll_slip.lunch_allowance == 0
+        assert payroll_slip.phone_allowance == 0
+        assert payroll_slip.other_allowance == 0
+        # Gross income might still have travel expenses or other components
+        # Net salary calculation should still work
+        # Employee info should still be cached
+        assert payroll_slip.employee_code
+        assert payroll_slip.employee_name
+        # Should be marked as PENDING due to missing contract
         assert payroll_slip.status == PayrollSlip.Status.PENDING
         assert "contract" in payroll_slip.status_note.lower()
 
@@ -239,3 +256,82 @@ class TestPayrollStatusTransitions:
         # Assert
         payroll_slip_pending.refresh_from_db()
         assert payroll_slip_pending.status == PayrollSlip.Status.PENDING
+
+
+@pytest.mark.django_db
+class TestPayrollSlipCodeGeneration:
+    """Test payroll slip code generation."""
+
+    def test_code_format(self, salary_period, employee):
+        """Test code is generated in format PS_YYYYMM_ID."""
+        # Act
+        slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+
+        # Assert
+        assert slip.code.startswith("PS_")
+        # Format should be PS_YYYYMM_NNNN
+        parts = slip.code.split("_")
+        assert len(parts) == 3
+        assert parts[0] == "PS"
+        assert len(parts[1]) == 6  # YYYYMM
+        assert len(parts[2]) == 4  # ID with padding
+
+    def test_code_includes_month(self, salary_period, employee):
+        """Test code includes the salary period month."""
+        # Act
+        slip = PayrollSlip.objects.create(salary_period=salary_period, employee=employee)
+
+        # Assert
+        month_str = salary_period.month.strftime("%Y%m")
+        assert month_str in slip.code
+
+
+@pytest.mark.django_db
+class TestPayrollSlipColoredValue:
+    """Test colored value for payroll slip status."""
+
+    def test_colored_status_pending(self, payroll_slip_pending):
+        """Test colored status for PENDING status."""
+        # Act
+        colored_status = payroll_slip_pending.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == PayrollSlip.Status.PENDING
+        assert colored_status["variant"] is not None
+
+    def test_colored_status_ready(self, payroll_slip_ready):
+        """Test colored status for READY status."""
+        # Act
+        colored_status = payroll_slip_ready.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == PayrollSlip.Status.READY
+        assert colored_status["variant"] is not None
+
+    def test_colored_status_hold(self, payroll_slip):
+        """Test colored status for HOLD status."""
+        # Arrange
+        payroll_slip.status = PayrollSlip.Status.HOLD
+        payroll_slip.status_note = "Test hold"
+        payroll_slip.save()
+
+        # Act
+        colored_status = payroll_slip.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == PayrollSlip.Status.HOLD
+        assert colored_status["variant"] is not None
+
+    def test_colored_status_delivered(self, payroll_slip_ready, user):
+        """Test colored status for DELIVERED status."""
+        # Arrange
+        payroll_slip_ready.status = PayrollSlip.Status.DELIVERED
+        payroll_slip_ready.delivered_by = user
+        payroll_slip_ready.save()
+
+        # Act
+        colored_status = payroll_slip_ready.get_colored_value("status")
+
+        # Assert
+        assert colored_status["value"] == PayrollSlip.Status.DELIVERED
+        assert colored_status["variant"] is not None

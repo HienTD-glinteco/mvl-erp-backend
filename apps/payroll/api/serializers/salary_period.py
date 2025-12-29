@@ -3,10 +3,13 @@
 from rest_framework import serializers
 
 from apps.payroll.models import SalaryPeriod
+from libs import ColoredValueSerializer
 
 
 class SalaryPeriodListSerializer(serializers.ModelSerializer):
     """List serializer for SalaryPeriod with summary information."""
+
+    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
 
     class Meta:
         model = SalaryPeriod
@@ -15,6 +18,7 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
             "code",
             "month",
             "status",
+            "colored_status",
             "standard_working_days",
             "total_employees",
             "created_at",
@@ -22,9 +26,15 @@ class SalaryPeriodListSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
+    def get_colored_status(self, obj):
+        """Get colored status value."""
+        return obj.get_colored_value("status")
+
 
 class SalaryPeriodSerializer(serializers.ModelSerializer):
     """Detail serializer for SalaryPeriod."""
+
+    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
 
     class Meta:
         model = SalaryPeriod
@@ -34,6 +44,7 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "month",
             "salary_config_snapshot",
             "status",
+            "colored_status",
             "standard_working_days",
             "total_employees",
             "completed_at",
@@ -48,6 +59,7 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "code",
             "salary_config_snapshot",
             "status",
+            "colored_status",
             "standard_working_days",
             "total_employees",
             "completed_at",
@@ -57,6 +69,10 @@ class SalaryPeriodSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
+
+    def get_colored_status(self, obj):
+        """Get colored status value."""
+        return obj.get_colored_value("status")
 
 
 class SalaryPeriodCreateSerializer(serializers.ModelSerializer):
