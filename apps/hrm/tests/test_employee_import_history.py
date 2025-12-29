@@ -44,7 +44,7 @@ class TestEmployeeImportHistory:
                 "Khối",
                 "Phòng ban",
                 "Chức vụ",
-                "Tình trạng",
+                "Trạng thái",
                 "Ngày bắt đầu làm việc",
             ],
             "allow_update": True,
