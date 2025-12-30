@@ -3365,6 +3365,20 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = "HRM"
     submodule = _("Proposal")
     permission_prefix = "proposal_verifier"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "verify": {
+            "name_template": _("Verify Proposal"),
+            "description_template": _("Allows the user to verify a proposal"),
+        },
+        "reject": {
+            "name_template": _("Reject Proposal"),
+            "description_template": _("Allows the user to reject a proposal verification"),
+        },
+        "mine": {
+            "name_template": _("List My employee Proposal Verifiers"),
+            "description_template": _("Allows the user to list their assigned proposal for verifing"),
+        },
+    }
 
     def get_serializer_class(self):
         if self.action == "verify":
