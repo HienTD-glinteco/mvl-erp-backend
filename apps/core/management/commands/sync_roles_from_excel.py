@@ -3,11 +3,11 @@ from __future__ import annotations
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, TypedDict
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter, range_boundaries
 from openpyxl.utils.exceptions import InvalidFileException
 from openpyxl.worksheet.worksheet import Worksheet
@@ -29,6 +29,19 @@ HEADER_ALIASES = {
 }
 
 
+class PermissionSource(TypedDict):
+    sheet: str
+    row: int
+
+
+class PermissionMetadata(TypedDict, total=False):
+    name: str
+    description: str
+    module: str
+    submodule: str
+    __sources: List[PermissionSource]
+
+
 @dataclass
 class RolePayload:
     """Container for role data parsed from Excel."""
@@ -46,7 +59,7 @@ class WorkbookPermissionExtractor:
 
     def __init__(self, file_path: Path):
         self.file_path = file_path
-        self.permission_catalog: Dict[str, Dict[str, str]] = {}
+        self.permission_catalog: Dict[str, PermissionMetadata] = {}
         self.roles: List[RolePayload] = []
 
     def parse(self) -> Dict[str, Any]:
@@ -87,7 +100,7 @@ class WorkbookPermissionExtractor:
         except Exception as exc:  # pragma: no cover - best effort guard
             raise CommandError(f"Failed to load Excel file: {exc}") from exc
 
-    def _ingest_master_sheet(self, workbook):
+    def _ingest_master_sheet(self, workbook: Workbook) -> None:
         target_sheet: Optional[Worksheet] = None
         for sheet in workbook.worksheets:
             if (sheet.title or "").strip().upper() == MASTER_SHEET_NAME:
@@ -98,8 +111,8 @@ class WorkbookPermissionExtractor:
         self._ingest_permission_sheet(target_sheet)
 
     def _ingest_permission_sheet(self, sheet: Worksheet):
-        for row in self._iter_data_rows(sheet):
-            self._store_permission_metadata(row)
+        for row, row_number in self._iter_data_rows(sheet):
+            self._store_permission_metadata(row, sheet.title or "", row_number)
 
     def _ingest_role_sheet(self, sheet: Worksheet):
         role_name = self._derive_role_name(sheet.title)
@@ -107,8 +120,8 @@ class WorkbookPermissionExtractor:
             raise CommandError(f"Role sheet '{sheet.title}' is missing a role name.")
 
         codes: List[str] = []
-        for row in self._iter_data_rows(sheet):
-            code = self._store_permission_metadata(row)
+        for row, row_number in self._iter_data_rows(sheet):
+            code = self._store_permission_metadata(row, sheet.title or "", row_number)
             if code:
                 codes.append(code)
 
@@ -118,7 +131,7 @@ class WorkbookPermissionExtractor:
 
         self.roles.append(RolePayload(name=role_name, sheet_name=sheet.title, permission_codes=unique_codes))
 
-    def _iter_data_rows(self, sheet: Worksheet) -> Iterable[Dict[str, Any]]:
+    def _iter_data_rows(self, sheet: Worksheet) -> Iterable[tuple[Dict[str, Any], int]]:
         tables = list(sheet.tables.values())
         if tables:
             for table in tables:
@@ -132,22 +145,25 @@ class WorkbookPermissionExtractor:
         ref = f"A1:{get_column_letter(max_col)}{max_row}"
         yield from self._iter_table(sheet, ref)
 
-    def _iter_table(self, sheet: Worksheet, cell_range: str) -> Iterable[Dict[str, Any]]:
+    def _iter_table(self, sheet: Worksheet, cell_range: str) -> Iterable[tuple[Dict[str, Any], int]]:
         min_col, min_row, max_col, max_row = range_boundaries(cell_range)
         header: Optional[list[str | None]] = None
-        for row in sheet.iter_rows(
-            min_col=min_col,
-            min_row=min_row,
-            max_col=max_col,
-            max_row=max_row,
-            values_only=True,
+        for absolute_row_index, row in enumerate(
+            sheet.iter_rows(
+                min_col=min_col,
+                min_row=min_row,
+                max_col=max_col,
+                max_row=max_row,
+                values_only=True,
+            ),
+            start=min_row,
         ):
             if header is None:
                 header = self._normalize_headers(row)
                 continue
             row_data = self._build_row_dict(header, row)
             if row_data:
-                yield row_data
+                yield row_data, absolute_row_index
 
     def _normalize_headers(self, header_row: Iterable[Any]) -> list[str | None]:
         normalized: list[str | None] = []
@@ -178,16 +194,25 @@ class WorkbookPermissionExtractor:
             data[header] = cleaned
         return data
 
-    def _store_permission_metadata(self, row: Dict[str, Any]) -> Optional[str]:
+    def _store_permission_metadata(self, row: Dict[str, Any], sheet_name: str, row_number: int) -> Optional[str]:
         raw_code = row.get("code")
         code = self._normalize_code(raw_code)
         if not code:
             return None
 
-        entry = self.permission_catalog.setdefault(
-            code,
-            dict.fromkeys(REQUIRED_PERMISSION_FIELDS, ""),
-        )
+        initial_entry: PermissionMetadata = {
+            "__sources": [],
+            "name": "",
+            "description": "",
+            "module": "",
+            "submodule": "",
+        }
+        entry = self.permission_catalog.setdefault(code, initial_entry)
+        source_entries = entry.get("__sources")
+        if source_entries is None:
+            source_entries = []
+            entry["__sources"] = source_entries
+        source_entries.append({"sheet": sheet_name, "row": row_number})
         for _field in REQUIRED_PERMISSION_FIELDS:
             if entry[_field]:
                 continue
@@ -254,7 +279,7 @@ class Command(BaseCommand):
 
         self._print_summary(permission_stats, role_stats)
 
-    def _sync_permissions(self, permission_catalog: Dict[str, Dict[str, str]]):
+    def _sync_permissions(self, permission_catalog: Dict[str, PermissionMetadata]):
         stats = {"processed": 0, "missing": 0, "mismatched": 0}
         permission_objects: Dict[str, Permission] = {}
 
@@ -264,7 +289,16 @@ class Command(BaseCommand):
                 permission = Permission.objects.get(code=code)
             except Permission.DoesNotExist:
                 stats["missing"] += 1
-                raise CommandError(f"Permission '{code}' does not exist in the database.")
+                source_context: Optional[List[PermissionSource]] = metadata.get("__sources")
+                location = ""
+                if source_context:
+                    origin = source_context[0]
+                    sheet_label = (origin.get("sheet") or "").strip() or "Unknown sheet"
+                    row_label = origin.get("row")
+                    location = (
+                        f" (sheet '{sheet_label}', row {row_label})" if row_label else f" (sheet '{sheet_label}')"
+                    )
+                raise CommandError(f"Permission '{code}' does not exist in the database{location}.")
 
             permission_objects[code] = permission
             mismatches = []
