@@ -266,9 +266,10 @@ jobs:
             # Run database migrations
             poetry run python manage.py migrate --noinput
             poetry run python manage.py collectstatic --noinput
-            poetry run python manage.py collect_permissions
             poetry run python manage.py compilemessages -l vi
+            poetry run python manage.py collect_permissions
             poetry run python manage.py upload_import_templates
+            poetry run python manage.py sync_roles_from_excel --file_path apps/core/fixtures/core_permission.xlsx  --verbose
 
 
             # Update supervisor configuration and restart gunicorn workers
