@@ -188,6 +188,11 @@ def create_employee_type_change_event(
     effective_date,
     note=None,
     decision=None,
+    contract=None,
+    branch=None,
+    block=None,
+    department=None,
+    position=None,
 ):
     """Create an employee type change event in work history.
 
@@ -198,6 +203,11 @@ def create_employee_type_change_event(
         effective_date: Date when the type change takes effect
         note: Optional note
         decision: Optional Decision instance associated with this event
+        contract: Optional Contract instance associated with this event
+        branch: Optional Branch instance (defaults to employee.branch if not provided)
+        block: Optional Block instance (defaults to employee.block if not provided)
+        department: Optional Department instance (defaults to employee.department if not provided)
+        position: Optional Position instance (defaults to employee.position if not provided)
 
     Returns:
         EmployeeWorkHistory: The created work history record
@@ -210,19 +220,35 @@ def create_employee_type_change_event(
     detail = _("Employee type changed from {old_type} to {new_type}").format(
         old_type=old_type_display, new_type=new_type_display
     )
+    kwargs = {
+        "employee": employee,
+        "name": EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE,
+        "date": effective_date,
+        "from_date": effective_date,
+        "note": note or "",
+        "detail": detail,
+        "previous_data": previous_data,
+        "decision": decision,
+        "old_employee_type": old_employee_type,
+        "new_employee_type": new_employee_type,
+    }
 
-    return EmployeeWorkHistory.objects.create(
-        employee=employee,
-        name=EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE,
-        date=effective_date,
-        from_date=effective_date,
-        note=note or "",
-        detail=detail,
-        previous_data=previous_data,
-        decision=decision,
-        old_employee_type=old_employee_type,
-        new_employee_type=new_employee_type,
-    )
+    if contract:
+        kwargs["contract"] = contract
+
+    if decision:
+        kwargs["decision"] = decision
+
+    if branch:
+        kwargs["branch"] = branch
+
+    if block:
+        kwargs["block"] = block
+
+    if department:
+        kwargs["department"] = department
+
+    return EmployeeWorkHistory.objects.create(**kwargs)
 
 
 def create_contract_change_event(

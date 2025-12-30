@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 16:34+0700\n"
+"POT-Creation-Date: 2025-12-30 16:50+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,7 +95,7 @@ msgstr "Không"
 msgid "File IDs not found or not confirmed: {ids}"
 msgstr "Những ID tệp không được tìm thấy hoặc chưa được xác nhận: {ids}"
 
-#: apps/hrm/api/serializers/employee.py:264
+#: apps/hrm/api/serializers/employee.py:263
 #, python-brace-format
 msgid ""
 "This field cannot be updated directly. Use the '{action}' action endpoint "
@@ -104,44 +104,44 @@ msgstr ""
 "Trường này không thể được cập nhật trực tiếp. Vui lòng sử dụng hành động "
 "'{action}' thay thế"
 
-#: apps/hrm/api/serializers/employee.py:297
+#: apps/hrm/api/serializers/employee.py:296
 msgid "An employee with this attendance code already exists."
 msgstr "Mã chấm công này đã được sử dụng bởi một nhân viên khác."
 
-#: apps/hrm/api/serializers/employee.py:311
+#: apps/hrm/api/serializers/employee.py:310
 msgid "Employee created"
 msgstr "Tạo nhân viên thành công"
 
-#: apps/hrm/api/serializers/employee.py:388
+#: apps/hrm/api/serializers/employee.py:387
 msgid "The selected decision must be in 'Issued' status."
 msgstr "Quyết định được chọn phải ở trạng thái 'Đã ban hành'."
 
-#: apps/hrm/api/serializers/employee.py:406
+#: apps/hrm/api/serializers/employee.py:405
 msgid "Start date cannot be in the future."
 msgstr "Ngày bắt đầu không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:449
+#: apps/hrm/api/serializers/employee.py:448
 msgid "Only employees with 'Onboarding' status can be activated."
 msgstr ""
 "Chỉ những nhân viên có trạng thái 'Đang thử việc' mới có thể được kích hoạt."
 
-#: apps/hrm/api/serializers/employee.py:469
+#: apps/hrm/api/serializers/employee.py:468
 #, python-brace-format
 msgid "Assigned to {department} - {position}"
 msgstr "Được phân công vào {department} - {position}"
 
-#: apps/hrm/api/serializers/employee.py:494
+#: apps/hrm/api/serializers/employee.py:493
 #, python-brace-format
 msgid "Start date cannot be earlier than the resignation start date of {date}."
 msgstr "Ngày bắt đầu không thể trước ngày bắt đầu nghỉ việc là {date}."
 
-#: apps/hrm/api/serializers/employee.py:503
+#: apps/hrm/api/serializers/employee.py:502
 msgid "Only employees with 'Resigned' status can be reactivated."
 msgstr ""
 "Chỉ những nhân viên có trạng thái 'Đã nghỉ việc' mới có thể được kích hoạt "
 "lại."
 
-#: apps/hrm/api/serializers/employee.py:535
+#: apps/hrm/api/serializers/employee.py:534
 #, python-brace-format
 msgid ""
 "Employee returned to work from resigned status. Status changed from "
@@ -150,16 +150,16 @@ msgstr ""
 "Nhân viên trở lại làm việc từ trạng thái đã nghỉ việc. Trạng thái thay đổi "
 "từ {old_status} sang {new_status}."
 
-#: apps/hrm/api/serializers/employee.py:539
+#: apps/hrm/api/serializers/employee.py:538
 msgid "Seniority retained from previous employment period."
 msgstr "Thâm niên được giữ lại từ giai đoạn làm việc trước đó."
 
-#: apps/hrm/api/serializers/employee.py:558
+#: apps/hrm/api/serializers/employee.py:557
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status} (Reactivated)"
 msgstr "Đổi trạng thái từ {old_status} sang {new_status} (Kích hoạt lại)"
 
-#: apps/hrm/api/serializers/employee.py:585
+#: apps/hrm/api/serializers/employee.py:584
 msgid ""
 "Resignation start date cannot be earlier than the employee's start date or "
 "latest comeback start date."
@@ -167,38 +167,38 @@ msgstr ""
 "Ngày bắt đầu không thể trước ngày bắt đầu nghỉ việc của nhân viên hoặc ngày "
 "trở lại làm việc gần nhất."
 
-#: apps/hrm/api/serializers/employee.py:597
+#: apps/hrm/api/serializers/employee.py:596
 msgid "Employee must be in an active or leave status to resign."
 msgstr ""
 
-#: apps/hrm/api/serializers/employee.py:617
+#: apps/hrm/api/serializers/employee.py:616
 #: apps/hrm/services/employee/work_history.py:48
 #, python-brace-format
 msgid "Status changed from {old_status} to {new_status}"
 msgstr "Trạng thái thay đổi từ {old_status} sang {new_status}"
 
-#: apps/hrm/api/serializers/employee.py:643
+#: apps/hrm/api/serializers/employee.py:642
 msgid "Only active or unpaid leave employees can go on maternity leave."
 msgstr ""
 "Chỉ những nhân viên đang hoạt động hoặc nghỉ không lương mới có thể nghỉ "
 "thai sản."
 
-#: apps/hrm/api/serializers/employee.py:753
-#: apps/hrm/import_handlers/employee.py:716
+#: apps/hrm/api/serializers/employee.py:752
+#: apps/hrm/import_handlers/employee.py:1203
 msgid ""
 "Effective date must be greater than or equal to the first day of the current "
 "month."
 msgstr "Ngày hiệu lực phải lớn hơn hoặc bằng ngày đầu tiên của tháng hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:757
+#: apps/hrm/api/serializers/employee.py:756
 msgid "Effective date cannot be in the future."
 msgstr "Ngày hiệu lực không thể ở tương lai."
 
-#: apps/hrm/api/serializers/employee.py:763
+#: apps/hrm/api/serializers/employee.py:762
 msgid "The new employee type must be different from the current type."
 msgstr "Loại nhân viên mới phải khác loại hiện tại."
 
-#: apps/hrm/api/serializers/employee.py:780
+#: apps/hrm/api/serializers/employee.py:779
 msgid "Effective date cannot be earlier than the latest work history date."
 msgstr ""
 "Ngày hiệu lực phải lớn hơn hoặc bằng ngày hiệu lực của lần thay đổi loại "
@@ -2665,7 +2665,8 @@ msgstr "Đã xác nhận"
 msgid "Not verified"
 msgstr "Không xác nhận"
 
-#: apps/hrm/import_handlers/contract_creation.py:296
+#: apps/hrm/import_handlers/contract_creation.py:277
+#: apps/hrm/import_handlers/contract_creation.py:295
 #, python-format
 msgid "Imported contract %s"
 msgstr "Đã import hợp đồng %s"
@@ -2678,7 +2679,8 @@ msgstr "Ngày ký phải trước hoặc vào ngày hiệu lực"
 msgid "Expiration date must be on or after effective date"
 msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 
-#: apps/hrm/import_handlers/employee.py:678
+#: apps/hrm/import_handlers/employee.py:677
+#: apps/hrm/import_handlers/employee.py:1194
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
 
@@ -2899,10 +2901,12 @@ msgid "DRY RUN MODE - No changes will be made"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:50
+#, python-brace-format
 msgid "Processing {} certificates..."
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:63
+#, python-brace-format
 msgid "Certificate {}: {} -> {}"
 msgstr ""
 
@@ -2911,22 +2915,27 @@ msgid "Summary:"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:72
+#, python-brace-format
 msgid "Total certificates: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:73
+#, python-brace-format
 msgid "Certificates updated: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:74
+#, python-brace-format
 msgid "  - Changed to VALID: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:75
+#, python-brace-format
 msgid "  - Changed to NEAR_EXPIRY: {}"
 msgstr ""
 
 #: apps/hrm/management/commands/update_certificate_statuses.py:76
+#, python-brace-format
 msgid "  - Changed to EXPIRED: {}"
 msgstr ""
 
@@ -5157,10 +5166,10 @@ msgstr ""
 #: apps/hrm/services/employee/work_history.py:142
 #: apps/hrm/services/employee/work_history.py:162
 #: apps/hrm/services/employee/work_history.py:163
-#: apps/hrm/services/employee/work_history.py:205
-#: apps/hrm/services/employee/work_history.py:206
-#: apps/hrm/services/employee/work_history.py:249
-#: apps/hrm/services/employee/work_history.py:250
+#: apps/hrm/services/employee/work_history.py:215
+#: apps/hrm/services/employee/work_history.py:216
+#: apps/hrm/services/employee/work_history.py:275
+#: apps/hrm/services/employee/work_history.py:276
 msgid "None"
 msgstr ""
 
@@ -5179,12 +5188,12 @@ msgstr ""
 "Chuyển từ {old_branch}/{old_block}/{old_dept} sang {new_branch}/{new_block}/"
 "{new_dept}"
 
-#: apps/hrm/services/employee/work_history.py:210
+#: apps/hrm/services/employee/work_history.py:220
 #, python-brace-format
 msgid "Employee type changed from {old_type} to {new_type}"
 msgstr "Loại nhân viên thay đổi từ {old_type} sang {new_type}"
 
-#: apps/hrm/services/employee/work_history.py:264
+#: apps/hrm/services/employee/work_history.py:290
 #, python-brace-format
 msgid "Contract changed from {old_contract} to {new_contract}"
 msgstr "Hợp đồng thay đổi từ {old_contract} sang {new_contract}"

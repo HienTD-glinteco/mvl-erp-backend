@@ -266,35 +266,34 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
                 logger.error("Error saving contract: %s. Data: %s", e, contract_data)
                 raise e
 
-            # Side effect 1: Update Employee Type
-            change_employee_type = False
+            # Side effect 1: Update Employee Type (if changed)
             new_employee_type = validated_data.get("employee_type")
+            change_employee_type = False
             if new_employee_type and employee.employee_type != new_employee_type:
                 change_employee_type = True
+                # Set context for signal to create EmployeeWorkHistory
+                employee._change_type_signal_context = {
+                    "effective_date": contract.effective_date,
+                    "note": _("Imported contract %s") % contract.code,
+                    "contract": contract,
+                }
                 employee.employee_type = new_employee_type
                 employee.save(update_fields=["employee_type"])
 
-            # Side effect 2: Create Work History
-
-            # Event name default to change contract, but if the new contract causes change the employee type, it will be set to change employee type
-            event_name = (
-                EmployeeWorkHistory.EventType.CHANGE_EMPLOYEE_TYPE
-                if change_employee_type
-                else EmployeeWorkHistory.EventType.CHANGE_CONTRACT
-            )
-
-            EmployeeWorkHistory.objects.create(
-                employee=employee,
-                date=contract.effective_date,
-                name=event_name,
-                contract=contract,
-                # Copy Org fields from current employee state
-                branch=employee.branch,
-                block=employee.block,
-                department=employee.department,
-                position=employee.position,
-                note=_("Imported contract %s") % contract.code,
-            )
+            # Side effect 2: Create Work History for CHANGE_CONTRACT (only if employee_type didn't change)
+            # If employee_type changed, the signal already created CHANGE_EMPLOYEE_TYPE history
+            if not change_employee_type:
+                EmployeeWorkHistory.objects.create(
+                    employee=employee,
+                    date=contract.effective_date,
+                    name=EmployeeWorkHistory.EventType.CHANGE_CONTRACT,
+                    contract=contract,
+                    branch=employee.branch,
+                    block=employee.block,
+                    department=employee.department,
+                    position=employee.position,
+                    note=_("Imported contract %s") % contract.code,
+                )
 
             logger.info("Created contract %s for employee %s", contract.code, employee.code)
 

@@ -21,7 +21,6 @@ from apps.hrm.models import (
     RecruitmentCandidate,
 )
 from apps.hrm.services.employee import (
-    create_employee_type_change_event,
     create_position_change_event,
     create_state_change_event,
     create_transfer_event,
@@ -795,18 +794,15 @@ class EmployeeChangeTypeActionSerializer(EmployeeDecisionMixin, serializers.Seri
 
     @atomic
     def save(self, **kwargs):
-        """Save employee and create a work history change record."""
-        self.employee.save(update_fields=["employee_type", "updated_at"])
+        """Save employee and create a work history change record via signal."""
+        # Set context for signal to create EmployeeWorkHistory
+        self.employee._change_type_signal_context = {
+            "effective_date": self.validated_data["date"],
+            "note": self.validated_data.get("note", ""),
+            "decision": self.validated_data.get("decision_id"),
+        }
 
-        # Create work history record
-        create_employee_type_change_event(
-            employee=self.employee,
-            old_employee_type=self.old_employee_type,
-            new_employee_type=self.employee.employee_type,
-            effective_date=self.validated_data["date"],
-            note=self.validated_data.get("note", ""),
-            decision=self.validated_data.get("decision_id"),
-        )
+        self.employee.save(update_fields=["employee_type", "updated_at"])
 
         # Trigger timesheet recalculation
         recalculate_timesheets.delay(employee_id=self.employee.id, start_date_str=str(self.validated_data["date"]))

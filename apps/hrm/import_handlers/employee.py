@@ -24,7 +24,6 @@ from apps.hrm.models import (
     Position,
 )
 from apps.hrm.services.employee import (
-    create_employee_type_change_event,
     create_position_change_event,
     create_state_change_event,
     create_transfer_event,
@@ -707,23 +706,8 @@ def _handle_work_history(employee: Employee, created: bool, old_state: dict, eff
         old_department = old_state.get("department")
         old_employee_type = old_state.get("employee_type")
 
-        # 1. Employee Type Change (Check Constraints)
+        # 1. Employee Type Change - handled by signal, just trigger timesheet recalculation
         if old_employee_type != employee.employee_type:
-            # Validate effective date
-            start_of_month = today.replace(day=1)
-            if effective_date < start_of_month:
-                raise ValueError(
-                    _("Effective date must be greater than or equal to the first day of the current month.")
-                )
-
-            create_employee_type_change_event(
-                employee=employee,
-                old_employee_type=old_employee_type,
-                new_employee_type=employee.employee_type,
-                effective_date=effective_date,
-                note=import_note,
-            )
-
             # Trigger timesheet recalculation
             recalculate_timesheets.delay(employee_id=employee.id, start_date_str=str(effective_date))
 
@@ -1192,24 +1176,53 @@ def import_handler(row_index: int, row: list, import_job_id: str, options: dict)
             # Capture old state for history tracking
             employee = Employee.objects.filter(code=code).first()
             old_state = {}
-            if employee:
-                old_state = {
-                    "status": employee.status,
-                    "position": employee.position,
-                    "department": employee.department,
-                    "employee_type": employee.employee_type,
-                }
 
-            # Update or create employee
+            # Update or create employee with proper context for signals
             try:
-                employee, created = Employee.objects.update_or_create(
-                    code=code,
-                    defaults=employee_data,
-                )
+                if employee:
+                    # UPDATE case: Capture old state and set context before save
+                    old_state = {
+                        "status": employee.status,
+                        "position": employee.position,
+                        "department": employee.department,
+                        "employee_type": employee.employee_type,
+                    }
+
+                    # Check if employee_type will change
+                    new_employee_type = employee_data.get("employee_type")
+                    effective_date = employee_data.get("start_date") or timezone.localdate()
+                    import_note = _("Imported from file")
+
+                    if new_employee_type and old_state["employee_type"] != new_employee_type:
+                        # Validate effective date for employee type change
+                        today = timezone.localdate()
+                        start_of_month = today.replace(day=1)
+                        if effective_date < start_of_month:
+                            raise ValueError(
+                                _(
+                                    "Effective date must be greater than or equal to the first day of the current month."
+                                )
+                            )
+
+                        # Set context for signal to create EmployeeWorkHistory
+                        employee._change_type_signal_context = {  # type: ignore[attr-defined]
+                            "effective_date": effective_date,
+                            "note": import_note,
+                        }
+
+                    # Update employee fields
+                    for field, value in employee_data.items():
+                        setattr(employee, field, value)
+                    employee.save()
+                    created = False
+                else:
+                    # CREATE case: Use objects.create (code is already in employee_data)
+                    employee = Employee.objects.create(**employee_data)
+                    created = True
 
                 action = "created" if created else "updated"
 
-                # Handle Work History
+                # Handle Work History (for status/position/department changes)
                 _handle_work_history(employee, created, old_state, employee_data.get("start_date"))
 
                 # Handle bank accounts
