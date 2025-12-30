@@ -115,5 +115,7 @@ class MeProposalVerifierFilterSet(filters.FilterSet):
             "proposal": ["exact"],
             "proposal__proposal_type": ["exact", "in"],
             "proposal__proposal_status": ["exact", "in"],
+            "proposal__created_by": ["exact"],
+            "proposal__created_at": ["date__exact", "date__gte", "date__lte"],
             "status": ["exact", "in"],
         }
