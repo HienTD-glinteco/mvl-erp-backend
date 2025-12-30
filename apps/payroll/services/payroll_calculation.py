@@ -131,7 +131,8 @@ class PayrollCalculationService:
         self.slip.lunch_allowance = contract.lunch_allowance or 0
         self.slip.phone_allowance = contract.phone_allowance or 0
         self.slip.other_allowance = contract.other_allowance or 0
-        self.slip.employment_status = contract.status
+        # Store employee_type, not contract status
+        self.slip.employment_status = self.employee.employee_type or ""
 
     def _set_zero_salary_fields(self):
         """Set salary fields to 0 when no contract exists."""
@@ -238,23 +239,63 @@ class PayrollCalculationService:
             self.slip.holiday_overtime_hours = Decimal("0.00")
 
     def _calculate_overtime_pay(self):
-        """Calculate overtime payment."""
-        # Calculate total salary for hourly rate
-        total_salary = (
+        """Calculate overtime payment with new formula."""
+        from apps.hrm.constants import EmployeeType
+
+        # Calculate total position income
+        total_position_income = (
             self.slip.base_salary
-            + self.slip.kpi_salary
             + self.slip.lunch_allowance
             + self.slip.phone_allowance
             + self.slip.other_allowance
+            + self.slip.kpi_salary
             + self.slip.kpi_bonus
             + self.slip.business_progressive_salary
         )
+        self.slip.total_position_income = total_position_income.quantize(Decimal("1"))
 
-        # Calculate hourly rate
+        # Calculate actual working days income
         if self.period.standard_working_days > 0:
-            self.slip.hourly_rate = (total_salary / (self.period.standard_working_days * Decimal("8"))).quantize(
-                Decimal("0.01")
-            )
+            # Check if employee position is NVKD (sales staff) via position name
+            is_sales_staff = False
+            if self.employee.position:
+                position_name = self.employee.position.name.upper()
+                is_sales_staff = "NVKD" in position_name or "KINH DOANH" in position_name
+
+            if is_sales_staff:
+                # For sales staff: (total_working_days / standard_working_days) * total_position_income
+                actual_working_days_income = (
+                    self.slip.total_working_days / self.period.standard_working_days
+                ) * total_position_income
+            else:
+                # For non-sales staff: ((official_working_days * total_position_income) + (probation_working_days * total_position_income * 0.85)) / standard_working_days
+                official_income = self.slip.official_working_days * total_position_income
+                probation_income = self.slip.probation_working_days * total_position_income * Decimal("0.85")
+                actual_working_days_income = (official_income + probation_income) / self.period.standard_working_days
+
+            self.slip.actual_working_days_income = actual_working_days_income.quantize(Decimal("1"))
+        else:
+            self.slip.actual_working_days_income = Decimal("0")
+
+        # Calculate hourly rate based on employee status
+        if self.period.standard_working_days > 0:
+            # Check if employee status is probation
+            is_probation = self.slip.employment_status in [
+                EmployeeType.PROBATION,
+                EmployeeType.PROBATION_TYPE_1,
+                EmployeeType.UNPAID_PROBATION,
+            ]
+
+            if is_probation:
+                # Probation: total_position_income * 0.85 / standard_working_days / 8
+                self.slip.hourly_rate = (
+                    (total_position_income * Decimal("0.85")) / (self.period.standard_working_days * Decimal("8"))
+                ).quantize(Decimal("0.01"))
+            else:
+                # Non-probation: total_position_income / standard_working_days / 8
+                self.slip.hourly_rate = (
+                    total_position_income / (self.period.standard_working_days * Decimal("8"))
+                ).quantize(Decimal("0.01"))
         else:
             self.slip.hourly_rate = Decimal("0.00")
 
@@ -284,6 +325,24 @@ class PayrollCalculationService:
 
         self.slip.overtime_pay = (saturday_pay + sunday_pay + holiday_pay).quantize(Decimal("1"))
 
+        # Calculate taxable overtime salary
+        taxable_overtime_salary = self.slip.total_overtime_hours * self.slip.hourly_rate
+        self.slip.taxable_overtime_salary = taxable_overtime_salary.quantize(Decimal("1"))
+
+        # Calculate overtime progress allowance
+        overtime_progress_allowance = self.slip.overtime_pay - taxable_overtime_salary
+        self.slip.overtime_progress_allowance = overtime_progress_allowance.quantize(Decimal("1"))
+
+        # Calculate non-taxable overtime salary
+        if overtime_progress_allowance > (taxable_overtime_salary * Decimal("2")):
+            # If overtime progress allowance > (taxable overtime salary * 2), cap at 2x
+            non_taxable_overtime_salary = taxable_overtime_salary * Decimal("2")
+        else:
+            # Otherwise, use overtime_pay - taxable_overtime_salary
+            non_taxable_overtime_salary = self.slip.overtime_pay - taxable_overtime_salary
+
+        self.slip.non_taxable_overtime_salary = non_taxable_overtime_salary.quantize(Decimal("1"))
+
     def _calculate_travel_expenses(self):
         """Calculate travel expenses."""
         travel_expenses = TravelExpense.objects.filter(employee=self.employee, month=self.period.month)
@@ -307,25 +366,32 @@ class PayrollCalculationService:
         self.slip.total_travel_expense = Decimal(str(taxable + non_taxable))
 
     def _calculate_gross_income(self):
-        """Calculate gross income."""
+        """Calculate gross income with new formula."""
         self.slip.gross_income = (
-            self.slip.base_salary
-            + self.slip.kpi_bonus
-            + self.slip.business_progressive_salary
-            + self.slip.lunch_allowance
-            + self.slip.phone_allowance
-            + self.slip.other_allowance
-            + self.slip.overtime_pay
+            self.slip.actual_working_days_income
+            + self.slip.taxable_overtime_salary
+            + self.slip.non_taxable_overtime_salary
             + self.slip.total_travel_expense
         ).quantize(Decimal("1"))
 
     def _calculate_insurance_contributions(self):
         """Calculate insurance contributions."""
+        from apps.hrm.constants import EmployeeType
+
         insurance_config = self.config["insurance_contributions"]
+
+        # Check if employee is official (not probation)
+        is_official = self.slip.employment_status == EmployeeType.OFFICIAL
 
         # Social insurance
         si_config = insurance_config["social_insurance"]
-        social_insurance_base = min(self.slip.base_salary, Decimal(str(si_config["salary_ceiling"])))
+        if is_official:
+            # Official employee: use base_salary with ceiling
+            social_insurance_base = min(self.slip.base_salary, Decimal(str(si_config["salary_ceiling"])))
+        else:
+            # Non-official employee: no social insurance
+            social_insurance_base = Decimal("0")
+
         self.slip.social_insurance_base = social_insurance_base
         self.slip.employee_social_insurance = (
             social_insurance_base * Decimal(str(si_config["employee_rate"]))
@@ -336,7 +402,9 @@ class PayrollCalculationService:
 
         # Health insurance
         hi_config = insurance_config["health_insurance"]
-        hi_base = min(self.slip.base_salary, Decimal(str(hi_config["salary_ceiling"])))
+        hi_base = (
+            min(social_insurance_base, Decimal(str(hi_config["salary_ceiling"]))) if is_official else Decimal("0")
+        )
         self.slip.employee_health_insurance = (hi_base * Decimal(str(hi_config["employee_rate"]))).quantize(
             Decimal("1")
         )
@@ -346,7 +414,9 @@ class PayrollCalculationService:
 
         # Unemployment insurance
         ui_config = insurance_config["unemployment_insurance"]
-        ui_base = min(self.slip.base_salary, Decimal(str(ui_config["salary_ceiling"])))
+        ui_base = (
+            min(social_insurance_base, Decimal(str(ui_config["salary_ceiling"]))) if is_official else Decimal("0")
+        )
         self.slip.employee_unemployment_insurance = (ui_base * Decimal(str(ui_config["employee_rate"]))).quantize(
             Decimal("1")
         )
@@ -356,22 +426,29 @@ class PayrollCalculationService:
 
         # Union fee
         uf_config = insurance_config["union_fee"]
-        uf_base = min(self.slip.base_salary, Decimal(str(uf_config["salary_ceiling"])))
+        uf_base = (
+            min(social_insurance_base, Decimal(str(uf_config["salary_ceiling"]))) if is_official else Decimal("0")
+        )
         self.slip.employee_union_fee = (uf_base * Decimal(str(uf_config["employee_rate"]))).quantize(Decimal("1"))
         self.slip.employer_union_fee = (uf_base * Decimal(str(uf_config["employer_rate"]))).quantize(Decimal("1"))
 
         # Accident insurance (employer only)
         ai_config = insurance_config["accident_occupational_insurance"]
-        if ai_config["salary_ceiling"] is None:
-            ai_base = self.slip.base_salary
+        if is_official:
+            if ai_config["salary_ceiling"] is None:
+                ai_base = self.slip.base_salary
+            else:
+                ai_base = min(self.slip.base_salary, Decimal(str(ai_config["salary_ceiling"])))
         else:
-            ai_base = min(self.slip.base_salary, Decimal(str(ai_config["salary_ceiling"])))
+            ai_base = Decimal("0")
         self.slip.employer_accident_insurance = (ai_base * Decimal(str(ai_config["employer_rate"]))).quantize(
             Decimal("1")
         )
 
     def _calculate_personal_income_tax(self):
-        """Calculate personal income tax."""
+        """Calculate personal income tax with updated formula."""
+        from apps.hrm.constants import EmployeeType
+
         tax_config = self.config["personal_income_tax"]
 
         # Get dependent count
@@ -381,49 +458,61 @@ class PayrollCalculationService:
         self.slip.personal_deduction = Decimal(str(tax_config["standard_deduction"]))
         self.slip.dependent_deduction = dependent_count * Decimal(str(tax_config["dependent_deduction"]))
 
-        # Calculate taxable income base (exclude non-taxable travel expense)
-        self.slip.taxable_income_base = (
-            self.slip.gross_income
-            - self.slip.non_taxable_travel_expense
-            - self.slip.employee_social_insurance
-            - self.slip.employee_health_insurance
-            - self.slip.employee_unemployment_insurance
-        ).quantize(Decimal("1"))
+        # Check if employee is official
+        is_official = self.slip.employment_status == EmployeeType.OFFICIAL
 
-        # Calculate taxable income after deductions
-        taxable_income = self.slip.taxable_income_base - self.slip.personal_deduction - self.slip.dependent_deduction
+        if is_official:
+            # Official employee: Calculate taxable income base with deductions
+            self.slip.taxable_income_base = (
+                self.slip.gross_income
+                - self.slip.non_taxable_travel_expense
+                - self.slip.employee_social_insurance
+                - self.slip.employee_health_insurance
+                - self.slip.employee_unemployment_insurance
+                - self.slip.non_taxable_overtime_salary
+            ).quantize(Decimal("1"))
 
-        if taxable_income < 0:
-            taxable_income = Decimal("0")
+            # Calculate taxable income after deductions
+            taxable_income = (
+                self.slip.taxable_income_base - self.slip.personal_deduction - self.slip.dependent_deduction
+            )
 
-        self.slip.taxable_income = taxable_income.quantize(Decimal("1"))
+            if taxable_income < 0:
+                taxable_income = Decimal("0")
 
-        # Progressive tax calculation
-        personal_income_tax = Decimal("0")
-        progressive_levels = tax_config["progressive_levels"]
-        previous_threshold = Decimal("0")
+            self.slip.taxable_income = taxable_income.quantize(Decimal("1"))
 
-        for level in progressive_levels:
-            threshold = level["up_to"]
-            rate = Decimal(str(level["rate"]))
+            # Progressive tax calculation
+            personal_income_tax = Decimal("0")
+            progressive_levels = tax_config["progressive_levels"]
+            previous_threshold = Decimal("0")
 
-            if threshold is None:
-                # Last bracket
-                if taxable_income > previous_threshold:
-                    personal_income_tax += (taxable_income - previous_threshold) * rate
-                break
+            for level in progressive_levels:
+                threshold = level["up_to"]
+                rate = Decimal(str(level["rate"]))
 
-            threshold = Decimal(str(threshold))
+                if threshold is None:
+                    # Last bracket
+                    if taxable_income > previous_threshold:
+                        personal_income_tax += (taxable_income - previous_threshold) * rate
+                    break
 
-            if taxable_income > threshold:
-                personal_income_tax += (threshold - previous_threshold) * rate
-                previous_threshold = threshold
-            else:
-                if taxable_income > previous_threshold:
-                    personal_income_tax += (taxable_income - previous_threshold) * rate
-                break
+                threshold = Decimal(str(threshold))
 
-        self.slip.personal_income_tax = personal_income_tax.quantize(Decimal("1"))
+                if taxable_income > threshold:
+                    personal_income_tax += (threshold - previous_threshold) * rate
+                    previous_threshold = threshold
+                else:
+                    if taxable_income > previous_threshold:
+                        personal_income_tax += (taxable_income - previous_threshold) * rate
+                    break
+
+            self.slip.personal_income_tax = personal_income_tax.quantize(Decimal("1"))
+        else:
+            # Non-official employee: taxable_income_base = gross_income, tax = 10%
+            self.slip.taxable_income_base = self.slip.gross_income
+            self.slip.taxable_income = self.slip.gross_income
+            self.slip.personal_income_tax = (self.slip.gross_income * Decimal("0.10")).quantize(Decimal("1"))
 
     def _process_recovery_vouchers(self):
         """Process recovery vouchers."""

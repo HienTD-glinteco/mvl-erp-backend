@@ -93,6 +93,11 @@ class PayrollSlipSerializer(serializers.ModelSerializer):
             "total_overtime_hours",
             "hourly_rate",
             "overtime_pay",
+            "total_position_income",
+            "actual_working_days_income",
+            "taxable_overtime_salary",
+            "overtime_progress_allowance",
+            "non_taxable_overtime_salary",
             # Travel expenses
             "taxable_travel_expense",
             "non_taxable_travel_expense",

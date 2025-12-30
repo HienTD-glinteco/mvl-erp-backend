@@ -53,6 +53,10 @@
             <td>{{ payroll_slip.base_salary|floatformat:0 }} VND</td>
         </tr>
         <tr>
+            <th>{% trans "KPI Salary" %}</th>
+            <td>{{ payroll_slip.kpi_salary|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
             <th>{% trans "KPI Bonus" %}</th>
             <td>{{ payroll_slip.kpi_bonus|floatformat:0 }} VND ({% trans "Grade" %}: {{ payroll_slip.kpi_grade }})</td>
         </tr>
@@ -73,12 +77,68 @@
             <td>{{ payroll_slip.other_allowance|floatformat:0 }} VND</td>
         </tr>
         <tr>
-            <th>{% trans "Overtime Pay" %}</th>
-            <td>{{ payroll_slip.overtime_pay|floatformat:0 }} VND ({{ payroll_slip.total_overtime_hours }} {% trans "hours" %})</td>
+            <th>{% trans "Total Position Income" %}</th>
+            <td><strong>{{ payroll_slip.total_position_income|floatformat:0 }} VND</strong></td>
         </tr>
         <tr>
-            <th>{% trans "Travel Expense" %}</th>
-            <td>{{ payroll_slip.total_travel_expense|floatformat:0 }} VND</td>
+            <th>{% trans "Actual Working Days Income" %}</th>
+            <td><strong>{{ payroll_slip.actual_working_days_income|floatformat:0 }} VND</strong></td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">{% trans "Overtime Pay" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Total Overtime Hours" %}</th>
+            <td>{{ payroll_slip.total_overtime_hours }} {% trans "hours" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Saturday & Weekday" %}</th>
+            <td>{{ payroll_slip.saturday_inweek_overtime_hours }} {% trans "hours" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Sunday" %}</th>
+            <td>{{ payroll_slip.sunday_overtime_hours }} {% trans "hours" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Holiday" %}</th>
+            <td>{{ payroll_slip.holiday_overtime_hours }} {% trans "hours" %}</td>
+        </tr>
+        <tr>
+            <th>{% trans "Hourly Rate" %}</th>
+            <td>{{ payroll_slip.hourly_rate|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Taxable Overtime Salary" %}</th>
+            <td>{{ payroll_slip.taxable_overtime_salary|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Overtime Progress Allowance" %}</th>
+            <td>{{ payroll_slip.overtime_progress_allowance|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Non-Taxable Overtime Salary" %}</th>
+            <td>{{ payroll_slip.non_taxable_overtime_salary|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Total Overtime Pay" %}</th>
+            <td><strong>{{ payroll_slip.overtime_pay|floatformat:0 }} VND</strong></td>
+        </tr>
+    </table>
+
+    <h3 class="section-title">{% trans "Travel Expenses" %}</h3>
+    <table class="info-table">
+        <tr>
+            <th>{% trans "Taxable Travel Expense" %}</th>
+            <td>{{ payroll_slip.taxable_travel_expense|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Non-Taxable Travel Expense" %}</th>
+            <td>{{ payroll_slip.non_taxable_travel_expense|floatformat:0 }} VND</td>
+        </tr>
+        <tr>
+            <th>{% trans "Total Travel Expense" %}</th>
+            <td><strong>{{ payroll_slip.total_travel_expense|floatformat:0 }} VND</strong></td>
         </tr>
     </table>
 

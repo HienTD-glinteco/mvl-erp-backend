@@ -1,0 +1,85 @@
+PHIẾU LƯƠNG THÁNG {{ salary_period.month|date:"m/Y" }}
+================================================================================
+
+Kính gửi: {{ employee.fullname }}
+
+Phiếu lương của bạn cho tháng {{ salary_period.month|date:"m/Y" }} đã sẵn sàng.
+
+{% if payroll_slip.status == 'HOLD' %}
+** LƯU Ý: Phiếu lương này đang bị tạm giữ: {{ payroll_slip.status_note }}
+{% endif %}
+
+THÔNG TIN NHÂN VIÊN
+--------------------------------------------------------------------------------
+Mã nhân viên:           {{ payroll_slip.employee_code }}
+Họ tên:                 {{ payroll_slip.employee_name }}
+Phòng ban:              {{ payroll_slip.department_name }}
+Chức vụ:                {{ payroll_slip.position_name }}
+
+CÁC KHOẢN THU NHẬP
+--------------------------------------------------------------------------------
+Lương cơ bản:                           {{ payroll_slip.base_salary|floatformat:0 }} VND
+Lương KPI:                              {{ payroll_slip.kpi_salary|floatformat:0 }} VND
+Thưởng KPI:                             {{ payroll_slip.kpi_bonus|floatformat:0 }} VND (Hạng: {{ payroll_slip.kpi_grade }})
+Lương kinh doanh lũy tiến:              {{ payroll_slip.business_progressive_salary|floatformat:0 }} VND (Hạng: {{ payroll_slip.business_grade }})
+Phụ cấp ăn trưa:                        {{ payroll_slip.lunch_allowance|floatformat:0 }} VND
+Phụ cấp điện thoại:                     {{ payroll_slip.phone_allowance|floatformat:0 }} VND
+Phụ cấp khác:                           {{ payroll_slip.other_allowance|floatformat:0 }} VND
+Tổng thu nhập theo vị trí:              {{ payroll_slip.total_position_income|floatformat:0 }} VND
+Thu nhập theo ngày công thực tế:        {{ payroll_slip.actual_working_days_income|floatformat:0 }} VND
+
+TĂNG CA
+--------------------------------------------------------------------------------
+Tổng giờ tăng ca:                       {{ payroll_slip.total_overtime_hours }} giờ
+  - Thứ 7 & ngày thường:                {{ payroll_slip.saturday_inweek_overtime_hours }} giờ
+  - Chủ nhật:                           {{ payroll_slip.sunday_overtime_hours }} giờ
+  - Ngày lễ:                            {{ payroll_slip.holiday_overtime_hours }} giờ
+Lương giờ:                              {{ payroll_slip.hourly_rate|floatformat:0 }} VND/giờ
+Lương ngoài giờ chịu thuế:              {{ payroll_slip.taxable_overtime_salary|floatformat:0 }} VND
+Phụ cấp vượt tiến độ tham chiếu:        {{ payroll_slip.overtime_progress_allowance|floatformat:0 }} VND
+Lương ngoài giờ không chịu thuế:        {{ payroll_slip.non_taxable_overtime_salary|floatformat:0 }} VND
+Tổng tiền tăng ca:                      {{ payroll_slip.overtime_pay|floatformat:0 }} VND
+
+CHI PHÍ DI CHUYỂN
+--------------------------------------------------------------------------------
+Chi phí đi lại chịu thuế:               {{ payroll_slip.taxable_travel_expense|floatformat:0 }} VND
+Chi phí đi lại không chịu thuế:         {{ payroll_slip.non_taxable_travel_expense|floatformat:0 }} VND
+Tổng chi phí đi lại:                    {{ payroll_slip.total_travel_expense|floatformat:0 }} VND
+
+NGÀY CÔNG
+--------------------------------------------------------------------------------
+Ngày công chuẩn:                        {{ payroll_slip.standard_working_days }} ngày
+Tổng ngày công:                         {{ payroll_slip.total_working_days }} ngày
+Ngày công chính thức:                   {{ payroll_slip.official_working_days }} ngày
+Ngày công thử việc:                     {{ payroll_slip.probation_working_days }} ngày
+
+CÁC KHOẢN KHẤU TRỪ
+--------------------------------------------------------------------------------
+Bảo hiểm xã hội:                        {{ payroll_slip.employee_social_insurance|floatformat:0 }} VND
+Bảo hiểm y tế:                          {{ payroll_slip.employee_health_insurance|floatformat:0 }} VND
+Bảo hiểm thất nghiệp:                   {{ payroll_slip.employee_unemployment_insurance|floatformat:0 }} VND
+Kinh phí công đoàn:                     {{ payroll_slip.employee_union_fee|floatformat:0 }} VND
+Thuế thu nhập cá nhân:                  {{ payroll_slip.personal_income_tax|floatformat:0 }} VND
+{% if payroll_slip.recovery_amount > 0 %}Số tiền thu hồi:                        {{ payroll_slip.recovery_amount|floatformat:0 }} VND
+{% endif %}
+
+{% if payroll_slip.back_pay_amount > 0 %}KHOẢN BỔ SUNG
+--------------------------------------------------------------------------------
+Lương bổ sung:                          {{ payroll_slip.back_pay_amount|floatformat:0 }} VND
+
+{% endif %}================================================================================
+TỔNG THU NHẬP:                          {{ payroll_slip.gross_income|floatformat:0 }} VND
+LƯƠNG THỰC LĨNH:                        {{ payroll_slip.net_salary|floatformat:0 }} VND
+================================================================================
+
+{% if payroll_slip.has_unpaid_penalty %}
+** CẢNH BÁO: Bạn có {{ payroll_slip.unpaid_penalty_count }} phiếu phạt chưa thanh toán.
+Vui lòng liên hệ phòng Nhân sự.
+{% endif %}
+
+Vui lòng đăng nhập vào hệ thống để xem chi tiết đầy đủ và tải xuống phiếu lương của bạn.
+
+Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với phòng Nhân sự.
+
+Trân trọng,
+Đội ngũ MaiVietLand

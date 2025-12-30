@@ -166,8 +166,14 @@ def send_payroll_email_task(payroll_slip_id):
             logger.error(f"Failed to render payroll slip email template for employee {employee.code}: {str(e)}")
             raise
 
-        plain_message = _(
-            """Hello %(employee_name)s,
+        try:
+            plain_message = render_to_string("emails/payroll_slip.txt", context)
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            logger.error(f"Failed to render payroll slip text template for employee {employee.code}: {str(e)}")
+            # Fallback to simple message if text template fails
+            plain_message = _(
+                """Hello %(employee_name)s,
 
 Your payroll slip for %(month)s is ready.
 
@@ -182,15 +188,15 @@ Please log in to the system to view full details.
 
 Best regards,
 MaiVietLand Team"""
-        ) % {
-            "employee_name": employee.fullname,
-            "month": payroll_slip.salary_period.month.strftime("%B %Y"),
-            "employee_code": payroll_slip.employee_code,
-            "department": payroll_slip.department_name,
-            "position": payroll_slip.position_name,
-            "gross_income": f"{payroll_slip.gross_income:,.0f}",
-            "net_salary": f"{payroll_slip.net_salary:,.0f}",
-        }
+            ) % {
+                "employee_name": employee.fullname,
+                "month": payroll_slip.salary_period.month.strftime("%B %Y"),
+                "employee_code": payroll_slip.employee_code,
+                "department": payroll_slip.department_name,
+                "position": payroll_slip.position_name,
+                "gross_income": f"{payroll_slip.gross_income:,.0f}",
+                "net_salary": f"{payroll_slip.net_salary:,.0f}",
+            }
 
         send_mail(
             subject=_("Payroll Slip %(month)s - MaiVietLand")
@@ -342,6 +348,77 @@ def recalculate_salary_period_task(self, period_id):
             "period_id": salary_period.id,
             "period_code": salary_period.code,
             "recalculated_count": recalculated_count,
+            "status": "completed",
+        }
+
+    except Exception as e:
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(e)
+        return {"error": str(e)}
+
+
+@shared_task(bind=True)
+def send_emails_for_period_task(self, period_id, filter_status=None):
+    """Send payroll emails for all slips in a period asynchronously.
+
+    Args:
+        self: Task instance (bind=True)
+        period_id: SalaryPeriod ID
+        filter_status: List of status values to filter slips (default: ["READY", "DELIVERED"])
+
+    Returns:
+        dict: Result with sent/failed counts
+    """
+    from apps.payroll.models import PayrollSlip, SalaryPeriod
+
+    try:
+        salary_period = SalaryPeriod.objects.get(pk=period_id)
+
+        # Default filter status
+        if filter_status is None:
+            filter_status = [PayrollSlip.Status.READY, PayrollSlip.Status.DELIVERED]
+
+        # Get slips to send emails
+        slips = salary_period.payroll_slips.filter(status__in=filter_status, employee__email__isnull=False).exclude(
+            employee__email=""
+        )
+
+        total = slips.count()
+        sent_count = 0
+        failed_count = 0
+        failed_emails = []
+
+        for slip in slips:
+            # Update task state for progress tracking
+            self.update_state(
+                state="PROGRESS",
+                meta={
+                    "current": sent_count + failed_count,
+                    "total": total,
+                    "status": "Sending payroll emails",
+                    "sent": sent_count,
+                    "failed": failed_count,
+                },
+            )
+
+            # Call individual email task synchronously
+            result = send_payroll_email_task(slip.id)
+
+            if "Failed" in result or "not found" in result or "no email" in result:
+                failed_count += 1
+                failed_emails.append(
+                    {"employee_code": slip.employee_code, "employee_email": slip.employee.email, "error": result}
+                )
+            else:
+                sent_count += 1
+
+        return {
+            "period_id": salary_period.id,
+            "period_code": salary_period.code,
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+            "failed_emails": failed_emails,
             "status": "completed",
         }
 
