@@ -8,7 +8,7 @@ from .drf.base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .drf.pagination import PageNumberWithSizePagination
 from .drf.serializers import ColoredValueSerializer
 from .drf.serializers.mixins import FieldFilteringSerializerMixin
-from .drf.spectacular import AutoDocOrderingFilterExtension, wrap_with_envelope
+from .drf.spectacular import AutoDocOrderingFilterExtension, PermissionSchemaMixin, wrap_with_envelope
 from .export_document import ExportDocumentMixin, convert_html_to_docx, convert_html_to_pdf
 from .export_xlsx import (
     ExportXLSXMixin,
@@ -46,6 +46,7 @@ __all__ = [
     "generate_model_code",
     "register_auto_code_signal",
     "AutoDocOrderingFilterExtension",
+    "PermissionSchemaMixin",
     "wrap_with_envelope",
     "CitizenIdValidator",
     "normalize_header",

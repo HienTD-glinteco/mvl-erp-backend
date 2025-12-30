@@ -134,7 +134,7 @@ class WorkbookPermissionExtractor:
 
     def _iter_table(self, sheet: Worksheet, cell_range: str) -> Iterable[Dict[str, Any]]:
         min_col, min_row, max_col, max_row = range_boundaries(cell_range)
-        header: Optional[List[str]] = None
+        header: Optional[list[str | None]] = None
         for row in sheet.iter_rows(
             min_col=min_col,
             min_row=min_row,

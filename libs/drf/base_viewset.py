@@ -10,9 +10,12 @@ from rest_framework import viewsets
 
 from libs.drf.mixin.permission import PermissionRegistrationMixin
 from libs.drf.mixin.protected_delete import ProtectedDeleteMixin
+from libs.drf.spectacular.permission_schema import PermissionSchemaMixin
 
 
-class BaseModelViewSet(ProtectedDeleteMixin, PermissionRegistrationMixin, viewsets.ModelViewSet):
+class BaseModelViewSet(
+    ProtectedDeleteMixin, PermissionSchemaMixin, PermissionRegistrationMixin, viewsets.ModelViewSet
+):
     """
     Base ModelViewSet with automatic permission registration.
 
@@ -37,7 +40,7 @@ class BaseModelViewSet(ProtectedDeleteMixin, PermissionRegistrationMixin, viewse
     pass
 
 
-class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyModelViewSet):
+class BaseReadOnlyModelViewSet(PermissionSchemaMixin, PermissionRegistrationMixin, viewsets.ReadOnlyModelViewSet):
     """
     Base ReadOnlyModelViewSet with automatic permission registration.
 
@@ -77,5 +80,5 @@ class BaseReadOnlyModelViewSet(PermissionRegistrationMixin, viewsets.ReadOnlyMod
     }
 
 
-class BaseGenericViewSet(PermissionRegistrationMixin, viewsets.GenericViewSet):
+class BaseGenericViewSet(PermissionSchemaMixin, PermissionRegistrationMixin, viewsets.GenericViewSet):
     pass

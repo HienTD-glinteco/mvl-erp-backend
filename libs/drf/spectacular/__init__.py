@@ -4,6 +4,7 @@ from .field_filtering import (
     FieldFilteringSerializerExtension,
 )
 from .ordering import AutoDocOrderingFilterExtension
+from .permission_schema import PermissionSchemaMixin
 from .schema_hooks import wrap_with_envelope
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "EnhancedAutoSchema",
     "FieldFilteringAutoSchema",
     "FieldFilteringSerializerExtension",
+    "PermissionSchemaMixin",
     "wrap_with_envelope",
 ]

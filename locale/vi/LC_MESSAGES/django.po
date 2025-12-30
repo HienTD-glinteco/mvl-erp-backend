@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 10:30+0700\n"
+"POT-Creation-Date: 2025-12-30 01:29+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -317,42 +317,42 @@ msgstr "Đang hoạt động"
 msgid "Inactive"
 msgstr "Không hoạt động"
 
-#: libs/drf/base_viewset.py:62 libs/drf/mixin/permission.py:27
+#: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:27
 #, python-brace-format
 msgid "List {model_name}"
 msgstr "Danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:63 libs/drf/mixin/permission.py:28
+#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr "Xem danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:31
+#: libs/drf/base_viewset.py:69 libs/drf/mixin/permission.py:31
 #, python-brace-format
 msgid "View {model_name}"
 msgstr "Xem {model_name}"
 
-#: libs/drf/base_viewset.py:67
+#: libs/drf/base_viewset.py:70
 #, python-brace-format
 msgid "View details of a {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
-#: libs/drf/base_viewset.py:70 libs/drf/mixin/permission.py:55
+#: libs/drf/base_viewset.py:73 libs/drf/mixin/permission.py:55
 #, python-brace-format
 msgid "History {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:71 libs/drf/mixin/permission.py:56
+#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:56
 #, python-brace-format
 msgid "View history of {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:59
+#: libs/drf/base_viewset.py:77 libs/drf/mixin/permission.py:59
 #, python-brace-format
 msgid "History detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
 
-#: libs/drf/base_viewset.py:75 libs/drf/mixin/permission.py:60
+#: libs/drf/base_viewset.py:78 libs/drf/mixin/permission.py:60
 #, python-brace-format
 msgid "View history detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
