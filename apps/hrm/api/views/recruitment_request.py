@@ -391,6 +391,12 @@ class RecruitmentRequestViewSet(ExportDocumentMixin, AuditLoggingMixin, BaseMode
     module = _("HRM")
     submodule = _("Recruitment")
     permission_prefix = "recruitment_request"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "export_detail_document": {
+            "name_template": _("Export recruitment request detail as a document"),
+            "description_template": _("Export recruitment request detail as a document"),
+        },
+    }
 
     # Document export configuration
     document_template_name = "documents/recruitment_request.html"

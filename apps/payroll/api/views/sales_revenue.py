@@ -373,6 +373,16 @@ class SalesRevenueViewSet(AsyncImportProgressMixin, ExportXLSXMixin, AuditLoggin
     module = _("Payroll")
     submodule = _("Sales Revenue Management")
     permission_prefix = "sales_revenue"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "import_template": {
+            "name_template": _("Download import template for sales revenue"),
+            "description_template": _("Download import template for sales revenue"),
+        },
+        "start_import": {
+            "name_template": _("Import sales revenue data"),
+            "description_template": _("Import sales revenue data asynchronously"),
+        },
+    }
 
     # Import handler configuration
     import_row_handler = "apps.payroll.import_handlers.sales_revenue.process_sales_revenue_row"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 09:57+0700\n"
+"POT-Creation-Date: 2025-12-30 13:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,6 +24,18 @@ msgstr "[Hệ thống] "
 #: apps/audit_logging/api/views.py:25
 msgid "Audit Logging"
 msgstr "Thao tác người dùng"
+
+#: apps/audit_logging/api/views.py:29
+msgid "Get audit log detail"
+msgstr "Xem chi tiết nhật ký thao tác"
+
+#: apps/audit_logging/api/views.py:30
+msgid "Retrieve full details of an audit log entry"
+msgstr "Lấy chi tiết đầy đủ của một mục nhật ký thao tác"
+
+#: apps/audit_logging/api/views.py:33 apps/audit_logging/api/views.py:34
+msgid "Search audit logs with filters"
+msgstr "Tìm kiếm nhật ký thao tác với các bộ lọc"
 
 #: apps/audit_logging/constants.py:10
 msgid "Add"

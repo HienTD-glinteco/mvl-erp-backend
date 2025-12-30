@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Mapping, Union
 
+from django.utils.functional import Promise
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -137,7 +138,7 @@ class ProposalMixin(AuditLoggingMixin, ExportXLSXMixin):
     module = "HRM"
     submodule = _("Proposal")
     permission_prefix = "proposal"  # Subclasses should override
-    PERMISSION_REGISTERED_ACTIONS = {
+    PERMISSION_REGISTERED_ACTIONS: Mapping[str, Mapping[str, Union[str, Promise]]] = {
         "approve": {
             "name_template": _("Approve {model_name}"),
             "description_template": _("Approve {model_name}"),

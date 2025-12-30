@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
@@ -38,6 +39,12 @@ class PermissionViewSet(BaseReadOnlyModelViewSet):
     module = "Core"
     submodule = "Permission Management"
     permission_prefix = "permission"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "structure": {
+            "name_template": _("View permission structure"),
+            "description_template": _("View permission module and submodule structure"),
+        },
+    }
 
     def list(self, request, *args, **kwargs):
         """List permissions with optional get_all parameter."""

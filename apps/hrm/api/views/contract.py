@@ -314,6 +314,18 @@ class ContractViewSet(
             "name_template": _("Publish {model_name}"),
             "description_template": _("Publish {model_name}"),
         },
+        "import_template": {
+            "name_template": _("Download import template for {model_name}"),
+            "description_template": _("Download import template for {model_name}"),
+        },
+        "start_import": {
+            "name_template": _("Import {model_name} data"),
+            "description_template": _("Import {model_name} data asynchronously"),
+        },
+        "export_detail_document": {
+            "name_template": _("Export {model_name} document"),
+            "description_template": _("Export {model_name} as document (PDF/DOCX)"),
+        },
     }
 
     # Export configuration

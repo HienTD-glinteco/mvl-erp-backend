@@ -470,6 +470,14 @@ class RecruitmentCandidateViewSet(AsyncImportProgressMixin, ExportXLSXMixin, Aud
             "name_template": _("Convert Candidate to Employee"),
             "description_template": _("Convert a candidate into an employee record"),
         },
+        "import_template": {
+            "name_template": _("Download Candidate Import Template"),
+            "description_template": _("Download the import template for candidates"),
+        },
+        "start_import": {
+            "name_template": _("Import Candidates"),
+            "description_template": _("Import candidates from an uploaded file"),
+        },
     }
     # Import handler path for AsyncImportProgressMixin
     import_row_handler = "apps.hrm.import_handlers.recruitment_candidate.import_handler"

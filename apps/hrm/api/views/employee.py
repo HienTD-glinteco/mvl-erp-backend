@@ -127,6 +127,22 @@ class EmployeeViewSet(
             "name_template": _("Update employee Avatar"),
             "description_template": _("Update employee Avatar"),
         },
+        "welcome_email_preview": {
+            "name_template": _("Preview welcome email for employee"),
+            "description_template": _("Preview welcome email for employee"),
+        },
+        "welcome_email_send": {
+            "name_template": _("Send welcome email to employee"),
+            "description_template": _("Send welcome email to employee"),
+        },
+        "import_template": {
+            "name_template": _("Download import template for {model_name}"),
+            "description_template": _("Download import template for {model_name}"),
+        },
+        "start_import": {
+            "name_template": _("Import {model_name} data"),
+            "description_template": _("Import {model_name} data asynchronously"),
+        },
     }
 
     # Import handler path for AsyncImportProgressMixin

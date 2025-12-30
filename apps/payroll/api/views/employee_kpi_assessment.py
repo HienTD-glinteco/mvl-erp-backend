@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
@@ -368,6 +369,16 @@ class EmployeeSelfAssessmentViewSet(BaseModelViewSet):
     submodule = "Employee Self-Assessment"
     permission_prefix = "employee_self_assessment"
     operation = "Self-Assessment"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "current_assessment": {
+            "name_template": _("View Current Assessment"),
+            "description_template": _("Permission to view current unfinalized assessment for department employees"),
+        },
+        "update_item_score": {
+            "name_template": _("Update Self Assessment Item Score"),
+            "description_template": _("Permission to update self-assessment item scores"),
+        },
+    }
 
     def get_queryset(self):
         """Filter assessments to only show current employee's assessments."""
@@ -731,6 +742,12 @@ class ManagerAssessmentViewSet(BaseModelViewSet):
     submodule = "Manager Assessment"
     permission_prefix = "employee_manager_assessment"
     operation = "Manager-Assessment"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "current_assessments": {
+            "name_template": _("View Current Assessments"),
+            "description_template": _("Permission to view current unfinalized assessments for department employees"),
+        }
+    }
 
     def get_queryset(self):
         """Filter assessments to only show assessments where current user is the manager."""

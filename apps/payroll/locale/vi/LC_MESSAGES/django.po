@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 11:10+0700\n"
+"POT-Creation-Date: 2025-12-30 13:53+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -190,31 +190,81 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:354
+#: apps/payroll/api/views/employee_kpi_assessment.py:374
+msgid "View Current Assessment"
+msgstr ""
+
+#: apps/payroll/api/views/employee_kpi_assessment.py:375
+msgid ""
+"Permission to view current unfinalized assessment for department employees"
+msgstr ""
+
+#: apps/payroll/api/views/employee_kpi_assessment.py:378
+msgid "Update Self Assessment Item Score"
+msgstr ""
+
+#: apps/payroll/api/views/employee_kpi_assessment.py:379
+msgid "Permission to update self-assessment item scores"
+msgstr ""
+
+#: apps/payroll/api/views/employee_kpi_assessment.py:747
+msgid "View Current Assessments"
+msgstr ""
+
+#: apps/payroll/api/views/employee_kpi_assessment.py:748
+msgid ""
+"Permission to view current unfinalized assessments for department employees"
+msgstr ""
+
+#: apps/payroll/api/views/kpi_assessment_period.py:323
+msgid "Generate KPI assessments"
+msgstr "Tạo đánh giá KPI"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:324
+msgid "Generate employee and department KPI assessments for a specified month"
+msgstr "Tạo đánh giá KPI cho nhân viên và phòng ban trong tháng được chỉ định"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:327
+msgid "Finalize KPI assessments"
+msgstr "Hoàn tất đánh giá KPI"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:328
+msgid "Finalize all assessments in the specified period"
+msgstr "Hoàn tất các đánh giá trong kỳ được chỉ định"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:331
+msgid "Get summary statistics for KPI assessments"
+msgstr "Lấy thống kê tóm tắt cho đánh giá KPI"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:332
+msgid "Get summary statistics for the specified assessment period"
+msgstr "Lấy thống kê tóm tắt cho kỳ đánh giá được chỉ định"
+
+#: apps/payroll/api/views/kpi_assessment_period.py:368
 msgid "Month parameter is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:364
+#: apps/payroll/api/views/kpi_assessment_period.py:378
 msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:373
+#: apps/payroll/api/views/kpi_assessment_period.py:387
 msgid "Cannot create assessment period for future months"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:388
+#: apps/payroll/api/views/kpi_assessment_period.py:402
 msgid "No KPI configuration found. Please create one first."
 msgstr "Không tìm thấy cấu hình KPI. Vui lòng tạo một cấu hình trước."
 
-#: apps/payroll/api/views/kpi_assessment_period.py:409
+#: apps/payroll/api/views/kpi_assessment_period.py:423
 msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:425
+#: apps/payroll/api/views/kpi_assessment_period.py:439
 msgid "Period is already finalized"
 msgstr "Kỳ đánh giá đã được hoàn tất"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:487
+#: apps/payroll/api/views/kpi_assessment_period.py:501
 msgid "Period finalized successfully"
 msgstr "Hoàn tất kỳ đánh giá thành công"
 
@@ -320,11 +370,22 @@ msgstr ""
 msgid "Sales Revenue Management"
 msgstr "Quản lý chi phí đi lại"
 
-#: apps/payroll/api/views/sales_revenue.py:396
-#, fuzzy
-#| msgid "Cannot delete travel expense for a month with existing payroll."
+#: apps/payroll/api/views/sales_revenue.py:378
+#: apps/payroll/api/views/sales_revenue.py:379
+msgid "Download import template for sales revenue"
+msgstr "Tải mẫu import cho doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue.py:382
+msgid "Import sales revenue data"
+msgstr "Import dữ liệu doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue.py:383
+msgid "Import sales revenue data asynchronously"
+msgstr "Import dữ liệu doanh thu bán hàng không đồng bộ"
+
+#: apps/payroll/api/views/sales_revenue.py:406
 msgid "Cannot delete sales revenue for a month with existing payroll."
-msgstr "Không thể xóa công tác phí cho một tháng đã có bảng lương."
+msgstr "Không thể xóa doanh thu bán hàng cho một tháng đã có bảng lương."
 
 #: apps/payroll/api/views/travel_expense.py:409
 msgid "Travel Expense Management"

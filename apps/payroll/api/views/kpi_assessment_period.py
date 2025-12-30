@@ -318,6 +318,20 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
     filter_backends = [PhraseSearchFilter]
     search_fields = ["note"]
     http_method_names = ["get", "post", "delete"]  # GET for list/retrieve, POST for actions, DELETE for destroy
+    PERMISSION_REGISTERED_ACTIONS = {
+        "generate": {
+            "name_template": _("Generate KPI assessments"),
+            "description_template": _("Generate employee and department KPI assessments for a specified month"),
+        },
+        "finalize": {
+            "name_template": _("Finalize KPI assessments"),
+            "description_template": _("Finalize all assessments in the specified period"),
+        },
+        "summary": {
+            "name_template": _("Get summary statistics for KPI assessments"),
+            "description_template": _("Get summary statistics for the specified assessment period"),
+        },
+    }
 
     def get_queryset(self):
         """Optimize queryset with annotations."""
