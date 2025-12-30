@@ -68,15 +68,10 @@ def validate_proposal_salary_deadline(sender, instance, **kwargs):  # noqa: C901
             )
 
     elif instance.proposal_type == ProposalType.OVERTIME_WORK:
-        # For overtime, check overtime entries
-        if hasattr(instance, "overtime_entries"):
-            first_entry = instance.overtime_entries.first()
-            if first_entry and first_entry.from_time:
-                proposal_month = date(
-                    first_entry.from_time.year,
-                    first_entry.from_time.month,
-                    1,
-                )
+        # For overtime, we can't check entries before save
+        # The validation will happen in post_save if needed
+        # For now, skip deadline validation for overtime during creation
+        pass
 
     elif instance.proposal_type == ProposalType.PAID_LEAVE:
         if instance.paid_leave_start_date:
@@ -126,6 +121,36 @@ def validate_proposal_salary_deadline(sender, instance, **kwargs):  # noqa: C901
                     )
         except SalaryPeriod.DoesNotExist:
             pass
+
+
+@receiver(pre_save, sender="hrm.ProposalOvertimeEntry")
+def validate_overtime_entry_deadline(sender, instance, **kwargs):
+    """Validate overtime entry creation against salary period deadline.
+
+    This validates ProposalOvertimeEntry creation to ensure overtime entries
+    are not added after the salary period's proposal deadline.
+
+    This complements the Proposal validation which skips overtime entries
+    during proposal creation (since entries are added after proposal is saved).
+    """
+    # Determine the month from the overtime entry date
+    if not instance.date:
+        return
+
+    proposal_month = date(instance.date.year, instance.date.month, 1)
+
+    # Check if salary period exists and has a deadline
+    try:
+        salary_period = SalaryPeriod.objects.get(month=proposal_month)
+        if salary_period.proposal_deadline:
+            today = timezone.now().date()
+            if today > salary_period.proposal_deadline:
+                raise ValidationError(
+                    _("Cannot create overtime entry after salary period deadline (%(deadline)s)")
+                    % {"deadline": salary_period.proposal_deadline.strftime("%Y-%m-%d")}
+                )
+    except SalaryPeriod.DoesNotExist:
+        pass
 
 
 @receiver(pre_save, sender=EmployeeKPIAssessment)

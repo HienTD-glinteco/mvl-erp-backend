@@ -193,7 +193,7 @@ All statistics updates are centralized through `PayrollSlip` signals to prevent 
 - **Validation**: Blocks creation of salary-affecting proposals after `SalaryPeriod.proposal_deadline`
 - **Applies to**:
   - `POST_MATERNITY_BENEFITS`
-  - `OVERTIME_WORK`
+  - `OVERTIME_WORK` (proposal creation only, entries validated separately)
   - `PAID_LEAVE`
   - `UNPAID_LEAVE`
   - `MATERNITY_LEAVE`
@@ -202,8 +202,22 @@ All statistics updates are centralized through `PayrollSlip` signals to prevent 
 **Logic**:
 1. Only validates on creation (not updates/approvals)
 2. Determines affected month from proposal date fields
+3. For `OVERTIME_WORK`: Skips validation as entries are added after proposal creation
+4. Checks if salary period exists and has deadline
+5. Raises `ValidationError` if today > deadline
+
+##### `validate_overtime_entry_deadline`
+- **Sender**: `hrm.ProposalOvertimeEntry`
+- **Trigger**: `pre_save`
+- **Validation**: Blocks creation of overtime entries after `SalaryPeriod.proposal_deadline`
+
+**Logic**:
+1. Validates on both creation and update
+2. Determines affected month from `entry.date`
 3. Checks if salary period exists and has deadline
 4. Raises `ValidationError` if today > deadline
+
+**Note**: This complements `validate_proposal_salary_deadline` which skips overtime proposals during creation (since entries are added after proposal is saved).
 
 ##### `validate_kpi_assessment_deadline`
 - **Sender**: `EmployeeKPIAssessment`

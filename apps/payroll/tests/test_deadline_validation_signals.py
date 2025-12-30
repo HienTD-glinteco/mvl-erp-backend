@@ -328,3 +328,88 @@ class TestKPIAssessmentDeadlineValidationSignal:
 
         # Assert
         assert assessment.id is not None
+
+
+@pytest.mark.django_db
+class TestOvertimeEntryDeadlineValidationSignal:
+    """Test overtime entry deadline validation via pre_save signal."""
+
+    def test_overtime_entry_after_deadline_rejected(self, salary_config, employee):
+        """Test ProposalOvertimeEntry cannot be created after deadline."""
+        # Arrange - Create period with deadline in the past
+        yesterday = (timezone.now() - timedelta(days=1)).date()
+        salary_period = SalaryPeriod.objects.create(
+            month=date(2024, 1, 1),
+            salary_config_snapshot=salary_config.config,
+            proposal_deadline=yesterday,
+        )
+
+        # Create an overtime proposal first
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+        )
+
+        # Act & Assert - Try to add entry after deadline
+        from apps.hrm.models import ProposalOvertimeEntry
+
+        with pytest.raises(ValidationError) as exc_info:
+            entry = ProposalOvertimeEntry(
+                proposal=proposal,
+                date=date(2024, 1, 15),
+                start_time="18:00",
+                end_time="20:00",
+            )
+            entry.save()
+
+        assert "deadline" in str(exc_info.value).lower()
+
+    def test_overtime_entry_before_deadline_allowed(self, salary_config, employee):
+        """Test ProposalOvertimeEntry can be created before deadline."""
+        # Arrange - Create period with deadline in the future
+        tomorrow = (timezone.now() + timedelta(days=1)).date()
+        salary_period = SalaryPeriod.objects.create(
+            month=date(2024, 1, 1),
+            salary_config_snapshot=salary_config.config,
+            proposal_deadline=tomorrow,
+        )
+
+        # Create an overtime proposal first
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+        )
+
+        # Act - Create entry before deadline
+        from apps.hrm.models import ProposalOvertimeEntry
+
+        entry = ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2024, 1, 15),
+            start_time="18:00",
+            end_time="20:00",
+        )
+
+        # Assert
+        assert entry.id is not None
+
+    def test_overtime_entry_without_salary_period_allowed(self, employee):
+        """Test ProposalOvertimeEntry can be created when no salary period exists."""
+        # Arrange - No salary period created
+        proposal = Proposal.objects.create(
+            created_by=employee,
+            proposal_type=ProposalType.OVERTIME_WORK,
+        )
+
+        # Act - Create entry when no period exists
+        from apps.hrm.models import ProposalOvertimeEntry
+
+        entry = ProposalOvertimeEntry.objects.create(
+            proposal=proposal,
+            date=date(2024, 6, 15),
+            start_time="18:00",
+            end_time="20:00",
+        )
+
+        # Assert
+        assert entry.id is not None
