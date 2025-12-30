@@ -1,23 +1,16 @@
 import logging
-from datetime import timedelta
 from decimal import Decimal
 from fractions import Fraction
-from typing import Optional, Tuple
-
-from django.db.models import Q
+from typing import Optional
 
 from apps.hrm.constants import (
     STANDARD_WORKING_HOURS_PER_DAY,
-    EmployeeType,
-    ProposalStatus,
-    ProposalType,
-    ProposalWorkShift,
+    AllowedLateMinutesReason,
+    TimesheetDayType,
     TimesheetReason,
     TimesheetStatus,
-    TimesheetDayType,
 )
-from apps.hrm.models.employee import Employee
-from apps.hrm.models.proposal import Proposal, ProposalOvertimeEntry
+from apps.hrm.models.proposal import Proposal
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.models.work_schedule import WorkSchedule
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -28,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class TimesheetCalculator:
-    """Calculator for timesheet entry logic (v2 Refactor).
+    """Calculator for timesheet entry logic.
 
     Encapsulates logic for:
     - Hours Calculation (Morning, Afternoon, Overtime with TC1/TC2/TC3 split)
@@ -37,6 +30,8 @@ class TimesheetCalculator:
     - Penalties (Late/Early with Grace Periods)
     """
 
+    # TODO: Pass in related objects to pre-fetch data and reuse it when processing multiple entries,
+    # especially for multiple days of the same employee or multiple employees on the same day.
     def __init__(self, entry: "TimeSheetEntry"):
         self.entry = entry
         self._work_schedule: Optional[WorkSchedule] = None
@@ -52,14 +47,23 @@ class TimesheetCalculator:
             self._fetched_schedule = True
         return self._work_schedule
 
-    def compute_all(self) -> None:
+    def compute_all(self, work_schedule: Optional[WorkSchedule] = None) -> None:
         """Run all calculations for the entry."""
+        if work_schedule:
+            self._work_schedule = work_schedule
+            self._fetched_schedule = True
+
+        from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
+
+        snapshot_service = TimesheetSnapshotService()
+        snapshot_service.snapshot_data(self.entry)
+
         # 1. Check Exemption Short-circuit
-        if self._handle_exemption():
+        if self.handle_exemption():
             return
 
         # 2. Calculate Base Hours (Morning/Afternoon)
-        self.calculate_hours(self.work_schedule)
+        self.calculate_hours()
 
         # 3. Calculate Overtime (TC1/TC2/TC3)
         self.calculate_overtime()
@@ -71,11 +75,7 @@ class TimesheetCalculator:
         self.compute_status()
         self.compute_working_days()
 
-        # Note: set_is_full_salary_from_contract is now handled by SnapshotService,
-        # but we can keep a fallback or ensure it's not overwritten if null.
-        # Ideally, SnapshotService ran before this.
-
-    def _handle_exemption(self) -> bool:
+    def handle_exemption(self) -> bool:
         """Check if employee is exempt. If so, grant full credit and exit."""
         if self.entry.is_exempt:
             self.entry.status = TimesheetStatus.ON_TIME
@@ -85,30 +85,22 @@ class TimesheetCalculator:
             self.entry.early_minutes = 0
             self.entry.is_punished = False
             self.entry.absent_reason = None
-
-            # Should we calculate hours anyway? The requirement says "ignore all other calculation logic".
-            # But having actual hours might be useful for reporting?
-            # User said: "ignoring all other calculation logic, and always set working_days to max value"
-            # So we stop here.
             return True
         return False
 
     def _get_max_working_days(self) -> Decimal:
         """Return max working days for the day (usually 1.0 or 0.5 based on schedule)."""
-        # If no schedule, assume 1.0? Or 0?
-        # If exempt, they usually get full salary regardless of schedule?
-        # "always set working_days to max value" -> likely 1.0 unless it's a known half-day/off-day?
-        # Let's assume 1.0 for now as 'Max'.
         return Decimal("1.00")
 
     # ---------------------------------------------------------------------------
     # Hours Calculation
     # ---------------------------------------------------------------------------
 
-    def calculate_hours(self, work_schedule: Optional["WorkSchedule"] = None) -> None:
+    def calculate_hours(self, work_schedule: Optional[WorkSchedule] = None) -> None:
         """Calculate morning_hours and afternoon_hours based on WorkSchedule."""
-        if work_schedule is None:
-            work_schedule = self.work_schedule
+        if work_schedule:
+            self._work_schedule = work_schedule
+            self._fetched_schedule = True
 
         # Reset hours
         self.entry.morning_hours = Decimal("0.00")
@@ -117,19 +109,16 @@ class TimesheetCalculator:
         if not self.entry.start_time or not self.entry.end_time:
             return
 
-        if not work_schedule:
+        if not self.work_schedule:
             return
 
-        work_date = self.entry.date
         start = self.entry.start_time
         end = self.entry.end_time
 
         morning_hours = Fraction(0)
         afternoon_hours = Fraction(0)
 
-        morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times(
-            work_schedule, work_date
-        )
+        morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
 
         if morning_start and morning_end:
             morning_hours = compute_intersection_hours(start, end, morning_start, morning_end)
@@ -137,23 +126,35 @@ class TimesheetCalculator:
         if afternoon_start and afternoon_end:
             afternoon_hours = compute_intersection_hours(start, end, afternoon_start, afternoon_end)
 
-        self.entry.morning_hours = quantize_decimal(Decimal(morning_hours.numerator) / Decimal(morning_hours.denominator))
-        self.entry.afternoon_hours = quantize_decimal(Decimal(afternoon_hours.numerator) / Decimal(afternoon_hours.denominator))
+        self.entry.morning_hours = quantize_decimal(
+            Decimal(morning_hours.numerator) / Decimal(morning_hours.denominator)
+        )
+        self.entry.afternoon_hours = quantize_decimal(
+            Decimal(afternoon_hours.numerator) / Decimal(afternoon_hours.denominator)
+        )
+        self.entry.official_hours = quantize_decimal(self.entry.morning_hours + self.entry.afternoon_hours)
+        self.entry.total_worked_hours = quantize_decimal(self.entry.official_hours + self.entry.overtime_hours)
 
-    def _get_schedule_times(self, work_schedule, work_date):
+    def _get_schedule_times(self):
         morning_start = (
-            combine_datetime(work_date, work_schedule.morning_start_time) if work_schedule.morning_start_time else None
+            combine_datetime(self.entry.date, self.work_schedule.morning_start_time)
+            if self.work_schedule.morning_start_time
+            else None
         )
         morning_end = (
-            combine_datetime(work_date, work_schedule.morning_end_time) if work_schedule.morning_end_time else None
+            combine_datetime(self.entry.date, self.work_schedule.morning_end_time)
+            if self.work_schedule.morning_end_time
+            else None
         )
         afternoon_start = (
-            combine_datetime(work_date, work_schedule.afternoon_start_time)
-            if work_schedule.afternoon_start_time
+            combine_datetime(self.entry.date, self.work_schedule.afternoon_start_time)
+            if self.work_schedule.afternoon_start_time
             else None
         )
         afternoon_end = (
-            combine_datetime(work_date, work_schedule.afternoon_end_time) if work_schedule.afternoon_end_time else None
+            combine_datetime(self.entry.date, self.work_schedule.afternoon_end_time)
+            if self.work_schedule.afternoon_end_time
+            else None
         )
         return morning_start, morning_end, afternoon_start, afternoon_end
 
@@ -162,7 +163,7 @@ class TimesheetCalculator:
     # ---------------------------------------------------------------------------
 
     def calculate_overtime(self) -> None:
-        """Calculate overtime hours based on APPROVED Proposals and classify them (TC1/TC2/TC3)."""
+        """Calculate overtime hours based on SNAPSHOTTED approved range (TC1/TC2/TC3)."""
         # Reset OT fields
         self.entry.ot_tc1_hours = Decimal("0.00")
         self.entry.ot_tc2_hours = Decimal("0.00")
@@ -174,100 +175,81 @@ class TimesheetCalculator:
         if not self.entry.start_time or not self.entry.end_time:
             return
 
-        approved_overtime_entries = ProposalOvertimeEntry.objects.filter(
-            proposal__created_by=self.entry.employee_id,
-            proposal__proposal_status=ProposalStatus.APPROVED,
-            date=self.entry.date,
-        )
+        # Use Snapshotted Approved Range
+        approved_start = self.entry.approved_ot_start_time
+        approved_end = self.entry.approved_ot_end_time
+        approved_minutes = self.entry.approved_ot_minutes
 
-        total_ot_hours = Fraction(0)
-        tc1_hours = Fraction(0)
-        tc2_hours = Fraction(0)
-        tc3_hours = Fraction(0)
+        if not approved_start or not approved_end or (approved_minutes or 0) <= 0:
+            return
 
+        # Intersection: Actual Work vs APPROVED Range
         work_date = self.entry.date
         check_in = self.entry.start_time
         check_out = self.entry.end_time
 
-        # Get Standard Work Intervals to subtract overlap (prevent double counting)
-        ws = self.work_schedule
-        std_intervals = []
-        # If Holiday or Compensatory, standard schedule does not apply (it is replaced).
-        # So we should NOT subtract overlap with standard hours for these days?
-        # TC3 (Holiday) implies typically full OT if worked.
-        # So if day_type is HOLIDAY or COMPENSATORY, skip standard interval subtraction.
-        is_holiday_or_comp = self.entry.day_type in [TimesheetDayType.HOLIDAY, TimesheetDayType.COMPENSATORY]
+        ot_start = combine_datetime(work_date, approved_start)
+        ot_end = combine_datetime(work_date, approved_end)
 
-        if ws and not is_holiday_or_comp:
-            ms, me, as_, ae = self._get_schedule_times(ws, work_date)
-            if ms and me: std_intervals.append((ms, me))
-            if as_ and ae: std_intervals.append((as_, ae))
+        actual_ot_start = max(check_in, ot_start)
+        actual_ot_end = min(check_out, ot_end)
 
-        first_ot_start = None
-        last_ot_end = None
+        if actual_ot_start < actual_ot_end:
+            self.entry.ot_start_time = actual_ot_start
+            self.entry.ot_end_time = actual_ot_end
 
-        for ot_entry in approved_overtime_entries:
-            ot_start = combine_datetime(work_date, ot_entry.start_time)
-            ot_end = combine_datetime(work_date, ot_entry.end_time)
+            # Calculate raw intersection duration in hours
+            duration = (actual_ot_end - actual_ot_start).total_seconds() / 3600.0
 
-            # Intersection: Actual Work vs OT Approved Window
-            actual_ot_start = max(check_in, ot_start)
-            actual_ot_end = min(check_out, ot_end)
-
-            if actual_ot_start < actual_ot_end:
-                # Track min/max for ot_start_time/ot_end_time
-                if first_ot_start is None or actual_ot_start < first_ot_start:
-                    first_ot_start = actual_ot_start
-                if last_ot_end is None or actual_ot_end > last_ot_end:
-                    last_ot_end = actual_ot_end
-
-                # Calculate raw intersection
-                duration = (actual_ot_end - actual_ot_start).total_seconds() / 3600.0
-                duration_frac = Fraction(duration)
-
-                # Subtract overlap with standard hours
-                overlap_frac = Fraction(0)
-                for (s_start, s_end) in std_intervals:
+            # Subtract overlap with standard hours (if not holiday)
+            net_ot_hours = Decimal(duration)
+            if self.work_schedule and self.entry.day_type not in [
+                TimesheetDayType.HOLIDAY,
+                TimesheetDayType.COMPENSATORY,
+            ]:
+                morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
+                for s_start, s_end in filter(None, [(morning_start, morning_end), (afternoon_start, afternoon_end)]):
                     overlap_start = max(actual_ot_start, s_start)
                     overlap_end = min(actual_ot_end, s_end)
                     if overlap_start < overlap_end:
                         ov_dur = (overlap_end - overlap_start).total_seconds() / 3600.0
-                        overlap_frac += Fraction(ov_dur)
+                        net_ot_hours -= Decimal(ov_dur)
 
-                net_ot = max(Fraction(0), duration_frac - overlap_frac)
+            # Final total and cap
+            total_ot = max(Decimal("0.00"), net_ot_hours)
+            max_ot = Decimal(approved_minutes) / Decimal("60.0")
+            self.entry.overtime_hours = quantize_decimal(min(total_ot, max_ot))
 
-                if net_ot > 0:
-                    total_ot_hours += net_ot
+            # Split by category
+            self._split_overtime_by_category(self.entry.overtime_hours)
 
-                    # Classify
-                    if self.entry.day_type == TimesheetDayType.HOLIDAY:
-                        tc3_hours += net_ot
-                    elif self._is_weekend_ot(ws):
-                        tc2_hours += net_ot
-                    else:
-                        tc1_hours += net_ot
+    def _split_overtime_by_category(self, hours: Decimal) -> None:
+        """Helper to split total OT hours into TC1/TC2/TC3.
 
-        self.entry.ot_tc1_hours = quantize_decimal(Decimal(tc1_hours.numerator) / Decimal(tc1_hours.denominator)) if tc1_hours.denominator else Decimal(0)
-        self.entry.ot_tc2_hours = quantize_decimal(Decimal(tc2_hours.numerator) / Decimal(tc2_hours.denominator)) if tc2_hours.denominator else Decimal(0)
-        self.entry.ot_tc3_hours = quantize_decimal(Decimal(tc3_hours.numerator) / Decimal(tc3_hours.denominator)) if tc3_hours.denominator else Decimal(0)
-        self.entry.overtime_hours = quantize_decimal(Decimal(total_ot_hours.numerator) / Decimal(total_ot_hours.denominator)) if total_ot_hours.denominator else Decimal(0)
+        Logic:
+        - TC1 (1.5x): Weekday and Saturday.
+        - TC2 (2.0x): Sunday.
+        - TC3 (3.0x): Holiday.
+        """
+        if hours <= 0:
+            return
 
-        self.entry.ot_start_time = first_ot_start
-        self.entry.ot_end_time = last_ot_end
+        day_type = self.entry.day_type
+        if day_type == TimesheetDayType.HOLIDAY:
+            self.entry.ot_tc3_hours = quantize_decimal(hours)
+        elif self.entry.date and self.entry.date.weekday() == 6 and day_type != TimesheetDayType.COMPENSATORY:
+            # Sunday only
+            self.entry.ot_tc2_hours = quantize_decimal(hours)
+        else:
+            # Weekday and Saturday
+            self.entry.ot_tc1_hours = quantize_decimal(hours)
 
     def _is_weekend_ot(self, work_schedule) -> bool:
         """Determine if it's TC2 (Weekend)."""
-        # "Day has one shift (Saturday), will be considered as a normal working day. Then OT on that day will be counted for TC1."
         # "TC2: Days not defined as working days in WorkSchedule"
-
         if not work_schedule:
             # If no schedule defined for this weekday, it's a weekend/off-day -> TC2
             return True
-
-        # If schedule exists, it's a working day (even if half day), so normally TC1.
-        # Unless the schedule itself is empty? But WorkSchedule model enforces required times for Mon-Fri.
-        # Sat/Sun might have schedule.
-
         return False
 
     # ---------------------------------------------------------------------------
@@ -283,35 +265,16 @@ class TimesheetCalculator:
         if not self.entry.start_time or not self.entry.end_time:
             return
 
-        ws = self.work_schedule
-        if not ws:
+        if not self.work_schedule:
             return
 
-        # Determine scheduled start/end
-        # Logic: If Full Day, compare start vs Morning Start, end vs Afternoon End.
-        # If Half Day? We need to know which session matches.
-        # Current logic usually assumes standard shift matching.
-
-        work_date = self.entry.date
-
-        sched_start = None
-        sched_end = None
+        morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
 
         # Simple heuristic:
         # Start time should be compared to the earliest session start.
         # End time should be compared to the latest session end.
-
-        ms, me, as_, ae = self._get_schedule_times(ws, work_date)
-
-        if ms:
-            sched_start = ms
-        elif as_:
-            sched_start = as_
-
-        if ae:
-            sched_end = ae
-        elif me:
-            sched_end = me
+        sched_start = morning_start or afternoon_start
+        sched_end = afternoon_end or morning_end
 
         if not sched_start or not sched_end:
             return
@@ -331,83 +294,29 @@ class TimesheetCalculator:
         self.entry.late_minutes = late_min
         self.entry.early_minutes = early_min
 
-        # Determine Grace Period
-        grace_period = getattr(ws, 'allowed_late_minutes', 5) or 5
+        # 1. Excuse Penalties based on Partial Leaves (from Proposals)
+        # We check both late_min and early_min separately
+        if late_min > 0 or early_min > 0:
+            proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
+            for p in proposals:
+                # Morning Leave excuses lateness
+                if p.is_morning_leave:
+                    late_min = 0
+                # Afternoon Leave excuses early leaving
+                if p.is_afternoon_leave:
+                    early_min = 0
 
-        # Check Proposals for modifiers
-        proposals = Proposal.objects.filter(
-            created_by=self.entry.employee_id,
-            proposal_status=ProposalStatus.APPROVED,
-        ).filter(
-            Q(late_exemption_start_date__lte=work_date, late_exemption_end_date__gte=work_date) |
-            Q(proposal_type=ProposalType.POST_MATERNITY_BENEFITS) # Post maternity might not have date range if it's permanent? usually has range?
-        )
+            self.entry.late_minutes = late_min
+            self.entry.early_minutes = early_min
 
-        # Handle Post Maternity (Type check + Date check if applicable)
-        # Note: Task says "If Post-Maternity proposal active".
-        # Assuming Post-Maternity proposals have start/end dates or are active via some other mechanism.
-        # Looking at Proposal model, likely has dates. But wait, `POST_MATERNITY_BENEFITS` is a type.
-        # Let's assume standard date range fields apply or check specific fields if they exist.
-        # Based on existing patterns, they likely use `start_date`/`end_date` generic or specific fields?
-        # The Proposal model has `maternity_leave_start_date` etc. but `POST_MATERNITY_BENEFITS` might use different ones or generic?
-        # Let's search broadly or assume standard logic.
-        # Actually, let's filter specifically for Post Maternity in the loop.
+        # Determine Grace Period from Snapshot
+        grace_period = self.entry.allowed_late_minutes or 0
 
-        for p in proposals:
-            if p.proposal_type == ProposalType.POST_MATERNITY_BENEFITS:
-                 # Check if active for this date.
-                 # Often Post Maternity uses `maternity_leave_end_date` as start of post-maternity?
-                 # Or it has its own dates.
-                 # Let's assume it uses `start_date` and `end_date` if they exist in base,
-                 # but Proposal is huge.
-                 # Let's try to match generic date range intersection if possible,
-                 # or check if specific fields exist for this type.
-                 # User said: "ProposalType.POST_MATERNITY_BENEFITS: this type will extend the work schedule's grade perod to 65minutes."
-                 # I'll assume if such a proposal exists and covers the date (we filtered above generally? No, the filter above was tricky).
-                 # Let's refine the filter.
+        # Note: Previous logic for checking proposals (POST_MATERNITY_BENEFITS, LATE_EXEMPTION)
+        # is now moved to TimesheetSnapshotService.snapshot_allowed_late_minutes.
+        # So we simply use the value on the entry.
 
-                 # NOTE: Post Maternity usually implies specific dates.
-                 # I will check date validity inside loop if needed.
-                 # For now, if a valid APPROVED Post Maternity proposal exists for this user:
-                 # We need to ensure it covers the date.
-                 # Assuming `post_maternity_start_date` etc? No, usually `start_date` / `end_date` generic?
-                 # Inspecting `Proposal` model earlier would have been good, but let's assume `start_date`/`end_date` or the filter we use for other leaves.
-                 # Actually, let's look at `_aggregate_proposal_flags` in old calculator. It didn't handle Post Maternity specifically for grace period in the same way?
-                 # It checked `maternity_leave`.
-
-                 # Let's assume standard `effective_date` or similar.
-                 # Use a safe check: if `p` is active.
-                 # Actually, let's rely on the query `late_exemption_start_date`... wait.
-                 # `POST_MATERNITY` might not use `late_exemption_dates`.
-                 # I will check `start_date` and `end_date` if available on the model, otherwise assume active if status approved?
-                 # No, that's risky.
-                 # Let's assume it uses `start_date` and `end_date` (common fields).
-                 pass
-
-            if p.proposal_type == ProposalType.LATE_EXEMPTION:
-                if p.late_exemption_start_date <= work_date <= p.late_exemption_end_date:
-                     if p.late_exemption_minutes is not None:
-                         grace_period = p.late_exemption_minutes
-
-        # Re-query specifically for Post Maternity to be safe on dates
-        # Assuming Post Maternity uses the generic start/end or specific fields.
-        # Given I can't check the model right now without interrupting, I'll assume `start_date` / `end_date` generic on Proposal?
-        # Wait, `Proposal` model usually has specific fields per type.
-        # Let's check `apps/hrm/models/proposal.py` via previous `read_file`? I didn't read it fully.
-        # But `_aggregate_proposal_flags` checked `maternity_leave_start_date`.
-        # I will check `start_date` and `end_date`.
-
-        post_maternity = Proposal.objects.filter(
-            created_by=self.entry.employee_id,
-            proposal_status=ProposalStatus.APPROVED,
-            proposal_type=ProposalType.POST_MATERNITY_BENEFITS,
-            post_maternity_benefits_start_date__lte=work_date,
-            post_maternity_benefits_end_date__gte=work_date
-        ).exists()
-
-        if post_maternity:
-            grace_period = max(grace_period, 65)
-
+        self.entry.is_punished = False
         if (late_min + early_min) > grace_period:
             self.entry.is_punished = True
 
@@ -417,100 +326,168 @@ class TimesheetCalculator:
 
     def compute_status(self) -> None:
         """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME."""
+        from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
-        # 1. No Logs -> ABSENT
-        if not self.entry.start_time and not self.entry.end_time:
+        # 0. Support for direct calls (tests): ensure snapshot and penalties are run
+        snapshot_service = TimesheetSnapshotService()
+        snapshot_service.snapshot_data(self.entry)
+
+        # 1. Leave Logic (High Precedence)
+        if self.entry.absent_reason in [
+            TimesheetReason.PAID_LEAVE,
+            TimesheetReason.UNPAID_LEAVE,
+            TimesheetReason.MATERNITY_LEAVE,
+        ]:
             self.entry.status = TimesheetStatus.ABSENT
-            # Check for Full Day Leaves (Paid/Unpaid/Maternity) to set reason/payroll flag
-            self._apply_leave_reason()
             return
 
-        # 2. Single Punch -> SINGLE_PUNCH
-        if (self.entry.start_time and not self.entry.end_time) or \
-           (not self.entry.start_time and self.entry.end_time):
+        # 2. No Logs -> Status depends on Day Type / Schedule
+        if not self.entry.start_time and not self.entry.end_time:
+            # If we have manually provided hours, don't mark as ABSENT
+            if (self.entry.official_hours or 0) > 0:
+                self.entry.status = (
+                    TimesheetStatus.ON_TIME if not self.entry.is_punished else TimesheetStatus.NOT_ON_TIME
+                )
+                return
+
+            # Precedence: Holiday is not a working day.
+            # Compensatory is a working day even if no schedule in DB.
+            is_working_day = self.work_schedule is not None
+            from apps.hrm.constants import TimesheetDayType
+
+            if self.entry.day_type == TimesheetDayType.HOLIDAY:
+                is_working_day = False
+            elif self.entry.day_type == TimesheetDayType.COMPENSATORY:
+                is_working_day = True
+
+            if is_working_day:
+                self.entry.status = TimesheetStatus.ABSENT
+            else:
+                self.entry.status = None
+            return
+
+        # 3. Single Punch -> SINGLE_PUNCH
+        if (self.entry.start_time and not self.entry.end_time) or (not self.entry.start_time and self.entry.end_time):
             self.entry.status = TimesheetStatus.SINGLE_PUNCH
             return
 
-        # 3. Two Logs -> ON_TIME or NOT_ON_TIME
+        # 4. Two Logs -> Calculate Penalties first
+        self.calculate_penalties()
+
+        # 5. On Time vs Not On Time
         if self.entry.is_punished:
             self.entry.status = TimesheetStatus.NOT_ON_TIME
         else:
             self.entry.status = TimesheetStatus.ON_TIME
 
-        # Clear absent reason if present?
-        # Unless it's a partial leave?
-        # For now, if present, no absent reason (unless half-day leave logic applies? but status takes precedence).
-
-    def _apply_leave_reason(self) -> None:
-        """Check for approved full-day leaves and set absent_reason."""
-        work_date = self.entry.date
-        proposals = Proposal.objects.filter(
-            created_by=self.entry.employee_id,
-            proposal_status=ProposalStatus.APPROVED,
-        ).filter(
-            Q(paid_leave_start_date__lte=work_date, paid_leave_end_date__gte=work_date) |
-            Q(unpaid_leave_start_date__lte=work_date, unpaid_leave_end_date__gte=work_date) |
-            Q(maternity_leave_start_date__lte=work_date, maternity_leave_end_date__gte=work_date)
-        )
-
-        for p in proposals:
-            # Check shifts (Full Day)
-            if p.proposal_type == ProposalType.PAID_LEAVE:
-                if not p.paid_leave_shift or p.paid_leave_shift == ProposalWorkShift.FULL_DAY:
-                    self.entry.absent_reason = TimesheetReason.PAID_LEAVE
-                    self.entry.count_for_payroll = False # Paid leave handles payment differently? Usually yes.
-                    return
-            elif p.proposal_type == ProposalType.UNPAID_LEAVE:
-                if not p.unpaid_leave_shift or p.unpaid_leave_shift == ProposalWorkShift.FULL_DAY:
-                    self.entry.absent_reason = TimesheetReason.UNPAID_LEAVE
-                    self.entry.count_for_payroll = False
-                    return
-            elif p.proposal_type == ProposalType.MATERNITY_LEAVE:
-                 self.entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
-                 self.entry.count_for_payroll = False
-                 return
-
     def compute_working_days(self) -> None:
-        """Compute working_days."""
+        """Compute working_days according to business rules."""
         self.entry.working_days = Decimal("0.00")
 
-        # If Absent
+        # 1. Absolute Absence (Full Day)
         if self.entry.status == TimesheetStatus.ABSENT:
-            # Check for Paid Leave (Full Day) -> 1.0 (or max)
-            # Actually, standard logic:
-            # Paid Leave -> count as working day? Or 0 working days but paid?
-            # Usually working_days = 0, but paid_leave_days = 1 in aggregation.
-            # But the task says "Hard Rule: working_days = Max / 2" for Single Punch.
-            # For Absent with Paid Leave?
-            # Old code: `has_full_day_paid_leave: return Decimal("1.00")` inside `_calculate_gross_working_days`.
-            # So Paid Leave counts as working day in this system.
             if self.entry.absent_reason == TimesheetReason.PAID_LEAVE:
                 self.entry.working_days = Decimal("1.00")
             return
 
-        # If Single Punch
+        # 2. Base worked hours calculation
+        wd = Decimal(self.entry.official_hours or 0) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+
+        # 3. Partial Leave Credits
+        wd += self._get_partial_leave_credits()
+
         if self.entry.status == TimesheetStatus.SINGLE_PUNCH:
-            # Hard Rule: Max / 2
-            # Max is usually 1.0. If half-day schedule (e.g. Sat), max is 0.5?
-            # "Max / 2"
+            # Re-calculating leave_credit locally for single punch comparison if needed
+            leave_credit = self._get_partial_leave_credits()
+            # If current WD is just the leave credit (meaning no actual official hours worked yet)
+            if wd == leave_credit:
+                max_cap = self._get_schedule_max_days()
+                if not self.work_schedule:
+                    max_cap = Decimal("1.00")
+
+                # Remaining capacity for work
+                work_capacity = max_cap - leave_credit
+                if work_capacity > 0:
+                    # Calculate estimated hours based on available punch
+                    est_h = self._estimate_single_punch_hours()
+                    est_wd = Decimal(est_h) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+
+                    # Rule: Estimated WD for single punch is capped at half of capacity
+                    wd += min(est_wd, work_capacity / 2)
+
+        # 5. Maternity Bonus (+1 hour = 0.125 days)
+        wd += self._get_maternity_bonus()
+
+        self.entry.working_days = quantize_decimal(wd)
+
+        # 6. Final Cap
+        self._apply_working_days_cap()
+
+    def _get_partial_leave_credits(self) -> Decimal:
+        """Calculate credits for partial morning/afternoon leaves."""
+        leave_credit = Decimal("0.00")
+        from apps.hrm.models.proposal import Proposal, ProposalType
+
+        proposals = Proposal.get_active_leave_proposals(self.entry.employee_id, self.entry.date)
+        for p in proposals:
+            if p.proposal_type == ProposalType.PAID_LEAVE:
+                if p.is_morning_leave or p.is_afternoon_leave:
+                    leave_credit += Decimal("0.50")
+        return leave_credit
+
+    def _get_maternity_bonus(self) -> Decimal:
+        """Return maternity bonus credit if applicable."""
+        if self.entry.allowed_late_minutes_reason == AllowedLateMinutesReason.MATERNITY:
+            return Decimal("0.125")
+        return Decimal("0.00")
+
+    def _apply_working_days_cap(self) -> None:
+        """Apply daily cap based on work schedule or absolute max of 1.0."""
+        if self.work_schedule:
             max_days = self._get_schedule_max_days()
-            self.entry.working_days = quantize_decimal(max_days / 2)
-            self.entry.overtime_hours = Decimal("0.00") # Reset OT for single punch
-            return
+            if self.entry.working_days > max_days:
+                self.entry.working_days = max_days
+        elif self.entry.working_days > 1.0:
+            self.entry.working_days = Decimal("1.00")
 
-        # If Present (On Time / Not On Time)
-        # Calculate based on Official Hours
-        # working_days = official_hours / 8
-        try:
-             wd = Decimal(self.entry.official_hours) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
-             self.entry.working_days = quantize_decimal(wd)
-        except:
-             self.entry.working_days = Decimal("0.00")
+    def _estimate_single_punch_hours(self) -> Decimal:
+        """Estimate hours if only one punch is available."""
+        if not self.work_schedule:
+            return Decimal("0.00")
 
-        # Cap at Max?
-        max_days = self._get_schedule_max_days()
-        if self.entry.working_days > max_days:
-            self.entry.working_days = max_days
+        morning_start, morning_end, afternoon_start, afternoon_end = self._get_schedule_times()
+        est_hours = Fraction(0)
+
+        if self.entry.start_time:
+            # Estimate from Start Time until EOD
+            latest_end = afternoon_end or morning_end
+            if latest_end:
+                if morning_start and morning_end:
+                    est_hours += compute_intersection_hours(
+                        self.entry.start_time, latest_end, morning_start, morning_end
+                    )
+                if afternoon_start and afternoon_end:
+                    est_hours += compute_intersection_hours(
+                        self.entry.start_time, latest_end, afternoon_start, afternoon_end
+                    )
+        elif self.entry.end_time:
+            # Estimate from BOD until End Time
+            earliest_start = morning_start or afternoon_start
+            if earliest_start:
+                if morning_start and morning_end:
+                    est_hours += compute_intersection_hours(
+                        earliest_start, self.entry.end_time, morning_start, morning_end
+                    )
+                if afternoon_start and afternoon_end:
+                    est_hours += compute_intersection_hours(
+                        earliest_start, self.entry.end_time, afternoon_start, afternoon_end
+                    )
+
+        return (
+            quantize_decimal(Decimal(est_hours.numerator) / Decimal(est_hours.denominator))
+            if est_hours.denominator
+            else Decimal("0.00")
+        )
 
     def _get_schedule_max_days(self) -> Decimal:
         """Return 1.0 for Full Day schedule, 0.5 for Half Day."""
@@ -526,10 +503,3 @@ class TimesheetCalculator:
         elif has_morning or has_afternoon:
             return Decimal("0.50")
         return Decimal("0.00")
-
-    # ---------------------------------------------------------------------------
-    # Contract Logic (Moved to Snapshot, but kept as fallback/helper if needed)
-    # ---------------------------------------------------------------------------
-    def set_is_full_salary_from_contract(self) -> None:
-        """Legacy placeholder. Logic moved to SnapshotService."""
-        pass

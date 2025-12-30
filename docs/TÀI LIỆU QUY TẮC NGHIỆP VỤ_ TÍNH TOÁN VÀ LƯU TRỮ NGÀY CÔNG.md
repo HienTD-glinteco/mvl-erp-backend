@@ -178,7 +178,7 @@ Dưới đây là công thức cụ thể để populate (điền dữ liệu) c
     *   Check danh sách `CompensatoryDays` -> Nếu có: `compensatory`.
     *   Còn lại: `official`.
 *   **`count_for_payroll`**:
-    *   Lấy từ `Employee.type` hoặc `Contract.type`.
+    *   Lấy từ `Employee.type`.
     *   Nếu là: `Chính thức`, `Thử việc` , `Học việc` , `Thực tập sinh` , `Thử việc loại 1` > `True`.
     *   Nếu là: `Không lương chính thức` \`, `Không lương thử việc` \` -> `False`.
 #### Nhóm 2: Field Giá trị Công (Core Value)

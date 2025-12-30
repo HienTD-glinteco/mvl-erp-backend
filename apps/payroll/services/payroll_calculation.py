@@ -226,17 +226,17 @@ class PayrollCalculationService:
             self.slip.total_working_days = timesheet.total_working_days
             self.slip.official_working_days = timesheet.official_working_days
             self.slip.probation_working_days = timesheet.probation_working_days
-            self.slip.saturday_inweek_overtime_hours = timesheet.saturday_in_week_overtime_hours
-            self.slip.sunday_overtime_hours = timesheet.sunday_overtime_hours
-            self.slip.holiday_overtime_hours = timesheet.holiday_overtime_hours
+            self.slip.tc1_overtime_hours = timesheet.tc1_overtime_hours
+            self.slip.tc2_overtime_hours = timesheet.tc2_overtime_hours
+            self.slip.tc3_overtime_hours = timesheet.tc3_overtime_hours
         else:
             # Use zero values if no timesheet
             self.slip.total_working_days = Decimal("0.00")
             self.slip.official_working_days = Decimal("0.00")
             self.slip.probation_working_days = Decimal("0.00")
-            self.slip.saturday_inweek_overtime_hours = Decimal("0.00")
-            self.slip.sunday_overtime_hours = Decimal("0.00")
-            self.slip.holiday_overtime_hours = Decimal("0.00")
+            self.slip.tc1_overtime_hours = Decimal("0.00")
+            self.slip.tc2_overtime_hours = Decimal("0.00")
+            self.slip.tc3_overtime_hours = Decimal("0.00")
 
     def _calculate_overtime_pay(self):
         """Calculate overtime payment with new formula."""
@@ -303,27 +303,21 @@ class PayrollCalculationService:
         overtime_multipliers = self.config["overtime_multipliers"]
 
         # Calculate overtime pay for each type
-        saturday_pay = (
-            self.slip.saturday_inweek_overtime_hours
+        tc1_pay = (
+            self.slip.tc1_overtime_hours
             * self.slip.hourly_rate
             * Decimal(str(overtime_multipliers["saturday_inweek"]))
         )
 
-        sunday_pay = (
-            self.slip.sunday_overtime_hours * self.slip.hourly_rate * Decimal(str(overtime_multipliers["sunday"]))
-        )
+        tc2_pay = self.slip.tc2_overtime_hours * self.slip.hourly_rate * Decimal(str(overtime_multipliers["sunday"]))
 
-        holiday_pay = (
-            self.slip.holiday_overtime_hours * self.slip.hourly_rate * Decimal(str(overtime_multipliers["holiday"]))
-        )
+        tc3_pay = self.slip.tc3_overtime_hours * self.slip.hourly_rate * Decimal(str(overtime_multipliers["holiday"]))
 
         self.slip.total_overtime_hours = (
-            self.slip.saturday_inweek_overtime_hours
-            + self.slip.sunday_overtime_hours
-            + self.slip.holiday_overtime_hours
+            self.slip.tc1_overtime_hours + self.slip.tc2_overtime_hours + self.slip.tc3_overtime_hours
         )
 
-        self.slip.overtime_pay = (saturday_pay + sunday_pay + holiday_pay).quantize(Decimal("1"))
+        self.slip.overtime_pay = (tc1_pay + tc2_pay + tc3_pay).quantize(Decimal("1"))
 
         # Calculate taxable overtime salary
         taxable_overtime_salary = self.slip.total_overtime_hours * self.slip.hourly_rate

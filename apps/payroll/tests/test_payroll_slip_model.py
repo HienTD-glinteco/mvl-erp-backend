@@ -156,9 +156,9 @@ class TestPayrollCalculation:
     def test_overtime_calculation(self, payroll_slip, contract, timesheet):
         """Test overtime pay calculation."""
         # Arrange
-        timesheet.saturday_in_week_overtime_hours = Decimal("10.00")
-        timesheet.sunday_overtime_hours = Decimal("8.00")
-        timesheet.holiday_overtime_hours = Decimal("4.00")
+        timesheet.tc1_overtime_hours = Decimal("10.00")
+        timesheet.tc2_overtime_hours = Decimal("8.00")
+        timesheet.tc3_overtime_hours = Decimal("4.00")
         timesheet.save()
 
         calculator = PayrollCalculationService(payroll_slip)
@@ -168,9 +168,9 @@ class TestPayrollCalculation:
 
         # Assert
         payroll_slip.refresh_from_db()
-        assert payroll_slip.saturday_inweek_overtime_hours == Decimal("10.00")
-        assert payroll_slip.sunday_overtime_hours == Decimal("8.00")
-        assert payroll_slip.holiday_overtime_hours == Decimal("4.00")
+        assert payroll_slip.tc1_overtime_hours == Decimal("10.00")
+        assert payroll_slip.tc2_overtime_hours == Decimal("8.00")
+        assert payroll_slip.tc3_overtime_hours == Decimal("4.00")
         assert payroll_slip.total_overtime_hours == Decimal("22.00")
         assert payroll_slip.overtime_pay > 0
 

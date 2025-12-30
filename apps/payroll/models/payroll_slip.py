@@ -142,16 +142,16 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     )
 
     # ========== Overtime ==========
-    saturday_inweek_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="Saturday & Weekday Overtime Hours"
+    tc1_overtime_hours = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC1 Overtime Hours (Weekday & Sat)"
     )
 
-    sunday_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="Sunday Overtime Hours"
+    tc2_overtime_hours = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC2 Overtime Hours (Sunday)"
     )
 
-    holiday_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="Holiday Overtime Hours"
+    tc3_overtime_hours = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC3 Overtime Hours (Holiday)"
     )
 
     total_overtime_hours = models.DecimalField(

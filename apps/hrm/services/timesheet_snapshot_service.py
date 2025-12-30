@@ -1,123 +1,259 @@
 import logging
-from typing import Optional
 
-from django.db.models import Q
-from django.utils import timezone
-
-from apps.hrm.constants import TimesheetDayType
-from apps.hrm.models.attendance_exemption import AttendanceExemption
-from apps.hrm.models.contract import Contract
-from apps.hrm.models.contract_type import ContractType
-from apps.hrm.models.holiday import CompensatoryWorkday
-from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.constants import AllowedLateMinutesReason, ProposalType, TimesheetDayType, TimesheetReason, Employee
+from apps.hrm.models import AttendanceExemption, Proposal, TimeSheetEntry
+from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
+from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
 
 logger = logging.getLogger(__name__)
 
 
 class TimesheetSnapshotService:
-    """Service to snapshot configuration data onto TimeSheetEntry at creation/update time."""
+    """Service to handle timesheet snapshotting.
+
+    This service is responsible for:
+    1. Determining the Day Type (Official, Holiday, Compensatory).
+    2. Snapshotting Contract details (Contract ID, Wage Rate, Is Full Salary).
+    3. Snapshotting Attendance Exemption status.
+    4. Applying Leave reasons (Paid/Unpaid/Maternity).
+    """
 
     def snapshot_data(self, entry: TimeSheetEntry) -> None:
-        """Populate snapshot fields on the timesheet entry.
+        """Perform all snapshot operations for a timesheet entry."""
+        # 1. Determine Day Type (Holiday, Compensatory, Normal)
+        self.determine_day_type(entry)
 
-        This method determines and sets:
-        - day_type
-        - contract
-        - wage_rate
-        - is_full_salary
-        - is_exempt
-        """
-        self._set_day_type(entry)
-        self._set_contract_info(entry)
-        self._set_exemption_status(entry)
+        # 2. Snapshot Contract Info
+        self.snapshot_contract_info(entry)
 
-        # We don't save here to allow the caller to save efficiently (e.g., in bulk)
-        # or subsequent logic to run before save.
+        # 3. Snapshot Exemption Status
+        self.snapshot_exemption_status(entry)
 
-    def _set_day_type(self, entry: TimeSheetEntry) -> None:
-        """Determine and set the day_type based on Holiday and CompensatoryWorkday."""
-        # Check for Compensatory Workday first (highest precedence?)
-        # Based on legacy logic or typical business rules, if it's compensatory, it overrides holiday.
-        # However, checking the old day_type_service.py might reveal precedence.
-        # Assuming Compensatory > Holiday > Official.
+        # 4. Snapshot Proposals data
+        self.snapshot_leave_reason(entry)
+        # TODO: snapshot late exemption, post maternity benefits
+        self.snapshot_late_exemption(entry)
+        self.snapshot_post_maternity_benefits(entry)
 
-        # Reset to None or Official default?
-        # Usually, if no special type found, it stays None or assumes 'official' during calculation if schedule exists.
-        # But here we want to explicitly tag 'holiday' or 'compensatory'.
+        # 5. Snapshot allowed late minutes
+        self.snapshot_allowed_late_minutes(entry)
 
-        entry.day_type = None
+        # 6. Snapshot allowed Overtime
+        self.snapshot_overtime_data(entry)
 
-        if CompensatoryWorkday.objects.filter(date=entry.date).exists():
-            entry.day_type = TimesheetDayType.COMPENSATORY
+        # 7. Set count_for_payroll
+        self.set_count_for_payroll(entry)
+
+    def determine_day_type(self, entry: "TimeSheetEntry") -> None:
+        """Determine if it is a WORKDAY, HOLIDAY, or COMPENSATORY."""
+        date = entry.date
+        if not date:
             return
 
-        # Use the property is_holiday logic or query directly?
-        # The model logic for is_holiday relies on day_type.
-        # We need to query the Holiday model.
-        from apps.hrm.models.holiday import Holiday
-
-        # Holiday uses start_date and end_date, not a single date field.
-        if Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists():
+        # Check for Holiday
+        holiday = Holiday.objects.filter(start_date__lte=date, end_date__gte=date).first()
+        if holiday:
             entry.day_type = TimesheetDayType.HOLIDAY
+            return
+
+        # Check for Compensatory (Work on Sunday)
+        comp = CompensatoryWorkday.objects.filter(date=date).exists()
+        if comp:
+            entry.day_type = TimesheetDayType.COMPENSATORY
             return
 
         entry.day_type = TimesheetDayType.OFFICIAL
 
-    def _set_contract_info(self, entry: TimeSheetEntry) -> None:
-        """Find active contract and snapshot its details."""
-        if not entry.employee_id or not entry.date:
+    def snapshot_contract_info(self, entry: "TimeSheetEntry") -> None:
+        """Snapshot current contract status (Probation vs Official)."""
+        if not entry.employee_id:
             return
 
-        active_contract = (
+        # Fetch directly if not prefetched
+        from apps.hrm.models.contract import Contract
+
+        contract = (
             Contract.objects.filter(
                 employee_id=entry.employee_id,
-                status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
                 effective_date__lte=entry.date,
+                status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
             )
-            .filter(Q(expiration_date__gte=entry.date) | Q(expiration_date__isnull=True))
             .order_by("-effective_date")
             .first()
         )
 
-        if active_contract:
-            entry.contract = active_contract
-            # If wage_rate exists (custom property?), use it. Else fallback to net_percentage logic?
-            # Or assume wage_rate = net_percentage?
-            # Looking at Contract model, net_percentage is an Integer (FULL=100, REDUCED=85).
-            # This aligns with wage_rate default=100.
-            if hasattr(active_contract, "wage_rate"):
-                entry.wage_rate = active_contract.wage_rate
-            else:
-                # Fallback to net_percentage value if it behaves like a percentage
-                # ContractType.NetPercentage choices are integers?
-                # Contract model says `choices=ContractType.NetPercentage.choices`.
-                # ContractType.NetPercentage.FULL is 100?
-                # Let's check ContractType definition.
-                # Assuming simple mapping for now.
-                entry.wage_rate = active_contract.net_percentage
+        if contract:
+            from apps.hrm.models.contract_type import ContractType
 
-            # Determine is_full_salary based on contract net_percentage
-            if active_contract.net_percentage == ContractType.NetPercentage.REDUCED:  # "85"
-                entry.is_full_salary = False
-            else:
-                entry.is_full_salary = True
+            entry.contract = contract
+            # Only overwrite if currently default/None
+            if entry.net_percentage == 100 or entry.net_percentage == 0:
+                entry.net_percentage = contract.net_percentage
+
+            # For is_full_salary, if it's already False, keep it False (more restrictive)
+            if entry.is_full_salary:
+                entry.is_full_salary = contract.net_percentage == ContractType.NetPercentage.FULL
         else:
-            # Defaults if no contract found
             entry.contract = None
-            entry.wage_rate = 100
-            entry.is_full_salary = True
+            # Don't overwrite if it was manually set to something else
+            if entry.net_percentage == 0:
+                entry.net_percentage = 100
+            if entry.is_full_salary is None:
+                entry.is_full_salary = True
 
-    def _set_exemption_status(self, entry: TimeSheetEntry) -> None:
-        """Check for attendance exemption."""
+    def snapshot_exemption_status(self, entry: "TimeSheetEntry") -> None:
+        """Snapshot if employee is exempt from time tracking on this day."""
         if not entry.employee_id:
             return
 
-        # Check if an exemption record exists and is effective
-        # Condition: AttendanceExemption exists for employee AND (effective_date IS NULL OR effective_date <= entry.date)
-        is_exempt = AttendanceExemption.objects.filter(
-            employee_id=entry.employee_id
-        ).filter(
-            Q(effective_date__isnull=True) | Q(effective_date__lte=entry.date)
+        if entry.is_exempt:
+            return
+
+        # Fetch directly if not prefetched
+        entry.is_exempt = AttendanceExemption.objects.filter(
+            employee_id=entry.employee_id, effective_date__lte=entry.date
         ).exists()
 
-        entry.is_exempt = is_exempt
+    def snapshot_leave_reason(self, entry: "TimeSheetEntry") -> None:
+        """Populate absent_reason if an approved PAID_LEAVE or UNPAID_LEAVE proposal exists."""
+        if entry.absent_reason:
+            return
+
+        # Use Proposal model directly to avoid circular dependency
+        from apps.hrm.models.proposal import Proposal, ProposalType
+
+        leave = Proposal.get_active_leave_proposals(entry.employee_id, entry.date).first()
+
+        if leave:
+            # Only set absent_reason if it's a full day leave (no partial shift specified)
+            if not leave.paid_leave_shift and not leave.unpaid_leave_shift:
+                if leave.proposal_type == ProposalType.MATERNITY_LEAVE:
+                    entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
+                elif leave.proposal_type == ProposalType.PAID_LEAVE:
+                    entry.absent_reason = TimesheetReason.PAID_LEAVE
+                elif leave.proposal_type == ProposalType.UNPAID_LEAVE:
+                    entry.absent_reason = TimesheetReason.UNPAID_LEAVE
+        # We don't clear it here; unexcused absence is handled by the calculator if status is ABSENT
+        # and no reason was found.
+
+    def snapshot_late_exemption(self, entry: TimeSheetEntry) -> None:
+        # TODO: implement this
+        pass
+
+    def snapshot_post_maternity_benefits(self, entry: TimeSheetEntry) -> None:
+        # TODO: implement this
+        pass
+
+    def snapshot_allowed_late_minutes(self, entry: TimeSheetEntry) -> None:
+        """Calculate and store allowed_late_minutes (grace period)."""
+        # 1. Default from Work Schedule
+        allowed_minutes = 0
+        reason = AllowedLateMinutesReason.STANDARD
+
+        weekday = entry.date.isoweekday() + 1
+        work_schedule = get_work_schedule_by_weekday(weekday)
+        if work_schedule:
+            allowed_minutes = work_schedule.allowed_late_minutes or 0
+
+        # 2. Check Proposals (Complaints/Benefits)
+        proposals = Proposal.get_active_complaint_proposals(
+            employee_id=entry.employee_id,
+            date=entry.date,
+        )
+
+        for p in proposals:
+            if p.proposal_type == ProposalType.POST_MATERNITY_BENEFITS:
+                # Extension for post maternity - min 65 mins
+                if allowed_minutes < 65:
+                    allowed_minutes = 65
+                    reason = AllowedLateMinutesReason.MATERNITY
+
+            if p.proposal_type == ProposalType.LATE_EXEMPTION:
+                # Custom grace period for late exemption
+                if p.late_exemption_minutes is not None:
+                    allowed_minutes = p.late_exemption_minutes
+                    reason = AllowedLateMinutesReason.LATE_EXEMPTION
+
+        entry.allowed_late_minutes = allowed_minutes
+        entry.allowed_late_minutes_reason = reason
+
+    def snapshot_overtime_data(self, entry: TimeSheetEntry) -> None:
+        """Snapshot approved overtime data from proposals.
+
+        Calculates:
+        - approved_ot_start_time: Min start time
+        - approved_ot_end_time: Max end time
+        - approved_ot_minutes: Total duration in minutes
+        """
+        from apps.hrm.models.proposal import ProposalOvertimeEntry, ProposalStatus
+
+        # Find all approved overtime entries for this employee and date
+        # Note: Filtering by proposal__created_by and proposal__proposal_status=APPROVED
+        # which is the logic used in TimesheetCalculator previously.
+        ot_entries = ProposalOvertimeEntry.objects.filter(
+            proposal__created_by=entry.employee_id,
+            proposal__proposal_status=ProposalStatus.APPROVED,
+            date=entry.date,
+        )
+
+        if not ot_entries.exists():
+            entry.approved_ot_start_time = None
+            entry.approved_ot_end_time = None
+            entry.approved_ot_minutes = 0
+            return
+
+        min_start = None
+        max_end = None
+        total_minutes = 0
+
+        for ot_entry in ot_entries:
+            # Update min start
+            if min_start is None or ot_entry.start_time < min_start:
+                min_start = ot_entry.start_time
+
+            # Update max end
+            if max_end is None or ot_entry.end_time > max_end:
+                max_end = ot_entry.end_time
+
+            # Accumulate duration
+            # Duration logic: (end - start).seconds / 60
+            # Need to handle datetime conversion to subtract properly or just use dummy date
+            from datetime import datetime
+
+            # Use a dummy date for calculation
+            dummy_date = datetime(2000, 1, 1).date()
+            start_dt = datetime.combine(dummy_date, ot_entry.start_time)
+            end_dt = datetime.combine(dummy_date, ot_entry.end_time)
+
+            # Handle cross-midnight if applicable (though separate date field implies day-bound)
+            # Assuming strictly within the date for now as per previous logic.
+            if end_dt > start_dt:
+                duration = (end_dt - start_dt).total_seconds() / 60
+                total_minutes += int(duration)
+
+        entry.approved_ot_start_time = min_start
+        entry.approved_ot_end_time = max_end
+        entry.approved_ot_minutes = total_minutes
+
+    def set_count_for_payroll(self, entry: TimeSheetEntry) -> None:
+        if not entry.employee_id:
+            return
+
+        # Use .employee only if we really need properties from it.
+        # But maybe just fetch if not loaded.
+        try:
+            employee = entry.employee
+        except Exception:
+            # Fallback if relation not loaded
+            employee = Employee.objects.filter(id=entry.employee_id).first()
+            if not employee:
+                return
+
+        entry.count_for_payroll = not employee.is_unpaid_employee
+
+        if entry.absent_reason in [
+            TimesheetReason.PAID_LEAVE,
+            TimesheetReason.UNPAID_LEAVE,
+            TimesheetReason.MATERNITY_LEAVE,
+        ]:
+            entry.count_for_payroll = False
