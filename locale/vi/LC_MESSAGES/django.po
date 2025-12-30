@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 13:58+0700\n"
+"POT-Creation-Date: 2025-12-30 15:12+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -282,51 +282,27 @@ msgstr "Không tìm thấy người nhận cho các đối tượng đã chọn"
 msgid "Bulk email send job enqueued"
 msgstr "Job gửi email hàng loạt đã được trong hàng đợi"
 
-#: apps/mailtemplates/views.py:50
-msgid "Preview email template"
-msgstr "Xem mẫu email"
-
-#: apps/mailtemplates/views.py:51
-msgid "Preview email template with sample or real data"
-msgstr "Xem mẫu email với dữ liệu mẫu hoặc dữ liệu thực"
-
-#: apps/mailtemplates/views.py:54
-msgid "Send bulk emails using email template"
-msgstr "Gửi email hàng loạt sử dụng mẫu email"
-
-#: apps/mailtemplates/views.py:55
-msgid "Create bulk email send jobs using email template"
-msgstr "Tạo job gửi email hàng loạt sử dụng mẫu email"
-
-#: apps/mailtemplates/views.py:58
-msgid "View email send job status for email template"
-msgstr "Xem chi tiết của mẫu email"
-
-#: apps/mailtemplates/views.py:59
-msgid "View status of bulk email send jobs for email template"
-msgstr "Xem chi tiết lịch sử của mẫu email"
-
-#: apps/mailtemplates/views.py:262
+#: apps/mailtemplates/views.py:248
 msgid "Failed to save template"
 msgstr "Lưu mẫu thất bại"
 
-#: apps/mailtemplates/views.py:345
+#: apps/mailtemplates/views.py:331
 msgid "Data or ref required for real mode"
 msgstr "Yêu cầu dữ liệu hoặc ref cho chế độ thực"
 
-#: apps/mailtemplates/views.py:463
+#: apps/mailtemplates/views.py:449
 msgid "Job with this client_request_id already exists"
 msgstr "Job với client_request_id này đã tồn tại"
 
-#: apps/mailtemplates/views.py:510
+#: apps/mailtemplates/views.py:496
 msgid "Job enqueued"
 msgstr "Job đã được trong hàng đợi"
 
-#: apps/mailtemplates/views.py:559
+#: apps/mailtemplates/views.py:545
 msgid "Not authorized to view this job"
 msgstr "Không được phép xem job này"
 
-#: apps/mailtemplates/views.py:568
+#: apps/mailtemplates/views.py:554
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
@@ -398,17 +374,17 @@ msgstr "Danh sách {model_name}"
 msgid "Perform DELETE on {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:28
+#: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:27
 #, python-brace-format
 msgid "List {model_name}"
 msgstr "Danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:29
+#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr "Xem danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:69 libs/drf/mixin/permission.py:32
+#: libs/drf/base_viewset.py:69 libs/drf/mixin/permission.py:31
 #, python-brace-format
 msgid "View {model_name}"
 msgstr "Xem {model_name}"
@@ -418,62 +394,62 @@ msgstr "Xem {model_name}"
 msgid "View details of a {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
-#: libs/drf/base_viewset.py:73 libs/drf/mixin/permission.py:56
+#: libs/drf/base_viewset.py:73 libs/drf/mixin/permission.py:55
 #, python-brace-format
 msgid "History {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:57
+#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:56
 #, python-brace-format
 msgid "View history of {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:77 libs/drf/mixin/permission.py:60
+#: libs/drf/base_viewset.py:77 libs/drf/mixin/permission.py:59
 #, python-brace-format
 msgid "History detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
 
-#: libs/drf/base_viewset.py:78 libs/drf/mixin/permission.py:61
+#: libs/drf/base_viewset.py:78 libs/drf/mixin/permission.py:60
 #, python-brace-format
 msgid "View history detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
 
-#: libs/drf/mixin/permission.py:33
+#: libs/drf/mixin/permission.py:32
 #, python-brace-format
 msgid "View detail of {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
-#: libs/drf/mixin/permission.py:36
+#: libs/drf/mixin/permission.py:35
 #, python-brace-format
 msgid "Create {model_name}"
 msgstr "Quyền tạo {model_name}"
 
-#: libs/drf/mixin/permission.py:37
+#: libs/drf/mixin/permission.py:36
 #, python-brace-format
 msgid "Create a new {model_name}"
 msgstr "Quyền tạo mới một {model_name}"
 
-#: libs/drf/mixin/permission.py:40 libs/drf/mixin/permission.py:41
+#: libs/drf/mixin/permission.py:39 libs/drf/mixin/permission.py:40
 #, python-brace-format
 msgid "Update {model_name}"
 msgstr "Quyền cập nhật {model_name}"
 
-#: libs/drf/mixin/permission.py:44 libs/drf/mixin/permission.py:45
+#: libs/drf/mixin/permission.py:43 libs/drf/mixin/permission.py:44
 #, python-brace-format
 msgid "Partially update {model_name}"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: libs/drf/mixin/permission.py:48 libs/drf/mixin/permission.py:49
+#: libs/drf/mixin/permission.py:47 libs/drf/mixin/permission.py:48
 #, python-brace-format
 msgid "Delete {model_name}"
 msgstr "Quyền xóa {model_name}"
 
-#: libs/drf/mixin/permission.py:52
+#: libs/drf/mixin/permission.py:51
 #, python-brace-format
 msgid "Export {model_name}"
 msgstr "Quyền xuất {model_name}"
 
-#: libs/drf/mixin/permission.py:53
+#: libs/drf/mixin/permission.py:52
 #, python-brace-format
 msgid "Export {model_name} data"
 msgstr "Quyền xuất {model_name}"
@@ -604,141 +580,213 @@ msgid "Base Salary"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:56
-msgid "KPI Bonus"
-msgstr ""
-
-#: templates/emails/payroll_slip.html:57 templates/emails/payroll_slip.html:61
-msgid "Grade"
+msgid "KPI Salary"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:60
-msgid "Business Progressive Salary"
+msgid "KPI Bonus"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:61 templates/emails/payroll_slip.html:65
+msgid "Grade"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:64
-msgid "Lunch Allowance"
+msgid "Business Progressive Salary"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:68
-msgid "Phone Allowance"
+msgid "Lunch Allowance"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:72
-msgid "Other Allowance"
+msgid "Phone Allowance"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:76
-msgid "Overtime Pay"
-msgstr ""
-
-#: templates/emails/payroll_slip.html:77
-msgid "hours"
+msgid "Other Allowance"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:80
-msgid "Travel Expense"
-msgstr "Công tác phí"
-
-#: templates/emails/payroll_slip.html:85
-msgid "Working Days"
+msgid "Total Position Income"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:88
-msgid "Standard Working Days"
+#: templates/emails/payroll_slip.html:84
+msgid "Actual Working Days Income"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:89 templates/emails/payroll_slip.html:93
-#: templates/emails/payroll_slip.html:97 templates/emails/payroll_slip.html:101
-msgid "days"
+#: templates/emails/payroll_slip.html:89
+msgid "Overtime Pay"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:92
-msgid "Total Working Days"
+msgid "Total Overtime Hours"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:93 templates/emails/payroll_slip.html:97
+#: templates/emails/payroll_slip.html:101
+#: templates/emails/payroll_slip.html:105
+msgid "hours"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:96
-msgid "Official Working Days"
+msgid "Saturday & Weekday"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:100
-msgid "Probation Working Days"
+msgid "Sunday"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:105
-msgid "Deductions"
+#: templates/emails/payroll_slip.html:104
+msgid "Holiday"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:108
-msgid "Social Insurance"
+msgid "Hourly Rate"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:112
-msgid "Health Insurance"
+msgid "Taxable Overtime Salary"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:116
-msgid "Unemployment Insurance"
+msgid "Overtime Progress Allowance"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:120
-msgid "Union Fee"
+msgid "Non-Taxable Overtime Salary"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:124
-msgid "Personal Income Tax"
+msgid "Total Overtime Pay"
 msgstr ""
 
 #: templates/emails/payroll_slip.html:129
+#, fuzzy
+#| msgid "Travel Expense"
+msgid "Travel Expenses"
+msgstr "Công tác phí"
+
+#: templates/emails/payroll_slip.html:132
+#, fuzzy
+#| msgid "Travel Expense"
+msgid "Taxable Travel Expense"
+msgstr "Công tác phí"
+
+#: templates/emails/payroll_slip.html:136
+#, fuzzy
+#| msgid "Travel Expense"
+msgid "Non-Taxable Travel Expense"
+msgstr "Công tác phí"
+
+#: templates/emails/payroll_slip.html:140
+#, fuzzy
+#| msgid "Travel Expense"
+msgid "Total Travel Expense"
+msgstr "Công tác phí"
+
+#: templates/emails/payroll_slip.html:145
+msgid "Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:148
+msgid "Standard Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:149
+#: templates/emails/payroll_slip.html:153
+#: templates/emails/payroll_slip.html:157
+#: templates/emails/payroll_slip.html:161
+msgid "days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:152
+msgid "Total Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:156
+msgid "Official Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:160
+msgid "Probation Working Days"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:165
+msgid "Deductions"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:168
+msgid "Social Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:172
+msgid "Health Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:176
+msgid "Unemployment Insurance"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:180
+msgid "Union Fee"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:184
+msgid "Personal Income Tax"
+msgstr ""
+
+#: templates/emails/payroll_slip.html:189
 #, fuzzy
 #| msgid "Recovery Voucher"
 msgid "Recovery Amount"
 msgstr "Phiếu truy thu/truy lĩnh"
 
-#: templates/emails/payroll_slip.html:136
+#: templates/emails/payroll_slip.html:196
 msgid "Additional Payment"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:139
+#: templates/emails/payroll_slip.html:199
 #, fuzzy
 #| msgid "Back Pay"
 msgid "Back Pay Amount"
 msgstr "Truy lĩnh"
 
-#: templates/emails/payroll_slip.html:146
+#: templates/emails/payroll_slip.html:206
 msgid "Gross Income"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:147
+#: templates/emails/payroll_slip.html:207
 msgid "Net Salary"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:152
+#: templates/emails/payroll_slip.html:212
 msgid "Warning:"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:152
+#: templates/emails/payroll_slip.html:212
 msgid "You have"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:152
+#: templates/emails/payroll_slip.html:212
 msgid "unpaid penalty ticket(s). Please check with HR department."
 msgstr ""
 
-#: templates/emails/payroll_slip.html:156
+#: templates/emails/payroll_slip.html:216
 msgid ""
 "Please log in to the system to view full details and download your payroll "
 "slip."
 msgstr ""
 
-#: templates/emails/payroll_slip.html:158
+#: templates/emails/payroll_slip.html:218
 msgid "If you have any questions, please contact the HR department."
 msgstr ""
 
-#: templates/emails/payroll_slip.html:160
+#: templates/emails/payroll_slip.html:220
 msgid "Best regards,"
 msgstr ""
 
-#: templates/emails/payroll_slip.html:160
+#: templates/emails/payroll_slip.html:220
 #, fuzzy
 #| msgid "MaiVietLand"
 msgid "MaiVietLand Team"

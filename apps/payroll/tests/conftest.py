@@ -90,6 +90,8 @@ def position(db):
 @pytest.fixture
 def employee(db, branch, block, department, position):
     """Create a test employee."""
+    from apps.hrm.constants import EmployeeType
+
     suffix = random_code(length=6)
     return Employee.objects.create(
         code=f"E{suffix}",
@@ -98,6 +100,7 @@ def employee(db, branch, block, department, position):
         email=f"emp{suffix}@example.com",
         status=Employee.Status.ACTIVE,
         code_type=Employee.CodeType.MV,
+        employee_type=EmployeeType.OFFICIAL,
         branch=branch,
         block=block,
         department=department,
@@ -303,6 +306,7 @@ def payroll_slip_pending(salary_period, employee):
 @pytest.fixture
 def employee_ready(branch, block, department, position):
     """Create an employee for ready payroll slip."""
+    from apps.hrm.constants import EmployeeType
     from apps.hrm.models import Employee
 
     suffix = random_code(length=6)
@@ -313,6 +317,7 @@ def employee_ready(branch, block, department, position):
         email=f"emp_ready{suffix}@example.com",
         status=Employee.Status.ACTIVE,
         code_type=Employee.CodeType.MV,
+        employee_type=EmployeeType.OFFICIAL,
         branch=branch,
         block=block,
         department=department,

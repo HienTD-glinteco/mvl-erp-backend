@@ -278,6 +278,9 @@ from libs.drf.pagination import PageNumberWithSizePagination
             ),
         ],
     ),
+    task_status=extend_schema(
+        tags=["10.6: Salary Periods"],
+    ),
 )
 class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing salary periods.
@@ -429,43 +432,76 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
 
     @extend_schema(
         summary="Send email notifications",
-        description="Send payroll slip emails to employees",
+        description="Send payroll slip emails to employees asynchronously. Returns task ID for tracking progress.",
         tags=["10.6: Salary Periods"],
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "filter_status": {
+                        "type": "array",
+                        "items": {"type": "string", "enum": ["READY", "DELIVERED", "PENDING", "HOLD"]},
+                        "description": "Filter slips by status (default: [READY, DELIVERED])",
+                    }
+                },
+            }
+        },
+        responses={
+            202: SalaryPeriodRecalculateResponseSerializer,
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"},
+                },
+            },
+        },
         examples=[
             OpenApiExample(
-                "Success - Emails sent",
+                "Request - Send to READY and DELIVERED",
+                value={"filter_status": ["READY", "DELIVERED"]},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Request - Send to all statuses",
+                value={"filter_status": ["READY", "DELIVERED", "PENDING", "HOLD"]},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success - Email sending started",
                 value={
                     "success": True,
                     "data": {
-                        "sent_count": 45,
-                        "failed_count": 0,
-                        "failed_emails": [],
+                        "task_id": "xyz789-abc123-def456",
+                        "status": "Task created",
+                        "message": "Payroll email sending started. Use task_status endpoint to check progress.",
                     },
                     "error": None,
                 },
                 response_only=True,
-                status_codes=["200"],
+                status_codes=["202"],
             ),
         ],
     )
     @action(detail=True, methods=["post"])
     def send_emails(self, request, pk=None):
-        """Send email notifications for payroll slips."""
+        """Send email notifications for payroll slips asynchronously."""
         period = self.get_object()
 
-        # Filter slips to send
+        # Get filter status from request body
         filter_status = request.data.get("filter_status", [PayrollSlip.Status.READY, PayrollSlip.Status.DELIVERED])
-        slips = period.payroll_slips.filter(status__in=filter_status)
 
-        # TODO: Implement email sending logic
-        # For now, just return mock data
+        # Launch async task
+        from apps.payroll.tasks import send_emails_for_period_task
+
+        task = send_emails_for_period_task.delay(period.id, filter_status)
 
         return Response(
             {
-                "sent_count": slips.count(),
-                "failed_count": 0,
-                "failed_emails": [],
-            }
+                "task_id": task.id,
+                "status": "Task created",
+                "message": "Payroll email sending started. Use task_status endpoint to check progress.",
+            },
+            status=status.HTTP_202_ACCEPTED,
         )
 
     def create(self, request, *args, **kwargs):

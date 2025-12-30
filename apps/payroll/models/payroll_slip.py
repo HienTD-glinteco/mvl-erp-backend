@@ -164,6 +164,27 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
 
     overtime_pay = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Overtime Pay")
 
+    # ========== New Salary Calculation Fields ==========
+    total_position_income = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name="Total Position Income"
+    )
+
+    actual_working_days_income = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name="Actual Working Days Income"
+    )
+
+    taxable_overtime_salary = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Overtime Salary"
+    )
+
+    overtime_progress_allowance = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name="Overtime Progress Allowance"
+    )
+
+    non_taxable_overtime_salary = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name="Non-Taxable Overtime Salary"
+    )
+
     # ========== Travel Expenses ==========
     taxable_travel_expense = models.DecimalField(
         max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Travel Expense"
