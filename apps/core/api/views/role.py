@@ -1,8 +1,11 @@
+from typing import Final
+
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
@@ -10,6 +13,9 @@ from apps.core.api.filtersets import RoleFilterSet
 from apps.core.api.serializers import RoleSerializer
 from apps.core.models import Role
 from libs import BaseModelViewSet
+from libs.drf.filtersets.search import PhraseSearchFilter
+
+ROLE_CLONE_SUFFIX: Final = "-copy"
 
 
 @extend_schema_view(
@@ -305,7 +311,7 @@ class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = Role.objects.prefetch_related("permissions").all()
     serializer_class = RoleSerializer
     filterset_class = RoleFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, PhraseSearchFilter, OrderingFilter]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["code", "name", "created_at"]
     ordering = ["code"]
@@ -314,6 +320,102 @@ class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = _("Core")
     submodule = _("Role Management")
     permission_prefix = "role"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "clone": {
+            "name_template": _("Clone {model_name}"),
+            "description_template": _("Clone an existing {model_name}"),
+        },
+    }
+
+    def _generate_clone_name(self, base_name: str) -> str:
+        """Generate a unique name for the cloned role."""
+        sanitized_name = base_name.strip()
+        candidate = f"{sanitized_name}{ROLE_CLONE_SUFFIX}"
+        suffix_counter = 2
+
+        while Role.objects.filter(name=candidate).exists():
+            candidate = f"{sanitized_name}{ROLE_CLONE_SUFFIX}-{suffix_counter}"
+            suffix_counter += 1
+
+        return candidate
+
+    @extend_schema(
+        summary="Clone role",
+        description="Clone an existing role by duplicating its details and permissions while ensuring the cloned role "
+        "is not marked as a system role.",
+        tags=["3.1: Roles"],
+        request=None,
+        responses={201: RoleSerializer},
+        examples=[
+            OpenApiExample(
+                "Clone role request",
+                description="No request body is needed when cloning a role.",
+                value={},
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Clone role success",
+                description="Example response after cloning a role",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 12,
+                        "code": "VT012",
+                        "name": "Project Manager-copy",
+                        "description": "Manages projects and teams",
+                        "is_system_role": False,
+                        "created_by": "admin@example.com",
+                        "permissions_detail": [
+                            {
+                                "id": 1,
+                                "code": "user.create",
+                                "name": "Create User",
+                                "description": "Permission to create users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
+                            {
+                                "id": 2,
+                                "code": "user.update",
+                                "name": "Update User",
+                                "description": "Permission to update users",
+                                "module": "Core",
+                                "submodule": "User Management",
+                            },
+                        ],
+                        "created_at": "2025-01-20T09:30:00Z",
+                        "updated_at": "2025-01-20T09:30:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["201"],
+            ),
+            OpenApiExample(
+                "Clone role not found",
+                description="Error response when the target role does not exist",
+                value={"success": False, "data": None, "error": "Role not found"},
+                response_only=True,
+                status_codes=["404"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["post"], url_path="clone")
+    def clone(self, request, *args, **kwargs):
+        """Clone an existing role and return the newly created role."""
+        source_role = self.get_object()
+        clone_data = {
+            "name": self._generate_clone_name(source_role.name),
+            "description": source_role.description,
+            "permission_ids": list(source_role.permissions.values_list("id", flat=True)),
+        }
+
+        serializer = self.get_serializer(data=clone_data)
+        serializer.is_valid(raise_exception=True)
+        new_role = serializer.save()
+
+        response_serializer = self.get_serializer(new_role)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         """Delete a role with validation"""
