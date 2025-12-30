@@ -12,7 +12,6 @@ from apps.payroll.api.serializers import (
     KPIAssessmentPeriodFinalizeResponseSerializer,
     KPIAssessmentPeriodGenerateResponseSerializer,
     KPIAssessmentPeriodGenerateSerializer,
-    KPIAssessmentPeriodListSerializer,
     KPIAssessmentPeriodSerializer,
     KPIAssessmentPeriodSummarySerializer,
 )
@@ -321,32 +320,29 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
     http_method_names = ["get", "post", "delete"]  # GET for list/retrieve, POST for actions, DELETE for destroy
 
     def get_queryset(self):
-        """Optimize queryset with annotations for list action."""
+        """Optimize queryset with annotations."""
         queryset = super().get_queryset()
 
-        if self.action == "list":
-            queryset = queryset.annotate(
-                employee_assessments_count=Count("employee_assessments", distinct=True),
-                department_assessments_count=Count("department_assessments", distinct=True),
-                employee_self_evaluated_count=Count(
-                    "employee_assessments",
-                    filter=Q(employee_assessments__total_employee_score__isnull=False),
-                    distinct=True,
-                ),
-                manager_evaluated_count=Count(
-                    "employee_assessments",
-                    filter=Q(employee_assessments__total_manager_score__isnull=False)
-                    | Q(employee_assessments__grade_manager__isnull=False),
-                    distinct=True,
-                ),
-            )
+        queryset = queryset.annotate(
+            employee_assessments_count=Count("employee_assessments", distinct=True),
+            department_assessments_count=Count("department_assessments", distinct=True),
+            employee_self_evaluated_count=Count(
+                "employee_assessments",
+                filter=Q(employee_assessments__total_employee_score__isnull=False),
+                distinct=True,
+            ),
+            manager_evaluated_count=Count(
+                "employee_assessments",
+                filter=Q(employee_assessments__total_manager_score__isnull=False)
+                | Q(employee_assessments__grade_manager__isnull=False),
+                distinct=True,
+            ),
+        )
 
         return queryset
 
     def get_serializer_class(self):
         """Return appropriate serializer class based on action."""
-        if self.action == "list":
-            return KPIAssessmentPeriodListSerializer
         return KPIAssessmentPeriodSerializer
 
     @action(detail=False, methods=["post"], url_path="generate")
@@ -520,3 +516,212 @@ class KPIAssessmentPeriodViewSet(BaseReadOnlyModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List KPI assessment periods for manager",
+        description="Retrieve a list of KPI assessment periods with counts for current manager's employees only",
+        tags=["8.8: Manager Periods"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": [
+                            {
+                                "id": 1,
+                                "month": "12/2025",
+                                "kpi_config_snapshot": {
+                                    "name": "2025 KPI Configuration",
+                                    "description": "Standard KPI grading configuration for 2025",
+                                    "ambiguous_assignment": "auto_prefer_default",
+                                    "grade_thresholds": [
+                                        {
+                                            "min": 90.0,
+                                            "max": 100.0,
+                                            "possible_codes": ["A"],
+                                            "label": "Excellent",
+                                            "default_code": "A",
+                                        },
+                                        {
+                                            "min": 75.0,
+                                            "max": 90.0,
+                                            "possible_codes": ["B"],
+                                            "label": "Good",
+                                            "default_code": "B",
+                                        },
+                                        {
+                                            "min": 50.0,
+                                            "max": 75.0,
+                                            "possible_codes": ["C"],
+                                            "label": "Average",
+                                            "default_code": "C",
+                                        },
+                                        {
+                                            "min": 0.0,
+                                            "max": 50.0,
+                                            "possible_codes": ["D"],
+                                            "label": "Below Average",
+                                            "default_code": "D",
+                                        },
+                                    ],
+                                    "unit_control": {
+                                        "department": {
+                                            "A": {"min": 0.0, "max": 0.3, "target": 0.2},
+                                            "B": {"min": 0.2, "max": 0.5, "target": 0.4},
+                                            "C": {"min": 0.2, "max": 0.6, "target": 0.3},
+                                            "D": {"min": 0.0, "max": 0.2, "target": 0.1},
+                                        }
+                                    },
+                                    "meta": {},
+                                },
+                                "finalized": False,
+                                "employee_count": 10,
+                                "department_count": 2,
+                                "employee_self_assessed_count": 8,
+                                "manager_assessed_count": 6,
+                                "note": "",
+                                "created_at": "2025-11-20T10:00:00Z",
+                                "updated_at": "2025-11-20T10:00:00Z",
+                            }
+                        ],
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            )
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get KPI assessment period details for manager",
+        description="Retrieve details of a specific KPI assessment period with counts for current manager's employees",
+        tags=["8.8: Manager Periods"],
+        examples=[
+            OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "month": "12/2025",
+                        "kpi_config_snapshot": {
+                            "name": "2025 KPI Configuration",
+                            "description": "Standard KPI grading configuration for 2025",
+                            "ambiguous_assignment": "auto_prefer_default",
+                            "grade_thresholds": [
+                                {
+                                    "min": 90.0,
+                                    "max": 100.0,
+                                    "possible_codes": ["A"],
+                                    "label": "Excellent",
+                                    "default_code": "A",
+                                },
+                                {
+                                    "min": 75.0,
+                                    "max": 90.0,
+                                    "possible_codes": ["B"],
+                                    "label": "Good",
+                                    "default_code": "B",
+                                },
+                                {
+                                    "min": 50.0,
+                                    "max": 75.0,
+                                    "possible_codes": ["C"],
+                                    "label": "Average",
+                                    "default_code": "C",
+                                },
+                                {
+                                    "min": 0.0,
+                                    "max": 50.0,
+                                    "possible_codes": ["D"],
+                                    "label": "Below Average",
+                                    "default_code": "D",
+                                },
+                            ],
+                            "unit_control": {
+                                "department": {
+                                    "A": {"min": 0.0, "max": 0.3, "target": 0.2},
+                                    "B": {"min": 0.2, "max": 0.5, "target": 0.4},
+                                    "C": {"min": 0.2, "max": 0.6, "target": 0.3},
+                                    "D": {"min": 0.0, "max": 0.2, "target": 0.1},
+                                }
+                            },
+                            "meta": {},
+                        },
+                        "finalized": False,
+                        "employee_count": 10,
+                        "department_count": 2,
+                        "employee_self_assessed_count": 8,
+                        "manager_assessed_count": 6,
+                        "note": "",
+                        "created_at": "2025-11-20T10:00:00Z",
+                        "updated_at": "2025-11-20T10:00:00Z",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+            )
+        ],
+    ),
+)
+class KPIAssessmentPeriodManagerViewSet(BaseReadOnlyModelViewSet):
+    """ViewSet for KPIAssessmentPeriod model - manager view.
+
+    Provides read-only operations for KPI assessment periods filtered for current manager.
+    """
+
+    module = "Payroll"
+    submodule = "KPI Period Management"
+    permission_prefix = "kpi_assessment_period_manager"
+    operation = "KPI-Assessment-Period-Manager"
+
+    queryset = KPIAssessmentPeriod.objects.all().order_by("-month")
+    serializer_class = KPIAssessmentPeriodSerializer
+    filter_backends = [PhraseSearchFilter]
+    search_fields = ["note"]
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        """Filter queryset with annotations for current manager."""
+        queryset = super().get_queryset()
+        current_user = self.request.user
+
+        if not hasattr(current_user, "employee"):
+            return queryset.none()
+
+        current_employee = current_user.employee
+
+        queryset = queryset.annotate(
+            employee_assessments_count=Count(
+                "employee_assessments",
+                filter=Q(employee_assessments__manager=current_employee),
+                distinct=True,
+            ),
+            department_assessments_count=Count(
+                "employee_assessments__employee__department",
+                filter=Q(employee_assessments__manager=current_employee),
+                distinct=True,
+            ),
+            employee_self_evaluated_count=Count(
+                "employee_assessments",
+                filter=Q(employee_assessments__manager=current_employee)
+                & Q(employee_assessments__total_employee_score__isnull=False),
+                distinct=True,
+            ),
+            manager_evaluated_count=Count(
+                "employee_assessments",
+                filter=Q(employee_assessments__manager=current_employee)
+                & (
+                    Q(employee_assessments__total_manager_score__isnull=False)
+                    | Q(employee_assessments__grade_manager__isnull=False)
+                ),
+                distinct=True,
+            ),
+        )
+
+        return queryset

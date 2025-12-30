@@ -212,3 +212,19 @@ class TaskStatusSerializer(serializers.Serializer):
     state = serializers.CharField()
     result = serializers.JSONField(required=False)
     meta = serializers.JSONField(required=False)
+
+
+class SalaryPeriodCreateResponseSerializer(serializers.Serializer):
+    """Response serializer for salary period creation."""
+
+    task_id = serializers.CharField(help_text="Celery task ID for tracking the creation process")
+    status = serializers.CharField(help_text="Task creation status")
+    message = serializers.CharField(help_text="Human-readable message about the task")
+
+
+class SalaryPeriodRecalculateResponseSerializer(serializers.Serializer):
+    """Response serializer for salary period recalculation."""
+
+    task_id = serializers.CharField(help_text="Celery task ID for tracking the recalculation process")
+    status = serializers.CharField(help_text="Task creation status")
+    message = serializers.CharField(help_text="Human-readable message about the task")

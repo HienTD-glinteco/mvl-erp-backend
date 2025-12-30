@@ -4,7 +4,7 @@ from .employee_kpi_assessment import (
     EmployeeSelfAssessmentViewSet,
     ManagerAssessmentViewSet,
 )
-from .kpi_assessment_period import KPIAssessmentPeriodViewSet
+from .kpi_assessment_period import KPIAssessmentPeriodManagerViewSet, KPIAssessmentPeriodViewSet
 from .kpi_config import CurrentKPIConfigView
 from .kpi_criterion import KPICriterionViewSet
 from .payroll_slip import PayrollSlipViewSet
@@ -26,6 +26,7 @@ __all__ = [
     "KPICriterionViewSet",
     "CurrentSalaryConfigView",
     "KPIAssessmentPeriodViewSet",
+    "KPIAssessmentPeriodManagerViewSet",
     "EmployeeKPIAssessmentViewSet",
     "DepartmentKPIAssessmentViewSet",
     "TravelExpenseViewSet",
