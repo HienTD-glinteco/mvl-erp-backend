@@ -45,6 +45,20 @@ class MailTemplateViewSet(BaseGenericViewSet):
     module = "Mail Templates"
     submodule = "Template Management"
     permission_prefix = "mailtemplate"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "preview": {
+            "name_template": _("Preview email template"),
+            "description_template": _("Preview email template with sample or real data"),
+        },
+        "send": {
+            "name_template": _("Send bulk emails using email template"),
+            "description_template": _("Create bulk email send jobs using email template"),
+        },
+        "job_status": {
+            "name_template": _("View email send job status for email template"),
+            "description_template": _("View status of bulk email send jobs for email template"),
+        },
+    }
 
     @extend_schema(
         summary="List all mail templates",

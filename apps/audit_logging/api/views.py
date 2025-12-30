@@ -24,6 +24,16 @@ class AuditLogViewSet(BaseGenericViewSet):
     module = _("Core")
     submodule = _("Audit Logging")
     permission_prefix = "audit_logging"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "get_detail": {
+            "name_template": _("Get audit log detail"),
+            "description_template": _("Retrieve full details of an audit log entry"),
+        },
+        "search": {
+            "name_template": _("Search audit logs with filters"),
+            "description_template": _("Search audit logs with filters"),
+        },
+    }
 
     @extend_schema(
         summary="Search audit logs",

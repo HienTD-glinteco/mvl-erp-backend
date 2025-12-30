@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Mapping, Union
 
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 
@@ -60,7 +61,7 @@ class PermissionRegistrationMixin:
             "description_template": _("View history detail of {model_name}"),
         },
     }
-    PERMISSION_REGISTERED_ACTIONS = {}  # type: ignore
+    PERMISSION_REGISTERED_ACTIONS: Mapping[str, Mapping[str, Union[str, Promise]]] = {}
 
     @classmethod
     def get_model_name(cls):
