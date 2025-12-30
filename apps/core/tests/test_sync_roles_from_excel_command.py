@@ -99,7 +99,10 @@ def test_sync_roles_from_excel_fails_for_unknown_permission(tmp_path):
     with pytest.raises(CommandError) as excinfo:
         call_command("sync_roles_from_excel", "--file_path", str(file_path))
 
-    assert "does not exist in the database" in str(excinfo.value)
+    message = str(excinfo.value)
+    assert "does not exist in the database" in message
+    assert "sheet 'core_permission'" in message
+    assert "row 2" in message
 
 
 @pytest.mark.django_db
