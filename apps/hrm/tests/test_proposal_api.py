@@ -2673,3 +2673,267 @@ class TestMeProposalVerifierAPI:
         data = response.json()
         assert data["success"] is True
         assert data["data"]["count"] == 1
+
+    def test_me_proposal_verifiers_filter_by_created_by_branch(self, api_client, superuser, test_employee):
+        """Test filtering me-proposal-verifiers by proposal creator's branch."""
+        test_employee.user = superuser
+        test_employee.save()
+
+        # Create another branch with required related objects
+        other_province = Province.objects.create(name="Other Province", code="OP_FILTER")
+        other_admin_unit = AdministrativeUnit.objects.create(
+            parent_province=other_province,
+            name="Other Admin Unit",
+            code="OAU_FILTER",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+        other_branch = Branch.objects.create(
+            name="Other Branch",
+            province=other_province,
+            administrative_unit=other_admin_unit,
+        )
+        other_block = Block.objects.create(
+            name="Other Block", branch=other_branch, block_type=Block.BlockType.BUSINESS
+        )
+        other_department = Department.objects.create(name="Other Dept", branch=other_branch, block=other_block)
+
+        # Create employee in the other branch
+        other_branch_employee = Employee.objects.create(
+            code="MV_OTHER_BRANCH",
+            fullname="Other Branch Employee",
+            username="other_branch_emp",
+            email="otherbranch@example.com",
+            phone="0911100001",
+            attendance_code="11001",
+            citizen_id="111000000001",
+            branch=other_branch,
+            block=other_block,
+            department=other_department,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Create proposals from different branches
+        proposal_same_branch = Proposal.objects.create(
+            code="DX_SAME_BRANCH001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Same branch proposal",
+            created_by=test_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_same_branch, employee=test_employee)
+
+        proposal_other_branch = Proposal.objects.create(
+            code="DX_OTHER_BRANCH001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Other branch proposal",
+            created_by=other_branch_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_other_branch, employee=test_employee)
+
+        url = reverse("hrm:proposal-verifier-mine")
+
+        # Filter by test_employee's branch
+        response = api_client.get(url, {"created_by_branch": test_employee.branch.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_same_branch.id
+
+        # Filter by other branch
+        response = api_client.get(url, {"created_by_branch": other_branch.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_other_branch.id
+
+    def test_me_proposal_verifiers_filter_by_created_by_block(self, api_client, superuser, test_employee):
+        """Test filtering me-proposal-verifiers by proposal creator's block."""
+        test_employee.user = superuser
+        test_employee.save()
+
+        # Create another block within the same branch
+        other_block = Block.objects.create(
+            name="Other Block Filter",
+            branch=test_employee.branch,
+            block_type=Block.BlockType.SUPPORT,
+        )
+        other_department = Department.objects.create(
+            name="Other Block Dept", branch=test_employee.branch, block=other_block
+        )
+
+        # Create employee in the other block
+        other_block_employee = Employee.objects.create(
+            code="MV_OTHER_BLOCK",
+            fullname="Other Block Employee",
+            username="other_block_emp",
+            email="otherblock@example.com",
+            phone="0922200001",
+            attendance_code="22001",
+            citizen_id="222000000001",
+            branch=test_employee.branch,
+            block=other_block,
+            department=other_department,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Create proposals from different blocks
+        proposal_same_block = Proposal.objects.create(
+            code="DX_SAME_BLOCK001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Same block proposal",
+            created_by=test_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_same_block, employee=test_employee)
+
+        proposal_other_block = Proposal.objects.create(
+            code="DX_OTHER_BLOCK001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Other block proposal",
+            created_by=other_block_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_other_block, employee=test_employee)
+
+        url = reverse("hrm:proposal-verifier-mine")
+
+        # Filter by test_employee's block
+        response = api_client.get(url, {"created_by_block": test_employee.block.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_same_block.id
+
+        # Filter by other block
+        response = api_client.get(url, {"created_by_block": other_block.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_other_block.id
+
+    def test_me_proposal_verifiers_filter_by_created_by_department(self, api_client, superuser, test_employee):
+        """Test filtering me-proposal-verifiers by proposal creator's department."""
+        test_employee.user = superuser
+        test_employee.save()
+
+        # Create another department within the same block
+        other_department = Department.objects.create(
+            name="Other Dept Filter",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            function=Department.DepartmentFunction.HR_ADMIN,
+        )
+
+        # Create employee in the other department
+        other_dept_employee = Employee.objects.create(
+            code="MV_OTHER_DEPT",
+            fullname="Other Dept Employee",
+            username="other_dept_emp",
+            email="otherdept@example.com",
+            phone="0933300001",
+            attendance_code="33001",
+            citizen_id="333000000001",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=other_department,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Create proposals from different departments
+        proposal_same_dept = Proposal.objects.create(
+            code="DX_SAME_DEPT001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Same dept proposal",
+            created_by=test_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_same_dept, employee=test_employee)
+
+        proposal_other_dept = Proposal.objects.create(
+            code="DX_OTHER_DEPT001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Other dept proposal",
+            created_by=other_dept_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_other_dept, employee=test_employee)
+
+        url = reverse("hrm:proposal-verifier-mine")
+
+        # Filter by test_employee's department
+        response = api_client.get(url, {"created_by_department": test_employee.department.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_same_dept.id
+
+        # Filter by other department
+        response = api_client.get(url, {"created_by_department": other_department.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_other_dept.id
+
+    def test_me_proposal_verifiers_filter_by_created_by_position(self, api_client, superuser, test_employee):
+        """Test filtering me-proposal-verifiers by proposal creator's position."""
+        test_employee.user = superuser
+        test_employee.save()
+
+        # Create another position
+        other_position = Position.objects.create(name="Manager")
+
+        # Create employee with a different position
+        other_position_employee = Employee.objects.create(
+            code="MV_OTHER_POS",
+            fullname="Other Position Employee",
+            username="other_pos_emp",
+            email="otherpos@example.com",
+            phone="0944400001",
+            attendance_code="44001",
+            citizen_id="444000000001",
+            branch=test_employee.branch,
+            block=test_employee.block,
+            department=test_employee.department,
+            position=other_position,
+            start_date=date(2020, 1, 1),
+            status=Employee.Status.ACTIVE,
+        )
+
+        # Create proposals from employees with different positions
+        proposal_same_position = Proposal.objects.create(
+            code="DX_SAME_POS001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Same position proposal",
+            created_by=test_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_same_position, employee=test_employee)
+
+        proposal_other_position = Proposal.objects.create(
+            code="DX_OTHER_POS001",
+            proposal_type=ProposalType.PAID_LEAVE,
+            note="Other position proposal",
+            created_by=other_position_employee,
+        )
+        ProposalVerifier.objects.create(proposal=proposal_other_position, employee=test_employee)
+
+        url = reverse("hrm:proposal-verifier-mine")
+
+        # Filter by test_employee's position
+        response = api_client.get(url, {"created_by_position": test_employee.position.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_same_position.id
+
+        # Filter by other position
+        response = api_client.get(url, {"created_by_position": other_position.id})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["count"] == 1
+        assert data["data"]["results"][0]["proposal"]["id"] == proposal_other_position.id

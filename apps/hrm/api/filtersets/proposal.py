@@ -89,6 +89,26 @@ class MeProposalVerifierFilterSet(filters.FilterSet):
 
     proposal = filters.NumberFilter(field_name="proposal")
 
+    created_by_department = filters.NumberFilter(
+        field_name="proposal__created_by__department",
+        help_text="Filter by proposal creator's department ID",
+    )
+
+    created_by_branch = filters.NumberFilter(
+        field_name="proposal__created_by__branch",
+        help_text="Filter by proposal creator's branch ID",
+    )
+
+    created_by_block = filters.NumberFilter(
+        field_name="proposal__created_by__block",
+        help_text="Filter by proposal creator's block ID",
+    )
+
+    created_by_position = filters.NumberFilter(
+        field_name="proposal__created_by__position",
+        help_text="Filter by proposal creator's position ID",
+    )
+
     class Meta:
         model = ProposalVerifier
         fields = {
