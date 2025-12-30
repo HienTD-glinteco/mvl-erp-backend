@@ -284,27 +284,27 @@ msgstr "Job gửi email hàng loạt đã được trong hàng đợi"
 
 #: apps/mailtemplates/views.py:50
 msgid "Preview email template"
-msgstr ""
+msgstr "Xem trước mẫu email"
 
 #: apps/mailtemplates/views.py:51
 msgid "Preview email template with sample or real data"
-msgstr ""
+msgstr "Xem trước mẫu email với dữ liệu mẫu hoặc dữ liệu thực"
 
 #: apps/mailtemplates/views.py:54
 msgid "Send bulk emails using email template"
-msgstr ""
+msgstr "Gửi email hàng loạt sử dụng mẫu email"
 
 #: apps/mailtemplates/views.py:55
 msgid "Create bulk email send jobs using email template"
-msgstr ""
+msgstr "Tạo các job gửi email hàng loạt sử dụng mẫu email"
 
 #: apps/mailtemplates/views.py:58
 msgid "View email send job status for email template"
-msgstr ""
+msgstr "Xem trạng thái job gửi email cho mẫu email"
 
 #: apps/mailtemplates/views.py:59
 msgid "View status of bulk email send jobs for email template"
-msgstr ""
+msgstr "Xem trạng thái các job gửi email hàng loạt cho mẫu email"
 
 #: apps/mailtemplates/views.py:262
 msgid "Failed to save template"
