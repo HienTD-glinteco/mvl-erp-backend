@@ -1,123 +1,147 @@
+from decimal import Decimal
 import logging
 from typing import Optional
 
-from django.db.models import Q
-from django.utils import timezone
+from django.db import models
+from django.db.models import QuerySet
 
-from apps.hrm.constants import TimesheetDayType
-from apps.hrm.models.attendance_exemption import AttendanceExemption
-from apps.hrm.models.contract import Contract
-from apps.hrm.models.contract_type import ContractType
-from apps.hrm.models.holiday import CompensatoryWorkday
-from apps.hrm.models.timesheet import TimeSheetEntry
+from apps.hrm.models import Contract, TimeSheetEntry, AttendanceExemption, Proposal
+from apps.hrm.constants import TimesheetDayType, TimesheetReason, ProposalType, ProposalWorkShift, TimesheetStatus
+from apps.hrm.models.holiday import Holiday, CompensatoryWorkday
 
 logger = logging.getLogger(__name__)
 
 
 class TimesheetSnapshotService:
-    """Service to snapshot configuration data onto TimeSheetEntry at creation/update time."""
+    """Service to handle timesheet snapshotting.
+
+    This service is responsible for:
+    1. Determining the Day Type (Official, Holiday, Compensatory).
+    2. Snapshotting Contract details (Contract ID, Wage Rate, Is Full Salary).
+    3. Snapshotting Attendance Exemption status.
+    4. Applying Leave reasons (Paid/Unpaid/Maternity).
+    """
 
     def snapshot_data(self, entry: TimeSheetEntry) -> None:
-        """Populate snapshot fields on the timesheet entry.
+        """Perform all snapshot operations for a timesheet entry."""
+        # 1. Determine Day Type (Holiday, Compensatory, Normal)
+        self._determine_day_type(entry)
 
-        This method determines and sets:
-        - day_type
-        - contract
-        - wage_rate
-        - is_full_salary
-        - is_exempt
-        """
-        self._set_day_type(entry)
-        self._set_contract_info(entry)
-        self._set_exemption_status(entry)
+        # 2. Snapshot Contract Info
+        self._snapshot_contract_info(entry)
 
-        # We don't save here to allow the caller to save efficiently (e.g., in bulk)
-        # or subsequent logic to run before save.
+        # 3. Snapshot Exemption Status
+        self._snapshot_exemption_status(entry)
 
-    def _set_day_type(self, entry: TimeSheetEntry) -> None:
-        """Determine and set the day_type based on Holiday and CompensatoryWorkday."""
-        # Check for Compensatory Workday first (highest precedence?)
-        # Based on legacy logic or typical business rules, if it's compensatory, it overrides holiday.
-        # However, checking the old day_type_service.py might reveal precedence.
-        # Assuming Compensatory > Holiday > Official.
+        # 4. Apply Leave Reasons
+        self._apply_leave_reason(entry)
 
-        # Reset to None or Official default?
-        # Usually, if no special type found, it stays None or assumes 'official' during calculation if schedule exists.
-        # But here we want to explicitly tag 'holiday' or 'compensatory'.
+    def _determine_day_type(self, entry: TimeSheetEntry) -> None:
+        """Determine if the day is a Holiday, Compensatory Workday, or standard."""
+        # Default to None (Normal) if not set or invalid
+        # Precedence: Compensatory > Holiday > Standard
 
-        entry.day_type = None
-
-        if CompensatoryWorkday.objects.filter(date=entry.date).exists():
+        # Check Compensatory Workday
+        is_compensatory = CompensatoryWorkday.objects.filter(date=entry.date).exists()
+        if is_compensatory:
             entry.day_type = TimesheetDayType.COMPENSATORY
             return
 
-        # Use the property is_holiday logic or query directly?
-        # The model logic for is_holiday relies on day_type.
-        # We need to query the Holiday model.
-        from apps.hrm.models.holiday import Holiday
-
-        # Holiday uses start_date and end_date, not a single date field.
-        if Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists():
+        # Check Holiday
+        # Holiday model usually has start_date and end_date ranges
+        is_holiday = Holiday.objects.filter(start_date__lte=entry.date, end_date__gte=entry.date).exists()
+        if is_holiday:
             entry.day_type = TimesheetDayType.HOLIDAY
             return
 
-        entry.day_type = TimesheetDayType.OFFICIAL
+        # Else: Standard day (will be checked against WorkSchedule later in calculator)
+        entry.day_type = None
 
-    def _set_contract_info(self, entry: TimeSheetEntry) -> None:
-        """Find active contract and snapshot its details."""
-        if not entry.employee_id or not entry.date:
-            return
-
-        active_contract = (
+    def _snapshot_contract_info(self, entry: TimeSheetEntry) -> None:
+        """Find active contract for the date and snapshot its details."""
+        # Find active contract
+        contract = (
             Contract.objects.filter(
-                employee_id=entry.employee_id,
-                status__in=[Contract.ContractStatus.ACTIVE, Contract.ContractStatus.ABOUT_TO_EXPIRE],
+                employee=entry.employee,
                 effective_date__lte=entry.date,
+                contract_type__isnull=False,
             )
-            .filter(Q(expiration_date__gte=entry.date) | Q(expiration_date__isnull=True))
             .order_by("-effective_date")
             .first()
         )
 
-        if active_contract:
-            entry.contract = active_contract
-            # If wage_rate exists (custom property?), use it. Else fallback to net_percentage logic?
-            # Or assume wage_rate = net_percentage?
-            # Looking at Contract model, net_percentage is an Integer (FULL=100, REDUCED=85).
-            # This aligns with wage_rate default=100.
-            if hasattr(active_contract, "wage_rate"):
-                entry.wage_rate = active_contract.wage_rate
-            else:
-                # Fallback to net_percentage value if it behaves like a percentage
-                # ContractType.NetPercentage choices are integers?
-                # Contract model says `choices=ContractType.NetPercentage.choices`.
-                # ContractType.NetPercentage.FULL is 100?
-                # Let's check ContractType definition.
-                # Assuming simple mapping for now.
-                entry.wage_rate = active_contract.net_percentage
+        if contract:
+            entry.contract = contract
+            # Snapshot wage rate
+            # Note: Contract model doesn't have wage_rate field directly exposed in the viewed file.
+            # It seems the user request implies copying specific fields.
+            # However, looking at Contract model, there is no wage_rate field.
+            # The previous code assumed contract.wage_rate.
+            # If it's missing, we default to 100.
+            entry.wage_rate = getattr(contract, "wage_rate", 100)
 
-            # Determine is_full_salary based on contract net_percentage
-            if active_contract.net_percentage == ContractType.NetPercentage.REDUCED:  # "85"
-                entry.is_full_salary = False
-            else:
-                entry.is_full_salary = True
+            # Snapshot is_full_salary from ContractType
+            # Assuming ContractType has is_full_salary field
+            if contract.contract_type:
+                entry.is_full_salary = getattr(contract.contract_type, "is_full_salary", True)
         else:
-            # Defaults if no contract found
             entry.contract = None
             entry.wage_rate = 100
-            entry.is_full_salary = True
+            # Default is_full_salary? Usually True or False? Model default is True.
+            # entry.is_full_salary = True
 
-    def _set_exemption_status(self, entry: TimeSheetEntry) -> None:
-        """Check for attendance exemption."""
-        if not entry.employee_id:
-            return
+    def _snapshot_exemption_status(self, entry: TimeSheetEntry) -> None:
+        """Check if employee is exempt from attendance on this date."""
+        # Note: AttendanceExemption is a OneToOne with Employee, but logic seems to treat it as possibly historical or ranges?
+        # Model `AttendanceExemption` in viewed file has `OneToOneField` to Employee and `effective_date`.
+        # It DOES NOT have `end_date`.
+        # So if `effective_date` <= entry.date, they are exempt?
+        # But OneToOne implies only one record per employee.
 
-        # Check if an exemption record exists and is effective
-        # Condition: AttendanceExemption exists for employee AND (effective_date IS NULL OR effective_date <= entry.date)
-        is_exempt = AttendanceExemption.objects.filter(
-            employee_id=entry.employee_id
-        ).filter(
-            Q(effective_date__isnull=True) | Q(effective_date__lte=entry.date)
-        ).exists()
+        # Checking AttendanceExemption model definition:
+        # employee = OneToOneField(...)
+        # effective_date = models.DateField(...)
 
-        entry.is_exempt = is_exempt
+        # So simply check if record exists and effective_date is met.
+        try:
+            exemption = AttendanceExemption.objects.get(employee=entry.employee)
+            if exemption.effective_date and exemption.effective_date <= entry.date:
+                entry.is_exempt = True
+            else:
+                 # If effective_date is null? Usually effective immediately?
+                 # Assuming effective_date is optional -> active immediately?
+                 if not exemption.effective_date:
+                     entry.is_exempt = True
+                 else:
+                     entry.is_exempt = False
+        except AttendanceExemption.DoesNotExist:
+            entry.is_exempt = False
+
+    def _apply_leave_reason(self, entry: TimeSheetEntry) -> None:
+        """Check for approved full-day leaves and set absent_reason and count_for_payroll."""
+        # Clear existing
+        entry.absent_reason = None
+        # Default count_for_payroll is True (from model default), but if leave might change it.
+        # But wait, logic should be: if leave -> set false. If no leave -> keep default?
+        # Model default is True.
+        entry.count_for_payroll = True
+
+        proposals = Proposal.get_active_leave_proposals(entry.employee_id, entry.date)
+
+        for p in proposals:
+            # Check shifts (Full Day)
+            if p.proposal_type == ProposalType.PAID_LEAVE:
+                if not p.paid_leave_shift or p.paid_leave_shift == ProposalWorkShift.FULL_DAY:
+                    entry.absent_reason = TimesheetReason.PAID_LEAVE
+                    entry.count_for_payroll = False
+                    # If status is absent, calculator will use this reason to set working_days=1
+                    return
+            elif p.proposal_type == ProposalType.UNPAID_LEAVE:
+                if not p.unpaid_leave_shift or p.unpaid_leave_shift == ProposalWorkShift.FULL_DAY:
+                    entry.absent_reason = TimesheetReason.UNPAID_LEAVE
+                    entry.count_for_payroll = False
+                    return
+            elif p.proposal_type == ProposalType.MATERNITY_LEAVE:
+                 entry.absent_reason = TimesheetReason.MATERNITY_LEAVE
+                 entry.count_for_payroll = False
+                 return

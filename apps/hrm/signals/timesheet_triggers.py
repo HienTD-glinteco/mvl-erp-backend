@@ -1,180 +1,291 @@
-from typing import List, Type
+from datetime import date
+from typing import List
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.db import transaction
+from django.db.models import F, Q
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.utils import timezone
 
-from apps.hrm.models.contract import Contract
-from apps.hrm.models.holiday import Holiday, CompensatoryWorkday
-from apps.hrm.models.proposal import Proposal, ProposalStatus
-from apps.hrm.models.timesheet import TimeSheetEntry
-from apps.hrm.models.work_schedule import WorkSchedule
-from apps.hrm.models.attendance_exemption import AttendanceExemption
+from apps.hrm.models import (
+    AttendanceExemption,
+    CompensatoryWorkday,
+    Contract,
+    Holiday,
+    Proposal,
+    TimeSheetEntry,
+)
+from apps.hrm.constants import ProposalType, ProposalStatus
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
 from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
 
 @receiver(post_save, sender=Contract)
-def handle_contract_change(sender: Type[Contract], instance: Contract, created: bool, **kwargs):
+def contract_changed_handler(sender, instance: Contract, created, **kwargs):
     """
-    When a contract is created or updated:
-    1. Find affected TimeSheetEntries (employee matches, date within contract range).
-    2. Trigger SnapshotService to update contract info.
-    3. Recalculate timesheets.
+    Handle Contract changes.
+    Only update snapshot fields (contract, wage_rate, is_full_salary).
+    Do NOT recalculate hours/working_days as contract doesn't affect them.
     """
-    if not instance.employee_id:
+    if not instance.effective_date or not instance.employee_id:
         return
 
-    # Defer to transaction commit to ensure data consistency
-    transaction.on_commit(lambda: _process_contract_change(instance.id))
+    # Trigger async update
+    # In a real app, use Celery task. Here we might do it inline or via on_commit if simple.
+    # The requirement says "Dùng bulk update ở đây".
+    transaction.on_commit(lambda: _process_contract_change(instance))
 
 
-def _process_contract_change(contract_id: int):
-    try:
-        contract = Contract.objects.get(id=contract_id)
-    except Contract.DoesNotExist:
-        return
+def _process_contract_change(contract: Contract):
+    """
+    Update future timesheets to reflect new contract data.
+    """
+    effective_date = contract.effective_date
+    query = TimeSheetEntry.objects.filter(
+        employee_id=contract.employee_id,
+        date__gte=effective_date
+    )
 
-    # Find affected entries
-    # Range: effective_date -> expiration_date (or today/future if null)
-    query = TimeSheetEntry.objects.filter(employee_id=contract.employee_id, date__gte=contract.effective_date)
-    if contract.expiration_date:
-        query = query.filter(date__lte=contract.expiration_date)
-
+    # Prepare data for bulk update
+    updates = []
     service = TimesheetSnapshotService()
 
-    for entry in query:
-        service.snapshot_data(entry) # Update contract/wage_rate/is_full_salary
-        entry.save() # Save snapshot data
+    # We can't easily bulk_update with dynamic logic per row (snapshot logic might differ per date if multiple contracts overlap?)
+    # But usually for a single contract change, it becomes the active one for a range.
+    # SnapshotService logic: find active contract for date.
+    # If we changed a contract, it might affect which contract is picked.
 
-        # Recalculate metrics (in case is_full_salary affects something, though mostly for payroll)
-        # But wait, logic separation: Calculator uses Snapshot fields.
-        calc = TimesheetCalculator(entry)
-        calc.compute_all()
-        entry.save()
+    # Optimization: If we know this contract IS the active one for the range, we can bulk update.
+    # But if there's a newer contract later, we shouldn't overwrite that range.
+    # Let's iterate for correctness as SnapshotService handles "find active contract".
+    # Wait, the comment said: "Dùng bulk update ở đây. Và chỉ update đúng các field snapshot của contract."
+
+    # To use bulk_update efficiently, we need to gather objects.
+    entries = list(query)
+    for entry in entries:
+        # Re-run snapshot logic for contract ONLY?
+        # Or full snapshot? SnapshotService does all.
+        # Let's call snapshot_contract_info specifically if we can expose it, or just snapshot_data.
+        service.snapshot_data(entry)
+        updates.append(entry)
+
+    if updates:
+        TimeSheetEntry.objects.bulk_update(
+            updates,
+            fields=["contract", "wage_rate", "is_full_salary"]
+        )
 
 
-@receiver(post_save, sender=Holiday)
-@receiver(post_save, sender=CompensatoryWorkday)
-def handle_calendar_change(sender, instance, **kwargs):
+@receiver([post_save, post_delete], sender=Holiday)
+@receiver([post_save, post_delete], sender=CompensatoryWorkday)
+def calendar_event_changed_handler(sender, instance, **kwargs):
     """
-    When Holiday or CompensatoryWorkday changes:
-    1. Find affected TimeSheetEntries (matching date).
-    2. Trigger SnapshotService (update day_type).
-    3. Recalculate.
+    Handle Holiday or CompensatoryWorkday changes.
+    Affects 'day_type' and potentially status/working_days.
     """
-    start_date = None
-    end_date = None
+    # Determine date range
+    start_date = getattr(instance, "start_date", None) or getattr(instance, "date", None)
+    end_date = getattr(instance, "end_date", None) or getattr(instance, "date", None)
 
-    if sender == Holiday:
-        start_date = instance.start_date
-        end_date = instance.end_date
-    elif sender == CompensatoryWorkday:
-        start_date = instance.date
-        end_date = instance.date
+    if not start_date:
+        return
 
-    if start_date and end_date:
-        transaction.on_commit(lambda: _process_calendar_change(start_date, end_date))
+    if not end_date:
+        end_date = start_date
+
+    transaction.on_commit(lambda: _process_calendar_change(start_date, end_date))
 
 
-def _process_calendar_change(start_date, end_date):
+@transaction.atomic
+def _process_calendar_change(start_date: date, end_date: date):
+    """
+    Recalculate timesheets for all employees in the date range.
+    """
     entries = TimeSheetEntry.objects.filter(date__range=(start_date, end_date))
+
     service = TimesheetSnapshotService()
+    updates = []
+
+    # Need to fetch calculator for logic?
+    # Changing day_type affects working_days (e.g. Holiday = full paid?)
+    # So we need full recalculation.
 
     for entry in entries:
-        service.snapshot_data(entry) # Update day_type
-        entry.save()
+        # 1. Re-snapshot Day Type
+        service.snapshot_data(entry)
 
+        # 2. Recalculate
         calc = TimesheetCalculator(entry)
         calc.compute_all()
-        entry.save()
+
+        updates.append(entry)
+
+    if updates:
+        # Update all relevant fields
+        fields = [
+            "day_type", "working_days", "status", "ot_tc1_hours", "ot_tc2_hours", "ot_tc3_hours",
+            "overtime_hours", "is_punished"
+        ]
+        TimeSheetEntry.objects.bulk_update(updates, fields=fields)
 
 
-@receiver(post_save, sender=AttendanceExemption)
-def handle_exemption_change(sender, instance: AttendanceExemption, **kwargs):
+@receiver([post_save, post_delete], sender=AttendanceExemption)
+def exemption_changed_handler(sender, instance: AttendanceExemption, **kwargs):
     """
-    When AttendanceExemption changes:
-    1. Update is_exempt on affected entries.
-    2. Recalculate (if exempt, recalculation sets full status).
+    Handle AttendanceExemption changes.
     """
-    employee_id = instance.employee_id
-    effective_date = instance.effective_date
-    transaction.on_commit(lambda: _process_exemption_change(employee_id, effective_date))
+    if not instance.employee_id or not instance.effective_date:
+        return
+
+    transaction.on_commit(lambda: _process_exemption_change(instance))
 
 
-def _process_exemption_change(employee_id, effective_date):
-    query = TimeSheetEntry.objects.filter(employee_id=employee_id)
-    if effective_date:
-        query = query.filter(date__gte=effective_date)
+def _process_exemption_change(exemption: AttendanceExemption):
+    query = TimeSheetEntry.objects.filter(
+        employee_id=exemption.employee_id,
+        date__gte=exemption.effective_date
+    )
+    # Note: AttendanceExemption model doesn't have end_date, removing filter
+
+    # Check if we are ADDING an exemption (making them exempt) or REMOVING/MODIFYING?
+    # We need to re-evaluate the exemption status for each day.
+    # The comment said:
+    # "check xem nếu giá trị is_exemption được set thành True, thì dùng bulk update, set và status
+    # chỉ khi is_exemption được set thành False, thì mới dùng forloop và compute lại giá trị"
+
+    # We can check per entry or check the operation?
+    # The service determines if they are exempt.
 
     service = TimesheetSnapshotService()
-    for entry in query:
-        service.snapshot_data(entry) # Update is_exempt
-        entry.save()
 
-        calc = TimesheetCalculator(entry)
-        calc.compute_all()
-        entry.save()
+    exempt_updates = []
+    recalc_updates = []
+
+    entries = list(query)
+    for entry in entries:
+        old_exempt = entry.is_exempt
+        service.snapshot_data(entry) # Updates is_exempt
+        new_exempt = entry.is_exempt
+
+        if new_exempt:
+            # Short circuit logic: Set to ON_TIME, Max Working Days
+            entry.status = TimesheetStatus.ON_TIME
+            entry.working_days = Decimal("1.00") # Assuming max
+            entry.late_minutes = 0
+            entry.early_minutes = 0
+            entry.is_punished = False
+            exempt_updates.append(entry)
+        else:
+            # If it WAS exempt and now is NOT, or just not exempt -> Recalculate full logic
+            calc = TimesheetCalculator(entry)
+            calc.compute_all()
+            recalc_updates.append(entry)
+
+    if exempt_updates:
+        TimeSheetEntry.objects.bulk_update(
+            exempt_updates,
+            fields=["is_exempt", "status", "working_days", "late_minutes", "early_minutes", "is_punished"]
+        )
+
+    if recalc_updates:
+        # Update all fields
+        TimeSheetEntry.objects.bulk_update(
+            recalc_updates,
+            fields=[
+                "is_exempt", "status", "working_days", "late_minutes", "early_minutes", "is_punished",
+                "morning_hours", "afternoon_hours", "overtime_hours", "ot_tc1_hours", "ot_tc2_hours", "ot_tc3_hours"
+            ]
+        )
 
 
-@receiver(post_save, sender=Proposal)
-def handle_proposal_change(sender, instance: Proposal, **kwargs):
+@receiver([post_save, post_delete], sender=Proposal)
+def proposal_changed_handler(sender, instance: Proposal, **kwargs):
     """
-    When Proposal is APPROVED or REVOKED (changed):
-    1. Recalculate affected entries.
+    Handle Proposal changes (Leaves, OT, etc).
     """
-    # Only care if status is APPROVED or was APPROVED (if we track old status).
-    # Simplification: If proposal touches dates, recalculate those dates for the employee.
+    # Optimization: Filter types
+    if instance.proposal_type not in [
+        ProposalType.PAID_LEAVE,
+        ProposalType.UNPAID_LEAVE,
+        ProposalType.MATERNITY_LEAVE,
+        ProposalType.OVERTIME_WORK,
+        ProposalType.LATE_EXEMPTION,
+        ProposalType.POST_MATERNITY_BENEFITS,
+        ProposalType.TIMESHEET_ENTRY_COMPLAINT # Complaint usually triggers linking task, but might need recalc?
+    ]:
+        return
+
+    # Only approved proposals affect calculation (usually)
+    # But if a proposal moves from Approved -> Rejected/Cancelled, we need to revert.
+    # So we trigger on any change if it WAS approved or IS approved?
+    # Or just always trigger and let calculator find valid ones.
 
     if not instance.created_by_id:
         return
 
-    transaction.on_commit(lambda: _process_proposal_change(instance.id))
+    transaction.on_commit(lambda: _process_proposal_change(instance))
 
-def _process_proposal_change(proposal_id):
-    try:
-        proposal = Proposal.objects.get(id=proposal_id)
-    except Proposal.DoesNotExist:
-        return
 
+def _process_proposal_change(proposal: Proposal):
     # Determine date range
-    dates = []
-    # Collect all possible date fields
-    fields = [
-        ('paid_leave_start_date', 'paid_leave_end_date'),
-        ('unpaid_leave_start_date', 'unpaid_leave_end_date'),
-        ('maternity_leave_start_date', 'maternity_leave_end_date'),
-        ('late_exemption_start_date', 'late_exemption_end_date'),
-        ('post_maternity_benefits_start_date', 'post_maternity_benefits_end_date'),
-    ]
+    start_date = None
+    end_date = None
 
-    start = None
-    end = None
+    # Extract dates based on type
+    if proposal.proposal_type == ProposalType.PAID_LEAVE:
+        start_date = proposal.paid_leave_start_date
+        end_date = proposal.paid_leave_end_date
+    elif proposal.proposal_type == ProposalType.UNPAID_LEAVE:
+        start_date = proposal.unpaid_leave_start_date
+        end_date = proposal.unpaid_leave_end_date
+    elif proposal.proposal_type == ProposalType.MATERNITY_LEAVE:
+        start_date = proposal.maternity_leave_start_date
+        end_date = proposal.maternity_leave_end_date
+    elif proposal.proposal_type == ProposalType.OVERTIME_WORK:
+        # Overtime entries might span multiple dates, but usually proposal has a range?
+        # ProposalOvertimeEntry has dates. We might need to query them.
+        # Fallback: check related entries
+        entries = proposal.overtime_entries.all()
+        dates = [e.date for e in entries]
+        if dates:
+            start_date = min(dates)
+            end_date = max(dates)
+    elif proposal.proposal_type == ProposalType.LATE_EXEMPTION:
+        start_date = proposal.late_exemption_start_date
+        end_date = proposal.late_exemption_end_date
+    elif proposal.proposal_type == ProposalType.POST_MATERNITY_BENEFITS:
+        start_date = proposal.post_maternity_benefits_start_date
+        end_date = proposal.post_maternity_benefits_end_date
 
-    for s_field, e_field in fields:
-        s = getattr(proposal, s_field, None)
-        e = getattr(proposal, e_field, None)
-        if s:
-            start = min(start, s) if start else s
-        if e:
-            end = max(end, e) if end else e
-
-    if not start:
+    if not start_date:
         return
-    if not end:
-        end = start
+
+    if not end_date:
+        end_date = start_date
 
     entries = TimeSheetEntry.objects.filter(
         employee_id=proposal.created_by_id,
-        date__range=(start, end)
+        date__range=(start_date, end_date)
     )
 
-    for entry in entries:
-        # Note: Proposal changes might affect 'is_exempt' ONLY IF we supported Proposal-based exemption in Snapshot.
-        # But currently SnapshotService only uses AttendanceExemption model for is_exempt.
-        # However, LATE_EXEMPTION proposal affects Grace Period in Calculator.
-        # So Recalculate is sufficient.
+    service = TimesheetSnapshotService()
+    updates = []
 
+    for entry in entries:
+        # Re-snapshot leaves/reasons
+        service.snapshot_data(entry)
+
+        # Recalculate
         calc = TimesheetCalculator(entry)
         calc.compute_all()
-        entry.save()
+        updates.append(entry)
+
+    if updates:
+        TimeSheetEntry.objects.bulk_update(
+            updates,
+            fields=[
+                "absent_reason", "count_for_payroll", "status", "working_days",
+                "late_minutes", "early_minutes", "is_punished",
+                "overtime_hours", "ot_tc1_hours", "ot_tc2_hours", "ot_tc3_hours"
+            ]
+        )

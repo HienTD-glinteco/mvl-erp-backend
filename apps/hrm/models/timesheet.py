@@ -30,6 +30,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     CODE_PREFIX = "NC"
 
+    # 1. Basic Info & Foreign Keys
     employee = models.ForeignKey(
         "Employee",
         on_delete=models.CASCADE,
@@ -38,7 +39,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     )
     date = models.DateField(verbose_name=_("Date"))
 
-    # Snapshot Fields
+    # 2. Snapshot Fields
     contract = models.ForeignKey(
         "Contract",
         on_delete=models.SET_NULL,
@@ -58,13 +59,15 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         help_text=_("Whether the employee is exempt from attendance tracking (e.g., Board of Directors)."),
     )
 
+    # 3. Time Logs
+    # Effective times (used for calculations)
     start_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Start time"))
     end_time = models.DateTimeField(null=True, blank=True, verbose_name=_("End time"))
-
-    # Original Logs & Manual Correction
+    # Original logs
     check_in_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Original Check-in"))
     check_out_time = models.DateTimeField(null=True, blank=True, verbose_name=_("Original Check-out"))
 
+    # 4. Calculated Metrics - Standard Hours
     morning_hours = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Morning hours")
     )
@@ -74,14 +77,14 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     official_hours = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Official hours")
     )
-    overtime_hours = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Overtime hours")
-    )
     total_worked_hours = models.DecimalField(
         max_digits=6, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total worked hours")
     )
 
-    # Detailed Overtime Breakdown
+    # 5. Calculated Metrics - Overtime Breakdown
+    overtime_hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Overtime hours")
+    )
     ot_tc1_hours = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("OT TC1 (Weekday) hours")
     )
@@ -94,7 +97,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     ot_start_time = models.DateTimeField(null=True, blank=True, verbose_name=_("OT Start Time"))
     ot_end_time = models.DateTimeField(null=True, blank=True, verbose_name=_("OT End Time"))
 
-    # Detailed Metrics & Penalties
+    # 6. Compensation & Penalties
     compensation_value = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Compensation value")
     )
@@ -105,12 +108,10 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
     early_minutes = models.IntegerField(default=0, verbose_name=_("Early minutes"))
     is_punished = models.BooleanField(default=False, verbose_name=_("Is punished"))
 
-    # Working days for this entry (partial days allowed). Calculated from official_hours
-    # using STANDARD_WORKING_HOURS_PER_DAY (e.g., 8 hours = 1 working day).
+    # 7. Status & Classification
     working_days = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Working days")
     )
-
     day_type = models.CharField(
         max_length=32,
         choices=TimesheetDayType.choices,
@@ -118,21 +119,17 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         blank=True,
         verbose_name=_("Day type"),
     )
-
     status = models.CharField(
         max_length=32, choices=TimesheetStatus.choices, null=True, blank=True, verbose_name=_("Status")
     )
-
     absent_reason = models.CharField(
         max_length=64, choices=TimesheetReason.choices, null=True, blank=True, verbose_name=_("Absent reason")
     )
 
-    # Whether this entry should be counted as full salary (affects payroll calculations)
+    # 8. Flags & Meta
     is_full_salary = models.BooleanField(default=True, verbose_name=_("Is full salary"))
-
     count_for_payroll = models.BooleanField(default=True, verbose_name=_("Count for payroll"))
 
-    # Flag to prevent automatic updates from overwriting manual corrections (e.g., from approved proposals)
     is_manually_corrected = models.BooleanField(default=False, verbose_name=_("Is manually corrected"))
     manually_corrected_by = models.ForeignKey(
         "Employee",
@@ -251,8 +248,10 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         # Compute working_days according to business rules
         calculator.compute_working_days()
 
-        # Set is_full_salary based on active contract
-        calculator.set_is_full_salary_from_contract()
+        # Note: set_is_full_salary_from_contract logic is removed from here
+        # as it is now handled by TimesheetSnapshotService, but if you want
+        # to ensure it's called during clean() if not already set, you might check here.
+        # However, per PR comments, it's better to rely on the service.
 
         super().clean()
 

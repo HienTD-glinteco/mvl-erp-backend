@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q, QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -581,6 +582,18 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         if is_new:
             self._assign_department_leader_as_verifier()
             self._assign_to_timesheet_entry()
+
+    @classmethod
+    def get_active_leave_proposals(cls, employee_id: int, date: "datetime.date") -> QuerySet["Proposal"]:
+        """Get active leave proposals (Paid, Unpaid, Maternity) for a specific date."""
+        return cls.objects.filter(
+            created_by=employee_id,
+            proposal_status=ProposalStatus.APPROVED,
+        ).filter(
+            Q(paid_leave_start_date__lte=date, paid_leave_end_date__gte=date)
+            | Q(unpaid_leave_start_date__lte=date, unpaid_leave_end_date__gte=date)
+            | Q(maternity_leave_start_date__lte=date, maternity_leave_end_date__gte=date)
+        )
 
     def _assign_department_leader_as_verifier(self) -> None:
         """Auto-assign the department leader of the proposal creator as a verifier.
