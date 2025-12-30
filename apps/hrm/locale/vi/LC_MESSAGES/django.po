@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 17:16+0700\n"
+"POT-Creation-Date: 2025-12-30 20:43+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -292,16 +292,16 @@ msgstr ""
 msgid "No valid 'Other' attendance records found for the provided IDs."
 msgstr "Không tìm thấy log chấm công Khác hợp lệ cho các IDs được cung cấp."
 
-#: apps/hrm/api/serializers/proposal.py:300
+#: apps/hrm/api/serializers/proposal.py:302
 msgid "This serializer requires an existing verifier instance"
 msgstr "Thông tin người xác mình là bắt buộc"
 
-#: apps/hrm/api/serializers/proposal.py:306
+#: apps/hrm/api/serializers/proposal.py:308
 msgid "Only the department leader can reject this proposal"
 msgstr ""
 "Chỉ trưởng phòng hoặc người được cấp quyền mới có thể từ chối đề xuất này"
 
-#: apps/hrm/api/serializers/proposal.py:527
+#: apps/hrm/api/serializers/proposal.py:529
 msgid "At least one overtime entry is required"
 msgstr "Thời gian làm thêm giờ là bắt buộc"
 

@@ -41,6 +41,7 @@ class ProposalSerializer(serializers.ModelSerializer):
             "colored_proposal_status",
             "created_by",
             "approved_by",
+            "approved_at",
             "note",
             "approval_note",
             "created_at",
@@ -55,6 +56,7 @@ class ProposalSerializer(serializers.ModelSerializer):
             "approved_check_out_time",
             "created_by",
             "approved_by",
+            "approved_at",
             "created_at",
             "updated_at",
         ]
