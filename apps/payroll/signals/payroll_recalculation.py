@@ -1,0 +1,134 @@
+"""Payroll recalculation signals.
+
+This module handles signals that trigger payroll slip recalculation when
+relevant data changes. All these signals queue async tasks to recalculate
+affected payroll slips.
+
+Trigger Sources:
+- Contract changes (active contracts)
+- Timesheet updates
+- KPI assessments (handled in kpi_assessment.py)
+- Sales revenue changes
+- Travel expenses
+- Recovery vouchers
+- Penalty tickets (status changes only)
+- Employee dependents
+
+Note: These signals only trigger recalculation tasks. The actual statistics
+update happens in statistics_update.py when PayrollSlip is saved.
+"""
+
+from datetime import date
+
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+from apps.hrm.models import Contract, EmployeeDependent, EmployeeMonthlyTimesheet
+from apps.payroll.models import PenaltyTicket, RecoveryVoucher, SalesRevenue, TravelExpense
+
+
+@receiver(post_save, sender=Contract)
+def on_contract_saved(sender, instance, created, **kwargs):
+    """Recalculate payroll when contract changes.
+
+    Only triggers for active contracts to avoid unnecessary recalculations.
+    """
+    if instance.status == "ACTIVE":
+        from apps.payroll.tasks import recalculate_payroll_slip_task
+
+        month = instance.effective_date.replace(day=1)
+        recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())
+
+
+@receiver(post_save, sender=EmployeeMonthlyTimesheet)
+def on_timesheet_saved(sender, instance, **kwargs):
+    """Recalculate payroll when timesheet changes.
+
+    Timesheet changes affect attendance-based calculations in payroll.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.report_date.isoformat())
+
+
+@receiver(post_save, sender=SalesRevenue)
+def on_sales_revenue_saved(sender, instance, **kwargs):
+    """Recalculate payroll when sales revenue changes.
+
+    Sales revenue affects commission and business progressive salary calculations.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver(post_save, sender=TravelExpense)
+def on_travel_expense_saved(sender, instance, **kwargs):
+    """Recalculate payroll when travel expense is saved.
+
+    Travel expenses are added to payroll slip calculations.
+    Note: Statistics are updated automatically when PayrollSlip is saved.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver(post_delete, sender=TravelExpense)
+def on_travel_expense_deleted(sender, instance, **kwargs):
+    """Recalculate payroll when travel expense is deleted.
+
+    Need to remove the deleted expense from payroll calculations.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver(post_save, sender=RecoveryVoucher)
+def on_recovery_voucher_saved(sender, instance, **kwargs):
+    """Recalculate payroll when recovery voucher is saved.
+
+    Recovery vouchers are deductions from payroll.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver(post_delete, sender=RecoveryVoucher)
+def on_recovery_voucher_deleted(sender, instance, **kwargs):
+    """Recalculate payroll when recovery voucher is deleted.
+
+    Need to remove the deleted deduction from payroll.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver(post_save, sender=PenaltyTicket)
+def on_penalty_ticket_saved(sender, instance, created, update_fields, **kwargs):
+    """Handle penalty ticket save.
+
+    Only triggers recalculation on status changes (affects blocking status).
+    Note: Statistics are updated in statistics_update.py signals.
+    """
+    if not created and update_fields and "status" in update_fields:
+        from apps.payroll.tasks import recalculate_payroll_slip_task
+
+        recalculate_payroll_slip_task.delay(str(instance.employee_id), instance.month.isoformat())
+
+
+@receiver([post_save, post_delete], sender=EmployeeDependent)
+def on_dependent_changed(sender, instance, **kwargs):
+    """Recalculate payroll when dependents change.
+
+    Dependent count affects tax calculations in payroll.
+    Triggers recalculation for current month.
+    """
+    from apps.payroll.tasks import recalculate_payroll_slip_task
+
+    today = date.today()
+    month = today.replace(day=1)
+    recalculate_payroll_slip_task.delay(str(instance.employee_id), month.isoformat())

@@ -118,10 +118,36 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ).all()
     serializer_class = PayrollSlipSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
-    filterset_fields = ["salary_period", "status", "employee", "has_unpaid_penalty", "need_resend_email"]
-    ordering_fields = ["calculated_at", "gross_income", "net_salary", "employee_code"]
+    filterset_fields = {
+        "salary_period": ["exact"],
+        "salary_period__month": ["exact", "gte", "lte"],
+        "status": ["exact", "in"],
+        "employee": ["exact"],
+        "employee_code": ["exact", "icontains"],
+        "employee_name": ["icontains"],
+        "department_name": ["exact", "icontains"],
+        "position_name": ["exact", "icontains"],
+        "has_unpaid_penalty": ["exact"],
+        "need_resend_email": ["exact"],
+        "created_at": ["gte", "lte"],
+        "calculated_at": ["gte", "lte", "isnull"],
+    }
+    ordering_fields = [
+        "code",
+        "employee_code",
+        "employee_name",
+        "gross_income",
+        "net_salary",
+        "calculated_at",
+        "created_at",
+    ]
     ordering = ["-calculated_at"]
     search_fields = ["employee_code", "employee_name", "code"]
+
+    # Permission registration attributes
+    module = "Payroll"
+    submodule = "Payroll Slips"
+    permission_prefix = "payroll_slip"
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
