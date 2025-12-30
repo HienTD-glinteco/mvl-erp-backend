@@ -11,8 +11,11 @@ from .payroll_slip import PayrollSlipViewSet
 from .penalty_tickets import PenaltyTicketViewSet
 from .recovery_voucher import RecoveryVoucherViewSet
 from .salary_config import CurrentSalaryConfigView
-from .salary_period import SalaryPeriodViewSet
-from .salary_period_slips import SalaryPeriodNotReadySlipsView, SalaryPeriodReadySlipsView
+from .salary_period import (
+    SalaryPeriodNotReadySlipsView,
+    SalaryPeriodReadySlipsView,
+    SalaryPeriodViewSet,
+)
 from .sales_revenue import SalesRevenueViewSet
 from .travel_expense import TravelExpenseViewSet
 
