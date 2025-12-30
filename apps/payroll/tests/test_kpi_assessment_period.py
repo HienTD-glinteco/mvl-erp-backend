@@ -9,7 +9,8 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.hrm.models import Department, Employee
+from apps.core.models import AdministrativeUnit, Province
+from apps.hrm.models import Block, Branch, Department, Employee
 from apps.payroll.models import (
     DepartmentKPIAssessment,
     EmployeeKPIAssessment,
@@ -576,3 +577,341 @@ class KPIAssessmentPeriodStatisticsTest(TestCase):
 
         for field in expected_fields:
             self.assertIn(field, result, f"Field '{field}' should be in response")
+
+
+@pytest.mark.django_db
+class KPIAssessmentPeriodManagerAPITest(TestCase):
+    """Test cases for KPI Assessment Period Manager API endpoints."""
+
+    def get_response_data(self, response):
+        """Extract data from wrapped API response."""
+        import json
+
+        content = json.loads(response.content.decode())
+        return content
+
+    def setUp(self):
+        """Set up test data for manager endpoint tests."""
+        self.client = APIClient()
+
+        # Create users
+        self.admin_user = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+
+        self.manager_user = User.objects.create_user(
+            username="manager",
+            email="manager@example.com",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+
+        self.other_manager_user = User.objects.create_user(
+            username="other_manager",
+            email="other_manager@example.com",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+
+        # Create province and administrative unit
+        self.province = Province.objects.create(name="Test Province", code="TP")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            parent_province=self.province,
+            name="Test District",
+            code="TD",
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        # Create branch and block
+        self.branch = Branch.objects.create(
+            name="Test Branch",
+            code="TB",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+
+        self.block = Block.objects.create(
+            name="Test Block",
+            branch=self.branch,
+            block_type=Block.BlockType.BUSINESS,
+        )
+
+        # Create departments
+        self.dept1 = Department.objects.create(
+            name="Engineering",
+            code="ENG",
+            branch=self.branch,
+            block=self.block,
+        )
+        self.dept2 = Department.objects.create(
+            name="Sales",
+            code="SALES",
+            branch=self.branch,
+            block=self.block,
+        )
+
+        # Create employees
+        self.manager_employee = Employee.objects.create(
+            user=self.manager_user,
+            username="manager",
+            email="manager@example.com",
+            phone="0901234567",
+            citizen_id="001234567890",
+            code="MGR001",
+            department=self.dept1,
+            start_date=date(2025, 1, 1),
+        )
+
+        self.other_manager_employee = Employee.objects.create(
+            user=self.other_manager_user,
+            username="other_manager",
+            email="other_manager@example.com",
+            phone="0901234568",
+            citizen_id="001234567891",
+            code="MGR002",
+            department=self.dept2,
+            start_date=date(2025, 1, 1),
+        )
+
+        self.employee1 = Employee.objects.create(
+            username="employee1",
+            email="employee1@example.com",
+            phone="0901234569",
+            citizen_id="001234567892",
+            code="EMP001",
+            department=self.dept1,
+            start_date=date(2025, 1, 1),
+        )
+
+        self.employee2 = Employee.objects.create(
+            username="employee2",
+            email="employee2@example.com",
+            phone="0901234570",
+            citizen_id="001234567893",
+            code="EMP002",
+            department=self.dept1,
+            start_date=date(2025, 1, 1),
+        )
+
+        self.employee3 = Employee.objects.create(
+            username="employee3",
+            email="employee3@example.com",
+            phone="0901234571",
+            citizen_id="001234567894",
+            code="EMP003",
+            department=self.dept2,
+            start_date=date(2025, 1, 1),
+        )
+
+        # Create KPI config
+        self.kpi_config = KPIConfig.objects.create(
+            config={
+                "grade_thresholds": [
+                    {"min": 0, "max": 60, "possible_codes": ["D"]},
+                    {"min": 60, "max": 80, "possible_codes": ["C"]},
+                    {"min": 80, "max": 100, "possible_codes": ["B", "A"]},
+                ],
+            }
+        )
+
+        # Create assessment period
+        self.period = KPIAssessmentPeriod.objects.create(
+            month=date(2025, 12, 1),
+            kpi_config_snapshot=self.kpi_config.config,
+        )
+
+        # Create employee assessments
+        # Manager has 2 employees (employee1, employee2)
+        self.assessment1 = EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.employee1,
+            manager=self.manager_employee,
+            total_possible_score=Decimal("100.00"),
+        )
+
+        self.assessment2 = EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.employee2,
+            manager=self.manager_employee,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("80.00"),
+        )
+
+        # Other manager has 1 employee (employee3)
+        self.assessment3 = EmployeeKPIAssessment.objects.create(
+            period=self.period,
+            employee=self.employee3,
+            manager=self.other_manager_employee,
+            total_possible_score=Decimal("100.00"),
+            total_employee_score=Decimal("90.00"),
+            total_manager_score=Decimal("85.00"),
+        )
+
+    def test_manager_list_periods_shows_only_managed_employees(self):
+        """Test that manager endpoint returns counts only for managed employees."""
+        self.client.force_authenticate(user=self.manager_user)
+
+        response = self.client.get("/api/payroll/kpi-periods/manager/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["success"], True)
+        self.assertGreater(data["data"]["count"], 0)
+
+        # Find our period in results
+        period_data = None
+        for result in data["data"]["results"]:
+            if result["id"] == self.period.id:
+                period_data = result
+                break
+
+        self.assertIsNotNone(period_data)
+
+        # Manager has 2 employees
+        self.assertEqual(period_data["employee_count"], 2)
+        # Manager has employees from 1 department
+        self.assertEqual(period_data["department_count"], 1)
+        # Only 1 employee has self-assessed (assessment2)
+        self.assertEqual(period_data["employee_self_assessed_count"], 1)
+        # No employees have manager assessment yet
+        self.assertEqual(period_data["manager_assessed_count"], 0)
+
+    def test_manager_retrieve_period_shows_only_managed_employees(self):
+        """Test that manager retrieve endpoint returns counts only for managed employees."""
+        self.client.force_authenticate(user=self.manager_user)
+
+        response = self.client.get(f"/api/payroll/kpi-periods/manager/{self.period.id}/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["success"], True)
+
+        period_data = data["data"]
+
+        # Verify counts for manager's employees only
+        self.assertEqual(period_data["employee_count"], 2)
+        self.assertEqual(period_data["department_count"], 1)
+        self.assertEqual(period_data["employee_self_assessed_count"], 1)
+        self.assertEqual(period_data["manager_assessed_count"], 0)
+
+    def test_other_manager_sees_different_counts(self):
+        """Test that different managers see different counts."""
+        self.client.force_authenticate(user=self.other_manager_user)
+
+        response = self.client.get(f"/api/payroll/kpi-periods/manager/{self.period.id}/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        period_data = data["data"]
+
+        # Other manager has 1 employee
+        self.assertEqual(period_data["employee_count"], 1)
+        # Other manager has employees from 1 department
+        self.assertEqual(period_data["department_count"], 1)
+        # 1 employee has self-assessed (assessment3)
+        self.assertEqual(period_data["employee_self_assessed_count"], 1)
+        # 1 employee has manager assessment (assessment3)
+        self.assertEqual(period_data["manager_assessed_count"], 1)
+
+    def test_admin_endpoint_shows_all_employees(self):
+        """Test that admin endpoint shows all employees regardless of manager."""
+        self.client.force_authenticate(user=self.admin_user)
+
+        response = self.client.get(f"/api/payroll/kpi-periods/{self.period.id}/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        period_data = data["data"]
+
+        # Admin sees all 3 employees
+        self.assertEqual(period_data["employee_count"], 3)
+        # Admin sees 0 department assessments (we didn't create any DepartmentKPIAssessment)
+        self.assertEqual(period_data["department_count"], 0)
+        # 2 employees have self-assessed
+        self.assertEqual(period_data["employee_self_assessed_count"], 2)
+        # 1 employee has manager assessment
+        self.assertEqual(period_data["manager_assessed_count"], 1)
+
+    def test_manager_without_employee_record_gets_empty_results(self):
+        """Test that user without employee record gets no results."""
+        user_without_employee = User.objects.create_user(
+            username="no_employee",
+            email="no_employee@example.com",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_authenticate(user=user_without_employee)
+
+        response = self.client.get("/api/payroll/kpi-periods/manager/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["data"]["count"], 0)
+
+    def test_manager_assessed_count_includes_grade_manager(self):
+        """Test that manager_assessed_count includes employees with grade_manager set."""
+        # Set grade_manager on assessment1 (no score but has grade)
+        self.assessment1.grade_manager = "B"
+        self.assessment1.save()
+
+        self.client.force_authenticate(user=self.manager_user)
+
+        response = self.client.get(f"/api/payroll/kpi-periods/manager/{self.period.id}/")
+        data = self.get_response_data(response)
+
+        period_data = data["data"]
+
+        # Now 1 employee has manager assessment (grade_manager set)
+        self.assertEqual(period_data["manager_assessed_count"], 1)
+
+    def test_manager_endpoint_response_has_all_fields(self):
+        """Test that manager endpoint response contains all expected fields."""
+        self.client.force_authenticate(user=self.manager_user)
+
+        response = self.client.get(f"/api/payroll/kpi-periods/manager/{self.period.id}/")
+        data = self.get_response_data(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        period_data = data["data"]
+
+        # Verify all expected fields are present
+        expected_fields = [
+            "id",
+            "month",
+            "kpi_config_snapshot",
+            "finalized",
+            "employee_count",
+            "department_count",
+            "employee_self_assessed_count",
+            "manager_assessed_count",
+            "note",
+            "created_at",
+            "updated_at",
+        ]
+
+        for field in expected_fields:
+            self.assertIn(field, period_data, f"Field '{field}' should be in response")
+
+    def test_manager_endpoint_is_read_only(self):
+        """Test that manager endpoint does not allow POST/PUT/DELETE."""
+        self.client.force_authenticate(user=self.manager_user)
+
+        # Test POST not allowed
+        response = self.client.post("/api/payroll/kpi-periods/manager/", {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Test PUT not allowed
+        response = self.client.put(f"/api/payroll/kpi-periods/manager/{self.period.id}/", {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # Test DELETE not allowed
+        response = self.client.delete(f"/api/payroll/kpi-periods/manager/{self.period.id}/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

@@ -53,39 +53,6 @@ class KPIAssessmentPeriodSerializer(serializers.ModelSerializer):
 
     month = serializers.SerializerMethodField()
     kpi_config_snapshot = KPIConfigSchemaReadOnlySerializer(read_only=True)
-
-    class Meta:
-        model = KPIAssessmentPeriod
-        fields = [
-            "id",
-            "month",
-            "kpi_config_snapshot",
-            "finalized",
-            "created_by",
-            "updated_by",
-            "note",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = [
-            "id",
-            "kpi_config_snapshot",
-            "created_by",
-            "updated_by",
-            "created_at",
-            "updated_at",
-        ]
-
-    def get_month(self, obj):
-        """Return month in n/YYYY format (month without leading zero)."""
-        return obj.month.strftime("%-m/%Y")
-
-
-class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
-    """List serializer for KPIAssessmentPeriod model."""
-
-    month = serializers.SerializerMethodField()
-    kpi_config_snapshot = KPIConfigSchemaReadOnlySerializer(read_only=True)
     employee_count = serializers.SerializerMethodField()
     department_count = serializers.SerializerMethodField()
     employee_self_assessed_count = serializers.SerializerMethodField()
@@ -102,13 +69,17 @@ class KPIAssessmentPeriodListSerializer(serializers.ModelSerializer):
             "department_count",
             "employee_self_assessed_count",
             "manager_assessed_count",
+            "created_by",
+            "updated_by",
             "note",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
-            "month",
+            "kpi_config_snapshot",
+            "created_by",
+            "updated_by",
             "created_at",
             "updated_at",
         ]

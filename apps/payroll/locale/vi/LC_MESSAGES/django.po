@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 10:02+0700\n"
+"POT-Creation-Date: 2025-12-30 11:10+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -190,31 +190,31 @@ msgstr "Trường này là bắt buộc"
 msgid "Amount must be greater than 0"
 msgstr "Số tiền phải lớn hơn 0"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:358
+#: apps/payroll/api/views/kpi_assessment_period.py:354
 msgid "Month parameter is required"
 msgstr "Trường này là bắt buộc"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:368
+#: apps/payroll/api/views/kpi_assessment_period.py:364
 msgid "Invalid month format. Use YYYY-MM (e.g., 2025-12)"
 msgstr "Định dạng tháng không hợp lệ. Sử dụng YYYY-MM (ví dụ: 2025-12)"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:377
+#: apps/payroll/api/views/kpi_assessment_period.py:373
 msgid "Cannot create assessment period for future months"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:392
+#: apps/payroll/api/views/kpi_assessment_period.py:388
 msgid "No KPI configuration found. Please create one first."
 msgstr "Không tìm thấy cấu hình KPI. Vui lòng tạo một cấu hình trước."
 
-#: apps/payroll/api/views/kpi_assessment_period.py:413
+#: apps/payroll/api/views/kpi_assessment_period.py:409
 msgid "Assessment generation completed successfully"
 msgstr ""
 
-#: apps/payroll/api/views/kpi_assessment_period.py:429
+#: apps/payroll/api/views/kpi_assessment_period.py:425
 msgid "Period is already finalized"
 msgstr "Kỳ đánh giá đã được hoàn tất"
 
-#: apps/payroll/api/views/kpi_assessment_period.py:491
+#: apps/payroll/api/views/kpi_assessment_period.py:487
 msgid "Period finalized successfully"
 msgstr "Hoàn tất kỳ đánh giá thành công"
 
@@ -222,8 +222,8 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
-#: apps/payroll/api/views/salary_period.py:465
-#: apps/payroll/api/views/salary_period.py:602
+#: apps/payroll/api/views/salary_period.py:661
+#: apps/payroll/api/views/salary_period.py:798
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
@@ -293,24 +293,24 @@ msgstr "Cấu hình"
 msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
-#: apps/payroll/api/views/salary_period.py:466
-#: apps/payroll/api/views/salary_period.py:603
+#: apps/payroll/api/views/salary_period.py:662
+#: apps/payroll/api/views/salary_period.py:799
 msgid "Salary Periods"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:472
+#: apps/payroll/api/views/salary_period.py:668
 msgid "View Ready Payroll Slips"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:473
+#: apps/payroll/api/views/salary_period.py:669
 msgid "View ready payroll slips"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:609
+#: apps/payroll/api/views/salary_period.py:805
 msgid "View Not-Ready Payroll Slips"
 msgstr ""
 
-#: apps/payroll/api/views/salary_period.py:610
+#: apps/payroll/api/views/salary_period.py:806
 msgid "View not-ready payroll slips"
 msgstr ""
 

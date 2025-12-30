@@ -15,13 +15,15 @@ from apps.core.api.permissions import RoleBasedPermission
 from apps.payroll.api.serializers import (
     PayrollSlipListSerializer,
     SalaryPeriodCreateAsyncSerializer,
+    SalaryPeriodCreateResponseSerializer,
     SalaryPeriodListSerializer,
+    SalaryPeriodRecalculateResponseSerializer,
     SalaryPeriodSerializer,
     SalaryPeriodUpdateDeadlinesSerializer,
     TaskStatusSerializer,
 )
 from apps.payroll.models import PayrollSlip, SalaryPeriod
-from libs import BaseReadOnlyModelViewSet
+from libs import BaseModelViewSet
 from libs.drf.base_api_view import PermissionedAPIView
 from libs.drf.filtersets.search import PhraseSearchFilter
 from libs.drf.pagination import PageNumberWithSizePagination
@@ -108,8 +110,176 @@ from libs.drf.pagination import PageNumberWithSizePagination
             ),
         ],
     ),
+    create=extend_schema(
+        summary="Create new salary period",
+        description="Create a new salary period for a specific month. This operation runs asynchronously and generates payroll slips for all employees.",
+        tags=["10.6: Salary Periods"],
+        request=SalaryPeriodCreateAsyncSerializer,
+        responses={
+            202: SalaryPeriodCreateResponseSerializer,
+            400: {
+                "type": "object",
+                "properties": {
+                    "month": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    }
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Request - Create period",
+                value={
+                    "month": "1/2025",
+                    "proposal_deadline": "2025-02-02",
+                    "kpi_assessment_deadline": "2025-02-05",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success - Period creation started",
+                value={
+                    "success": True,
+                    "data": {
+                        "task_id": "abc123-def456-ghi789",
+                        "status": "Task created",
+                        "message": "Salary period creation started. Use task_status endpoint to check progress.",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["202"],
+            ),
+            OpenApiExample(
+                "Error - Period already exists",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"month": ["Salary period already exists for this month"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - Previous period not completed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"month": ["Previous period 12/2024 is not completed yet"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+            OpenApiExample(
+                "Error - Invalid month format",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {"month": ["Invalid month format. Use n/YYYY (e.g., 1/2025, 12/2025)"]},
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
+    partial_update=extend_schema(
+        summary="Update salary period deadlines",
+        description="Update proposal deadline and/or KPI assessment deadline for a salary period. Only these fields can be modified.",
+        tags=["10.6: Salary Periods"],
+        request=SalaryPeriodUpdateDeadlinesSerializer,
+        responses={
+            200: SalaryPeriodSerializer,
+            400: {
+                "type": "object",
+                "properties": {
+                    "proposal_deadline": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "kpi_assessment_deadline": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Request - Update both deadlines",
+                value={
+                    "proposal_deadline": "2025-02-05",
+                    "kpi_assessment_deadline": "2025-02-10",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Request - Update proposal deadline only",
+                value={
+                    "proposal_deadline": "2025-02-03",
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Request - Clear deadline",
+                value={
+                    "proposal_deadline": None,
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                "Success - Deadlines updated",
+                value={
+                    "success": True,
+                    "data": {
+                        "id": 1,
+                        "code": "SP-202501",
+                        "month": "1/2025",
+                        "salary_config_snapshot": {},
+                        "status": "ONGOING",
+                        "standard_working_days": "23.00",
+                        "total_employees": 50,
+                        "pending_count": 5,
+                        "ready_count": 40,
+                        "hold_count": 3,
+                        "delivered_count": 2,
+                        "total_gross_income": 5000000000,
+                        "total_net_salary": 3800000000,
+                        "proposal_deadline": "2025-02-05",
+                        "kpi_assessment_deadline": "2025-02-10",
+                        "employees_need_recovery": 0,
+                        "employees_with_penalties": 0,
+                        "employees_paid_penalties": 0,
+                        "employees_with_travel": 0,
+                        "employees_need_email": 0,
+                        "completed_at": None,
+                        "completed_by": None,
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-15T10:30:00Z",
+                        "created_by": None,
+                        "updated_by": None,
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+            OpenApiExample(
+                "Error - Invalid date format",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": {
+                        "proposal_deadline": ["Date has wrong format. Use one of these formats instead: YYYY-MM-DD."]
+                    },
+                },
+                response_only=True,
+                status_codes=["400"],
+            ),
+        ],
+    ),
 )
-class SalaryPeriodViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for managing salary periods.
 
     Provides CRUD operations and custom actions for salary period management:
@@ -139,6 +309,8 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     submodule = "Salary Periods"
     permission_prefix = "salary_period"
 
+    http_method_names = ["get", "post", "patch"]
+
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
         if self.action == "list":
@@ -153,18 +325,42 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     @extend_schema(
         summary="Recalculate all payroll slips",
-        description="Trigger recalculation for all payroll slips in this period",
+        description="Trigger recalculation for all payroll slips in this period. This operation runs asynchronously.",
         tags=["10.6: Salary Periods"],
+        request=None,
+        responses={
+            202: SalaryPeriodRecalculateResponseSerializer,
+            400: {
+                "type": "object",
+                "properties": {
+                    "error": {"type": "string"},
+                },
+            },
+        },
         examples=[
             OpenApiExample(
                 "Success - Recalculation started",
                 value={
                     "success": True,
-                    "data": {"message": "Recalculation started for 50 payroll slips"},
+                    "data": {
+                        "task_id": "xyz789-abc123-def456",
+                        "status": "Task created",
+                        "message": "Salary period recalculation started. Use task_status endpoint to check progress.",
+                    },
                     "error": None,
                 },
                 response_only=True,
-                status_codes=["200"],
+                status_codes=["202"],
+            ),
+            OpenApiExample(
+                "Error - Period already completed",
+                value={
+                    "success": False,
+                    "data": None,
+                    "error": "Cannot recalculate completed salary period",
+                },
+                response_only=True,
+                status_codes=["400"],
             ),
         ],
     )

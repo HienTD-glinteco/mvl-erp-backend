@@ -7,6 +7,7 @@ from apps.payroll.api.views import (
     DepartmentKPIAssessmentViewSet,
     EmployeeKPIAssessmentViewSet,
     EmployeeSelfAssessmentViewSet,
+    KPIAssessmentPeriodManagerViewSet,
     KPIAssessmentPeriodViewSet,
     KPICriterionViewSet,
     ManagerAssessmentViewSet,
@@ -24,6 +25,7 @@ app_name = "payroll"
 
 router = DefaultRouter()
 router.register(r"kpi-criteria", KPICriterionViewSet, basename="kpi-criteria")
+router.register(r"kpi-periods/manager", KPIAssessmentPeriodManagerViewSet, basename="kpi-periods-manager")
 router.register(r"kpi-periods", KPIAssessmentPeriodViewSet, basename="kpi-periods")
 router.register(r"kpi-assessments/employees", EmployeeKPIAssessmentViewSet, basename="kpi-assessments")
 router.register(r"kpi-assessments/departments", DepartmentKPIAssessmentViewSet, basename="kpi-department-assessments")
