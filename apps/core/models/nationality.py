@@ -18,7 +18,6 @@ class Nationality(BaseModel):
         verbose_name = "Nationality"
         verbose_name_plural = "Nationalities"
         db_table = "core_nationality"
-        ordering = ["name"]
 
     def __str__(self):
         return self.name
