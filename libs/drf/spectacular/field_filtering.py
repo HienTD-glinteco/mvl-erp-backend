@@ -25,7 +25,51 @@ class EnhancedAutoSchema(AutoSchema):
     Currently supported features:
     - Field filtering via FieldFilteringSerializerMixin
     - Filterset parameters for ExportXLSXMixin's export action
+    - Automatic x-permissions via PermissionSchemaMixin
     """
+
+    def get_operation(self, path, path_regex, path_prefix, method, registry):
+        """
+        Override to add x-permissions extension and permission info to description.
+
+        This method calls get_schema_operation_extensions() on the view if available
+        and merges the returned extensions into the operation schema. It also appends
+        permission requirements to the operation description.
+        """
+        operation = super().get_operation(path, path_regex, path_prefix, method, registry)
+
+        # Skip if operation is None (can happen for excluded endpoints)
+        if operation is None:
+            return operation
+
+        # Ensure action is available for schema generation (APIView support)
+        if not getattr(self.view, "action", None) and hasattr(self.view, "get_schema_action"):
+            schema_action = self.view.get_schema_action(method)
+            if schema_action:
+                self.view.action = schema_action
+
+        # Get extensions from the view if it implements get_schema_operation_extensions
+        view = self.view
+        if hasattr(view, "get_schema_operation_extensions"):
+            view_extensions = view.get_schema_operation_extensions()
+            if view_extensions:
+                # Merge with existing extensions, view extensions take precedence
+                # unless x-permissions is already set via @extend_schema
+                existing_extensions = operation.get("extensions", {}) or {}
+                for key, value in view_extensions.items():
+                    if key not in existing_extensions:
+                        if "extensions" not in operation:
+                            operation["extensions"] = {}
+                        operation["extensions"][key] = value
+
+                # Append permission info to description
+                permissions = view_extensions.get("x-permissions", [])
+                if permissions:
+                    permission_text = f"\n\n**Require permission:** `{permissions[0]}`"
+                    current_description = operation.get("description", "") or ""
+                    operation["description"] = current_description + permission_text
+
+        return operation
 
     def get_override_parameters(self):
         """

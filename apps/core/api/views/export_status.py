@@ -7,20 +7,30 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.core.api.permissions import RoleBasedPermission
-from apps.core.utils.permissions import register_permission
+from libs.drf.base_api_view import PermissionedAPIView
 from libs.export_xlsx.progress import get_progress
 from libs.export_xlsx.serializers import ExportStatusResponseSerializer
 
 
-class ExportStatusView(APIView):
+class ExportStatusView(PermissionedAPIView):
     """
     API view to check the status of an async export task with progress information.
     """
 
     permission_classes = [RoleBasedPermission]
+    permission_prefix = "export"
+    module = _("Core")
+    submodule = _("Export Status")
+    permission_action_map = {"get": "check_status"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "check_status": {
+            "name_template": _("Check export status"),
+            "description_template": _("Check export status"),
+        }
+    }
 
     @extend_schema(
         summary="Check export task status",
@@ -40,14 +50,10 @@ class ExportStatusView(APIView):
         },
         tags=["0.2: Export"],
     )
-    @register_permission(
-        "export.check_status",
-        description=_("Check export status"),
-        module=_("Core"),
-        submodule=_("Export Status"),
-        name=_("Export status"),
-    )
     def get(self, request):
+        return self.check_status(request)
+
+    def check_status(self, request):
         """
         Check export task status with progress information.
 

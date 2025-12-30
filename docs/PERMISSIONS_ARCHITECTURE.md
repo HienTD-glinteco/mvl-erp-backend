@@ -2,6 +2,8 @@
 
 ## System Overview
 
+> **Note (2025-12):** The architecture now relies on `PermissionRegistrationMixin` (e.g., `BaseModelViewSet`, `PermissionedAPIView`) instead of the legacy `@register_permission` decorator. The diagrams below retain the decorator flow for historical context.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Role-Based Permission System                  │

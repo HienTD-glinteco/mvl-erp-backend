@@ -4,18 +4,17 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.core.api.permissions import RoleBasedPermission
-from apps.core.utils.permissions import register_permission
 from apps.imports.constants import ERROR_TASK_ID_REQUIRED
 from apps.imports.models import ImportJob
 from apps.imports.progress import get_import_progress
+from libs.drf.base_api_view import PermissionedAPIView
 
 from .serializers import ImportJobSerializer
 
 
-class ImportStatusView(APIView):
+class ImportStatusView(PermissionedAPIView):
     """
     API view to check the status of an async import task with progress information.
 
@@ -23,6 +22,17 @@ class ImportStatusView(APIView):
     """
 
     permission_classes = [RoleBasedPermission]
+    permission_prefix = "import"
+    module = _("Imports")
+    submodule = _("Status")
+    permission_action_map = {"get": "check_status"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "check_status": {
+            "name_template": _("Check import status"),
+            "description_template": _("Check import status"),
+        }
+    }
     serializer_class = ImportJobSerializer
 
     @extend_schema(
@@ -47,14 +57,10 @@ class ImportStatusView(APIView):
         },
         tags=["0.3: Import"],
     )
-    @register_permission(
-        "import.check_status",
-        description=_("Check import status"),
-        module=_("Imports"),
-        submodule=_("Status"),
-        name=_("Import Check Status"),
-    )
     def get(self, request):
+        return self.check_status(request)
+
+    def check_status(self, request):
         """
         Check import task status with progress information.
 

@@ -9,10 +9,8 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.core.api.permissions import RoleBasedPermission
-from apps.core.utils.permissions import register_permission
 from apps.files.api.serializers import (
     ConfirmMultipleFilesResponseSerializer,
     ConfirmMultipleFilesSerializer,
@@ -35,6 +33,7 @@ from apps.files.constants import (
 )
 from apps.files.models import FileModel
 from apps.files.utils import S3FileUploadService
+from libs.drf.base_api_view import PermissionedAPIView
 
 
 @extend_schema(
@@ -81,7 +80,7 @@ from apps.files.utils import S3FileUploadService
         ),
     ],
 )
-class PresignURLView(APIView):
+class PresignURLView(PermissionedAPIView):
     """
     Generate presigned URL for direct S3 upload.
 
@@ -91,15 +90,22 @@ class PresignURLView(APIView):
     """
 
     permission_classes = [RoleBasedPermission]
+    permission_prefix = "files"
+    module = _("Files")
+    submodule = _("Presign")
+    permission_action_map = {"post": "presign_url"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "presign_url": {
+            "name_template": _("Generate presigned URL"),
+            "description_template": _("Generate presigned URL"),
+        }
+    }
 
-    @register_permission(
-        "files.presign_url",
-        description=_("Generate presigned URL"),
-        module=_("Files"),
-        submodule=_("Presign"),
-        name=_("Generate presigned URL"),
-    )
     def post(self, request):
+        return self.presign_url(request)
+
+    def presign_url(self, request):
         """Generate presigned URL for file upload."""
         serializer = PresignRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -249,7 +255,7 @@ class PresignURLView(APIView):
         ),
     ],
 )
-class ConfirmMultipleFilesView(APIView):
+class ConfirmMultipleFilesView(PermissionedAPIView):
     """
     Confirm multiple file uploads in a single transaction.
 
@@ -259,15 +265,22 @@ class ConfirmMultipleFilesView(APIView):
     """
 
     permission_classes = [RoleBasedPermission]
+    permission_prefix = "files"
+    module = _("Files")
+    submodule = _("Confirm")
+    permission_action_map = {"post": "confirm_multiple_files"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "confirm_multiple_files": {
+            "name_template": _("Confirm multiple files"),
+            "description_template": _("Confirm multiple files"),
+        }
+    }
 
-    @register_permission(
-        "files.confirm_multiple_files",
-        description=_("Confirm multiple files"),
-        module=_("Files"),
-        submodule=_("Confirm"),
-        name=_("Confirm multiple files"),
-    )
     def post(self, request):  # noqa: C901
+        return self.confirm_multiple_files(request)
+
+    def confirm_multiple_files(self, request):  # noqa: C901
         """Confirm multiple file uploads and create FileModel records."""
         serializer = ConfirmMultipleFilesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
