@@ -4,6 +4,8 @@
 
 This document describes the role-based permission system implemented for the MaiVietLand backend. The system provides a flexible, decorator-based approach to managing API permissions through roles and permissions.
 
+> **Note (2025-12):** The legacy `@register_permission` decorator has been removed. New endpoints should inherit from `PermissionRegistrationMixin`-based classes (e.g., `BaseModelViewSet`, `PermissionedAPIView`) and define `permission_prefix` plus `permission_action_map`.
+
 ## Architecture
 
 ### Database Schema
@@ -37,7 +39,7 @@ User.has_permission(code) -> checks through all assigned roles
 
 ### Components
 
-#### 1. @register_permission Decorator (`apps/core/utils/permissions.py`)
+#### 1. Legacy @register_permission Decorator (removed)
 
 **Purpose**: Mark views with permission requirements
 

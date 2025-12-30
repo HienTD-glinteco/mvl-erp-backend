@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 00:56+0700\n"
+"POT-Creation-Date: 2025-12-30 08:09+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -32,11 +32,11 @@ msgstr "Khoá token đã được thu hồi."
 msgid "Web access is not allowed for this role."
 msgstr "Truy cập web không được phép cho vai trò này."
 
-#: apps/core/api/permissions.py:51
+#: apps/core/api/permissions.py:29
 msgid "You need to login to perform this action"
 msgstr "Bạn cần đăng nhập để thực hiện hành động này."
 
-#: apps/core/api/permissions.py:62
+#: apps/core/api/permissions.py:40
 msgid "You do not have permission to perform this action"
 msgstr "Bạn không có quyền thực hiện hành động này"
 
@@ -334,7 +334,7 @@ msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
 #: apps/core/api/views/administrative_unit.py:102
-#: apps/core/api/views/export_status.py:46 apps/core/api/views/role.py:314
+#: apps/core/api/views/export_status.py:24 apps/core/api/views/role.py:314
 msgid "Core"
 msgstr "Hệ thống "
 
@@ -485,19 +485,16 @@ msgstr ""
 msgid "Valid OTP code. JWT issued for password change."
 msgstr "Mã OTP hợp lệ. Đã cấp JWT để bạn đổi mật khẩu."
 
-#: apps/core/api/views/export_status.py:45
-msgid "Check export status"
-msgstr "Quyền xem trạng thái xuất dữ liệu"
-
-#: apps/core/api/views/export_status.py:47
+#: apps/core/api/views/export_status.py:25
 msgid "Export Status"
 msgstr "Trạng thái xuất dữ liệu"
 
-#: apps/core/api/views/export_status.py:48
-msgid "Export status"
-msgstr "Trạng thái xuất dữ liệu"
+#: apps/core/api/views/export_status.py:30
+#: apps/core/api/views/export_status.py:31
+msgid "Check export status"
+msgstr "Quyền xem trạng thái xuất dữ liệu"
 
-#: apps/core/api/views/export_status.py:72
+#: apps/core/api/views/export_status.py:78
 msgid "task_id parameter is required"
 msgstr "Tham số task_id là bắt buộc"
 

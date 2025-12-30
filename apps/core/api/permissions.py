@@ -8,39 +8,17 @@ class RoleBasedPermission(BasePermission):
     Permission class that checks if a user has the required permission
     based on their assigned roles.
 
-    This class works in conjunction with the @register_permission decorator.
-    It reads the permission_code metadata attached to the view and verifies
-    if the user has access through their roles.
-
-    Usage:
-        @api_view(["GET"])
-        @permission_classes([RoleBasedPermission])
-        @register_permission("document.list", _("View document list"))
-        def document_list(request):
-            return Response({"ok": True})
+    This permission class expects views to define `permission_prefix` and set
+    `self.action` (automatically handled by BaseModelViewSet, PermissionedAPIView,
+    and other classes that inherit PermissionRegistrationMixin).
     """
 
     def has_permission(self, request, view):
-        # Get permission code from view metadata
-        # For function-based views, check the view itself
-        # For class-based views, check the specific method handler
+        """Verify that the authenticated user has the required permission."""
         permission_code = None
 
-        # For ViewSets with PermissionRegistrationMixin - check permission_prefix and action
-        if hasattr(view, "permission_prefix") and hasattr(view, "action"):
-            if view.permission_prefix and view.action:
-                permission_code = f"{view.permission_prefix}.{view.action}"
-        # For function-based views - check the view function directly first
-        elif hasattr(view, "_permission_code"):
-            permission_code = view._permission_code
-        # For function-based views wrapped by @api_view decorator
-        # Check cls attribute (DRF wraps FBV in APIView.as_view())
-        elif hasattr(view, "cls") and hasattr(view.cls, "_permission_code"):
-            permission_code = view.cls._permission_code
-        # For class-based views - check the method handler
-        elif hasattr(view, request.method.lower()):
-            method_handler = getattr(view, request.method.lower())
-            permission_code = getattr(method_handler, "_permission_code", None)
+        if getattr(view, "permission_prefix", None) and getattr(view, "action", None):
+            permission_code = f"{view.permission_prefix}.{view.action}"
 
         # If no permission code is set, allow access (view doesn't require permission)
         if not permission_code:

@@ -105,7 +105,7 @@ class EmailTemplateActionMixin:
         obj = self.get_object()  # type: ignore[attr-defined]
         use_real = request.query_params.get("use_real", "0") == "1"
 
-        # Permission for preview is handled at the view level via @register_permission
+        # Permission for preview is handled at the view level via PermissionRegistrationMixin
 
         serializer = TemplatePreviewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

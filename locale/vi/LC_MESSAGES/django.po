@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 01:29+0700\n"
+"POT-Creation-Date: 2025-12-30 08:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,26 +90,27 @@ msgstr "Cần phải là chuỗi hoặc danh sách chuỗi."
 msgid "All items must be strings."
 msgstr "Tất cả mục phải là chuỗi."
 
-#: apps/files/api/views/file_views.py:97 apps/files/api/views/file_views.py:100
-msgid "Generate presigned URL"
-msgstr "Tạo URL ký trước"
-
-#: apps/files/api/views/file_views.py:98 apps/files/api/views/file_views.py:266
+#: apps/files/api/views/file_views.py:94 apps/files/api/views/file_views.py:269
 msgid "Files"
 msgstr "Tệp tin"
 
-#: apps/files/api/views/file_views.py:99
+#: apps/files/api/views/file_views.py:95
 msgid "Presign"
 msgstr "Ký trước"
 
-#: apps/files/api/views/file_views.py:265
-#: apps/files/api/views/file_views.py:268
-msgid "Confirm multiple files"
-msgstr "Xác nhận nhiều tệp tin"
+#: apps/files/api/views/file_views.py:100
+#: apps/files/api/views/file_views.py:101
+msgid "Generate presigned URL"
+msgstr "Tạo URL ký trước"
 
-#: apps/files/api/views/file_views.py:267
+#: apps/files/api/views/file_views.py:270
 msgid "Confirm"
 msgstr "Xác nhận"
+
+#: apps/files/api/views/file_views.py:275
+#: apps/files/api/views/file_views.py:276
+msgid "Confirm multiple files"
+msgstr "Xác nhận nhiều tệp tin"
 
 #: apps/files/utils/s3_utils.py:93
 #, python-brace-format
@@ -135,7 +136,7 @@ msgstr "Lỗi khi tạo URL GET ký trước: {error}"
 msgid "File not found"
 msgstr "Tệp tin không tồn tại"
 
-#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:100
+#: apps/imports/api/mixins.py:293 apps/imports/api/views.py:106
 msgid "Import job not found"
 msgstr "Job nhập dữ liệu không tồn tại"
 
@@ -180,21 +181,17 @@ msgstr "output_format phải là một trong các giá trị: %(formats)s"
 msgid "Unknown field"
 msgstr "Trường thông tin không xác định"
 
-#: apps/imports/api/views.py:52
-msgid "Check import status"
-msgstr "Kiểm tra trạng thái nhập dữ liệu"
-
-#: apps/imports/api/views.py:53
+#: apps/imports/api/views.py:26
 msgid "Imports"
 msgstr ""
 
-#: apps/imports/api/views.py:54
+#: apps/imports/api/views.py:27
 msgid "Status"
 msgstr "Trạng thái"
 
-#: apps/imports/api/views.py:55
-msgid "Import Check Status"
-msgstr "Quyền kiểm tra trạng thái nhập dữ liệu"
+#: apps/imports/api/views.py:32 apps/imports/api/views.py:33
+msgid "Check import status"
+msgstr "Kiểm tra trạng thái nhập dữ liệu"
 
 #: apps/mailtemplates/models.py:20 apps/mailtemplates/models.py:122
 msgid "Pending"
@@ -316,6 +313,66 @@ msgstr "Đang hoạt động"
 #: apps/realestate/models/project.py:18
 msgid "Inactive"
 msgstr "Không hoạt động"
+
+#: libs/drf/base_api_view.py:45
+#, fuzzy, python-brace-format
+#| msgid "Export {model_name}"
+msgid "GET {model_name}"
+msgstr "Quyền xuất {model_name}"
+
+#: libs/drf/base_api_view.py:46
+#, fuzzy, python-brace-format
+#| msgid "View history of {model_name}"
+msgid "Perform GET on {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_api_view.py:49
+#, fuzzy, python-brace-format
+#| msgid "List {model_name}"
+msgid "POST {model_name}"
+msgstr "Danh sách {model_name}"
+
+#: libs/drf/base_api_view.py:50
+#, fuzzy, python-brace-format
+#| msgid "View history of {model_name}"
+msgid "Perform POST on {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_api_view.py:53
+#, fuzzy, python-brace-format
+#| msgid "Update {model_name}"
+msgid "PUT {model_name}"
+msgstr "Quyền cập nhật {model_name}"
+
+#: libs/drf/base_api_view.py:54
+#, fuzzy, python-brace-format
+#| msgid "View history of {model_name}"
+msgid "Perform PUT on {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_api_view.py:57
+#, fuzzy, python-brace-format
+#| msgid "Create {model_name}"
+msgid "PATCH {model_name}"
+msgstr "Quyền tạo {model_name}"
+
+#: libs/drf/base_api_view.py:58
+#, fuzzy, python-brace-format
+#| msgid "View history of {model_name}"
+msgid "Perform PATCH on {model_name}"
+msgstr "Xem lịch sử {model_name}"
+
+#: libs/drf/base_api_view.py:61
+#, fuzzy, python-brace-format
+#| msgid "List {model_name}"
+msgid "DELETE {model_name}"
+msgstr "Danh sách {model_name}"
+
+#: libs/drf/base_api_view.py:62
+#, fuzzy, python-brace-format
+#| msgid "View history of {model_name}"
+msgid "Perform DELETE on {model_name}"
+msgstr "Xem lịch sử {model_name}"
 
 #: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:27
 #, python-brace-format

@@ -3,6 +3,8 @@
 ## Overview
 This system provides a flexible, role-based permission mechanism for Django REST Framework views.
 
+> **Note (2025-12):** The legacy `@register_permission` decorator has been removed. Use `PermissionRegistrationMixin`-based classes (e.g., `BaseModelViewSet`, `PermissionedAPIView`) to define permissions declaratively.
+
 ## Components
 
 ### 1. Models

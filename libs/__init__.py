@@ -4,6 +4,7 @@ from .code_generation import (
     register_auto_code_signal,
 )
 from .constants import ColorVariant
+from .drf.base_api_view import PermissionedAPIView
 from .drf.base_viewset import BaseModelViewSet, BaseReadOnlyModelViewSet
 from .drf.pagination import PageNumberWithSizePagination
 from .drf.serializers import ColoredValueSerializer
@@ -31,6 +32,7 @@ __all__ = [
     "create_dummy_model",
     "BaseModelViewSet",
     "BaseReadOnlyModelViewSet",
+    "PermissionedAPIView",
     "PageNumberWithSizePagination",
     "ExportXLSXMixin",
     "ExportDocumentMixin",

@@ -2,21 +2,31 @@ from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.core.api.permissions import RoleBasedPermission
-from apps.core.utils.permissions import register_permission
 from apps.payroll.api.serializers import KPIConfigSerializer
 from apps.payroll.models import KPIConfig
+from libs.drf.base_api_view import PermissionedAPIView
 
 
-class CurrentKPIConfigView(APIView):
+class CurrentKPIConfigView(PermissionedAPIView):
     """API view to retrieve the current KPI configuration.
 
     This endpoint is read-only. Configuration editing is done through Django Admin.
     """
 
     permission_classes = [RoleBasedPermission]
+    permission_prefix = "payroll"
+    module = _("Payroll")
+    submodule = _("KPI Configuration")
+    permission_action_map = {"get": "kpi_config"}
+    STANDARD_ACTIONS = {}
+    PERMISSION_REGISTERED_ACTIONS = {
+        "kpi_config": {
+            "name_template": _("View KPI configuration"),
+            "description_template": _("View KPI configuration"),
+        }
+    }
 
     @extend_schema(
         summary="Get current KPI configuration",
@@ -94,14 +104,10 @@ class CurrentKPIConfigView(APIView):
             ),
         ],
     )
-    @register_permission(
-        "payroll.kpi_config",
-        _("View KPI configuration"),
-        "Payroll",
-        "KPI Configuration",
-        _("KPI View KPI Configuration"),
-    )
     def get(self, request):
+        return self.kpi_config(request)
+
+    def kpi_config(self, request):
         """Get the current KPI configuration."""
         config = KPIConfig.objects.first()
 

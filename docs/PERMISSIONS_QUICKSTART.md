@@ -2,6 +2,8 @@
 
 ## 🚀 5-Minute Quick Start
 
+> **Note (2025-12):** The examples below reference the legacy `@register_permission` decorator. New code must inherit from `PermissionRegistrationMixin`-based classes (e.g., `BaseModelViewSet`, `PermissionedAPIView`) and define `permission_prefix` plus `permission_action_map`.
+
 ### 1. Define a Protected View
 
 ```python

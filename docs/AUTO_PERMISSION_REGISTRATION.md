@@ -4,6 +4,8 @@
 
 This document describes the automatic permission registration system that eliminates the need for manual `@register_permission` decorators on ViewSet methods.
 
+> **Note (2025-12):** The same mechanism now powers standalone endpoints through `PermissionedAPIView`. The legacy decorator-based flow is deprecated.
+
 The system automatically generates permission metadata for every `BaseModelViewSet` and `BaseReadOnlyModelViewSet` subclass, which are then collected and synced to the database by the `collect_permissions` management command.
 
 ## System Architecture Diagram

@@ -42,6 +42,12 @@ class EnhancedAutoSchema(AutoSchema):
         if operation is None:
             return operation
 
+        # Ensure action is available for schema generation (APIView support)
+        if not getattr(self.view, "action", None) and hasattr(self.view, "get_schema_action"):
+            schema_action = self.view.get_schema_action(method)
+            if schema_action:
+                self.view.action = schema_action
+
         # Get extensions from the view if it implements get_schema_operation_extensions
         view = self.view
         if hasattr(view, "get_schema_operation_extensions"):

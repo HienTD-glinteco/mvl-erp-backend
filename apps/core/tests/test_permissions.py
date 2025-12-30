@@ -5,14 +5,12 @@ from django.core.management import call_command
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APIRequestFactory
-from rest_framework.views import APIView
 
 from apps.core.api.permissions import RoleBasedPermission
 from apps.core.models import Permission, Role, User
-from apps.core.utils import register_permission
+from libs.drf.base_api_view import PermissionedAPIView
 
 
 class PermissionModelTestCase(TestCase):
@@ -160,66 +158,6 @@ class UserPermissionTestCase(TestCase):
         self.assertTrue(self.user.has_permission("document.delete"))
 
 
-class RegisterPermissionDecoratorTestCase(TestCase):
-    """Test @register_permission decorator"""
-
-    def test_decorator_attaches_metadata_to_function(self):
-        # Arrange & Act
-        @register_permission("test.permission", "Test Permission")
-        def test_view(request):
-            return Response({"ok": True})
-
-        # Assert
-        self.assertEqual(test_view._permission_code, "test.permission")
-        self.assertEqual(test_view._permission_description, "Test Permission")
-
-    def test_decorator_with_module_and_submodule(self):
-        # Arrange & Act
-        @register_permission("test.permission", "Test Permission", module="Test Module", submodule="Test Submodule")
-        def test_view(request):
-            return Response({"ok": True})
-
-        # Assert
-        self.assertEqual(test_view._permission_code, "test.permission")
-        self.assertEqual(test_view._permission_description, "Test Permission")
-        self.assertEqual(test_view._permission_module, "Test Module")
-        self.assertEqual(test_view._permission_submodule, "Test Submodule")
-
-    def test_decorator_with_name(self):
-        # Arrange & Act
-        @register_permission("test.permission", "Test Permission", name="Test Permission Name")
-        def test_view(request):
-            return Response({"ok": True})
-
-        # Assert
-        self.assertEqual(test_view._permission_code, "test.permission")
-        self.assertEqual(test_view._permission_description, "Test Permission")
-        self.assertEqual(test_view._permission_name, "Test Permission Name")
-
-    def test_decorator_on_class_method(self):
-        # Arrange & Act
-        class TestView(APIView):
-            @register_permission("test.get", "Test GET")
-            def get(self, request):
-                return Response({"ok": True})
-
-        # Assert
-        self.assertEqual(TestView.get._permission_code, "test.get")
-        self.assertEqual(TestView.get._permission_description, "Test GET")
-
-    def test_decorated_function_still_callable(self):
-        # Arrange
-        @register_permission("test.permission", "Test Permission")
-        def test_view():
-            return "success"
-
-        # Act
-        result = test_view()
-
-        # Assert
-        self.assertEqual(result, "success")
-
-
 class RoleBasedPermissionTestCase(TestCase):
     """Test RoleBasedPermission class"""
 
@@ -232,78 +170,83 @@ class RoleBasedPermissionTestCase(TestCase):
             password="testpass123",
         )
         self.permission = Permission.objects.create(
-            code="test.view",
+            code="test.access",
             description="Test View Permission",
         )
         self.role = Role.objects.create(code="VT006", name="Tester")
         self.role.permissions.add(self.permission)
+
+    class PermissionedTestView(PermissionedAPIView):
+        permission_classes = [RoleBasedPermission]
+        permission_prefix = "test"
+        module = "Test"
+        submodule = "View"
+        permission_action_map = {"get": "access"}
+        STANDARD_ACTIONS = {}
+        PERMISSION_REGISTERED_ACTIONS = {
+            "access": {
+                "name_template": "Access test resource",
+                "description_template": "Access test resource",
+            }
+        }
+
+        def get(self, request):
+            return self.access(request)
+
+        def access(self, request):
+            return Response({"ok": True})
+
+    def _get_view(self):
+        return self.PermissionedTestView.as_view()
 
     def test_permission_allowed_for_user_with_role(self):
         # Arrange
         self.user.role = self.role
         self.user.save()
 
-        @register_permission("test.view", "Test View Permission")
-        @api_view(["GET"])
-        @permission_classes([RoleBasedPermission])
-        def test_view(request):
-            return Response({"ok": True})
-
         request = self.factory.get("/test/")
-        # Force authentication is required for APIRequestFactory
         from rest_framework.test import force_authenticate
 
         force_authenticate(request, user=self.user)
 
+        view = self._get_view()
+
         # Act
-        response = test_view(request)
+        response = view(request)
 
         # Assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_permission_denied_for_user_without_role(self):
         # Arrange
-        # Create a view function with permission decorator
-        def raw_view(request):
-            return Response({"ok": True})
-
-        # Apply decorators
-        test_view = register_permission("test.view", "Test View Permission")(raw_view)
-
         request = self.factory.get("/test/")
         request.user = self.user
 
-        # Act & Assert - RoleBasedPermission should raise PermissionDenied
-        permission_checker = RoleBasedPermission()
+        from rest_framework.test import force_authenticate
 
-        with self.assertRaises(PermissionDenied) as context:
-            permission_checker.has_permission(request, test_view)
-        self.assertIn("You do not have permission to perform this action", str(context.exception))
+        force_authenticate(request, user=self.user)
+
+        view = self._get_view()
+        response = view(request)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_permission_allowed_for_superuser(self):
         # Arrange
         self.user.is_superuser = True
         self.user.save()
 
-        @register_permission("test.view", "Test View Permission")
-        @api_view(["GET"])
-        @permission_classes([RoleBasedPermission])
-        def test_view(request):
-            return Response({"ok": True})
-
         request = self.factory.get("/test/")
         from rest_framework.test import force_authenticate
 
         force_authenticate(request, user=self.user)
 
-        # Act
-        response = test_view(request)
+        view = self._get_view()
 
-        # Assert
+        response = view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_permission_allowed_for_view_without_permission_code(self):
-        # Arrange - view without @register_permission decorator
+        # Arrange - view without explicit permission metadata
         @api_view(["GET"])
         @permission_classes([RoleBasedPermission])
         def test_view(request):
@@ -325,14 +268,7 @@ class RoleBasedPermissionTestCase(TestCase):
         self.user.role = self.role
         self.user.save()
 
-        class TestView(APIView):
-            permission_classes = [RoleBasedPermission]
-
-            @register_permission("test.view", "Test View Permission")
-            def get(self, request):
-                return Response({"ok": True})
-
-        view = TestView.as_view()
+        view = self._get_view()
         request = self.factory.get("/test/")
         # Use force_authenticate for DRF views
         from rest_framework.test import force_authenticate
