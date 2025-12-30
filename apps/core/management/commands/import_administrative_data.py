@@ -3,7 +3,6 @@
 import polars as pl
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils.translation import gettext as _
 
 from apps.core.models import AdministrativeUnit, Province
 
@@ -11,7 +10,7 @@ from apps.core.models import AdministrativeUnit, Province
 class Command(BaseCommand):
     """Management command to import Province and AdministrativeUnit data from CSV or Excel files"""
 
-    help = _("Import administrative data (provinces and units) from CSV or Excel files")
+    help = "Import administrative data (provinces and units) from CSV or Excel files"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -19,18 +18,18 @@ class Command(BaseCommand):
             type=str,
             required=True,
             choices=["province", "unit"],
-            help=_("Type of data to import: 'province' or 'unit'"),
+            help="Type of data to import: 'province' or 'unit'",
         )
         parser.add_argument(
             "--file",
             type=str,
             required=True,
-            help=_("Path to the CSV or Excel file to import"),
+            help="Path to the CSV or Excel file to import",
         )
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help=_("Run in dry-run mode without saving to database"),
+            help="Run in dry-run mode without saving to database",
         )
 
     def handle(self, *args, **options):
@@ -38,10 +37,10 @@ class Command(BaseCommand):
         file_path = options["file"]
         dry_run = options.get("dry_run", False)
 
-        self.stdout.write(self.style.SUCCESS(_("Starting import of {} data from {}").format(data_type, file_path)))
+        self.stdout.write(self.style.SUCCESS("Starting import of {} data from {}".format(data_type, file_path)))
 
         if dry_run:
-            self.stdout.write(self.style.WARNING(_("Running in DRY-RUN mode - no data will be saved")))
+            self.stdout.write(self.style.WARNING("Running in DRY-RUN mode - no data will be saved"))
 
         try:
             # Read file using polars (supports both CSV and Excel), make sure all the columns are read as string.
@@ -54,17 +53,17 @@ class Command(BaseCommand):
                 schema_overrides = dict.fromkeys(df.columns, pl.String)
                 df = pl.read_csv(file_path, schema_overrides=schema_overrides)
 
-            self.stdout.write(_("Loaded {} rows from file").format(len(df)))
+            self.stdout.write("Loaded {} rows from file".format(len(df)))
 
             if data_type == "province":
                 self._import_provinces(df, dry_run)
             else:
                 self._import_units(df, dry_run)
 
-            self.stdout.write(self.style.SUCCESS(_("Import completed successfully")))
+            self.stdout.write(self.style.SUCCESS("Import completed successfully"))
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(_("Error during import: {}").format(str(e))))
+            self.stdout.write(self.style.ERROR("Error during import: {}".format(str(e))))
             raise
 
     def _import_provinces(self, df, dry_run):
@@ -83,7 +82,7 @@ class Command(BaseCommand):
                 decree = str(row.get("Nghị định") or row.get("decree") or "").strip()
 
                 if not code or not name:
-                    self.stdout.write(self.style.WARNING(_("Skipping row with missing code or name: {}").format(row)))
+                    self.stdout.write(self.style.WARNING("Skipping row with missing code or name: {}".format(row)))
                     continue
 
                 # Map level to choices
@@ -125,9 +124,9 @@ class Command(BaseCommand):
                             if not dry_run:
                                 new_province.save()
                             updated_count += 1
-                            self.stdout.write(_("Updated province: {} - {}").format(code, name))
+                            self.stdout.write("Updated province: {} - {}".format(code, name))
                         else:
-                            self.stdout.write(_("Province unchanged: {} - {}").format(code, name))
+                            self.stdout.write("Province unchanged: {} - {}".format(code, name))
                     else:
                         # Create new record
                         province = Province(
@@ -141,10 +140,10 @@ class Command(BaseCommand):
                         if not dry_run:
                             province.save()
                         created_count += 1
-                        self.stdout.write(_("Created province: {} - {}").format(code, name))
+                        self.stdout.write("Created province: {} - {}".format(code, name))
 
                 except Exception as e:
-                    self.stdout.write(self.style.ERROR(_("Error processing row {}: {}").format(row, str(e))))
+                    self.stdout.write(self.style.ERROR("Error processing row {}: {}".format(row, str(e))))
 
             if dry_run:
                 # Rollback transaction in dry-run mode
@@ -152,7 +151,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                _("Province import summary: {} created, {} updated, {} disabled").format(
+                "Province import summary: {} created, {} updated, {} disabled".format(
                     created_count, updated_count, disabled_count
                 )
             )
@@ -174,7 +173,7 @@ class Command(BaseCommand):
             level = str(row.get("Cấp") or row.get("level") or "").strip()
 
             if not code or not name or not parent_province_code:
-                self.stdout.write(self.style.WARNING(_("Skipping row with missing required fields: {}").format(row)))
+                self.stdout.write(self.style.WARNING("Skipping row with missing required fields: {}".format(row)))
                 skipped_count += 1
                 continue
 
@@ -198,7 +197,7 @@ class Command(BaseCommand):
                 if not parent_province:
                     self.stdout.write(
                         self.style.WARNING(
-                            _("Parent province not found for code {}: {}").format(parent_province_code, row)
+                            "Parent province not found for code {}: {}".format(parent_province_code, row)
                         )
                     )
                     skipped_count += 1
@@ -231,9 +230,9 @@ class Command(BaseCommand):
                             if not dry_run:
                                 new_unit.save()
                             updated_count += 1
-                            self.stdout.write(_("Updated unit: {} - {}").format(code, name))
+                            self.stdout.write("Updated unit: {} - {}".format(code, name))
                         else:
-                            self.stdout.write(_("Unit unchanged: {} - {}").format(code, name))
+                            self.stdout.write("Unit unchanged: {} - {}".format(code, name))
                     else:
                         # Create new record
                         unit = AdministrativeUnit(
@@ -247,10 +246,10 @@ class Command(BaseCommand):
                         if not dry_run:
                             unit.save()
                         created_count += 1
-                        self.stdout.write(_("Created unit: {} - {}").format(code, name))
+                        self.stdout.write("Created unit: {} - {}".format(code, name))
 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(_("Error processing row {}: {}").format(row, str(e))))
+                self.stdout.write(self.style.ERROR("Error processing row {}: {}".format(row, str(e))))
 
         if dry_run:
             # Rollback transaction in dry-run mode
@@ -258,7 +257,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                _("Unit import summary: {} created, {} updated, {} disabled, {} skipped").format(
+                "Unit import summary: {} created, {} updated, {} disabled, {} skipped".format(
                     created_count, updated_count, disabled_count, skipped_count
                 )
             )

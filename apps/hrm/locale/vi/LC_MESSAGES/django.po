@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-31 01:41+0700\n"
+"POT-Creation-Date: 2025-12-31 03:55+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -617,7 +617,7 @@ msgstr "Xin vui lòng chọn ít nhất một nhân viên."
 
 #: apps/hrm/api/views/employee.py:135 apps/hrm/api/views/employee.py:136
 msgid "Send welcome email to employee"
-msgstr ""
+msgstr "Gửi email chào mừng đến nhân viên"
 
 #: apps/hrm/api/views/employee.py:586
 msgid "No."
@@ -2178,26 +2178,20 @@ msgid "Convert a candidate into an employee record"
 msgstr "Chuyển một ứng viên thành nhân viên"
 
 #: apps/hrm/api/views/recruitment_candidate.py:474
-#, fuzzy
-#| msgid "Convert Candidate to Employee"
 msgid "Download Candidate Import Template"
-msgstr "Chuyển Ứng viên thành Nhân viên"
+msgstr "Tải về mẫu import cho ứng viên"
 
 #: apps/hrm/api/views/recruitment_candidate.py:475
 msgid "Download the import template for candidates"
-msgstr ""
+msgstr "Tải về mẫu import cho ứng viên"
 
 #: apps/hrm/api/views/recruitment_candidate.py:478
-#, fuzzy
-#| msgid "Export Candidates"
 msgid "Import Candidates"
-msgstr "Xuất Ứng viên"
+msgstr "Nhập Ứng viên"
 
 #: apps/hrm/api/views/recruitment_candidate.py:479
-#, fuzzy
-#| msgid "Export candidates to a file"
 msgid "Import candidates from an uploaded file"
-msgstr "Xuất ứng viên ra file"
+msgstr "Nhập ứng viên từ file tải lên"
 
 #: apps/hrm/api/views/recruitment_candidate.py:715
 msgid "Only candidates with REJECTED status can be deleted."
@@ -2431,7 +2425,7 @@ msgid "Probation"
 msgstr "Thử việc"
 
 #: apps/hrm/constants.py:30
-#: apps/hrm/management/commands/setup_default_org_data.py:58
+#: apps/hrm/management/commands/setup_default_org_data.py:80
 msgid "Intern"
 msgstr "Thực tập sinh"
 
@@ -2720,80 +2714,6 @@ msgstr "Ngày hết hạn phải sau hoặc vào ngày hiệu lực"
 msgid "Imported from file"
 msgstr "Đã nhập từ tệp"
 
-#: apps/hrm/management/commands/import_work_schedule.py:9
-msgid "Import work schedule data for specified weekdays"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:16
-msgid ""
-"Comma-separated list of weekday numbers (2=Monday, 3=Tuesday, ..., 8=Sunday)"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:22
-msgid ""
-"Morning session time range in format 'HH:MM-HH:MM' (e.g., '08:00-12:00')"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:28
-msgid "Noon session time range in format 'HH:MM-HH:MM' (e.g., '12:00-13:30')"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:34
-msgid ""
-"Afternoon session time range in format 'HH:MM-HH:MM' (e.g., '13:30-17:30')"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:40
-#: apps/hrm/models/work_schedule.py:74
-msgid "Allowed late minutes"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:46
-msgid "Note for the work schedule"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:61
-msgid "Invalid weekdays format. Must be comma-separated numbers (2-8)."
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:66
-#, python-format
-msgid "Invalid weekday number: %(num)s. Must be between 2 and 8."
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:97
-#, python-format
-msgid "Created work schedule for %(weekday)s"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:105
-#, python-format
-msgid "Updated work schedule for %(weekday)s"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:111
-#, python-format
-msgid "Validation error for %(weekday)s: %(error)s"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:117
-#, python-format
-msgid ""
-"Successfully imported work schedules. Created: %(created)s, Updated: "
-"%(updated)s"
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:141
-#, python-format
-msgid "Invalid %(session)s time format: %(value)s. Expected 'HH:MM-HH:MM'."
-msgstr ""
-
-#: apps/hrm/management/commands/import_work_schedule.py:151
-#, python-format
-msgid ""
-"Both start and end times must be provided for %(session)s session: %(value)s"
-msgstr ""
-
 #: apps/hrm/management/commands/setup_default_org_data.py:8
 msgid "Setup default organizational data"
 msgstr ""
@@ -2806,178 +2726,50 @@ msgstr ""
 msgid "Chief Executive Officer"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:22
+#: apps/hrm/management/commands/setup_default_org_data.py:24
 msgid "Business Block Director"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:27
+#: apps/hrm/management/commands/setup_default_org_data.py:31
 msgid "Support Block Director"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:32
+#: apps/hrm/management/commands/setup_default_org_data.py:38
 msgid "Deputy Business Block Director"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:37
+#: apps/hrm/management/commands/setup_default_org_data.py:45
 msgid "Deputy Support Block Director"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:42
+#: apps/hrm/management/commands/setup_default_org_data.py:52
 msgid "Department Manager"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:47
+#: apps/hrm/management/commands/setup_default_org_data.py:59
 msgid "Deputy Department Manager"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:52
+#: apps/hrm/management/commands/setup_default_org_data.py:66
 msgid "Supervisor"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:55
+#: apps/hrm/management/commands/setup_default_org_data.py:73
 msgid "Staff"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:73
+#: apps/hrm/management/commands/setup_default_org_data.py:97
 #, python-format
 msgid "Created position: %s"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:75
+#: apps/hrm/management/commands/setup_default_org_data.py:99
 #, python-format
 msgid "Position already exists: %s"
 msgstr ""
 
-#: apps/hrm/management/commands/setup_default_org_data.py:81
-msgid "MaiVietLand Headquarters"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:82
-msgid "Hanoi, Vietnam"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:87
-#, python-format
-msgid "Created branch: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:89
-#, python-format
-msgid "Branch already exists: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:95
-#: apps/hrm/models/organization.py:89
-msgid "Business Block"
-msgstr "Khối kinh doanh"
-
-#: apps/hrm/management/commands/setup_default_org_data.py:100
-#: apps/hrm/models/organization.py:88
-msgid "Support Block"
-msgstr "Khối hỗ trợ"
-
-#: apps/hrm/management/commands/setup_default_org_data.py:118
-#, python-format
-msgid "Created block: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:120
-#, python-format
-msgid "Block already exists: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:127
-msgid "Business Department 1"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:133
-msgid "Business Department 2"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:139
-msgid "Marketing Department"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:146
-msgid "HR Administration Department"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:153
-msgid "Accounting Department"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:160
-msgid "IT Department"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:167
-msgid "Legal Department"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:191
-#, python-format
-msgid "Created department: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:193
-#, python-format
-msgid "Department already exists: %s"
-msgstr ""
-
-#: apps/hrm/management/commands/setup_default_org_data.py:195
+#: apps/hrm/management/commands/setup_default_org_data.py:101
 msgid "Successfully set up default organizational data!"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:31
-msgid "Update certificate statuses based on expiry dates"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:44
-msgid "DRY RUN MODE - No changes will be made"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:50
-msgid "Processing {} certificates..."
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:63
-msgid "Certificate {}: {} -> {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:71
-msgid "Summary:"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:72
-msgid "Total certificates: {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:73
-msgid "Certificates updated: {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:74
-msgid "  - Changed to VALID: {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:75
-msgid "  - Changed to NEAR_EXPIRY: {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:76
-msgid "  - Changed to EXPIRED: {}"
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:80
-msgid ""
-"\n"
-"No changes made (dry run mode). Run without --dry-run to apply changes."
-msgstr ""
-
-#: apps/hrm/management/commands/update_certificate_statuses.py:83
-msgid ""
-"\n"
-"Certificate statuses updated successfully!"
 msgstr ""
 
 #: apps/hrm/models/attendance_device.py:39
@@ -4243,6 +4035,14 @@ msgstr "Tên liên hệ"
 msgid "Branch contact info"
 msgstr "Thông tin liên hệ chi nhánh"
 
+#: apps/hrm/models/organization.py:88
+msgid "Support Block"
+msgstr "Khối hỗ trợ"
+
+#: apps/hrm/models/organization.py:89
+msgid "Business Block"
+msgstr "Khối kinh doanh"
+
 #: apps/hrm/models/organization.py:91
 msgid "Block name"
 msgstr "Tên khối"
@@ -5151,6 +4951,10 @@ msgstr "Bắt đầu ca chiều"
 #: apps/hrm/models/work_schedule.py:67 apps/hrm/models/work_schedule.py:149
 msgid "Afternoon end time"
 msgstr "Kết thúc ca chiều"
+
+#: apps/hrm/models/work_schedule.py:74
+msgid "Allowed late minutes"
+msgstr ""
 
 #: apps/hrm/models/work_schedule.py:87
 msgid "Work schedule"

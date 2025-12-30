@@ -1,49 +1,48 @@
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import gettext as _
 
 from apps.hrm.models import WorkSchedule
 
 
 class Command(BaseCommand):
-    help = _("Import work schedule data for specified weekdays")
+    help = "Import work schedule data for specified weekdays"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--weekdays",
             type=str,
             required=True,
-            help=_("Comma-separated list of weekday numbers (2=Monday, 3=Tuesday, ..., 8=Sunday)"),
+            help="Comma-separated list of weekday numbers (2=Monday, 3=Tuesday, ..., 8=Sunday)",
         )
         parser.add_argument(
             "--morning",
             type=str,
             default="",
-            help=_("Morning session time range in format 'HH:MM-HH:MM' (e.g., '08:00-12:00')"),
+            help="Morning session time range in format 'HH:MM-HH:MM' (e.g., '08:00-12:00')",
         )
         parser.add_argument(
             "--noon",
             type=str,
             default="",
-            help=_("Noon session time range in format 'HH:MM-HH:MM' (e.g., '12:00-13:30')"),
+            help="Noon session time range in format 'HH:MM-HH:MM' (e.g., '12:00-13:30')",
         )
         parser.add_argument(
             "--afternoon",
             type=str,
             default="",
-            help=_("Afternoon session time range in format 'HH:MM-HH:MM' (e.g., '13:30-17:30')"),
+            help="Afternoon session time range in format 'HH:MM-HH:MM' (e.g., '13:30-17:30')",
         )
         parser.add_argument(
             "--allowed-late",
             type=int,
             default=None,
-            help=_("Allowed late minutes"),
+            help="Allowed late minutes",
         )
         parser.add_argument(
             "--note",
             type=str,
             default="",
-            help=_("Note for the work schedule"),
+            help="Note for the work schedule",
         )
 
     def handle(self, *args, **options):
@@ -58,12 +57,12 @@ class Command(BaseCommand):
         try:
             weekday_numbers = [int(w.strip()) for w in weekdays_str.split(",")]
         except ValueError:
-            raise CommandError(_("Invalid weekdays format. Must be comma-separated numbers (2-8)."))
+            raise CommandError("Invalid weekdays format. Must be comma-separated numbers (2-8).")
 
         # Validate weekday numbers
         for num in weekday_numbers:
             if num not in range(2, 9):  # 2-8 inclusive
-                raise CommandError(_("Invalid weekday number: %(num)s. Must be between 2 and 8.") % {"num": num})
+                raise CommandError("Invalid weekday number: {}. Must be between 2 and 8.".format(num))
 
         # Parse time ranges
         morning_start, morning_end = self._parse_time_range(morning, "morning")
@@ -94,27 +93,25 @@ class Command(BaseCommand):
                     created_count += 1
                     self.stdout.write(
                         self.style.SUCCESS(
-                            _("Created work schedule for %(weekday)s")
-                            % {"weekday": work_schedule.get_weekday_display()}
+                            "Created work schedule for %(weekday)s" % {"weekday": work_schedule.get_weekday_display()}
                         )
                     )
                 else:
                     updated_count += 1
                     self.stdout.write(
                         self.style.SUCCESS(
-                            _("Updated work schedule for %(weekday)s")
-                            % {"weekday": work_schedule.get_weekday_display()}
+                            "Updated work schedule for %(weekday)s" % {"weekday": work_schedule.get_weekday_display()}
                         )
                     )
             except ValidationError as e:
                 raise CommandError(
-                    _("Validation error for %(weekday)s: %(error)s")
+                    "Validation error for %(weekday)s: %(error)s"
                     % {"weekday": work_schedule.get_weekday_display(), "error": e}
                 )
 
         self.stdout.write(
             self.style.SUCCESS(
-                _("Successfully imported work schedules. Created: %(created)s, Updated: %(updated)s")
+                "Successfully imported work schedules. Created: %(created)s, Updated: %(updated)s"
                 % {"created": created_count, "updated": updated_count}
             )
         )
@@ -138,7 +135,7 @@ class Command(BaseCommand):
         parts = time_range_str.split("-")
         if len(parts) != 2:
             raise CommandError(
-                _("Invalid %(session)s time format: %(value)s. Expected 'HH:MM-HH:MM'.")
+                "Invalid %(session)s time format: %(value)s. Expected 'HH:MM-HH:MM'."
                 % {"session": session_name, "value": time_range_str}
             )
 
@@ -148,7 +145,7 @@ class Command(BaseCommand):
         # Both start and end must be provided
         if not start_str or not end_str:
             raise CommandError(
-                _("Both start and end times must be provided for %(session)s session: %(value)s")
+                "Both start and end times must be provided for %(session)s session: %(value)s"
                 % {"session": session_name, "value": time_range_str}
             )
 

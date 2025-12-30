@@ -322,8 +322,8 @@ class RoleViewSet(AuditLoggingMixin, BaseModelViewSet):
     permission_prefix = "role"
     PERMISSION_REGISTERED_ACTIONS = {
         "clone": {
-            "name_template": _("Clone {model_name}"),
-            "description_template": _("Clone an existing {model_name}"),
+            "name_template": _("Clone role"),
+            "description_template": _("Clone an existing role"),
         },
     }
 
