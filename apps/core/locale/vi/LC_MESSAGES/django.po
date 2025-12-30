@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 15:48+0700\n"
+"POT-Creation-Date: 2025-12-30 16:34+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -497,6 +497,14 @@ msgstr "Quyền xem trạng thái xuất dữ liệu"
 #: apps/core/api/views/export_status.py:78
 msgid "task_id parameter is required"
 msgstr "Tham số task_id là bắt buộc"
+
+#: apps/core/api/views/permission.py:44
+msgid "View permission structure"
+msgstr ""
+
+#: apps/core/api/views/permission.py:45
+msgid "View permission module and submodule structure"
+msgstr ""
 
 #: apps/core/api/views/role.py:321
 msgid "Role Management"

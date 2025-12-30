@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 15:12+0700\n"
+"POT-Creation-Date: 2025-12-30 16:34+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -282,27 +282,51 @@ msgstr "Không tìm thấy người nhận cho các đối tượng đã chọn"
 msgid "Bulk email send job enqueued"
 msgstr "Job gửi email hàng loạt đã được trong hàng đợi"
 
-#: apps/mailtemplates/views.py:248
+#: apps/mailtemplates/views.py:50
+msgid "Preview email template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:51
+msgid "Preview email template with sample or real data"
+msgstr ""
+
+#: apps/mailtemplates/views.py:54
+msgid "Send bulk emails using email template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:55
+msgid "Create bulk email send jobs using email template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:58
+msgid "View email send job status for email template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:59
+msgid "View status of bulk email send jobs for email template"
+msgstr ""
+
+#: apps/mailtemplates/views.py:262
 msgid "Failed to save template"
 msgstr "Lưu mẫu thất bại"
 
-#: apps/mailtemplates/views.py:331
+#: apps/mailtemplates/views.py:345
 msgid "Data or ref required for real mode"
 msgstr "Yêu cầu dữ liệu hoặc ref cho chế độ thực"
 
-#: apps/mailtemplates/views.py:449
+#: apps/mailtemplates/views.py:463
 msgid "Job with this client_request_id already exists"
 msgstr "Job với client_request_id này đã tồn tại"
 
-#: apps/mailtemplates/views.py:496
+#: apps/mailtemplates/views.py:510
 msgid "Job enqueued"
 msgstr "Job đã được trong hàng đợi"
 
-#: apps/mailtemplates/views.py:545
+#: apps/mailtemplates/views.py:559
 msgid "Not authorized to view this job"
 msgstr "Không được phép xem job này"
 
-#: apps/mailtemplates/views.py:554
+#: apps/mailtemplates/views.py:568
 msgid "Job not found"
 msgstr "Job không tồn tại"
 
@@ -374,17 +398,17 @@ msgstr "Danh sách {model_name}"
 msgid "Perform DELETE on {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:27
+#: libs/drf/base_viewset.py:65 libs/drf/mixin/permission.py:28
 #, python-brace-format
 msgid "List {model_name}"
 msgstr "Danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:28
+#: libs/drf/base_viewset.py:66 libs/drf/mixin/permission.py:29
 #, python-brace-format
 msgid "View list of {model_name}"
 msgstr "Xem danh sách {model_name}"
 
-#: libs/drf/base_viewset.py:69 libs/drf/mixin/permission.py:31
+#: libs/drf/base_viewset.py:69 libs/drf/mixin/permission.py:32
 #, python-brace-format
 msgid "View {model_name}"
 msgstr "Xem {model_name}"
@@ -394,62 +418,62 @@ msgstr "Xem {model_name}"
 msgid "View details of a {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
-#: libs/drf/base_viewset.py:73 libs/drf/mixin/permission.py:55
+#: libs/drf/base_viewset.py:73 libs/drf/mixin/permission.py:56
 #, python-brace-format
 msgid "History {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:56
+#: libs/drf/base_viewset.py:74 libs/drf/mixin/permission.py:57
 #, python-brace-format
 msgid "View history of {model_name}"
 msgstr "Xem lịch sử {model_name}"
 
-#: libs/drf/base_viewset.py:77 libs/drf/mixin/permission.py:59
+#: libs/drf/base_viewset.py:77 libs/drf/mixin/permission.py:60
 #, python-brace-format
 msgid "History detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
 
-#: libs/drf/base_viewset.py:78 libs/drf/mixin/permission.py:60
+#: libs/drf/base_viewset.py:78 libs/drf/mixin/permission.py:61
 #, python-brace-format
 msgid "View history detail of {model_name}"
 msgstr "Xem chi tiết lịch sử của {model_name}"
 
-#: libs/drf/mixin/permission.py:32
+#: libs/drf/mixin/permission.py:33
 #, python-brace-format
 msgid "View detail of {model_name}"
 msgstr "Xem chi tiết của {model_name}"
 
-#: libs/drf/mixin/permission.py:35
+#: libs/drf/mixin/permission.py:36
 #, python-brace-format
 msgid "Create {model_name}"
 msgstr "Quyền tạo {model_name}"
 
-#: libs/drf/mixin/permission.py:36
+#: libs/drf/mixin/permission.py:37
 #, python-brace-format
 msgid "Create a new {model_name}"
 msgstr "Quyền tạo mới một {model_name}"
 
-#: libs/drf/mixin/permission.py:39 libs/drf/mixin/permission.py:40
+#: libs/drf/mixin/permission.py:40 libs/drf/mixin/permission.py:41
 #, python-brace-format
 msgid "Update {model_name}"
 msgstr "Quyền cập nhật {model_name}"
 
-#: libs/drf/mixin/permission.py:43 libs/drf/mixin/permission.py:44
+#: libs/drf/mixin/permission.py:44 libs/drf/mixin/permission.py:45
 #, python-brace-format
 msgid "Partially update {model_name}"
 msgstr "Quyền cập nhật một phần {model_name}"
 
-#: libs/drf/mixin/permission.py:47 libs/drf/mixin/permission.py:48
+#: libs/drf/mixin/permission.py:48 libs/drf/mixin/permission.py:49
 #, python-brace-format
 msgid "Delete {model_name}"
 msgstr "Quyền xóa {model_name}"
 
-#: libs/drf/mixin/permission.py:51
+#: libs/drf/mixin/permission.py:52
 #, python-brace-format
 msgid "Export {model_name}"
 msgstr "Quyền xuất {model_name}"
 
-#: libs/drf/mixin/permission.py:52
+#: libs/drf/mixin/permission.py:53
 #, python-brace-format
 msgid "Export {model_name} data"
 msgstr "Quyền xuất {model_name}"

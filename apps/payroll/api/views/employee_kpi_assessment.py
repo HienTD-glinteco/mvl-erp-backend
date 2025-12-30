@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.payroll.api.filtersets import EmployeeKPIAssessmentFilterSet, ManagerAssessmentFilterSet
 from apps.payroll.api.serializers import (
+    EmployeeKPIAssessmentExportSerializer,
     EmployeeKPIAssessmentListSerializer,
     EmployeeKPIAssessmentSerializer,
     EmployeeKPIAssessmentUpdateSerializer,
@@ -22,6 +23,7 @@ from apps.payroll.models import EmployeeKPIAssessment, EmployeeKPIItem
 from apps.payroll.utils import recalculate_assessment_scores
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -142,8 +144,11 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             )
         ],
     ),
+    export=extend_schema(
+        tags=["8.3: Employee KPI Assessments"],
+    ),
 )
-class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
+class EmployeeKPIAssessmentViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseModelViewSet):
     """ViewSet for EmployeeKPIAssessment model.
 
     Provides CRUD operations and custom actions for:
@@ -151,11 +156,16 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     - Updating item scores
     - Resyncing with current criteria
     - Finalizing assessments with unit control validation
+    - Exporting to XLSX
     """
 
     queryset = EmployeeKPIAssessment.objects.select_related(
         "period",
         "employee",
+        "employee__branch",
+        "employee__block",
+        "employee__department",
+        "employee__position",
         "department_assignment_source",
         "created_by",
         "updated_by",
@@ -165,12 +175,16 @@ class EmployeeKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
     search_fields = ["employee__username", "employee__fullname", "employee__code"]
     ordering_fields = ["period__month", "employee__username", "grade_manager", "total_manager_score", "created_at"]
     ordering = ["-period__month", "-created_at"]
-    http_method_names = ["get", "patch"]  # Only allow GET and PATCH
+    http_method_names = ["get", "patch"]
 
     # Permission registration attributes
     module = "Payroll"
     submodule = "KPI Management"
     permission_prefix = "employee_kpi_assessment"
+
+    # Export configuration
+    export_serializer_class = EmployeeKPIAssessmentExportSerializer
+    export_filename = "employee_kpi_assessments"
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""

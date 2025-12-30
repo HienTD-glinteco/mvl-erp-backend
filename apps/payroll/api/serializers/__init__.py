@@ -4,6 +4,7 @@ from .department_kpi_assessment import (
     DepartmentKPIAssessmentUpdateSerializer,
 )
 from .employee_kpi_assessment import (
+    EmployeeKPIAssessmentExportSerializer,
     EmployeeKPIAssessmentListSerializer,
     EmployeeKPIAssessmentSerializer,
     EmployeeKPIAssessmentUpdateSerializer,
@@ -82,6 +83,7 @@ __all__ = [
     "EmployeeKPIAssessmentSerializer",
     "EmployeeKPIAssessmentListSerializer",
     "EmployeeKPIAssessmentUpdateSerializer",
+    "EmployeeKPIAssessmentExportSerializer",
     "EmployeeKPIItemSerializer",
     "EmployeeKPIItemUpdateSerializer",
     "EmployeeSelfAssessmentSerializer",

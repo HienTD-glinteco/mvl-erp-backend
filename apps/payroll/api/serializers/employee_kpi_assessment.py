@@ -593,3 +593,44 @@ class ManagerAssessmentSerializer(BaseEmployeeKPIAssessmentSerializer):
         if request and "grade" in request.data:
             validated_data["grade_manager_overridden"] = request.data["grade"]
         return super().update(instance, validated_data)
+
+
+class EmployeeKPIAssessmentExportSerializer(serializers.ModelSerializer):
+    """Serializer for exporting EmployeeKPIAssessment data to Excel."""
+
+    period__month = serializers.SerializerMethodField()
+    employee__code = serializers.CharField(source="employee.code", read_only=True)
+    employee__fullname = serializers.CharField(source="employee.fullname", read_only=True)
+    employee__branch__name = serializers.CharField(source="employee.branch.name", read_only=True)
+    employee__block__name = serializers.CharField(source="employee.block.name", read_only=True)
+    employee__department__name = serializers.CharField(source="employee.department.name", read_only=True)
+    employee__position__name = serializers.CharField(source="employee.position.name", read_only=True)
+
+    class Meta:
+        model = EmployeeKPIAssessment
+        fields = [
+            "period__month",
+            "employee__code",
+            "employee__fullname",
+            "employee__branch__name",
+            "employee__block__name",
+            "employee__department__name",
+            "employee__position__name",
+            "total_possible_score",
+            "total_employee_score",
+            "total_manager_score",
+            "grade_manager",
+            "grade_manager_overridden",
+            "grade_hrm",
+            "plan_tasks",
+            "extra_tasks",
+            "proposal",
+            "manager_assessment",
+            "finalized",
+        ]
+
+    def get_period__month(self, obj):
+        """Return period month in readable format."""
+        if obj.period and obj.period.month:
+            return obj.period.month.strftime("%m/%Y")
+        return ""
