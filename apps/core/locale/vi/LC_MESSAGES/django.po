@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: MaiVietLand Backend Core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 08:09+0700\n"
+"POT-Creation-Date: 2025-12-30 11:04+0700\n"
 "PO-Revision-Date: 2025-01-21 00:00+0000\n"
 "Last-Translator: Glinteco Developers\n"
 "Language-Team: Vietnamese\n"
@@ -334,7 +334,7 @@ msgstr ""
 "Vai trò hệ thống chỉ có thể cập nhật quyền, không thể sửa các thông tin khác"
 
 #: apps/core/api/views/administrative_unit.py:102
-#: apps/core/api/views/export_status.py:24 apps/core/api/views/role.py:314
+#: apps/core/api/views/export_status.py:24 apps/core/api/views/role.py:320
 msgid "Core"
 msgstr "Hệ thống "
 
@@ -498,9 +498,19 @@ msgstr "Quyền xem trạng thái xuất dữ liệu"
 msgid "task_id parameter is required"
 msgstr "Tham số task_id là bắt buộc"
 
-#: apps/core/api/views/role.py:315
+#: apps/core/api/views/role.py:321
 msgid "Role Management"
 msgstr "Quản lý vai trò"
+
+#: apps/core/api/views/role.py:325
+#, python-brace-format
+msgid "Clone {model_name}"
+msgstr "Nhân bản {model_name}"
+
+#: apps/core/api/views/role.py:326
+#, python-brace-format
+msgid "Clone an existing {model_name}"
+msgstr "Nhân bản một {model_name} hiện có"
 
 #: apps/core/management/commands/import_administrative_data.py:14
 msgid ""

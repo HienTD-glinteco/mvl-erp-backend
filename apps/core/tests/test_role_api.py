@@ -131,6 +131,40 @@ class RoleAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_clone_role_creates_new_role(self):
+        """Test cloning a role duplicates its data and permissions"""
+        role = Role.objects.create(code="VT003", name="Clone Source", description="Source role")
+        role.permissions.set(self.permissions[:2])
+
+        url = reverse("core:role-clone", kwargs={"pk": role.pk})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        cloned_data = self.get_response_data(response)
+        self.assertEqual(cloned_data["name"], "Clone Source-copy")
+        self.assertNotEqual(cloned_data["id"], role.id)
+        self.assertNotEqual(cloned_data["code"], role.code)
+        self.assertFalse(cloned_data["is_system_role"])
+        self.assertEqual(len(cloned_data["permissions_detail"]), 2)
+
+        cloned_role = Role.objects.get(pk=cloned_data["id"])
+        self.assertFalse(cloned_role.is_system_role)
+        self.assertEqual(cloned_role.permissions.count(), 2)
+
+    def test_clone_role_generates_unique_name(self):
+        """Test cloning a role when '-copy' already exists appends a numeric suffix"""
+        role = Role.objects.create(code="VT003", name="Approval Role", description="Source role")
+        role.permissions.set(self.permissions[:1])
+        existing_clone = Role.objects.create(code="VT004", name="Approval Role-copy", description="Existing clone")
+        existing_clone.permissions.set(self.permissions[:1])
+
+        url = reverse("core:role-clone", kwargs={"pk": role.pk})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        cloned_data = self.get_response_data(response)
+        self.assertEqual(cloned_data["name"], "Approval Role-copy-2")
+
     def test_retrieve_role(self):
         """Test retrieving a role via API"""
         role = Role.objects.create(code="VT003", name="Test Role", description="Test description")
