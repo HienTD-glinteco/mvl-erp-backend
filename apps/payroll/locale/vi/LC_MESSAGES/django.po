@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-30 08:09+0700\n"
+"POT-Creation-Date: 2025-12-30 10:02+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -222,6 +222,8 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
+#: apps/payroll/api/views/salary_period.py:465
+#: apps/payroll/api/views/salary_period.py:602
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
@@ -238,15 +240,15 @@ msgstr "Cấu hình"
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/payroll_slip.py:264
+#: apps/payroll/api/views/payroll_slip.py:290
 msgid "Can only mark HOLD slips as READY"
 msgstr ""
 
-#: apps/payroll/api/views/payroll_slip.py:269
+#: apps/payroll/api/views/payroll_slip.py:295
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr ""
 
-#: apps/payroll/api/views/payroll_slip.py:317
+#: apps/payroll/api/views/payroll_slip.py:343
 msgid "Can only deliver READY slips"
 msgstr ""
 
@@ -291,8 +293,25 @@ msgstr "Cấu hình"
 msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
-#: apps/payroll/api/views/salary_period.py:228
-msgid "Cannot complete period with pending or hold payroll slips"
+#: apps/payroll/api/views/salary_period.py:466
+#: apps/payroll/api/views/salary_period.py:603
+msgid "Salary Periods"
+msgstr ""
+
+#: apps/payroll/api/views/salary_period.py:472
+msgid "View Ready Payroll Slips"
+msgstr ""
+
+#: apps/payroll/api/views/salary_period.py:473
+msgid "View ready payroll slips"
+msgstr ""
+
+#: apps/payroll/api/views/salary_period.py:609
+msgid "View Not-Ready Payroll Slips"
+msgstr ""
+
+#: apps/payroll/api/views/salary_period.py:610
+msgid "View not-ready payroll slips"
 msgstr ""
 
 #: apps/payroll/api/views/sales_revenue.py:374
@@ -521,7 +540,26 @@ msgstr "Công tác phí"
 msgid "Travel Expenses"
 msgstr "Các công tác phí"
 
-#: apps/payroll/signals.py:108
+#: apps/payroll/signals/deadline_validation.py:116
+#, python-format
+msgid ""
+"Cannot create %(type)s proposal after salary period deadline (%(deadline)s)"
+msgstr ""
+
+#: apps/payroll/signals/deadline_validation.py:149
+#, python-format
+msgid ""
+"Cannot create overtime entry after salary period deadline (%(deadline)s)"
+msgstr ""
+
+#: apps/payroll/signals/deadline_validation.py:204
+#, python-format
+msgid ""
+"Cannot submit KPI assessment after deadline (%(deadline)s). Please contact "
+"HRM for assistance."
+msgstr ""
+
+#: apps/payroll/signals/kpi_assessment.py:76
 #, python-format
 msgid ""
 "KPI Assessment for period %(period)s has been created. Please access KPI "
@@ -530,7 +568,7 @@ msgstr ""
 "Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để "
 "hoàn tất."
 
-#: apps/payroll/tasks.py:205
+#: apps/payroll/tasks.py:170
 #, python-format
 msgid ""
 "Hello %(employee_name)s,\n"
@@ -550,7 +588,7 @@ msgid ""
 "MaiVietLand Team"
 msgstr ""
 
-#: apps/payroll/tasks.py:231
+#: apps/payroll/tasks.py:196
 #, python-format
 msgid "Payroll Slip %(month)s - MaiVietLand"
 msgstr ""
