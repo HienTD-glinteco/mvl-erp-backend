@@ -3,7 +3,7 @@ from __future__ import annotations
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, TypedDict
+from typing import Any, Dict, Iterable, List, Optional
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -28,18 +28,7 @@ HEADER_ALIASES = {
     "nhom": "group",
 }
 
-
-class PermissionSource(TypedDict):
-    sheet: str
-    row: int
-
-
-class PermissionMetadata(TypedDict, total=False):
-    name: str
-    description: str
-    module: str
-    submodule: str
-    __sources: List[PermissionSource]
+SOURCE_CONTEXT_KEY = "__sources"
 
 
 @dataclass
@@ -59,7 +48,7 @@ class WorkbookPermissionExtractor:
 
     def __init__(self, file_path: Path):
         self.file_path = file_path
-        self.permission_catalog: Dict[str, PermissionMetadata] = {}
+        self.permission_catalog: Dict[str, Dict[str, Any]] = {}
         self.roles: List[RolePayload] = []
 
     def parse(self) -> Dict[str, Any]:
@@ -200,21 +189,13 @@ class WorkbookPermissionExtractor:
         if not code:
             return None
 
-        initial_entry: PermissionMetadata = {
-            "__sources": [],
-            "name": "",
-            "description": "",
-            "module": "",
-            "submodule": "",
-        }
-        entry = self.permission_catalog.setdefault(code, initial_entry)
-        source_entries = entry.get("__sources")
-        if source_entries is None:
-            source_entries = []
-            entry["__sources"] = source_entries
+        default_entry: Dict[str, Any] = {SOURCE_CONTEXT_KEY: []}
+        default_entry.update(dict.fromkeys(REQUIRED_PERMISSION_FIELDS, ""))
+        entry = self.permission_catalog.setdefault(code, default_entry)
+        source_entries: List[Dict[str, Any]] = entry.setdefault(SOURCE_CONTEXT_KEY, [])
         source_entries.append({"sheet": sheet_name, "row": row_number})
         for _field in REQUIRED_PERMISSION_FIELDS:
-            if entry[_field]:
+            if entry.get(_field):
                 continue
             candidate = row.get(_field)
             if candidate:
@@ -279,7 +260,7 @@ class Command(BaseCommand):
 
         self._print_summary(permission_stats, role_stats)
 
-    def _sync_permissions(self, permission_catalog: Dict[str, PermissionMetadata]):
+    def _sync_permissions(self, permission_catalog: Dict[str, Dict[str, Any]]):
         stats = {"processed": 0, "missing": 0, "mismatched": 0}
         permission_objects: Dict[str, Permission] = {}
 
@@ -289,7 +270,7 @@ class Command(BaseCommand):
                 permission = Permission.objects.get(code=code)
             except Permission.DoesNotExist:
                 stats["missing"] += 1
-                source_context: Optional[List[PermissionSource]] = metadata.get("__sources")
+                source_context: Optional[List[Dict[str, Any]]] = metadata.get("__sources")
                 location = ""
                 if source_context:
                     origin = source_context[0]
@@ -303,7 +284,7 @@ class Command(BaseCommand):
             permission_objects[code] = permission
             mismatches = []
             for _field in ("name", "description"):
-                workbook_value = (metadata.get(_field) or "").strip()
+                workbook_value = str(metadata.get(_field) or "").strip()
                 db_value = getattr(permission, _field, "")
                 if workbook_value and workbook_value != db_value:
                     mismatches.append(f"{_field}: '{db_value}' -> '{workbook_value}'")
