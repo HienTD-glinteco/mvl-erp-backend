@@ -62,15 +62,15 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
     }
 
     code = models.CharField(
-        max_length=50, unique=True, verbose_name="Code", help_text="Unique code in format SP-YYYYMM"
+        max_length=50, unique=True, verbose_name=_("Code"), help_text="Unique code in format SP-YYYYMM"
     )
 
     month = models.DateField(
-        unique=True, db_index=True, verbose_name="Month", help_text="First day of the salary month"
+        unique=True, db_index=True, verbose_name=_("Month"), help_text="First day of the salary month"
     )
 
     salary_config_snapshot = models.JSONField(
-        verbose_name="Salary Config Snapshot", help_text="Snapshot of salary configuration for this period"
+        verbose_name=_("Salary Config Snapshot"), help_text="Snapshot of salary configuration for this period"
     )
 
     status = models.CharField(
@@ -78,79 +78,79 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         choices=Status.choices,
         default=Status.ONGOING,
         db_index=True,
-        verbose_name="Status",
+        verbose_name=_("Status"),
         help_text="Current status of the period",
     )
 
     standard_working_days = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        verbose_name="Standard Working Days",
+        verbose_name=_("Standard Working Days"),
         help_text="Total working days in the month",
     )
 
     total_employees = models.PositiveIntegerField(
-        default=0, verbose_name="Total Employees", help_text="Count of employees with payroll slips in this period"
+        default=0, verbose_name=_("Total Employees"), help_text="Count of employees with payroll slips in this period"
     )
 
     # Deadline fields
     proposal_deadline = models.DateField(
         null=True,
         blank=True,
-        verbose_name="Proposal Deadline",
+        verbose_name=_("Proposal Deadline"),
         help_text="Deadline for submitting payroll-related proposals (default: 2nd of next month)",
     )
 
     kpi_assessment_deadline = models.DateField(
         null=True,
         blank=True,
-        verbose_name="KPI Assessment Deadline",
+        verbose_name=_("KPI Assessment Deadline"),
         help_text="Deadline for KPI assessments (default: 5th of next month)",
     )
 
     # Statistics fields
     employees_need_recovery = models.PositiveIntegerField(
-        default=0, verbose_name="Employees Need Recovery", help_text="Count of employees with recovery vouchers"
+        default=0, verbose_name=_("Employees Need Recovery"), help_text="Count of employees with recovery vouchers"
     )
 
     employees_with_penalties = models.PositiveIntegerField(
-        default=0, verbose_name="Employees With Penalties", help_text="Count of employees with penalty tickets"
+        default=0, verbose_name=_("Employees With Penalties"), help_text="Count of employees with penalty tickets"
     )
 
     employees_paid_penalties = models.PositiveIntegerField(
-        default=0, verbose_name="Employees Paid Penalties", help_text="Count of employees who paid penalties"
+        default=0, verbose_name=_("Employees Paid Penalties"), help_text="Count of employees who paid penalties"
     )
 
     employees_with_travel = models.PositiveIntegerField(
-        default=0, verbose_name="Employees With Travel", help_text="Count of employees with travel expenses"
+        default=0, verbose_name=_("Employees With Travel"), help_text="Count of employees with travel expenses"
     )
 
     employees_need_email = models.PositiveIntegerField(
-        default=0, verbose_name="Employees Need Email", help_text="Count of employees needing payroll email"
+        default=0, verbose_name=_("Employees Need Email"), help_text="Count of employees needing payroll email"
     )
 
     # Payroll slip aggregate statistics
     pending_count = models.PositiveIntegerField(
-        default=0, verbose_name="Pending Count", help_text="Count of payroll slips in PENDING status"
+        default=0, verbose_name=_("Pending Count"), help_text="Count of payroll slips in PENDING status"
     )
 
     ready_count = models.PositiveIntegerField(
-        default=0, verbose_name="Ready Count", help_text="Count of payroll slips in READY status"
+        default=0, verbose_name=_("Ready Count"), help_text="Count of payroll slips in READY status"
     )
 
     hold_count = models.PositiveIntegerField(
-        default=0, verbose_name="Hold Count", help_text="Count of payroll slips in HOLD status"
+        default=0, verbose_name=_("Hold Count"), help_text="Count of payroll slips in HOLD status"
     )
 
     delivered_count = models.PositiveIntegerField(
-        default=0, verbose_name="Delivered Count", help_text="Count of payroll slips in DELIVERED status"
+        default=0, verbose_name=_("Delivered Count"), help_text="Count of payroll slips in DELIVERED status"
     )
 
     total_gross_income = models.DecimalField(
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name="Total Gross Income",
+        verbose_name=_("Total Gross Income"),
         help_text="Sum of gross income from all payroll slips",
     )
 
@@ -158,12 +158,12 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         max_digits=20,
         decimal_places=0,
         default=0,
-        verbose_name="Total Net Salary",
+        verbose_name=_("Total Net Salary"),
         help_text="Sum of net salary from all payroll slips",
     )
 
     completed_at = models.DateTimeField(
-        null=True, blank=True, verbose_name="Completed At", help_text="Timestamp when period was completed"
+        null=True, blank=True, verbose_name=_("Completed At"), help_text="Timestamp when period was completed"
     )
 
     completed_by = models.ForeignKey(
@@ -172,7 +172,7 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="completed_salary_periods",
-        verbose_name="Completed By",
+        verbose_name=_("Completed By"),
         help_text="User who completed the period",
     )
 
@@ -182,7 +182,7 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="created_salary_periods",
-        verbose_name="Created By",
+        verbose_name=_("Created By"),
     )
 
     updated_by = models.ForeignKey(
@@ -191,12 +191,12 @@ class SalaryPeriod(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="updated_salary_periods",
-        verbose_name="Updated By",
+        verbose_name=_("Updated By"),
     )
 
     class Meta:
-        verbose_name = "Salary Period"
-        verbose_name_plural = "Salary Periods"
+        verbose_name = _("Salary Period")
+        verbose_name_plural = _("Salary Periods")
         db_table = "payroll_salary_period"
         ordering = ["-month"]
         indexes = [

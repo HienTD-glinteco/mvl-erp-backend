@@ -66,228 +66,238 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
     }
 
     # ========== Basic Information ==========
-    code = models.CharField(max_length=50, unique=True, verbose_name="Code")
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("Code"))
 
     salary_period = models.ForeignKey(
-        "SalaryPeriod", on_delete=models.CASCADE, related_name="payroll_slips", verbose_name="Salary Period"
+        "SalaryPeriod", on_delete=models.CASCADE, related_name="payroll_slips", verbose_name=_("Salary Period")
     )
 
     employee = models.ForeignKey(
-        "hrm.Employee", on_delete=models.PROTECT, related_name="payroll_slips", verbose_name="Employee"
+        "hrm.Employee", on_delete=models.PROTECT, related_name="payroll_slips", verbose_name=_("Employee")
     )
 
     # Cached employee information
-    employee_code = models.CharField(max_length=50, verbose_name="Employee Code")
-    employee_name = models.CharField(max_length=250, verbose_name="Employee Name")
-    department_name = models.CharField(max_length=250, verbose_name="Department Name")
-    position_name = models.CharField(max_length=250, verbose_name="Position Name")
-    employment_status = models.CharField(max_length=20, verbose_name="Employment Status")
+    employee_code = models.CharField(max_length=50, verbose_name=_("Employee Code"))
+    employee_name = models.CharField(max_length=250, verbose_name=_("Employee Name"))
+    department_name = models.CharField(max_length=250, verbose_name=_("Department Name"))
+    position_name = models.CharField(max_length=250, verbose_name=_("Position Name"))
+    employment_status = models.CharField(max_length=20, verbose_name=_("Employment Status"))
 
     # Penalty ticket flags
     has_unpaid_penalty = models.BooleanField(
-        default=False, verbose_name="Has Unpaid Penalty", help_text="Flag if employee has unpaid penalty tickets"
+        default=False, verbose_name=_("Has Unpaid Penalty"), help_text="Flag if employee has unpaid penalty tickets"
     )
     unpaid_penalty_count = models.IntegerField(
-        default=0, verbose_name="Unpaid Penalty Count", help_text="Count of unpaid penalty tickets"
+        default=0, verbose_name=_("Unpaid Penalty Count"), help_text="Count of unpaid penalty tickets"
     )
 
     # ========== Contract Information ==========
-    contract_id = models.UUIDField(null=True, blank=True, verbose_name="Contract ID")
+    contract_id = models.UUIDField(null=True, blank=True, verbose_name=_("Contract ID"))
 
-    base_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Base Salary")
+    base_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Base Salary"))
 
-    kpi_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="KPI Salary")
+    kpi_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("KPI Salary"))
 
-    lunch_allowance = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Lunch Allowance")
-
-    phone_allowance = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Phone Allowance")
-
-    other_allowance = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Other Allowance")
-
-    # ========== KPI Component ==========
-    kpi_grade = models.CharField(max_length=10, default="C", verbose_name="KPI Grade")
-
-    kpi_percentage = models.DecimalField(
-        max_digits=5, decimal_places=4, default=Decimal("0.0000"), verbose_name="KPI Percentage"
+    lunch_allowance = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Lunch Allowance")
     )
 
-    kpi_bonus = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="KPI Bonus")
+    phone_allowance = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Phone Allowance")
+    )
+
+    other_allowance = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Other Allowance")
+    )
+
+    # ========== KPI Component ==========
+    kpi_grade = models.CharField(max_length=10, default="C", verbose_name=_("KPI Grade"))
+
+    kpi_percentage = models.DecimalField(
+        max_digits=5, decimal_places=4, default=Decimal("0.0000"), verbose_name=_("KPI Percentage")
+    )
+
+    kpi_bonus = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("KPI Bonus"))
 
     # ========== Sales Performance ==========
-    sales_revenue = models.BigIntegerField(default=0, verbose_name="Sales Revenue")
+    sales_revenue = models.BigIntegerField(default=0, verbose_name=_("Sales Revenue"))
 
-    sales_transaction_count = models.IntegerField(default=0, verbose_name="Sales Transaction Count")
+    sales_transaction_count = models.IntegerField(default=0, verbose_name=_("Sales Transaction Count"))
 
-    business_grade = models.CharField(max_length=10, default="M0", verbose_name="Business Grade")
+    business_grade = models.CharField(max_length=10, default="M0", verbose_name=_("Business Grade"))
 
     business_progressive_salary = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Business Progressive Salary"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Business Progressive Salary")
     )
 
     # ========== Working Days ==========
     standard_working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Standard Working Days"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Standard Working Days")
     )
 
     total_working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Total Working Days"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total Working Days")
     )
 
     official_working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Official Working Days"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Official Working Days")
     )
 
     probation_working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name="Probation Working Days"
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Probation Working Days")
     )
 
     # ========== Overtime ==========
     tc1_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC1 Overtime Hours (Weekday & Sat)"
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name=_("TC1 Overtime Hours (Weekday & Sat)")
     )
 
     tc2_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC2 Overtime Hours (Sunday)"
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name=_("TC2 Overtime Hours (Sunday)")
     )
 
     tc3_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="TC3 Overtime Hours (Holiday)"
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name=_("TC3 Overtime Hours (Holiday)")
     )
 
     total_overtime_hours = models.DecimalField(
-        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name="Total Overtime Hours"
+        max_digits=8, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Total Overtime Hours")
     )
 
     hourly_rate = models.DecimalField(
-        max_digits=20, decimal_places=2, default=Decimal("0.00"), verbose_name="Hourly Rate"
+        max_digits=20, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Hourly Rate")
     )
 
-    overtime_pay = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Overtime Pay")
+    overtime_pay = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Overtime Pay"))
 
     # ========== New Salary Calculation Fields ==========
     total_position_income = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Total Position Income"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Total Position Income")
     )
 
     actual_working_days_income = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Actual Working Days Income"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Actual Working Days Income")
     )
 
     taxable_overtime_salary = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Overtime Salary"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Taxable Overtime Salary")
     )
 
     overtime_progress_allowance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Overtime Progress Allowance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Overtime Progress Allowance")
     )
 
     non_taxable_overtime_salary = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Non-Taxable Overtime Salary"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Non-Taxable Overtime Salary")
     )
 
     # ========== Travel Expenses ==========
     taxable_travel_expense = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Travel Expense"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Taxable Travel Expense")
     )
 
     non_taxable_travel_expense = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Non-Taxable Travel Expense"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Non-Taxable Travel Expense")
     )
 
     total_travel_expense = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Total Travel Expense"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Total Travel Expense")
     )
 
     # ========== Income Calculation ==========
-    gross_income = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Gross Income")
+    gross_income = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Gross Income"))
 
     taxable_income_base = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Income Base"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Taxable Income Base")
     )
 
     # ========== Insurance (Employee) ==========
     social_insurance_base = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Social Insurance Base"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Social Insurance Base")
     )
 
     employee_social_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employee Social Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employee Social Insurance")
     )
 
     employee_health_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employee Health Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employee Health Insurance")
     )
 
     employee_unemployment_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employee Unemployment Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employee Unemployment Insurance")
     )
 
     employee_union_fee = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employee Union Fee"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employee Union Fee")
     )
 
     # ========== Insurance (Employer) ==========
     employer_social_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employer Social Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employer Social Insurance")
     )
 
     employer_health_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employer Health Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employer Health Insurance")
     )
 
     employer_unemployment_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employer Unemployment Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employer Unemployment Insurance")
     )
 
     employer_union_fee = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employer Union Fee"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employer Union Fee")
     )
 
     employer_accident_insurance = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Employer Accident Insurance"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Employer Accident Insurance")
     )
 
     # ========== Personal Income Tax ==========
     personal_deduction = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Personal Deduction"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Personal Deduction")
     )
 
-    dependent_count = models.IntegerField(default=0, verbose_name="Dependent Count")
+    dependent_count = models.IntegerField(default=0, verbose_name=_("Dependent Count"))
 
     dependent_deduction = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Dependent Deduction"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Dependent Deduction")
     )
 
-    taxable_income = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Taxable Income")
+    taxable_income = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Taxable Income"))
 
     personal_income_tax = models.DecimalField(
-        max_digits=20, decimal_places=0, default=0, verbose_name="Personal Income Tax"
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Personal Income Tax")
     )
 
     # ========== Recovery Vouchers ==========
-    back_pay_amount = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Back Pay Amount")
+    back_pay_amount = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Back Pay Amount")
+    )
 
-    recovery_amount = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Recovery Amount")
+    recovery_amount = models.DecimalField(
+        max_digits=20, decimal_places=0, default=0, verbose_name=_("Recovery Amount")
+    )
 
     # ========== Final Calculation ==========
-    net_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name="Net Salary")
+    net_salary = models.DecimalField(max_digits=20, decimal_places=0, default=0, verbose_name=_("Net Salary"))
 
     # ========== Workflow & Status ==========
     status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True, verbose_name="Status"
+        max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True, verbose_name=_("Status")
     )
 
     status_note = models.TextField(
-        blank=True, verbose_name="Status Note", help_text="Reason for PENDING or HOLD status"
+        blank=True, verbose_name=_("Status Note"), help_text="Reason for PENDING or HOLD status"
     )
 
     need_resend_email = models.BooleanField(
-        default=False, db_index=True, verbose_name="Need Resend Email", help_text="Flag if email needs to be resent"
+        default=False, db_index=True, verbose_name=_("Need Resend Email"), help_text="Flag if email needs to be resent"
     )
 
-    email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="Email Sent At")
+    email_sent_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Email Sent At"))
 
-    delivered_at = models.DateTimeField(null=True, blank=True, verbose_name="Delivered At")
+    delivered_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Delivered At"))
 
     delivered_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -295,15 +305,15 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="delivered_payroll_slips",
-        verbose_name="Delivered By",
+        verbose_name=_("Delivered By"),
     )
 
     # ========== Audit Fields ==========
     calculation_log = models.JSONField(
-        default=dict, verbose_name="Calculation Log", help_text="Detailed breakdown of calculation"
+        default=dict, verbose_name=_("Calculation Log"), help_text="Detailed breakdown of calculation"
     )
 
-    calculated_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name="Calculated At")
+    calculated_at = models.DateTimeField(null=True, blank=True, db_index=True, verbose_name=_("Calculated At"))
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -311,7 +321,7 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="created_payroll_slips",
-        verbose_name="Created By",
+        verbose_name=_("Created By"),
     )
 
     updated_by = models.ForeignKey(
@@ -320,12 +330,12 @@ class PayrollSlip(AutoCodeMixin, ColoredValueMixin, BaseModel):
         null=True,
         blank=True,
         related_name="updated_payroll_slips",
-        verbose_name="Updated By",
+        verbose_name=_("Updated By"),
     )
 
     class Meta:
-        verbose_name = "Payroll Slip"
-        verbose_name_plural = "Payroll Slips"
+        verbose_name = _("Payroll Slip")
+        verbose_name_plural = _("Payroll Slips")
         db_table = "payroll_payroll_slip"
         ordering = ["-calculated_at"]
         constraints = [
