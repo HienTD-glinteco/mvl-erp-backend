@@ -107,12 +107,24 @@ class TestCalculateStatus:
             allowed_late_minutes=15,
         )
 
-    def test_status_absent_when_no_start_time(self, test_employee):
-        """Test that status is ABSENT when there is no start_time."""
+    def test_status_none_when_no_start_time_preview(self, test_employee):
+        """Test that status is None when there is no start_time (Preview mode)."""
         entry = TimeSheetEntry.objects.create(
             employee=test_employee,
             date=date(2025, 12, 1),  # Monday
         )
+        # TimeSheetEntry.clean() calls compute_status(is_finalizing=False) by default
+        assert entry.status is None
+
+    def test_status_absent_when_no_start_time_finalized(self, test_employee):
+        """Test that status is ABSENT when there is no start_time (Finalized mode)."""
+        entry = TimeSheetEntry.objects.create(
+            employee=test_employee,
+            date=date(2025, 12, 1),  # Monday
+        )
+        from apps.hrm.services.timesheet_calculator import TimesheetCalculator
+
+        TimesheetCalculator(entry).compute_status(is_finalizing=True)
         assert entry.status == TimesheetStatus.ABSENT
 
     def test_status_on_time_when_arriving_exactly_on_time(self, test_employee):

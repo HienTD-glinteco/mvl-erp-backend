@@ -214,9 +214,9 @@ class TestOvertimeCalculations:
         contract.base_salary = Decimal("20000000")
         contract.save()
 
-        timesheet.saturday_in_week_overtime_hours = Decimal("10.00")
-        timesheet.sunday_overtime_hours = Decimal("8.00")
-        timesheet.holiday_overtime_hours = Decimal("4.00")
+        timesheet.tc1_overtime_hours = Decimal("10.00")
+        timesheet.tc2_overtime_hours = Decimal("8.00")
+        timesheet.tc3_overtime_hours = Decimal("4.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")
@@ -243,8 +243,8 @@ class TestOvertimeCalculations:
         contract.base_salary = Decimal("20000000")
         contract.save()
 
-        timesheet.saturday_in_week_overtime_hours = Decimal("10.00")
-        timesheet.sunday_overtime_hours = Decimal("8.00")
+        timesheet.tc1_overtime_hours = Decimal("10.00")
+        timesheet.tc2_overtime_hours = Decimal("8.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")
@@ -270,7 +270,7 @@ class TestOvertimeCalculations:
         contract.save()
 
         # High multiplier overtime (holiday at 3x)
-        timesheet.holiday_overtime_hours = Decimal("20.00")
+        timesheet.tc3_overtime_hours = Decimal("20.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")
@@ -301,7 +301,7 @@ class TestOvertimeCalculations:
         contract.base_salary = Decimal("20000000")
         contract.save()
 
-        timesheet.saturday_in_week_overtime_hours = Decimal("5.00")
+        timesheet.tc1_overtime_hours = Decimal("5.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")
@@ -331,7 +331,7 @@ class TestGrossIncomeCalculation:
         contract.base_salary = Decimal("20000000")
         contract.save()
 
-        timesheet.saturday_in_week_overtime_hours = Decimal("10.00")
+        timesheet.tc1_overtime_hours = Decimal("10.00")
         timesheet.save()
 
         payroll_slip.salary_period.standard_working_days = Decimal("22.00")

@@ -1,8 +1,10 @@
+import datetime
 import logging
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q, QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from apps.audit_logging.decorators import audit_logging_register
@@ -325,6 +327,31 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
         ProposalType.DEVICE_CHANGE: 1,
     }
 
+    @classmethod
+    def get_active_leave_proposals(cls, employee_id: int, date: "datetime.date") -> QuerySet["Proposal"]:
+        """Get active leave proposals (Paid, Unpaid, Maternity) for a specific date."""
+        return cls.objects.filter(
+            created_by=employee_id,
+            proposal_status=ProposalStatus.APPROVED,
+        ).filter(
+            Q(paid_leave_start_date__lte=date, paid_leave_end_date__gte=date)
+            | Q(unpaid_leave_start_date__lte=date, unpaid_leave_end_date__gte=date)
+            | Q(maternity_leave_start_date__lte=date, maternity_leave_end_date__gte=date)
+        )
+
+    @classmethod
+    def get_active_complaint_proposals(cls, employee_id: int, date: "datetime.date") -> QuerySet["Proposal"]:
+        return cls.objects.filter(
+            created_by=employee_id,
+            proposal_status=ProposalStatus.APPROVED,
+        ).filter(
+            Q(late_exemption_start_date__lte=date, late_exemption_end_date__gte=date)
+            | Q(
+                post_maternity_benefits_start_date__lte=date,
+                post_maternity_benefits_end_date__gte=date,
+            )
+        )
+
     def __str__(self) -> str:  # pragma: no cover - trivial
         code = getattr(self, "code", None) or f"#{self.pk}" if self.pk else "New"
         return f"Proposal {code} - {self.proposal_type}"
@@ -333,6 +360,22 @@ class Proposal(ColoredValueMixin, AutoCodeMixin, BaseModel):
     def colored_proposal_status(self) -> dict:
         """Get colored value representation for proposal_status field."""
         return self.get_colored_value("proposal_status")
+
+    @property
+    def is_morning_leave(self) -> bool:
+        if self.proposal_type == ProposalType.PAID_LEAVE:
+            return self.paid_leave_shift == ProposalWorkShift.MORNING
+        if self.proposal_type == ProposalType.UNPAID_LEAVE:
+            return self.unpaid_leave_shift == ProposalWorkShift.MORNING
+        return False
+
+    @property
+    def is_afternoon_leave(self) -> bool:
+        if self.proposal_type == ProposalType.PAID_LEAVE:
+            return self.paid_leave_shift == ProposalWorkShift.AFTERNOON
+        if self.proposal_type == ProposalType.UNPAID_LEAVE:
+            return self.unpaid_leave_shift == ProposalWorkShift.AFTERNOON
+        return False
 
     @property
     def short_description(self) -> str | None:

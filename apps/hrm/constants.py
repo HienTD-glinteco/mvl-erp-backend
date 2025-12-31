@@ -179,6 +179,12 @@ class TimesheetReason(models.TextChoices):
         return cls.dict_choices().get(raw_value, raw_value)
 
 
+class AllowedLateMinutesReason(models.TextChoices):
+    STANDARD = "standard", _("Standard")
+    MATERNITY = "maternity", _("Maternity")
+    LATE_EXEMPTION = "late_exemption", _("Late exemption")
+
+
 class ProposalType(models.TextChoices):
     """Proposal type choices for employee proposals."""
 

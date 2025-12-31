@@ -758,9 +758,9 @@ class PayrollSlipAdmin(admin.ModelAdmin):
             "Overtime",
             {
                 "fields": [
-                    "saturday_inweek_overtime_hours",
-                    "sunday_overtime_hours",
-                    "holiday_overtime_hours",
+                    "tc1_overtime_hours",
+                    "tc2_overtime_hours",
+                    "tc3_overtime_hours",
                     "total_overtime_hours",
                     "hourly_rate",
                     "overtime_pay",

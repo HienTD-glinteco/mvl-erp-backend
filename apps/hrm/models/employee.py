@@ -515,3 +515,7 @@ class Employee(ColoredValueMixin, AutoCodeMixin, BaseModel):
             BankAccount | None: The default BankAccount instance or None if not set
         """
         return self.bank_accounts.filter(is_primary=True).first()
+
+    @property
+    def is_unpaid_employee(self):
+        return self.employee_type in [EmployeeType.UNPAID_OFFICIAL, EmployeeType.UNPAID_PROBATION]

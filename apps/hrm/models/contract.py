@@ -4,12 +4,14 @@ from datetime import date
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
 from apps.files.models import FileModel
 from apps.hrm.constants import EmployeeType
 from apps.hrm.models.contract_type import ContractType
+from apps.hrm.models.employee import Employee
 from libs.constants import ColorVariant
 from libs.models import AutoCodeMixin, BaseModel, ColoredValueMixin, SafeTextField
 
@@ -316,6 +318,14 @@ class Contract(ColoredValueMixin, AutoCodeMixin, BaseModel):
             models.Index(fields=["effective_date"], name="contract_effective_date_idx"),
             models.Index(fields=["expiration_date"], name="contract_expiration_date_idx"),
         ]
+
+    @classmethod
+    def get_active_for_date(cls, employee: "Employee", date: date) -> QuerySet["Contract"]:
+        return cls.objects.filter(
+            employee=employee,
+            effective_date__lte=date,
+            contract_type__isnull=False,
+        ).order_by("-effective_date")
 
     def __str__(self) -> str:
         return f"{self.code} - {self.employee.fullname}"

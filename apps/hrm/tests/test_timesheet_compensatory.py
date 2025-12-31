@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 import pytest
 from django.utils import timezone
 
-from apps.hrm.constants import TimesheetStatus, TimesheetDayType
+from apps.hrm.constants import TimesheetDayType, TimesheetStatus
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.models.timesheet import TimeSheetEntry
 from apps.hrm.services.timesheet_calculator import TimesheetCalculator
@@ -37,8 +37,13 @@ def test_compensatory_no_attendance_sets_absent():
 
     ts = TimeSheetEntry(employee_id=None, date=comp_date)
     ts.day_type = TimesheetDayType.COMPENSATORY  # Manually set day_type as we skip save()
-    TimesheetCalculator(ts).compute_status()
 
+    # Test Preview (is_finalizing=False)
+    TimesheetCalculator(ts).compute_status(is_finalizing=False)
+    assert ts.status is None
+
+    # Test Finalization (is_finalizing=True)
+    TimesheetCalculator(ts).compute_status(is_finalizing=True)
     assert ts.status == TimesheetStatus.ABSENT
 
 

@@ -59,23 +59,24 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         default=DECIMAL_ZERO,
         verbose_name=_("Overtime hours"),
     )
-    saturday_in_week_overtime_hours = models.DecimalField(
+    # Renamed Fields
+    tc1_overtime_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Saturday and in week overtime hours",
+        verbose_name="TC1 overtime hours (Weekday)",
     )
-    sunday_overtime_hours = models.DecimalField(
+    tc2_overtime_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Sunday overtime hours",
+        verbose_name="TC2 overtime hours (Weekend)",
     )
-    holiday_overtime_hours = models.DecimalField(
+    tc3_overtime_hours = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=DECIMAL_ZERO,
-        verbose_name="Holiday overtime hours",
+        verbose_name="TC3 overtime hours (Holiday)",
     )
     total_worked_hours = models.DecimalField(
         max_digits=8,
@@ -84,6 +85,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
         verbose_name=_("Total worked hours"),
         help_text="Sum of official_hours and overtime_hours",
     )
+
+    # Penalties
+    late_coming_minutes = models.IntegerField(default=0, verbose_name=_("Late coming minutes"))
+    early_leaving_minutes = models.IntegerField(default=0, verbose_name=_("Early leaving minutes"))
+    total_penalty_count = models.IntegerField(default=0, verbose_name=_("Total penalty count"))
 
     # Leave counts (days) - use decimal to allow partial days
     paid_leave_days = models.DecimalField(
@@ -167,6 +173,11 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Sum(F("morning_hours") + F("afternoon_hours") + F("overtime_hours")),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
+            # Detailed Overtime
+            "_tc1_overtime_hours": Coalesce(Sum(F("ot_tc1_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
+            "_tc2_overtime_hours": Coalesce(Sum(F("ot_tc2_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
+            "_tc3_overtime_hours": Coalesce(Sum(F("ot_tc3_hours")), Value(DECIMAL_ZERO, output_field=DecimalField())),
+
             # Working days - calculate from hours divided by 8
             "_probation_working_days": Coalesce(
                 Sum(F("working_days"), filter=Q(is_full_salary=False)),
@@ -180,6 +191,12 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
                 Sum(F("working_days")),
                 Value(DECIMAL_ZERO, output_field=DecimalField()),
             ),
+
+            # Penalties
+            "late_coming_minutes": Coalesce(Sum(F("late_minutes")), Value(0)),
+            "early_leaving_minutes": Coalesce(Sum(F("early_minutes")), Value(0)),
+            "total_penalty_count": Coalesce(Count("id", filter=Q(is_punished=True)), Value(0)),
+
             # Leaves day
             "paid_leave_days": Coalesce(
                 Count("date", filter=Q(absent_reason=TimesheetReason.PAID_LEAVE), distinct=True), Value(0)
@@ -203,6 +220,9 @@ class EmployeeMonthlyTimesheet(BaseReportModel):
             field_mapping = {
                 "official_hours": "_official_hours",
                 "overtime_hours": "_overtime_hours",
+                "tc1_overtime_hours": "_tc1_overtime_hours",
+                "tc2_overtime_hours": "_tc2_overtime_hours",
+                "tc3_overtime_hours": "_tc3_overtime_hours",
                 "total_worked_hours": "_total_worked_hours",
                 "probation_working_days": "_probation_working_days",
                 "official_working_days": "_official_working_days",
