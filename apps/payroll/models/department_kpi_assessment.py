@@ -138,6 +138,7 @@ class DepartmentKPIAssessment(BaseModel):
     def update_grade_distribution(self):
         """Update grade distribution based on employee assessments in this department.
 
+        Uses the snapshot department field to count employees.
         Priority: grade_hrm > grade_manager
         """
         from apps.payroll.models import EmployeeKPIAssessment
@@ -145,7 +146,7 @@ class DepartmentKPIAssessment(BaseModel):
         # Count employees by grade (priority: hrm_grade > manager_grade)
         distribution = {"A": 0, "B": 0, "C": 0, "D": 0}
 
-        employees = EmployeeKPIAssessment.objects.filter(period=self.period, employee__department=self.department)
+        employees = EmployeeKPIAssessment.objects.filter(period=self.period, department_snapshot=self.department)
 
         for emp_assessment in employees:
             grade = emp_assessment.grade_hrm or emp_assessment.grade_manager

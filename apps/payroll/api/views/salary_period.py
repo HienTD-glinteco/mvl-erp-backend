@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
@@ -14,6 +14,7 @@ from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.permissions import RoleBasedPermission
 from apps.payroll.api.filtersets import SalaryPeriodFilterSet
 from apps.payroll.api.serializers import (
+    PayrollSlipExportSerializer,
     PayrollSlipSerializer,
     SalaryPeriodCreateAsyncSerializer,
     SalaryPeriodCreateResponseSerializer,
@@ -574,27 +575,100 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
 
         return Response(response_data)
 
-    @action(detail=True, methods=["get"])
-    def ready(self, request, pk=None):
-        """Get ready/delivered payroll slips with filtering and search."""
+    @extend_schema(
+        summary="Export payroll slips to XLSX",
+        description="Export all payroll slips for this salary period to XLSX format with filtering support",
+        tags=["10.6: Salary Periods"],
+        parameters=[
+            OpenApiParameter(
+                name="search",
+                description="Search query (searches employee code, employee name, code)",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="ordering",
+                description="Order by field(s). Prefix with '-' for descending order",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="employee_code",
+                description="Filter by employee code",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="department_name",
+                description="Filter by department name",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="position_name",
+                description="Filter by position name",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="status",
+                description="Filter by status",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="has_unpaid_penalty",
+                description="Filter by unpaid penalty status",
+                required=False,
+                type=bool,
+            ),
+        ],
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string"},
+                    "filename": {"type": "string"},
+                    "expires_in": {"type": "integer"},
+                    "storage_backend": {"type": "string"},
+                },
+            },
+        },
+        examples=[
+            OpenApiExample(
+                "Success - Export link",
+                value={
+                    "success": True,
+                    "data": {
+                        "url": "https://s3.amazonaws.com/...",
+                        "filename": "salary_period_payroll_slips.xlsx",
+                        "expires_in": 3600,
+                        "storage_backend": "s3",
+                    },
+                    "error": None,
+                },
+                response_only=True,
+                status_codes=["200"],
+            ),
+        ],
+    )
+    @action(detail=True, methods=["get"], url_path="payrollslips-export")
+    def payrollslips_export(self, request, pk=None):
+        """Export payroll slips for this salary period to XLSX."""
+        from django.conf import settings
+
+        from libs.export_xlsx.constants import STORAGE_S3
+        from libs.export_xlsx.generator import XLSXGenerator
+        from libs.export_xlsx.storage import get_storage_backend
+
         period = self.get_object()
 
-        if period.status == SalaryPeriod.Status.ONGOING:
-            # Get all READY slips from this and previous periods
-            slips = PayrollSlip.objects.filter(
-                salary_period__month__lte=period.month, status=PayrollSlip.Status.READY
-            ).select_related("employee", "salary_period")
-        else:
-            # Period is COMPLETED - get only DELIVERED slips from this period
-            slips = period.payroll_slips.filter(status=PayrollSlip.Status.DELIVERED).select_related(
-                "employee", "salary_period"
-            )
+        # Get queryset of payroll slips for this period
+        slips = period.payroll_slips.select_related("employee", "salary_period").all()
 
-        # Apply search filter
+        # Apply search filter if provided
         search = request.query_params.get("search")
         if search:
-            from django.db.models import Q
-
             slips = slips.filter(
                 Q(employee_code__icontains=search) | Q(employee_name__icontains=search) | Q(code__icontains=search)
             )
@@ -612,56 +686,9 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         if position_name:
             slips = slips.filter(position_name__icontains=position_name)
 
-        # Apply ordering
-        ordering = request.query_params.get("ordering", "-calculated_at")
-        slips = slips.order_by(ordering)
-
-        page = self.paginate_queryset(slips)
-        if page is not None:
-            serializer = PayrollSlipSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = PayrollSlipSerializer(slips, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=["get"], url_path="not-ready")
-    def not_ready(self, request, pk=None):
-        """Get pending/hold payroll slips with filtering and search."""
-        period = self.get_object()
-
-        if period.status == SalaryPeriod.Status.ONGOING:
-            # Get all PENDING/HOLD slips from this and previous periods
-            slips = PayrollSlip.objects.filter(
-                salary_period__month__lte=period.month,
-                status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD],
-            ).select_related("employee", "salary_period")
-        else:
-            # Period is COMPLETED - get only PENDING/HOLD slips from this period
-            slips = period.payroll_slips.filter(
-                status__in=[PayrollSlip.Status.PENDING, PayrollSlip.Status.HOLD]
-            ).select_related("employee", "salary_period")
-
-        # Apply search filter
-        search = request.query_params.get("search")
-        if search:
-            from django.db.models import Q
-
-            slips = slips.filter(
-                Q(employee_code__icontains=search) | Q(employee_name__icontains=search) | Q(code__icontains=search)
-            )
-
-        # Apply field filters
-        employee_code = request.query_params.get("employee_code")
-        if employee_code:
-            slips = slips.filter(employee_code__icontains=employee_code)
-
-        department_name = request.query_params.get("department_name")
-        if department_name:
-            slips = slips.filter(department_name__icontains=department_name)
-
-        position_name = request.query_params.get("position_name")
-        if position_name:
-            slips = slips.filter(position_name__icontains=position_name)
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            slips = slips.filter(status=status_filter)
 
         has_unpaid_penalty = request.query_params.get("has_unpaid_penalty")
         if has_unpaid_penalty is not None:
@@ -671,13 +698,49 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         ordering = request.query_params.get("ordering", "-calculated_at")
         slips = slips.order_by(ordering)
 
-        page = self.paginate_queryset(slips)
-        if page is not None:
-            serializer = PayrollSlipSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        # Serialize data using export serializer
+        serializer = PayrollSlipExportSerializer(slips, many=True)
 
-        serializer = PayrollSlipSerializer(slips, many=True)
-        return Response(serializer.data)
+        # Prepare export data
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+
+        schema = {
+            "sheets": [
+                {
+                    "name": f"Payroll Slips - {period.code}",
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
+
+        # Generate XLSX file
+        generator = XLSXGenerator()
+        file_content = generator.generate(schema)
+
+        # Upload to S3 and return presigned URL
+        storage = get_storage_backend(STORAGE_S3)
+        filename = f"salary_period_{period.code}_payroll_slips.xlsx"
+        file_path = storage.save(file_content, filename)
+        presigned_url = storage.get_url(file_path)
+        file_size = storage.get_file_size(file_path)
+
+        expires_in = getattr(settings, "EXPORTER_PRESIGNED_URL_EXPIRES", 3600)
+
+        response_data = {
+            "url": presigned_url,
+            "filename": filename,
+            "expires_in": expires_in,
+            "storage_backend": "s3",
+        }
+
+        if file_size is not None:
+            response_data["size_bytes"] = file_size
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class SalaryPeriodReadySlipsView(PermissionedAPIView):

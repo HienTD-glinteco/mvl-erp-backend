@@ -177,7 +177,7 @@ class EmployeeKPIAssessmentAdmin(admin.ModelAdmin):
         (
             "Basic Information",
             {
-                "fields": ["period", "employee", "department_assignment_source"],
+                "fields": ["period", "employee", "department_snapshot"],
             },
         ),
         (

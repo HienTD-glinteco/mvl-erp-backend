@@ -1,3 +1,4 @@
+from django.db.models import Count, F, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -54,6 +55,8 @@ from libs.drf.filtersets.search import PhraseSearchFilter
                                     "C": 10,
                                     "D": 1,
                                 },
+                                "is_valid_unit_control": True,
+                                "employee_count": 18,
                                 "finalized": False,
                                 "created_at": "2025-12-01T00:00:00Z",
                                 "updated_at": "2025-12-01T00:00:00Z",
@@ -121,6 +124,21 @@ class DepartmentKPIAssessmentViewSet(AuditLoggingMixin, BaseModelViewSet):
         elif self.action in ["partial_update"]:
             return DepartmentKPIAssessmentUpdateSerializer
         return DepartmentKPIAssessmentSerializer
+
+    def get_queryset(self):
+        """Annotate queryset with employee_count for list view."""
+        queryset = super().get_queryset()
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                employee_count=Count(
+                    "department__employee_kpi_assessments",
+                    filter=Q(department__employee_kpi_assessments__period=F("period")),
+                    distinct=True,
+                )
+            )
+
+        return queryset
 
     def perform_update(self, serializer):
         """Set updated_by and assigned info when updating."""

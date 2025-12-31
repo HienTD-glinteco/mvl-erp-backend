@@ -65,7 +65,7 @@ def kpi_criteria():
 
 @pytest.mark.django_db
 class TestEmployeeKPIAssessmentSerializerFields:
-    """Test that serializers include block, branch, department, and position fields."""
+    """Test that serializers include employee organizational fields nested properly."""
 
     def test_list_serializer_includes_nested_fields(self, employee, assessment_period, kpi_criteria):
         """Test EmployeeKPIAssessmentListSerializer includes nested organizational fields."""
@@ -74,33 +74,38 @@ class TestEmployeeKPIAssessmentSerializerFields:
         assessment = EmployeeKPIAssessment.objects.create(
             employee=employee,
             period=assessment_period,
+            department_snapshot=employee.department,  # Set department snapshot
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
         serializer = EmployeeKPIAssessmentListSerializer(assessment)
         data = serializer.data
 
-        # Check that nested fields exist
-        assert "block" in data, "block field should be in serializer output"
-        assert "branch" in data, "branch field should be in serializer output"
-        assert "department" in data, "department field should be in serializer output"
-        assert "position" in data, "position field should be in serializer output"
+        # Check that employee is nested with organizational fields
+        assert "employee" in data, "employee field should be in serializer output"
+        assert "department_snapshot" in data, "department_snapshot field should be in serializer output"
+
+        employee_data = data["employee"]
+        assert "block" in employee_data, "block field should be in employee data"
+        assert "branch" in employee_data, "branch field should be in employee data"
+        assert "department" in employee_data, "department field should be in employee data"
+        assert "position" in employee_data, "position field should be in employee data"
 
         # Check nested structure (should have id, name, code)
-        if data["block"]:
-            assert "id" in data["block"]
-            assert "name" in data["block"]
-            assert "code" in data["block"]
+        if employee_data["block"]:
+            assert "id" in employee_data["block"]
+            assert "name" in employee_data["block"]
+            assert "code" in employee_data["block"]
 
-        if data["branch"]:
-            assert "id" in data["branch"]
-            assert "name" in data["branch"]
-            assert "code" in data["branch"]
+        if employee_data["branch"]:
+            assert "id" in employee_data["branch"]
+            assert "name" in employee_data["branch"]
+            assert "code" in employee_data["branch"]
 
-        if data["department"]:
-            assert "id" in data["department"]
-            assert "name" in data["department"]
-            assert "code" in data["department"]
+        if employee_data["department"]:
+            assert "id" in employee_data["department"]
+            assert "name" in employee_data["department"]
+            assert "code" in employee_data["department"]
 
     def test_detail_serializer_includes_nested_fields(self, employee, assessment_period, kpi_criteria):
         """Test EmployeeKPIAssessmentSerializer includes nested organizational fields."""
@@ -109,17 +114,22 @@ class TestEmployeeKPIAssessmentSerializerFields:
         assessment = EmployeeKPIAssessment.objects.create(
             employee=employee,
             period=assessment_period,
+            department_snapshot=employee.department,  # Set department snapshot
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
         serializer = EmployeeKPIAssessmentSerializer(assessment)
         data = serializer.data
 
-        # Check that nested fields exist
-        assert "block" in data, "block field should be in serializer output"
-        assert "branch" in data, "branch field should be in serializer output"
-        assert "department" in data, "department field should be in serializer output"
-        assert "position" in data, "position field should be in serializer output"
+        # Check that employee is nested with organizational fields
+        assert "employee" in data, "employee field should be in serializer output"
+        assert "department_snapshot" in data, "department_snapshot field should be in serializer output"
+
+        employee_data = data["employee"]
+        assert "block" in employee_data, "block field should be in employee data"
+        assert "branch" in employee_data, "branch field should be in employee data"
+        assert "department" in employee_data, "department field should be in employee data"
+        assert "position" in employee_data, "position field should be in employee data"
 
     def test_self_assessment_serializer_includes_nested_fields(self, employee, assessment_period, kpi_criteria):
         """Test EmployeeSelfAssessmentSerializer includes nested organizational fields."""
@@ -128,17 +138,22 @@ class TestEmployeeKPIAssessmentSerializerFields:
         assessment = EmployeeKPIAssessment.objects.create(
             employee=employee,
             period=assessment_period,
+            department_snapshot=employee.department,  # Set department snapshot
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
         serializer = EmployeeSelfAssessmentSerializer(assessment)
         data = serializer.data
 
-        # Check that nested fields exist
-        assert "block" in data, "block field should be in serializer output"
-        assert "branch" in data, "branch field should be in serializer output"
-        assert "department" in data, "department field should be in serializer output"
-        assert "position" in data, "position field should be in serializer output"
+        # Check that employee is nested with organizational fields
+        assert "employee" in data, "employee field should be in serializer output"
+        assert "department_snapshot" in data, "department_snapshot field should be in serializer output"
+
+        employee_data = data["employee"]
+        assert "block" in employee_data, "block field should be in employee data"
+        assert "branch" in employee_data, "branch field should be in employee data"
+        assert "department" in employee_data, "department field should be in employee data"
+        assert "position" in employee_data, "position field should be in employee data"
 
     def test_manager_assessment_serializer_includes_nested_fields(self, employee, assessment_period, kpi_criteria):
         """Test ManagerAssessmentSerializer includes nested organizational fields."""
@@ -147,14 +162,19 @@ class TestEmployeeKPIAssessmentSerializerFields:
         assessment = EmployeeKPIAssessment.objects.create(
             employee=employee,
             period=assessment_period,
+            department_snapshot=employee.department,  # Set department snapshot
         )
         create_assessment_items_from_criteria(assessment, kpi_criteria)
 
         serializer = ManagerAssessmentSerializer(assessment)
         data = serializer.data
 
-        # Check that nested fields exist
-        assert "block" in data, "block field should be in serializer output"
-        assert "branch" in data, "branch field should be in serializer output"
-        assert "department" in data, "department field should be in serializer output"
-        assert "position" in data, "position field should be in serializer output"
+        # Check that employee is nested with organizational fields
+        assert "employee" in data, "employee field should be in serializer output"
+        assert "department_snapshot" in data, "department_snapshot field should be in serializer output"
+
+        employee_data = data["employee"]
+        assert "block" in employee_data, "block field should be in employee data"
+        assert "branch" in employee_data, "branch field should be in employee data"
+        assert "department" in employee_data, "department field should be in employee data"
+        assert "position" in employee_data, "position field should be in employee data"

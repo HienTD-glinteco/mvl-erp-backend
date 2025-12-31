@@ -28,18 +28,22 @@ def handle_employee_kpi_assessment_post_save(sender, instance, created, **kwargs
     """Handle all post-save operations for EmployeeKPIAssessment.
 
     This consolidated signal handles:
-    1. Update department assessment status
+    1. Update department assessment status and grade distribution
     2. Update assessment status (new/waiting_manager/completed)
     3. Send notification on creation
     4. Trigger payroll recalculation
     """
-    # 1. Update department assessment status (if employee has department)
-    if instance.employee and instance.employee.department:
+    # 1. Update department assessment status and grade distribution
+    if instance.department_snapshot:
         try:
             dept_assessment = DepartmentKPIAssessment.objects.get(
-                period=instance.period, department=instance.employee.department
+                period=instance.period, department=instance.department_snapshot
             )
             update_department_assessment_status(dept_assessment)
+
+            # Update grade distribution when employee grade changes
+            if instance.grade_manager or instance.grade_hrm:
+                dept_assessment.update_grade_distribution()
         except DepartmentKPIAssessment.DoesNotExist:
             pass
 
@@ -140,6 +144,7 @@ def create_kpi_assessment_for_new_employee(sender, instance, created, **kwargs):
         employee=instance,
         period=period,
         manager=instance.department.leader if hasattr(instance.department, "leader") else None,
+        department_snapshot=instance.department,
     )
 
     create_assessment_items_from_criteria(assessment, list(criteria))

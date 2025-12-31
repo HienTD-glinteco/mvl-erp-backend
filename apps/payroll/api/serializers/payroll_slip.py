@@ -132,3 +132,82 @@ class PayrollSlipStatusUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     status = serializers.CharField()
     status_note = serializers.CharField()
+
+
+class PayrollSlipExportSerializer(serializers.ModelSerializer):
+    """Serializer for PayrollSlip XLSX export with flattened nested objects."""
+
+    salary_period_code = serializers.CharField(source="salary_period.code", read_only=True, label="Salary Period Code")
+    salary_period_month = serializers.CharField(
+        source="salary_period.month", read_only=True, label="Salary Period Month"
+    )
+    status_display = serializers.CharField(source="get_status_display", read_only=True, label="Status")
+
+    class Meta:
+        model = PayrollSlip
+        fields = [
+            "code",
+            "salary_period_code",
+            "salary_period_month",
+            "employee_code",
+            "employee_name",
+            "department_name",
+            "position_name",
+            "employment_status",
+            "base_salary",
+            "kpi_salary",
+            "lunch_allowance",
+            "phone_allowance",
+            "other_allowance",
+            "kpi_grade",
+            "kpi_percentage",
+            "kpi_bonus",
+            "sales_revenue",
+            "sales_transaction_count",
+            "business_grade",
+            "business_progressive_salary",
+            "standard_working_days",
+            "total_working_days",
+            "official_working_days",
+            "probation_working_days",
+            "tc1_overtime_hours",
+            "tc2_overtime_hours",
+            "tc3_overtime_hours",
+            "total_overtime_hours",
+            "hourly_rate",
+            "overtime_pay",
+            "total_position_income",
+            "actual_working_days_income",
+            "taxable_overtime_salary",
+            "overtime_progress_allowance",
+            "non_taxable_overtime_salary",
+            "taxable_travel_expense",
+            "non_taxable_travel_expense",
+            "total_travel_expense",
+            "gross_income",
+            "taxable_income_base",
+            "social_insurance_base",
+            "employee_social_insurance",
+            "employee_health_insurance",
+            "employee_unemployment_insurance",
+            "employee_union_fee",
+            "employer_social_insurance",
+            "employer_health_insurance",
+            "employer_unemployment_insurance",
+            "employer_union_fee",
+            "employer_accident_insurance",
+            "personal_deduction",
+            "dependent_count",
+            "dependent_deduction",
+            "taxable_income",
+            "personal_income_tax",
+            "back_pay_amount",
+            "recovery_amount",
+            "net_salary",
+            "status_display",
+            "status_note",
+            "has_unpaid_penalty",
+            "unpaid_penalty_count",
+            "need_resend_email",
+            "calculated_at",
+        ]

@@ -143,11 +143,13 @@ class TestKPIAssessmentPeriodSummaryAPI:
             period=self.period,
             employee=self.emp1_dept1,
             grade_manager="A",
+            department_snapshot=self.dept1,
         )
         EmployeeKPIAssessment.objects.create(
             period=self.period,
             employee=self.emp2_dept1,
             grade_hrm="B",
+            department_snapshot=self.dept1,
         )
 
         # Create employee assessments for dept2 - not finished (one without grade)
@@ -155,11 +157,13 @@ class TestKPIAssessmentPeriodSummaryAPI:
             period=self.period,
             employee=self.emp1_dept2,
             grade_manager="B",
+            department_snapshot=self.dept2,
         )
         EmployeeKPIAssessment.objects.create(
             period=self.period,
             employee=self.emp2_dept2,
             # No grades
+            department_snapshot=self.dept2,
         )
 
         # Create employee assessments for dept3 - not finished
@@ -167,6 +171,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             period=self.period,
             employee=self.emp1_dept3,
             # No grades
+            department_snapshot=self.dept3,
         )
 
     def test_summary_endpoint_returns_correct_counts(self):
@@ -270,6 +275,7 @@ class TestKPIAssessmentPeriodSummaryAPI:
             employee=emp_dept4,
             grade_manager="B",
             grade_hrm="A",
+            department_snapshot=dept4,
         )
 
         url = f"/api/payroll/kpi-periods/{self.period.id}/summary/"

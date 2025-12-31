@@ -270,6 +270,7 @@ def generate_employee_assessments_for_period(
                     employee=employee,
                     period=period,
                     manager=employee.department.leader if hasattr(employee.department, "leader") else None,
+                    department_snapshot=employee.department,
                 )
 
                 # Create items from criteria
@@ -280,7 +281,7 @@ def generate_employee_assessments_for_period(
 
                 created_count += 1
 
-            except Exception as e:  # noqa: B110
+            except Exception as e:
                 # Skip errors for individual employees but log them
                 logger.warning(
                     "Failed to create assessment for employee %s: %s",
@@ -347,10 +348,12 @@ def generate_department_assessments_for_period(
                     defaults={
                         "grade_hrm": "C",
                         "finalized": True,
+                        "manager": department.leader,
+                        "department_snapshot": department,
                     },
                 )
 
-        except Exception as e:  # noqa: B110
+        except Exception as e:
             # Skip errors for individual departments but log them
             logger.warning(
                 "Failed to create assessment for department %s: %s",

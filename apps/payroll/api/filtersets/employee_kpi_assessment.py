@@ -17,9 +17,10 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     - grade_hrm (multiple values filter)
     - status (filter by assessment status)
     - finalized (boolean)
-    - branch (filter by employee's branch)
-    - block (filter by employee's block)
-    - department (filter by employee's department)
+    - branch (filter by employee's current branch)
+    - block (filter by employee's current block)
+    - department (filter by employee's current department)
+    - department_snapshot (filter by department at time of assessment)
     - position (filter by employee's position)
     """
 
@@ -35,6 +36,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     branch = django_filters.NumberFilter(field_name="employee__branch__id", lookup_expr="exact")
     block = django_filters.NumberFilter(field_name="employee__block__id", lookup_expr="exact")
     department = django_filters.NumberFilter(field_name="employee__department__id", lookup_expr="exact")
+    department_snapshot = django_filters.NumberFilter(field_name="department_snapshot__id", lookup_expr="exact")
     position = django_filters.NumberFilter(field_name="employee__position__id", lookup_expr="exact")
     status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
 
@@ -53,6 +55,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
             "branch",
             "block",
             "department",
+            "department_snapshot",
             "position",
             "status",
         ]

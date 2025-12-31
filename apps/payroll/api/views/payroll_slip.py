@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.payroll.api.filtersets import PayrollSlipFilterSet
 from apps.payroll.api.serializers import (
+    PayrollSlipExportSerializer,
     PayrollSlipHoldSerializer,
     PayrollSlipSerializer,
     PayrollSlipStatusUpdateSerializer,
@@ -18,6 +19,7 @@ from apps.payroll.api.serializers import (
 from apps.payroll.models import PayrollSlip
 from libs import BaseReadOnlyModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -102,8 +104,11 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             ),
         ],
     ),
+    export=extend_schema(
+        tags=["10.7: Payroll Slips"],
+    ),
 )
-class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
+class PayrollSlipViewSet(ExportXLSXMixin, AuditLoggingMixin, BaseReadOnlyModelViewSet):
     """ViewSet for managing payroll slips.
 
     Provides CRUD operations and custom actions for payroll slip management:
@@ -142,7 +147,29 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
             return PayrollSlipHoldSerializer
         elif self.action in ["ready", "deliver"]:
             return PayrollSlipStatusUpdateSerializer
+        elif self.action == "export":
+            return PayrollSlipExportSerializer
         return PayrollSlipSerializer
+
+    def get_export_data(self, request):
+        """Generate export data with flattened nested objects."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+
+        return {
+            "sheets": [
+                {
+                    "name": "Payroll Slips",
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
 
     @extend_schema(
         summary="Recalculate payroll slip",

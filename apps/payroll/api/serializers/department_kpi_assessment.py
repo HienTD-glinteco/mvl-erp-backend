@@ -113,6 +113,8 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
     department = DepartmentNestedSerializer(read_only=True)
     leader = EmployeeNestedSerializer(source="department.leader", read_only=True)
     period = KPIAssessmentPeriodNestedSerializer(read_only=True)
+    is_valid_unit_control = serializers.BooleanField(read_only=True)
+    employee_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = DepartmentKPIAssessment
@@ -127,6 +129,8 @@ class DepartmentKPIAssessmentListSerializer(serializers.ModelSerializer):
             "grade_distribution",
             "note",
             "finalized",
+            "is_valid_unit_control",
+            "employee_count",
             "created_at",
             "updated_at",
         ]
