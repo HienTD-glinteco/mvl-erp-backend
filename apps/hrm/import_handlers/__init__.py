@@ -11,6 +11,7 @@ from .employee import (
     import_handler as employee_import_handler,
     pre_import_initialize as employee_pre_import_initialize,
 )
+from .employee_relationship import import_handler as employee_relationship_import_handler
 from .recruitment_candidate import import_handler as recruitment_candidate_import_handler
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "contract_update_import_handler",
     "employee_import_handler",
     "employee_pre_import_initialize",
+    "employee_relationship_import_handler",
     "recruitment_candidate_import_handler",
 ]

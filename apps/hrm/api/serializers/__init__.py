@@ -35,7 +35,7 @@ from .employee import (
 )
 from .employee_certificate import EmployeeCertificateSerializer
 from .employee_dependent import EmployeeDependentSerializer
-from .employee_relationship import EmployeeRelationshipSerializer
+from .employee_relationship import EmployeeRelationshipExportXLSXSerializer, EmployeeRelationshipSerializer
 from .employee_report import (
     EmployeeCountBreakdownReportParamsSerializer,
     EmployeeResignedReasonSummaryParamsSerializer,
@@ -177,6 +177,7 @@ __all__ = [
     "SourceTypeBreakdownResponseSerializer",
     "MonthlyTrendsResponseSerializer",
     "EmployeeRelationshipSerializer",
+    "EmployeeRelationshipExportXLSXSerializer",
     "EmployeeSenioritySerializer",
     "EmployeeStatusBreakdownReportAggregatedSerializer",
     "EmployeeCountBreakdownReportParamsSerializer",

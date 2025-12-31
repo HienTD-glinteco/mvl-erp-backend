@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-31 13:41+0700\n"
+"POT-Creation-Date: 2025-12-31 16:59+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -477,7 +477,7 @@ msgstr "Báo cáo chấm công GPS theo phòng ban"
 #: apps/hrm/api/views/employee.py:99
 #: apps/hrm/api/views/employee_certificate.py:300
 #: apps/hrm/api/views/employee_dependent.py:260
-#: apps/hrm/api/views/employee_relationship.py:221
+#: apps/hrm/api/views/employee_relationship.py:238
 #: apps/hrm/api/views/employee_role.py:108
 #: apps/hrm/api/views/employee_work_history.py:124
 #: apps/hrm/api/views/holiday.py:222
@@ -526,6 +526,8 @@ msgstr "Ban hành {model_name}"
 #: apps/hrm/api/views/contract_appendix.py:277
 #: apps/hrm/api/views/contract_appendix.py:278
 #: apps/hrm/api/views/employee.py:140 apps/hrm/api/views/employee.py:141
+#: apps/hrm/api/views/employee_relationship.py:243
+#: apps/hrm/api/views/employee_relationship.py:244
 #, python-brace-format
 msgid "Download import template for {model_name}"
 msgstr "Tải xuống mẫu import {model_name}"
@@ -533,6 +535,7 @@ msgstr "Tải xuống mẫu import {model_name}"
 #: apps/hrm/api/views/contract.py:322
 #: apps/hrm/api/views/contract_appendix.py:281
 #: apps/hrm/api/views/employee.py:144
+#: apps/hrm/api/views/employee_relationship.py:247
 #, python-brace-format
 msgid "Import {model_name} data"
 msgstr "Import {model_name}"
@@ -540,6 +543,7 @@ msgstr "Import {model_name}"
 #: apps/hrm/api/views/contract.py:323
 #: apps/hrm/api/views/contract_appendix.py:282
 #: apps/hrm/api/views/employee.py:145
+#: apps/hrm/api/views/employee_relationship.py:248
 #, python-brace-format
 msgid "Import {model_name} data asynchronously"
 msgstr ""
@@ -572,7 +576,7 @@ msgstr "Quản lý Quyết Định"
 
 #: apps/hrm/api/views/employee.py:100
 #: apps/hrm/api/views/employee_dependent.py:261
-#: apps/hrm/api/views/employee_relationship.py:222
+#: apps/hrm/api/views/employee_relationship.py:239
 #: apps/hrm/api/views/employee_role.py:109
 #: apps/hrm/api/views/employee_work_history.py:125
 msgid "Employee Management"

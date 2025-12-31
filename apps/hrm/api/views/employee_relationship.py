@@ -6,10 +6,12 @@ from rest_framework.filters import OrderingFilter
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.hrm.api.filtersets import EmployeeRelationshipFilterSet
-from apps.hrm.api.serializers import EmployeeRelationshipSerializer
+from apps.hrm.api.serializers import EmployeeRelationshipExportXLSXSerializer, EmployeeRelationshipSerializer
 from apps.hrm.models import EmployeeRelationship
+from apps.imports.api.mixins import AsyncImportProgressMixin
 from libs import BaseModelViewSet
 from libs.drf.filtersets.search import PhraseSearchFilter
+from libs.export_xlsx import ExportXLSXMixin
 
 
 @extend_schema_view(
@@ -205,8 +207,23 @@ from libs.drf.filtersets.search import PhraseSearchFilter
             )
         ],
     ),
+    export=extend_schema(
+        description="Export list Employee Relationships",
+        tags=["5.3: Employee Relationship"],
+    ),
+    start_import=extend_schema(
+        tags=["5.3: Employee Relationship"],
+    ),
+    import_template=extend_schema(
+        tags=["5.3: Employee Relationship"],
+    ),
 )
-class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
+class EmployeeRelationshipViewSet(
+    AsyncImportProgressMixin,
+    ExportXLSXMixin,
+    AuditLoggingMixin,
+    BaseModelViewSet,
+):
     """ViewSet for managing employee relationships/next-of-kin"""
 
     queryset = EmployeeRelationship.objects.select_related("employee", "attachment", "created_by").all()
@@ -221,6 +238,54 @@ class EmployeeRelationshipViewSet(AuditLoggingMixin, BaseModelViewSet):
     module = _("HRM")
     submodule = _("Employee Management")
     permission_prefix = "employee_relationship"
+    PERMISSION_REGISTERED_ACTIONS = {
+        "import_template": {
+            "name_template": _("Download import template for {model_name}"),
+            "description_template": _("Download import template for {model_name}"),
+        },
+        "start_import": {
+            "name_template": _("Import {model_name} data"),
+            "description_template": _("Import {model_name} data asynchronously"),
+        },
+    }
+
+    # Import handler path for AsyncImportProgressMixin
+    import_row_handler = "apps.hrm.import_handlers.employee_relationship.import_handler"
+
+    # Export template path for ExportXLSXMixin
+    xlsx_template_name = "apps/hrm/fixtures/export_templates/employee_relationship_export_template.xlsx"
+
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == "export":
+            return EmployeeRelationshipExportXLSXSerializer
+        return super().get_serializer_class()
+
+    def get_export_data(self, request):
+        """Get data for XLSX export."""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        headers = [str(field.label) for field in serializer.child.fields.values()]
+        data = serializer.data
+        field_names = list(serializer.child.fields.keys())
+        if self.xlsx_template_name:
+            headers = [_(self.xlsx_template_index_column_key), *headers]
+            field_names = [self.xlsx_template_index_column_key, *field_names]
+            for index, row in enumerate(data, start=1):
+                row.update({self.xlsx_template_index_column_key: index})
+
+        data = {
+            "sheets": [
+                {
+                    "name": str(EmployeeRelationship._meta.verbose_name),
+                    "headers": headers,
+                    "field_names": field_names,
+                    "data": data,
+                }
+            ]
+        }
+        return data
 
     def get_queryset(self):
         """Filter to show only active relationships by default"""

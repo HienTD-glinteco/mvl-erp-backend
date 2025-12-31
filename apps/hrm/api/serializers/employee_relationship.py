@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.files.api.serializers import FileSerializer
 from apps.files.api.serializers.mixins import FileConfirmSerializerMixin
 from apps.hrm.models import Employee, EmployeeRelationship
+from libs.drf.serializers.mixins import FieldFilteringSerializerMixin
 
 from .common_nested import EmployeeNestedSerializer
 
@@ -69,3 +70,41 @@ class EmployeeRelationshipSerializer(FileConfirmSerializerMixin, serializers.Mod
         if request and request.user:
             validated_data["created_by"] = request.user
         return super().create(validated_data)
+
+
+class EmployeeRelationshipExportXLSXSerializer(FieldFilteringSerializerMixin, serializers.ModelSerializer):
+    """Serializer for exporting EmployeeRelationship to XLSX format."""
+
+    relation_type = serializers.SerializerMethodField()
+
+    default_fields = [
+        "employee_code",
+        "employee_name",
+        "relative_name",
+        "relation_type",
+        "date_of_birth",
+        "citizen_id",
+        "address",
+        "phone",
+        "occupation",
+        "note",
+    ]
+
+    class Meta:
+        model = EmployeeRelationship
+        fields = [
+            "employee_code",
+            "employee_name",
+            "relative_name",
+            "relation_type",
+            "date_of_birth",
+            "citizen_id",
+            "address",
+            "phone",
+            "occupation",
+            "note",
+        ]
+
+    def get_relation_type(self, obj: EmployeeRelationship) -> str:
+        """Get the display value of relation type."""
+        return obj.get_relation_type_display()

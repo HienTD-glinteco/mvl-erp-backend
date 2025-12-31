@@ -1,11 +1,12 @@
 import json
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.hrm.api.serializers import EmployeeRelationshipExportXLSXSerializer
 from apps.hrm.models import Employee, EmployeeRelationship
 
 User = get_user_model()
@@ -516,3 +517,483 @@ class EmployeeRelationshipAPITest(TransactionTestCase, APITestMixin):
 
         self.assertEqual(response_data[0]["relative_name"], "Alice")
         self.assertEqual(response_data[1]["relative_name"], "Zoe")
+
+
+class EmployeeRelationshipExportXLSXSerializerTest(TransactionTestCase):
+    """Test cases for EmployeeRelationshipExportXLSXSerializer."""
+
+    def setUp(self):
+        """Set up test data."""
+        EmployeeRelationship.objects.all().delete()
+        Employee.objects.all().delete()
+        User.objects.all().delete()
+
+        # Create organizational structure
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department
+
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Main Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
+        self.department = Department.objects.create(
+            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
+        )
+
+        # Create test employee
+        self.employee = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john.doe@example.com",
+            phone="0900202020",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-01-01",
+            citizen_id="000000020020",
+        )
+
+        # Create test relationship
+        self.relationship = EmployeeRelationship.objects.create(
+            employee=self.employee,
+            relative_name="Jane Doe",
+            relation_type="WIFE",
+            date_of_birth="1990-05-15",
+            citizen_id="123456789",
+            address="123 Main Street",
+            phone="0901234567",
+            occupation="Teacher",
+            note="Emergency contact",
+        )
+
+    def test_serializer_fields(self):
+        """Test that serializer has correct default fields."""
+        serializer = EmployeeRelationshipExportXLSXSerializer(instance=self.relationship)
+        data = serializer.data
+
+        self.assertIn("employee_code", data)
+        self.assertIn("employee_name", data)
+        self.assertIn("relative_name", data)
+        self.assertIn("relation_type", data)
+        self.assertIn("date_of_birth", data)
+        self.assertIn("citizen_id", data)
+        self.assertIn("address", data)
+        self.assertIn("phone", data)
+        self.assertIn("occupation", data)
+        self.assertIn("note", data)
+
+    def test_relation_type_display(self):
+        """Test that relation_type returns display value."""
+        serializer = EmployeeRelationshipExportXLSXSerializer(instance=self.relationship)
+        data = serializer.data
+
+        # Should return translated display value, not raw enum
+        self.assertEqual(data["relation_type"], "Wife")
+
+    def test_employee_code_and_name(self):
+        """Test that employee_code and employee_name are correctly serialized."""
+        serializer = EmployeeRelationshipExportXLSXSerializer(instance=self.relationship)
+        data = serializer.data
+
+        self.assertEqual(data["employee_code"], self.employee.code)
+        self.assertEqual(data["employee_name"], self.employee.fullname)
+
+    def test_many_serialization(self):
+        """Test serialization of multiple relationships."""
+        EmployeeRelationship.objects.create(
+            employee=self.employee,
+            relative_name="Father Doe",
+            relation_type="FATHER",
+            date_of_birth="1960-01-01",
+        )
+
+        relationships = EmployeeRelationship.objects.all()
+        serializer = EmployeeRelationshipExportXLSXSerializer(instance=relationships, many=True)
+        data = serializer.data
+
+        self.assertEqual(len(data), 2)
+
+
+@override_settings(EXPORTER_CELERY_ENABLED=False)
+class EmployeeRelationshipExportAPITest(TransactionTestCase, APITestMixin):
+    """Test cases for Employee Relationship export API endpoint."""
+
+    def setUp(self):
+        """Set up test data."""
+        EmployeeRelationship.objects.all().delete()
+        Employee.objects.all().delete()
+        User.objects.all().delete()
+
+        self.user = User.objects.create_superuser(
+            username="exporttestuser", email="exporttest@example.com", password="testpass123"
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        # Create organizational structure
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department
+
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Main Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
+        self.department = Department.objects.create(
+            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
+        )
+
+        # Create test employee
+        self.employee = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john.doe@example.com",
+            phone="0900202020",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-01-01",
+            citizen_id="000000020020",
+        )
+
+        # Create test relationship
+        self.relationship = EmployeeRelationship.objects.create(
+            employee=self.employee,
+            relative_name="Jane Doe",
+            relation_type="WIFE",
+            date_of_birth="1990-05-15",
+            citizen_id="123456789",
+            address="123 Main Street",
+            phone="0901234567",
+            occupation="Teacher",
+            note="Emergency contact",
+        )
+
+    def test_export_endpoint_exists(self):
+        """Test that export endpoint exists."""
+        url = reverse("hrm:employee-relationship-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        # Should not return 404
+        self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_export_direct_delivery(self):
+        """Test export with direct file delivery."""
+        url = reverse("hrm:employee-relationship-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("attachment", response["Content-Disposition"])
+        self.assertIn(".xlsx", response["Content-Disposition"])
+
+    def test_export_uses_template(self):
+        """Test that export uses the xlsx_template_name."""
+        url = reverse("hrm:employee-relationship-export")
+        response = self.client.get(url, {"delivery": "direct"})
+
+        # Should return a valid XLSX file
+        self.assertEqual(response.status_code, status.HTTP_206_PARTIAL_CONTENT)
+        # The content should be valid XLSX data
+        self.assertTrue(len(response.content) > 0)
+
+
+class EmployeeRelationshipImportHandlerTest(TransactionTestCase):
+    """Test cases for Employee Relationship import handler."""
+
+    def setUp(self):
+        """Set up test data."""
+        EmployeeRelationship.objects.all().delete()
+        Employee.objects.all().delete()
+        User.objects.all().delete()
+
+        # Create organizational structure
+        from apps.core.models import AdministrativeUnit, Province
+        from apps.hrm.models import Block, Branch, Department
+
+        self.province = Province.objects.create(code="01", name="Test Province")
+        self.admin_unit = AdministrativeUnit.objects.create(
+            code="01",
+            name="Test Admin Unit",
+            parent_province=self.province,
+            level=AdministrativeUnit.UnitLevel.DISTRICT,
+        )
+
+        self.branch = Branch.objects.create(
+            code="CN001",
+            name="Main Branch",
+            province=self.province,
+            administrative_unit=self.admin_unit,
+        )
+        self.block = Block.objects.create(
+            code="KH001", name="Main Block", branch=self.branch, block_type=Block.BlockType.BUSINESS
+        )
+        self.department = Department.objects.create(
+            code="PB001", name="Engineering Department", block=self.block, branch=self.branch
+        )
+
+        # Create test employee
+        self.employee = Employee.objects.create(
+            fullname="John Doe",
+            username="johndoe",
+            email="john.doe@example.com",
+            phone="0900202020",
+            code_type="MV",
+            branch=self.branch,
+            block=self.block,
+            department=self.department,
+            start_date="2024-01-01",
+            citizen_id="000000020020",
+        )
+
+    def test_import_handler_create(self):
+        """Test import handler creates a new relationship."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+            "Ngày sinh",
+            "Số CMND/CCCD/Giấy khai sinh",
+            "Mã số thuế",
+            "Địa chỉ",
+            "Số điện thoại",
+            "Nghề nghiệp",
+            "Ghi chú",
+        ]
+        row = [
+            1,
+            self.employee.code,
+            self.employee.fullname,
+            "Jane Doe",
+            "Vợ",
+            "1990-05-15",
+            "123456789",
+            "123456789",
+            "123 Main Street",
+            "0901234567",
+            "Teacher",
+            "Emergency contact",
+        ]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["action"], "created")
+        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+
+        relationship = EmployeeRelationship.objects.first()
+        self.assertEqual(relationship.relative_name, "Jane Doe")
+        self.assertEqual(relationship.relation_type, "WIFE")
+        self.assertEqual(relationship.employee, self.employee)
+
+    def test_import_handler_update(self):
+        """Test import handler updates an existing relationship."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        # Create existing relationship
+        EmployeeRelationship.objects.create(
+            employee=self.employee,
+            relative_name="Jane Doe",
+            relation_type="WIFE",
+            address="Old Address",
+        )
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+            "Ngày sinh",
+            "Số CMND/CCCD/Giấy khai sinh",
+            "Mã số thuế",
+            "Địa chỉ",
+            "Số điện thoại",
+            "Nghề nghiệp",
+            "Ghi chú",
+        ]
+        row = [
+            1,
+            self.employee.code,
+            self.employee.fullname,
+            "Jane Doe",
+            "WIFE",
+            "1990-05-15",
+            "123456789",
+            "123456789",
+            "New Address",
+            "0901234567",
+            "Teacher",
+            "Updated note",
+        ]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["action"], "updated")
+        self.assertEqual(EmployeeRelationship.objects.count(), 1)
+
+        relationship = EmployeeRelationship.objects.first()
+        self.assertEqual(relationship.address, "New Address")
+        self.assertEqual(relationship.note, "Updated note")
+
+    def test_import_handler_missing_employee_code(self):
+        """Test import handler fails with missing employee code."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+        ]
+        row = [1, "", "John Doe", "Jane Doe", "Vợ"]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertFalse(result["ok"])
+        self.assertIn("Employee code is required", result["error"])
+
+    def test_import_handler_invalid_employee_code(self):
+        """Test import handler fails with invalid employee code."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+        ]
+        row = [1, "INVALID_CODE", "John Doe", "Jane Doe", "Vợ"]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertFalse(result["ok"])
+        self.assertIn("not found", result["error"])
+
+    def test_import_handler_missing_relative_name(self):
+        """Test import handler fails with missing relative name."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+        ]
+        row = [1, self.employee.code, "John Doe", "", "Vợ"]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertFalse(result["ok"])
+        self.assertIn("Relative name is required", result["error"])
+
+    def test_import_handler_invalid_relation_type(self):
+        """Test import handler fails with invalid relation type."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+        ]
+        row = [1, self.employee.code, "John Doe", "Jane Doe", "INVALID"]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertFalse(result["ok"])
+        self.assertIn("Invalid relation type", result["error"])
+
+    def test_import_handler_invalid_citizen_id(self):
+        """Test import handler fails with invalid citizen ID length."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+            "Ngày sinh",
+            "Số CMND/CCCD/Giấy khai sinh",
+        ]
+        row = [1, self.employee.code, "John Doe", "Jane Doe", "Vợ", "1990-05-15", "12345"]
+
+        result = import_handler(row, 1, headers)
+
+        self.assertFalse(result["ok"])
+        self.assertIn("Invalid citizen ID length", result["error"])
+
+    def test_import_handler_vietnamese_relation_types(self):
+        """Test import handler correctly maps Vietnamese relation types."""
+        from apps.hrm.import_handlers.employee_relationship import import_handler
+
+        relation_type_mapping = {
+            "Con": "CHILD",
+            "Vợ": "WIFE",
+            "Chồng": "HUSBAND",
+            "Bố": "FATHER",
+            "Mẹ": "MOTHER",
+            "Khác": "OTHER",
+        }
+
+        headers = [
+            "STT",
+            "Mã nhân viên",
+            "Tên nhân viên",
+            "Tên người thân",
+            "Mối quan hệ",
+        ]
+
+        for vn_type, expected_type in relation_type_mapping.items():
+            EmployeeRelationship.objects.all().delete()
+
+            row = [1, self.employee.code, "John Doe", f"Relative for {vn_type}", vn_type]
+            result = import_handler(row, 1, headers)
+
+            self.assertTrue(result["ok"], f"Failed for relation type: {vn_type}")
+            relationship = EmployeeRelationship.objects.first()
+            self.assertEqual(
+                relationship.relation_type,
+                expected_type,
+                f"Expected {expected_type} for {vn_type}, got {relationship.relation_type}",
+            )
