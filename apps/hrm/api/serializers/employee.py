@@ -947,3 +947,53 @@ class EmployeeExportXLSXSerializer(serializers.ModelSerializer):
             "note",
         ]
         read_only_fields = fields
+
+
+class EmployeeDropdownSerializer(serializers.ModelSerializer):
+    """Serializer for Employee dropdowns with minimal fields."""
+
+    # Nested read-only serializers for full object representation
+    branch = EmployeeBranchNestedSerializer(read_only=True)
+    block = EmployeeBlockNestedSerializer(read_only=True)
+    department = EmployeeDepartmentNestedSerializer(read_only=True)
+    position = EmployeePositionNestedSerializer(read_only=True)
+    avatar = FileSerializer(read_only=True)
+
+    # Colored value properties
+    colored_code_type = ColoredValueSerializer(read_only=True)
+    colored_status = ColoredValueSerializer(read_only=True)
+
+    class Meta:
+        model = Employee
+        fields = [
+            "id",
+            "code_type",
+            "colored_code_type",
+            "code",
+            "avatar",
+            "fullname",
+            "employee_type",
+            "branch",
+            "block",
+            "department",
+            "position",
+            "status",
+            "colored_status",
+            "gender",
+        ]
+        read_only_fields = [
+            "id",
+            "code_type",
+            "colored_code_type",
+            "code",
+            "avatar",
+            "fullname",
+            "employee_type",
+            "branch",
+            "block",
+            "department",
+            "position",
+            "status",
+            "colored_status",
+            "gender",
+        ]

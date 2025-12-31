@@ -1035,6 +1035,18 @@ class EmployeeAPITest(TestCase, APITestMixin):
         self.assertEqual(count, 2)
         self.assertLessEqual(len(results), 2)
 
+    def test_employee_dropdown_filters_work(self):
+        """Test dropdown endpoint honors filters"""
+        url = reverse("hrm:employee-dropdown")
+        response = self.client.get(url, {"code": self.employee2.code})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = self.get_response_data(response)
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["code"], self.employee2.code)
+        self.assertEqual(data[0]["fullname"], "Jane Smith")
+
     def test_retrieve_employee(self):
         """Test retrieving a single employee"""
         url = reverse("hrm:employee-detail", kwargs={"pk": self.employee1.id})

@@ -7,7 +7,7 @@ from .bank import BankFilterSet
 from .bank_account import BankAccountFilterSet
 from .contract import ContractFilterSet
 from .decision import DecisionFilterSet
-from .employee import EmployeeFilterSet
+from .employee import EmployeeDropdownFilterSet, EmployeeFilterSet
 from .employee_dependent import EmployeeDependentFilterSet
 from .employee_relationship import EmployeeRelationshipFilterSet
 from .employee_report import EmployeeTypeConversionFilterSet
@@ -58,6 +58,7 @@ __all__ = [
     "EmployeeRoleFilterSet",
     "EmployeeSeniorityFilterSet",
     "SeniorityOrderingFilter",
+    "EmployeeDropdownFilterSet",
     "EmployeeFilterSet",
     "EmployeeDependentFilterSet",
     "EmployeeWorkHistoryFilterSet",
