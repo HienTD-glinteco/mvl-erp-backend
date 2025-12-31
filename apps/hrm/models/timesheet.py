@@ -124,7 +124,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
 
     # 7. Status & Classification
     working_days = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Working days")
+        max_digits=5, decimal_places=2, default=Decimal("0.00"), verbose_name=_("Working days"), null=True, blank=True
     )
     day_type = models.CharField(
         max_length=32,
@@ -271,10 +271,10 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         calculator.calculate_penalties()
 
         # Calculate status
-        calculator.compute_status()
+        calculator.compute_status(is_finalizing=False)
 
         # Compute working_days according to business rules
-        calculator.compute_working_days()
+        calculator.compute_working_days(is_finalizing=False)
 
         # Note: set_is_full_salary_from_contract logic is removed from here
         # as it is now handled by TimesheetSnapshotService, but if you want

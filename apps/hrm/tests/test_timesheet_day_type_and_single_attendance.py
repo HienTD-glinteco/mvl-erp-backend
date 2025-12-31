@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, time
+from decimal import Decimal
 
 import pytest
 
@@ -49,8 +50,24 @@ def test_single_attendance_status_for_single_punch():
 
     # Single punch: only start_time
     ts = TimeSheetEntry.objects.create(employee=emp, date=d, check_in_time=combine_datetime(d, time(8, 0)))
+    # After save/clean, real-time mode sets NOT_ON_TIME
+    assert ts.status == TimesheetStatus.NOT_ON_TIME
+    assert ts.working_days is None
+
+    # Finalization mode
+    from apps.hrm.services.timesheet_calculator import TimesheetCalculator
+
+    TimesheetCalculator(ts).compute_all(is_finalizing=True)
     assert ts.status == TimesheetStatus.SINGLE_PUNCH
+    assert ts.working_days == Decimal("0.50")
 
     # Single punch: only end_time
     ts2 = TimeSheetEntry.objects.create(employee=emp, date=d, check_out_time=combine_datetime(d, time(17, 0)))
+    # After save/clean, real-time mode sets NOT_ON_TIME
+    assert ts2.status == TimesheetStatus.NOT_ON_TIME
+    assert ts2.working_days is None
+
+    # Finalization mode
+    TimesheetCalculator(ts2).compute_all(is_finalizing=True)
     assert ts2.status == TimesheetStatus.SINGLE_PUNCH
+    assert ts2.working_days == Decimal("0.50")
