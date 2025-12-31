@@ -12,6 +12,7 @@ from apps.hrm.api.views import (
     BranchViewSet,
     DepartmentViewSet,
     EmployeeTimesheetViewSet,
+    EmployeeViewSet,
     PositionViewSet,
     ProposalAssetAllocationViewSet,
     ProposalDeviceChangeViewSet,
@@ -37,7 +38,6 @@ router.register(r"branch-contact-infos", BranchContactInfoViewSet, basename="bra
 router.register(r"blocks", BlockViewSet, basename="block")
 router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"positions", PositionViewSet, basename="position")
-
 router.register(r"attendance-geolocations", AttendanceGeolocationViewSet, basename="attendance-geolocation")
 router.register(r"attendance-exemptions", AttendanceExemptionViewSet, basename="attendance-exemption")
 router.register(r"attendance-wifi-devices", AttendanceWifiDeviceViewSet, basename="attendance-wifi-device")
@@ -110,4 +110,9 @@ router.register(r"proposals", ProposalViewSet, basename="proposal")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path(
+        "employees/dropdown/",
+        EmployeeViewSet.as_view({"get": "dropdown"}),
+        name="employee-dropdown",
+    ),
 ]
