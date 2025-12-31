@@ -4,6 +4,7 @@ from datetime import date
 
 from apps.hrm.models import Employee
 from apps.payroll.models import SalesRevenue
+from apps.payroll.tasks import aggregate_sales_revenue_report_task
 
 
 def process_sales_revenue_row(row_index: int, row: list | tuple, import_job_id: int, options: dict) -> dict:  # noqa: C901
@@ -121,3 +122,16 @@ def process_sales_revenue_row(row_index: int, row: list | tuple, import_job_id: 
 
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+
+def on_import_complete(import_job_id: int, options: dict) -> None:
+    """Called after import completes successfully to trigger report aggregation.
+
+    Uses Celery task to run aggregation in background, not blocking the import.
+
+    Args:
+        import_job_id: ID of the completed ImportJob
+        options: Import options dictionary
+    """
+    # Trigger aggregation in background
+    aggregate_sales_revenue_report_task.delay()

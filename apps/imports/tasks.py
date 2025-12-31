@@ -1,4 +1,16 @@
-"""Celery tasks for async import processing."""
+"""Celery tasks for async import processing.
+
+This module provides the main import job task that processes files row by row.
+It supports the following handler hooks that can be defined in the handler module:
+
+Handler Hooks:
+    pre_import_initialize(import_job_id, options):
+        Called before processing starts. Use for one-time setup tasks.
+
+    on_import_complete(import_job_id, options):
+        Called after successful import completion. Use for post-processing
+        tasks like triggering aggregations or notifications.
+"""
 
 import importlib
 import logging
@@ -375,6 +387,16 @@ def import_job_task(self, import_job_id: str) -> dict:  # noqa: C901
         job.save()
 
         progress_tracker.set_completed()
+
+        # Call post-import callback if handler has one
+        # This allows handlers to perform cleanup or trigger follow-up actions
+        try:
+            module = importlib.import_module(handler_module)
+            if hasattr(module, "on_import_complete"):
+                logger.info(f"Import job {import_job_id}: Calling on_import_complete")
+                module.on_import_complete(import_job_id, options)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Failed to call on_import_complete for job {import_job_id}: {e}")
 
         return {
             "status": "success",

@@ -5,6 +5,8 @@ from datetime import date, timedelta
 from celery import shared_task
 from django.utils import timezone
 
+from apps.payroll.services.sales_revenue_report_aggregator import SalesRevenueReportAggregator
+
 
 @shared_task
 def recalculate_payroll_slip_task(employee_id, month_str):
@@ -427,3 +429,29 @@ def send_emails_for_period_task(self, period_id, filter_status=None):
 
         sentry_sdk.capture_exception(e)
         return {"error": str(e)}
+
+
+@shared_task
+def aggregate_sales_revenue_report_task():
+    """Aggregate sales revenue data into flat report model in background.
+
+    This task is triggered after sales revenue import completes via
+    the on_import_complete callback hook.
+
+    Returns:
+        dict: Result with count of records created/updated
+    """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        count = SalesRevenueReportAggregator.aggregate_from_import()
+        logger.info(f"Sales revenue report aggregation completed: {count} records")
+        return {"status": "success", "count": count}
+    except Exception as e:
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(e)
+        logger.error(f"Sales revenue report aggregation failed: {e}")
+        return {"status": "failed", "error": str(e)}

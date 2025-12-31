@@ -7,6 +7,7 @@ from .penalty_ticket import PenaltyTicketFilterSet
 from .recovery_voucher import RecoveryVoucherFilterSet
 from .salary_period import SalaryPeriodFilterSet
 from .sales_revenue import SalesRevenueFilterSet
+from .sales_revenue_report import SalesRevenueReportFilterSet
 from .travel_expense import TravelExpenseFilterSet
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "TravelExpenseFilterSet",
     "RecoveryVoucherFilterSet",
     "SalesRevenueFilterSet",
+    "SalesRevenueReportFilterSet",
     "PenaltyTicketFilterSet",
 ]

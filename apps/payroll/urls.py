@@ -17,6 +17,7 @@ from apps.payroll.api.views import (
     SalaryPeriodNotReadySlipsView,
     SalaryPeriodReadySlipsView,
     SalaryPeriodViewSet,
+    SalesRevenueReportViewSet,
     SalesRevenueViewSet,
     TravelExpenseViewSet,
 )
@@ -34,6 +35,7 @@ router.register(r"kpi-assessments/manager", ManagerAssessmentViewSet, basename="
 router.register(r"travel-expenses", TravelExpenseViewSet, basename="travel-expenses")
 router.register(r"recovery-vouchers", RecoveryVoucherViewSet, basename="recovery-vouchers")
 router.register(r"sales-revenues", SalesRevenueViewSet, basename="sales-revenues")
+router.register(r"sales-revenue-reports", SalesRevenueReportViewSet, basename="sales-revenue-reports")
 router.register(r"penalty-tickets", PenaltyTicketViewSet, basename="penalty-tickets")
 router.register(r"salary-periods", SalaryPeriodViewSet, basename="salary-periods")
 router.register(r"payroll-slips", PayrollSlipViewSet, basename="payroll-slips")

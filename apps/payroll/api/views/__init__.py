@@ -17,6 +17,7 @@ from .salary_period import (
     SalaryPeriodViewSet,
 )
 from .sales_revenue import SalesRevenueViewSet
+from .sales_revenue_report import SalesRevenueReportViewSet
 from .travel_expense import TravelExpenseViewSet
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "TravelExpenseViewSet",
     "RecoveryVoucherViewSet",
     "SalesRevenueViewSet",
+    "SalesRevenueReportViewSet",
     "PenaltyTicketViewSet",
     "SalaryPeriodViewSet",
     "PayrollSlipViewSet",

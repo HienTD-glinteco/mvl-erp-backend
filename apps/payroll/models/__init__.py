@@ -9,6 +9,7 @@ from .recovery_voucher import RecoveryVoucher
 from .salary_config import SalaryConfig
 from .salary_period import SalaryPeriod
 from .sales_revenue import SalesRevenue
+from .sales_revenue_report import SalesRevenueReportFlatModel
 from .travel_expense import TravelExpense
 
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     "TravelExpense",
     "RecoveryVoucher",
     "SalesRevenue",
+    "SalesRevenueReportFlatModel",
     "PenaltyTicket",
 ]

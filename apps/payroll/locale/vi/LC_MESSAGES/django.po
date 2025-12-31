@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-31 15:24+0700\n"
+"POT-Creation-Date: 2025-12-31 16:39+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,6 +171,47 @@ msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
 msgid "Sales revenue for this employee and month already exists"
 msgstr "Đã tồn tại doanh thu bán hàng cho nhân viên và tháng này"
 
+#: apps/payroll/api/serializers/sales_revenue_report.py:10
+msgid "Field name"
+msgstr "Tên trường"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:12
+msgid "Field value"
+msgstr "Giá trị trường"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:19
+msgid "Month key in MM/YYYY format"
+msgstr "Tháng trong định dạng MM/YYYY"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:20
+msgid "List of field-value pairs"
+msgstr "Danh sách cặp trường-giá trị"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:26
+#: apps/payroll/models/sales_revenue_report.py:36
+msgid "Month in MM/YYYY format"
+msgstr "Tháng phải ở định dạng MM/YYYY (ví dụ: 11/2025)"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:27
+msgid "Number of employees who generated revenue"
+msgstr "Số lượng nhân viên đạt doanh thu"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:28
+msgid "Total number of sales employees"
+msgstr "Tổng số lượng nhân viên"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:33
+msgid "Percentage of employees with revenue"
+msgstr "Tỷ lệ nhân viên đạt doanh thu"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:42
+msgid "Fixed labels for the chart"
+msgstr "Nhãn cố định cho biểu đồ"
+
+#: apps/payroll/api/serializers/sales_revenue_report.py:44
+msgid "Monthly chart data"
+msgstr "Dữ liệu biểu đồ hàng tháng"
+
 #: apps/payroll/api/serializers/travel_expense.py:85
 msgid "Name is required"
 msgstr "Trường này là bắt buộc"
@@ -274,6 +315,7 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/salary_period.py:750
 #: apps/payroll/api/views/salary_period.py:887
 #: apps/payroll/api/views/sales_revenue.py:373
+#: apps/payroll/api/views/sales_revenue_report.py:35
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
 msgstr "Bảng lương"
@@ -308,16 +350,12 @@ msgid "Bulk Update Penalty Ticket Status"
 msgstr "Quyền cập nhật một phần {model_name}"
 
 #: apps/payroll/api/views/penalty_tickets.py:208
-#, fuzzy
-#| msgid "Partially update {model_name}"
 msgid "Bulk update payment status for penalty tickets"
-msgstr "Quyền cập nhật một phần {model_name}"
+msgstr "Cập nhật trạng thái thanh toán cho các phiếu phạt"
 
 #: apps/payroll/api/views/penalty_tickets.py:267
-#, fuzzy
-#| msgid "Authentication required"
 msgid "Authentication credentials were not provided."
-msgstr "Yêu cầu xác thực"
+msgstr "Thông tin xác thực không được cung cấp."
 
 #: apps/payroll/api/views/recovery_voucher.py:340
 msgid "Recovery/Back Pay"
@@ -379,6 +417,81 @@ msgstr "Nhập dữ liệu doanh thu bán hàng không đồng bộ"
 msgid "Cannot delete sales revenue for a month with existing payroll."
 msgstr "Không thể xóa doanh thu bán hàng cho một tháng đã có bảng lương."
 
+#: apps/payroll/api/views/sales_revenue_report.py:36
+#: apps/payroll/models/sales_revenue_report.py:116
+msgid "Sales Revenue Reports"
+msgstr "Báo cáo doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:41
+msgid "View sales revenue quality reports"
+msgstr "Xem báo cáo chất lượng doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:42
+msgid "View list of sales revenue quality reports"
+msgstr "Xem danh sách báo cáo chất lượng doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:45
+msgid "View sales revenue chart"
+msgstr "Xem biểu đồ doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:46
+msgid "View sales revenue chart data for dashboard"
+msgstr "Xem dữ liệu biểu đồ doanh thu bán hàng cho bảng điều khiển"
+
+#: apps/payroll/api/views/sales_revenue_report.py:49
+msgid "Export sales revenue quality reports"
+msgstr "Xuất báo cáo chất lượng doanh thu bán hàng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:50
+msgid "Export sales revenue quality reports to file"
+msgstr "Xuất báo cáo chất lượng doanh thu bán hàng ra file"
+
+#: apps/payroll/api/views/sales_revenue_report.py:131
+msgid "KPI Target"
+msgstr "Chỉ tiêu KPI"
+
+#: apps/payroll/api/views/sales_revenue_report.py:132
+msgid "Total Revenue"
+msgstr "Tổng doanh thu"
+
+#: apps/payroll/api/views/sales_revenue_report.py:133
+#: apps/payroll/api/views/sales_revenue_report.py:192
+msgid "Employees with Revenue"
+msgstr "Nhân viên có doanh thu"
+
+#: apps/payroll/api/views/sales_revenue_report.py:134
+msgid "Total Sales Employees"
+msgstr "Tổng số nhân viên kinh doanh"
+
+#: apps/payroll/api/views/sales_revenue_report.py:135
+msgid "Revenue vs Target (%)"
+msgstr "Doanh thu so với chỉ tiêu (%)"
+
+#: apps/payroll/api/views/sales_revenue_report.py:136
+msgid "Employee with Revenue (%)"
+msgstr "Tỷ lệ nhân viên có doanh thu (%)"
+
+#: apps/payroll/api/views/sales_revenue_report.py:137
+msgid "Average Revenue per Employee"
+msgstr "Doanh thu trung bình mỗi nhân viên"
+
+#: apps/payroll/api/views/sales_revenue_report.py:192
+#: apps/payroll/models/salary_period.py:93
+msgid "Total Employees"
+msgstr "Tổng số nhân viên"
+
+#: apps/payroll/api/views/sales_revenue_report.py:208
+#: apps/payroll/models/penalty_ticket.py:55
+#: apps/payroll/models/recovery_voucher.py:65
+#: apps/payroll/models/salary_period.py:69
+#: apps/payroll/models/travel_expense.py:104
+msgid "Month"
+msgstr "Tháng"
+
+#: apps/payroll/api/views/sales_revenue_report.py:216
+msgid "Sales Revenue Quality Report"
+msgstr "Báo cáo chất lượng doanh thu bán hàng"
+
 #: apps/payroll/api/views/travel_expense.py:409
 msgid "Travel Expense Management"
 msgstr "Quản lý công tác phí"
@@ -427,10 +540,8 @@ msgstr "Mã"
 
 #: apps/payroll/models/payroll_slip.py:72
 #: apps/payroll/models/salary_period.py:198
-#, fuzzy
-#| msgid "Salary Periods"
 msgid "Salary Period"
-msgstr "Các kỳ lương"
+msgstr "Kỳ lương"
 
 #: apps/payroll/models/payroll_slip.py:76
 #: apps/payroll/models/recovery_voucher.py:60
@@ -459,18 +570,16 @@ msgid "Position Name"
 msgstr "Vị trí"
 
 #: apps/payroll/models/payroll_slip.py:84
-#, fuzzy
-#| msgid "Employee Name"
 msgid "Employment Status"
-msgstr "Tên nhân viên"
+msgstr "Trạng thái lao động"
 
 #: apps/payroll/models/payroll_slip.py:88
 msgid "Has Unpaid Penalty"
-msgstr ""
+msgstr "Có phiếu phạt chưa thanh toán"
 
 #: apps/payroll/models/payroll_slip.py:91
 msgid "Unpaid Penalty Count"
-msgstr ""
+msgstr "Số phiếu phạt chưa thanh toán"
 
 #: apps/payroll/models/payroll_slip.py:95
 msgid "Contract ID"
@@ -493,10 +602,8 @@ msgid "Phone Allowance"
 msgstr "Phụ cấp điện thoại"
 
 #: apps/payroll/models/payroll_slip.py:110
-#, fuzzy
-#| msgid "Other violation"
 msgid "Other Allowance"
-msgstr "Vi phạm khác"
+msgstr "Phụ cấp khác"
 
 #: apps/payroll/models/payroll_slip.py:114
 msgid "KPI Grade"
@@ -511,16 +618,12 @@ msgid "KPI Bonus"
 msgstr "Lương đạt KPI"
 
 #: apps/payroll/models/payroll_slip.py:123
-#, fuzzy
-#| msgid "Sales Revenue Management"
 msgid "Sales Revenue"
-msgstr "Quản lý doanh thu bán hàng"
+msgstr "Doanh thu bán hàng"
 
 #: apps/payroll/models/payroll_slip.py:125
-#, fuzzy
-#| msgid "Violation Count"
 msgid "Sales Transaction Count"
-msgstr "Số lần vi phạm"
+msgstr "Số lượng giao dịch bán hàng"
 
 #: apps/payroll/models/payroll_slip.py:127
 msgid "Business Grade"
@@ -569,7 +672,7 @@ msgstr "Đơn giá giờ lương"
 
 #: apps/payroll/models/payroll_slip.py:171
 msgid "Overtime Pay"
-msgstr ""
+msgstr "Tiền làm ngoài giờ"
 
 #: apps/payroll/models/payroll_slip.py:175
 msgid "Total Position Income"
@@ -592,22 +695,16 @@ msgid "Non-Taxable Overtime Salary"
 msgstr "Lương ngoài giờ k chịu thuế"
 
 #: apps/payroll/models/payroll_slip.py:196
-#, fuzzy
-#| msgid "Travel Expense"
 msgid "Taxable Travel Expense"
-msgstr "Công tác phí"
+msgstr "Công tác phí chịu thuế"
 
 #: apps/payroll/models/payroll_slip.py:200
-#, fuzzy
-#| msgid "Travel Expense"
 msgid "Non-Taxable Travel Expense"
-msgstr "Công tác phí"
+msgstr "Công tác phí không chịu thuế"
 
 #: apps/payroll/models/payroll_slip.py:204
-#, fuzzy
-#| msgid "Travel Expense"
 msgid "Total Travel Expense"
-msgstr "Công tác phí"
+msgstr "Tổng công tác phí"
 
 #: apps/payroll/models/payroll_slip.py:208
 msgid "Gross Income"
@@ -622,10 +719,8 @@ msgid "Social Insurance Base"
 msgstr "Lương đóng BHXH"
 
 #: apps/payroll/models/payroll_slip.py:220
-#, fuzzy
-#| msgid "Employee is required"
 msgid "Employee Social Insurance"
-msgstr "Trường này là bắt buộc"
+msgstr "BHXH NLĐ đóng"
 
 #: apps/payroll/models/payroll_slip.py:224
 msgid "Employee Health Insurance"
@@ -636,10 +731,8 @@ msgid "Employee Unemployment Insurance"
 msgstr "BHTN trích từ lương NLĐ"
 
 #: apps/payroll/models/payroll_slip.py:232
-#, fuzzy
-#| msgid "Employee Code"
 msgid "Employee Union Fee"
-msgstr "Mã nhân viên"
+msgstr "Công đoàn NLĐ đóng"
 
 #: apps/payroll/models/payroll_slip.py:237
 msgid "Employer Social Insurance"
@@ -654,10 +747,8 @@ msgid "Employer Unemployment Insurance"
 msgstr "BHTN trích từ DN"
 
 #: apps/payroll/models/payroll_slip.py:249
-#, fuzzy
-#| msgid "Employee Code"
 msgid "Employer Union Fee"
-msgstr "Mã nhân viên"
+msgstr "Công đoàn công ty đóng"
 
 #: apps/payroll/models/payroll_slip.py:253
 msgid "Employer Accident Insurance"
@@ -684,16 +775,12 @@ msgid "Personal Income Tax"
 msgstr "Thuế thu nhập cá nhân"
 
 #: apps/payroll/models/payroll_slip.py:275
-#, fuzzy
-#| msgid "Back Pay"
 msgid "Back Pay Amount"
-msgstr "Truy lĩnh"
+msgstr "Số tiền truy lĩnh"
 
 #: apps/payroll/models/payroll_slip.py:279
-#, fuzzy
-#| msgid "Recovery Voucher"
 msgid "Recovery Amount"
-msgstr "Phiếu truy thu/truy lĩnh"
+msgstr "Số tiền truy thu"
 
 #: apps/payroll/models/payroll_slip.py:283
 msgid "Net Salary"
@@ -708,10 +795,8 @@ msgid "Status"
 msgstr "Trạng thái"
 
 #: apps/payroll/models/payroll_slip.py:291
-#, fuzzy
-#| msgid "Status"
 msgid "Status Note"
-msgstr "Trạng thái"
+msgstr "Ghi chú trạng thái"
 
 #: apps/payroll/models/payroll_slip.py:295
 msgid "Need Resend Email"
@@ -722,28 +807,20 @@ msgid "Email Sent At"
 msgstr "Thời gian gửi email"
 
 #: apps/payroll/models/payroll_slip.py:300
-#, fuzzy
-#| msgid "Delivered"
 msgid "Delivered At"
-msgstr "Đã giao"
+msgstr "Thời gian giao"
 
 #: apps/payroll/models/payroll_slip.py:308
-#, fuzzy
-#| msgid "Delivered"
 msgid "Delivered By"
-msgstr "Đã giao"
+msgstr "Người giao"
 
 #: apps/payroll/models/payroll_slip.py:313
-#, fuzzy
-#| msgid "Calculated"
 msgid "Calculation Log"
-msgstr "Đã tính vào bảng lương"
+msgstr "Nhật ký tính toán"
 
 #: apps/payroll/models/payroll_slip.py:316
-#, fuzzy
-#| msgid "Calculated"
 msgid "Calculated At"
-msgstr "Đã tính vào bảng lương"
+msgstr "Thời gian tính lương"
 
 #: apps/payroll/models/payroll_slip.py:324
 #: apps/payroll/models/recovery_voucher.py:78
@@ -758,16 +835,12 @@ msgid "Updated By"
 msgstr "Người cập nhật"
 
 #: apps/payroll/models/payroll_slip.py:337
-#, fuzzy
-#| msgid "Payroll"
 msgid "Payroll Slip"
-msgstr "Bảng lương"
+msgstr "Phiếu lương"
 
 #: apps/payroll/models/payroll_slip.py:338
-#, fuzzy
-#| msgid "View Ready Payroll Slips"
 msgid "Payroll Slips"
-msgstr "Xem phiếu lương đã sẵn sàng"
+msgstr "Các phiếu lương"
 
 #: apps/payroll/models/penalty_ticket.py:21
 msgctxt "PenaltyTicket Status"
@@ -811,13 +884,6 @@ msgstr "Loại vi phạm"
 #: apps/payroll/models/travel_expense.py:103
 msgid "Amount"
 msgstr "Số tiền"
-
-#: apps/payroll/models/penalty_ticket.py:55
-#: apps/payroll/models/recovery_voucher.py:65
-#: apps/payroll/models/salary_period.py:69
-#: apps/payroll/models/travel_expense.py:104
-msgid "Month"
-msgstr "Tháng"
 
 #: apps/payroll/models/penalty_ticket.py:63
 msgid "Payment Date"
@@ -887,95 +953,151 @@ msgstr "Hoàn thành"
 
 #: apps/payroll/models/salary_period.py:73
 msgid "Salary Config Snapshot"
-msgstr ""
-
-#: apps/payroll/models/salary_period.py:93
-#, fuzzy
-#| msgid "Employee"
-msgid "Total Employees"
-msgstr "Nhân viên"
+msgstr "Snapshot cấu hình lương"
 
 #: apps/payroll/models/salary_period.py:100
 msgid "Proposal Deadline"
-msgstr ""
+msgstr "Hạn chốt đề xuất"
 
 #: apps/payroll/models/salary_period.py:107
 msgid "KPI Assessment Deadline"
-msgstr ""
+msgstr "Hạn chốt đánh giá KPI"
 
 #: apps/payroll/models/salary_period.py:113
-#, fuzzy
-#| msgid "Employee must be active"
 msgid "Employees Need Recovery"
-msgstr "Nhân viên phải đang hoạt động"
+msgstr "Nhân viên cần truy thu/truy lĩnh"
 
 #: apps/payroll/models/salary_period.py:117
-#, fuzzy
-#| msgid "Employee must be active"
 msgid "Employees With Penalties"
-msgstr "Nhân viên phải đang hoạt động"
+msgstr "Nhân viên bị phạt"
 
 #: apps/payroll/models/salary_period.py:121
-#, fuzzy
-#| msgid "Employee must be active"
 msgid "Employees Paid Penalties"
-msgstr "Nhân viên phải đang hoạt động"
+msgstr "Nhân viên đã nộp phạt"
 
 #: apps/payroll/models/salary_period.py:125
-#, fuzzy
-#| msgid "Employee Name"
 msgid "Employees With Travel"
-msgstr "Tên nhân viên"
+msgstr "Nhân viên có công tác phí"
 
 #: apps/payroll/models/salary_period.py:129
-#, fuzzy
-#| msgid "Employee Name"
 msgid "Employees Need Email"
-msgstr "Tên nhân viên"
+msgstr "Nhân viên cần gửi email"
 
 #: apps/payroll/models/salary_period.py:134
-#, fuzzy
-#| msgid "Pending"
 msgid "Pending Count"
-msgstr "Đang chờ xử lý"
+msgstr "Số lượng đang chờ xử lý"
 
 #: apps/payroll/models/salary_period.py:138
-#, fuzzy
-#| msgid "Ready"
 msgid "Ready Count"
-msgstr "Sẵn sàng"
+msgstr "Số lượng sẵn sàng"
 
 #: apps/payroll/models/salary_period.py:142
-#, fuzzy
-#| msgid "Violation Count"
 msgid "Hold Count"
-msgstr "Số lần vi phạm"
+msgstr "Số lượng tạm giữ"
 
 #: apps/payroll/models/salary_period.py:146
-#, fuzzy
-#| msgid "Delivered"
 msgid "Delivered Count"
-msgstr "Đã giao"
+msgstr "Số lượng đã giao"
 
 #: apps/payroll/models/salary_period.py:153
 msgid "Total Gross Income"
-msgstr ""
+msgstr "Tổng thu nhập gộp"
 
 #: apps/payroll/models/salary_period.py:161
 msgid "Total Net Salary"
-msgstr ""
+msgstr "Tổng lương thực lĩnh"
 
 #: apps/payroll/models/salary_period.py:166
-#, fuzzy
-#| msgid "Completed"
 msgid "Completed At"
-msgstr "Hoàn thành"
+msgstr "Thời gian hoàn thành"
 
 #: apps/payroll/models/salary_period.py:175
-#, fuzzy
-#| msgid "Completed"
 msgid "Completed By"
-msgstr "Hoàn thành"
+msgstr "Người hoàn thành"
+
+#: apps/payroll/models/sales_revenue_report.py:35
+msgid "Month key"
+msgstr "Khóa tháng"
+
+#: apps/payroll/models/sales_revenue_report.py:42
+msgid "Branch"
+msgstr "Chi nhánh"
+
+#: apps/payroll/models/sales_revenue_report.py:48
+msgid "Block"
+msgstr "Khối"
+
+#: apps/payroll/models/sales_revenue_report.py:54
+msgid "Department"
+msgstr "Phòng ban"
+
+#: apps/payroll/models/sales_revenue_report.py:60
+msgid "Total transactions"
+msgstr "Tổng số giao dịch"
+
+#: apps/payroll/models/sales_revenue_report.py:64
+msgid "Total revenue"
+msgstr "Tổng doanh thu"
+
+#: apps/payroll/models/sales_revenue_report.py:68
+msgid "Total sales employees"
+msgstr "Tổng số nhân viên kinh doanh"
+
+#: apps/payroll/models/sales_revenue_report.py:69
+msgid "Active sales employees at end of month"
+msgstr "Nhân viên kinh doanh đang hoạt động cuối tháng"
+
+#: apps/payroll/models/sales_revenue_report.py:73
+msgid "Employees with revenue"
+msgstr "Nhân viên có doanh thu"
+
+#: apps/payroll/models/sales_revenue_report.py:74
+msgid "Count of employees who generated revenue in the month"
+msgstr "Số nhân viên có phát sinh doanh thu trong tháng"
+
+#: apps/payroll/models/sales_revenue_report.py:82
+msgid "Target per employee"
+msgstr "Chỉ tiêu mỗi nhân viên"
+
+#: apps/payroll/models/sales_revenue_report.py:83
+msgid "Fixed target per employee (50,000,000 VND)"
+msgstr "Chỉ tiêu cố định mỗi nhân viên (50.000.000 VND)"
+
+#: apps/payroll/models/sales_revenue_report.py:89
+msgid "Total KPI target"
+msgstr "Tổng chỉ tiêu KPI"
+
+#: apps/payroll/models/sales_revenue_report.py:90
+msgid "Total sales employees * Target per employee"
+msgstr "Tổng số nhân viên kinh doanh * Chỉ tiêu mỗi nhân viên"
+
+#: apps/payroll/models/sales_revenue_report.py:96
+msgid "Revenue vs target (%)"
+msgstr "Doanh thu so với chỉ tiêu (%)"
+
+#: apps/payroll/models/sales_revenue_report.py:97
+msgid "Total revenue / Total target * 100"
+msgstr "Tổng doanh thu / Tổng chỉ tiêu * 100"
+
+#: apps/payroll/models/sales_revenue_report.py:103
+msgid "Employee with revenue (%)"
+msgstr "Tỷ lệ nhân viên có doanh thu (%)"
+
+#: apps/payroll/models/sales_revenue_report.py:104
+msgid "Employees with revenue / Total sales employees * 100"
+msgstr "Nhân viên có doanh thu / Tổng số nhân viên kinh doanh * 100"
+
+#: apps/payroll/models/sales_revenue_report.py:110
+msgid "Average revenue per employee"
+msgstr "Doanh thu trung bình mỗi nhân viên"
+
+#: apps/payroll/models/sales_revenue_report.py:111
+msgid "Total revenue / Total sales employees"
+msgstr "Tổng doanh thu / Tổng số nhân viên kinh doanh"
+
+#: apps/payroll/models/sales_revenue_report.py:115
+msgid "Sales Revenue Report"
+msgstr "Báo cáo doanh thu bán hàng"
 
 #: apps/payroll/models/travel_expense.py:95
 msgid "Expense name"
@@ -1025,6 +1147,7 @@ msgid ""
 "HRM for assistance."
 msgstr ""
 "Không thể nộp đánh giá KPI sau hạn chốt (%(deadline)s). Vui lòng liên hệ với "
+"bộ phận nhân sự để được hỗ trợ."
 
 #: apps/payroll/signals/kpi_assessment.py:77
 #, python-format
@@ -1035,7 +1158,7 @@ msgstr ""
 "Phiếu đánh giá kỳ %(period)s đã được tạo. Vui lòng truy cập Đánh giá KPI để "
 "hoàn tất."
 
-#: apps/payroll/tasks.py:176
+#: apps/payroll/tasks.py:178
 #, python-format
 msgid ""
 "Hello %(employee_name)s,\n"
@@ -1054,8 +1177,23 @@ msgid ""
 "Best regards,\n"
 "MaiVietLand Team"
 msgstr ""
+"Xin chào %(employee_name)s,\n"
+"\n"
+"Phiếu lương tháng %(month)s của bạn đã sẵn sàng.\n"
+"\n"
+"Mã nhân viên: %(employee_code)s\n"
+"Phòng ban: %(department)s\n"
+"Vị trí: %(position)s\n"
+"\n"
+"Thu nhập gộp: %(gross_income)s VND\n"
+"Lương thực nhận: %(net_salary)s VND\n"
+"\n"
+"Vui lòng đăng nhập vào hệ thống để xem chi tiết đầy đủ.\n"
+"\n"
+"Trân trọng,\n"
+"Đội ngũ MaiVietLand"
 
-#: apps/payroll/tasks.py:202
+#: apps/payroll/tasks.py:204
 #, python-format
 msgid "Payroll Slip %(month)s - MaiVietLand"
 msgstr "Phiếu lương %(month)s - MaiVietLand"
