@@ -39,11 +39,8 @@ def handle_employee_kpi_assessment_post_save(sender, instance, created, **kwargs
             dept_assessment = DepartmentKPIAssessment.objects.get(
                 period=instance.period, department=instance.department_snapshot
             )
+            # This updates is_finished, grade_distribution, and is_valid_unit_control in one call
             update_department_assessment_status(dept_assessment)
-
-            # Update grade distribution when employee grade changes
-            if instance.grade_manager or instance.grade_hrm:
-                dept_assessment.update_grade_distribution()
         except DepartmentKPIAssessment.DoesNotExist:
             pass
 
