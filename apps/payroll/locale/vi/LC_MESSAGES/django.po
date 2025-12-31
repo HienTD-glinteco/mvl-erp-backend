@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-31 03:51+0700\n"
+"POT-Creation-Date: 2025-12-31 09:41+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -270,8 +270,8 @@ msgstr "Hoàn tất kỳ đánh giá thành công"
 #: apps/payroll/api/views/penalty_tickets.py:201
 #: apps/payroll/api/views/recovery_voucher.py:339
 #: apps/payroll/api/views/salary_config.py:20
-#: apps/payroll/api/views/salary_period.py:697
-#: apps/payroll/api/views/salary_period.py:834
+#: apps/payroll/api/views/salary_period.py:687
+#: apps/payroll/api/views/salary_period.py:824
 #: apps/payroll/api/views/sales_revenue.py:373
 #: apps/payroll/api/views/travel_expense.py:408
 msgid "Payroll"
@@ -286,15 +286,15 @@ msgstr "Cấu hình KPI"
 msgid "View KPI configuration"
 msgstr "Xem cấu hình KPI"
 
-#: apps/payroll/api/views/payroll_slip.py:290
+#: apps/payroll/api/views/payroll_slip.py:275
 msgid "Can only mark HOLD slips as READY"
 msgstr "Chỉ có thể đánh dấu phiếu HOLD là READY"
 
-#: apps/payroll/api/views/payroll_slip.py:295
+#: apps/payroll/api/views/payroll_slip.py:280
 msgid "Cannot mark as READY - employee has unpaid penalty tickets"
 msgstr "Không thể đánh dấu là READY - nhân viên còn phiếu phạt chưa thanh toán"
 
-#: apps/payroll/api/views/payroll_slip.py:343
+#: apps/payroll/api/views/payroll_slip.py:328
 msgid "Can only deliver READY slips"
 msgstr "Chỉ có thể giao phiếu READY"
 
@@ -335,24 +335,24 @@ msgstr "Cấu hình"
 msgid "View salary configuration"
 msgstr "Xem cấu hình lương"
 
-#: apps/payroll/api/views/salary_period.py:698
-#: apps/payroll/api/views/salary_period.py:835
+#: apps/payroll/api/views/salary_period.py:688
+#: apps/payroll/api/views/salary_period.py:825
 msgid "Salary Periods"
 msgstr "Các kỳ lương"
 
-#: apps/payroll/api/views/salary_period.py:704
+#: apps/payroll/api/views/salary_period.py:694
 msgid "View Ready Payroll Slips"
 msgstr "Xem phiếu lương đã sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:705
+#: apps/payroll/api/views/salary_period.py:695
 msgid "View ready payroll slips"
 msgstr "Xem phiếu lương đã sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:841
+#: apps/payroll/api/views/salary_period.py:831
 msgid "View Not-Ready Payroll Slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 
-#: apps/payroll/api/views/salary_period.py:842
+#: apps/payroll/api/views/salary_period.py:832
 msgid "View not-ready payroll slips"
 msgstr "Xem phiếu lương chưa sẵn sàng"
 

@@ -12,8 +12,9 @@ from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
 from apps.core.api.permissions import RoleBasedPermission
+from apps.payroll.api.filtersets import SalaryPeriodFilterSet
 from apps.payroll.api.serializers import (
-    PayrollSlipListSerializer,
+    PayrollSlipSerializer,
     SalaryPeriodCreateAsyncSerializer,
     SalaryPeriodCreateResponseSerializer,
     SalaryPeriodListSerializer,
@@ -295,14 +296,7 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
     queryset = SalaryPeriod.objects.all()
     serializer_class = SalaryPeriodSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
-    filterset_fields = {
-        "month": ["exact", "gte", "lte"],
-        "status": ["exact"],
-        "proposal_deadline": ["exact", "gte", "lte"],
-        "kpi_assessment_deadline": ["exact", "gte", "lte"],
-        "created_at": ["gte", "lte"],
-        "updated_at": ["gte", "lte"],
-    }
+    filterset_class = SalaryPeriodFilterSet
     ordering_fields = ["month", "created_at", "updated_at", "total_employees"]
     ordering = ["-month"]
     search_fields = ["code"]
@@ -622,14 +616,12 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         ordering = request.query_params.get("ordering", "-calculated_at")
         slips = slips.order_by(ordering)
 
-        from apps.payroll.api.serializers import PayrollSlipListSerializer
-
         page = self.paginate_queryset(slips)
         if page is not None:
-            serializer = PayrollSlipListSerializer(page, many=True)
+            serializer = PayrollSlipSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = PayrollSlipListSerializer(slips, many=True)
+        serializer = PayrollSlipSerializer(slips, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="not-ready")
@@ -679,14 +671,12 @@ class SalaryPeriodViewSet(AuditLoggingMixin, BaseModelViewSet):
         ordering = request.query_params.get("ordering", "-calculated_at")
         slips = slips.order_by(ordering)
 
-        from apps.payroll.api.serializers import PayrollSlipListSerializer
-
         page = self.paginate_queryset(slips)
         if page is not None:
-            serializer = PayrollSlipListSerializer(page, many=True)
+            serializer = PayrollSlipSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = PayrollSlipListSerializer(slips, many=True)
+        serializer = PayrollSlipSerializer(slips, many=True)
         return Response(serializer.data)
 
 
@@ -737,7 +727,7 @@ class SalaryPeriodReadySlipsView(PermissionedAPIView):
         ),
         tags=["10.6: Salary Periods"],
         responses={
-            200: PayrollSlipListSerializer(many=True),
+            200: PayrollSlipSerializer(many=True),
         },
         examples=[
             OpenApiExample(
@@ -801,10 +791,10 @@ class SalaryPeriodReadySlipsView(PermissionedAPIView):
         # Apply pagination
         page = self.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = PayrollSlipListSerializer(page, many=True)
+            serializer = PayrollSlipSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = PayrollSlipListSerializer(queryset, many=True)
+        serializer = PayrollSlipSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def filter_queryset(self, queryset):
@@ -874,7 +864,7 @@ class SalaryPeriodNotReadySlipsView(PermissionedAPIView):
         ),
         tags=["10.6: Salary Periods"],
         responses={
-            200: PayrollSlipListSerializer(many=True),
+            200: PayrollSlipSerializer(many=True),
         },
         examples=[
             OpenApiExample(
@@ -941,10 +931,10 @@ class SalaryPeriodNotReadySlipsView(PermissionedAPIView):
         # Apply pagination
         page = self.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = PayrollSlipListSerializer(page, many=True)
+            serializer = PayrollSlipSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = PayrollSlipListSerializer(queryset, many=True)
+        serializer = PayrollSlipSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def filter_queryset(self, queryset):

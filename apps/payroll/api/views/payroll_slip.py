@@ -9,9 +9,9 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from apps.audit_logging.api.mixins import AuditLoggingMixin
+from apps.payroll.api.filtersets import PayrollSlipFilterSet
 from apps.payroll.api.serializers import (
     PayrollSlipHoldSerializer,
-    PayrollSlipListSerializer,
     PayrollSlipSerializer,
     PayrollSlipStatusUpdateSerializer,
 )
@@ -118,20 +118,7 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
     ).all()
     serializer_class = PayrollSlipSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, PhraseSearchFilter]
-    filterset_fields = {
-        "salary_period": ["exact"],
-        "salary_period__month": ["exact", "gte", "lte"],
-        "status": ["exact", "in"],
-        "employee": ["exact"],
-        "employee_code": ["exact", "icontains"],
-        "employee_name": ["icontains"],
-        "department_name": ["exact", "icontains"],
-        "position_name": ["exact", "icontains"],
-        "has_unpaid_penalty": ["exact"],
-        "need_resend_email": ["exact"],
-        "created_at": ["gte", "lte"],
-        "calculated_at": ["gte", "lte", "isnull"],
-    }
+    filterset_class = PayrollSlipFilterSet
     ordering_fields = [
         "code",
         "employee_code",
@@ -151,9 +138,7 @@ class PayrollSlipViewSet(AuditLoggingMixin, BaseReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         """Return appropriate serializer based on action."""
-        if self.action == "list":
-            return PayrollSlipListSerializer
-        elif self.action == "hold":
+        if self.action == "hold":
             return PayrollSlipHoldSerializer
         elif self.action in ["ready", "deliver"]:
             return PayrollSlipStatusUpdateSerializer
