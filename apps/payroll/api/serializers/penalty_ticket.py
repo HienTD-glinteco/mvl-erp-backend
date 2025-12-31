@@ -103,7 +103,7 @@ class PenaltyTicketSerializer(FileConfirmSerializerMixin, serializers.ModelSeria
     def validate_payment_date(self, value):
         """Ensure payment date is not in the future and not before penalty month."""
         if value:
-            if value > timezone.now().date():
+            if value > timezone.localdate():
                 raise serializers.ValidationError(_("Payment date cannot be in the future."))
             month = self.initial_data.get("month")
             if month:
@@ -149,12 +149,20 @@ class BulkUpdateStatusSerializer(serializers.Serializer):
         help_text="List of penalty ticket IDs",
     )
     status = serializers.ChoiceField(choices=PenaltyTicket.Status.choices, help_text="Desired payment status")
+    payment_date = serializers.DateField(required=True, help_text="Payment date to set when marking as PAID")
+
+    def validate_payment_date(self, value):
+        """Ensure payment date is not in the future and not before penalty month."""
+        if value:
+            if value > timezone.localdate():
+                raise serializers.ValidationError(_("Payment date cannot be in the future."))
+        return value
 
     def validate_ids(self, value):
         existing_ids = set(PenaltyTicket.objects.filter(id__in=value).values_list("id", flat=True))
         missing_ids = sorted(set(value) - existing_ids)
         if missing_ids:
-            raise serializers.ValidationError(f"Tickets not found: {missing_ids}")
+            raise serializers.ValidationError(_(f"Tickets not found: {missing_ids}"))
         return value
 
     def bulk_update_status(self):
@@ -164,5 +172,9 @@ class BulkUpdateStatusSerializer(serializers.Serializer):
         for ticket in tickets:
             ticket.status = self.validated_data["status"]
             ticket.updated_by = self.context["request"].user
-            ticket.save(update_fields=["status", "updated_by"])
+            if ticket.status == PenaltyTicket.Status.PAID:
+                ticket.payment_date = self.validated_data["payment_date"]
+            else:
+                ticket.payment_date = None
+            ticket.save(update_fields=["status", "payment_date", "updated_by"])
         return len(tickets)

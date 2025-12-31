@@ -240,7 +240,7 @@ class PenaltyTicketViewSet(AuditLoggingMixin, BaseModelViewSet):
         examples=[
             OpenApiExample(
                 "Mark tickets as paid",
-                value={"ids": [1, 2, 3], "status": PenaltyTicket.Status.PAID},
+                value={"ids": [1, 2, 3], "status": PenaltyTicket.Status.PAID, "payment_date": "2025-11-25"},
                 request_only=True,
             ),
             OpenApiExample(
