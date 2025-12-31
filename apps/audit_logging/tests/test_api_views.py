@@ -131,7 +131,7 @@ class TestAuditLogViewSet(TestCase):
 
         # Verify OpenSearch client was called with correct parameters including summary_fields_only
         mock_client.search_logs.assert_called_once_with(
-            filters={"action": "test_action"},
+            filters={"action": ["test_action"]},
             page_size=10,
             page=1,
             sort_order="desc",
@@ -604,7 +604,7 @@ class TestAuditLogViewSet(TestCase):
 
     @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_audit_logs_with_single_action(self, mock_get_client):
-        """Test that single action is passed as string, not list."""
+        """Test that single action is passed as list."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
@@ -620,15 +620,15 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify action filter is a string when single value
+        # Verify action filter is a list even when single value
         mock_client.search_logs.assert_called_once()
         call_kwargs = mock_client.search_logs.call_args.kwargs
         self.assertIn("action", call_kwargs["filters"])
-        self.assertEqual(call_kwargs["filters"]["action"], "CREATE")
+        self.assertEqual(call_kwargs["filters"]["action"], ["CREATE"])
 
     @patch("apps.audit_logging.api.serializers.get_opensearch_client")
     def test_search_audit_logs_with_single_object_type(self, mock_get_client):
-        """Test that single object_type is passed as string, not list."""
+        """Test that single object_type is passed as list."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
@@ -644,8 +644,8 @@ class TestAuditLogViewSet(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify object_type filter is a string when single value
+        # Verify object_type filter is a list even when single value
         mock_client.search_logs.assert_called_once()
         call_kwargs = mock_client.search_logs.call_args.kwargs
         self.assertIn("object_type", call_kwargs["filters"])
-        self.assertEqual(call_kwargs["filters"]["object_type"], "User")
+        self.assertEqual(call_kwargs["filters"]["object_type"], ["User"])

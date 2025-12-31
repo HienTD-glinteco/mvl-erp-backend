@@ -102,7 +102,7 @@ class HistoryMixinTestCase(TestCase):
 
         # Verify serializer was called with correct parameters
         call_args = mock_serializer_class.call_args[1]["data"]
-        self.assertEqual(call_args["object_type"], "mock_model")
+        self.assertEqual(call_args["object_types"], ["mock_model"])
         self.assertEqual(call_args["object_id"], "123")
 
     @patch("apps.audit_logging.api.mixins.AuditLogSearchSerializer")

@@ -204,7 +204,7 @@ class AuditLoggingMixin:
 
         # Build search parameters
         search_params = {
-            "object_type": object_type,
+            "object_types": [object_type],
             "object_id": object_id,
         }
 

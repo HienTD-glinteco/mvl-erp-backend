@@ -163,11 +163,11 @@ class AuditLogSearchSerializer(serializers.Serializer):
         # Extract multiple-value filters
         actions = self.validated_data.get("actions")
         if actions:
-            filters["action"] = actions if len(actions) > 1 else actions[0]
+            filters["action"] = actions
 
         object_types = self.validated_data.get("object_types")
         if object_types:
-            filters["object_type"] = object_types if len(object_types) > 1 else object_types[0]
+            filters["object_type"] = object_types
 
         # Pagination parameters
         page_size = self.validated_data.get("page_size", 50)
