@@ -26,7 +26,6 @@ from .kpi_config import GradeThresholdSerializer, KPIConfigSchemaSerializer, KPI
 from .kpi_criterion import KPICriterionSerializer
 from .payroll_slip import (
     PayrollSlipHoldSerializer,
-    PayrollSlipListSerializer,
     PayrollSlipSerializer,
     PayrollSlipStatusUpdateSerializer,
 )
@@ -108,7 +107,6 @@ __all__ = [
     "SalaryPeriodUpdateDeadlinesSerializer",
     "TaskStatusSerializer",
     "PayrollSlipSerializer",
-    "PayrollSlipListSerializer",
     "PayrollSlipHoldSerializer",
     "PayrollSlipStatusUpdateSerializer",
 ]

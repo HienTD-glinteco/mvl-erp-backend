@@ -15,6 +15,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     - month_year (year-month format n/YYYY via period)
     - grade_manager (multiple values filter)
     - grade_hrm (multiple values filter)
+    - status (filter by assessment status)
     - finalized (boolean)
     - branch (filter by employee's branch)
     - block (filter by employee's block)
@@ -35,6 +36,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
     block = django_filters.NumberFilter(field_name="employee__block__id", lookup_expr="exact")
     department = django_filters.NumberFilter(field_name="employee__department__id", lookup_expr="exact")
     position = django_filters.NumberFilter(field_name="employee__position__id", lookup_expr="exact")
+    status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -52,6 +54,7 @@ class EmployeeKPIAssessmentFilterSet(django_filters.FilterSet):
             "block",
             "department",
             "position",
+            "status",
         ]
 
     def filter_month_year(self, queryset, name, value):

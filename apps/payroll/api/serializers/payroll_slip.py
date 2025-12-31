@@ -9,42 +9,11 @@ from libs import ColoredValueSerializer
 from .common_nested import SalaryPeriodNestedSerializer
 
 
-class PayrollSlipListSerializer(serializers.ModelSerializer):
-    """List serializer for PayrollSlip with summary information."""
-
-    employee = EmployeeNestedSerializer(read_only=True)
-    salary_period = SalaryPeriodNestedSerializer(read_only=True)
-    colored_status = ColoredValueSerializer(source="get_colored_status", read_only=True)
-
-    class Meta:
-        model = PayrollSlip
-        fields = [
-            "id",
-            "code",
-            "salary_period",
-            "employee",
-            "employee_code",
-            "employee_name",
-            "department_name",
-            "position_name",
-            "gross_income",
-            "net_salary",
-            "status",
-            "colored_status",
-            "has_unpaid_penalty",
-            "unpaid_penalty_count",
-            "need_resend_email",
-            "calculated_at",
-        ]
-        read_only_fields = fields
-
-    def get_colored_status(self, obj):
-        """Get colored status value."""
-        return obj.get_colored_value("status")
-
-
 class PayrollSlipSerializer(serializers.ModelSerializer):
-    """Detail serializer for PayrollSlip with all calculation fields."""
+    """Serializer for PayrollSlip with all calculation fields.
+
+    Used for both list and detail views to provide complete payroll information.
+    """
 
     employee = EmployeeNestedSerializer(read_only=True)
     salary_period = SalaryPeriodNestedSerializer(read_only=True)
