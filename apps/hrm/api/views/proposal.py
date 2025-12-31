@@ -49,6 +49,7 @@ from apps.hrm.api.serializers.proposal import (
     ProposalTimesheetEntryComplaintSerializer,
     ProposalUnpaidLeaveExportXLSXSerializer,
     ProposalUnpaidLeaveSerializer,
+    ProposalVerifierListSerializer,
     ProposalVerifierNeedVerificationSerializer,
     ProposalVerifierRejectSerializer,
     ProposalVerifierSerializer,
@@ -3381,6 +3382,8 @@ class ProposalVerifierViewSet(AuditLoggingMixin, BaseModelViewSet):
     }
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return ProposalVerifierListSerializer
         if self.action == "verify":
             return ProposalVerifierVerifySerializer
         if self.action == "reject":
