@@ -3,16 +3,16 @@ args =
 
 # app commands
 check:
-	python manage.py check
+	python manage.py check $(args)
 
 migrations:
-	python manage.py makemigrations
+	python manage.py makemigrations $(args)
 
 migrate:
-	python manage.py migrate
+	python manage.py migrate $(args)
 
 compilemessages:
-	python manage.py compilemessages -l vi
+	python manage.py compilemessages -l vi $(args)
 
 # generate translation messages (ignore environment, coverage, tests and non-Python dirs)
 messages:
@@ -22,13 +22,13 @@ messages:
 		--ignore=.pytest_cache --ignore=.ruff_cache
 
 start:
-	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py runserver $(args)
 
 shell:
-	ENVIRONMENT=$(ENVIRONMENT) python manage.py shell_plus
+	ENVIRONMENT=$(ENVIRONMENT) python manage.py shell_plus $(args)
 
 celery_worker:
-	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q default
+	ENVIRONMENT=$(ENVIRONMENT) celery -A celery_tasks worker -l info -Q default $(args)
 
 run_audit_logs_consumer:
 	ENVIRONMENT=$(ENVIRONMENT) python manage.py consume_audit_logs $(args)

@@ -46,7 +46,7 @@ class TimeSheetEntry(ColoredValueMixin, AutoCodeMixin, BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_("Contract snapshot"),
+        verbose_name=_("Contract"),
         help_text=_("Snapshot of the active contract at the time of creation."),
     )
     net_percentage = models.IntegerField(

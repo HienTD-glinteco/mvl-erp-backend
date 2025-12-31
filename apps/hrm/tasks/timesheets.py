@@ -12,7 +12,7 @@ from celery import shared_task
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.hrm.constants import ProposalType, TimesheetStatus
+from apps.hrm.constants import ProposalType
 from apps.hrm.models import (
     Employee,
     EmployeeMonthlyTimesheet,
@@ -157,7 +157,7 @@ def finalize_daily_timesheets() -> dict:
         # The calculator logic handles "No logs -> ABSENT" and "1 log -> SINGLE_PUNCH"
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
+        calc.compute_all(is_finalizing=True)
         entry.save()
         count += 1
 

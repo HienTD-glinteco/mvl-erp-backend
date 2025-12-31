@@ -47,8 +47,13 @@ class TimesheetCalculator:
             self._fetched_schedule = True
         return self._work_schedule
 
-    def compute_all(self, work_schedule: Optional[WorkSchedule] = None) -> None:
-        """Run all calculations for the entry."""
+    def compute_all(self, work_schedule: Optional[WorkSchedule] = None, is_finalizing: bool = False) -> None:
+        """Run all calculations for the entry.
+
+        Args:
+            work_schedule: Optional WorkSchedule to use.
+            is_finalizing: If True, enforces end-of-day logic (e.g. setting ABSENT if no logs).
+        """
         if work_schedule:
             self._work_schedule = work_schedule
             self._fetched_schedule = True
@@ -72,7 +77,7 @@ class TimesheetCalculator:
         self.calculate_penalties()
 
         # 5. Compute Status & Working Days
-        self.compute_status()
+        self.compute_status(is_finalizing=is_finalizing)
         self.compute_working_days()
 
     def handle_exemption(self) -> bool:
@@ -324,8 +329,13 @@ class TimesheetCalculator:
     # Status & Working Days
     # ---------------------------------------------------------------------------
 
-    def compute_status(self) -> None:
-        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME."""
+    def compute_status(self, is_finalizing: bool = False) -> None:
+        """Compute status: ABSENT, SINGLE_PUNCH, ON_TIME, NOT_ON_TIME.
+
+        Args:
+            is_finalizing: If True, enforce ABSENT for empty logs (End of Day).
+                           If False, leave status as None for empty logs (Real-time Preview).
+        """
         from apps.hrm.services.timesheet_snapshot_service import TimesheetSnapshotService
 
         # 0. Support for direct calls (tests): ensure snapshot and penalties are run
@@ -361,7 +371,11 @@ class TimesheetCalculator:
                 is_working_day = True
 
             if is_working_day:
-                self.entry.status = TimesheetStatus.ABSENT
+                # REAL-TIME vs FINALIZATION Logic
+                if is_finalizing:
+                    self.entry.status = TimesheetStatus.ABSENT
+                else:
+                    self.entry.status = None
             else:
                 self.entry.status = None
             return
@@ -397,23 +411,21 @@ class TimesheetCalculator:
         wd += self._get_partial_leave_credits()
 
         if self.entry.status == TimesheetStatus.SINGLE_PUNCH:
-            # Re-calculating leave_credit locally for single punch comparison if needed
-            leave_credit = self._get_partial_leave_credits()
-            # If current WD is just the leave credit (meaning no actual official hours worked yet)
-            if wd == leave_credit:
-                max_cap = self._get_schedule_max_days()
-                if not self.work_schedule:
-                    max_cap = Decimal("1.00")
+            # HARD RULE: Single Punch = 1/2 Max Days. OT = 0.
+            max_cap = self._get_schedule_max_days()
+            if not self.work_schedule:
+                max_cap = Decimal("1.00")
 
-                # Remaining capacity for work
-                work_capacity = max_cap - leave_credit
-                if work_capacity > 0:
-                    # Calculate estimated hours based on available punch
-                    est_h = self._estimate_single_punch_hours()
-                    est_wd = Decimal(est_h) / Decimal(STANDARD_WORKING_HOURS_PER_DAY)
+            self.entry.working_days = max_cap / 2
 
-                    # Rule: Estimated WD for single punch is capped at half of capacity
-                    wd += min(est_wd, work_capacity / 2)
+            # Reset Overtime
+            self.entry.overtime_hours = Decimal("0.00")
+            self.entry.ot_tc1_hours = Decimal("0.00")
+            self.entry.ot_tc2_hours = Decimal("0.00")
+            self.entry.ot_tc3_hours = Decimal("0.00")
+
+            # Remove previous estimation logic
+            return
 
         # 5. Maternity Bonus (+1 hour = 0.125 days)
         wd += self._get_maternity_bonus()
@@ -422,6 +434,15 @@ class TimesheetCalculator:
 
         # 6. Final Cap
         self._apply_working_days_cap()
+
+        # 7. Compensation Value Logic
+        if self.entry.day_type == TimesheetDayType.COMPENSATORY:
+            max_days = self._get_schedule_max_days()
+            # compensation_value = Actual - Standard
+            # Standard is max_days (usually 1.0 or 0.5)
+            self.entry.compensation_value = self.entry.working_days - max_days
+        else:
+            self.entry.compensation_value = Decimal("0.00")
 
     def _get_partial_leave_credits(self) -> Decimal:
         """Calculate credits for partial morning/afternoon leaves."""

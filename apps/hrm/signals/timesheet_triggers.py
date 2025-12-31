@@ -203,14 +203,11 @@ def _process_proposal_change(proposal: Proposal):
     is_leave_proposal = proposal.proposal_type == ProposalType.PAID_LEAVE
     is_late_exemption_proposal = proposal.proposal_type == ProposalType.LATE_EXEMPTION
     is_post_maternity_benefits_proposal = proposal.proposal_type == ProposalType.POST_MATERNITY_BENEFITS
+    is_overtime_proposal = proposal.proposal_type == ProposalType.OVERTIME_WORK
 
     for entry in entries:
-        if is_leave_proposal:
-            snapshot_service.snapshot_leave_reason(entry)
-        if is_late_exemption_proposal:
-            snapshot_service.snapshot_late_exemption(entry)
-        if is_post_maternity_benefits_proposal:
-            snapshot_service.snapshot_post_maternity_benefits(entry)
+        if is_overtime_proposal:
+            snapshot_service.snapshot_overtime_data(entry)
 
         # Recalculate
         calculator = TimesheetCalculator(entry)
@@ -265,7 +262,7 @@ def _get_start_end_dates(proposal: Proposal) -> Tuple[Optional[date], Optional[d
         end_date = proposal.post_maternity_benefits_end_date
 
     if proposal.proposal_type == ProposalType.TIMESHEET_ENTRY_COMPLAINT:
-        start_date = proposal.timesheet_entry_complaint_start_date
-        end_date = proposal.timesheet_entry_complaint_end_date
+        start_date = proposal.timesheet_entry_complaint_complaint_date
+        end_date = proposal.timesheet_entry_complaint_complaint_date
 
     return start_date, end_date

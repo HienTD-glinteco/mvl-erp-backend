@@ -1,6 +1,6 @@
 import logging
 
-from apps.hrm.constants import AllowedLateMinutesReason, ProposalType, TimesheetDayType, TimesheetReason, Employee
+from apps.hrm.constants import AllowedLateMinutesReason, ProposalType, TimesheetDayType, TimesheetReason
 from apps.hrm.models import AttendanceExemption, Proposal, TimeSheetEntry
 from apps.hrm.models.holiday import CompensatoryWorkday, Holiday
 from apps.hrm.utils.work_schedule_cache import get_work_schedule_by_weekday
@@ -31,11 +31,8 @@ class TimesheetSnapshotService:
 
         # 4. Snapshot Proposals data
         self.snapshot_leave_reason(entry)
-        # TODO: snapshot late exemption, post maternity benefits
-        self.snapshot_late_exemption(entry)
-        self.snapshot_post_maternity_benefits(entry)
 
-        # 5. Snapshot allowed late minutes
+        # 5. Snapshot allowed late minutes (includes Late Exemption & Post Maternity)
         self.snapshot_allowed_late_minutes(entry)
 
         # 6. Snapshot allowed Overtime
@@ -135,14 +132,6 @@ class TimesheetSnapshotService:
                     entry.absent_reason = TimesheetReason.UNPAID_LEAVE
         # We don't clear it here; unexcused absence is handled by the calculator if status is ABSENT
         # and no reason was found.
-
-    def snapshot_late_exemption(self, entry: TimeSheetEntry) -> None:
-        # TODO: implement this
-        pass
-
-    def snapshot_post_maternity_benefits(self, entry: TimeSheetEntry) -> None:
-        # TODO: implement this
-        pass
 
     def snapshot_allowed_late_minutes(self, entry: TimeSheetEntry) -> None:
         """Calculate and store allowed_late_minutes (grace period)."""
@@ -245,9 +234,12 @@ class TimesheetSnapshotService:
             employee = entry.employee
         except Exception:
             # Fallback if relation not loaded
-            employee = Employee.objects.filter(id=entry.employee_id).first()
-            if not employee:
+            from apps.hrm.models import Employee
+
+            employee_obj = Employee.objects.filter(id=entry.employee_id).first()
+            if not employee_obj:
                 return
+            employee = employee_obj
 
         entry.count_for_payroll = not employee.is_unpaid_employee
 

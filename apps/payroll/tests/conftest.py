@@ -365,9 +365,9 @@ def timesheet_ready(employee_ready, salary_period):
         total_working_days=Decimal("22.00"),
         official_working_days=Decimal("22.00"),
         probation_working_days=Decimal("0.00"),
-        saturday_in_week_overtime_hours=Decimal("0.00"),
-        sunday_overtime_hours=Decimal("0.00"),
-        holiday_overtime_hours=Decimal("0.00"),
+        tc1_overtime_hours=Decimal("0.00"),
+        tc2_overtime_hours=Decimal("0.00"),
+        tc3_overtime_hours=Decimal("0.00"),
     )
 
 
