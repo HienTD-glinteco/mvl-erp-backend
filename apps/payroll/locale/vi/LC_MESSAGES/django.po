@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-31 09:27+0700\n"
+"POT-Creation-Date: 2025-12-31 11:49+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -75,6 +75,7 @@ msgid ""
 msgstr "Một tiêu chí với mục tiêu, loại đánh giá và tiêu chí này đã tồn tại"
 
 #: apps/payroll/api/serializers/penalty_ticket.py:107
+#: apps/payroll/api/serializers/penalty_ticket.py:158
 msgid "Payment date cannot be in the future."
 msgstr "Ngày nộp tiền không được ở tương lai."
 

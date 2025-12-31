@@ -3299,7 +3299,7 @@ msgstr "Không tìm thấy phụ lục hợp đồng. Vui lòng tạo trước."
 
 #: apps/hrm/models/decision.py:35
 msgid "Issued"
-msgstr "Ngày ban hành"
+msgstr "Đã ban hành"
 
 #: apps/hrm/models/decision.py:40
 msgid "Decision number"
