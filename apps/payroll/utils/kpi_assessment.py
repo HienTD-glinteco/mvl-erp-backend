@@ -270,6 +270,7 @@ def generate_employee_assessments_for_period(
                     employee=employee,
                     period=period,
                     manager=employee.department.leader if hasattr(employee.department, "leader") else None,
+                    department_snapshot=employee.department,
                 )
 
                 # Create items from criteria
@@ -347,6 +348,7 @@ def generate_department_assessments_for_period(
                     defaults={
                         "grade_hrm": "C",
                         "finalized": True,
+                        "department_snapshot": department,
                     },
                 )
 

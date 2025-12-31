@@ -36,7 +36,7 @@ class EmployeeKPIAssessment(ColoredValueMixin, BaseModel):
         hrm_assessed: Whether HRM has assessed this
         hrm_assessment_date: Date when HRM completed assessment
         finalized: Whether assessment is locked (no further edits)
-        department_assignment_source: Reference to DepartmentKPIAssessment if grade assigned by dept
+        department: Employee's department when KPI period was generated (snapshot)
         created_by: User who created this assessment
         updated_by: User who last updated this assessment
         note: Additional notes or comments
@@ -192,14 +192,14 @@ class EmployeeKPIAssessment(ColoredValueMixin, BaseModel):
         help_text="Whether assessment is locked (no further edits)",
     )
 
-    department_assignment_source = models.ForeignKey(
-        "DepartmentKPIAssessment",
-        on_delete=models.SET_NULL,
+    department_snapshot = models.ForeignKey(
+        "hrm.Department",
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="assigned_employee_assessments",
-        verbose_name="Department assignment source",
-        help_text="Reference to DepartmentKPIAssessment if grade assigned by dept",
+        related_name="employee_kpi_assessments",
+        verbose_name="Department Snapshot",
+        help_text="Employee's department when KPI period was generated (snapshot)",
     )
 
     created_by = models.ForeignKey(

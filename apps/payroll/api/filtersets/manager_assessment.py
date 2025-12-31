@@ -33,6 +33,7 @@ class ManagerAssessmentFilterSet(django_filters.FilterSet):
     block = django_filters.NumberFilter(field_name="employee__block__id", lookup_expr="exact")
     department = django_filters.NumberFilter(field_name="employee__department__id", lookup_expr="exact")
     position = django_filters.NumberFilter(field_name="employee__position__id", lookup_expr="exact")
+    status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
 
     class Meta:
         model = EmployeeKPIAssessment
@@ -49,6 +50,7 @@ class ManagerAssessmentFilterSet(django_filters.FilterSet):
             "block",
             "department",
             "position",
+            "status",
         ]
 
     def filter_month_year(self, queryset, name, value):

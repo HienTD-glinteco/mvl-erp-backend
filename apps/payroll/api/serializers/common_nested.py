@@ -14,18 +14,46 @@ from apps.hrm.api.serializers.common_nested import (
     EmployeeNestedSerializer,
     PositionNestedSerializer,
 )
+from apps.hrm.models import Employee
 from apps.payroll.models import KPIAssessmentPeriod, SalaryPeriod
 
 # Re-export HRM nested serializers for convenience
 __all__ = [
     "BlockNestedSerializer",
     "BranchNestedSerializer",
-    "EmployeeNestedSerializer",
     "DepartmentNestedSerializer",
+    "EmployeeNestedSerializer",
     "PositionNestedSerializer",
+    "EmployeeWithDetailsNestedSerializer",
     "KPIAssessmentPeriodNestedSerializer",
     "SalaryPeriodNestedSerializer",
 ]
+
+
+class EmployeeWithDetailsNestedSerializer(serializers.ModelSerializer):
+    """Nested serializer for Employee with organizational details.
+
+    Includes employee's block, branch, department, and position information.
+    Used in payroll contexts where full employee context is needed.
+    """
+
+    block = BlockNestedSerializer(read_only=True)
+    branch = BranchNestedSerializer(read_only=True)
+    department = DepartmentNestedSerializer(read_only=True)
+    position = PositionNestedSerializer(read_only=True)
+
+    class Meta:
+        model = Employee
+        fields = [
+            "id",
+            "code",
+            "fullname",
+            "block",
+            "branch",
+            "department",
+            "position",
+        ]
+        read_only_fields = fields
 
 
 class KPIAssessmentPeriodNestedSerializer(serializers.ModelSerializer):

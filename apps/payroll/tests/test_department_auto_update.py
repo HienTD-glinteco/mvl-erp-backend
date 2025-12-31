@@ -84,7 +84,11 @@ class TestDepartmentAssessmentAutoUpdate:
         # Create employee assessments
         self.emp_assessments = []
         for emp in self.employees:
-            assessment = EmployeeKPIAssessment.objects.create(period=self.period, employee=emp)
+            assessment = EmployeeKPIAssessment.objects.create(
+                period=self.period,
+                employee=emp,
+                department_snapshot=self.dept,  # Set department snapshot
+            )
             self.emp_assessments.append(assessment)
 
     def test_department_not_finished_initially(self):
