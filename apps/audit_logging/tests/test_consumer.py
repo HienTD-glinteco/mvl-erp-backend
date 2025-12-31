@@ -1,7 +1,9 @@
-# audit_logging/tests/test_consumer.py
-from unittest.mock import MagicMock, patch
+import json
+from unittest.mock import AsyncMock, MagicMock, patch
 
+from django.conf import settings
 from django.test import TestCase, override_settings
+from opensearchpy.exceptions import ConnectionError, OpenSearchException, RequestError, TransportError
 
 from ..consumer import AuditLogConsumer
 
@@ -59,10 +61,11 @@ class TestAuditLogConsumer(TestCase):
             "action": "test_action",
         }
 
-        await consumer._index_to_opensearch(log_data)
+        await consumer._index_to_opensearch(log_data, json.dumps(log_data), 100)
 
         # Verify index_log was called
         consumer.opensearch_client.index_log.assert_called_once_with(log_data)
+        self.assertEqual(consumer.metrics.success_count, 1)
 
     async def test_index_to_opensearch_with_retry(self):
         """Test OpenSearch indexing with retry logic."""
@@ -87,10 +90,12 @@ class TestAuditLogConsumer(TestCase):
             "action": "test_action",
         }
 
-        await consumer._index_to_opensearch(log_data)
+        await consumer._index_to_opensearch(log_data, json.dumps(log_data), 100)
 
         # Verify index_log was called 3 times (2 failures + 1 success)
         self.assertEqual(consumer.opensearch_client.index_log.call_count, 3)
+        self.assertEqual(consumer.metrics.success_count, 1)
+        self.assertEqual(consumer.metrics.error_types.get("network"), 2)
 
     async def test_message_handler_success(self):
         """Test successful message handling."""
@@ -126,3 +131,84 @@ class TestAuditLogConsumer(TestCase):
 
         # Verify OpenSearch indexing was NOT attempted
         consumer.opensearch_client.index_log.assert_not_called()
+
+    def test_categorize_error(self):
+        """Test error categorization logic."""
+        consumer = AuditLogConsumer(consumer_name=self.consumer_name)
+
+        # Validation error
+        self.assertEqual(consumer._categorize_error(RequestError(400, "mapper_parsing_exception", {})), "validation")
+        self.assertEqual(consumer._categorize_error(RequestError(400, "illegal_argument_exception", {})), "validation")
+
+        # Generic request error
+        self.assertEqual(consumer._categorize_error(RequestError(400, "some other error", {})), "request_error")
+
+        # Network errors
+        self.assertEqual(consumer._categorize_error(ConnectionError("N/A", "timeout", None)), "network")
+        self.assertEqual(consumer._categorize_error(TransportError(500, "transport error", None)), "network")
+
+        # Internal error
+        self.assertEqual(consumer._categorize_error(OpenSearchException("internal")), "opensearch_internal")
+
+        # Serialization
+        self.assertEqual(consumer._categorize_error(json.JSONDecodeError("msg", "doc", 0)), "serialization")
+
+        # Unknown
+        self.assertEqual(consumer._categorize_error(ValueError("oops")), "unknown")
+
+    @patch("asyncio.sleep", return_value=None)
+    async def test_dlq_production(self, mock_sleep):
+        """Test that failed messages are sent to DLQ."""
+        consumer = AuditLogConsumer(consumer_name=self.consumer_name)
+        consumer.opensearch_client = MagicMock()
+        consumer.opensearch_client.index_log.side_effect = Exception("Final failure")
+
+        # Mock DLQ producer
+        mock_producer = AsyncMock()
+        consumer.dlq_producer = mock_producer
+
+        log_data = {"log_id": "dlq-test"}
+        await consumer._index_to_opensearch(log_data, json.dumps(log_data), 100)
+
+        # Verify metrics recorded final failure
+        self.assertEqual(consumer.metrics.failure_count, 1)
+        self.assertEqual(consumer.metrics.error_types.get("unknown"), 3)
+        self.assertEqual(consumer.metrics.error_types.get("unknown_final_failure"), 1)
+
+        # Verify DLQ send was called
+        mock_producer.send.assert_called_once()
+        sent_args = mock_producer.send.call_args[0]
+        self.assertEqual(sent_args[0], consumer.DLQ_STREAM_NAME)
+        dlq_msg = json.loads(sent_args[1].decode("utf-8"))
+        self.assertEqual(dlq_msg["error_type"], "unknown")
+        self.assertEqual(dlq_msg["offset"], 100)
+
+    async def test_get_health_status(self):
+        """Test health status reporting."""
+        consumer = AuditLogConsumer(consumer_name=self.consumer_name)
+        consumer.is_running = True
+        consumer.current_offset = 500
+        consumer.last_committed_offset = 400
+        consumer.metrics.record_success(0.1)
+
+        status = consumer.get_health_status()
+        self.assertTrue(status["is_running"])
+        self.assertEqual(status["current_offset"], 500)
+        self.assertEqual(status["last_committed_offset"], 400)
+        self.assertEqual(status["metrics"]["success"], 1)
+
+    async def test_graceful_shutdown(self):
+        """Test final offset commit during stop()."""
+        consumer = AuditLogConsumer(consumer_name=self.consumer_name)
+        mock_rabbitmq = AsyncMock()
+        consumer.rabbitmq_consumer = mock_rabbitmq
+
+        consumer.current_offset = 123
+        consumer.last_committed_offset = 100
+
+        await consumer.stop()
+
+        # Verify final commit happened
+        mock_rabbitmq.store_offset.assert_called_once_with(
+            subscriber_name=self.consumer_name, stream=settings.RABBITMQ_STREAM_NAME, offset=123
+        )
