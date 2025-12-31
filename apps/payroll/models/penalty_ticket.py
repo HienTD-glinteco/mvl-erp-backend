@@ -2,7 +2,7 @@
 
 from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from apps.audit_logging.decorators import audit_logging_register
 from libs.models import AutoCodeMixin, BaseModel, SafeTextField
@@ -18,8 +18,8 @@ class PenaltyTicket(AutoCodeMixin, BaseModel):
     class Status(models.TextChoices):
         """Payment status for penalty board rows."""
 
-        PAID = "PAID", _("Paid")
-        UNPAID = "UNPAID", _("Unpaid")
+        PAID = "PAID", pgettext_lazy("PenaltyTicket Status", "Paid")
+        UNPAID = "UNPAID", pgettext_lazy("PenaltyTicket Status", "Unpaid")
 
     class ViolationType(models.TextChoices):
         """Violation types for penalty tickets."""
