@@ -264,7 +264,7 @@ def update_department_assessment_status(department_assessment) -> None:
 
     # Get all employee assessments in this department for this period
     employee_assessments = EmployeeKPIAssessment.objects.filter(
-        period=department_assessment.period, employee__department=department_assessment.department
+        period=department_assessment.period, department_snapshot=department_assessment.department
     )
 
     # Check if all employees have been graded
