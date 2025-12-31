@@ -231,10 +231,16 @@ class TestTimesheetCalculatorV2:
         # Here I set both to be safe and explicit.
 
         calc = TimesheetCalculator(entry)
-        calc.compute_all()
 
+        # Real-time mode (is_finalizing=False)
+        calc.compute_all(is_finalizing=False)
+        assert entry.status == TimesheetStatus.NOT_ON_TIME
+        assert entry.working_days is None  # Bug 2 fix
+
+        # Finalization mode (is_finalizing=True)
+        calc.compute_all(is_finalizing=True)
         assert entry.status == TimesheetStatus.SINGLE_PUNCH
-        assert entry.working_days == Decimal("0.50")  # Max / 2
+        assert entry.working_days == Decimal("0.50")
 
     def test_late_penalty_standard(self, employee, work_schedule):
         d = date(2023, 1, 2)
